@@ -1,14 +1,15 @@
+import Sektionssida from "../components/Sektionssida";
+import { KAN_REDIGERA_RUTINER, KAN_GODKANNA_RUTINER } from "../firebase/roles";
+
 export default function KlinisktStod() {
   return (
-    <div className="sida">
-      <h1>🩺 Kliniskt stöd</h1>
-      <p className="sida__beskrivning">
-        Sök på symptom eller skada för att hitta handläggningsrutiner,
-        triageringsstöd (WEST-M) och kritiska kom-ihåg-saker.
-      </p>
-      <div className="platshallare">
-        <p>Innehåll publiceras löpande under Fas 2–3.</p>
-      </div>
-    </div>
+    <Sektionssida
+      omrade="kliniskt-stod"
+      titel="Kliniskt stöd"
+      ikon="🩺"
+      beskrivning="Handläggningsrutiner, triageringsstöd och kritiska kom-ihåg-saker."
+      redigeraRoller={KAN_REDIGERA_RUTINER}
+      godkannaRoller={KAN_GODKANNA_RUTINER}
+    />
   );
 }

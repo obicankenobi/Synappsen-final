@@ -1,14 +1,15 @@
+import Sektionssida from "../components/Sektionssida";
+import { KAN_HANTERA_ANSLAG } from "../firebase/roles";
+
 export default function Administration() {
   return (
-    <div className="sida">
-      <h1>📋 Administration</h1>
-      <p className="sida__beskrivning">
-        Besöks- och anhörigpolicy, anslag och nyheter samt allmänna
-        regelverk.
-      </p>
-      <div className="platshallare">
-        <p>Innehåll publiceras löpande under Fas 2–3.</p>
-      </div>
-    </div>
+    <Sektionssida
+      omrade="administration"
+      titel="Administration"
+      ikon="📋"
+      beskrivning="Besöks- och anhörigpolicy, anslag och nyheter samt allmänna regelverk."
+      redigeraRoller={KAN_HANTERA_ANSLAG}
+      godkannaRoller={KAN_HANTERA_ANSLAG}
+    />
   );
 }

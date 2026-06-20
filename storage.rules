@@ -1,0 +1,28 @@
+rules_version = '2';
+
+// Storage Rules för Synappsen – bilder kopplade till rutiner
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function arInloggad() {
+      return request.auth != null;
+    }
+
+    function minRoll() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function farRedigeraOmrade(omrade) {
+      let roll = minRoll();
+      return roll == 'superadmin'
+        || (omrade == 'kliniskt-stod' && (roll == 'vol' || roll == 'sektionsledare'))
+        || (omrade == 'logistik' && roll == 'forradesansvarig')
+        || (omrade == 'administration' && roll == 'vec');
+    }
+
+    match /rutiner/{omrade}/{rutinId}/{filnamn} {
+      allow read: if arInloggad();
+      allow write: if arInloggad() && farRedigeraOmrade(omrade);
+    }
+  }
+}

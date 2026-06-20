@@ -22,12 +22,25 @@ VITE_FIREBASE_APP_ID=
 
 ## Struktur
 
-- `src/firebase/` – Firebase-initiering och rolldefinitioner
+- `src/firebase/` – Firebase-initiering, rolldefinitioner och bilduppladdning (Storage)
 - `src/context/` – AuthContext för inloggning/registrering/rollhämtning
-- `src/hooks/` – `useAuth`-hook
-- `src/pages/` – Sidor (Hem, Logga in, Registrera, de tre sektionerna)
-- `src/components/` – Återanvändbara komponenter (sökfält, navigering, kort)
-- `firestore.rules` – Security Rules per användarroll
+- `src/hooks/` – `useAuth`, `useRutiner` (CRUD + godkännandeflöde) och `useAnvandare` (adminpanel)
+- `src/pages/` – Sidor (Hem, Logga in, Registrera, de tre sektionerna, Admin)
+- `src/components/` – Återanvändbara komponenter (sökfält, navigering, kort, rutinformulär, sektionssida)
+- `firestore.rules` / `storage.rules` – Security Rules per användarroll och område
+
+## Rutinhantering och roller
+
+Innehåll i de tre sektionerna lagras i Firestore-collectionen `rutiner` med fältet `omrade`
+(`kliniskt-stod`, `logistik` eller `administration`). Vem som får skapa/redigera/ta bort styrs
+per område:
+
+- **Kliniskt stöd**: VÖL och sektionsledare skapar utkast, VÖL/superadmin godkänner innan publicering.
+- **Logistik**: Förrådsansvarig (publiceras direkt).
+- **Administration**: VEC (publiceras direkt).
+
+Superadmin har alltid full behörighet. Adminpanelen (`/admin`, endast superadmin) används för
+att ändra användares roller.
 
 ## Driftsättning till Firebase Hosting
 

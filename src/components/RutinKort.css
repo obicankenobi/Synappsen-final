@@ -1,0 +1,47 @@
+.rutin-kort {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.rutin-kort__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.rutin-kort__header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.rutin-kort__badge {
+  font-size: 0.75rem;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.rutin-kort__bild {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.rutin-kort__innehall {
+  white-space: pre-wrap;
+  color: #374151;
+}
+
+.rutin-kort__atgarder {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}

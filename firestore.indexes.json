@@ -1,4 +1,13 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "rutiner",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "omrade", "order": "ASCENDING" },
+        { "fieldPath": "skapad", "order": "DESCENDING" }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }
