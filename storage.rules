@@ -24,5 +24,12 @@ service firebase.storage {
       allow read: if arInloggad();
       allow write: if arInloggad() && farRedigeraOmrade(omrade);
     }
+
+    // inkommande/{uid}/{filnamn} – råfoton från personal innan Gemini-tolkning.
+    // Endast den som laddat upp och redaktörer/superadmin får läsa; alla inloggade får ladda upp egna foton.
+    match /inkommande/{uid}/{filnamn} {
+      allow read: if arInloggad() && (request.auth.uid == uid || minRoll() != 'personal');
+      allow write: if arInloggad() && request.auth.uid == uid;
+    }
   }
 }

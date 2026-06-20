@@ -73,5 +73,13 @@ service cloud.firestore {
 
       allow delete: if farRedigeraOmrade(resource.data.omrade);
     }
+
+    // installningar/geminiBudget – budgettak för Gemini Vision-tolkning.
+    // Skrivs normalt endast av Cloud Function (Admin SDK, kringgår dessa regler).
+    // Superadmin kan höja/sänka taket manuellt i adminpanelen.
+    match /installningar/{dokId} {
+      allow read: if arInloggad();
+      allow write: if arSuperadmin();
+    }
   }
 }

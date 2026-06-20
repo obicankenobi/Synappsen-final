@@ -1,0 +1,36 @@
+.ladda-upp__omrade {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.ladda-upp__omrade select {
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.ladda-upp__lista {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.ladda-upp__rad {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.9rem;
+}
+
+.ladda-upp__klar {
+  color: #16a34a;
+}
+
+.ladda-upp__fel {
+  color: #dc2626;
+}

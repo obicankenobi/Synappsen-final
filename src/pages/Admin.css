@@ -26,3 +26,29 @@
   border: 1px solid #e5e7eb;
   border-radius: 8px;
 }
+
+.admin-sektion {
+  margin-bottom: 32px;
+}
+
+.admin-sektion h2 {
+  font-size: 1.1rem;
+  margin: 0 0 8px;
+}
+
+.admin-budget__sparrad {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.admin-budget__form {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-budget__form input {
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  width: 140px;
+}

@@ -10,6 +10,7 @@ import KlinisktStod from "./pages/KlinisktStod";
 import Logistik from "./pages/Logistik";
 import Administration from "./pages/Administration";
 import Admin from "./pages/Admin";
+import LaddaUpp from "./pages/LaddaUpp";
 import { ROLES } from "./firebase/roles";
 
 function SkyddatLayout({ children }) {
@@ -57,6 +58,14 @@ export default function App() {
             element={
               <SkyddatLayout>
                 <Administration />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/ladda-upp"
+            element={
+              <SkyddatLayout>
+                <LaddaUpp />
               </SkyddatLayout>
             }
           />

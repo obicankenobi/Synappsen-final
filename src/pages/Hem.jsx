@@ -46,6 +46,12 @@ export default function Hem() {
           ikon="📋"
           lank="/administration"
         />
+        <SektionsKort
+          titel="Ladda upp dokument"
+          beskrivning="Fota en whiteboard eller ett papper – Gemini tolkar innehållet"
+          ikon="📷"
+          lank="/ladda-upp"
+        />
       </div>
     </div>
   );

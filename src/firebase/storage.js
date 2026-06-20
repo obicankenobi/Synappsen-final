@@ -10,3 +10,11 @@ export async function laddaUppRutinBild(omrade, rutinId, fil) {
   await uploadBytes(bildRef, fil);
   return getDownloadURL(bildRef);
 }
+
+// Laddar upp ett råfoto som ska tolkas av Gemini Vision och returnerar dess sökväg i Storage
+export async function laddaUppInkommandeFoto(uid, fil) {
+  const sokvag = `inkommande/${uid}/${Date.now()}-${fil.name}`;
+  const bildRef = ref(storage, sokvag);
+  await uploadBytes(bildRef, fil);
+  return sokvag;
+}
