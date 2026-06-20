@@ -1,0 +1,83 @@
+rules_version = '2';
+
+// Security Rules för Synappsen
+// Roller: superadmin, vol, sektionsledare, vec, forradesansvarig, personal
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function arInloggad() {
+      return request.auth != null;
+    }
+
+    function minRoll() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function arSuperadmin() {
+      return arInloggad() && minRoll() == 'superadmin';
+    }
+
+    function arVol() {
+      return arInloggad() && minRoll() == 'vol';
+    }
+
+    function arSektionsledare() {
+      return arInloggad() && minRoll() == 'sektionsledare';
+    }
+
+    function arVec() {
+      return arInloggad() && minRoll() == 'vec';
+    }
+
+    function arForradsansvarig() {
+      return arInloggad() && minRoll() == 'forradesansvarig';
+    }
+
+    // Får skapa/ändra rutinutkast (medicinskt innehåll)
+    function farRedigeraRutiner() {
+      return arSuperadmin() || arVol() || arSektionsledare();
+    }
+
+    // Får godkänna/publicera medicinskt innehåll
+    function farGodkannaRutiner() {
+      return arSuperadmin() || arVol();
+    }
+
+    // users/{uid} – innehåller namn, e-post och roll
+    match /users/{userId} {
+      allow read: if arInloggad();
+      // Ett nytt konto skapar sitt eget dokument med standardrollen "personal"
+      allow create: if arInloggad() && request.auth.uid == userId
+                     && request.resource.data.role == 'personal';
+      // Endast superadmin får ändra roller och andra användares uppgifter
+      allow update, delete: if arSuperadmin();
+    }
+
+    // rutiner/{rutinId} – kliniskt stöd, logistik, kräver godkännandeflöde
+    match /rutiner/{rutinId} {
+      allow read: if arInloggad();
+      allow create, update: if farRedigeraRutiner();
+      // Publicering (status -> godkänd) kräver VÖL eller superadmin
+      allow update: if farGodkannaRutiner();
+      allow delete: if arSuperadmin() || arVol();
+    }
+
+    // anslag/{anslagId} – nyheter och informationsmeddelanden
+    match /anslag/{anslagId} {
+      allow read: if arInloggad();
+      allow create, update, delete: if arSuperadmin() || arVec();
+    }
+
+    // forrad/{artikelId} – förrådsartiklar och förvaringsinformation
+    match /forrad/{artikelId} {
+      allow read: if arInloggad();
+      allow create, update, delete: if arSuperadmin() || arForradsansvarig();
+    }
+
+    // administration/{dokId} – policys och regelverk
+    match /administration/{dokId} {
+      allow read: if arInloggad();
+      allow create, update, delete: if arSuperadmin();
+    }
+  }
+}

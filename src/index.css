@@ -1,0 +1,140 @@
+:root {
+  --primar: #1d4ed8;
+  --text: #111827;
+  --text-svag: #6b7280;
+  --bg: #f9fafb;
+  --kant: #e5e7eb;
+
+  font: 16px/1.5 system-ui, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin: 0 0 4px;
+}
+
+.sida {
+  flex: 1;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 16px 90px;
+}
+
+.sida--auth {
+  max-width: 380px;
+  padding-top: 64px;
+}
+
+.sida__beskrivning {
+  color: var(--text-svag);
+  margin-bottom: 20px;
+}
+
+.hem__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.hem__valkommen {
+  color: var(--text-svag);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.hem__kort-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.platshallare {
+  background: #fff;
+  border: 1px dashed var(--kant);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-svag);
+}
+
+.auth__undertext {
+  color: var(--text-svag);
+  margin-bottom: 24px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.auth-form input {
+  padding: 12px 14px;
+  border: 1px solid var(--kant);
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.auth__fel {
+  color: #dc2626;
+  font-size: 0.9rem;
+}
+
+.auth__bytlank {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: var(--text-svag);
+}
+
+.knapp {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: var(--primar);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.knapp:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.knapp--sekundar {
+  background: transparent;
+  color: var(--primar);
+  border: 1px solid var(--primar);
+}
+
+.app-innehall {
+  flex: 1;
+}
