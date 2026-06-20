@@ -34,5 +34,8 @@ jobs:
       - name: Sätt Gemini-nyckeln i Secret Manager
         run: echo "${{ secrets.GEMINI_API_KEY }}" | firebase functions:secrets:set GEMINI_API_KEY --data-file=- --project synappsen-final-build --force
 
+      - name: Sätt cleanup policy för container-images
+        run: firebase functions:artifacts:setpolicy --location=europe-west1 --project=synappsen-final-build --force
+
       - name: Deploya till Firebase
         run: firebase deploy --project synappsen-final-build --non-interactive --force
