@@ -13,6 +13,17 @@ jobs:
         with:
           node-version: 20
 
+      - name: Skapa .env med Firebase-konfiguration
+        run: |
+          cat > .env <<'EOF'
+          VITE_FIREBASE_API_KEY=AIzaSyBAZmfLrM_bjC9IuvRQEw8hp87AvvARsTk
+          VITE_FIREBASE_AUTH_DOMAIN=synappsen-final-build.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID=synappsen-final-build
+          VITE_FIREBASE_STORAGE_BUCKET=synappsen-final-build.firebasestorage.app
+          VITE_FIREBASE_MESSAGING_SENDER_ID=773838769422
+          VITE_FIREBASE_APP_ID=1:773838769422:web:2f9cdc586378cdc5145b5f
+          EOF
+
       - name: Installera frontend-beroenden
         run: npm install
 
