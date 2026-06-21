@@ -12,6 +12,33 @@
   border-radius: 8px;
 }
 
+.ladda-upp__filval {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.ladda-upp__filval .knapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.ladda-upp__dolt-falt {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.ladda-upp__atgarder {
+  display: flex;
+  gap: 10px;
+}
+
 .ladda-upp__lista {
   list-style: none;
   margin: 16px 0 0;

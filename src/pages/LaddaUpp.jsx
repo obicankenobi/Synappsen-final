@@ -27,10 +27,15 @@ export default function LaddaUpp() {
 
   function valjFiler(e) {
     const filer = Array.from(e.target.files ?? []);
-    setPoster(
-      filer.map((fil) => ({ fil, status: STATUS.VANTAR, resultat: null, felmeddelande: null })
-      )
-    );
+    setPoster((aktuella) => [
+      ...aktuella,
+      ...filer.map((fil) => ({ fil, status: STATUS.VANTAR, resultat: null, felmeddelande: null })),
+    ]);
+    e.target.value = "";
+  }
+
+  function rensaFiler() {
+    setPoster([]);
   }
 
   async function startaTolkning() {
@@ -102,12 +107,38 @@ export default function LaddaUpp() {
         </label>
       )}
 
-      <input type="file" accept="image/*" multiple capture="environment" onChange={valjFiler} />
+      <div className="ladda-upp__filval">
+        <label className="knapp knapp--sekundar">
+          Välj bilder från galleri
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={valjFiler}
+            className="ladda-upp__dolt-falt"
+          />
+        </label>
+        <label className="knapp knapp--sekundar">
+          Ta foto
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={valjFiler}
+            className="ladda-upp__dolt-falt"
+          />
+        </label>
+      </div>
 
       {poster.length > 0 && (
-        <button className="knapp" onClick={startaTolkning}>
-          Skicka {poster.length} foto(n) för tolkning
-        </button>
+        <div className="ladda-upp__atgarder">
+          <button className="knapp" onClick={startaTolkning}>
+            Skicka {poster.length} foto(n) för tolkning
+          </button>
+          <button className="knapp knapp--sekundar" onClick={rensaFiler}>
+            Rensa
+          </button>
+        </div>
       )}
 
       <ul className="ladda-upp__lista">
