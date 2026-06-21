@@ -1,0 +1,61 @@
+.forrad-artikel-kort {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.forrad-artikel-kort__bild {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.forrad-artikel-kort__info {
+  flex: 1;
+  min-width: 160px;
+}
+
+.forrad-artikel-kort__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.forrad-artikel-kort__header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.forrad-artikel-kort__badge {
+  font-size: 0.75rem;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.forrad-artikel-kort__plats {
+  color: #374151;
+  margin: 6px 0 0;
+}
+
+.forrad-artikel-kort__antal {
+  color: #6b7280;
+  margin: 4px 0 0;
+}
+
+.forrad-artikel-kort__atgarder {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}

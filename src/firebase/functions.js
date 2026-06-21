@@ -8,3 +8,8 @@ export function tolkaDokument(storagePath, omrade) {
   const fn = httpsCallable(functions, "tolkaDokument");
   return fn({ storagePath, omrade });
 }
+
+export function tolkaForradsbild(storagePath, forrad) {
+  const fn = httpsCallable(functions, "tolkaForradsbild");
+  return fn({ storagePath, forrad });
+}

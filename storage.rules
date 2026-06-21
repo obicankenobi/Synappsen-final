@@ -25,6 +25,11 @@ service firebase.storage {
       allow write: if arInloggad() && farRedigeraOmrade(omrade);
     }
 
+    match /forradsartiklar/{forradSlug}/{artikelId}/{filnamn} {
+      allow read: if arInloggad();
+      allow write: if arInloggad() && farRedigeraOmrade('logistik');
+    }
+
     // inkommande/{uid}/{filnamn} – råfoton från personal innan Gemini-tolkning.
     // Endast den som laddat upp och redaktörer/superadmin får läsa; alla inloggade får ladda upp egna foton.
     match /inkommande/{uid}/{filnamn} {

@@ -102,3 +102,41 @@ Vision-tolkning saknades helt. Tre arkitekturbeslut togs tillsammans med använd
   riktigt budgetlarm i Google Cloud Console som komplement) och fullständiga driftsättningssteg
   inklusive `firebase functions:secrets:set GEMINI_API_KEY`.
 - Verifierat: `npm run build` och `npm run lint` gröna.
+
+---
+
+## Fas 3.1 – Strukturerade förrådsartiklar med platsangivelse (Logistik)
+
+**Datum:** 2026-06-20
+**Branch:** `claude/compassionate-euler-rho0q5`
+
+### Genomfört
+
+- `src/firebase/forrad.js` – definierar de sex förråden (Engångsförrådet, Sterilförrådet,
+  Ortopedförrådet, Tvättförrådet, Kontorsförrådet, Läkemedelsrummet) samt slug-hjälpfunktioner för
+  URL-vägar.
+- Ny Firestore-collection `forradsartiklar` med fälten `namn`, `forrad`, `skap`, `hylla`, `antal`,
+  `bildUrl`, `status` och `kalla`.
+- `functions/index.js` – ny Cloud Function `tolkaForradsbild`: tar emot en bild och vilket förråd
+  den hör till, ber Gemini Vision identifiera samtliga artiklar i bilden (antingen fysiska artiklar
+  eller en skriven lista) och extrahera skåp/hylla/antal *endast* om det faktiskt är märkt i bilden.
+  Varje hittad artikel skapas som ett separat utkast i `forradsartiklar`, kopplat till samma
+  budgetspärr som övrig Gemini-tolkning.
+- `src/hooks/useForradsartiklar.js` – realtidshämtning (filtrerad på förråd, eller alla för
+  sökmotorn) samt `skapaArtikel`, `uppdateraArtikel`, `godkannArtikel`, `taBortArtikel`. Manuellt
+  tillagda artiklar publiceras direkt (precis som övrigt manuellt innehåll i Logistik), medan
+  Gemini-tolkade artiklar kräver godkännande av förrådsansvarig/superadmin innan de syns för andra.
+- `src/pages/Logistik.jsx` – omskriven till en lista med kort för de sex förråden.
+- `src/pages/ForradVy.jsx` (ny, rutt `/logistik/:forradSlug`) – visar artiklarna i ett valt förråd
+  sorterade på skåp/hylla, med formulär för att manuellt lägga till/redigera artiklar
+  (`ForradArtikelFormular`) och kort per artikel (`ForradArtikelKort`) med redigera/godkänn/ta bort.
+- `src/pages/LaddaUpp.jsx` – vid val av område "Logistik" visas ett extra val för vilket förråd
+  bilden hör till, och anropar `tolkaForradsbild` istället för `tolkaDokument`.
+- `src/components/SokFalt.jsx` – sökmotorn slogs samman med en realtidsström av godkända
+  förrådsartiklar från Firestore (tidigare endast ett statiskt platshållarindex), så att en sökning
+  visar exakt vilket förråd, skåp och hylla en artikel finns i.
+- `firestore.rules` / `storage.rules` – nya regelblock för `forradsartiklar` respektive
+  `forradsartiklar/{forradSlug}/{artikelId}/{filnamn}`, baserade på samma `farRedigeraOmrade('logistik')`
+  som övrigt logistikinnehåll.
+- `firestore.indexes.json` – nytt kompositindex för `forrad` + `skapad`.
+- Verifierat: `npm run build` och `npm run lint` gröna, `node -c functions/index.js` syntax-OK.

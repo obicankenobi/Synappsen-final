@@ -74,6 +74,14 @@ service cloud.firestore {
       allow delete: if farRedigeraOmrade(resource.data.omrade);
     }
 
+    // forradsartiklar/{artikelId} – inventarie i Logistik-förråden, platsangivet med förråd/skåp/hylla
+    match /forradsartiklar/{artikelId} {
+      allow read: if arInloggad()
+                   && (resource.data.status == 'godkand' || farRedigeraOmrade('logistik'));
+      allow create: if farRedigeraOmrade('logistik');
+      allow update, delete: if farRedigeraOmrade('logistik');
+    }
+
     // installningar/geminiBudget – budgettak för Gemini Vision-tolkning.
     // Skrivs normalt endast av Cloud Function (Admin SDK, kringgår dessa regler).
     // Superadmin kan höja/sänka taket manuellt i adminpanelen.

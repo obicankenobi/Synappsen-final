@@ -7,6 +7,14 @@
         { "fieldPath": "omrade", "order": "ASCENDING" },
         { "fieldPath": "skapad", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "forradsartiklar",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "forrad", "order": "ASCENDING" },
+        { "fieldPath": "skapad", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

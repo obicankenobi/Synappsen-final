@@ -1,0 +1,41 @@
+.forrad-artikel-formular {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.forrad-artikel-formular label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.forrad-artikel-formular input {
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.forrad-artikel-formular__rad {
+  display: flex;
+  gap: 16px;
+}
+
+.forrad-artikel-formular__rad label {
+  flex: 1;
+}
+
+.forrad-artikel-formular__knappar {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}

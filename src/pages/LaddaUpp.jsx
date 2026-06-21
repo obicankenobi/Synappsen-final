@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { laddaUppInkommandeFoto } from "../firebase/storage";
-import { tolkaDokument } from "../firebase/functions";
+import { tolkaDokument, tolkaForradsbild } from "../firebase/functions";
+import { FORRAD } from "../firebase/forrad";
 import "./LaddaUpp.css";
 
 const OMRADEN = [
@@ -21,6 +22,7 @@ const STATUS = {
 export default function LaddaUpp() {
   const { currentUser } = useAuth();
   const [omrade, setOmrade] = useState(OMRADEN[0].varde);
+  const [forrad, setForrad] = useState(FORRAD[0]);
   const [poster, setPoster] = useState([]);
 
   function valjFiler(e) {
@@ -49,7 +51,10 @@ export default function LaddaUpp() {
         aktuella.map((p, i) => (i === index ? { ...p, status: STATUS.TOLKAR } : p))
       );
 
-      const { data } = await tolkaDokument(storagePath, omrade);
+      const { data } =
+        omrade === "logistik"
+          ? await tolkaForradsbild(storagePath, forrad)
+          : await tolkaDokument(storagePath, omrade);
 
       setPoster((aktuella) =>
         aktuella.map((p, i) => (i === index ? { ...p, status: STATUS.KLAR, resultat: data } : p))
@@ -84,6 +89,19 @@ export default function LaddaUpp() {
         </select>
       </label>
 
+      {omrade === "logistik" && (
+        <label className="ladda-upp__omrade">
+          Förråd
+          <select value={forrad} onChange={(e) => setForrad(e.target.value)}>
+            {FORRAD.map((f) => (
+              <option key={f} value={f}>
+                {f}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
       <input type="file" accept="image/*" multiple capture="environment" onChange={valjFiler} />
 
       {poster.length > 0 && (
@@ -100,7 +118,12 @@ export default function LaddaUpp() {
             {post.status === STATUS.LADDAR_UPP && <span>Laddar upp...</span>}
             {post.status === STATUS.TOLKAR && <span>Tolkar med Gemini...</span>}
             {post.status === STATUS.KLAR && (
-              <span className="ladda-upp__klar">Klar: {post.resultat.titel}</span>
+              <span className="ladda-upp__klar">
+                Klar:{" "}
+                {post.resultat.antal !== undefined
+                  ? `${post.resultat.antal} artikel(ar) hittade`
+                  : post.resultat.titel}
+              </span>
             )}
             {post.status === STATUS.FEL && (
               <span className="ladda-upp__fel">{post.felmeddelande}</span>

@@ -88,6 +88,107 @@ Extrahera innehållet och returnera strukturerad data på svenska:
   return JSON.parse(result.response.text());
 }
 
+const FORRAD = [
+  "Engångsförrådet",
+  "Sterilförrådet",
+  "Ortopedförrådet",
+  "Tvättförrådet",
+  "Kontorsförrådet",
+  "Läkemedelsrummet",
+];
+
+const forradsArtikelSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    artiklar: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          namn: { type: SchemaType.STRING },
+          skap: { type: SchemaType.STRING },
+          hylla: { type: SchemaType.STRING },
+          antal: { type: SchemaType.STRING },
+        },
+        required: ["namn", "skap", "hylla", "antal"],
+      },
+    },
+  },
+  required: ["artiklar"],
+};
+
+async function tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad) {
+  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.0-flash",
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: forradsArtikelSchema,
+    },
+  });
+
+  const prompt = `Du tolkar ett foto från förrådet "${forrad}" på en akutmottagning.
+Fotot kan visa enskilda artiklar i ett skåp/på en hylla, eller en skriven/utskriven lista över artiklar.
+Extrahera en lista över alla artiklar som syns i bilden. För varje artikel anger du:
+- namn: artikelns namn
+- skap: skåpets beteckning (bokstav/nummer) ENDAST om det syns på en skylt/etikett i bilden, annars tom sträng
+- hylla: hyllans beteckning ENDAST om det syns på en skylt/etikett i bilden, annars tom sträng
+- antal: angiven mängd/antal om det står i bilden, annars tom sträng
+Gissa inte plats om den inte är märkt i bilden – lämna då skap/hylla tomma.`;
+
+  const result = await model.generateContent([
+    prompt,
+    { inlineData: { data: bildBuffer.toString("base64"), mimeType } },
+  ]);
+
+  return JSON.parse(result.response.text()).artiklar;
+}
+
+exports.tolkaForradsbild = onCall(
+  { secrets: [GEMINI_API_KEY], region: "europe-west1" },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+    }
+
+    const { storagePath, forrad } = request.data;
+    if (!storagePath || !FORRAD.includes(forrad)) {
+      throw new HttpsError("invalid-argument", "storagePath och ett giltigt forrad krävs.");
+    }
+
+    await reserveraBudget();
+
+    const fil = bucket.file(storagePath);
+    const [bildBuffer] = await fil.download();
+    const [metadata] = await fil.getMetadata();
+    const mimeType = metadata.contentType || "image/jpeg";
+
+    const artiklar = await tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad);
+    const bildUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
+
+    const batch = db.batch();
+    const skapade = artiklar.map((artikel) => {
+      const ref = db.collection("forradsartiklar").doc();
+      batch.set(ref, {
+        namn: artikel.namn,
+        skap: artikel.skap || null,
+        hylla: artikel.hylla || null,
+        antal: artikel.antal || null,
+        bildUrl,
+        forrad,
+        status: "utkast",
+        kalla: "gemini",
+        skapadAv: request.auth.uid,
+        skapad: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      return { id: ref.id, ...artikel };
+    });
+    await batch.commit();
+
+    return { antal: skapade.length, artiklar: skapade };
+  }
+);
+
 exports.tolkaDokument = onCall(
   { secrets: [GEMINI_API_KEY], region: "europe-west1" },
   async (request) => {

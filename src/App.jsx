@@ -8,6 +8,7 @@ import LoggaIn from "./pages/LoggaIn";
 import Registrera from "./pages/Registrera";
 import KlinisktStod from "./pages/KlinisktStod";
 import Logistik from "./pages/Logistik";
+import ForradVy from "./pages/ForradVy";
 import Administration from "./pages/Administration";
 import Admin from "./pages/Admin";
 import LaddaUpp from "./pages/LaddaUpp";
@@ -50,6 +51,14 @@ export default function App() {
             element={
               <SkyddatLayout>
                 <Logistik />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/logistik/:forradSlug"
+            element={
+              <SkyddatLayout>
+                <ForradVy />
               </SkyddatLayout>
             }
           />
