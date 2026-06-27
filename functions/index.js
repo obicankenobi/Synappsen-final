@@ -109,8 +109,9 @@ const forradsArtikelSchema = {
           skap: { type: SchemaType.STRING },
           hylla: { type: SchemaType.STRING },
           antal: { type: SchemaType.STRING },
+          sokord: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
         },
-        required: ["namn", "skap", "hylla", "antal"],
+        required: ["namn", "skap", "hylla", "antal", "sokord"],
       },
     },
   },
@@ -134,6 +135,9 @@ Extrahera en lista över alla artiklar som syns i bilden. För varje artikel ang
 - skap: skåpets beteckning (bokstav/nummer) ENDAST om det syns på en skylt/etikett i bilden, annars tom sträng
 - hylla: hyllans beteckning ENDAST om det syns på en skylt/etikett i bilden, annars tom sträng
 - antal: angiven mängd/antal om det står i bilden, annars tom sträng
+- sokord: en lista med alternativa sökord/synonymer som vårdpersonal kan tänkas söka på för att
+  hitta artikeln – t.ex. vanliga förkortningar, slangbegrepp eller bredare produktkategorier
+  (exempel: en "Foley-kateter" bör även ge sökord som "kateter", "urinkateter" och "KAD")
 Gissa inte plats om den inte är märkt i bilden – lämna då skap/hylla tomma.`;
 
   const result = await model.generateContent([
@@ -174,6 +178,7 @@ exports.tolkaForradsbild = onCall(
         skap: artikel.skap || null,
         hylla: artikel.hylla || null,
         antal: artikel.antal || null,
+        sokord: artikel.sokord ?? [],
         bildUrl,
         forrad,
         status: "utkast",

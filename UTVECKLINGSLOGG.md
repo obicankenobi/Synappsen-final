@@ -140,3 +140,27 @@ Vision-tolkning saknades helt. Tre arkitekturbeslut togs tillsammans med använd
   som övrigt logistikinnehåll.
 - `firestore.indexes.json` – nytt kompositindex för `forrad` + `skapad`.
 - Verifierat: `npm run build` och `npm run lint` gröna, `node -c functions/index.js` syntax-OK.
+
+---
+
+## Fas 3.2 – Robust bilduppladdning och synonymsökning (Logistik)
+
+**Datum:** 2026-06-27
+**Branch:** `claude/compassionate-euler-rho0q5`
+
+### Genomfört
+
+- `src/pages/LaddaUpp.jsx` – filinputarna för "Välj bilder från galleri" och "Ta foto" triggas nu
+  via `ref` + `button.click()` istället för att ligga inbäddade i en `<label>`, för att undvika
+  webbläsarspecifika kvirkar kring flerval på mobil. Den dolda input-stylingen i `LaddaUpp.css`
+  bytte till det vedertagna "visually hidden"-mönstret (clip-rect istället för opacity/overflow).
+- `functions/index.js` – `tolkaForradsbild` extraherar nu även `sokord`: en lista med synonymer/
+  förkortningar/vardagsbegrepp som Gemini genererar per artikel (t.ex. att en Foley-kateter även
+  taggas med "kateter", "urinkateter" och "KAD"), sparas på varje `forradsartiklar`-dokument.
+- `src/hooks/useForradsartiklar.js` – manuellt skapade artiklar får ett tomt `sokord`-fält som
+  standard (fältet är bara meningsfullt för AI-tolkade artiklar i nuläget).
+- `src/components/SokFalt.jsx` – `sokord` vävs in i sökindexets `nyckelord`, och Fuse.js-vikterna
+  justerades (titel 0.5, nyckelord 0.4, kategori 0.1, `ignoreLocation: true`) så att en sökning på
+  ett synonymt eller vardagligt begrepp ("kad") hittar rätt artikel även om den AI-extraherade
+  titeln använder ett annat ord ("Urinkateter").
+- Verifierat: `npm run build` och `npm run lint` gröna, `node -c functions/index.js` syntax-OK.

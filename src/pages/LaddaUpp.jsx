@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { laddaUppInkommandeFoto } from "../firebase/storage";
 import { tolkaDokument, tolkaForradsbild } from "../firebase/functions";
@@ -24,6 +24,8 @@ export default function LaddaUpp() {
   const [omrade, setOmrade] = useState(OMRADEN[0].varde);
   const [forrad, setForrad] = useState(FORRAD[0]);
   const [poster, setPoster] = useState([]);
+  const galleriRef = useRef(null);
+  const kameraRef = useRef(null);
 
   function valjFiler(e) {
     const filer = Array.from(e.target.files ?? []);
@@ -108,26 +110,36 @@ export default function LaddaUpp() {
       )}
 
       <div className="ladda-upp__filval">
-        <label className="knapp knapp--sekundar">
+        <button
+          type="button"
+          className="knapp knapp--sekundar"
+          onClick={() => galleriRef.current?.click()}
+        >
           Välj bilder från galleri
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={valjFiler}
-            className="ladda-upp__dolt-falt"
-          />
-        </label>
-        <label className="knapp knapp--sekundar">
+        </button>
+        <button
+          type="button"
+          className="knapp knapp--sekundar"
+          onClick={() => kameraRef.current?.click()}
+        >
           Ta foto
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={valjFiler}
-            className="ladda-upp__dolt-falt"
-          />
-        </label>
+        </button>
+        <input
+          ref={galleriRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={valjFiler}
+          className="ladda-upp__dolt-falt"
+        />
+        <input
+          ref={kameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={valjFiler}
+          className="ladda-upp__dolt-falt"
+        />
       </div>
 
       {poster.length > 0 && (

@@ -26,7 +26,7 @@ export default function SokFalt() {
         titel: a.namn,
         kategori: "Logistik",
         sokvag: `/logistik/${forradTillSlug(a.forrad)}`,
-        nyckelord: [a.forrad, a.skap, a.hylla].filter(Boolean),
+        nyckelord: [a.forrad, a.skap, a.hylla, ...(a.sokord ?? [])].filter(Boolean),
         plats: platsBeskrivning(a),
       }));
     return [...sokposter, ...forradsposter];
@@ -35,8 +35,13 @@ export default function SokFalt() {
   const fuse = useMemo(
     () =>
       new Fuse(alltSokbart, {
-        keys: ["titel", "kategori", "nyckelord"],
+        keys: [
+          { name: "titel", weight: 0.5 },
+          { name: "nyckelord", weight: 0.4 },
+          { name: "kategori", weight: 0.1 },
+        ],
         threshold: 0.4,
+        ignoreLocation: true,
       }),
     [alltSokbart]
   );

@@ -51,6 +51,7 @@ export function useForradsartiklar(forrad) {
       skap: skap || null,
       hylla: hylla || null,
       antal: antal || null,
+      sokord: [],
       bildUrl: bildUrl ?? null,
       forrad: forradFalt,
       status: kraverGodkannande ? ARTIKEL_STATUS.UTKAST : ARTIKEL_STATUS.GODKAND,
