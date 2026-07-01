@@ -66,7 +66,7 @@ const extraktionsSchema = {
 async function tolkaBildMedGemini(bildBuffer, mimeType) {
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: extraktionsSchema,
@@ -121,7 +121,7 @@ const forradsArtikelSchema = {
 async function tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad) {
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: forradsArtikelSchema,
@@ -167,7 +167,12 @@ exports.tolkaForradsbild = onCall(
     const [metadata] = await fil.getMetadata();
     const mimeType = metadata.contentType || "image/jpeg";
 
-    const artiklar = await tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad);
+    let artiklar;
+    try {
+      artiklar = await tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad);
+    } catch (fel) {
+      throw new HttpsError("internal", `Gemini-tolkning misslyckades: ${fel.message}`);
+    }
     const bildUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
 
     const batch = db.batch();
@@ -213,7 +218,12 @@ exports.tolkaDokument = onCall(
     const [metadata] = await fil.getMetadata();
     const mimeType = metadata.contentType || "image/jpeg";
 
-    const extraherat = await tolkaBildMedGemini(bildBuffer, mimeType);
+    let extraherat;
+    try {
+      extraherat = await tolkaBildMedGemini(bildBuffer, mimeType);
+    } catch (fel) {
+      throw new HttpsError("internal", `Gemini-tolkning misslyckades: ${fel.message}`);
+    }
     const bildUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
 
     const rutinRef = await db.collection("rutiner").add({
