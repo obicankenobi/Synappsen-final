@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { laddaUppInkommandeFoto } from "../firebase/storage";
 import { tolkaDokument, tolkaForradsbild } from "../firebase/functions";
@@ -41,9 +41,6 @@ export default function LaddaUpp() {
       return [];
     }
   });
-
-  const galleriRef = useRef(null);
-  const kameraRef = useRef(null);
 
   // Keep sessionStorage in sync so the queue survives a page reload
   useEffect(() => {
@@ -168,36 +165,35 @@ export default function LaddaUpp() {
       )}
 
       <div className="ladda-upp__filval">
-        <button
-          type="button"
-          className="knapp knapp--sekundar"
-          onClick={() => galleriRef.current?.click()}
-        >
-          Välj bilder från galleri
-        </button>
-        <button
-          type="button"
-          className="knapp knapp--sekundar"
-          onClick={() => kameraRef.current?.click()}
-        >
-          Ta foto
-        </button>
-        <input
-          ref={galleriRef}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={valjFiler}
-          className="ladda-upp__dolt-falt"
-        />
-        <input
-          ref={kameraRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={valjFiler}
-          className="ladda-upp__dolt-falt"
-        />
+        {/* Transparent file input overlaid on the button so the user's tap hits
+            the input directly — avoids programmatic .click() which some mobile
+            browsers handle unreliably for hidden inputs */}
+        <div className="ladda-upp__filknapp-wrapper">
+          <button type="button" className="knapp knapp--sekundar" aria-hidden="true" tabIndex={-1}>
+            Välj bilder från galleri
+          </button>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={valjFiler}
+            aria-label="Välj bilder från galleri"
+            className="ladda-upp__filknapp-overlay"
+          />
+        </div>
+        <div className="ladda-upp__filknapp-wrapper">
+          <button type="button" className="knapp knapp--sekundar" aria-hidden="true" tabIndex={-1}>
+            Ta foto
+          </button>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={valjFiler}
+            aria-label="Ta foto"
+            className="ladda-upp__filknapp-overlay"
+          />
+        </div>
       </div>
 
       {poster.length > 0 && (

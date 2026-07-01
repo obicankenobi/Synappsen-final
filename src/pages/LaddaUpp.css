@@ -26,16 +26,21 @@
   cursor: pointer;
 }
 
-.ladda-upp__dolt-falt {
+.ladda-upp__filknapp-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Transparent input sits on top of the button so the user taps it directly.
+   font-size: 16px prevents iOS Safari from zooming on focus. */
+.ladda-upp__filknapp-overlay {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 16px;
 }
 
 .ladda-upp__atgarder {
