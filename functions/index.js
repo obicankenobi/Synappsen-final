@@ -132,16 +132,24 @@ async function tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad) {
   });
 
   const prompt = `Du tolkar ett foto från förrådet "${forrad}" på en akutmottagning.
-Fotot kan visa enskilda artiklar i ett skåp/på en hylla, eller en skriven/utskriven lista över artiklar.
+Fotot kan visa ANTINGEN enskilda artiklar i ett skåp/på en hylla (med skyltar/etiketter),
+ELLER en skriven/utskriven/tryckt lista/tabell över artiklar (t.ex. en innehållsförteckning
+i en pärm, ofta med kolumner som "Benämning", "Hylla" och "Skåp").
+
 Extrahera en lista över alla artiklar som syns i bilden. För varje artikel anger du:
-- namn: artikelns namn
-- skap: skåpets beteckning (bokstav/nummer) ENDAST om det syns på en skylt/etikett i bilden, annars tom sträng
-- hylla: hyllans beteckning ENDAST om det syns på en skylt/etikett i bilden, annars tom sträng
+- namn: artikelns namn (t.ex. innehållet i kolumnen "Benämning" om det är en lista)
+- skap: skåpets beteckning (bokstav/nummer). Om bilden är en tabell/lista med en egen
+  kolumn för "Skåp", läs av VARJE rads eget värde i den kolumnen – anta ALDRIG att alla
+  rader har samma skåp/hylla bara för att de ligger nära varandra i tabellen. Om bilden
+  istället visar fysiska artiklar, ange skåpet ENDAST om det syns på en skylt/etikett.
+  Lämna tom sträng om inget av detta går att avläsa.
+- hylla: hyllans beteckning, avläst på samma sätt som skap (egen kolumn i tabellen, eller
+  skylt/etikett för fysiska artiklar). Lämna tom sträng om det inte går att avläsa.
 - antal: angiven mängd/antal om det står i bilden, annars tom sträng
 - sokord: en lista med alternativa sökord/synonymer som vårdpersonal kan tänkas söka på för att
   hitta artikeln – t.ex. vanliga förkortningar, slangbegrepp eller bredare produktkategorier
   (exempel: en "Foley-kateter" bör även ge sökord som "kateter", "urinkateter" och "KAD")
-Gissa inte plats om den inte är märkt i bilden – lämna då skap/hylla tomma.`;
+Gissa aldrig ett värde som inte faktiskt går att läsa i bilden – lämna då skap/hylla tomma.`;
 
   const result = await model.generateContent([
     prompt,
