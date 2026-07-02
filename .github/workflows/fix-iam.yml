@@ -1,0 +1,30 @@
+name: Ge Cloud Functions Firestore-behörighet
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  fix-iam:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Autentisera mot Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Sätt upp gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Ge compute-tjänstekontot Firestore-behörighet
+        run: |
+          gcloud projects add-iam-policy-binding synappsen-final-build \
+            --member="serviceAccount:773838769422-compute@developer.gserviceaccount.com" \
+            --role="roles/datastore.user" \
+            --condition=None
+
+      - name: Visa nuvarande IAM-policy för verifiering
+        run: |
+          gcloud projects get-iam-policy synappsen-final-build \
+            --flatten="bindings[].members" \
+            --filter="bindings.members:773838769422-compute@developer.gserviceaccount.com" \
+            --format="table(bindings.role)"
