@@ -152,7 +152,7 @@ Gissa inte plats om den inte är märkt i bilden – lämna då skap/hylla tomma
 }
 
 exports.tolkaForradsbild = onCall(
-  { secrets: [GEMINI_API_KEY], region: "europe-west1" },
+  { secrets: [GEMINI_API_KEY], region: "europe-west1", memory: "1GiB", timeoutSeconds: 120 },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
@@ -196,6 +196,7 @@ exports.tolkaForradsbild = onCall(
 
       return { antal: skapade.length, artiklar: skapade };
     } catch (fel) {
+      console.error("Tolkning misslyckades:", fel);
       if (fel instanceof HttpsError) throw fel;
       throw new HttpsError("internal", `Tolkning misslyckades: ${fel.message}`);
     }
@@ -203,7 +204,7 @@ exports.tolkaForradsbild = onCall(
 );
 
 exports.tolkaDokument = onCall(
-  { secrets: [GEMINI_API_KEY], region: "europe-west1" },
+  { secrets: [GEMINI_API_KEY], region: "europe-west1", memory: "1GiB", timeoutSeconds: 120 },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
@@ -240,6 +241,7 @@ exports.tolkaDokument = onCall(
 
       return { rutinId: rutinRef.id, ...extraherat };
     } catch (fel) {
+      console.error("Tolkning misslyckades:", fel);
       if (fel instanceof HttpsError) throw fel;
       throw new HttpsError("internal", `Tolkning misslyckades: ${fel.message}`);
     }
