@@ -6,7 +6,10 @@ const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
 
 admin.initializeApp();
 const db = admin.firestore();
-const bucket = admin.storage().bucket();
+// Explicit bucket name: admin.storage().bucket() with no argument can resolve to the
+// legacy <project-id>.appspot.com bucket instead of the project's actual configured
+// bucket, causing "no such object" failures for files the client just uploaded.
+const bucket = admin.storage().bucket("synappsen-final-build.firebasestorage.app");
 
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
@@ -162,40 +165,40 @@ exports.tolkaForradsbild = onCall(
 
     await reserveraBudget();
 
-    const fil = bucket.file(storagePath);
-    const [bildBuffer] = await fil.download();
-    const [metadata] = await fil.getMetadata();
-    const mimeType = metadata.contentType || "image/jpeg";
-
-    let artiklar;
     try {
-      artiklar = await tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad);
-    } catch (fel) {
-      throw new HttpsError("internal", `Gemini-tolkning misslyckades: ${fel.message}`);
-    }
-    const bildUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
+      const fil = bucket.file(storagePath);
+      const [bildBuffer] = await fil.download();
+      const [metadata] = await fil.getMetadata();
+      const mimeType = metadata.contentType || "image/jpeg";
 
-    const batch = db.batch();
-    const skapade = artiklar.map((artikel) => {
-      const ref = db.collection("forradsartiklar").doc();
-      batch.set(ref, {
-        namn: artikel.namn,
-        skap: artikel.skap || null,
-        hylla: artikel.hylla || null,
-        antal: artikel.antal || null,
-        sokord: artikel.sokord ?? [],
-        bildUrl,
-        forrad,
-        status: "utkast",
-        kalla: "gemini",
-        skapadAv: request.auth.uid,
-        skapad: admin.firestore.FieldValue.serverTimestamp(),
+      const artiklar = await tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad);
+      const bildUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
+
+      const batch = db.batch();
+      const skapade = artiklar.map((artikel) => {
+        const ref = db.collection("forradsartiklar").doc();
+        batch.set(ref, {
+          namn: artikel.namn,
+          skap: artikel.skap || null,
+          hylla: artikel.hylla || null,
+          antal: artikel.antal || null,
+          sokord: artikel.sokord ?? [],
+          bildUrl,
+          forrad,
+          status: "utkast",
+          kalla: "gemini",
+          skapadAv: request.auth.uid,
+          skapad: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        return { id: ref.id, ...artikel };
       });
-      return { id: ref.id, ...artikel };
-    });
-    await batch.commit();
+      await batch.commit();
 
-    return { antal: skapade.length, artiklar: skapade };
+      return { antal: skapade.length, artiklar: skapade };
+    } catch (fel) {
+      if (fel instanceof HttpsError) throw fel;
+      throw new HttpsError("internal", `Tolkning misslyckades: ${fel.message}`);
+    }
   }
 );
 
@@ -213,32 +216,32 @@ exports.tolkaDokument = onCall(
 
     await reserveraBudget();
 
-    const fil = bucket.file(storagePath);
-    const [bildBuffer] = await fil.download();
-    const [metadata] = await fil.getMetadata();
-    const mimeType = metadata.contentType || "image/jpeg";
-
-    let extraherat;
     try {
-      extraherat = await tolkaBildMedGemini(bildBuffer, mimeType);
+      const fil = bucket.file(storagePath);
+      const [bildBuffer] = await fil.download();
+      const [metadata] = await fil.getMetadata();
+      const mimeType = metadata.contentType || "image/jpeg";
+
+      const extraherat = await tolkaBildMedGemini(bildBuffer, mimeType);
+      const bildUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
+
+      const rutinRef = await db.collection("rutiner").add({
+        titel: extraherat.titel,
+        innehall: extraherat.innehall,
+        nyckelord: extraherat.nyckelord,
+        komIhagFlaggor: extraherat.komIhagFlaggor,
+        bildUrl,
+        omrade,
+        status: "utkast",
+        kalla: "gemini",
+        skapadAv: request.auth.uid,
+        skapad: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return { rutinId: rutinRef.id, ...extraherat };
     } catch (fel) {
-      throw new HttpsError("internal", `Gemini-tolkning misslyckades: ${fel.message}`);
+      if (fel instanceof HttpsError) throw fel;
+      throw new HttpsError("internal", `Tolkning misslyckades: ${fel.message}`);
     }
-    const bildUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
-
-    const rutinRef = await db.collection("rutiner").add({
-      titel: extraherat.titel,
-      innehall: extraherat.innehall,
-      nyckelord: extraherat.nyckelord,
-      komIhagFlaggor: extraherat.komIhagFlaggor,
-      bildUrl,
-      omrade,
-      status: "utkast",
-      kalla: "gemini",
-      skapadAv: request.auth.uid,
-      skapad: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    return { rutinId: rutinRef.id, ...extraherat };
   }
 );
