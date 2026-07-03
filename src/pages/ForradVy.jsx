@@ -37,6 +37,17 @@ export default function ForradVy() {
     return (a.hylla ?? "").localeCompare(b.hylla ?? "");
   });
 
+  const utkast = sorterade.filter((a) => a.status === ARTIKEL_STATUS.UTKAST);
+
+  async function godkannAllaUtkast() {
+    await Promise.all(utkast.map((a) => godkannArtikel(a.id)));
+  }
+
+  async function nekaAllaUtkast() {
+    if (!confirm(`Ta bort alla ${utkast.length} utkast? Detta går inte att ångra.`)) return;
+    await Promise.all(utkast.map((a) => taBortArtikel(a.id)));
+  }
+
   async function hanteraSpara({ namn, skap, hylla, antal, bild }) {
     if (redigerar) {
       const bildUrl = bild
@@ -79,6 +90,18 @@ export default function ForradVy() {
             setRedigerar(null);
           }}
         />
+      )}
+
+      {farRedigera && utkast.length > 0 && (
+        <div className="forrad-vy__bulkatgarder">
+          <span>{utkast.length} utkast väntar på granskning</span>
+          <button className="knapp" onClick={godkannAllaUtkast}>
+            Godkänn alla
+          </button>
+          <button className="knapp knapp--farlig" onClick={nekaAllaUtkast}>
+            Neka alla
+          </button>
+        </div>
       )}
 
       {laddar && <p className="sida__beskrivning">Laddar...</p>}
