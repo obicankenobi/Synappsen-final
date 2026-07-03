@@ -182,9 +182,21 @@ exports.tolkaForradsbild = onCall(
       const artiklar = await tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad);
       const bildUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
 
+      // Matcha mot befintliga artiklar i samma förråd på normaliserat namn, så att en ny
+      // uppladdning ersätter en tidigare (t.ex. felaktig/utdaterad) post istället för att
+      // skapa en duplett varje gång samma lista fotas på nytt.
+      const befintligaSnap = await db.collection("forradsartiklar").where("forrad", "==", forrad).get();
+      const befintligaPerNamn = new Map();
+      befintligaSnap.forEach((doc) => {
+        const namn = (doc.data().namn ?? "").trim().toLowerCase();
+        if (namn) befintligaPerNamn.set(namn, doc.ref);
+      });
+
       const batch = db.batch();
       const skapade = artiklar.map((artikel) => {
-        const ref = db.collection("forradsartiklar").doc();
+        const normaliseratNamn = (artikel.namn ?? "").trim().toLowerCase();
+        const befintligRef = befintligaPerNamn.get(normaliseratNamn);
+        const ref = befintligRef ?? db.collection("forradsartiklar").doc();
         batch.set(ref, {
           namn: artikel.namn,
           skap: artikel.skap || null,
@@ -198,7 +210,7 @@ exports.tolkaForradsbild = onCall(
           skapadAv: request.auth.uid,
           skapad: admin.firestore.FieldValue.serverTimestamp(),
         });
-        return { id: ref.id, ...artikel };
+        return { id: ref.id, ersatte: Boolean(befintligRef), ...artikel };
       });
       await batch.commit();
 

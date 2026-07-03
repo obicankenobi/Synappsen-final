@@ -222,7 +222,11 @@ export default function LaddaUpp() {
               <span className="ladda-upp__klar">
                 Klar:{" "}
                 {post.resultat?.antal !== undefined
-                  ? `${post.resultat.antal} artikel(ar) hittade`
+                  ? `${post.resultat.antal} artikel(ar) hittade${
+                      post.resultat.artiklar?.filter((a) => a.ersatte).length
+                        ? ` (${post.resultat.artiklar.filter((a) => a.ersatte).length} ersatte befintliga)`
+                        : ""
+                    }`
                   : post.resultat?.titel}
               </span>
             )}
