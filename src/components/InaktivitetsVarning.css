@@ -10,7 +10,7 @@
 }
 
 .inaktivitets-varning {
-  background: #fff;
+  background: var(--yta);
   border-radius: 16px;
   padding: 24px;
   max-width: 360px;

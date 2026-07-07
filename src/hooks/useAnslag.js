@@ -7,7 +7,6 @@ import {
   onSnapshot,
   addDoc,
   updateDoc,
-  deleteDoc,
   doc,
   serverTimestamp,
 } from "firebase/firestore";
@@ -65,15 +64,20 @@ export function useAnslag() {
     loggaHandelse({ beskrivning: "Anslag uppdaterat", entitetTyp: "anslag", entitetId: id, uid });
   }
 
+  // Mjuk radering – anslaget hamnar i papperskorgen istället för att raderas direkt
   async function taBortAnslag(id, uid) {
-    await deleteDoc(doc(db, "anslag", id));
+    await updateDoc(doc(db, "anslag", id), {
+      borttagen: true,
+      borttagenAv: uid ?? null,
+      borttagenDatum: serverTimestamp(),
+    });
     loggaHandelse({ beskrivning: "Anslag borttaget", entitetTyp: "anslag", entitetId: id, uid });
   }
 
-  // Fastnaglade anslag högst upp, sedan viktiga, sedan nyast först. Utgångna anslag filtreras bort.
+  // Fastnaglade anslag högst upp, sedan viktiga, sedan nyast först. Utgångna/borttagna anslag filtreras bort.
   const nu = new Date();
   const synligaAnslag = anslag
-    .filter((a) => !a.utgangsdatum || new Date(a.utgangsdatum) >= nu)
+    .filter((a) => !a.borttagen && (!a.utgangsdatum || new Date(a.utgangsdatum) >= nu))
     .sort((a, b) => {
       if (Boolean(b.fastNaglad) !== Boolean(a.fastNaglad)) return (b.fastNaglad ? 1 : 0) - (a.fastNaglad ? 1 : 0);
       const aViktigt = a.prioritet === ANSLAG_PRIORITET.VIKTIGT;

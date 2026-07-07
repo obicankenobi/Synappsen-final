@@ -8,7 +8,6 @@ import {
   onSnapshot,
   addDoc,
   updateDoc,
-  deleteDoc,
   doc,
   serverTimestamp,
 } from "firebase/firestore";
@@ -30,7 +29,8 @@ export function useForradsartiklar(forrad) {
       : [orderBy("skapad", "desc")];
     const q = query(collection(db, "forradsartiklar"), ...villkor);
     const unsubscribe = onSnapshot(q, (snap) => {
-      setArtiklar(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      // Mjukraderade artiklar (papperskorg) filtreras bort ur den vanliga listan
+      setArtiklar(snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((a) => !a.borttagen));
       setLaddar(false);
     });
     return unsubscribe;
@@ -69,8 +69,13 @@ export function useForradsartiklar(forrad) {
     return updateDoc(doc(db, "forradsartiklar", id), { status: ARTIKEL_STATUS.GODKAND });
   }
 
-  async function taBortArtikel(id) {
-    return deleteDoc(doc(db, "forradsartiklar", id));
+  // Mjuk radering – artikeln hamnar i papperskorgen istället för att raderas direkt
+  async function taBortArtikel(id, uid) {
+    return updateDoc(doc(db, "forradsartiklar", id), {
+      borttagen: true,
+      borttagenAv: uid ?? null,
+      borttagenDatum: serverTimestamp(),
+    });
   }
 
   return { artiklar, laddar, skapaArtikel, uppdateraArtikel, godkannArtikel, taBortArtikel };

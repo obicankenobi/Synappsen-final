@@ -1,18 +1,19 @@
 .anslag-kort {
-  background: #fff;
+  background: var(--yta);
   border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 14px;
 }
 
 .anslag-kort--fastnaglad {
-  border-color: #f59e0b;
-  background: #fffbeb;
+  border-color: var(--amber);
+  background: var(--amber-ljus);
 }
 
 .anslag-kort--viktigt {
-  border-color: #dc2626;
+  border-color: var(--farlig);
   border-width: 2px;
 }
 
@@ -35,7 +36,7 @@
 
 .anslag-kort__innehall {
   margin-top: 8px;
-  color: #374151;
+  color: var(--text);
 }
 
 .anslag-kort__meta {

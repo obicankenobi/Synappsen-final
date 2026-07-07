@@ -8,7 +8,6 @@ import {
   onSnapshot,
   addDoc,
   updateDoc,
-  deleteDoc,
   doc,
   serverTimestamp,
   getDocs,
@@ -32,7 +31,8 @@ export function useRutiner(omrade) {
       orderBy("skapad", "desc")
     );
     const unsubscribe = onSnapshot(q, (snap) => {
-      setRutiner(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      // Mjukraderade rutiner (papperskorg) filtreras bort ur den vanliga listan
+      setRutiner(snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => !r.borttagen));
       setLaddar(false);
     });
     return unsubscribe;
@@ -81,18 +81,32 @@ export function useRutiner(omrade) {
     loggaHandelse({ beskrivning: "Rutin uppdaterad", entitetTyp: "rutin", entitetId: id, uid });
   }
 
-  async function godkannRutin(id, uid) {
-    await updateDoc(doc(db, "rutiner", id), { status: RUTIN_STATUS.GODKAND });
+  async function godkannRutin(id, uid, namn) {
+    await updateDoc(doc(db, "rutiner", id), {
+      status: RUTIN_STATUS.GODKAND,
+      godkandAv: uid ?? null,
+      godkandAvNamn: namn ?? "",
+      godkandDatum: serverTimestamp(),
+    });
     loggaHandelse({ beskrivning: "Rutin godkänd", entitetTyp: "rutin", entitetId: id, uid });
   }
 
+  // Mjuk radering – rutinen hamnar i papperskorgen istället för att raderas direkt
   async function taBortRutin(id, uid) {
-    await deleteDoc(doc(db, "rutiner", id));
+    await updateDoc(doc(db, "rutiner", id), {
+      borttagen: true,
+      borttagenAv: uid ?? null,
+      borttagenDatum: serverTimestamp(),
+    });
     loggaHandelse({ beskrivning: "Rutin borttagen", entitetTyp: "rutin", entitetId: id, uid });
   }
 
-  async function markeraGranskad(id, uid) {
-    await updateDoc(doc(db, "rutiner", id), { granskadDatum: serverTimestamp() });
+  async function markeraGranskad(id, uid, namn) {
+    await updateDoc(doc(db, "rutiner", id), {
+      granskadDatum: serverTimestamp(),
+      granskadAv: uid ?? null,
+      granskadAvNamn: namn ?? "",
+    });
     loggaHandelse({ beskrivning: "Rutin markerad som granskad", entitetTyp: "rutin", entitetId: id, uid });
   }
 

@@ -5,8 +5,9 @@
   right: 0;
   display: flex;
   justify-content: space-around;
-  background: #ffffff;
-  border-top: 1px solid #e0e0e0;
+  background: var(--yta);
+  border-top: 1px solid var(--kant);
+  box-shadow: 0 -2px 10px rgba(15, 23, 42, 0.06);
   padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
   z-index: 100;
 }
@@ -17,14 +18,22 @@
   align-items: center;
   gap: 2px;
   font-size: 0.7rem;
-  color: #6b7280;
+  color: var(--text-svag);
   text-decoration: none;
-  padding: 4px 8px;
+  padding: 4px 10px 6px;
+  border-radius: var(--radius-liten);
+  position: relative;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.bottom-nav__lank:hover {
+  background: var(--bg);
 }
 
 .bottom-nav__lank.active {
-  color: #1d4ed8;
+  color: var(--primar-mork);
   font-weight: 600;
+  background: var(--primar-ljus);
 }
 
 .bottom-nav__ikon {

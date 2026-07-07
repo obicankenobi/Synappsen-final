@@ -9,7 +9,7 @@
 }
 
 .versionshistorik {
-  background: #fff;
+  background: var(--yta);
   border-radius: 16px 16px 0 0;
   padding: 20px;
   width: 100%;

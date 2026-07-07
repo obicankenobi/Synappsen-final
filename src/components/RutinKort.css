@@ -1,6 +1,7 @@
 .rutin-kort {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
@@ -27,16 +28,36 @@
 
 .rutin-kort__badge {
   font-size: 0.75rem;
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--amber-ljus);
+  color: var(--amber-text);
   padding: 2px 8px;
   border-radius: 999px;
   white-space: nowrap;
 }
 
 .rutin-kort__badge--varning {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: var(--farlig-ljus);
+  color: var(--farlig-mork);
+}
+
+.rutin-kort__signatur {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.78rem;
+  color: var(--text-svag);
+  margin-top: 4px;
+}
+
+.rutin-kort__referenser {
+  font-size: 0.85rem;
+  color: var(--text-svag);
+  margin-top: 10px;
+}
+
+.rutin-kort__relaterade {
+  font-size: 0.85rem;
+  margin-top: 8px;
 }
 
 .rutin-kort__bild {
@@ -56,16 +77,16 @@
 
 .rutin-kort__dokument {
   display: inline-block;
-  color: var(--primar, #1d4ed8);
+  color: var(--primar);
   text-decoration: none;
   font-weight: 600;
-  background: var(--bg, #f9fafb);
+  background: var(--bg);
   border-radius: 8px;
   padding: 8px 12px;
 }
 
 .rutin-kort__innehall {
-  color: #374151;
+  color: var(--text);
 }
 
 .rutin-kort__innehall :first-child {

@@ -7,6 +7,7 @@ import {
 } from "firebase/auth";
 import { useAuth } from "../hooks/useAuth";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
+import TvaFaktorSektion from "../components/TvaFaktorSektion";
 import { ROLE_LABELS } from "../firebase/roles";
 import "./Profil.css";
 
@@ -85,6 +86,8 @@ export default function Profil() {
           </button>
         </form>
       </section>
+
+      <TvaFaktorSektion currentUser={currentUser} />
 
       <section className="profil-sektion">
         <h2>⭐ Mina favoriter</h2>

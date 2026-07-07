@@ -1,9 +1,11 @@
 import { useState } from "react";
 import "./RutinFormular.css";
 
-export default function RutinFormular({ initialaVarden, onSpara, onAvbryt }) {
+export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSpara, onAvbryt }) {
   const [titel, setTitel] = useState(initialaVarden?.titel ?? "");
   const [innehall, setInnehall] = useState(initialaVarden?.innehall ?? "");
+  const [referenser, setReferenser] = useState(initialaVarden?.referenser ?? "");
+  const [relaterade, setRelaterade] = useState(initialaVarden?.relateradeRutiner ?? []);
   const [nyaFiler, setNyaFiler] = useState([]);
   const [befintligaBilagor, setBefintligaBilagor] = useState(initialaVarden?.bilagor ?? []);
   const [sparar, setSparar] = useState(false);
@@ -16,15 +18,21 @@ export default function RutinFormular({ initialaVarden, onSpara, onAvbryt }) {
     setNyaFiler((f) => f.filter((_, i) => i !== index));
   }
 
+  function vaxlaRelaterad(id) {
+    setRelaterade((r) => (r.includes(id) ? r.filter((x) => x !== id) : [...r, id]));
+  }
+
   async function hanteraSubmit(e) {
     e.preventDefault();
     setSparar(true);
     try {
-      await onSpara({ titel, innehall, nyaFiler, befintligaBilagor });
+      await onSpara({ titel, innehall, referenser, relaterade, nyaFiler, befintligaBilagor });
     } finally {
       setSparar(false);
     }
   }
+
+  const valbaraRutiner = ovrigaRutiner.filter((r) => r.id !== initialaVarden?.id);
 
   return (
     <form className="rutin-formular" onSubmit={hanteraSubmit}>
@@ -49,6 +57,34 @@ export default function RutinFormular({ initialaVarden, onSpara, onAvbryt }) {
           Stöd för enkel textformatering: **fet text**, *kursiv*, # Rubrik, - punktlista
         </span>
       </label>
+      <label>
+        Referenser/källor (valfritt)
+        <textarea
+          rows={2}
+          placeholder="T.ex. regionalt PM, författare, år"
+          value={referenser}
+          onChange={(e) => setReferenser(e.target.value)}
+        />
+      </label>
+
+      {valbaraRutiner.length > 0 && (
+        <label>
+          Relaterade rutiner (valfritt)
+          <div className="rutin-formular__relaterade">
+            {valbaraRutiner.map((r) => (
+              <label key={r.id} className="rutin-formular__relaterad-rad">
+                <input
+                  type="checkbox"
+                  checked={relaterade.includes(r.id)}
+                  onChange={() => vaxlaRelaterad(r.id)}
+                />
+                {r.titel}
+              </label>
+            ))}
+          </div>
+        </label>
+      )}
+
       <label>
         Bilagor (bilder eller PDF, valfritt, flera går bra)
         <input

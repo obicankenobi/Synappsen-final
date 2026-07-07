@@ -1,0 +1,25 @@
+.privat-anteckning {
+  margin-top: 10px;
+}
+
+.privat-anteckning__panel {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.privat-anteckning__hjalptext {
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  margin: 0;
+}
+
+.privat-anteckning__panel textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
+  border-radius: 8px;
+  font: inherit;
+  resize: vertical;
+}

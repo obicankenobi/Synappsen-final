@@ -2,8 +2,9 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 20px;
@@ -20,7 +21,8 @@
 .rutin-formular input,
 .rutin-formular textarea {
   padding: 10px 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
   border-radius: 8px;
   font-size: 1rem;
   font-family: inherit;
@@ -39,15 +41,35 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--bg, #f9fafb);
+  background: var(--bg);
   border-radius: 6px;
   padding: 6px 10px;
   font-size: 0.85rem;
 }
 
+.rutin-formular__relaterade {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 400;
+}
+
+.rutin-formular__relaterad-rad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+}
+
 .rutin-formular__hjalptext {
   font-weight: 400;
-  color: var(--text-svag, #6b7280);
+  color: var(--text-svag);
   font-size: 0.8rem;
 }
 

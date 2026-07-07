@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { hamtaMfaResolver, slutforMfaInloggning } from "../firebase/mfa";
 
 export default function LoggaIn() {
   const [email, setEmail] = useState("");
   const [losenord, setLosenord] = useState("");
+  const [totpKod, setTotpKod] = useState("");
+  const [resolver, setResolver] = useState(null);
   const [fel, setFel] = useState("");
   const [laddar, setLaddar] = useState(false);
   const { loggaIn } = useAuth();
@@ -17,11 +20,55 @@ export default function LoggaIn() {
     try {
       await loggaIn(email, losenord);
       navigate("/");
-    } catch {
-      setFel("Fel e-post eller lösenord. Försök igen.");
+    } catch (err) {
+      if (err.code === "auth/multi-factor-auth-required") {
+        setResolver(hamtaMfaResolver(err));
+      } else {
+        setFel("Fel e-post eller lösenord. Försök igen.");
+      }
     } finally {
       setLaddar(false);
     }
+  }
+
+  async function hanteraTotpSubmit(e) {
+    e.preventDefault();
+    setFel("");
+    setLaddar(true);
+    try {
+      await slutforMfaInloggning(resolver, totpKod);
+      navigate("/");
+    } catch {
+      setFel("Fel kod från autentiseringsappen. Försök igen.");
+    } finally {
+      setLaddar(false);
+    }
+  }
+
+  if (resolver) {
+    return (
+      <div className="sida sida--auth">
+        <h1>Verifieringskod</h1>
+        <p className="auth__undertext">Ange koden från din autentiseringsapp.</p>
+        <form onSubmit={hanteraTotpSubmit} className="auth-form">
+          <label>
+            Kod
+            <input
+              type="text"
+              inputMode="numeric"
+              required
+              autoFocus
+              value={totpKod}
+              onChange={(e) => setTotpKod(e.target.value)}
+            />
+          </label>
+          {fel && <p className="auth__fel">{fel}</p>}
+          <button type="submit" className="knapp" disabled={laddar}>
+            {laddar ? "Verifierar..." : "Verifiera"}
+          </button>
+        </form>
+      </div>
+    );
   }
 
   return (

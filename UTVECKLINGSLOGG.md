@@ -322,3 +322,117 @@ enbart till för praktisk drift-info mellan skift.
 - Statistiken i adminpanelen ("mest aktiva användare") baseras på de senaste 100 händelserna i
   ändringsloggen, inte hela historiken – tillräckligt för en översikt men inte en exakt
   totalräkning över tid.
+
+## Fas 6 – Kontaktlista, länkbibliotek, samarbetsfunktioner på rutiner, papperskorg, 2FA och visuell helrenovering
+
+**Datum:** 2026-07-07
+**Branch:** `claude/compassionate-euler-rho0q5`
+
+### Bakgrund
+
+Uppföljning på Fas 5: användaren valde tekniska förbättringsförslag samt en stor mängd
+funktionsförslag från en tidigare presenterad lista (kontaktlista, länkbibliotek, signatur på
+rutiner, relaterade rutiner, referensfält, notisflöde, privata anteckningar, papperskorg och
+2FA), följt av en uttrycklig instruktion att göra en fullständig visuell översyn av hela appen
+och därefter en säkerhets-/buggenomgång av all kod. Kontaktlistan fick ett uttryckligt krav:
+numren ska visas som text utan någon ring-funktion.
+
+### Genomfört
+
+**Tekniskt underhåll**
+- `functions/package.json` – Node 20 → 22, `firebase-functions` ^6 → ^7.2.5,
+  `firebase-admin` ^12 → ^13.10.0 (senaste versionen som är kompatibel med
+  `firebase-functions` 7.x:s peer-dependency-krav).
+- `src/App.jsx` – alla sidor laddas nu via `React.lazy()` bakom en gemensam `<Suspense>`, för
+  mindre initial JS-bundle (kodsplitting fanns delvis sedan Fas 5, nu konsekvent för samtliga
+  rutter inklusive de nya sidorna nedan).
+
+**Kontaktlista och länkbibliotek**
+- `src/hooks/useKontakter.js` + `src/components/KontaktFormular.jsx` + `src/pages/Kontakter.jsx`
+  (`/kontakter`) – ny collection `kontakter` (namn, nummer, kategori, beskrivning), grupperad
+  lista med sökfilter. Numret renderas som vanlig text (`<span>`), aldrig som `tel:`-länk.
+- `src/hooks/useLankbibliotek.js` + `src/components/LankFormular.jsx` +
+  `src/pages/Lankbibliotek.jsx` (`/lankbibliotek`) – samma mönster för en länksamling (titel,
+  url, kategori, beskrivning), grupperad per kategori.
+- Redigering av båda kräver samma behörighet som anslagstavlan (`KAN_HANTERA_ANSLAG`).
+
+**Samarbetsfunktioner på rutiner**
+- `src/hooks/useRutiner.js` – `godkannRutin`/`markeraGranskad` sparar nu även vem som
+  godkände/granskade (`godkandAvNamn`/`granskadAvNamn`) utöver tidpunkt.
+- `src/components/RutinFormular.jsx` – nytt fritextfält för referenser/källor samt kryssrutor
+  för att länka rutinen till andra rutiner inom samma område ("relaterade rutiner").
+- `src/components/RutinKort.jsx` – visar signatur (godkänd/granskad av + datum), referenser och
+  en "Se även"-lista med länkar till relaterade rutiner (`#rutin-{id}`-ankare).
+
+**Notisflöde**
+- `src/hooks/useNotiser.js` + `src/components/Notisklocka.jsx` – klockikon i `Hem.jsx` som visar
+  antal nya anslag/rutiner sedan användarens senaste besök (`users/{uid}.senasteNotisBesok`),
+  med en nedfällbar panel. Rent in-app, ingen push/FCM.
+
+**Privata anteckningar**
+- `src/hooks/usePrivatAnteckning.js` + `src/components/PrivatAnteckning.jsx` – en anteckning per
+  användare och rutin (dokument-id `{uid}_{rutinId}` i collectionen `anteckningar`), inbäddad i
+  `RutinKort`. Anteckningen laddas in i utkastfältet först när panelen öppnas (event-handler),
+  inte via en effekt, för att undvika `react-hooks/set-state-in-effect`/`react-hooks/refs`.
+
+**Papperskorg / mjuk borttagning**
+- `src/hooks/useRutiner.js`, `useForradsartiklar.js`, `useAnslag.js` – `taBort*`-funktionerna
+  sätter nu `{borttagen: true, borttagenAv, borttagenDatum}` istället för att radera dokumentet;
+  läslyssnarna filtrerar bort dessa poster som vanligt.
+- `src/hooks/usePapperskorg.js` + `src/pages/Papperskorg.jsx` (`/papperskorg`) – samlar
+  mjukraderade rutiner/artiklar/anslag och erbjuder återställning eller permanent radering.
+  Knapparna fångar nu permission-denied-fel från Firestore och visar ett tydligt felmeddelande
+  istället för att misslyckas tyst, eftersom den faktiska behörighetskontrollen (per område)
+  sker i `firestore.rules`, inte i denna sidas synlighetsfilter.
+
+**Tvåfaktorsautentisering (TOTP)**
+- `src/firebase/mfa.js` – tunt lager ovanpå Firebase Auths inbyggda TOTP-MFA
+  (`multiFactor()`, `TotpMultiFactorGenerator`, `getMultiFactorResolver`). QR-koden genereras
+  klientsidan med npm-paketet `qrcode` (ingen extern nätverkstjänst).
+- `src/components/TvaFaktorSektion.jsx` (i `Profil.jsx`) – aktivera/inaktivera 2FA, med
+  återautentisering (lösenord) innan registrering.
+- `src/pages/LoggaIn.jsx` – hanterar `auth/multi-factor-auth-required` och visar ett andra steg
+  för engångskod.
+- **Manuellt steg krävs:** MFA måste aktiveras för projektet i Firebase Console (Authentication
+  → Sign-in method → Multi-factor authentication) innan funktionen fungerar i produktion.
+
+**Visuell helrenovering**
+- `src/index.css` – utökad uppsättning CSS-variabler (`--primar-mork/ljus`, `--kant-stark`,
+  `--farlig-mork/ljus`, `--amber*`, `--radius`/`--radius-liten`, `--skugga`/`--skugga-hover`)
+  som gemensam designtoken-bas.
+- Samtliga sid-/komponent-CSS-filer konverterade från hårdkodade hex-färger till dessa
+  variabler, och kort-liknande element (rutin-kort, anslag-kort, kontakt-/länk-rader,
+  papperskorgsrader m.fl.) fick en enhetlig `box-shadow: var(--skugga)`.
+- `.knapp`-familjen, `.sektionskort` och `.bottom-nav` fick hover/aktiv-tillstånd och
+  övergångar (`transition`) för tydligare interaktiv feedback.
+- `Hem.jsx`s snabblänkar gjordes om till pill-formade chips; bottennavigeringen fick en tydlig
+  bakgrundsplatta för aktiv flik.
+
+**Säkerhets- och buggenomgång**
+- `functions/index.js` – **IDOR-fix:** `tolkaDokument`/`tolkaForradsbild` litade tidigare på
+  klientens `storagePath` utan att kontrollera ägarskap. Admin SDK kringgår Storage-reglerna,
+  så vem som helst med ett giltigt konto kunde teoretiskt peka på en annan användares
+  `inkommande/`-foto (eller någon annan fil i bucketen) och få innehållet tolkat/sparat.
+  Båda funktionerna kräver nu att `storagePath` matchar exakt `inkommande/{eget uid}/...`.
+  `tolkaDokument` validerar även `omrade` mot en fast lista, som redan gjordes för `forrad`
+  i `tolkaForradsbild`.
+- `firestore.rules` – nya regelblock för `kontakter` och `lankbibliotek` (läs: alla inloggade,
+  skriv: samma behörighet som anslagstavlan), samt `anteckningar` (endast ägaren, matchat mot
+  `resource.data.uid`/`request.resource.data.uid` – aldrig läsbart av någon annan, inte ens
+  redaktörer/superadmin). `users/{userId}` tillåter nu självuppdatering av
+  `senasteNotisBesok` utöver `favoriter` (krävs av notisklockan).
+- `src/pages/Papperskorg.jsx` – återställ/radera permanent fångar nu behörighetsfel istället för
+  att misslyckas tyst (se ovan).
+- Genomgång av `dangerouslySetInnerHTML`-användning (endast `MarkdownInnehall.jsx`, redan
+  saniterad med DOMPurify), samt sökning efter `eval`/`new Function`/direkt `innerHTML`-
+  tilldelning i projektets egen kod – inga träffar utanför `node_modules`.
+- Kvarstående, ej åtgärdad observation: Gemini-budgetspärren (`installningar/geminiBudget`) är
+  global per månad, inte per användare – en enskild inloggad användare kan i teorin förbruka
+  hela månadens budget genom upprepade anrop. Inte åtgärdat i denna release då det kräver ett
+  designbeslut (t.ex. per-användarkvot) utöver en "uppenbar bugg"-fix.
+- `src/version.js` → 5.0.0, `package.json` → 5.0.0, ny post i `src/data/andringslogg.js`.
+
+### Kända begränsningar / medvetna avgränsningar
+
+- Se Fas 4/Fas 5 för tidigare avgränsningar (push-notiser, statistikens 100-händelsers-fönster).
+- Gemini-budgetspärren är global, inte per användare (se ovan).

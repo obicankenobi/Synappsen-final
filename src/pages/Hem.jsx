@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import SokFalt from "../components/SokFalt";
 import SektionsKort from "../components/SektionsKort";
+import Notisklocka from "../components/Notisklocka";
 import { useAuth } from "../hooks/useAuth";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
 import { usePopularaste } from "../hooks/useVisningar";
@@ -23,11 +24,14 @@ export default function Hem() {
             </p>
           )}
         </div>
-        {currentUser && (
-          <button className="knapp knapp--sekundar" onClick={loggaUt}>
-            Logga ut
-          </button>
-        )}
+        <div className="hem__header-atgarder">
+          <Notisklocka />
+          {currentUser && (
+            <button className="knapp knapp--sekundar" onClick={loggaUt}>
+              Logga ut
+            </button>
+          )}
+        </div>
       </header>
 
       <nav className="hem__snabblankar">
@@ -36,6 +40,9 @@ export default function Hem() {
         <Link to="/feedback">💬 Feedback</Link>
         <Link to="/hjalp">❓ Hjälp</Link>
         <Link to="/profil">👤 Min profil</Link>
+        <Link to="/kontakter">☎️ Kontakter</Link>
+        <Link to="/lankbibliotek">🔗 Länkbibliotek</Link>
+        <Link to="/papperskorg">🗑️ Papperskorg</Link>
       </nav>
 
       <SokFalt />

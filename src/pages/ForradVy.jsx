@@ -44,8 +44,8 @@ export default function ForradVy() {
   }
 
   async function nekaAllaUtkast() {
-    if (!confirm(`Ta bort alla ${utkast.length} utkast? Detta går inte att ångra.`)) return;
-    await Promise.all(utkast.map((a) => taBortArtikel(a.id)));
+    if (!confirm(`Ta bort alla ${utkast.length} utkast? De hamnar i papperskorgen.`)) return;
+    await Promise.all(utkast.map((a) => taBortArtikel(a.id, currentUser.uid)));
   }
 
   async function hanteraSpara({ namn, skap, hylla, antal, bild }) {
@@ -120,7 +120,7 @@ export default function ForradVy() {
           farGodkanna={farRedigera}
           onRedigera={oppnaRedigering}
           onGodkann={godkannArtikel}
-          onTaBort={taBortArtikel}
+          onTaBort={(id) => taBortArtikel(id, currentUser.uid)}
         />
       ))}
     </div>

@@ -1,0 +1,32 @@
+.kontakt-formular {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.kontakt-formular label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.kontakt-formular input {
+  padding: 10px 12px;
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.kontakt-formular__knappar {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}

@@ -91,6 +91,8 @@ Extrahera innehållet och returnera strukturerad data på svenska:
   return JSON.parse(result.response.text());
 }
 
+const OMRADEN = ["kliniskt-stod", "logistik", "administration"];
+
 const FORRAD = [
   "Engångsförrådet",
   "Sterilförrådet",
@@ -170,6 +172,9 @@ exports.tolkaForradsbild = onCall(
     if (!storagePath || !FORRAD.includes(forrad)) {
       throw new HttpsError("invalid-argument", "storagePath och ett giltigt forrad krävs.");
     }
+    if (storagePath !== `inkommande/${request.auth.uid}/${storagePath.split("/").pop()}`) {
+      throw new HttpsError("permission-denied", "storagePath måste peka på ditt eget uppladdade foto.");
+    }
 
     await reserveraBudget();
 
@@ -231,8 +236,11 @@ exports.tolkaDokument = onCall(
     }
 
     const { storagePath, omrade } = request.data;
-    if (!storagePath || !omrade) {
-      throw new HttpsError("invalid-argument", "storagePath och omrade krävs.");
+    if (!storagePath || !OMRADEN.includes(omrade)) {
+      throw new HttpsError("invalid-argument", "storagePath och ett giltigt omrade krävs.");
+    }
+    if (storagePath !== `inkommande/${request.auth.uid}/${storagePath.split("/").pop()}`) {
+      throw new HttpsError("permission-denied", "storagePath måste peka på ditt eget uppladdade foto.");
     }
 
     await reserveraBudget();

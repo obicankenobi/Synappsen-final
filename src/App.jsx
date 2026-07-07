@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
@@ -6,27 +7,38 @@ import InaktivitetsVarning from "./components/InaktivitetsVarning";
 import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
-import Hem from "./pages/Hem";
-import LoggaIn from "./pages/LoggaIn";
-import Registrera from "./pages/Registrera";
-import KlinisktStod from "./pages/KlinisktStod";
-import Logistik from "./pages/Logistik";
-import ForradVy from "./pages/ForradVy";
-import Administration from "./pages/Administration";
-import Admin from "./pages/Admin";
-import LaddaUpp from "./pages/LaddaUpp";
-import Nyheter from "./pages/Nyheter";
-import Hjalp from "./pages/Hjalp";
-import Feedback from "./pages/Feedback";
-import Anslagstavla from "./pages/Anslagstavla";
-import Skiftrapport from "./pages/Skiftrapport";
-import Profil from "./pages/Profil";
 import { ROLES } from "./firebase/roles";
+
+// Varje sida laddas i sin egen chunk vid behov istället för att bakas in i huvudbundlen
+const Hem = lazy(() => import("./pages/Hem"));
+const LoggaIn = lazy(() => import("./pages/LoggaIn"));
+const Registrera = lazy(() => import("./pages/Registrera"));
+const KlinisktStod = lazy(() => import("./pages/KlinisktStod"));
+const Logistik = lazy(() => import("./pages/Logistik"));
+const ForradVy = lazy(() => import("./pages/ForradVy"));
+const Administration = lazy(() => import("./pages/Administration"));
+const Admin = lazy(() => import("./pages/Admin"));
+const LaddaUpp = lazy(() => import("./pages/LaddaUpp"));
+const Nyheter = lazy(() => import("./pages/Nyheter"));
+const Hjalp = lazy(() => import("./pages/Hjalp"));
+const Feedback = lazy(() => import("./pages/Feedback"));
+const Anslagstavla = lazy(() => import("./pages/Anslagstavla"));
+const Skiftrapport = lazy(() => import("./pages/Skiftrapport"));
+const Profil = lazy(() => import("./pages/Profil"));
+const Kontakter = lazy(() => import("./pages/Kontakter"));
+const Lankbibliotek = lazy(() => import("./pages/Lankbibliotek"));
+const Papperskorg = lazy(() => import("./pages/Papperskorg"));
+
+function SidLaddare() {
+  return <div className="sida sida--laddar">Laddar...</div>;
+}
 
 function SkyddatLayout({ children }) {
   return (
     <SkyddadRoute>
-      <div className="app-innehall">{children}</div>
+      <div className="app-innehall">
+        <Suspense fallback={<SidLaddare />}>{children}</Suspense>
+      </div>
       <BottomNav />
     </SkyddadRoute>
   );
@@ -45,8 +57,22 @@ export default function App() {
       <InaktivitetsBevakning />
       <BrowserRouter>
         <Routes>
-          <Route path="/logga-in" element={<LoggaIn />} />
-          <Route path="/registrera" element={<Registrera />} />
+          <Route
+            path="/logga-in"
+            element={
+              <Suspense fallback={<SidLaddare />}>
+                <LoggaIn />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/registrera"
+            element={
+              <Suspense fallback={<SidLaddare />}>
+                <Registrera />
+              </Suspense>
+            }
+          />
           <Route
             path="/"
             element={
@@ -144,11 +170,37 @@ export default function App() {
             }
           />
           <Route
+            path="/kontakter"
+            element={
+              <SkyddatLayout>
+                <Kontakter />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/lankbibliotek"
+            element={
+              <SkyddatLayout>
+                <Lankbibliotek />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/papperskorg"
+            element={
+              <SkyddatLayout>
+                <Papperskorg />
+              </SkyddatLayout>
+            }
+          />
+          <Route
             path="/admin"
             element={
               <RollSkyddadRoute tillatnaRoller={[ROLES.SUPERADMIN]}>
                 <div className="app-innehall">
-                  <Admin />
+                  <Suspense fallback={<SidLaddare />}>
+                    <Admin />
+                  </Suspense>
                 </div>
                 <BottomNav />
               </RollSkyddadRoute>

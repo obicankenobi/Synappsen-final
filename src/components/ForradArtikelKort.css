@@ -1,6 +1,7 @@
 .forrad-artikel-kort {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
@@ -43,20 +44,20 @@
 
 .forrad-artikel-kort__badge {
   font-size: 0.75rem;
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--amber-ljus);
+  color: var(--amber-text);
   padding: 2px 8px;
   border-radius: 999px;
   white-space: nowrap;
 }
 
 .forrad-artikel-kort__plats {
-  color: #374151;
+  color: var(--text);
   margin: 6px 0 0;
 }
 
 .forrad-artikel-kort__antal {
-  color: #6b7280;
+  color: var(--text-svag);
   margin: 4px 0 0;
 }
 

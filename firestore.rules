@@ -67,9 +67,10 @@ service cloud.firestore {
       // Ett nytt konto skapar sitt eget dokument med standardrollen "personal"
       allow create: if arInloggad() && request.auth.uid == userId
                      && request.resource.data.role == 'personal';
-      // Superadmin får ändra allt (t.ex. roller). Ägaren själv får bara ändra sina favoriter.
+      // Superadmin får ändra allt (t.ex. roller). Ägaren själv får bara ändra sina favoriter
+      // och tidpunkten för senaste notisbesök.
       allow update: if arSuperadmin()
-                     || (request.auth.uid == userId && bararForandrarFalt(['favoriter']));
+                     || (request.auth.uid == userId && bararForandrarFalt(['favoriter', 'senasteNotisBesok']));
       allow delete: if arSuperadmin();
     }
 
@@ -153,6 +154,25 @@ service cloud.firestore {
       allow create: if arInloggad() && request.resource.data.skapadAv == request.auth.uid;
       allow update: if arInloggad() && bararForandrarFalt(['atgardad', 'atgardadAv']);
       allow delete: if arInloggad() && (resource.data.skapadAv == request.auth.uid || arRedaktor());
+    }
+
+    // kontakter/{kontaktId} – telefonlista, endast textnummer (ingen ring-funktion i klienten).
+    match /kontakter/{kontaktId} {
+      allow read: if arInloggad();
+      allow create, update, delete: if farHanteraAnslag();
+    }
+
+    // lankbibliotek/{lankId} – samling externa/interna länkar.
+    match /lankbibliotek/{lankId} {
+      allow read: if arInloggad();
+      allow create, update, delete: if farHanteraAnslag();
+    }
+
+    // anteckningar/{dokId} – privata anteckningar på en rutin, dokId "{uid}_{rutinId}".
+    // Endast ägaren själv får någonsin läsa eller skriva sin egen anteckning.
+    match /anteckningar/{dokId} {
+      allow read, update, delete: if arInloggad() && resource.data.uid == request.auth.uid;
+      allow create: if arInloggad() && request.resource.data.uid == request.auth.uid;
     }
 
     // installningar/geminiBudget – budgettak för Gemini Vision-tolkning.

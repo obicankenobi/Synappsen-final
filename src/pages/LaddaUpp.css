@@ -8,7 +8,8 @@
 
 .ladda-upp__omrade select {
   padding: 10px 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
   border-radius: 8px;
 }
 
@@ -59,14 +60,14 @@
   justify-content: space-between;
   gap: 10px;
   padding: 10px 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--kant);
   font-size: 0.9rem;
 }
 
 .ladda-upp__klar {
-  color: #16a34a;
+  color: var(--success);
 }
 
 .ladda-upp__fel {
-  color: #dc2626;
+  color: var(--farlig);
 }

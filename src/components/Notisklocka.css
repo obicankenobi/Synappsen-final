@@ -1,0 +1,66 @@
+.notisklocka {
+  position: relative;
+}
+
+.notisklocka__knapp {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.notisklocka__badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: var(--farlig);
+  color: var(--yta);
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 999px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+.notisklocka__panel {
+  position: absolute;
+  right: 0;
+  top: 36px;
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 10px;
+  width: 260px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 150;
+}
+
+.notisklocka__panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notisklocka__panel li button {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 8px 6px;
+  width: 100%;
+  cursor: pointer;
+  font-size: 0.85rem;
+  border-radius: 6px;
+}
+
+.notisklocka__panel li button:hover {
+  background: var(--bg);
+}

@@ -15,13 +15,15 @@
 .feedback-formular textarea {
   padding: 10px 12px;
   border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
   border-radius: 8px;
   font: inherit;
 }
 
 .feedback-tack {
-  background: #fff;
+  background: var(--yta);
   border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
   border-radius: 12px;
   padding: 16px;
   color: var(--text-svag);

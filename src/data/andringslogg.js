@@ -3,6 +3,21 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.0.0",
+    datum: "2026-07-07",
+    andringar: [
+      "Ny kontaktlista (/kontakter) med telefonnummer till viktiga funktioner – numren visas som text, ingen ring-knapp",
+      "Nytt länkbibliotek (/lankbibliotek) för externa och interna länkar, sorterat per kategori",
+      "Rutiner visar nu vem som godkänt/granskat dem och när (signatur)",
+      "Rutiner kan länkas ihop som \"relaterade\" och få ett källor/referenser-fält",
+      "Ny notisklocka i sidhuvudet – se nya anslag och rutiner sedan ditt senaste besök",
+      "Privata anteckningar på en rutin – bara du ser dina egna anteckningar",
+      "Ny papperskorg (/papperskorg) – borttaget innehåll kan återställas istället för att försvinna direkt",
+      "Tvåfaktorsautentisering (engångskod via autentiseringsapp) kan aktiveras på profilsidan",
+      "Hela det grafiska utseendet har setts över: enhetligare färger, mjukare skuggor och tydligare knappar/navigering",
+    ],
+  },
+  {
     version: "4.1.0",
     datum: "2026-07-07",
     andringar: [

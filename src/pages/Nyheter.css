@@ -1,6 +1,7 @@
 .nyheter-post {
-  background: #fff;
+  background: var(--yta);
   border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
   border-radius: 12px;
   padding: 16px 20px;
   margin-bottom: 16px;

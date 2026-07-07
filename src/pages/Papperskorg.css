@@ -1,0 +1,39 @@
+.papperskorg-grupp {
+  margin-bottom: 20px;
+}
+
+.papperskorg-grupp h2 {
+  font-size: 1rem;
+  color: var(--text-svag);
+  margin-bottom: 8px;
+}
+
+.papperskorg-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.papperskorg-rad {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+
+.papperskorg-rad__meta {
+  font-size: 0.8rem;
+  color: var(--text-svag);
+}
+
+.papperskorg-rad__atgarder {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}

@@ -38,7 +38,7 @@ export default function Sektionssida({
   }, [laddar, rutiner]);
 
   async function godkannAllaUtkast() {
-    await Promise.all(utkastRutiner.map((r) => godkannRutin(r.id, currentUser.uid)));
+    await Promise.all(utkastRutiner.map((r) => godkannRutin(r.id, currentUser.uid, currentUser.email)));
   }
 
   async function nekaAllaUtkast() {
@@ -46,12 +46,25 @@ export default function Sektionssida({
     await Promise.all(utkastRutiner.map((r) => taBortRutin(r.id, currentUser.uid)));
   }
 
-  async function hanteraSpara({ titel: titelVarde, innehall, nyaFiler, befintligaBilagor }) {
+  async function hanteraSpara({
+    titel: titelVarde,
+    innehall,
+    referenser,
+    relaterade,
+    nyaFiler,
+    befintligaBilagor,
+  }) {
     if (redigerar) {
       const nyaBilagor = nyaFiler.length ? await laddaUppRutinBilagor(omrade, redigerar.id, nyaFiler) : [];
       await uppdateraRutin(
         redigerar.id,
-        { titel: titelVarde, innehall, bilagor: [...befintligaBilagor, ...nyaBilagor] },
+        {
+          titel: titelVarde,
+          innehall,
+          referenser,
+          relateradeRutiner: relaterade,
+          bilagor: [...befintligaBilagor, ...nyaBilagor],
+        },
         currentUser.uid
       );
     } else {
@@ -62,10 +75,11 @@ export default function Sektionssida({
         skapadAv: currentUser.uid,
         kraverGodkannande,
       });
-      if (nyaFiler.length) {
-        const bilagor = await laddaUppRutinBilagor(omrade, ref.id, nyaFiler);
-        await uppdateraRutin(ref.id, { bilagor });
-      }
+      await uppdateraRutin(ref.id, {
+        referenser,
+        relateradeRutiner: relaterade,
+        bilagor: nyaFiler.length ? await laddaUppRutinBilagor(omrade, ref.id, nyaFiler) : [],
+      });
     }
     setVisaFormular(false);
     setRedigerar(null);
@@ -97,6 +111,7 @@ export default function Sektionssida({
       {visaFormular && (
         <RutinFormular
           initialaVarden={redigerar}
+          ovrigaRutiner={rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND)}
           onSpara={hanteraSpara}
           onAvbryt={() => {
             setVisaFormular(false);
@@ -129,12 +144,13 @@ export default function Sektionssida({
         <RutinKort
           key={rutin.id}
           rutin={rutin}
+          allaRutiner={rutiner}
           farRedigera={farRedigera}
           farGodkanna={farGodkanna}
           onRedigera={oppnaRedigering}
-          onGodkann={(id) => godkannRutin(id, currentUser.uid)}
+          onGodkann={(id) => godkannRutin(id, currentUser.uid, currentUser.email)}
           onTaBort={(id) => taBortRutin(id, currentUser.uid)}
-          onMarkeraGranskad={(id) => markeraGranskad(id, currentUser.uid)}
+          onMarkeraGranskad={(id) => markeraGranskad(id, currentUser.uid, currentUser.email)}
           hamtaVersioner={hamtaVersioner}
         />
       ))}

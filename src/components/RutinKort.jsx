@@ -6,6 +6,7 @@ import FavoritKnapp from "./FavoritKnapp";
 import Kommentarer from "./Kommentarer";
 import VersionsHistorik from "./VersionsHistorik";
 import MarkdownInnehall from "./MarkdownInnehall";
+import PrivatAnteckning from "./PrivatAnteckning";
 import "./RutinKort.css";
 
 const GRANSKNINGSINTERVALL_DAGAR = 180;
@@ -15,6 +16,11 @@ function borGranskas(granskadDatum) {
   const granslinje = new Date();
   granslinje.setDate(granslinje.getDate() - GRANSKNINGSINTERVALL_DAGAR);
   return granskadDatum.toDate() < granslinje;
+}
+
+function formateraTid(tidpunkt) {
+  if (!tidpunkt?.toDate) return "";
+  return tidpunkt.toDate().toLocaleDateString("sv-SE", { dateStyle: "medium" });
 }
 
 function skrivUtRutin(rutinId) {
@@ -31,6 +37,7 @@ function skrivUtRutin(rutinId) {
 
 export default function RutinKort({
   rutin,
+  allaRutiner = [],
   farRedigera,
   farGodkanna,
   onRedigera,
@@ -45,6 +52,9 @@ export default function RutinKort({
   const flaggadForGranskning = farRedigera && borGranskas(rutin.granskadDatum);
   const lasteAv = rutin.lasteAv ?? [];
   const jagHarLast = lasteAv.some((l) => l.uid === currentUser?.uid);
+  const relaterade = (rutin.relateradeRutiner ?? [])
+    .map((id) => allaRutiner.find((r) => r.id === id))
+    .filter(Boolean);
 
   return (
     <article className="rutin-kort" id={`rutin-${rutin.id}`}>
@@ -58,6 +68,24 @@ export default function RutinKort({
         </div>
         <FavoritKnapp typ="rutin" id={rutin.id} />
       </header>
+
+      {(rutin.godkandAvNamn || rutin.granskadAvNamn) && (
+        <div className="rutin-kort__signatur">
+          {rutin.godkandAvNamn && (
+            <span>
+              Godkänd av {rutin.godkandAvNamn}
+              {rutin.godkandDatum && ` · ${formateraTid(rutin.godkandDatum)}`}
+            </span>
+          )}
+          {rutin.granskadAvNamn && (
+            <span>
+              Senast granskad av {rutin.granskadAvNamn}
+              {rutin.granskadDatum && ` · ${formateraTid(rutin.granskadDatum)}`}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* bildUrl är kvar för bakåtkompatibilitet med rutiner skapade innan bilagor (fas 5) */}
       {rutin.bildUrl && !rutin.bilagor?.length && (
         <img className="rutin-kort__bild" src={rutin.bildUrl} alt="" />
@@ -76,6 +104,24 @@ export default function RutinKort({
         </div>
       )}
       <MarkdownInnehall className="rutin-kort__innehall" text={rutin.innehall} />
+
+      {rutin.referenser && (
+        <p className="rutin-kort__referenser">
+          <strong>Referenser:</strong> {rutin.referenser}
+        </p>
+      )}
+
+      {relaterade.length > 0 && (
+        <div className="rutin-kort__relaterade">
+          <strong>Se även:</strong>{" "}
+          {relaterade.map((r, i) => (
+            <span key={r.id}>
+              {i > 0 && ", "}
+              <a href={`#rutin-${r.id}`}>{r.titel}</a>
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="rutin-kort__laskvittering">
         <button
@@ -130,6 +176,8 @@ export default function RutinKort({
       >
         🖨️ Skriv ut / PDF
       </button>
+
+      <PrivatAnteckning rutinId={rutin.id} />
 
       <Kommentarer rutinId={rutin.id} farTaBortAlla={farRedigera} />
 

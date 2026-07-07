@@ -43,6 +43,7 @@
   flex: 1;
   padding: 8px 10px;
   border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
   border-radius: 8px;
   font: inherit;
   resize: vertical;

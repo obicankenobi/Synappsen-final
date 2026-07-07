@@ -1,16 +1,19 @@
 .sektionskort {
   display: block;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
+  border-radius: var(--radius);
   padding: 20px;
   text-decoration: none;
   color: inherit;
-  transition: box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
 }
 
 .sektionskort:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--skugga-hover);
+  border-color: var(--kant-stark);
+  transform: translateY(-2px);
 }
 
 .sektionskort__ikon {
@@ -26,6 +29,6 @@
 
 .sektionskort p {
   margin: 0;
-  color: #6b7280;
+  color: var(--text-svag);
   font-size: 0.9rem;
 }

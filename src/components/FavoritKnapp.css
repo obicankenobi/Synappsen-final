@@ -4,10 +4,10 @@
   font-size: 1.4rem;
   line-height: 1;
   cursor: pointer;
-  color: #d1d5db;
+  color: var(--kant-stark);
   padding: 2px 6px;
 }
 
 .favorit-knapp--aktiv {
-  color: #f59e0b;
+  color: var(--amber);
 }
