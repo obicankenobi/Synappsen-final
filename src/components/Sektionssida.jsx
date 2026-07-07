@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
-import { laddaUppRutinBild } from "../firebase/storage";
+import { laddaUppRutinBilagor } from "../firebase/storage";
 import RutinFormular from "./RutinFormular";
 import RutinKort from "./RutinKort";
 
@@ -27,12 +27,33 @@ export default function Sektionssida({
     ? rutiner
     : rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND);
 
-  async function hanteraSpara({ titel: titelVarde, innehall, bild }) {
+  const utkastRutiner = synligaRutiner.filter((r) => r.status === RUTIN_STATUS.UTKAST);
+
+  // Möjliggör djuplänkning från sökresultat: /kliniskt-stod#rutin-{id} scrollar till rätt kort
+  useEffect(() => {
+    if (!laddar && window.location.hash) {
+      const el = document.getElementById(window.location.hash.slice(1));
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [laddar, rutiner]);
+
+  async function godkannAllaUtkast() {
+    await Promise.all(utkastRutiner.map((r) => godkannRutin(r.id, currentUser.uid)));
+  }
+
+  async function nekaAllaUtkast() {
+    if (!confirm(`Ta bort alla ${utkastRutiner.length} utkast? Detta går inte att ångra.`)) return;
+    await Promise.all(utkastRutiner.map((r) => taBortRutin(r.id, currentUser.uid)));
+  }
+
+  async function hanteraSpara({ titel: titelVarde, innehall, nyaFiler, befintligaBilagor }) {
     if (redigerar) {
-      const bildUrl = bild
-        ? await laddaUppRutinBild(omrade, redigerar.id, bild)
-        : redigerar.bildUrl;
-      await uppdateraRutin(redigerar.id, { titel: titelVarde, innehall, bildUrl }, currentUser.uid);
+      const nyaBilagor = nyaFiler.length ? await laddaUppRutinBilagor(omrade, redigerar.id, nyaFiler) : [];
+      await uppdateraRutin(
+        redigerar.id,
+        { titel: titelVarde, innehall, bilagor: [...befintligaBilagor, ...nyaBilagor] },
+        currentUser.uid
+      );
     } else {
       const ref = await skapaRutin({
         titel: titelVarde,
@@ -41,9 +62,9 @@ export default function Sektionssida({
         skapadAv: currentUser.uid,
         kraverGodkannande,
       });
-      if (bild) {
-        const bildUrl = await laddaUppRutinBild(omrade, ref.id, bild);
-        await uppdateraRutin(ref.id, { bildUrl });
+      if (nyaFiler.length) {
+        const bilagor = await laddaUppRutinBilagor(omrade, ref.id, nyaFiler);
+        await uppdateraRutin(ref.id, { bilagor });
       }
     }
     setVisaFormular(false);
@@ -82,6 +103,18 @@ export default function Sektionssida({
             setRedigerar(null);
           }}
         />
+      )}
+
+      {farGodkanna && utkastRutiner.length > 0 && (
+        <div className="forrad-vy__bulkatgarder">
+          <span>{utkastRutiner.length} utkast väntar på granskning</span>
+          <button className="knapp" onClick={godkannAllaUtkast}>
+            Godkänn alla
+          </button>
+          <button className="knapp knapp--farlig" onClick={nekaAllaUtkast}>
+            Neka alla
+          </button>
+        </div>
       )}
 
       {laddar && <p className="sida__beskrivning">Laddar...</p>}

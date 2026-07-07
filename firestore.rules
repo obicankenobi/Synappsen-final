@@ -146,6 +146,15 @@ service cloud.firestore {
       allow create, update: if arInloggad();
     }
 
+    // skiftrapporter/{postId} – praktisk drift-info mellan skift (INTE patientdata).
+    // Alla inloggade får skapa och markera som åtgärdat. Ägaren eller en redaktörsroll får ta bort.
+    match /skiftrapporter/{postId} {
+      allow read: if arInloggad();
+      allow create: if arInloggad() && request.resource.data.skapadAv == request.auth.uid;
+      allow update: if arInloggad() && bararForandrarFalt(['atgardad', 'atgardadAv']);
+      allow delete: if arInloggad() && (resource.data.skapadAv == request.auth.uid || arRedaktor());
+    }
+
     // installningar/geminiBudget – budgettak för Gemini Vision-tolkning.
     // Skrivs normalt endast av Cloud Function (Admin SDK, kringgår dessa regler).
     // Superadmin kan höja/sänka taket manuellt i adminpanelen.

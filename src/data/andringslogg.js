@@ -3,6 +3,21 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "4.1.0",
+    datum: "2026-07-07",
+    andringar: [
+      "Sökningen hittar nu även riktiga rutiner i Kliniskt stöd och Administration, inte bara förråd",
+      "Ny skiftrapport för praktisk drift-info mellan skift (t.ex. \"slut på sutur-set\") – aldrig patientinformation",
+      "Bulk-godkänn/neka av utkast-rutiner, samma som redan fanns för förrådsartiklar",
+      "Anslag kan nu markeras som \"Viktigt\" med tydlig visuell varning",
+      "Ny statistik i adminpanelen: mest aktiva användare och mest kvitterade rutiner",
+      "Skriv ut eller spara en enskild rutin som PDF direkt från rutinkortet",
+      "Rutiner stödjer nu flera bilagor (bilder och PDF), inte bara en bild",
+      "Ny profilsida: byt lösenord och se dina favoriter samlat",
+      "Automatisk utloggning efter inaktivitet, med varning innan – för delade datorer/surfplattor",
+    ],
+  },
+  {
     version: "4.0.0",
     datum: "2026-07-03",
     andringar: [

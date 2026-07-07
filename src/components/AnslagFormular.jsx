@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { ANSLAG_PRIORITET } from "../hooks/useAnslag";
 import "./AnslagFormular.css";
 
 export default function AnslagFormular({ initialaVarden, onSpara, onAvbryt }) {
   const [titel, setTitel] = useState(initialaVarden?.titel ?? "");
   const [innehall, setInnehall] = useState(initialaVarden?.innehall ?? "");
   const [fastNaglad, setFastNaglad] = useState(initialaVarden?.fastNaglad ?? false);
+  const [prioritet, setPrioritet] = useState(initialaVarden?.prioritet ?? ANSLAG_PRIORITET.INFO);
   const [utgangsdatum, setUtgangsdatum] = useState(initialaVarden?.utgangsdatum ?? "");
   const [sparar, setSparar] = useState(false);
 
@@ -12,7 +14,7 @@ export default function AnslagFormular({ initialaVarden, onSpara, onAvbryt }) {
     e.preventDefault();
     setSparar(true);
     try {
-      await onSpara({ titel, innehall, fastNaglad, utgangsdatum });
+      await onSpara({ titel, innehall, fastNaglad, prioritet, utgangsdatum });
     } finally {
       setSparar(false);
     }
@@ -31,6 +33,13 @@ export default function AnslagFormular({ initialaVarden, onSpara, onAvbryt }) {
       <label className="anslag-formular__checkbox">
         <input type="checkbox" checked={fastNaglad} onChange={(e) => setFastNaglad(e.target.checked)} />
         Fäst högst upp
+      </label>
+      <label>
+        Prioritet
+        <select value={prioritet} onChange={(e) => setPrioritet(e.target.value)}>
+          <option value={ANSLAG_PRIORITET.INFO}>Info</option>
+          <option value={ANSLAG_PRIORITET.VIKTIGT}>⚠️ Viktigt</option>
+        </select>
       </label>
       <label>
         Utgångsdatum (valfritt)

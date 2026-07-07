@@ -4,14 +4,23 @@ import "./RutinFormular.css";
 export default function RutinFormular({ initialaVarden, onSpara, onAvbryt }) {
   const [titel, setTitel] = useState(initialaVarden?.titel ?? "");
   const [innehall, setInnehall] = useState(initialaVarden?.innehall ?? "");
-  const [bild, setBild] = useState(null);
+  const [nyaFiler, setNyaFiler] = useState([]);
+  const [befintligaBilagor, setBefintligaBilagor] = useState(initialaVarden?.bilagor ?? []);
   const [sparar, setSparar] = useState(false);
+
+  function taBortBefintlig(index) {
+    setBefintligaBilagor((b) => b.filter((_, i) => i !== index));
+  }
+
+  function taBortNy(index) {
+    setNyaFiler((f) => f.filter((_, i) => i !== index));
+  }
 
   async function hanteraSubmit(e) {
     e.preventDefault();
     setSparar(true);
     try {
-      await onSpara({ titel, innehall, bild });
+      await onSpara({ titel, innehall, nyaFiler, befintligaBilagor });
     } finally {
       setSparar(false);
     }
@@ -41,13 +50,36 @@ export default function RutinFormular({ initialaVarden, onSpara, onAvbryt }) {
         </span>
       </label>
       <label>
-        Bild (valfritt)
+        Bilagor (bilder eller PDF, valfritt, flera går bra)
         <input
           type="file"
-          accept="image/*"
-          onChange={(e) => setBild(e.target.files[0] ?? null)}
+          accept="image/*,.pdf"
+          multiple
+          onChange={(e) => setNyaFiler((f) => [...f, ...Array.from(e.target.files ?? [])])}
         />
       </label>
+
+      {(befintligaBilagor.length > 0 || nyaFiler.length > 0) && (
+        <ul className="rutin-formular__bilagelista">
+          {befintligaBilagor.map((b, i) => (
+            <li key={`befintlig-${i}`}>
+              {b.namn ?? "Bilaga"}
+              <button type="button" className="knapp--lank" onClick={() => taBortBefintlig(i)}>
+                Ta bort
+              </button>
+            </li>
+          ))}
+          {nyaFiler.map((f, i) => (
+            <li key={`ny-${i}`}>
+              {f.name} (ny)
+              <button type="button" className="knapp--lank" onClick={() => taBortNy(i)}>
+                Ta bort
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
       <div className="rutin-formular__knappar">
         <button type="button" className="knapp knapp--sekundar" onClick={onAvbryt}>
           Avbryt

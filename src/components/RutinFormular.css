@@ -26,6 +26,25 @@
   font-family: inherit;
 }
 
+.rutin-formular__bilagelista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rutin-formular__bilagelista li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg, #f9fafb);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
 .rutin-formular__hjalptext {
   font-weight: 400;
   color: var(--text-svag, #6b7280);

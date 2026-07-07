@@ -17,6 +17,7 @@
 }
 
 .anslag-formular input,
+.anslag-formular select,
 .anslag-formular textarea {
   padding: 10px 12px;
   border: 1px solid var(--kant);

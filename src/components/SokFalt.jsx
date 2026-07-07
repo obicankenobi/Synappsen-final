@@ -3,6 +3,7 @@ import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
 import { sokposter } from "../data/sokindex";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
+import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
 import { forradTillSlug } from "../firebase/forrad";
 import { registreraVisning } from "../hooks/useVisningar";
 import { useSokloggar } from "../hooks/useSokloggar";
@@ -16,11 +17,24 @@ function platsBeskrivning(artikel) {
   return delar.join(" · ");
 }
 
-// Sökfält med fuzzy-sökning via Fuse.js, kombinerar statiskt index med förrådsartiklar från Firestore
+const OMRADE_LABELS = {
+  "kliniskt-stod": "Kliniskt stöd",
+  administration: "Administration",
+};
+
+const OMRADE_SOKVAG = {
+  "kliniskt-stod": "/kliniskt-stod",
+  administration: "/administration",
+};
+
+// Sökfält med fuzzy-sökning via Fuse.js, kombinerar statiskt index, förrådsartiklar och riktiga
+// rutiner från Firestore (Kliniskt stöd + Administration)
 export default function SokFalt() {
   const [sokterm, setSokterm] = useState("");
   const navigate = useNavigate();
   const { artiklar } = useForradsartiklar();
+  const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
+  const { rutiner: adminRutiner } = useRutiner("administration");
   const { loggaNollTraff } = useSokloggar(false);
   const { currentUser } = useAuth();
 
@@ -34,8 +48,18 @@ export default function SokFalt() {
         nyckelord: [a.forrad, a.skap, a.hylla, ...(a.sokord ?? [])].filter(Boolean),
         plats: platsBeskrivning(a),
       }));
-    return [...sokposter, ...forradsposter];
-  }, [artiklar]);
+
+    const rutinposter = [...klinisktRutiner, ...adminRutiner]
+      .filter((r) => r.status === RUTIN_STATUS.GODKAND)
+      .map((r) => ({
+        titel: r.titel,
+        kategori: OMRADE_LABELS[r.omrade] ?? r.omrade,
+        sokvag: `${OMRADE_SOKVAG[r.omrade] ?? "/"}#rutin-${r.id}`,
+        nyckelord: (r.innehall ?? "").split(/\s+/).slice(0, 60),
+      }));
+
+    return [...sokposter, ...forradsposter, ...rutinposter];
+  }, [artiklar, klinisktRutiner, adminRutiner]);
 
   const fuse = useMemo(
     () =>

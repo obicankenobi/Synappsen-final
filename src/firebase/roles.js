@@ -35,3 +35,17 @@ export const KAN_HANTERA_ANSLAG = [ROLES.SUPERADMIN, ROLES.VEC];
 
 // Roller som får hantera förrådsartiklar
 export const KAN_HANTERA_FORRAD = [ROLES.SUPERADMIN, ROLES.FORRADSANSVARIG];
+
+// Alla roller med någon form av redaktörsbehörighet (används t.ex. för att moderera
+// andras kommentarer/skiftrapporter oavsett vilket område rollen äger)
+const REDAKTORSROLLER = [
+  ROLES.SUPERADMIN,
+  ROLES.VOL,
+  ROLES.SEKTIONSLEDARE,
+  ROLES.VEC,
+  ROLES.FORRADSANSVARIG,
+];
+
+export function arRedaktor(role) {
+  return REDAKTORSROLLER.includes(role);
+}

@@ -1,4 +1,5 @@
 import MarkdownInnehall from "./MarkdownInnehall";
+import { ANSLAG_PRIORITET } from "../hooks/useAnslag";
 import "./AnslagKort.css";
 
 function formateraTid(tidpunkt) {
@@ -7,11 +8,17 @@ function formateraTid(tidpunkt) {
 }
 
 export default function AnslagKort({ anslag, farHantera, onRedigera, onTaBort }) {
+  const arViktigt = anslag.prioritet === ANSLAG_PRIORITET.VIKTIGT;
   return (
-    <article className={`anslag-kort ${anslag.fastNaglad ? "anslag-kort--fastnaglad" : ""}`}>
+    <article
+      className={`anslag-kort ${anslag.fastNaglad ? "anslag-kort--fastnaglad" : ""} ${
+        arViktigt ? "anslag-kort--viktigt" : ""
+      }`}
+    >
       <header className="anslag-kort__header">
         <h3>
           {anslag.fastNaglad && "📌 "}
+          {arViktigt && "⚠️ "}
           {anslag.titel}
         </h3>
         <span className="anslag-kort__datum">{formateraTid(anslag.skapad)}</span>

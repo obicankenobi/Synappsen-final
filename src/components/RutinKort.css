@@ -47,6 +47,23 @@
   margin: 10px 0;
 }
 
+.rutin-kort__bilagor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.rutin-kort__dokument {
+  display: inline-block;
+  color: var(--primar, #1d4ed8);
+  text-decoration: none;
+  font-weight: 600;
+  background: var(--bg, #f9fafb);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
 .rutin-kort__innehall {
   color: #374151;
 }
@@ -77,4 +94,34 @@
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 12px;
+}
+
+.rutin-kort__skriv-ut {
+  margin-top: 10px;
+}
+
+@media print {
+  body.utskrift-lage .bottom-nav,
+  body.utskrift-lage .hem__snabblankar,
+  body.utskrift-lage .sok-falt,
+  body.utskrift-lage .hem__sektion,
+  body.utskrift-lage .rutin-formular,
+  body.utskrift-lage .forrad-vy__bulkatgarder,
+  body.utskrift-lage .rutin-kort__atgarder,
+  body.utskrift-lage .rutin-kort__laskvittering,
+  body.utskrift-lage .kommentarer,
+  body.utskrift-lage .rutin-kort__skriv-ut,
+  body.utskrift-lage h1,
+  body.utskrift-lage .sida__beskrivning {
+    display: none !important;
+  }
+
+  body.utskrift-lage .rutin-kort:not(.rutin-kort--utskrift) {
+    display: none !important;
+  }
+
+  body.utskrift-lage .rutin-kort--utskrift {
+    border: none;
+    box-shadow: none;
+  }
 }

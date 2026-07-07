@@ -254,3 +254,71 @@ endast för superadmin, samt en hjälp-/FAQ-sida.
   Administration (endast ett statiskt platshållarindex + Firestore-backade
   förrådsartiklar, sedan tidigare faser) – "Mest använda" och "Mina favoriter" fungerar även
   för rutiner, men fritextsökning gör det ännu inte. Separat, större uppgift.
+  **Åtgärdat i Fas 5, se nedan.**
+
+---
+
+## Fas 5 – Sökning i rutiner, skiftrapport och driftkvalitet
+
+**Datum:** 2026-07-07
+**Branch:** `claude/compassionate-euler-rho0q5`
+
+### Bakgrund
+
+Uppföljning på Fas 4: användaren bad om ytterligare en runda förslag (utom riktiga
+push-notiser, som medvetet avgränsades bort i Fas 4). En ny funktion – skiftrapport – fick ett
+uttryckligt krav: den får aldrig användas för patientinformation (sekretess/GDPR), utan är
+enbart till för praktisk drift-info mellan skift.
+
+### Genomfört
+
+- `src/components/SokFalt.jsx` – vävde in riktiga godkända `rutiner` (Kliniskt stöd +
+  Administration) i sökindexet, utöver förrådsartiklar och den statiska platshållarlistan.
+  Sökträffar för rutiner länkar till `{sektionssida}#rutin-{id}`.
+- `src/components/RutinKort.jsx` + `src/components/Sektionssida.jsx` – varje rutinkort får ett
+  `id="rutin-{id}"`; `Sektionssida` scrollar automatiskt till rätt kort när sidan laddas med
+  ett hash i URL:en (djuplänkning från sökresultat).
+- `src/components/Sektionssida.jsx` – "Godkänn alla"/"Neka alla" för utkast-rutiner, samma
+  mönster som redan fanns i `ForradVy` för förrådsartiklar.
+- `src/hooks/useAnslag.js` + `AnslagFormular.jsx`/`AnslagKort.jsx` – nytt `prioritet`-fält
+  (`info`/`viktigt`) på anslag. Viktiga anslag får en tydlig röd ram och varningsikon, och
+  sorteras efter fastnaglade men före övriga.
+- `src/pages/Admin.jsx` – ny statistiksektion: mest aktiva användare (räknat på de senaste 100
+  händelserna i ändringsloggen) och mest kvitterade rutiner (flest "jag har läst"-kvitteringar).
+- `src/hooks/useSkiftrapport.js` + `src/pages/Skiftrapport.jsx` (`/skiftrapport`) – ny
+  collection `skiftrapporter` för korta driftmeddelanden mellan skift (t.ex. "vattenläcka i
+  taket", "slut på sutur-set"). Tydlig varningstext i gränssnittet om att patientinformation
+  aldrig får skrivas här. Alla inloggade kan skapa och markera som åtgärdat; ägaren eller en
+  redaktörsroll kan ta bort. Poster äldre än 48 timmar döljs automatiskt ur huvudlistan (kan
+  visas via "Visa åtgärdade").
+- `src/hooks/useInaktivitetsUtloggning.js` + `src/components/InaktivitetsVarning.jsx` – loggar
+  automatiskt ut efter 20 minuters inaktivitet (mus/tangentbord/touch/scroll), med en
+  varningsdialog 1 minut innan. Kopplas in globalt i `App.jsx` oavsett vilken skyddad sida
+  användaren är på – relevant på delade datorer/surfplattor.
+- `src/components/RutinKort.jsx` – "Skriv ut / PDF"-knapp som isolerar en enskild rutin via en
+  `@media print`-regel (döljer navigering, formulär och övriga kort) och anropar
+  `window.print()`; användaren väljer "Spara som PDF" i webbläsarens utskriftsdialog.
+- `src/firebase/storage.js` – `laddaUppRutinBilagor()` laddar upp flera filer (bilder eller
+  PDF) och returnerar `{url, namn, typ}` per fil. `RutinFormular.jsx` stödjer nu multi-upload
+  med möjlighet att ta bort enskilda bilagor innan sparning. Rutiner har fått ett `bilagor`-
+  fält (array) som ersätter det gamla ensamma `bildUrl`-fältet för nytt innehåll; `RutinKort`
+  hanterar båda formaten (bakåtkompatibelt).
+- `src/hooks/useMinaFavoritPoster.js` – favoritupplösningen (matcha `users.favoriter` mot
+  riktiga rutiner/artiklar) bröts ut från `Hem.jsx` till en delad hook.
+- `src/pages/Profil.jsx` (`/profil`) – ny profilsida: byt lösenord (med återautentisering via
+  `reauthenticateWithCredential`), se roll/e-post, och en lista över egna favoriter.
+- `src/firebase/roles.js` – `arRedaktor()`-hjälpfunktion (motsvarar samma logik som redan
+  fanns i `firestore.rules`) för klientsidig behörighetskontroll, t.ex. i Skiftrapport.
+- `firestore.rules` – nytt regelblock för `skiftrapporter` (fältbegränsat: alla inloggade får
+  ändra `atgardad`/`atgardadAv`, men inget annat).
+- `src/version.js` → 4.1.0, ny post i `src/data/andringslogg.js`.
+- Verifierat: `npm run build` och `npm run lint` gröna (en `react-hooks/set-state-in-effect`-
+  varning i `useInaktivitetsUtloggning` åtgärdades genom att bryta ut timer-uppstarten från
+  den initiala `setState`-anropet).
+
+### Kända begränsningar / medvetna avgränsningar
+
+- Riktiga push-notiser (FCM) är fortsatt medvetet bortvalda, se Fas 4.
+- Statistiken i adminpanelen ("mest aktiva användare") baseras på de senaste 100 händelserna i
+  ändringsloggen, inte hela historiken – tillräckligt för en översikt men inte en exakt
+  totalräkning över tid.

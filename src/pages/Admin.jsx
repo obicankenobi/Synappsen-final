@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAnvandare } from "../hooks/useAnvandare";
 import { useAuth } from "../hooks/useAuth";
 import { useGeminiBudget } from "../hooks/useGeminiBudget";
 import { useFeedback, FEEDBACK_TYP_LABELS } from "../hooks/useFeedback";
 import { useSokloggar } from "../hooks/useSokloggar";
 import { useAuditlogg } from "../hooks/useAuditlogg";
+import { useRutiner } from "../hooks/useRutiner";
 import { ROLES, ROLE_LABELS } from "../firebase/roles";
 import "./Admin.css";
 
@@ -20,7 +21,35 @@ export default function Admin() {
   const { feedback, taBortFeedback } = useFeedback(true);
   const { sokloggar } = useSokloggar(true);
   const { auditlogg } = useAuditlogg(true);
+  const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
+  const { rutiner: adminRutiner } = useRutiner("administration");
   const [nyttTak, setNyttTak] = useState("");
+
+  // Mest aktiva användare, baserat på de senaste 100 loggade händelserna
+  const mestAktiva = useMemo(() => {
+    const antalPerUid = new Map();
+    auditlogg.forEach((a) => {
+      if (!a.uid) return;
+      antalPerUid.set(a.uid, (antalPerUid.get(a.uid) ?? 0) + 1);
+    });
+    return [...antalPerUid.entries()]
+      .map(([uid, antal]) => ({
+        uid,
+        antal,
+        namn: anvandare.find((a) => a.id === uid)?.namn || anvandare.find((a) => a.id === uid)?.email || uid,
+      }))
+      .sort((a, b) => b.antal - a.antal)
+      .slice(0, 5);
+  }, [auditlogg, anvandare]);
+
+  // Mest kvitterade rutiner (flest "jag har läst"-kvitteringar)
+  const mestKvitterade = useMemo(() => {
+    return [...klinisktRutiner, ...adminRutiner]
+      .map((r) => ({ id: r.id, titel: r.titel, antal: (r.lasteAv ?? []).length }))
+      .filter((r) => r.antal > 0)
+      .sort((a, b) => b.antal - a.antal)
+      .slice(0, 5);
+  }, [klinisktRutiner, adminRutiner]);
 
   async function hanteraNyttTak(e) {
     e.preventDefault();
@@ -83,6 +112,34 @@ export default function Admin() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="admin-sektion">
+        <h2>Statistik</h2>
+        <div className="admin-statistik-grid">
+          <div>
+            <h3>Mest aktiva användare</h3>
+            {mestAktiva.length === 0 && <p className="sida__beskrivning">Ingen data ännu.</p>}
+            <ol className="admin-statistik-lista">
+              {mestAktiva.map((u) => (
+                <li key={u.uid}>
+                  {u.namn} <span>({u.antal} händelser)</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div>
+            <h3>Mest kvitterade rutiner</h3>
+            {mestKvitterade.length === 0 && <p className="sida__beskrivning">Ingen data ännu.</p>}
+            <ol className="admin-statistik-lista">
+              {mestKvitterade.map((r) => (
+                <li key={r.id}>
+                  {r.titel} <span>({r.antal} kvitteringar)</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
       </section>
 
       <section className="admin-sektion">

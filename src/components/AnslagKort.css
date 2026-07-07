@@ -11,6 +11,11 @@
   background: #fffbeb;
 }
 
+.anslag-kort--viktigt {
+  border-color: #dc2626;
+  border-width: 2px;
+}
+
 .anslag-kort__header {
   display: flex;
   justify-content: space-between;

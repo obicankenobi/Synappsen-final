@@ -17,6 +17,18 @@ function borGranskas(granskadDatum) {
   return granskadDatum.toDate() < granslinje;
 }
 
+function skrivUtRutin(rutinId) {
+  document.querySelectorAll(".rutin-kort--utskrift").forEach((el) => el.classList.remove("rutin-kort--utskrift"));
+  document.getElementById(`rutin-${rutinId}`)?.classList.add("rutin-kort--utskrift");
+  document.body.classList.add("utskrift-lage");
+  window.print();
+  window.addEventListener(
+    "afterprint",
+    () => document.body.classList.remove("utskrift-lage"),
+    { once: true }
+  );
+}
+
 export default function RutinKort({
   rutin,
   farRedigera,
@@ -35,7 +47,7 @@ export default function RutinKort({
   const jagHarLast = lasteAv.some((l) => l.uid === currentUser?.uid);
 
   return (
-    <article className="rutin-kort">
+    <article className="rutin-kort" id={`rutin-${rutin.id}`}>
       <header className="rutin-kort__header">
         <h3>{rutin.titel}</h3>
         <div className="rutin-kort__badgar">
@@ -46,8 +58,22 @@ export default function RutinKort({
         </div>
         <FavoritKnapp typ="rutin" id={rutin.id} />
       </header>
-      {rutin.bildUrl && (
+      {/* bildUrl är kvar för bakåtkompatibilitet med rutiner skapade innan bilagor (fas 5) */}
+      {rutin.bildUrl && !rutin.bilagor?.length && (
         <img className="rutin-kort__bild" src={rutin.bildUrl} alt="" />
+      )}
+      {rutin.bilagor?.length > 0 && (
+        <div className="rutin-kort__bilagor">
+          {rutin.bilagor.map((b, i) =>
+            b.typ === "dokument" ? (
+              <a key={i} href={b.url} target="_blank" rel="noreferrer" className="rutin-kort__dokument">
+                📎 {b.namn ?? "Bilaga"}
+              </a>
+            ) : (
+              <img key={i} className="rutin-kort__bild" src={b.url} alt="" />
+            )
+          )}
+        </div>
       )}
       <MarkdownInnehall className="rutin-kort__innehall" text={rutin.innehall} />
 
@@ -96,6 +122,14 @@ export default function RutinKort({
           )}
         </div>
       )}
+
+      <button
+        type="button"
+        className="knapp knapp--sekundar knapp--liten rutin-kort__skriv-ut"
+        onClick={() => skrivUtRutin(rutin.id)}
+      >
+        🖨️ Skriv ut / PDF
+      </button>
 
       <Kommentarer rutinId={rutin.id} farTaBortAlla={farRedigera} />
 

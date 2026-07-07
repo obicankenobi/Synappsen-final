@@ -14,6 +14,11 @@ import {
 import { db } from "../firebase/config";
 import { loggaHandelse } from "./useAuditlogg";
 
+export const ANSLAG_PRIORITET = {
+  VIKTIGT: "viktigt",
+  INFO: "info",
+};
+
 export function useAnslag() {
   const [anslag, setAnslag] = useState([]);
   const [laddar, setLaddar] = useState(true);
@@ -27,11 +32,20 @@ export function useAnslag() {
     return unsubscribe;
   }, []);
 
-  async function skapaAnslag({ titel, innehall, fastNaglad, utgangsdatum, skapadAv, skapadAvNamn }) {
+  async function skapaAnslag({
+    titel,
+    innehall,
+    fastNaglad,
+    prioritet,
+    utgangsdatum,
+    skapadAv,
+    skapadAvNamn,
+  }) {
     const ref = await addDoc(collection(db, "anslag"), {
       titel,
       innehall,
       fastNaglad: Boolean(fastNaglad),
+      prioritet: prioritet || ANSLAG_PRIORITET.INFO,
       utgangsdatum: utgangsdatum || null,
       skapadAv,
       skapadAvNamn: skapadAvNamn ?? "",
@@ -56,11 +70,16 @@ export function useAnslag() {
     loggaHandelse({ beskrivning: "Anslag borttaget", entitetTyp: "anslag", entitetId: id, uid });
   }
 
-  // Fastnaglade anslag högst upp, sedan nyast först. Utgångna anslag filtreras bort.
+  // Fastnaglade anslag högst upp, sedan viktiga, sedan nyast först. Utgångna anslag filtreras bort.
   const nu = new Date();
   const synligaAnslag = anslag
     .filter((a) => !a.utgangsdatum || new Date(a.utgangsdatum) >= nu)
-    .sort((a, b) => (b.fastNaglad ? 1 : 0) - (a.fastNaglad ? 1 : 0));
+    .sort((a, b) => {
+      if (Boolean(b.fastNaglad) !== Boolean(a.fastNaglad)) return (b.fastNaglad ? 1 : 0) - (a.fastNaglad ? 1 : 0);
+      const aViktigt = a.prioritet === ANSLAG_PRIORITET.VIKTIGT;
+      const bViktigt = b.prioritet === ANSLAG_PRIORITET.VIKTIGT;
+      return (bViktigt ? 1 : 0) - (aViktigt ? 1 : 0);
+    });
 
   return { anslag: synligaAnslag, laddar, skapaAnslag, uppdateraAnslag, taBortAnslag };
 }

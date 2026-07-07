@@ -1,5 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { useAuth } from "./hooks/useAuth";
+import { useInaktivitetsUtloggning } from "./hooks/useInaktivitetsUtloggning";
+import InaktivitetsVarning from "./components/InaktivitetsVarning";
 import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
@@ -16,6 +19,8 @@ import Nyheter from "./pages/Nyheter";
 import Hjalp from "./pages/Hjalp";
 import Feedback from "./pages/Feedback";
 import Anslagstavla from "./pages/Anslagstavla";
+import Skiftrapport from "./pages/Skiftrapport";
+import Profil from "./pages/Profil";
 import { ROLES } from "./firebase/roles";
 
 function SkyddatLayout({ children }) {
@@ -27,9 +32,17 @@ function SkyddatLayout({ children }) {
   );
 }
 
+// Loggar automatiskt ut vid inaktivitet, oavsett vilken skyddad rutt användaren är på
+function InaktivitetsBevakning() {
+  const { currentUser, loggaUt } = useAuth();
+  const { visaVarning, fortsattInloggad } = useInaktivitetsUtloggning(Boolean(currentUser), loggaUt);
+  return visaVarning ? <InaktivitetsVarning onFortsatt={fortsattInloggad} /> : null;
+}
+
 export default function App() {
   return (
     <AuthProvider>
+      <InaktivitetsBevakning />
       <BrowserRouter>
         <Routes>
           <Route path="/logga-in" element={<LoggaIn />} />
@@ -111,6 +124,22 @@ export default function App() {
             element={
               <SkyddatLayout>
                 <Anslagstavla />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/skiftrapport"
+            element={
+              <SkyddatLayout>
+                <Skiftrapport />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/profil"
+            element={
+              <SkyddatLayout>
+                <Profil />
               </SkyddatLayout>
             }
           />

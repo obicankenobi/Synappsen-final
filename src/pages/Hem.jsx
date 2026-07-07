@@ -2,31 +2,14 @@ import { Link } from "react-router-dom";
 import SokFalt from "../components/SokFalt";
 import SektionsKort from "../components/SektionsKort";
 import { useAuth } from "../hooks/useAuth";
-import { useRutiner } from "../hooks/useRutiner";
-import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
-import { useFavoriter } from "../hooks/useFavoriter";
+import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
 import { usePopularaste } from "../hooks/useVisningar";
 import { ROLE_LABELS } from "../firebase/roles";
-import { forradTillSlug } from "../firebase/forrad";
 
 export default function Hem() {
   const { currentUser, role, loggaUt } = useAuth();
-  const { favoriter } = useFavoriter(currentUser?.uid);
+  const favoritPoster = useMinaFavoritPoster();
   const populara = usePopularaste(5);
-
-  const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
-  const { rutiner: adminRutiner } = useRutiner("administration");
-  const { artiklar } = useForradsartiklar();
-
-  const favoritRutiner = [...klinisktRutiner, ...adminRutiner]
-    .filter((r) => favoriter.includes(`rutin:${r.id}`))
-    .map((r) => ({ titel: r.titel, sokvag: r.omrade === "kliniskt-stod" ? "/kliniskt-stod" : "/administration" }));
-
-  const favoritArtiklar = artiklar
-    .filter((a) => a.status === ARTIKEL_STATUS.GODKAND && favoriter.includes(`artikel:${a.id}`))
-    .map((a) => ({ titel: a.namn, sokvag: `/logistik/${forradTillSlug(a.forrad)}` }));
-
-  const favoritPoster = [...favoritRutiner, ...favoritArtiklar];
 
   return (
     <div className="sida sida--hem">
@@ -52,6 +35,7 @@ export default function Hem() {
         <Link to="/nyheter">🆕 Nyheter</Link>
         <Link to="/feedback">💬 Feedback</Link>
         <Link to="/hjalp">❓ Hjälp</Link>
+        <Link to="/profil">👤 Min profil</Link>
       </nav>
 
       <SokFalt />
@@ -106,6 +90,12 @@ export default function Hem() {
           beskrivning="Fota en whiteboard eller ett papper – Gemini tolkar innehållet"
           ikon="📷"
           lank="/ladda-upp"
+        />
+        <SektionsKort
+          titel="Skiftrapport"
+          beskrivning="Praktisk drift-info mellan skift (ej patientinformation)"
+          ikon="🛠️"
+          lank="/skiftrapport"
         />
       </div>
     </div>

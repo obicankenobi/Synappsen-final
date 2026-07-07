@@ -1,0 +1,41 @@
+.profil-sektion {
+  background: #fff;
+  border: 1px solid var(--kant);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.profil-sektion h2 {
+  font-size: 1rem;
+  margin: 0 0 12px;
+}
+
+.profil-losenord-formular {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 320px;
+}
+
+.profil-losenord-formular label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.profil-losenord-formular input {
+  padding: 10px 12px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.profil-meddelande--ok {
+  color: #16a34a;
+}
+
+.profil-meddelande--fel {
+  color: #dc2626;
+}

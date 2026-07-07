@@ -1,0 +1,27 @@
+.inaktivitets-varning-overlag {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 20px;
+}
+
+.inaktivitets-varning {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 360px;
+  text-align: center;
+}
+
+.inaktivitets-varning h3 {
+  margin: 0 0 10px;
+}
+
+.inaktivitets-varning p {
+  color: var(--text-svag);
+  margin-bottom: 20px;
+}

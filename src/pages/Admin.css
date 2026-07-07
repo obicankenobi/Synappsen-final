@@ -82,3 +82,28 @@
   font-weight: 700;
   color: var(--primar, #1d4ed8);
 }
+
+.admin-statistik-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.admin-statistik-grid h3 {
+  font-size: 0.95rem;
+  margin: 0 0 8px;
+}
+
+.admin-statistik-lista {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.admin-statistik-lista li {
+  margin-bottom: 6px;
+}
+
+.admin-statistik-lista span {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
