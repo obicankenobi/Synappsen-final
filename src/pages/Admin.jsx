@@ -2,13 +2,24 @@ import { useState } from "react";
 import { useAnvandare } from "../hooks/useAnvandare";
 import { useAuth } from "../hooks/useAuth";
 import { useGeminiBudget } from "../hooks/useGeminiBudget";
+import { useFeedback, FEEDBACK_TYP_LABELS } from "../hooks/useFeedback";
+import { useSokloggar } from "../hooks/useSokloggar";
+import { useAuditlogg } from "../hooks/useAuditlogg";
 import { ROLES, ROLE_LABELS } from "../firebase/roles";
 import "./Admin.css";
+
+function formateraTid(tidpunkt) {
+  if (!tidpunkt?.toDate) return "";
+  return tidpunkt.toDate().toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" });
+}
 
 export default function Admin() {
   const { anvandare, laddar, uppdateraRoll } = useAnvandare();
   const { currentUser } = useAuth();
   const { budget, satTakKr } = useGeminiBudget();
+  const { feedback, taBortFeedback } = useFeedback(true);
+  const { sokloggar } = useSokloggar(true);
+  const { auditlogg } = useAuditlogg(true);
   const [nyttTak, setNyttTak] = useState("");
 
   async function hanteraNyttTak(e) {
@@ -69,6 +80,58 @@ export default function Admin() {
                   </option>
                 ))}
               </select>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="admin-sektion">
+        <h2>Feedback från användare ({feedback.length})</h2>
+        {feedback.length === 0 && <p className="sida__beskrivning">Ingen feedback ännu.</p>}
+        <ul className="admin-lista admin-lista--vertikal">
+          {feedback.map((f) => (
+            <li key={f.id} className="admin-feedback-rad">
+              <div className="admin-feedback-rad__meta">
+                <span className="admin-feedback-rad__typ">{FEEDBACK_TYP_LABELS[f.typ] ?? f.typ}</span>
+                <span>{f.skapadAvNamn}</span>
+                <span>{formateraTid(f.skapad)}</span>
+              </div>
+              <p>{f.text}</p>
+              <button className="knapp knapp--farlig knapp--liten" onClick={() => taBortFeedback(f.id)}>
+                Ta bort
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="admin-sektion">
+        <h2>Sökningar utan träffar</h2>
+        {sokloggar.length === 0 && (
+          <p className="sida__beskrivning">Inga nolleträffar loggade ännu.</p>
+        )}
+        <ul className="admin-lista admin-lista--vertikal">
+          {sokloggar.map((s) => (
+            <li key={s.id} className="admin-feedback-rad">
+              <div className="admin-feedback-rad__meta">
+                <span>"{s.term}"</span>
+                <span>{formateraTid(s.tidpunkt)}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="admin-sektion">
+        <h2>Ändringslogg</h2>
+        {auditlogg.length === 0 && <p className="sida__beskrivning">Inga händelser loggade ännu.</p>}
+        <ul className="admin-lista admin-lista--vertikal">
+          {auditlogg.map((a) => (
+            <li key={a.id} className="admin-feedback-rad">
+              <div className="admin-feedback-rad__meta">
+                <span>{a.beskrivning}</span>
+                <span>{formateraTid(a.tidpunkt)}</span>
+              </div>
             </li>
           ))}
         </ul>

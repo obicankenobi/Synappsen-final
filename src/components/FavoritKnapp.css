@@ -1,0 +1,13 @@
+.favorit-knapp {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #d1d5db;
+  padding: 2px 6px;
+}
+
+.favorit-knapp--aktiv {
+  color: #f59e0b;
+}

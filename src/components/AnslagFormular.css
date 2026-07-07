@@ -1,0 +1,41 @@
+.anslag-formular {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid var(--kant);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.anslag-formular label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.anslag-formular input,
+.anslag-formular textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.anslag-formular__checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.anslag-formular__checkbox input {
+  width: auto;
+}
+
+.anslag-formular__knappar {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}

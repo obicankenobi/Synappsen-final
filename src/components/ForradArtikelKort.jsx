@@ -1,4 +1,5 @@
 import { ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
+import FavoritKnapp from "./FavoritKnapp";
 import "./ForradArtikelKort.css";
 
 export default function ForradArtikelKort({
@@ -18,8 +19,11 @@ export default function ForradArtikelKort({
       )}
       <div className="forrad-artikel-kort__info">
         <header className="forrad-artikel-kort__header">
-          <h3>{artikel.namn}</h3>
-          {arUtkast && <span className="forrad-artikel-kort__badge">Utkast</span>}
+          <div className="forrad-artikel-kort__titelrad">
+            <h3>{artikel.namn}</h3>
+            {arUtkast && <span className="forrad-artikel-kort__badge">Utkast</span>}
+          </div>
+          <FavoritKnapp typ="artikel" id={artikel.id} />
         </header>
         <p className="forrad-artikel-kort__plats">
           {artikel.skap ? `Skåp ${artikel.skap}` : "Skåp ej angivet"}

@@ -1,0 +1,28 @@
+.feedback-formular {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.feedback-formular label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.feedback-formular select,
+.feedback-formular textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.feedback-tack {
+  background: #fff;
+  border: 1px solid var(--kant);
+  border-radius: 12px;
+  padding: 16px;
+  color: var(--text-svag);
+}

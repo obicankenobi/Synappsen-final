@@ -12,6 +12,10 @@ import ForradVy from "./pages/ForradVy";
 import Administration from "./pages/Administration";
 import Admin from "./pages/Admin";
 import LaddaUpp from "./pages/LaddaUpp";
+import Nyheter from "./pages/Nyheter";
+import Hjalp from "./pages/Hjalp";
+import Feedback from "./pages/Feedback";
+import Anslagstavla from "./pages/Anslagstavla";
 import { ROLES } from "./firebase/roles";
 
 function SkyddatLayout({ children }) {
@@ -75,6 +79,38 @@ export default function App() {
             element={
               <SkyddatLayout>
                 <LaddaUpp />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/nyheter"
+            element={
+              <SkyddatLayout>
+                <Nyheter />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/hjalp"
+            element={
+              <SkyddatLayout>
+                <Hjalp />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/feedback"
+            element={
+              <SkyddatLayout>
+                <Feedback />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/anslag"
+            element={
+              <SkyddatLayout>
+                <Anslagstavla />
               </SkyddatLayout>
             }
           />

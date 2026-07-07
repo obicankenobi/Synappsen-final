@@ -46,14 +46,31 @@ service cloud.firestore {
         || (omrade == 'administration' && arVec());
     }
 
-    // users/{uid} – innehåller namn, e-post och roll
+    // Får hantera anslagstavlan
+    function farHanteraAnslag() {
+      return arSuperadmin() || arVec();
+    }
+
+    // Har någon redaktörsroll (används t.ex. för att moderera andras kommentarer)
+    function arRedaktor() {
+      return arSuperadmin() || arVol() || arSektionsledare() || arVec() || arForradsansvarig();
+    }
+
+    // Endast angivna fält har ändrats i denna skrivning
+    function bararForandrarFalt(falt) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(falt);
+    }
+
+    // users/{uid} – innehåller namn, e-post, roll och favoriter
     match /users/{userId} {
       allow read: if arInloggad();
       // Ett nytt konto skapar sitt eget dokument med standardrollen "personal"
       allow create: if arInloggad() && request.auth.uid == userId
                      && request.resource.data.role == 'personal';
-      // Endast superadmin får ändra roller och andra användares uppgifter
-      allow update, delete: if arSuperadmin();
+      // Superadmin får ändra allt (t.ex. roller). Ägaren själv får bara ändra sina favoriter.
+      allow update: if arSuperadmin()
+                     || (request.auth.uid == userId && bararForandrarFalt(['favoriter']));
+      allow delete: if arSuperadmin();
     }
 
     // rutiner/{rutinId} – innehåll för kliniskt stöd, logistik och administration
@@ -65,13 +82,23 @@ service cloud.firestore {
 
       allow create: if farRedigeraOmrade(request.resource.data.omrade);
 
-      allow update: if farRedigeraOmrade(resource.data.omrade)
+      // Redaktörer får ändra allt enligt vanliga regler. Alla inloggade får kvittera läsning
+      // (lasteAv) utan att i övrigt ha redigeringsbehörighet för området.
+      allow update: if (farRedigeraOmrade(resource.data.omrade)
                      // Endast VÖL/superadmin får ändra godkännandestatus för kliniskt stöd
                      && (resource.data.omrade != 'kliniskt-stod'
                          || request.resource.data.status == resource.data.status
-                         || farGodkannaKlinisktInnehall());
+                         || farGodkannaKlinisktInnehall()))
+                     || (arInloggad() && bararForandrarFalt(['lasteAv']));
 
       allow delete: if farRedigeraOmrade(resource.data.omrade);
+
+      // Versionshistorik – sparas automatiskt vid varje redigering
+      match /versioner/{versionId} {
+        allow read, create: if farRedigeraOmrade(
+          get(/databases/$(database)/documents/rutiner/$(rutinId)).data.omrade
+        );
+      }
     }
 
     // forradsartiklar/{artikelId} – inventarie i Logistik-förråden, platsangivet med förråd/skåp/hylla
@@ -80,6 +107,43 @@ service cloud.firestore {
                    && (resource.data.status == 'godkand' || farRedigeraOmrade('logistik'));
       allow create: if farRedigeraOmrade('logistik');
       allow update, delete: if farRedigeraOmrade('logistik');
+    }
+
+    // anslag/{anslagId} – anslagstavla, meddelanden från ledningen till all personal
+    match /anslag/{anslagId} {
+      allow read: if arInloggad();
+      allow create, update, delete: if farHanteraAnslag();
+    }
+
+    // kommentarer/{kommentarId} – frågor/kommentarer kopplade till en rutin
+    match /kommentarer/{kommentarId} {
+      allow read: if arInloggad();
+      allow create: if arInloggad() && request.resource.data.skapadAv == request.auth.uid;
+      allow delete: if arInloggad() && (resource.data.skapadAv == request.auth.uid || arRedaktor());
+    }
+
+    // feedback/{feedbackId} – förslag/buggrapporter. Endast superadmin kan läsa listan.
+    match /feedback/{feedbackId} {
+      allow read, delete: if arSuperadmin();
+      allow create: if arInloggad() && request.resource.data.skapadAv == request.auth.uid;
+    }
+
+    // sokloggar/{loggId} – sökningar utan träffar. Endast superadmin kan läsa listan.
+    match /sokloggar/{loggId} {
+      allow read: if arSuperadmin();
+      allow create: if arInloggad();
+    }
+
+    // auditlogg/{handelseId} – ändringslogg. Endast superadmin kan läsa listan.
+    match /auditlogg/{handelseId} {
+      allow read: if arSuperadmin();
+      allow create: if arInloggad();
+    }
+
+    // visningar/{nyckel} – räknare för populäraste sökträffar, inget känsligt innehåll
+    match /visningar/{nyckel} {
+      allow read: if arInloggad();
+      allow create, update: if arInloggad();
     }
 
     // installningar/geminiBudget – budgettak för Gemini Vision-tolkning.

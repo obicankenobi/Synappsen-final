@@ -16,6 +16,13 @@
 .rutin-kort__header h3 {
   margin: 0;
   font-size: 1.05rem;
+  flex: 1;
+}
+
+.rutin-kort__badgar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .rutin-kort__badge {
@@ -27,6 +34,11 @@
   white-space: nowrap;
 }
 
+.rutin-kort__badge--varning {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .rutin-kort__bild {
   width: 100%;
   max-height: 220px;
@@ -36,12 +48,33 @@
 }
 
 .rutin-kort__innehall {
-  white-space: pre-wrap;
   color: #374151;
+}
+
+.rutin-kort__innehall :first-child {
+  margin-top: 0;
+}
+
+.rutin-kort__innehall :last-child {
+  margin-bottom: 0;
+}
+
+.rutin-kort__laskvittering {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.rutin-kort__last-antal {
+  font-size: 0.8rem;
+  color: var(--text-svag);
 }
 
 .rutin-kort__atgarder {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
   margin-top: 12px;
 }

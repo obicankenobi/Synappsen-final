@@ -13,6 +13,10 @@ export default function BottomNav() {
         <span className="bottom-nav__ikon">🏠</span>
         <span>Hem</span>
       </NavLink>
+      <NavLink to="/anslag" className="bottom-nav__lank">
+        <span className="bottom-nav__ikon">📢</span>
+        <span>Anslag</span>
+      </NavLink>
       <NavLink to="/kliniskt-stod" className="bottom-nav__lank">
         <span className="bottom-nav__ikon">🩺</span>
         <span>Kliniskt</span>

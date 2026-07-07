@@ -15,6 +15,14 @@
         { "fieldPath": "forrad", "order": "ASCENDING" },
         { "fieldPath": "skapad", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "kommentarer",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "rutinId", "order": "ASCENDING" },
+        { "fieldPath": "skapad", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

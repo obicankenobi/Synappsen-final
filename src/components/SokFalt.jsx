@@ -1,9 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
 import { sokposter } from "../data/sokindex";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { forradTillSlug } from "../firebase/forrad";
+import { registreraVisning } from "../hooks/useVisningar";
+import { useSokloggar } from "../hooks/useSokloggar";
+import { useAuth } from "../hooks/useAuth";
 import "./SokFalt.css";
 
 function platsBeskrivning(artikel) {
@@ -18,6 +21,8 @@ export default function SokFalt() {
   const [sokterm, setSokterm] = useState("");
   const navigate = useNavigate();
   const { artiklar } = useForradsartiklar();
+  const { loggaNollTraff } = useSokloggar(false);
+  const { currentUser } = useAuth();
 
   const alltSokbart = useMemo(() => {
     const forradsposter = artiklar
@@ -48,6 +53,25 @@ export default function SokFalt() {
 
   const resultat = sokterm.trim() ? fuse.search(sokterm).map((r) => r.item) : [];
 
+  // Loggar sökningar (minst 3 tecken) som ger noll träffar, efter en kort paus i skrivandet,
+  // så att ledningen ser vilket innehåll personal efterfrågar men som saknas.
+  useEffect(() => {
+    const term = sokterm.trim();
+    if (term.length < 3) return;
+    const timer = setTimeout(() => {
+      if (resultat.length === 0) {
+        loggaNollTraff(term, currentUser?.uid);
+      }
+    }, 800);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- resultat/loggaNollTraff läses vid timeout, inte som trigger
+  }, [sokterm]);
+
+  function hanteraKlick(post) {
+    registreraVisning(post.titel, post.sokvag);
+    navigate(post.sokvag);
+  }
+
   return (
     <div className="sok-falt">
       <input
@@ -61,7 +85,7 @@ export default function SokFalt() {
         <ul className="sok-falt__resultat">
           {resultat.map((post, i) => (
             <li key={`${post.titel}-${i}`}>
-              <button onClick={() => navigate(post.sokvag)}>
+              <button onClick={() => hanteraKlick(post)}>
                 <span className="sok-falt__titel">{post.titel}</span>
                 <span className="sok-falt__kategori">{post.plats ?? post.kategori}</span>
               </button>

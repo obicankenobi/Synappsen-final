@@ -1,0 +1,49 @@
+.kommentarer {
+  margin-top: 12px;
+  border-top: 1px solid var(--kant);
+  padding-top: 10px;
+}
+
+.kommentarer__toggle {
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.kommentarer__panel {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kommentarer__rad {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.kommentarer__rad p {
+  margin: 4px 0;
+}
+
+.kommentarer__meta {
+  display: flex;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+}
+
+.kommentarer__formular {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.kommentarer__formular textarea {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  font: inherit;
+  resize: vertical;
+}

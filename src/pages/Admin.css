@@ -52,3 +52,33 @@
   border-radius: 8px;
   width: 140px;
 }
+
+.admin-lista--vertikal {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.admin-feedback-rad {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+.admin-feedback-rad p {
+  margin: 8px 0;
+}
+
+.admin-feedback-rad__meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.admin-feedback-rad__typ {
+  font-weight: 700;
+  color: var(--primar, #1d4ed8);
+}

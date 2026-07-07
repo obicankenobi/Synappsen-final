@@ -26,6 +26,12 @@
   font-family: inherit;
 }
 
+.rutin-formular__hjalptext {
+  font-weight: 400;
+  color: var(--text-svag, #6b7280);
+  font-size: 0.8rem;
+}
+
 .rutin-formular__knappar {
   display: flex;
   gap: 12px;

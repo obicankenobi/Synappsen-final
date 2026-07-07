@@ -1,0 +1,35 @@
+.hjalp-sektion {
+  margin-bottom: 28px;
+}
+
+.hjalp-sektion h2 {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+.hjalp-sektion ul {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.hjalp-sektion li {
+  margin-bottom: 10px;
+}
+
+.hjalp-sektion details {
+  background: #fff;
+  border: 1px solid var(--kant);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+.hjalp-sektion summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.hjalp-sektion details p {
+  margin: 10px 0 0;
+  color: var(--text-svag);
+}

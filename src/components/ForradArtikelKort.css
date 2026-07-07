@@ -29,6 +29,13 @@
   gap: 8px;
 }
 
+.forrad-artikel-kort__titelrad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .forrad-artikel-kort__header h3 {
   margin: 0;
   font-size: 1.05rem;

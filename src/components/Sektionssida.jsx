@@ -14,7 +14,7 @@ export default function Sektionssida({
   godkannaRoller,
 }) {
   const { currentUser, role } = useAuth();
-  const { rutiner, laddar, skapaRutin, uppdateraRutin, godkannRutin, taBortRutin } =
+  const { rutiner, laddar, skapaRutin, uppdateraRutin, godkannRutin, taBortRutin, markeraGranskad, hamtaVersioner } =
     useRutiner(omrade);
   const [redigerar, setRedigerar] = useState(null);
   const [visaFormular, setVisaFormular] = useState(false);
@@ -32,7 +32,7 @@ export default function Sektionssida({
       const bildUrl = bild
         ? await laddaUppRutinBild(omrade, redigerar.id, bild)
         : redigerar.bildUrl;
-      await uppdateraRutin(redigerar.id, { titel: titelVarde, innehall, bildUrl });
+      await uppdateraRutin(redigerar.id, { titel: titelVarde, innehall, bildUrl }, currentUser.uid);
     } else {
       const ref = await skapaRutin({
         titel: titelVarde,
@@ -99,8 +99,10 @@ export default function Sektionssida({
           farRedigera={farRedigera}
           farGodkanna={farGodkanna}
           onRedigera={oppnaRedigering}
-          onGodkann={godkannRutin}
-          onTaBort={taBortRutin}
+          onGodkann={(id) => godkannRutin(id, currentUser.uid)}
+          onTaBort={(id) => taBortRutin(id, currentUser.uid)}
+          onMarkeraGranskad={(id) => markeraGranskad(id, currentUser.uid)}
+          hamtaVersioner={hamtaVersioner}
         />
       ))}
     </div>

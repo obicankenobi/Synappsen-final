@@ -1,0 +1,46 @@
+.anslag-kort {
+  background: #fff;
+  border: 1px solid var(--kant);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.anslag-kort--fastnaglad {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.anslag-kort__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.anslag-kort__header h3 {
+  margin: 0;
+}
+
+.anslag-kort__datum {
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  white-space: nowrap;
+}
+
+.anslag-kort__innehall {
+  margin-top: 8px;
+  color: #374151;
+}
+
+.anslag-kort__meta {
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  margin-top: 8px;
+}
+
+.anslag-kort__atgarder {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}

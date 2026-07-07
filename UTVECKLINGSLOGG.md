@@ -164,3 +164,93 @@ Vision-tolkning saknades helt. Tre arkitekturbeslut togs tillsammans med använd
   ett synonymt eller vardagligt begrepp ("kad") hittar rätt artikel även om den AI-extraherade
   titeln använder ett annat ord ("Urinkateter").
 - Verifierat: `npm run build` och `npm run lint` gröna, `node -c functions/index.js` syntax-OK.
+
+---
+
+## Fas 4 – Versionering, samarbetsfunktioner och kvalitetsverktyg
+
+**Datum:** 2026-07-03
+**Branch:** `claude/compassionate-euler-rho0q5`
+
+### Bakgrund
+
+Efter en genomgång av samtliga tidigare faser identifierades ett antal förslag inom fyra
+teman (sök/tillgänglighet, innehåll/kvalitet, samarbete/drift, samt uttryckligt önskade
+sociala funktioner). Användaren bad om att samtliga förslag implementerades i en release,
+tillsammans med versionsnumrering, en användarvänd ändringslogg, en feedbackfunktion synlig
+endast för superadmin, samt en hjälp-/FAQ-sida.
+
+### Genomfört
+
+- `src/version.js` – `APP_VERSION`, höjs manuellt vid varje release (semver).
+- `src/data/andringslogg.js` + `src/pages/Nyheter.jsx` (`/nyheter`) – användarvänd
+  ändringslogg, nyast överst. Ska uppdateras med en ny post vid varje release, tillsammans
+  med denna fil.
+- `src/pages/Hjalp.jsx` (`/hjalp`) – statisk hjälptext om appens funktioner/roller samt en
+  FAQ-sektion (`<details>`). Uppdateras löpande när nya funktioner tillkommer.
+- `src/hooks/useFeedback.js` + `src/pages/Feedback.jsx` (`/feedback`) – alla inloggade kan
+  skicka in förslag/buggrapporter, ny Firestore-collection `feedback`. Endast superadmin kan
+  läsa listan (Firestore-regler), visas i en ny sektion i adminpanelen.
+- `src/hooks/useAnslag.js` + `src/pages/Anslagstavla.jsx` (`/anslag`) + `AnslagFormular.jsx`/
+  `AnslagKort.jsx` – ny anslagstavla, ny collection `anslag`. VEC/superadmin (samma roller som
+  `KAN_HANTERA_ANSLAG`, tidigare odefinierad i UI) kan skapa/redigera/ta bort, med möjlighet
+  att fästa ett anslag högst upp och sätta utgångsdatum. Länkad från Hem och `BottomNav`.
+- `src/hooks/useKommentarer.js` + `src/components/Kommentarer.jsx` – kommentarer/frågor
+  kopplade till en rutin (ny collection `kommentarer`, fält `rutinId`), inbäddat och
+  hopfällbart i `RutinKort`. Ägare eller valfri redaktörsroll får ta bort en kommentar.
+- `src/hooks/useLaskvittering.js` – `lasteAv`-array (uid/namn/tidpunkt) på `rutiner`-dokument.
+  Knappen "Jag har läst och förstått" i `RutinKort`; redaktörer ser antal som kvitterat.
+  Firestore-regler tillåter alla inloggade att skriva enbart detta fält utan att i övrigt ha
+  redigeringsbehörighet för området.
+- `src/hooks/useFavoriter.js` + `src/components/FavoritKnapp.jsx` – favoriter sparas som en
+  array av `"typ:id"`-strängar på `users/{uid}.favoriter`. Stjärnknapp i `RutinKort` och
+  `ForradArtikelKort`. Firestore-regler tillåter ägaren att uppdatera enbart `favoriter`-fältet
+  på sitt eget användardokument (annars styrs `users`-uppdateringar av superadmin).
+- `src/hooks/useVisningar.js` – ny collection `visningar`, räknar upp `antal` (via
+  `increment()`) när ett sökresultat i `SokFalt` klickas. `usePopularaste()` visar de mest
+  klickade posterna på Hem ("Mest använda"). Fristående collection istället för ett fält på
+  rutinen/artikeln, så att alla inloggade kan räkna upp utan skrivbehörighet på själva
+  innehållet.
+- `src/hooks/useSokloggar.js` – loggar sökningar (≥3 tecken, 800 ms debounce) som ger noll
+  träffar i `SokFalt`, ny collection `sokloggar`. Endast superadmin kan läsa listan, ny
+  sektion i adminpanelen ("Sökningar utan träffar") visar vilket innehåll som efterfrågas
+  men saknas.
+- `src/firebase/config.js` – Firestore initieras nu med `persistentLocalCache` +
+  `persistentMultipleTabManager` istället för `getFirestore()`, så tidigare hämtat innehåll
+  går att läsa offline/vid dåligt nät, delat mellan flikar.
+- `src/hooks/useRutiner.js` – `rutiner`-dokument får ett `granskadDatum`-fält (sätts vid
+  skapande). `RutinKort` flaggar rutinen med en röd "Bör granskas"-badge för redaktörer när
+  det gått mer än 180 dagar sedan senaste granskning (konstant
+  `GRANSKNINGSINTERVALL_DAGAR`); `markeraGranskad()` nollställer datumet.
+- `src/hooks/useRutiner.js` – `uppdateraRutin()` sparar nu automatiskt en ögonblicksbild av
+  rutinen i subcollectionen `rutiner/{id}/versioner` innan ändringen skrivs, med
+  `hamtaVersioner()` för att läsa historiken. `src/components/VersionsHistorik.jsx` visar
+  historiken i en modal ("Visa historik"-knapp, endast redaktörer).
+- `src/hooks/useAuditlogg.js` – ny collection `auditlogg`; `loggaHandelse()` anropas från
+  `useRutiner.js` och `useAnslag.js` vid skapa/uppdatera/godkänna/ta bort/granska. Ny sektion
+  i adminpanelen visar de 100 senaste händelserna. Endast superadmin kan läsa listan.
+- `marked` + `dompurify` (nya npm-beroenden) – `src/components/MarkdownInnehall.jsx`
+  renderar rutin-/anslagsinnehåll som sanerad HTML från enkel Markdown (rubriker, fetstil,
+  kursiv, punktlistor, länkar). `RutinFormular` fick en hjälptext om stödd syntax; själva
+  redigeringsfältet är fortfarande vanlig text.
+- `firestore.rules` – nya regelblock för `anslag`, `kommentarer`, `feedback`, `sokloggar`,
+  `auditlogg`, `visningar` och `rutiner/{id}/versioner`. `users`-regeln och `rutiner`-regeln
+  utökade med fältbegränsade undantag (`bararForandrarFalt()`) för `favoriter` respektive
+  `lasteAv`, så vanlig personal kan skriva just de fälten utan bredare behörighet.
+- `firestore.indexes.json` – nytt kompositindex för `kommentarer` (`rutinId` + `skapad`).
+- `src/pages/Hem.jsx` – nya snabblänkar (Anslagstavla/Nyheter/Feedback/Hjälp), sektionerna
+  "Mina favoriter" och "Mest använda" ovanför sektionskorten.
+- `src/components/BottomNav.jsx` – ny länk till Anslagstavlan.
+- Verifierat: `npm run build` och `npm run lint` gröna.
+
+### Kända begränsningar / medvetna avgränsningar
+
+- Riktiga push-notiser (Firebase Cloud Messaging) implementerades inte i denna fas – det
+  kräver manuell generering av ett VAPID-nyckelpar i Firebase Console som inte kan
+  automatiseras härifrån, och går inte att verifiera utan en riktig mottagarenhet. "Mest
+  använda"/anslagstavlan täcker en del av samma behov (upptäckbarhet av nytt innehåll) utan
+  extern konfiguration. Kan läggas till senare om det önskas.
+- Sökfältet indexerar fortfarande inte de riktiga `rutiner`-dokumenten från Kliniskt stöd/
+  Administration (endast ett statiskt platshållarindex + Firestore-backade
+  förrådsartiklar, sedan tidigare faser) – "Mest använda" och "Mina favoriter" fungerar även
+  för rutiner, men fritextsökning gör det ännu inte. Separat, större uppgift.

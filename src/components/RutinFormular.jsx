@@ -36,6 +36,9 @@ export default function RutinFormular({ initialaVarden, onSpara, onAvbryt }) {
           value={innehall}
           onChange={(e) => setInnehall(e.target.value)}
         />
+        <span className="rutin-formular__hjalptext">
+          Stöd för enkel textformatering: **fet text**, *kursiv*, # Rubrik, - punktlista
+        </span>
       </label>
       <label>
         Bild (valfritt)
