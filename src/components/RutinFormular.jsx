@@ -22,8 +22,14 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
     setRelaterade((r) => (r.includes(id) ? r.filter((x) => x !== id) : [...r, id]));
   }
 
+  const harBilagor = nyaFiler.length > 0 || befintligaBilagor.length > 0;
+
   async function hanteraSubmit(e) {
     e.preventDefault();
+    if (!innehall.trim() && !harBilagor) {
+      alert("Fyll i innehåll eller bifoga minst en fil.");
+      return;
+    }
     setSparar(true);
     try {
       await onSpara({ titel, innehall, referenser, relaterade, nyaFiler, befintligaBilagor });
@@ -46,9 +52,8 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
         />
       </label>
       <label>
-        Innehåll
+        Innehåll {!harBilagor && "(krävs om ingen bilaga bifogas)"}
         <textarea
-          required
           rows={6}
           value={innehall}
           onChange={(e) => setInnehall(e.target.value)}
