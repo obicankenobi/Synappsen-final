@@ -1,7 +1,9 @@
 import { useState } from "react";
+import QRCode from "qrcode";
 import { RUTIN_STATUS } from "../hooks/useRutiner";
 import { useAuth } from "../hooks/useAuth";
 import { kvitteraLast } from "../hooks/useLaskvittering";
+import { borGranskas, arUtgangen } from "../utils/rutinHjalp";
 import FavoritKnapp from "./FavoritKnapp";
 import Kommentarer from "./Kommentarer";
 import VersionsHistorik from "./VersionsHistorik";
@@ -9,14 +11,10 @@ import MarkdownInnehall from "./MarkdownInnehall";
 import PrivatAnteckning from "./PrivatAnteckning";
 import "./RutinKort.css";
 
-const GRANSKNINGSINTERVALL_DAGAR = 180;
-
-function borGranskas(granskadDatum) {
-  if (!granskadDatum?.toDate) return false;
-  const granslinje = new Date();
-  granslinje.setDate(granslinje.getDate() - GRANSKNINGSINTERVALL_DAGAR);
-  return granskadDatum.toDate() < granslinje;
-}
+const OMRADE_SOKVAG = {
+  "kliniskt-stod": "/kliniskt-stod",
+  administration: "/administration",
+};
 
 function formateraTid(tidpunkt) {
   if (!tidpunkt?.toDate) return "";
@@ -38,6 +36,7 @@ function skrivUtRutin(rutinId) {
 export default function RutinKort({
   rutin,
   allaRutiner = [],
+  anvandare = [],
   farRedigera,
   farGodkanna,
   onRedigera,
@@ -48,13 +47,26 @@ export default function RutinKort({
 }) {
   const { currentUser } = useAuth();
   const [visaHistorik, setVisaHistorik] = useState(false);
+  const [visaOlasta, setVisaOlasta] = useState(false);
+  const [qrUrl, setQrUrl] = useState(null);
   const arUtkast = rutin.status === RUTIN_STATUS.UTKAST;
   const flaggadForGranskning = farRedigera && borGranskas(rutin.granskadDatum);
+  const utgangen = farRedigera && arUtgangen(rutin);
   const lasteAv = rutin.lasteAv ?? [];
   const jagHarLast = lasteAv.some((l) => l.uid === currentUser?.uid);
   const relaterade = (rutin.relateradeRutiner ?? [])
     .map((id) => allaRutiner.find((r) => r.id === id))
     .filter(Boolean);
+  const oläste = anvandare.filter((a) => !lasteAv.some((l) => l.uid === a.id));
+
+  async function hanteraVisaQr() {
+    if (!qrUrl) {
+      const lank = `${window.location.origin}${OMRADE_SOKVAG[rutin.omrade] ?? "/"}#rutin-${rutin.id}`;
+      setQrUrl(await QRCode.toDataURL(lank));
+    } else {
+      setQrUrl(null);
+    }
+  }
 
   return (
     <article className="rutin-kort" id={`rutin-${rutin.id}`}>
@@ -65,6 +77,7 @@ export default function RutinKort({
           {flaggadForGranskning && (
             <span className="rutin-kort__badge rutin-kort__badge--varning">Bör granskas</span>
           )}
+          {utgangen && <span className="rutin-kort__badge rutin-kort__badge--varning">Utgången</span>}
         </div>
         <FavoritKnapp typ="rutin" id={rutin.id} />
       </header>
@@ -147,7 +160,20 @@ export default function RutinKort({
             {lasteAv.length} har kvitterat
           </span>
         )}
+        {farRedigera && oläste.length > 0 && (
+          <button type="button" className="knapp--lank" onClick={() => setVisaOlasta((v) => !v)}>
+            {oläste.length} har inte kvitterat
+          </button>
+        )}
       </div>
+
+      {visaOlasta && (
+        <ul className="rutin-kort__olasta-lista">
+          {oläste.map((a) => (
+            <li key={a.id}>{a.namn || a.email}</li>
+          ))}
+        </ul>
+      )}
 
       {(farRedigera || farGodkanna) && (
         <div className="rutin-kort__atgarder">
@@ -179,13 +205,25 @@ export default function RutinKort({
         </div>
       )}
 
-      <button
-        type="button"
-        className="knapp knapp--sekundar knapp--liten rutin-kort__skriv-ut"
-        onClick={() => skrivUtRutin(rutin.id)}
-      >
-        🖨️ Skriv ut / PDF
-      </button>
+      <div className="rutin-kort__verktyg">
+        <button
+          type="button"
+          className="knapp knapp--sekundar knapp--liten rutin-kort__skriv-ut"
+          onClick={() => skrivUtRutin(rutin.id)}
+        >
+          🖨️ Skriv ut / PDF
+        </button>
+        <button type="button" className="knapp knapp--sekundar knapp--liten" onClick={hanteraVisaQr}>
+          🔳 QR-kod
+        </button>
+      </div>
+
+      {qrUrl && (
+        <div className="rutin-kort__qr">
+          <img src={qrUrl} alt="QR-kod som länkar till rutinen" width={160} height={160} />
+          <p className="rutin-kort__qr-hjalptext">Skanna för att öppna rutinen direkt.</p>
+        </div>
+      )}
 
       <PrivatAnteckning rutinId={rutin.id} />
 
@@ -194,6 +232,7 @@ export default function RutinKort({
       {visaHistorik && (
         <VersionsHistorik
           hamtaVersioner={() => hamtaVersioner(rutin.id)}
+          nuvarandeInnehall={rutin.innehall}
           onStang={() => setVisaHistorik(false)}
         />
       )}

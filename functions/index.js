@@ -77,8 +77,9 @@ const extraktionsSchema = {
     innehall: { type: SchemaType.STRING },
     nyckelord: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
     komIhagFlaggor: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+    giltigtTill: { type: SchemaType.STRING },
   },
-  required: ["titel", "innehall", "nyckelord", "komIhagFlaggor"],
+  required: ["titel", "innehall", "nyckelord", "komIhagFlaggor", "giltigtTill"],
 };
 
 async function tolkaBildMedGemini(bildBuffer, mimeType) {
@@ -96,7 +97,9 @@ Extrahera innehållet och returnera strukturerad data på svenska:
 - titel: en kort, beskrivande titel
 - innehall: dokumentets text/innehåll, sammanfattat och strukturerat
 - nyckelord: en lista med sökord som personal skulle kunna söka på
-- komIhagFlaggor: en lista med kritiska kom-ihåg-punkter eller varningar, om sådana finns (annars tom lista)`;
+- komIhagFlaggor: en lista med kritiska kom-ihåg-punkter eller varningar, om sådana finns (annars tom lista)
+- giltigtTill: om dokumentet anger ett giltighetsdatum, utgångsdatum eller "gäller till och med"-datum,
+  ange det i formatet ÅÅÅÅ-MM-DD. Annars en tom sträng.`;
 
   const result = await model.generateContent([
     prompt,
@@ -268,12 +271,15 @@ exports.tolkaDokument = onCall(
 
       const extraherat = await tolkaBildMedGemini(bildBuffer, mimeType);
       const bildUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
+      // Endast ett väl formaterat datum (ÅÅÅÅ-MM-DD) sätts som utgångsdatum – annars ignoreras det.
+      const giltigtTill = /^\d{4}-\d{2}-\d{2}$/.test(extraherat.giltigtTill) ? extraherat.giltigtTill : null;
 
       const rutinRef = await db.collection("rutiner").add({
         titel: extraherat.titel,
         innehall: extraherat.innehall,
         nyckelord: extraherat.nyckelord,
         komIhagFlaggor: extraherat.komIhagFlaggor,
+        utgangsdatum: giltigtTill,
         bildUrl,
         omrade,
         status: "utkast",

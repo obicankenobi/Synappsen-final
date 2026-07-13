@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useAnvandare } from "../hooks/useAnvandare";
 import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
 import { laddaUppRutinBilagor } from "../firebase/storage";
 import RutinFormular from "./RutinFormular";
 import RutinKort from "./RutinKort";
+import { arUtgangen } from "../utils/rutinHjalp";
 
 export default function Sektionssida({
   omrade,
@@ -16,6 +18,7 @@ export default function Sektionssida({
   const { currentUser, role } = useAuth();
   const { rutiner, laddar, skapaRutin, uppdateraRutin, godkannRutin, taBortRutin, markeraGranskad, hamtaVersioner } =
     useRutiner(omrade);
+  const { anvandare } = useAnvandare();
   const [redigerar, setRedigerar] = useState(null);
   const [visaFormular, setVisaFormular] = useState(false);
   const [aktivTagg, setAktivTagg] = useState(null);
@@ -26,7 +29,7 @@ export default function Sektionssida({
   const kraverGodkannande = redigeraRoller.some((r) => !godkannaRoller.includes(r));
   const synligaRutiner = farRedigera
     ? rutiner
-    : rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND);
+    : rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND && !arUtgangen(r));
 
   const utkastRutiner = synligaRutiner.filter((r) => r.status === RUTIN_STATUS.UTKAST);
 
@@ -62,6 +65,7 @@ export default function Sektionssida({
     innehall,
     referenser,
     taggar,
+    utgangsdatum,
     relaterade,
     nyaFiler,
     befintligaBilagor,
@@ -75,6 +79,7 @@ export default function Sektionssida({
           innehall,
           referenser,
           taggar,
+          utgangsdatum,
           relateradeRutiner: relaterade,
           bilagor: [...befintligaBilagor, ...nyaBilagor],
         },
@@ -91,6 +96,7 @@ export default function Sektionssida({
       await uppdateraRutin(ref.id, {
         referenser,
         taggar,
+        utgangsdatum,
         relateradeRutiner: relaterade,
         bilagor: nyaFiler.length ? await laddaUppRutinBilagor(omrade, ref.id, nyaFiler) : [],
       });
@@ -181,6 +187,7 @@ export default function Sektionssida({
           key={rutin.id}
           rutin={rutin}
           allaRutiner={rutiner}
+          anvandare={farRedigera ? anvandare : []}
           farRedigera={farRedigera}
           farGodkanna={farGodkanna}
           onRedigera={oppnaRedigering}

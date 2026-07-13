@@ -512,3 +512,60 @@ observation från säkerhetsgenomgången i Fas 6 (global istället för per-anv�
 - Se Fas 4/Fas 5 för push-notiser och statistikens 100-händelsers-fönster.
 - Riktiga push-notiser (FCM) fortsatt inte implementerat, se ovan.
 - Rutin-mallarna är statiska (hårdkodade i `src/data/rutinmallar.js`), inte redigerbara via UI.
+
+## Fas 8 – Läskvitteringspåminnelse, QR-koder, "Mina uppgifter", versionsdiff, sökgenväg och AI-utläst utgångsdatum
+
+**Datum:** 2026-07-13
+**Branch:** `claude/compassionate-euler-rho0q5`
+
+### Bakgrund
+
+Direkt uppföljning på Fas 7: användaren valde fem av sex nya förslag rakt av (höll medvetet
+tillbaka på riktiga push-notiser, som förklarades men inte implementerades) och gav en specifik
+instruktion för det sjätte: att ett giltighetsdatum som syns på ett fotograferat dokument ska
+extraheras av Gemini och sättas automatiskt som rutinens utgångsdatum.
+
+### Genomfört
+
+- `src/utils/rutinHjalp.js` (ny) – `borGranskas`/`arUtgangen` bröts ut hit från `RutinKort.jsx`
+  eftersom `react-refresh/only-export-components` inte tillåter att en komponentfil exporterar
+  fristående funktioner. Används nu av `RutinKort.jsx`, `Sektionssida.jsx` och `MinaUppgifter.jsx`.
+- `src/components/RutinKort.jsx` + `src/components/Sektionssida.jsx` – redaktörer ser nu, utöver
+  antalet som kvitterat läsning, en utfällbar lista "X har inte kvitterat" med namn/e-post på de
+  som saknas (jämför `lasteAv` mot hela användarlistan från `useAnvandare`, som numera skickas
+  ner till `RutinKort` men bara när `farRedigera` är sant).
+- `src/components/RutinKort.jsx` – ny "🔳 QR-kod"-knapp som genererar en QR-kod (samma `qrcode`-
+  paket som redan används för 2FA) länkande till `{origin}{sektionens sökväg}#rutin-{id}`,
+  tänkt att skrivas ut och sättas upp fysiskt.
+- `src/components/MinaUppgifter.jsx` (ny, i `Hem.jsx`) – aggregerar per roll: utkast som väntar
+  på godkännande (kliniskt stöd/administration/förråd), rutiner flaggade för granskning, och
+  antal olästa notiser. Visas bara om det finns något att visa.
+- `src/components/VersionsHistorik.jsx` – lade till en radbaserad diff (egen LCS-implementation,
+  inget externt beroende) som jämför en historisk version mot rutinens nuvarande innehåll,
+  bakom en "Visa ändringar sedan denna version"-knapp per version.
+- `src/pages/Hem.jsx` – global tangentbordsgenväg: `/` flyttar fokus till sökfältet (utom när
+  man redan skriver i ett annat fält), avgränsat till startsidan eftersom sökfältet bara finns
+  där.
+- **Auto-utgångsdatum:** `functions/index.js` – `extraktionsSchema` fick ett nytt fält
+  `giltigtTill` (ÅÅÅÅ-MM-DD eller tom sträng), prompten uppdaterades att leta efter ett
+  giltighets-/utgångsdatum i dokumentet. `tolkaDokument` validerar formatet med ett regex innan
+  det sparas som `utgangsdatum` på den nya rutinen (ogiltigt/saknat värde → `null`, inget krav
+  att ett sådant datum finns).
+- `src/components/RutinFormular.jsx` – manuellt `utgangsdatum`-fält (`<input type="date">`) så
+  att redaktörer kan sätta/ändra det även utan foto-tolkning.
+- `src/components/Sektionssida.jsx` – rutiner med passerat `utgangsdatum` filtreras bort ur den
+  vy vanlig personal ser (samma mönster som `useAnslag`s `utgangsdatum`-hantering), men förblir
+  synliga och redigerbara för redaktörer, med en "Utgången"-badge på kortet (`RutinKort.jsx`).
+- Ingen ändring i `firestore.rules` krävdes för något av detta – alla nya fält omfattas redan av
+  befintliga fältbegränsningar/redaktörsbehörigheter, och QR-kodsgenerering sker helt klientsidan.
+- `src/version.js` → 5.2.0, `package.json` → 5.2.0, ny post i `src/data/andringslogg.js`.
+- Verifierat: `npm run build` och `npm run lint` gröna (två `react-refresh/only-export-
+  components`-fel åtgärdades genom utbrytningen till `rutinHjalp.js` ovan).
+
+### Kända begränsningar / medvetna avgränsningar
+
+- Se Fas 4/5/7 för push-notiser, statistikfönster och statiska mallar.
+- Versionsdiffen är radbaserad, inte ord-/teckenbaserad – en ändring mitt i en lång rad visas
+  som att hela raden bytts ut, inte som en inline-markering av den ändrade delen.
+- Utgångsdatum-extraktionen litar på Gemini's tolkning av dokumentets datumformat; ett otydligt
+  eller tvetydigt datum kan bli fel eller utebli (då sätts inget datum, snarare än ett gissat).

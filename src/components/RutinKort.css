@@ -133,8 +133,29 @@
   margin-top: 12px;
 }
 
-.rutin-kort__skriv-ut {
+.rutin-kort__verktyg {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
   margin-top: 10px;
+}
+
+.rutin-kort__olasta-lista {
+  margin: 6px 0 0;
+  padding-left: 20px;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+}
+
+.rutin-kort__qr {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.rutin-kort__qr-hjalptext {
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  margin: 4px 0 0;
 }
 
 @media print {
@@ -146,8 +167,10 @@
   body.utskrift-lage .forrad-vy__bulkatgarder,
   body.utskrift-lage .rutin-kort__atgarder,
   body.utskrift-lage .rutin-kort__laskvittering,
+  body.utskrift-lage .rutin-kort__olasta-lista,
   body.utskrift-lage .kommentarer,
-  body.utskrift-lage .rutin-kort__skriv-ut,
+  body.utskrift-lage .rutin-kort__verktyg,
+  body.utskrift-lage .rutin-kort__qr,
   body.utskrift-lage h1,
   body.utskrift-lage .sida__beskrivning {
     display: none !important;

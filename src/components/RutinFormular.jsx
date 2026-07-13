@@ -7,6 +7,7 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
   const [innehall, setInnehall] = useState(initialaVarden?.innehall ?? "");
   const [referenser, setReferenser] = useState(initialaVarden?.referenser ?? "");
   const [taggarText, setTaggarText] = useState((initialaVarden?.taggar ?? []).join(", "));
+  const [utgangsdatum, setUtgangsdatum] = useState(initialaVarden?.utgangsdatum ?? "");
   const [relaterade, setRelaterade] = useState(initialaVarden?.relateradeRutiner ?? []);
   const [nyaFiler, setNyaFiler] = useState([]);
   const [befintligaBilagor, setBefintligaBilagor] = useState(initialaVarden?.bilagor ?? []);
@@ -45,7 +46,16 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
       .filter(Boolean);
     setSparar(true);
     try {
-      await onSpara({ titel, innehall, referenser, taggar, relaterade, nyaFiler, befintligaBilagor });
+      await onSpara({
+        titel,
+        innehall,
+        referenser,
+        taggar,
+        utgangsdatum: utgangsdatum || null,
+        relaterade,
+        nyaFiler,
+        befintligaBilagor,
+      });
     } finally {
       setSparar(false);
     }
@@ -106,6 +116,14 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
           value={taggarText}
           onChange={(e) => setTaggarText(e.target.value)}
         />
+      </label>
+      <label>
+        Giltig till (valfritt)
+        <input type="date" value={utgangsdatum} onChange={(e) => setUtgangsdatum(e.target.value)} />
+        <span className="rutin-formular__hjalptext">
+          Sätts automatiskt om ett giltighetsdatum hittas vid AI-tolkning av ett foto. Rutinen
+          döljs för vanlig personal (men syns för redaktörer) efter detta datum.
+        </span>
       </label>
 
       {valbaraRutiner.length > 0 && (

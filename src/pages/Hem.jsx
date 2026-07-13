@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import SokFalt from "../components/SokFalt";
 import SektionsKort from "../components/SektionsKort";
 import Notisklocka from "../components/Notisklocka";
+import MinaUppgifter from "../components/MinaUppgifter";
 import { useAuth } from "../hooks/useAuth";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
 import { usePopularaste } from "../hooks/useVisningar";
@@ -11,6 +13,22 @@ export default function Hem() {
   const { currentUser, role, loggaUt } = useAuth();
   const favoritPoster = useMinaFavoritPoster();
   const populara = usePopularaste(5);
+
+  // Tangentbordsgenväg: tryck "/" var som helst på sidan för att hoppa till sökfältet,
+  // utom när man redan skriver i ett annat fält.
+  useEffect(() => {
+    function hanteraTangent(e) {
+      if (e.key !== "/") return;
+      const aktivt = document.activeElement;
+      const skriverRedan =
+        aktivt && (aktivt.tagName === "INPUT" || aktivt.tagName === "TEXTAREA" || aktivt.isContentEditable);
+      if (skriverRedan) return;
+      e.preventDefault();
+      document.querySelector(".sok-falt input")?.focus();
+    }
+    document.addEventListener("keydown", hanteraTangent);
+    return () => document.removeEventListener("keydown", hanteraTangent);
+  }, []);
 
   return (
     <div className="sida sida--hem">
@@ -46,6 +64,8 @@ export default function Hem() {
       </nav>
 
       <SokFalt />
+
+      <MinaUppgifter />
 
       {favoritPoster.length > 0 && (
         <section className="hem__sektion">

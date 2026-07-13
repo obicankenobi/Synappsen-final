@@ -3,6 +3,18 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.2.0",
+    datum: "2026-07-13",
+    andringar: [
+      "Rutinkort visar nu vilka som INTE kvitterat läsning ännu, inte bara vilka som gjort det",
+      "Ny QR-kod-knapp på rutiner för att skriva ut och sätta upp fysiskt, länkar direkt till rutinen",
+      "Ny 'Mina uppgifter' på startsidan – samlad lista över utkast att godkänna, rutiner att granska och olästa notiser",
+      "Versionshistorik visar nu en visuell jämförelse (vad som lagts till/tagits bort) mot nuvarande version",
+      "Tryck på \"/\" var som helst på startsidan för att hoppa direkt till sökfältet",
+      "Rutiner kan nu få ett giltighetsdatum – om ett foto som laddas upp innehåller ett sådant datum fylls det i automatiskt, och rutinen döljs automatiskt för personal (men inte för redaktörer) när datumet passerat",
+    ],
+  },
+  {
     version: "5.1.0",
     datum: "2026-07-13",
     andringar: [
