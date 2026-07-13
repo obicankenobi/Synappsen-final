@@ -17,6 +17,9 @@ const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 const UPPSKATTAD_KOSTNAD_ORE = 50;
 const BUDGET_DOK = db.collection("installningar").doc("geminiBudget");
 const STANDARD_TAK_ORE = 20000; // 200 kr
+// Tak per enskild användare och månad, så att en person inte kan förbruka hela
+// den gemensamma budgeten själv.
+const MAX_PER_ANVANDARE_ORE = 5000; // 50 kr
 
 function aktuellManadNyckel() {
   const nu = new Date();
@@ -25,7 +28,7 @@ function aktuellManadNyckel() {
 
 // Kontrollerar och reserverar budget innan ett dyrt Gemini-anrop görs.
 // Kastar fel om månadens tak är nått, så att vi aldrig betalar för anrop vi inte har råd med.
-async function reserveraBudget() {
+async function reserveraBudget(uid) {
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(BUDGET_DOK);
     const data = snap.exists ? snap.data() : {};
@@ -33,10 +36,12 @@ async function reserveraBudget() {
 
     let anvantOre = data.anvantOre ?? 0;
     let aktuellManad = data.aktuellManad ?? manad;
+    let anvantPerUid = data.anvantPerUid ?? {};
     const taketOre = data.taketOre ?? STANDARD_TAK_ORE;
 
     if (aktuellManad !== manad) {
       anvantOre = 0;
+      anvantPerUid = {};
       aktuellManad = manad;
     }
 
@@ -47,9 +52,19 @@ async function reserveraBudget() {
       );
     }
 
+    const anvantAvDennaAnvandare = anvantPerUid[uid] ?? 0;
+    if (anvantAvDennaAnvandare >= MAX_PER_ANVANDARE_ORE) {
+      throw new HttpsError(
+        "resource-exhausted",
+        "Du har nått din egna månadskvot för bildtolkning. Kontakta superadmin om du behöver mer."
+      );
+    }
+
+    anvantPerUid = { ...anvantPerUid, [uid]: anvantAvDennaAnvandare + UPPSKATTAD_KOSTNAD_ORE };
+
     tx.set(
       BUDGET_DOK,
-      { anvantOre: anvantOre + UPPSKATTAD_KOSTNAD_ORE, aktuellManad, taketOre },
+      { anvantOre: anvantOre + UPPSKATTAD_KOSTNAD_ORE, aktuellManad, taketOre, anvantPerUid },
       { merge: true }
     );
   });
@@ -176,7 +191,7 @@ exports.tolkaForradsbild = onCall(
       throw new HttpsError("permission-denied", "storagePath måste peka på ditt eget uppladdade foto.");
     }
 
-    await reserveraBudget();
+    await reserveraBudget(request.auth.uid);
 
     try {
       const fil = bucket.file(storagePath);
@@ -243,7 +258,7 @@ exports.tolkaDokument = onCall(
       throw new HttpsError("permission-denied", "storagePath måste peka på ditt eget uppladdade foto.");
     }
 
-    await reserveraBudget();
+    await reserveraBudget(request.auth.uid);
 
     try {
       const fil = bucket.file(storagePath);

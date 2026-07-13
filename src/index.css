@@ -7,7 +7,8 @@
   --amber-ljus: #fffbeb;
   --amber-text: #92400e;
   --text: #0f172a;
-  --text-svag: #64748b;
+  /* #475569 (inte #64748b) för att nå WCAG AA-kontrast (≥4.5:1) mot --bg för normal text */
+  --text-svag: #475569;
   --bg: #f8fafc;
   --yta: #ffffff;
   --kant: #e2e8f0;
@@ -15,7 +16,8 @@
   --farlig: #dc2626;
   --farlig-mork: #b91c1c;
   --farlig-ljus: #fef2f2;
-  --success: #16a34a;
+  /* #15803d (inte #16a34a) för att nå WCAG AA-kontrast mot --bg för normal text */
+  --success: #15803d;
 
   --radius: 14px;
   --radius-liten: 10px;
@@ -27,6 +29,54 @@
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Mörkt läge: aktiveras via data-tema="dark" (satt av useTema-hooken/TemaVaxlare) eller
+   automatiskt via prefers-color-scheme om användaren inte gjort ett explicit val. */
+:root[data-tema="dark"] {
+  --primar: #3b82f6;
+  --primar-mork: #60a5fa;
+  --primar-ljus: #1e3a5f;
+  --accent: #2dd4bf;
+  --amber: #fbbf24;
+  --amber-ljus: #451a03;
+  --amber-text: #fcd34d;
+  --text: #f1f5f9;
+  --text-svag: #94a3b8;
+  --bg: #0f172a;
+  --yta: #1e293b;
+  --kant: #334155;
+  --kant-stark: #475569;
+  --farlig: #f87171;
+  --farlig-mork: #fca5a5;
+  --farlig-ljus: #450a0a;
+  --success: #4ade80;
+  --skugga: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --skugga-hover: 0 6px 16px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="light"]) {
+    --primar: #3b82f6;
+    --primar-mork: #60a5fa;
+    --primar-ljus: #1e3a5f;
+    --accent: #2dd4bf;
+    --amber: #fbbf24;
+    --amber-ljus: #451a03;
+    --amber-text: #fcd34d;
+    --text: #f1f5f9;
+    --text-svag: #94a3b8;
+    --bg: #0f172a;
+    --yta: #1e293b;
+    --kant: #334155;
+    --kant-stark: #475569;
+    --farlig: #f87171;
+    --farlig-mork: #fca5a5;
+    --farlig-ljus: #450a0a;
+    --success: #4ade80;
+    --skugga: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+    --skugga-hover: 0 6px 16px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
+  }
 }
 
 * {
@@ -302,4 +352,33 @@ h1 {
 
 .app-innehall {
   flex: 1;
+}
+
+.sektionssida__taggfilter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.sektionssida__tagg {
+  padding: 6px 14px;
+  border: 1px solid var(--kant);
+  background: var(--yta);
+  color: var(--text-svag);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.sektionssida__tagg:hover {
+  border-color: var(--kant-stark);
+}
+
+.sektionssida__tagg--vald {
+  background: var(--primar-ljus);
+  border-color: var(--primar);
+  color: var(--primar-mork);
+  font-weight: 600;
 }

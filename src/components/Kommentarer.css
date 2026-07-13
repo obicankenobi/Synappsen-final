@@ -22,8 +22,25 @@
   padding: 8px 12px;
 }
 
+.kommentarer__rad + .kommentarer__rad,
+.kommentarer__rad .kommentarer__rad {
+  margin-top: 8px;
+}
+
 .kommentarer__rad p {
   margin: 4px 0;
+}
+
+.kommentarer__rad-atgarder {
+  display: flex;
+  gap: 10px;
+  font-size: 0.8rem;
+}
+
+.kommentarer__svarar-pa {
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  margin: 0;
 }
 
 .kommentarer__meta {

@@ -111,3 +111,40 @@
   color: var(--text-svag);
   font-size: 0.85rem;
 }
+
+.admin-statistik-trend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.admin-statistik-trend__rad {
+  display: grid;
+  grid-template-columns: 60px 1fr 24px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+}
+
+.admin-statistik-trend__dag {
+  color: var(--text-svag);
+}
+
+.admin-statistik-trend__bar-bakgrund {
+  background: var(--bg);
+  border-radius: 999px;
+  overflow: hidden;
+  height: 8px;
+}
+
+.admin-statistik-trend__bar {
+  background: var(--primar);
+  height: 100%;
+  border-radius: 999px;
+}
+
+.admin-statistik-trend__antal {
+  color: var(--text-svag);
+  text-align: right;
+}

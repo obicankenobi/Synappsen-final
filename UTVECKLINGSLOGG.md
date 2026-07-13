@@ -435,4 +435,80 @@ numren ska visas som text utan någon ring-funktion.
 ### Kända begränsningar / medvetna avgränsningar
 
 - Se Fas 4/Fas 5 för tidigare avgränsningar (push-notiser, statistikens 100-händelsers-fönster).
-- Gemini-budgetspärren är global, inte per användare (se ovan).
+- Gemini-budgetspärren är global, inte per användare (se ovan) – åtgärdat i Fas 7.
+
+## Fas 7 – Mörkt läge, sök- och rutinförbättringar, områdesscopad adminstatistik och kvarvarande säkerhetspunkt
+
+**Datum:** 2026-07-13
+**Branch:** `claude/compassionate-euler-rho0q5`
+
+### Bakgrund
+
+Ytterligare en runda på samma mönster som tidigare faser: en lista med förslag presenterades,
+användaren valde ut elva av dem och bad dessutom om en förklaring av vad som krävs för riktiga
+push-notiser (besvarades i chatten, ingen kod). En av punkterna var direkt kopplad till en
+observation från säkerhetsgenomgången i Fas 6 (global istället för per-användare Gemini-budget).
+
+### Genomfört
+
+- `index.html` + `src/hooks/useTema.js` + `src/components/TemaVaxlare.jsx` (i `Profil.jsx`) –
+  mörkt läge. `index.html` sätter `data-tema` synkront innan React laddar (ingen vit blink).
+  `src/index.css` fick ett `:root[data-tema="dark"]`-block och ett `@media (prefers-color-scheme:
+  dark)`-block med samma värden (för de som inte gjort ett explicit val), så temat följer
+  systemet som standard men går att överstyra och sparas i `localStorage`.
+- `src/components/SokFalt.jsx` – kontakter och länkbibliotek vävdes in i sökindexet
+  (`useKontakter`/`useLankbibliotek`). Sökträffar fetmarkerar nu den del av titeln som exakt
+  matchar söktermen (`<mark>`, fuzzy-träffar utan exakt substräng visas omarkerade). Lade även
+  till tangentbordsnavigering: `Escape` i fältet rensar sökningen, `ArrowDown` flyttar fokus till
+  första träffen, pilarna flyttar mellan träffar, `Escape` i en träff återgår till fältet.
+- `src/data/rutinmallar.js` (ny) + `src/components/RutinFormular.jsx` – tre fördefinierade
+  mallar (Behandlingsrutin, Checklista, Larmrutin) valbara när en ny rutin skapas; fyller
+  innehållsfältet (med bekräftelse om det redan innehåller text). Samma formulär fick även ett
+  `taggar`-fält (kommaseparerad text → array).
+- `src/components/Sektionssida.jsx` + `RutinKort.jsx` – taggar sparas på rutinen och visas som
+  chips på kortet; en klickbar taggfilter-rad ovanför listan filtrerar synliga rutiner per tagg.
+- `src/hooks/useKommentarer.js` + `src/components/Kommentarer.jsx` – kommentarer fick ett
+  `svarPa`-fält (kommentar-id). `Kommentarer.jsx` bygger nu ett träd (en nivå rekursiv
+  komponent `KommentarRad`) med en "Svara"-länk per kommentar/svar.
+- `src/firebase/roles.js` – `REDAKTORSROLLER` exporterades (var tidigare privat) för
+  återanvändning i routingen.
+- `src/App.jsx` + `src/components/BottomNav.jsx` – `/admin` är inte längre superadmin-only i
+  routingen; alla redaktörsroller (VÖL, sektionsledare, VEC, förrådsansvarig, superadmin) kommer
+  nu in på sidan, men ser bara en begränsad, områdesscopad vy (se nedan).
+- `src/pages/Admin.jsx` – delades upp i gated sektioner: budget, användarhantering, global
+  statistik, feedback och ändringslogg är fortsatt `arSuperadmin`-only (matchar att
+  `feedback`/`sokloggar`/`auditlogg` fortfarande bara är läsbara av superadmin enligt
+  `firestore.rules` – hooken för respektive lista anropas nu med `laddaLista=false` för
+  icke-superadmin så inget permission-denied-anrop görs). Ny sektion "Statistik för mitt
+  område": VÖL/sektionsledare/VEC ser utkastantal + mest kvitterade rutiner för sitt område,
+  förrådsansvarig ser utkastantal + senast tillagda artiklar. Ingen ny Firestore-regel krävdes,
+  eftersom underlaget (rutiner/förrådsartiklar) redan var läsbart för dessa roller.
+- `src/pages/Admin.jsx` – sökningar-utan-träffar-sektionen fick en enkel trendvy (antal per dag,
+  senaste 50 loggade sökningar) som CSS-staplar, utan extra beroenden.
+- `functions/index.js` – **säkerhetsfix från Fas 6:s kvarstående observation.** Gemini-budgeten
+  hade bara ett globalt månadstak; en enskild användare kunde i teorin förbruka hela det på egen
+  hand. `reserveraBudget()` tar nu emot `uid` och håller även räkning per användare
+  (`installningar/geminiBudget.anvantPerUid`), med ett eget tak på 50 kr/användare/månad utöver
+  det globala taket. Ingen regeländring behövdes (dokumentet skrivs bara via Admin SDK).
+- Kontrastgranskning av `src/index.css`: `--text-svag` (#64748b → #475569) och `--success`
+  (#16a34a → #15803d) hade för låg kontrast mot `--bg` för normal text (under WCAG AA:s 4.5:1).
+  Bytte till mörkare nyanser i det ljusa temat; det mörka temats motsvarigheter hade redan
+  tillräcklig kontrast och lämnades oförändrade.
+- `src/components/Notisklocka.jsx` – `Escape` stänger panelen och återför fokus till
+  klockknappen; lade till `aria-haspopup`/`aria-expanded` samt `role="menu"`/`role="menuitem"`.
+  Passade även på att fixa en dubblerad `box-shadow`-deklaration i `Notisklocka.css` som av
+  misstag hade ett hårdkodat `rgba(...)`-värde istället för temavariabeln `--skugga-hover`
+  (hade fungerat i ljust läge men inte anpassat sig i mörkt läge).
+- Besvarade (i chatten, ingen kodändring) vad som krävs för riktiga push-notiser: Firebase
+  Cloud Messaging-integration (service worker, token-registrering, ett Cloud Function-triggat
+  utskick, samt hanteringen av användarens medgivande för webbnotiser) – medvetet fortsatt
+  avgränsat, se Fas 4.
+- `src/version.js` → 5.1.0, `package.json` → 5.1.0, ny post i `src/data/andringslogg.js`.
+- Verifierat: `npm run build` och `npm run lint` gröna (en `react-hooks/exhaustive-deps`-varning
+  i `Admin.jsx` åtgärdades genom att bryta ut `rutinerIMittOmrade` i en egen `useMemo`).
+
+### Kända begränsningar / medvetna avgränsningar
+
+- Se Fas 4/Fas 5 för push-notiser och statistikens 100-händelsers-fönster.
+- Riktiga push-notiser (FCM) fortsatt inte implementerat, se ovan.
+- Rutin-mallarna är statiska (hårdkodade i `src/data/rutinmallar.js`), inte redigerbara via UI.

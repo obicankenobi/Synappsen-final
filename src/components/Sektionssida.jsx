@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
 import { laddaUppRutinBilagor } from "../firebase/storage";
@@ -18,6 +18,7 @@ export default function Sektionssida({
     useRutiner(omrade);
   const [redigerar, setRedigerar] = useState(null);
   const [visaFormular, setVisaFormular] = useState(false);
+  const [aktivTagg, setAktivTagg] = useState(null);
 
   const farRedigera = redigeraRoller.includes(role);
   const farGodkanna = godkannaRoller.includes(role);
@@ -28,6 +29,16 @@ export default function Sektionssida({
     : rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND);
 
   const utkastRutiner = synligaRutiner.filter((r) => r.status === RUTIN_STATUS.UTKAST);
+
+  const allaTaggar = useMemo(() => {
+    const set = new Set();
+    synligaRutiner.forEach((r) => (r.taggar ?? []).forEach((t) => set.add(t)));
+    return [...set].sort();
+  }, [synligaRutiner]);
+
+  const filtreradeRutiner = aktivTagg
+    ? synligaRutiner.filter((r) => (r.taggar ?? []).includes(aktivTagg))
+    : synligaRutiner;
 
   // Möjliggör djuplänkning från sökresultat: /kliniskt-stod#rutin-{id} scrollar till rätt kort
   useEffect(() => {
@@ -50,6 +61,7 @@ export default function Sektionssida({
     titel: titelVarde,
     innehall,
     referenser,
+    taggar,
     relaterade,
     nyaFiler,
     befintligaBilagor,
@@ -62,6 +74,7 @@ export default function Sektionssida({
           titel: titelVarde,
           innehall,
           referenser,
+          taggar,
           relateradeRutiner: relaterade,
           bilagor: [...befintligaBilagor, ...nyaBilagor],
         },
@@ -77,6 +90,7 @@ export default function Sektionssida({
       });
       await uppdateraRutin(ref.id, {
         referenser,
+        taggar,
         relateradeRutiner: relaterade,
         bilagor: nyaFiler.length ? await laddaUppRutinBilagor(omrade, ref.id, nyaFiler) : [],
       });
@@ -132,15 +146,37 @@ export default function Sektionssida({
         </div>
       )}
 
-      {laddar && <p className="sida__beskrivning">Laddar...</p>}
-
-      {!laddar && synligaRutiner.length === 0 && (
-        <div className="platshallare">
-          <p>Inga rutiner publicerade ännu.</p>
+      {allaTaggar.length > 0 && (
+        <div className="sektionssida__taggfilter">
+          <button
+            type="button"
+            className={`sektionssida__tagg ${aktivTagg === null ? "sektionssida__tagg--vald" : ""}`}
+            onClick={() => setAktivTagg(null)}
+          >
+            Alla
+          </button>
+          {allaTaggar.map((tagg) => (
+            <button
+              key={tagg}
+              type="button"
+              className={`sektionssida__tagg ${aktivTagg === tagg ? "sektionssida__tagg--vald" : ""}`}
+              onClick={() => setAktivTagg(tagg)}
+            >
+              {tagg}
+            </button>
+          ))}
         </div>
       )}
 
-      {synligaRutiner.map((rutin) => (
+      {laddar && <p className="sida__beskrivning">Laddar...</p>}
+
+      {!laddar && filtreradeRutiner.length === 0 && (
+        <div className="platshallare">
+          <p>{aktivTagg ? "Inga rutiner med den taggen." : "Inga rutiner publicerade ännu."}</p>
+        </div>
+      )}
+
+      {filtreradeRutiner.map((rutin) => (
         <RutinKort
           key={rutin.id}
           rutin={rutin}

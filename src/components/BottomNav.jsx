@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { ROLES } from "../firebase/roles";
+import { arRedaktor } from "../firebase/roles";
 import "./BottomNav.css";
 
 // Mobilanpassad navigering längst ned på skärmen
@@ -29,10 +29,10 @@ export default function BottomNav() {
         <span className="bottom-nav__ikon">📋</span>
         <span>Admin</span>
       </NavLink>
-      {role === ROLES.SUPERADMIN && (
+      {arRedaktor(role) && (
         <NavLink to="/admin" className="bottom-nav__lank">
           <span className="bottom-nav__ikon">⚙️</span>
-          <span>Användare</span>
+          <span>Admin</span>
         </NavLink>
       )}
     </nav>

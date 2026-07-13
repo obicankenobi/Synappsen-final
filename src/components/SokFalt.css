@@ -12,6 +12,20 @@
   border: 1px solid var(--kant-stark);
   border-radius: 12px;
   box-sizing: border-box;
+  background: var(--yta);
+  color: var(--text);
+}
+
+.sok-falt input:focus {
+  outline: none;
+  border-color: var(--primar);
+  box-shadow: 0 0 0 3px var(--primar-ljus);
+}
+
+.sok-falt__titel mark {
+  background: var(--amber-ljus);
+  color: var(--amber-text);
+  border-radius: 3px;
 }
 
 .sok-falt__resultat {
@@ -35,9 +49,16 @@
   padding: 12px 16px;
   border: none;
   background: none;
+  color: var(--text);
   text-align: left;
   cursor: pointer;
   border-bottom: 1px solid var(--bg);
+}
+
+.sok-falt__resultat li button:hover,
+.sok-falt__resultat li button:focus-visible {
+  background: var(--primar-ljus);
+  outline: none;
 }
 
 .sok-falt__resultat li:last-child button {

@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
 import { sokposter } from "../data/sokindex";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
+import { useKontakter } from "../hooks/useKontakter";
+import { useLankbibliotek } from "../hooks/useLankbibliotek";
 import { forradTillSlug } from "../firebase/forrad";
 import { registreraVisning } from "../hooks/useVisningar";
 import { useSokloggar } from "../hooks/useSokloggar";
@@ -27,14 +29,34 @@ const OMRADE_SOKVAG = {
   administration: "/administration",
 };
 
-// Sökfält med fuzzy-sökning via Fuse.js, kombinerar statiskt index, förrådsartiklar och riktiga
-// rutiner från Firestore (Kliniskt stöd + Administration)
+// Fetmarkerar den del av texten som exakt matchar söktermen (versalokänsligt).
+// Fuse.js fuzzy-matchar även när texten inte innehåller söktermen ordagrant, i så
+// fall visas texten helt enkelt utan markering.
+function markeraTraff(text, term) {
+  if (!term.trim()) return text;
+  const index = text.toLowerCase().indexOf(term.trim().toLowerCase());
+  if (index === -1) return text;
+  const slut = index + term.trim().length;
+  return (
+    <>
+      {text.slice(0, index)}
+      <mark>{text.slice(index, slut)}</mark>
+      {text.slice(slut)}
+    </>
+  );
+}
+
+// Sökfält med fuzzy-sökning via Fuse.js, kombinerar statiskt index, förrådsartiklar,
+// rutiner, kontakter och länkbibliotek från Firestore
 export default function SokFalt() {
   const [sokterm, setSokterm] = useState("");
   const navigate = useNavigate();
+  const inputRef = useRef(null);
   const { artiklar } = useForradsartiklar();
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
+  const { kontakter } = useKontakter();
+  const { lankar } = useLankbibliotek();
   const { loggaNollTraff } = useSokloggar(false);
   const { currentUser } = useAuth();
 
@@ -58,8 +80,22 @@ export default function SokFalt() {
         nyckelord: (r.innehall ?? "").split(/\s+/).slice(0, 60),
       }));
 
-    return [...sokposter, ...forradsposter, ...rutinposter];
-  }, [artiklar, klinisktRutiner, adminRutiner]);
+    const kontaktposter = kontakter.map((k) => ({
+      titel: k.namn,
+      kategori: "Kontakt",
+      sokvag: "/kontakter",
+      nyckelord: [k.kategori, k.beskrivning].filter(Boolean),
+    }));
+
+    const lankposter = lankar.map((l) => ({
+      titel: l.titel,
+      kategori: "Länk",
+      sokvag: "/lankbibliotek",
+      nyckelord: [l.kategori, l.beskrivning].filter(Boolean),
+    }));
+
+    return [...sokposter, ...forradsposter, ...rutinposter, ...kontaktposter, ...lankposter];
+  }, [artiklar, klinisktRutiner, adminRutiner, kontakter, lankar]);
 
   const fuse = useMemo(
     () =>
@@ -96,21 +132,52 @@ export default function SokFalt() {
     navigate(post.sokvag);
   }
 
+  function hanteraFaltTangent(e) {
+    if (e.key === "Escape") {
+      setSokterm("");
+    } else if (e.key === "ArrowDown" && resultat.length > 0) {
+      e.preventDefault();
+      e.currentTarget.parentElement.querySelector(".sok-falt__resultat button")?.focus();
+    }
+  }
+
+  function hanteraResultatTangent(e, index) {
+    const knappar = Array.from(e.currentTarget.closest("ul").querySelectorAll("button"));
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      knappar[index + 1]?.focus();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (index === 0) inputRef.current?.focus();
+      else knappar[index - 1]?.focus();
+    } else if (e.key === "Escape") {
+      setSokterm("");
+      inputRef.current?.focus();
+    }
+  }
+
   return (
     <div className="sok-falt">
       <input
+        ref={inputRef}
         type="search"
         placeholder="Sök t.ex. 'Ryggsmärta' eller 'Kanyl'..."
         value={sokterm}
         onChange={(e) => setSokterm(e.target.value)}
+        onKeyDown={hanteraFaltTangent}
         aria-label="Sök i kunskapsbanken"
       />
       {resultat.length > 0 && (
-        <ul className="sok-falt__resultat">
+        <ul className="sok-falt__resultat" role="listbox">
           {resultat.map((post, i) => (
-            <li key={`${post.titel}-${i}`}>
-              <button onClick={() => hanteraKlick(post)}>
-                <span className="sok-falt__titel">{post.titel}</span>
+            <li key={`${post.titel}-${i}`} role="presentation">
+              <button
+                onClick={() => hanteraKlick(post)}
+                onKeyDown={(e) => hanteraResultatTangent(e, i)}
+                role="option"
+                aria-selected="false"
+              >
+                <span className="sok-falt__titel">{markeraTraff(post.titel, sokterm)}</span>
                 <span className="sok-falt__kategori">{post.plats ?? post.kategori}</span>
               </button>
             </li>

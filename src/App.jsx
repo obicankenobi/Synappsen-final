@@ -7,7 +7,7 @@ import InaktivitetsVarning from "./components/InaktivitetsVarning";
 import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
-import { ROLES } from "./firebase/roles";
+import { REDAKTORSROLLER } from "./firebase/roles";
 
 // Varje sida laddas i sin egen chunk vid behov istället för att bakas in i huvudbundlen
 const Hem = lazy(() => import("./pages/Hem"));
@@ -196,7 +196,7 @@ export default function App() {
           <Route
             path="/admin"
             element={
-              <RollSkyddadRoute tillatnaRoller={[ROLES.SUPERADMIN]}>
+              <RollSkyddadRoute tillatnaRoller={REDAKTORSROLLER}>
                 <div className="app-innehall">
                   <Suspense fallback={<SidLaddare />}>
                     <Admin />

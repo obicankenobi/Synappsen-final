@@ -3,6 +3,22 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.1.0",
+    datum: "2026-07-13",
+    andringar: [
+      "Mörkt läge – välj ljust, mörkt eller följ systemet under Min profil",
+      "Kontakter och länkbibliotek är nu sökbara direkt från startsidans sökfält",
+      "Sökträffar visar nu vilken del av titeln som matchade din sökning",
+      "Rutiner kan taggas med nyckelord och filtreras per tagg",
+      "Nya rutiner kan utgå från en mall (t.ex. Behandlingsrutin, Checklista, Larmrutin)",
+      "Kommentarer på rutiner kan nu besvaras i trådar",
+      "Sektionsledare/VEC/förrådsansvarig ser nu statistik för sitt eget område i adminpanelen",
+      "Sökningar utan träffar visas nu även som en trend över tid i adminpanelen",
+      "Förbättrad kontrast i texten för bättre läsbarhet",
+      "Notisklockan och sökresultaten går nu att styra med tangentbordet (Escape, piltangenter)",
+    ],
+  },
+  {
     version: "5.0.0",
     datum: "2026-07-07",
     andringar: [

@@ -8,12 +8,50 @@ function formateraTid(tidpunkt) {
   return tidpunkt.toDate().toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" });
 }
 
+function KommentarRad({ kommentar, svar, currentUser, farTaBortAlla, taBortKommentar, onSvara, djup }) {
+  return (
+    <div className="kommentarer__rad" style={{ marginLeft: djup * 20 }}>
+      <div className="kommentarer__meta">
+        <strong>{kommentar.skapadAvNamn}</strong>
+        <span>{formateraTid(kommentar.skapad)}</span>
+      </div>
+      <p>{kommentar.text}</p>
+      <div className="kommentarer__rad-atgarder">
+        <button type="button" className="knapp--lank" onClick={() => onSvara(kommentar.id)}>
+          Svara
+        </button>
+        {(farTaBortAlla || kommentar.skapadAv === currentUser.uid) && (
+          <button className="knapp--lank" onClick={() => taBortKommentar(kommentar.id)}>
+            Ta bort
+          </button>
+        )}
+      </div>
+      {svar.map((s) => (
+        <KommentarRad
+          key={s.id}
+          kommentar={s}
+          svar={[]}
+          currentUser={currentUser}
+          farTaBortAlla={farTaBortAlla}
+          taBortKommentar={taBortKommentar}
+          onSvara={onSvara}
+          djup={djup + 1}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function Kommentarer({ rutinId, farTaBortAlla }) {
   const { currentUser } = useAuth();
   const { kommentarer, skapaKommentar, taBortKommentar } = useKommentarer(rutinId);
   const [oppen, setOppen] = useState(false);
   const [text, setText] = useState("");
+  const [svararPa, setSvararPa] = useState(null);
   const [skickar, setSkickar] = useState(false);
+
+  const toppniva = kommentarer.filter((k) => !k.svarPa);
+  const svarTill = (id) => kommentarer.filter((k) => k.svarPa === id);
 
   async function hanteraSubmit(e) {
     e.preventDefault();
@@ -24,8 +62,10 @@ export default function Kommentarer({ rutinId, farTaBortAlla }) {
         text: text.trim(),
         skapadAv: currentUser.uid,
         skapadAvNamn: currentUser.email,
+        svarPa: svararPa,
       });
       setText("");
+      setSvararPa(null);
     } finally {
       setSkickar(false);
     }
@@ -39,22 +79,28 @@ export default function Kommentarer({ rutinId, farTaBortAlla }) {
 
       {oppen && (
         <div className="kommentarer__panel">
-          {kommentarer.map((k) => (
-            <div key={k.id} className="kommentarer__rad">
-              <div className="kommentarer__meta">
-                <strong>{k.skapadAvNamn}</strong>
-                <span>{formateraTid(k.skapad)}</span>
-              </div>
-              <p>{k.text}</p>
-              {(farTaBortAlla || k.skapadAv === currentUser.uid) && (
-                <button className="knapp--lank" onClick={() => taBortKommentar(k.id)}>
-                  Ta bort
-                </button>
-              )}
-            </div>
+          {toppniva.map((k) => (
+            <KommentarRad
+              key={k.id}
+              kommentar={k}
+              svar={svarTill(k.id)}
+              currentUser={currentUser}
+              farTaBortAlla={farTaBortAlla}
+              taBortKommentar={taBortKommentar}
+              onSvara={setSvararPa}
+              djup={0}
+            />
           ))}
 
           <form className="kommentarer__formular" onSubmit={hanteraSubmit}>
+            {svararPa && (
+              <p className="kommentarer__svarar-pa">
+                Svarar på en kommentar.{" "}
+                <button type="button" className="knapp--lank" onClick={() => setSvararPa(null)}>
+                  Avbryt
+                </button>
+              </p>
+            )}
             <textarea
               rows={2}
               placeholder="Skriv en kommentar eller fråga..."

@@ -105,6 +105,16 @@ export default function RutinKort({
       )}
       <MarkdownInnehall className="rutin-kort__innehall" text={rutin.innehall} />
 
+      {rutin.taggar?.length > 0 && (
+        <div className="rutin-kort__taggar">
+          {rutin.taggar.map((t) => (
+            <span key={t} className="rutin-kort__tagg">
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
+
       {rutin.referenser && (
         <p className="rutin-kort__referenser">
           <strong>Referenser:</strong> {rutin.referenser}

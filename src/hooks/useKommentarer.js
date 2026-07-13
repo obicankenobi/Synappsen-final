@@ -29,12 +29,13 @@ export function useKommentarer(rutinId) {
     return unsubscribe;
   }, [rutinId]);
 
-  async function skapaKommentar({ text, skapadAv, skapadAvNamn }) {
+  async function skapaKommentar({ text, skapadAv, skapadAvNamn, svarPa = null }) {
     return addDoc(collection(db, "kommentarer"), {
       rutinId,
       text,
       skapadAv,
       skapadAvNamn: skapadAvNamn ?? "",
+      svarPa,
       skapad: serverTimestamp(),
     });
   }

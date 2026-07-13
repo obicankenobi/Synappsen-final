@@ -26,6 +26,22 @@
   flex-wrap: wrap;
 }
 
+.rutin-kort__taggar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.rutin-kort__tagg {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-svag);
+  border: 1px solid var(--kant);
+}
+
 .rutin-kort__badge {
   font-size: 0.75rem;
   background: var(--amber-ljus);

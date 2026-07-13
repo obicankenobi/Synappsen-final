@@ -1,14 +1,23 @@
 import { useState } from "react";
+import { RUTIN_MALLAR } from "../data/rutinmallar";
 import "./RutinFormular.css";
 
 export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSpara, onAvbryt }) {
   const [titel, setTitel] = useState(initialaVarden?.titel ?? "");
   const [innehall, setInnehall] = useState(initialaVarden?.innehall ?? "");
   const [referenser, setReferenser] = useState(initialaVarden?.referenser ?? "");
+  const [taggarText, setTaggarText] = useState((initialaVarden?.taggar ?? []).join(", "));
   const [relaterade, setRelaterade] = useState(initialaVarden?.relateradeRutiner ?? []);
   const [nyaFiler, setNyaFiler] = useState([]);
   const [befintligaBilagor, setBefintligaBilagor] = useState(initialaVarden?.bilagor ?? []);
   const [sparar, setSparar] = useState(false);
+
+  function valjMall(namn) {
+    const mall = RUTIN_MALLAR.find((m) => m.namn === namn);
+    if (!mall) return;
+    if (innehall.trim() && !confirm("Ersätta nuvarande innehåll med mallen?")) return;
+    setInnehall(mall.innehall);
+  }
 
   function taBortBefintlig(index) {
     setBefintligaBilagor((b) => b.filter((_, i) => i !== index));
@@ -30,9 +39,13 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
       alert("Fyll i innehåll eller bifoga minst en fil.");
       return;
     }
+    const taggar = taggarText
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
     setSparar(true);
     try {
-      await onSpara({ titel, innehall, referenser, relaterade, nyaFiler, befintligaBilagor });
+      await onSpara({ titel, innehall, referenser, taggar, relaterade, nyaFiler, befintligaBilagor });
     } finally {
       setSparar(false);
     }
@@ -51,6 +64,20 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
           onChange={(e) => setTitel(e.target.value)}
         />
       </label>
+      {!initialaVarden && (
+        <label>
+          Utgå från mall (valfritt)
+          <select defaultValue="" onChange={(e) => valjMall(e.target.value)}>
+            <option value="">Inget – börja från tomt</option>
+            {RUTIN_MALLAR.map((m) => (
+              <option key={m.namn} value={m.namn}>
+                {m.namn}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
       <label>
         Innehåll {!harBilagor && "(krävs om ingen bilaga bifogas)"}
         <textarea
@@ -69,6 +96,15 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
           placeholder="T.ex. regionalt PM, författare, år"
           value={referenser}
           onChange={(e) => setReferenser(e.target.value)}
+        />
+      </label>
+      <label>
+        Taggar (valfritt, kommaseparerade)
+        <input
+          type="text"
+          placeholder="T.ex. barn, akut, smärtlindring"
+          value={taggarText}
+          onChange={(e) => setTaggarText(e.target.value)}
         />
       </label>
 

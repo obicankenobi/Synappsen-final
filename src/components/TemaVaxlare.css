@@ -1,0 +1,27 @@
+.tema-vaxlare {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tema-vaxlare__val {
+  padding: 8px 14px;
+  border: 1px solid var(--kant);
+  background: var(--yta);
+  color: var(--text);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.tema-vaxlare__val:hover {
+  border-color: var(--kant-stark);
+}
+
+.tema-vaxlare__val--vald {
+  background: var(--primar-ljus);
+  border-color: var(--primar);
+  color: var(--primar-mork);
+  font-weight: 600;
+}
