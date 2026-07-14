@@ -383,7 +383,13 @@ const GODKANDA_KALLDOMANER = [
   "nationelltklinisktkunskapsstod.se",
   "fass.se",
   "lakemedelsverket.se",
+  "vardhandboken.se",
+  "folkhalsomyndigheten.se",
 ];
+
+// Sökmotorns Search Engine ID (cx) – inte hemlig (syns redan publikt i inbäddningskoden för
+// sökwidgeten), så den behöver inte hanteras som ett Firebase-secret som API-nyckeln nedan.
+const SOKMOTOR_CX = "b78ded0f2f19e4ab6";
 
 function domanGodkand(url) {
   try {
