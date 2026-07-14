@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.4.1",
+    datum: "2026-07-14",
+    andringar: [
+      "Säkerhetsgenomgång av hela appen: stoppat en sparbar länk-sårbarhet i länkbiblioteket, lagt till budgetspärr på klinikstöd-sökningen och samma patientuppgifts-varning på anslag som redan fanns på rutiner/kommentarer/skiftrapport",
+    ],
+  },
+  {
     version: "5.4.0",
     datum: "2026-07-14",
     andringar: [

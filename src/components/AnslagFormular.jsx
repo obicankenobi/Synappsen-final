@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ANSLAG_PRIORITET } from "../hooks/useAnslag";
+import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import "./AnslagFormular.css";
 
 export default function AnslagFormular({ initialaVarden, onSpara, onAvbryt }) {
@@ -12,6 +13,11 @@ export default function AnslagFormular({ initialaVarden, onSpara, onAvbryt }) {
 
   async function hanteraSubmit(e) {
     e.preventDefault();
+    const kontroll = kontrolleraPatientuppgifter(`${titel} ${innehall}`);
+    if (kontroll.blockerad) {
+      if (kontroll.meddelande) alert(kontroll.meddelande);
+      return;
+    }
     setSparar(true);
     try {
       await onSpara({ titel, innehall, fastNaglad, prioritet, utgangsdatum });

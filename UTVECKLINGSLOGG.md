@@ -894,3 +894,89 @@ superadmin att fältbegränsat uppdatera `svar`/`svarDatum`/`status`.
   bort en tagg i bulk.
 - @omnämnanden matchar mot e-postens lokala del (`namn` i `namn@domän`), inte mot visningsnamn
   – fungerar bäst om användarna känner till varandras e-postadresser.
+
+## Fas 11 – Fullständig säkerhets-/buggenomgång av hela kodbasen
+
+Efter fem releaser (5.0.0–5.4.0) genomfördes en samlad genomgång av samtliga lager (Firestore-
+regler, Storage-regler, Cloud Functions, samtliga React-hooks/komponenter/sidor) med fokus på
+sårbarheter, inte bara nya buggar. Metod: manuell genomläsning av `firestore.rules` och
+`storage.rules` i sin helhet, grep-genomsökning efter riskabla mönster
+(`dangerouslySetInnerHTML`, `eval`, `innerHTML=`, `tel:`-länkar, hårdkodade nycklar,
+`console.log` av känslig data) samt en riktad genomgång av alla `href`/`src`-bindningar mot sin
+källa. Ett separat delmoment gick igenom alla filer under `src/hooks`, `src/pages`,
+`src/components`, `src/utils` och `src/firebase` som inte redan var täckta av tidigare
+säkerhetsgenomgångar (Fas 6, Fas 9).
+
+**Åtgärdat**
+
+- `src/components/LankFormular.jsx` / `src/pages/Lankbibliotek.jsx` – en sparad länk validerades
+  bara av `<input type="url">`s inbyggda kontroll, som INTE tillförlitligt stoppar
+  `javascript:`-URI:er (de är syntaktiskt giltiga webbadresser). En sparad `javascript:`-länk
+  hade kunnat köra kod i webbläsaren när någon senare klickade på den i länkbiblioteket (lagrad
+  self-XSS). Fixat med en explicit `^https?:\/\//i`-kontroll dels innan sparning, dels innan
+  renderingen väljer att visa titeln som en klickbar länk över huvud taget (den senare skyddar
+  även mot ev. redan sparad felaktig data).
+- `functions/index.js` – `fragaKlinisktStod` (klinikstöd-sökningen, för närvarande pausad i
+  klientgränssnittet) saknade helt budgetspärren som de två andra Gemini-anropande funktionerna
+  har. Utan den kunde en inloggad användare i teorin anropa funktionen direkt (förbi den
+  pausade knappen) obegränsat många gånger, vardera med upp till fyra Gemini-anrop (två
+  modellförsök × ett omförsök var). Samma `reserveraBudget()`-anrop som `tolkaForradsbild`/
+  `tolkaDokument` lades till.
+- `src/components/AnslagFormular.jsx` – anslagstavlan (meddelanden till ALL personal) hade
+  ingen patientuppgiftskontroll alls, till skillnad från rutiner, kommentarer, skiftrapport,
+  privata anteckningar och feedback som alla kör `kontrolleraPatientuppgifter()` innan sparning.
+  Eftersom anslag är den mest bredspridda textytan i appen (varje inloggad användare ser varje
+  anslag) bedömdes detta som den mest angelägna av de kvarvarande luckorna att täppa till.
+  Samma mönster som `Skiftrapport.jsx` la till: hård spärr vid personnummer, `confirm()`-varning
+  vid misstänkt namn.
+
+**Granskat, inga ändringar (redan säkert)**
+
+- `src/components/MarkdownInnehall.jsx` – enda stället med `dangerouslySetInnerHTML`, men
+  körs alltid genom `DOMPurify.sanitize()` först.
+- `src/components/KlinikfragaSok.jsx` (`<a href={k.url}>`) – URL:en är redan
+  domänvaliderad server-side innan den returneras till klienten.
+- `src/components/RutinKort.jsx` (`<a href={b.url}>`) – URL:en kommer alltid från Firebase
+  Storages egen `getDownloadURL()`, aldrig från användarinmatning.
+- `src/pages/Kontakter.jsx` – telefonnummer renderas som vanlig text, ingen `tel:`-länk,
+  vilket är ett medvetet, tidigare beslutat krav (inget ring-i-appen).
+- Samtliga CRUD-hooks delegerar behörighetskontrollen helt till Firestore-reglerna; UI-nivåns
+  roll-flaggor (`farHantera`, `farRedigera` m.fl.) är enbart presentation, ingen mutation
+  litar på en klient-uppgift om roll eller ägarskap utan att reglerna också kontrollerar det.
+- Ingen `eval`, `innerHTML=`, hårdkodad hemlighet eller känslig `console.log` hittades någonstans
+  i kodbasen.
+
+**Kvarvarande, medvetet accepterade avgränsningar (ej åtgärdade i denna fas)**
+
+1. **PII-filtret är enbart klientsidigt för direkta Firestore-skrivningar.** Det juridiskt
+   viktigaste skyddet (`innehallerPersonnummer()` i `functions/index.js`) gäller bara text som
+   går via en Cloud Function (AI-bild-/dokumenttolkning, klinikstöd-frågan). För rutiner,
+   kommentarer, skiftrapport, anteckningar, feedback och nu anslag är personnummer-/namn-
+   kontrollen bara ett klientsidigt JavaScript-anrop innan `onSpara`/`skapaPost` – en klient som
+   pratar direkt med Firestore-API:et (t.ex. via webbläsarkonsolen eller ett eget skript, med en
+   giltig inloggning) kan kringgå kontrollen helt. Att stänga denna lucka på regelnivå skulle
+   kräva antingen (a) en förenklad regex-kontroll i `firestore.rules` utan datum-/Luhn-
+   validering (fler falska positiva, blockerar sparning hårt utan möjlighet till "spara ändå"),
+   eller (b) att flytta alla skrivningar via en Cloud Function som kan återanvända den
+   fullständiga, validerade kontrollen. Båda är arkitekturförändringar som medvetet lämnas
+   utanför denna genomgång och bör beslutas av verksamheten, inte antas.
+2. `storage.rules`: `inkommande/{uid}/{filnamn}` får läsas av vem som helst med en icke-
+   "personal"-roll, inte bara den som laddade upp filen – d.v.s. en råbild kan ses av andra
+   redaktörer innan/utan att AI-tolkningens PII-skanning någonsin körs på den (skanningen körs
+   bara på den extraherade TEXTEN, aldrig på själva bilden). Avsiktlig design för
+   granskningsflödet (flera roller ska kunna se och godkänna inkommande underlag), men värt att
+   känna till.
+3. `kommentarer/{kommentarId}` tillåter att skaparen sätter ett godtyckligt `omnamnda`-fält
+   (vilka uid:n som får en @omnämnande-notis) utan serverside-validering mot texten. Låg
+   allvarlighetsgrad – ger i värsta fall en missvisande notis till fel person, exponerar ingen
+   data.
+4. `src/components/ForradArtikelFormular.jsx` saknar samma patientuppgiftskontroll som övriga
+   formulär. Bedömt som lägre prioritet eftersom fälten (artikelnamn, skåp, hylla, antal) är
+   korta, strukturerade logistikuppgifter där patientinformation osannolikt skulle hamna av
+   misstag – men inkonsekvent med resten av appens mönster.
+
+**Verifiering**
+
+- `npm run build`, `npm run lint` och `node -c functions/index.js` gröna efter samtliga
+  ändringar.
+- `src/version.js` → 5.4.1, `package.json` → 5.4.1, ny post i `src/data/andringslogg.js`.
