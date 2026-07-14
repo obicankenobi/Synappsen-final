@@ -12,6 +12,7 @@ const db = admin.firestore();
 const bucket = admin.storage().bucket("synappsen-final-build.firebasestorage.app");
 
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
+const SOKMOTOR_API_KEY = defineSecret("SOKMOTOR_API_KEY");
 
 // Grov kostnadsuppskattning per bildtolkning (öre), används för budgetspärren.
 const UPPSKATTAD_KOSTNAD_ORE = 50;
@@ -373,10 +374,9 @@ exports.tolkaDokument = onCall(
   }
 );
 
-// Godkända källor för klinikstöd-frågor. OBS: domänerna nedan är inte verifierade mot en
-// aktiv webbuppslagning (byggd utan nätåtkomst) – dubbelkolla särskilt
-// "nationelltklinisktkunskapsstod.se" innan detta tas i skarp drift, och justera listan
-// vid behov.
+// Godkända källor för klinikstöd-frågor – samma domäner som är konfigurerade i den
+// programmerbara sökmotorn (se SOKMOTOR_CX nedan). Fungerar som ett extra skyddslager om
+// sökmotorns egen domänbegränsning någonsin skulle ändras av misstag.
 const GODKANDA_KALLDOMANER = [
   "internetmedicin.se",
   "1177.se",
@@ -400,48 +400,39 @@ function domanGodkand(url) {
   }
 }
 
-// Gemini/Vertex AI:s grounding-API returnerar käll-URL:er som går via
-// vertexaisearch.cloud.google.com/grounding-api-redirect/... – ALDRIG den riktiga sidans
-// domän direkt. Att domänvalidera redirect-länken (som förra versionen gjorde) blockerar
-// därför varje svar, oavsett vilken sida Gemini egentligen använde. Löser upp varje länk
-// till dess slutgiltiga URL (via HEAD + redirect-following) innan domänen kontrolleras,
-// och byter ut länken mot den riktiga sidan i det som visas för användaren.
-async function losUppSlutgiltigUrl(url) {
-  // Vissa redirect-slutpunkter avvisar HEAD – provar GET som fallback om så behövs.
-  for (const metod of ["HEAD", "GET"]) {
-    try {
-      const svar = await fetch(url, {
-        method: metod,
-        redirect: "follow",
-        signal: AbortSignal.timeout(5000),
-      });
-      if (svar.url && !svar.url.includes("vertexaisearch.cloud.google.com")) {
-        return svar.url;
-      }
-    } catch {
-      // provar nästa metod
-    }
+// Söker via Google Programmable Search Engine (Custom Search JSON API), konfigurerad att
+// bara söka inom de godkända domänerna (se GODKANDA_KALLDOMANER) – till skillnad från den
+// tidigare varianten som bad Gemini "lova" att bara söka med site:-operatorn (vilket den i
+// praktiken inte alltid respekterade), är denna begränsning inbyggd i själva sökmotorn.
+async function sokViaProgrammerbarSokmotor(fraga) {
+  const url = new URL("https://www.googleapis.com/customsearch/v1");
+  url.searchParams.set("key", SOKMOTOR_API_KEY.value());
+  url.searchParams.set("cx", SOKMOTOR_CX);
+  url.searchParams.set("q", fraga);
+  url.searchParams.set("num", "5");
+
+  const httpSvar = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  if (!httpSvar.ok) {
+    const felText = await httpSvar.text();
+    const fel = new Error(`Sökmotorn svarade ${httpSvar.status}: ${felText.slice(0, 500)}`);
+    fel.status = httpSvar.status;
+    throw fel;
   }
-  // Om upplösningen misslyckas behålls redirect-länken – den klarar aldrig
-  // domänkontrollen, vilket är rätt (vi kan då inte verifiera var den faktiskt pekar).
-  return url;
+  const json = await httpSvar.json();
+  return (json.items ?? []).map((i) => ({ titel: i.title, url: i.link, utdrag: i.snippet ?? "" }));
 }
 
-async function losUppKallor(kallor) {
-  return Promise.all(
-    kallor.map(async (k) => {
-      const slutgiltigUrl = await losUppSlutgiltigUrl(k.url);
-      return { titel: k.titel, url: slutgiltigUrl };
-    })
-  );
-}
-
-// Kliniskt uppslagsstöd: tvingar Gemini att söka live (Google Search-grounding) varje
-// gång istället för att svara ur minnet, och validerar i efterhand att ALLA angivna källor
-// faktiskt ligger på en godkänd domän. Om något inte kan verifieras blockeras svaret hellre
-// än att visas som om det vore godkänt.
+// Kliniskt uppslagsstöd: hämtar först faktiska sökträffar från en domänbegränsad
+// Programmable Search Engine (se ovan), och ber sedan Gemini svara ENBART utifrån dessa
+// träffars innehåll – inte fri websökning. Domänkontrollen (domanGodkand) körs ändå som ett
+// extra skyddslager ifall sökmotorns egen konfiguration någonsin skulle ändras av misstag.
 exports.fragaKlinisktStod = onCall(
-  { secrets: [GEMINI_API_KEY], region: "europe-west1", memory: "512MiB", timeoutSeconds: 60 },
+  {
+    secrets: [GEMINI_API_KEY, SOKMOTOR_API_KEY],
+    region: "europe-west1",
+    memory: "512MiB",
+    timeoutSeconds: 60,
+  },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
@@ -465,45 +456,56 @@ exports.fragaKlinisktStod = onCall(
     // anropas direkt (förbi den pausade UI-vyn) utan tak på kostnad eller antal anrop.
     await reserveraBudget(request.auth.uid);
 
-    const kalldomanerText =
-      "internetmedicin.se, 1177.se, nationelltklinisktkunskapsstod.se (Nationella kliniska " +
-      "kunskapsstödet), fass.se (Läkemedelsverkets FASS för vårdpersonal), lakemedelsverket.se";
+    const kalldomanerText = GODKANDA_KALLDOMANER.join(", ");
 
-    function byggPrompt(korrigering) {
-      return `Du är ett kliniskt uppslagsverktyg för vårdpersonal på en akutmottagning i Sverige.
-
-Fråga: "${fraga}"
-${korrigering ?? ""}
-Regler du MÅSTE följa:
-1. Sök alltid upp aktuell information live via websökning – svara ALDRIG enbart ur minnet.
-2. Använd ENDAST information från dessa källor: ${kalldomanerText}.
-3. Formulera dina sökningar med "site:"-operatorn riktad mot en av dessa domäner i taget, t.ex.
-   "site:internetmedicin.se ${fraga}" eller "site:1177.se ${fraga}" – sök ALDRIG brett på öppna
-   webben utan site:-begränsning.
-4. Om du inte hittar ett tillförlitligt svar på dessa sidor: säg det tydligt istället för att
-   gissa eller använda någon annan källa, oavsett hur relevant den kan verka.
-5. Ange tydligt vilken specifik källa varje påstående kommer ifrån.
-6. Detta är beslutsstöd, inte en diagnos – uppmana alltid till egen klinisk bedömning.
-7. Svara på svenska, kortfattat och praktiskt.
-8. Ställ aldrig frågor om eller referera till en specifik patient – om frågan verkar handla om
-   en namngiven eller identifierbar person, svara att du bara kan besvara generella frågor.`;
+    let traffar;
+    try {
+      traffar = await sokViaProgrammerbarSokmotor(fraga);
+    } catch (fel) {
+      console.error("Sökmotor-anrop misslyckades:", fel);
+      throw new HttpsError("internal", `Sökningen misslyckades: ${fel.message}`);
     }
 
-    // Anropar Gemini REST-API direkt (istället för @google/generative-ai-paketet) med
-    // "googleSearch"-verktyget, som är den nuvarande sök-grounding-mekanismen för
-    // gemini-2.5-flash. Paketets typdefinitioner (v0.21) känner bara till det äldre,
-    // 1.5-modell-specifika "googleSearchRetrieval"-verktyget, vilket inte är tillförlitligt
-    // för den modell resten av appen redan använder.
-    async function anropaGemini(promptText) {
+    // Extra skyddslager: sökmotorn ska redan vara konfigurerad att bara söka inom
+    // GODKANDA_KALLDOMANER, men om den konfigurationen någonsin ändras av misstag ska en
+    // träff utanför listan aldrig nå Gemini eller användaren.
+    const godkandaTraffar = traffar.filter((t) => domanGodkand(t.url));
+    if (godkandaTraffar.length === 0) {
+      throw new HttpsError(
+        "not-found",
+        `Hittade inget svar bland de godkända källorna (${kalldomanerText}). Sök manuellt istället.`
+      );
+    }
+
+    const traffTextBlock = godkandaTraffar
+      .map((t, i) => `[${i + 1}] ${t.titel} (${t.url})\n${t.utdrag}`)
+      .join("\n\n");
+
+    const prompt = `Du är ett kliniskt uppslagsverktyg för vårdpersonal på en akutmottagning i Sverige.
+
+Fråga: "${fraga}"
+
+Här är sökträffar från godkända medicinska källor (${kalldomanerText}):
+
+${traffTextBlock}
+
+Regler du MÅSTE följa:
+1. Svara ENDAST utifrån informationen i sökträffarna ovan – gissa aldrig och använd aldrig
+   information från minnet eller andra källor.
+2. Om träffarna inte innehåller ett tillförlitligt svar: säg det tydligt istället för att gissa.
+3. Ange efter varje påstående vilken träff ([1], [2], osv.) det kommer ifrån.
+4. Detta är beslutsstöd, inte en diagnos – uppmana alltid till egen klinisk bedömning.
+5. Svara på svenska, kortfattat och praktiskt.
+6. Ställ aldrig frågor om eller referera till en specifik patient – om frågan verkar handla om
+   en namngiven eller identifierbar person, svara att du bara kan besvara generella frågor.`;
+
+    async function anropaGemini() {
       const httpSvar = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: promptText }] }],
-            tools: [{ googleSearch: {} }],
-          }),
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
         }
       );
       if (!httpSvar.ok) {
@@ -515,49 +517,19 @@ Regler du MÅSTE följa:
       return httpSvar.json();
     }
 
-    async function anropaMedOmforsokVid503(promptText) {
+    let svarJson;
+    try {
       try {
-        return await anropaGemini(promptText);
+        svarJson = await anropaGemini();
       } catch (forstaFel) {
         // 503/UNAVAILABLE betyder att Gemini är tillfälligt överbelastat (inte ett fel i vårt
         // anrop) – ett enda snabbt återförsök löser detta i de flesta fall.
         if (forstaFel.status === 503) {
           await new Promise((r) => setTimeout(r, 2000));
-          return await anropaGemini(promptText);
+          svarJson = await anropaGemini();
+        } else {
+          throw forstaFel;
         }
-        throw forstaFel;
-      }
-    }
-
-    async function tolkaSvar(svarJson) {
-      const kandidat = svarJson.candidates?.[0];
-      const svar = kandidat?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-      const grounding = kandidat?.groundingMetadata;
-      const raKallor = (grounding?.groundingChunks ?? grounding?.groundingChuncks ?? [])
-        .map((c) => c.web)
-        .filter(Boolean)
-        .map((w) => ({ titel: w.title ?? w.uri, url: w.uri }));
-      // Länkarna från grounding-API:et går via vertexaisearch.cloud.google.com och måste
-      // lösas upp till den riktiga sidans URL innan domänen går att kontrollera.
-      const kallor = await losUppKallor(raKallor);
-      return { svar, kallor };
-    }
-
-    let resultat;
-    try {
-      resultat = await tolkaSvar(await anropaMedOmforsokVid503(byggPrompt()));
-
-      // Om Gemini trots instruktionerna hänvisade till otillåtna källor: ge den EN chans till
-      // med en skarpare, korrigerande prompt som pekar ut exakt vilka domäner som floppade.
-      const otillatnaForsta = resultat.kallor.filter((k) => !domanGodkand(k.url));
-      if (resultat.kallor.length === 0 || otillatnaForsta.length > 0) {
-        const korrigering = `
-OBS: ett tidigare försök att besvara den här frågan använde felaktigt källor utanför listan${
-          otillatnaForsta.length > 0 ? ` (${otillatnaForsta.map((k) => k.url).join(", ")})` : ""
-        }. Sök EN GÅNG TILL, den här gången strikt med "site:"-sökningar mot endast de fem
-godkända domänerna nedan – ingen annan källa accepteras denna gång.
-`;
-        resultat = await tolkaSvar(await anropaMedOmforsokVid503(byggPrompt(korrigering)));
       }
     } catch (fel) {
       console.error("Klinikstöd-sökning misslyckades:", fel);
@@ -567,31 +539,11 @@ godkända domänerna nedan – ingen annan källa accepteras denna gång.
           "Gemini är tillfälligt överbelastat just nu. Vänta en liten stund och försök igen."
         );
       }
-      // Övriga felmeddelanden visas i klienten (istället för ett generiskt "något gick fel")
-      // eftersom Cloud Functions-loggarna inte är tillgängliga under utveckling/felsökning av
-      // den här funktionen – gör felsökning möjlig direkt från gränssnittet.
       throw new HttpsError("internal", `Sökningen misslyckades: ${fel.message}`);
     }
 
-    const { svar, kallor } = resultat;
-
-    if (kallor.length === 0) {
-      throw new HttpsError(
-        "not-found",
-        "Kunde inte hitta ett verifierbart svar från de godkända källorna (försökte två gånger). Sök manuellt istället."
-      );
-    }
-
-    const otillatna = kallor.filter((k) => !domanGodkand(k.url));
-    if (otillatna.length > 0) {
-      console.warn("Blockerat svar pga otillåtna källor:", otillatna.map((k) => k.url));
-      throw new HttpsError(
-        "failed-precondition",
-        `Svaret hänvisade fortfarande till källor utanför de godkända (${kalldomanerText}) ` +
-          `efter två försök. Källor det faktiskt använde: ${kallor.map((k) => k.url).join(", ")}. ` +
-          "Blockerat av säkerhetsskäl – sök manuellt istället."
-      );
-    }
+    const svar = svarJson.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+    const kallor = godkandaTraffar.map((t) => ({ titel: t.titel, url: t.url }));
 
     return { svar, kallor };
   }

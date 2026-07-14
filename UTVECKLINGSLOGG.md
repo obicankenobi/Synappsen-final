@@ -1115,9 +1115,53 @@ La till motsvarande post i `firestore.indexes.json`.
 
 ### Kända begränsningar / medvetna avgränsningar
 
-- Klinikstöd-sökningen med en riktig domänbegränsad sökmotor implementerades INTE – kräver att
-  användaren skapar en Google Programmable Search Engine och delar API-nyckel/sök-ID.
 - Kvitteringsfrist finns bara på anslag, inte rutiner (se resonemang ovan).
 - Det regelbaserade personnummerfiltret i `firestore.rules` kan fortfarande ge enstaka falska
   positiva (ett tal som råkar se ut som ett datum men inte är ett personnummer) eftersom det
   saknar Luhn-validering – en medveten avvägning eftersom regelspråket inte kan göra bättre.
+
+## Fas 13 – Klinikstöd-sökningen återaktiverad med en riktig domänbegränsad sökmotor
+
+Fas 11 flaggade att klinikstöd-sökningen (pausad sedan 5.3.5) skulle kräva en riktig
+domänbegränsad sökmotor för att bli pålitlig, eftersom Gemini inte tillförlitligt respekterade
+en `site:`-prompt-instruktion. Användaren skapade en Google Programmable Search Engine
+(konfigurerad att bara söka inom internetmedicin.se, 1177.se,
+nationelltklinisktkunskapsstod.se, fass.se, lakemedelsverket.se – samt två nya:
+vardhandboken.se och folkhalsomyndigheten.se), aktiverade Custom Search JSON API, och delade
+Search Engine ID (cx) och en API-nyckel begränsad till just den API:n.
+
+**`functions/index.js` – `fragaKlinisktStod` omskriven i grunden:**
+
+- Ny `sokViaProgrammerbarSokmotor(fraga)`: anropar
+  `https://www.googleapis.com/customsearch/v1` med `key`/`cx`/`q`/`num=5`, returnerar
+  titel/länk/utdrag för varje träff.
+- Domänbegränsningen sitter nu i sökmotorns egen konfiguration (Google söker aldrig utanför
+  de konfigurerade domänerna), inte i en instruktion till Gemini. `domanGodkand()` körs ändå
+  kvar som ett extra skyddslager på träffarna, ifall sökmotorns konfiguration någonsin skulle
+  ändras av misstag.
+- Gemini används bara för att SAMMANFATTA de faktiska sökträffarna (titel + utdrag skickas i
+  prompten) och citera vilken träff varje påstående kommer ifrån – inte för att själv "leta
+  upp" information, vilket var precis det steg som tidigare inte gick att lita på.
+- Den gamla retry-med-korrigerande-prompt-logiken (Fas 9.3) och redirect-upplösningen av
+  Vertex-grounding-länkar (`losUppSlutgiltigUrl`/`losUppKallor`, Fas 9.4) togs bort helt –
+  onödiga nu när källorna aldrig kan hamna utanför listan från början.
+- Ny secret `SOKMOTOR_API_KEY` (samma mönster som `GEMINI_API_KEY`, hanteras via
+  `defineSecret` + Firebase Secret Manager, aldrig i klientkod eller repo). Search Engine ID
+  (cx) är däremot inte hemligt (syns redan publikt i sökwidgetens inbäddningskod) och ligger
+  som en vanlig konstant i koden.
+- `GODKANDA_KALLDOMANER` utökad med `vardhandboken.se` och `folkhalsomyndigheten.se`.
+
+**`.github/workflows/deploy.yml`:** nytt steg som sätter `SOKMOTOR_API_KEY` i Secret Manager
+från en ny GitHub Actions-secret, precis som för `GEMINI_API_KEY`.
+
+**`src/components/KlinikfragaSok.jsx`:** `PAUSAD` satt till `false` – funktionen är synlig i
+gränssnittet igen.
+
+**Säkerhetsnotis:** användaren delade API-nyckeln direkt i chatten under detta arbete. Nyckeln
+är begränsad till enbart Custom Search API (kan inte missbrukas för annat), men flaggades
+ändå till användaren eftersom den nu finns i klartext i konversationshistoriken.
+
+**Verifiering:** `npm run build`, `npm run lint`, `npm run test` och `node -c
+functions/index.js` gröna. Kunde INTE testköra den faktiska sökningen/Gemini-anropet live i
+den här miljön (ingen nätåtkomst till Google-API:erna) – kräver att användaren driftsätter och
+testar i skarp miljö, enligt samma mönster som tidigare faser i det här projektet.

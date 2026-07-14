@@ -3,15 +3,12 @@ import { fragaKlinisktStod } from "../firebase/functions";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import "./KlinikfragaSok.css";
 
-// Pausad tills vidare (2026-07-14): tre raka tester visade att Gemini inte pålitligt går
-// att styra till enbart de fem godkända källorna via prompt-instruktion (den söker brett på
-// webben trots explicita "site:"-instruktioner och en skarpare andra-försök-prompt).
-// Efterhandsspärren mot godkända domäner fungerade korrekt varje gång, men det gör
-// funktionen i praktiken oanvändbar – nästan alla svar blockeras. Sätt till false för att
-// återaktivera när sökningen byggts om att själv styra källorna (t.ex. via Google Custom
-// Search API riktad mot de fem domänerna) istället för att förlita sig på att Gemini följer
-// instruktionen. Se UTVECKLINGSLOGG.md, Fas 9.4/9.5.
-const PAUSAD = true;
+// Återaktiverad (2026-07-14, Fas 13): byggdes om att söka via en riktig domänbegränsad
+// Programmable Search Engine istället för att förlita sig på att Gemini respekterar en
+// "site:"-prompt-instruktion (vilket den inte gjorde tillförlitligt, se Fas 9.4/9.5).
+// Källbegränsningen sitter nu i själva sökmotorns konfiguration, inte i en instruktion till
+// AI:n. Sätt till true igen om nya problem upptäcks efter driftsättning.
+const PAUSAD = false;
 
 export default function KlinikfragaSok() {
   const [fraga, setFraga] = useState("");

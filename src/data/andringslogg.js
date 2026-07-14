@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.6.0",
+    datum: "2026-07-14",
+    andringar: [
+      "Klinikstöd-sökningen är tillbaka! Byggdes om att söka via en riktig domänbegränsad sökmotor istället för att lita på att AI:n själv höll sig till godkända källor",
+      "Källorna är nu internetmedicin.se, 1177.se, Nationella kliniska kunskapsstödet, FASS vårdpersonal, Läkemedelsverket, Vårdhandboken och Folkhälsomyndigheten",
+    ],
+  },
+  {
     version: "5.5.0",
     datum: "2026-07-14",
     andringar: [
