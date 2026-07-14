@@ -3,6 +3,17 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.7.0",
+    datum: "2026-07-14",
+    andringar: [
+      "Klinikstöd-svar cachas i 7 dagar – vanliga frågor besvaras direkt och kostar ingen budget",
+      "Klinikstöd-frågor loggas (anonymt) så ledningen ser vilka kunskapsluckor som efterfrågas mest",
+      "Varning vid uppladdning av bilder större än 8 MB",
+      "Kvitteringsläget för anslag med deadline kan exporteras som CSV",
+      "Adminpanelen visar konton som inte loggat in på 90 dagar",
+    ],
+  },
+  {
     version: "5.6.0",
     datum: "2026-07-14",
     andringar: [

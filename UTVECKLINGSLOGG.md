@@ -1165,3 +1165,36 @@ gränssnittet igen.
 functions/index.js` gröna. Kunde INTE testköra den faktiska sökningen/Gemini-anropet live i
 den här miljön (ingen nätåtkomst till Google-API:erna) – kräver att användaren driftsätter och
 testar i skarp miljö, enligt samma mönster som tidigare faser i det här projektet.
+
+## Fas 14 – Snabba förbättringar under tidsbegränsning (5.7.0)
+
+Användaren beställde 13 punkter med en hård tidsgräns (~10 min) och instruktionen att bara
+göra klart det som hinns. Fem små, fristående punkter valdes och slutfördes helt; resten
+pausades (se "Ej påbörjat" nedan).
+
+**Genomfört**
+
+- **Klinikstöd-cache (7 dagar):** `fragaKlinisktStod` cachar nu svar+källor per normaliserad
+  fråga i `klinikfragecache` (dok-id = base64url av frågan). Cache-träff returnerar direkt,
+  FÖRE budgetspärren (kostar inget → ska inte äta budget). Sparar Custom Search-kvot
+  (100 gratis/dag) och Gemini-kostnad.
+- **Anonym frågelogg:** varje fråga loggas (utan uid, medvetet – VAD efterfrågas, inte VEM)
+  i `klinikfrageloggar`. Läsbar endast av superadmin; skrivs endast server-side.
+  Nya Firestore-regler för båda collections (klienten helt utestängd från cachen).
+- **Filstorlekvarning:** `LaddaUpp.jsx` varnar (confirm, ingen spärr) för bilder > 8 MB.
+- **CSV-export av kvitteringsläge:** knapp i adminpanelens "Kvitteringar med deadline"
+  (BOM + semikolon-separerat så Excel med svenska inställningar öppnar den korrekt direkt).
+- **Inaktiva konton:** `AuthContext` sätter nu `users/{uid}.senasteInloggning` vid varje
+  inloggning (fältet tillagt i reglernas självuppdaterings-lista); ny superadmin-sektion i
+  adminpanelen listar konton utan inloggning på 90 dagar. Konton skapade före 5.7.0 saknar
+  fältet och listas som "aldrig registrerad inloggning" tills första inloggningen efter
+  uppdateringen. Lint-notis: `react-hooks/purity` förbjuder `Date.now()` i render – löst med
+  lazy `useState`-init (läses en gång vid montering, vilket räcker för en 90-dagarsgräns).
+
+**Ej påbörjat (pga tidsgränsen):** "hjälpsamt?"-knapp på klinikstöd-svar, beroende-statustest
+i adminpanelen, schemalagd Firestore-backup, ägare per rutin, markdown-förhandsvisning,
+dödlänk-kontroll i länkbiblioteket, "senast besökta rutiner" på startsidan och
+skelettladdning. Alla är fortsatt bra kandidater för nästa fas.
+
+**Verifiering:** build, lint, test (10/10) och `node -c functions/index.js` gröna.
+`src/version.js`/`package.json` → 5.7.0, ny post i andringslogg.

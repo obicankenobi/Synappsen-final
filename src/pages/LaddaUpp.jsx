@@ -60,6 +60,17 @@ export default function LaddaUpp() {
     e.target.value = "";
     if (filer.length === 0) return;
 
+    // Varning (inte spärr) för stora filer – på mobilnät tar en 8 MB-bild märkbar tid att
+    // ladda upp, och Gemini behöver inte full upplösning för att tolka text.
+    const STOR_FIL_BYTE = 8 * 1024 * 1024;
+    const stora = filer.filter((f) => f.size > STOR_FIL_BYTE);
+    if (stora.length > 0) {
+      const namn = stora.map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(1)} MB)`).join(", ");
+      if (!confirm(`${namn} är större än 8 MB och kan ta lång tid på mobilnät. Ladda upp ändå?`)) {
+        return;
+      }
+    }
+
     // Assign each file a stable id before the async upload so we can update them by id
     const nyaPoster = filer.map((fil) => ({
       id: genId(),

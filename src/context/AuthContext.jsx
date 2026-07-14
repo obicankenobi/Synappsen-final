@@ -6,7 +6,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 import { DEFAULT_ROLE } from "../firebase/roles";
 import { AuthContext } from "./authContextDef";
@@ -41,6 +41,13 @@ export function AuthProvider({ children }) {
       if (user) {
         const snap = await getDoc(doc(db, "users", user.uid));
         setRole(snap.exists() ? snap.data().role : null);
+        // Spårar senaste inloggning så adminpanelen kan visa inaktiva konton.
+        // Får inte blockera inloggningsflödet om skrivningen misslyckas.
+        if (snap.exists()) {
+          updateDoc(doc(db, "users", user.uid), { senasteInloggning: serverTimestamp() }).catch(
+            () => {}
+          );
+        }
       } else {
         setRole(null);
       }

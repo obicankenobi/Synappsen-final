@@ -452,8 +452,30 @@ exports.fragaKlinisktStod = onCall(
       );
     }
 
+    // Frågelogg (utan uid – vi vill se VAD som efterfrågas, inte VEM som frågar) så att
+    // ledningen ser vilka kunskapsluckor som finns; vanliga frågor kan bli permanenta rutiner.
+    const fragaNyckel = fraga.toLowerCase().replace(/\s+/g, " ");
+    db.collection("klinikfrageloggar")
+      .add({ fraga: fragaNyckel, tidpunkt: admin.firestore.FieldValue.serverTimestamp() })
+      .catch(() => {});
+
+    // Cache: samma fråga ställs ofta av flera personer. Ett cachat svar (7 dagar) sparar
+    // både Custom Search-kvoten (100 gratis/dag) och Gemini-kostnad, och svarar direkt.
+    const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+    const cacheRef = db
+      .collection("klinikfragecache")
+      .doc(Buffer.from(fragaNyckel).toString("base64url").slice(0, 480));
+    const cacheSnap = await cacheRef.get();
+    if (cacheSnap.exists) {
+      const c = cacheSnap.data();
+      if (c.skapad?.toMillis && Date.now() - c.skapad.toMillis() < CACHE_TTL_MS) {
+        return { svar: c.svar, kallor: c.kallor, franCache: true };
+      }
+    }
+
     // Samma budgetspärr som bild-/dokumenttolkningen, så att den här funktionen inte kan
     // anropas direkt (förbi den pausade UI-vyn) utan tak på kostnad eller antal anrop.
+    // Ligger EFTER cache-kontrollen – cachade svar kostar inget och ska inte äta budget.
     await reserveraBudget(request.auth.uid);
 
     const kalldomanerText = GODKANDA_KALLDOMANER.join(", ");
@@ -545,7 +567,11 @@ Regler du MÅSTE följa:
     const svar = svarJson.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
     const kallor = godkandaTraffar.map((t) => ({ titel: t.titel, url: t.url }));
 
-    return { svar, kallor };
+    await cacheRef
+      .set({ svar, kallor, skapad: admin.firestore.FieldValue.serverTimestamp() })
+      .catch(() => {});
+
+    return { svar, kallor, franCache: false };
   }
 );
 

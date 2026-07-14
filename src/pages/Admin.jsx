@@ -192,6 +192,15 @@ export default function Admin() {
     [auditlogg]
   );
 
+  // Konton utan inloggning på 90 dagar (eller där inloggning aldrig registrerats – fältet
+  // började spåras först i 5.7.0, så äldre konton utan fältet listas också tills de loggar in).
+  // Gränsen läses en gång vid montering (lazy useState-init är undantaget från
+  // purity-regeln) – sidan behöver inte en levande klocka för en 90-dagarsgräns.
+  const [inaktivGrans] = useState(() => Date.now() - 90 * 24 * 60 * 60 * 1000);
+  const inaktivaKonton = anvandare.filter(
+    (a) => !a.senasteInloggning?.toMillis || a.senasteInloggning.toMillis() < inaktivGrans
+  );
+
   return (
     <div className="sida">
       <h1>Adminpanel</h1>
@@ -221,6 +230,25 @@ export default function Admin() {
       {arSuperadmin && anslagMedFrist.length > 0 && (
         <section className="admin-sektion">
           <h2>⏰ Kvitteringar med deadline</h2>
+          <button
+            className="knapp knapp--sekundar knapp--liten"
+            onClick={() => {
+              const rader = [
+                "Anslag;Frist;Kvitterat;Totalt;Saknas",
+                ...anslagMedFrist.map((a) =>
+                  [a.titel.replaceAll(";", ","), a.frist, a.antalKvitterat, a.antalTotalt, a.ejKvitterat.join(", ").replaceAll(";", ",")].join(";")
+                ),
+              ];
+              const blob = new Blob(["﻿" + rader.join("\n")], { type: "text/csv;charset=utf-8" });
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(blob);
+              a.download = `kvitteringar-${new Date().toISOString().slice(0, 10)}.csv`;
+              a.click();
+              URL.revokeObjectURL(a.href);
+            }}
+          >
+            Exportera som CSV
+          </button>
           <ol className="admin-statistik-lista">
             {anslagMedFrist.map((a) => (
               <li key={a.id}>
@@ -362,6 +390,29 @@ export default function Admin() {
                     </button>
                   )}
                 </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {arSuperadmin && inaktivaKonton.length > 0 && (
+        <section className="admin-sektion">
+          <h2>💤 Inaktiva konton (ingen inloggning på 90 dagar)</h2>
+          <p className="sida__beskrivning">
+            Gamla konton är en onödig attackyta – överväg att ta bort de som inte längre används.
+            Konton skapade före v5.7.0 visas här tills de loggar in en första gång efter
+            uppdateringen (inloggningstid spårades inte tidigare).
+          </p>
+          <ul className="admin-statistik-lista">
+            {inaktivaKonton.map((a) => (
+              <li key={a.id}>
+                {a.namn || a.email}{" "}
+                <span>
+                  {a.senasteInloggning?.toDate
+                    ? `senast ${a.senasteInloggning.toDate().toLocaleDateString("sv-SE")}`
+                    : "aldrig registrerad inloggning"}
+                </span>
               </li>
             ))}
           </ul>

@@ -87,7 +87,8 @@ service cloud.firestore {
       // tidpunkten för senaste notisbesök och sina egna startsidesgenvägar.
       allow update: if arSuperadmin()
                      || (request.auth.uid == userId
-                         && bararForandrarFalt(['favoriter', 'senasteNotisBesok', 'snabblankar']));
+                         && bararForandrarFalt(['favoriter', 'senasteNotisBesok', 'snabblankar',
+                                                'senasteInloggning']));
       allow delete: if arSuperadmin();
     }
 
@@ -165,6 +166,18 @@ service cloud.firestore {
       allow update: if arSuperadmin() && bararForandrarFalt(['svar', 'svarDatum', 'status']);
       allow delete: if arSuperadmin();
       allow create: if false;
+    }
+
+    // klinikfrageloggar/{loggId} – frågor ställda till klinikstöd-sökningen (utan uid).
+    // Skrivs endast av Cloud Function (Admin SDK). Endast superadmin kan läsa listan.
+    match /klinikfrageloggar/{loggId} {
+      allow read: if arSuperadmin();
+      allow write: if false;
+    }
+
+    // klinikfragecache/{nyckel} – cachade klinikstöd-svar. Endast server-side åtkomst.
+    match /klinikfragecache/{nyckel} {
+      allow read, write: if false;
     }
 
     // sokloggar/{loggId} – sökningar utan träffar. Endast superadmin kan läsa listan.
