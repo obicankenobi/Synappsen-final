@@ -761,3 +761,39 @@ fasen). Om `vertexaisearch.cloud.google.com`-slutpunkten skulle blockera server-
 anrop (t.ex. kräva en webbläsarliknande User-Agent, eller sätta en kort giltighetstid på
 redirect-länken) skulle upplösningen kunna misslyckas och svaret blockeras i onödan – detta bör
 verifieras vid nästa manuella test.
+
+### Fas 9.5 – Beslut: pausa klinikstöd-sökningen (5.3.5)
+
+Redirect-upplösningen i 5.3.4 fungerade delvis (tre av fyra länkar löstes upp korrekt till
+riktiga domäner: `ec.europa.eu` och `ema.europa.eu`), vilket bekräftar att den tekniska
+mekaniken är sund. Problemet är istället grundläggande: Gemini sökte fortfarande brett på
+webben och hittade EU/EMA-läkemedelsdokument på nederländska om ett läkemedel, helt utanför de
+fem godkända svenska källorna – trots en prompt med explicit `site:`-instruktion OCH ett andra,
+ännu skarpare korrigerande försök. Det är tredje raka testet med samma grundmönster:
+efterhandsspärren blockerar korrekt, men Gemini går inte att pålitligt styra till specifika
+domäner enbart via prompt-instruktion till dess autonoma sökverktyg.
+
+Ställdes inför användaren som ett vägval (via `AskUserQuestion`): fortsätta patcha prompten
+(låg förväntad träffsäkerhet), bygga om till att själva styra sökningen via en riktig
+domänbegränsad sökmotor (kräver att användaren sätter upp ett Google Cloud-projekt +
+Custom Search API + Programmable Search Engine – manuella steg utanför vad som kan
+automatiseras här), eller pausa funktionen tills vidare. Användaren valde att **pausa**.
+
+**Åtgärd:** `src/components/KlinikfragaSok.jsx` – en `PAUSAD`-konstant (satt till `true`) gör
+att komponenten visar ett tydligt pausat-meddelande istället för sök-formuläret. Resten av
+implementationen (Cloud Function, PII-filter på frågan, domänvalidering, redirect-upplösning)
+ligger kvar oförändrad i koden för att kunna återaktiveras senare – antingen genom fler
+prompt-iterationer eller genom att bygga om till en riktig sökmotor-baserad lösning (se
+`PAUSAD`-kommentaren i filen för sammanfattning och pekare till denna logg).
+- `src/version.js` → 5.3.5, `package.json` → 5.3.5, ny post i `src/data/andringslogg.js`.
+
+### Kända begränsningar / medvetna avgränsningar (Fas 9)
+
+- Klinikstöd-sökningen (`fragaKlinisktStod`) är pausad i gränssnittet. Att återaktivera med
+  samma prompt-baserade ansats riskerar samma låga träffsäkerhet som observerats i tre raka
+  tester. En riktig lösning kräver sannolikt att servern själv gör domänbegränsade sökningar
+  (t.ex. via Google Custom Search JSON API med `siteSearch` satt till en av de fem domänerna,
+  en sökning per domän) och matar Gemini med enbart dessa träffar som kontext – istället för
+  att låta Gemini söka fritt och hoppas att den håller sig till instruktionen.
+- PII-filtret (personnummer-spärr + namn-varning) och den övriga säkerhetsgranskningen från
+  Fas 9 är opåverkade av pausningen och förblir aktiva.

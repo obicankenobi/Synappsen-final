@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.3.5",
+    datum: "2026-07-14",
+    andringar: [
+      "Klinikstöd-sökningen är tillfälligt pausad – vi kunde inte få den att pålitligt hålla sig till enbart godkända medicinska källor, och vill hellre stänga av den än riskera opålitliga svar",
+    ],
+  },
+  {
     version: "5.3.4",
     datum: "2026-07-14",
     andringar: [
