@@ -65,3 +65,43 @@
   font: inherit;
   resize: vertical;
 }
+
+.kommentarer__textarea-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.kommentarer__textarea-wrapper textarea {
+  width: 100%;
+}
+
+.kommentarer__forslag {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  z-index: 5;
+  background: var(--bg-yta, #fff);
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  box-shadow: var(--skugga);
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 4px;
+  min-width: 200px;
+}
+
+.kommentarer__forslag button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  border: none;
+  background: none;
+  font: inherit;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.kommentarer__forslag button:hover {
+  background: var(--bg);
+}

@@ -23,3 +23,13 @@ export function tvingaUtloggning(userId) {
   const fn = httpsCallable(functions, "tvingaUtloggning");
   return fn({ userId });
 }
+
+export function skapaKommentar({ rutinId, text, svarPa }) {
+  const fn = httpsCallable(functions, "skapaKommentar");
+  return fn({ rutinId, text, svarPa });
+}
+
+export function skickaFeedback({ typ, text }) {
+  const fn = httpsCallable(functions, "skickaFeedback");
+  return fn({ typ, text });
+}

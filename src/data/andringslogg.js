@@ -3,6 +3,20 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.5.0",
+    datum: "2026-07-14",
+    andringar: [
+      "Extra skydd mot personnummer nu även direkt i databasen, inte bara i formulären",
+      "Kommentarer och feedback skickas nu genom ett extra serversteg som stoppar spam och kontrollerar personuppgifter en gång till",
+      "@omnämnande-förslag när du skriver @ i en kommentar, istället för att behöva komma ihåg exakt användarnamn",
+      "Anslag kan nu få en \"kräver kvittering senast\"-deadline, med översikt i adminpanelen över vilka som inte kvitterat i tid",
+      "Notis till redaktörer när en rutin snart behöver granskas igen, inte bara efter att fristen redan gått ut",
+      "Möjlighet att ta bort en tagg från flera markerade rutiner samtidigt (inte bara lägga till)",
+      "Sökresultaten kan nu filtreras per kategori (t.ex. bara Logistik eller bara Kontakter)",
+      "Snabbare uppstart av appen tack vare omstrukturerad laddning",
+    ],
+  },
+  {
     version: "5.4.1",
     datum: "2026-07-14",
     andringar: [

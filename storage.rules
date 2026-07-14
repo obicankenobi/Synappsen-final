@@ -31,9 +31,15 @@ service firebase.storage {
     }
 
     // inkommande/{uid}/{filnamn} – råfoton från personal innan Gemini-tolkning.
-    // Endast den som laddat upp och redaktörer/superadmin får läsa; alla inloggade får ladda upp egna foton.
+    // Endast den som laddat upp får läsa sin egen bild (ingen UI-funktion visar andras
+    // råbilder – Gemini-tolkningen sker server-side via Cloud Functions med Admin SDK,
+    // som kringgår dessa regler). Tidigare tillät regeln alla icke-"personal"-roller att
+    // läsa vem som helsts råbild; det var en oanvänd behörighet utan motsvarande
+    // granskningsflöde i klienten, så den togs bort istället för att bara loggas
+    // (Cloud Storage-läsningar går inte att fånga med en åtkomstlogg – det finns ingen
+    // server-side hook för raka klient->Storage-läsningar).
     match /inkommande/{uid}/{filnamn} {
-      allow read: if arInloggad() && (request.auth.uid == uid || minRoll() != 'personal');
+      allow read: if arInloggad() && request.auth.uid == uid;
       allow write: if arInloggad() && request.auth.uid == uid;
     }
   }

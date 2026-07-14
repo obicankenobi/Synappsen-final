@@ -1,17 +1,8 @@
 // Kommentarer/frågor kopplade till en rutin
 import { useEffect, useState } from "react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  addDoc,
-  deleteDoc,
-  doc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { skapaKommentar as skapaKommentarAnrop } from "../firebase/functions";
 
 export function useKommentarer(rutinId) {
   const [kommentarer, setKommentarer] = useState([]);
@@ -29,16 +20,11 @@ export function useKommentarer(rutinId) {
     return unsubscribe;
   }, [rutinId]);
 
-  async function skapaKommentar({ text, skapadAv, skapadAvNamn, svarPa = null, omnamnda = [] }) {
-    return addDoc(collection(db, "kommentarer"), {
-      rutinId,
-      text,
-      skapadAv,
-      skapadAvNamn: skapadAvNamn ?? "",
-      svarPa,
-      omnamnda,
-      skapad: serverTimestamp(),
-    });
+  // Skapas via en Cloud Function (inte en direkt Firestore-skrivning) så att personnummer-
+  // spärren och hastighetsbegränsningen körs server-side. @omnämnanden räknas ut av
+  // funktionen utifrån den faktiska texten, klientens egen gissning ignoreras.
+  async function skapaKommentar({ text, svarPa = null }) {
+    return skapaKommentarAnrop({ rutinId, text, svarPa });
   }
 
   async function taBortKommentar(id) {

@@ -60,6 +60,32 @@ function innehallerPersonnummer(text) {
   return false;
 }
 
+// Enkel per-användare hastighetsbegränsning (rullande 1-timmesfönster), återanvänds av
+// skapaKommentar/skickaFeedback för att förhindra spam-skapande direkt mot Cloud Functions.
+const HASTIGHETSFONSTER_MS = 60 * 60 * 1000;
+
+async function kontrolleraOchOkaHastighet(uid, typ, maxPerFonster) {
+  const ref = db.collection("hastighetsgranser").doc(`${uid}_${typ}`);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const nu = Date.now();
+    const data = snap.exists ? snap.data() : {};
+    let antal = data.antal ?? 0;
+    let fonsterStart = data.fonsterStart ?? nu;
+    if (nu - fonsterStart > HASTIGHETSFONSTER_MS) {
+      antal = 0;
+      fonsterStart = nu;
+    }
+    if (antal >= maxPerFonster) {
+      throw new HttpsError(
+        "resource-exhausted",
+        "Du har skickat in för många på kort tid. Vänta en stund och försök igen."
+      );
+    }
+    tx.set(ref, { antal: antal + 1, fonsterStart });
+  });
+}
+
 // Kontrollerar och reserverar budget innan ett dyrt Gemini-anrop görs.
 // Kastar fel om månadens tak är nått, så att vi aldrig betalar för anrop vi inte har råd med.
 async function reserveraBudget(uid) {
@@ -584,4 +610,93 @@ exports.tvingaUtloggning = onCall({ region: "europe-west1" }, async (request) =>
 
   await admin.auth().revokeRefreshTokens(userId);
   return { ok: true };
+});
+
+const MAX_KOMMENTARER_PER_TIMME = 30;
+const MAX_FEEDBACK_PER_TIMME = 10;
+
+// Skapar en kommentar via Admin SDK istället för en direkt klient-skrivning, så att
+// personnummer-spärren kan köras server-side (Firestore-regler kan inte replikera
+// Luhn-kontrollen) och skaparen inte kan skicka spam obegränsat (hastighetsbegränsning).
+// @omnämnanden räknas alltid ut här, från den faktiska texten – klienten kan inte längre
+// peka ut godtyckliga användare som "omnämnda".
+exports.skapaKommentar = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const { rutinId, text, svarPa } = request.data ?? {};
+  const rensadText = (text ?? "").trim();
+  if (!rutinId || !rensadText || rensadText.length > 2000) {
+    throw new HttpsError("invalid-argument", "Ange en kommentar (max 2000 tecken).");
+  }
+  if (innehallerPersonnummer(rensadText)) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Kommentaren verkar innehålla ett personnummer. Patientuppgifter får inte sparas."
+    );
+  }
+
+  await kontrolleraOchOkaHastighet(request.auth.uid, "kommentar", MAX_KOMMENTARER_PER_TIMME);
+
+  const [skaparSnap, allaAnvandare] = await Promise.all([
+    db.collection("users").doc(request.auth.uid).get(),
+    db.collection("users").get(),
+  ]);
+  const skapadAvNamn = skaparSnap.data()?.namn ?? skaparSnap.data()?.email ?? "";
+
+  const handtag = [...rensadText.matchAll(/@([a-zA-Z0-9._-]+)/g)].map((m) => m[1].toLowerCase());
+  const omnamnda = handtag.length
+    ? allaAnvandare.docs
+        .filter((d) => {
+          const lokalDel = (d.data().email ?? "").split("@")[0].toLowerCase();
+          return lokalDel && handtag.includes(lokalDel);
+        })
+        .map((d) => d.id)
+        .filter((uid) => uid !== request.auth.uid)
+    : [];
+
+  const ref = await db.collection("kommentarer").add({
+    rutinId,
+    text: rensadText,
+    skapadAv: request.auth.uid,
+    skapadAvNamn,
+    svarPa: svarPa ?? null,
+    omnamnda,
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  return { id: ref.id };
+});
+
+// Skickar in feedback via Admin SDK av samma skäl som skapaKommentar: server-side
+// personnummer-spärr och hastighetsbegränsning som Firestore-regler inte kan replikera.
+exports.skickaFeedback = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const { typ, text } = request.data ?? {};
+  const rensadText = (text ?? "").trim();
+  if (!typ || !rensadText || rensadText.length > 2000) {
+    throw new HttpsError("invalid-argument", "Ange typ och text (max 2000 tecken).");
+  }
+  if (innehallerPersonnummer(rensadText)) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Texten verkar innehålla ett personnummer. Patientuppgifter får inte sparas."
+    );
+  }
+
+  await kontrolleraOchOkaHastighet(request.auth.uid, "feedback", MAX_FEEDBACK_PER_TIMME);
+
+  const skaparSnap = await db.collection("users").doc(request.auth.uid).get();
+  const skapadAvNamn = skaparSnap.data()?.namn ?? skaparSnap.data()?.email ?? "";
+
+  const ref = await db.collection("feedback").add({
+    typ,
+    text: rensadText,
+    status: "ny",
+    skapadAv: request.auth.uid,
+    skapadAvNamn,
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  return { id: ref.id };
 });

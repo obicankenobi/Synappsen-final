@@ -980,3 +980,144 @@ säkerhetsgenomgångar (Fas 6, Fas 9).
 - `npm run build`, `npm run lint` och `node -c functions/index.js` gröna efter samtliga
   ändringar.
 - `src/version.js` → 5.4.1, `package.json` → 5.4.1, ny post i `src/data/andringslogg.js`.
+
+## Fas 12 – Uppföljning på säkerhetsrapporten: åtgärdade punkter + nya funktioner
+
+Efter Fas 11-rapporten bad användaren om ett skräddarsytt regelbaserat personnummerfilter
+(se resonemang nedan) samt implementation av samtliga övriga förslag från rapporten, förutom
+"exportera hela kunskapsbasen som PDF", "kiosk-läge" och att återuppta klinikstöd-sökningen med
+en riktig domänbegränsad sökmotor (kräver att användaren själv skapar en Google Programmable
+Search Engine och delar API-nyckel/sök-ID – inget som går att provisionera automatiskt, så den
+lämnades därför orörd).
+
+**Regelbaserat personnummerfilter (`firestore.rules`)**
+
+Användaren frågade specifikt om ett smalare regelvillkor: blockera bara 12-siffriga nummer om
+seklet är 19 eller 20 (ingen levande person är född på 1600/1800-talet), och bara om
+månad/dag faktiskt kan vara ett datum. Utrett och implementerat som `harTroligtPersonnummer()`:
+
+- Ren regex kan validera sekel (`(19|20)`), månad (`0[1-9]|1[0-2]`) och dag (inkl.
+  samordningsnummer, dag+60) – allt detta stänger ute siffersviter som inte ens kan vara ett
+  datum.
+- Regelspråket (CEL) kan INTE replikera Luhn-checksumman – det saknar sträng→heltal-konvertering
+  per tecken och loop-konstruktioner för det. Det här filtret är alltså en trubbigare backup,
+  inte en fullständig ersättning för klientens/Cloud Functions fulla kontroll.
+- `\b`-ordgränser gör att ett 10-siffrigt och ett 12-siffrigt alternativ inte kolliderar (en
+  angränsande siffra bryter gränsen), så century-kravet gäller bara när talet faktiskt är
+  12 siffror i följd.
+- Tillämpat på `rutiner` (titel/innehåll/referenser), `anslag` (titel/innehåll),
+  `skiftrapporter` och `anteckningar` (text), både vid create och (där tillämpligt) update.
+
+**Kommentarer och feedback flyttade till Cloud Functions**
+
+För att kunna köra den FULLSTÄNDIGA Luhn-kontrollen (inte bara regel-approximationen) samt
+en hastighetsspärr, skapas kommentarer och feedback nu via två nya callable-funktioner
+(`skapaKommentar`, `skickaFeedback`) istället för direkta klient-skrivningar:
+
+- `firestore.rules`: `create` för `kommentarer` och `feedback` är nu `if false` – all skapande
+  går via Admin SDK i Cloud Functions, som kringgår reglerna avsiktligt.
+- Hastighetsbegränsning: en enkel rullande 1-timmesräknare per (uid, typ) i en ny
+  `hastighetsgranser`-collection (max 30 kommentarer/timme, 10 feedback/timme).
+- @omnämnanden räknas nu ut server-side från den faktiska texten (matchar `@handtag` mot
+  användarnas e-postens lokala del), istället för att lita på ett klient-skickat `omnamnda`-
+  fält – stänger helt luckan som beskrevs i Fas 11 (tidigare kunde en klient peka ut
+  godtyckliga uid:n som "omnämnda").
+- `src/hooks/useKommentarer.js` och `useFeedback.js` anropar nu dessa funktioner istället för
+  `addDoc`. `Kommentarer.jsx`/`Feedback.jsx` uppdaterade därefter (enklare anrops-signatur,
+  try/catch med felmeddelande från servern).
+
+**Storage-regler åtstramade istället för loggade**
+
+Rapportens förslag om en åtkomstlogg för råbilder i `inkommande/{uid}/` visade sig inte gå att
+implementera som avsett: Cloud Storage-läsningar via klient-SDK:t triggar inga Cloud Functions
+eller Firestore-skrivningar, så det finns ingen server-side hook att logga från. Eftersom
+ingen nuvarande UI-funktion faktiskt läser en annan användares råbild (bekräftat genom att gå
+igenom hela uppladdningsflödet i `LaddaUpp.jsx`), togs den bredare läsbehörigheten (alla
+icke-"personal"-roller) bort helt istället – `storage.rules` tillåter nu bara ägaren själv att
+läsa sin egen råbild (Cloud Functions med Admin SDK kringgår ändå reglerna för
+Gemini-tolkningen).
+
+**@mention-autocomplete**
+
+`src/components/Kommentarer.jsx` fick en enkel autocomplete: skriver man `@` följt av bokstäver
+i kommentarfältet visas en dropdown med matchande användare (baserat på e-postens lokala del),
+och ett klick infogar hela handtaget. Ersatte den gamla `hittaOmnamndaUid`-hjälpfunktionen som
+inte längre behövs (omnämnanden räknas nu ut server-side, se ovan).
+
+**Bulk-borttagning av tagg**
+
+`src/components/Sektionssida.jsx` fick en spegelvänd variant av den befintliga
+bulk-tillägg-knappen: samma taggfält, men en "Ta bort tagg från markerade"-knapp filtrerar bort
+taggen istället för att lägga till den.
+
+**Sökfilter per kategori**
+
+`src/components/SokFalt.jsx`: när en sökning ger träffar i mer än en kategori (Logistik,
+Kliniskt stöd, Administration, Kontakt, Länk) visas nu klickbara filter-chips ovanför
+resultatlistan med antal per kategori. Noll-träff-loggningen använder fortfarande den
+ofiltrerade träfflistan, så ett för snävt kategorival inte felaktigt loggas som "inga träffar".
+
+**Notis inför granskningsfrist**
+
+Rutiner har sedan tidigare en passiv "bör granskas"-flagga (180 dagar sedan `granskadDatum`).
+`src/utils/rutinHjalp.js` fick en ny `narmarSigGranskning()` som är sann under de sista 14
+dagarna INNAN fristen går ut. `src/hooks/useNotiser.js` lägger nu till en notis-post för detta,
+synlig bara för redaktörer med behörighet för rutinens område (kliniskt stöd: superadmin/VÖL/
+sektionsledare, administration: superadmin/VEC). Till skillnad från appens övriga notiser (som
+jämförs mot `senasteNotisBesok`) är detta ett stående tillstånd – posten finns kvar tills
+rutinen faktiskt markeras som granskad, den försvinner inte bara för att man öppnat
+notisklockan en gång.
+
+**Kvitteringsfrist på anslag**
+
+`AnslagFormular.jsx` fick ett valfritt "Kräv kvittering senast"-datumfält. `AnslagKort.jsx`
+visar deadline (röd/fet om passerad) och, för den som får hantera anslag, hur många som INTE
+kvitterat än. En ny sektion i `Admin.jsx` ("⏰ Kvitteringar med deadline") listar alla anslag med
+en frist och hur många av alla användare som kvitterat. Avgränsning: samma koncept lades INTE
+till på rutiner, eftersom rutiner redan har ett eget, separat "behöver granskas"-datum
+(`granskadDatum` + granskningsintervall) som fyller en liknande funktion – att lägga till ännu
+ett datumfält där bedömdes öka schemakomplexiteten utan att lösa ett nytt problem.
+
+**Enhetstester (Vitest)**
+
+Projektet hade inget testverktyg alls. La till `vitest` som devDependency, `npm run test`-
+skript, samt `src/utils/piiFilter.test.js` med tio tester av `hittaPersonnummer`/
+`hittaMisstankaNamn` – bl.a. Skatteverkets kända testpersonnummer (900101-0017), ett giltigt
+samordningsnummer, samt flera fall som INTE ska flaggas (fel checksumma, omöjlig månad/dag,
+slumpmässiga 10-siffriga tal). Dessa tester validerade samtidigt att antagandena bakom det nya
+regelbaserade filtret (sekel/månad/dag-logiken) stämmer med den befintliga Luhn-
+implementationen.
+
+**Bundle-storlek**
+
+`vite.config.js` fick en `manualChunks`-funktion som bryter ut alla `firebase`/`@firebase`-
+moduler i en egen `firebase-vendor`-chunk. Huvudbundeln minskade från ~892 kB till ~244 kB;
+Firebase-SDK:t (som sällan ändras mellan releaser) cachas nu separat från appens egen,
+betydligt oftare uppdaterade kod.
+
+**CI-workflow**
+
+Ny `.github/workflows/ci.yml`: kör `npm ci`, `npm run lint`, `npm run test`, `npm run build`
+och en syntaxkontroll av `functions/index.js` på varje push och pull request – separat från den
+befintliga manuella `deploy.yml`.
+
+**Firestore-index**
+
+Granskade alla `where`/`orderBy`-kombinationer i `src/hooks`. Hittade en composite-query utan
+matchande index: `useMinaFeedback` (`where("skapadAv","==",uid) + orderBy("skapad","desc")`).
+La till motsvarande post i `firestore.indexes.json`.
+
+**Verifiering**
+
+- `npm run build`, `npm run lint`, `npm run test` (10/10 gröna) och `node -c functions/index.js`
+  gröna efter samtliga ändringar.
+- `src/version.js` → 5.5.0, `package.json` → 5.5.0, ny post i `src/data/andringslogg.js`.
+
+### Kända begränsningar / medvetna avgränsningar
+
+- Klinikstöd-sökningen med en riktig domänbegränsad sökmotor implementerades INTE – kräver att
+  användaren skapar en Google Programmable Search Engine och delar API-nyckel/sök-ID.
+- Kvitteringsfrist finns bara på anslag, inte rutiner (se resonemang ovan).
+- Det regelbaserade personnummerfiltret i `firestore.rules` kan fortfarande ge enstaka falska
+  positiva (ett tal som råkar se ut som ett datum men inte är ett personnummer) eftersom det
+  saknar Luhn-validering – en medveten avvägning eftersom regelspråket inte kan göra bättre.

@@ -7,13 +7,13 @@ import {
   where,
   orderBy,
   onSnapshot,
-  addDoc,
   updateDoc,
   deleteDoc,
   doc,
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { skickaFeedback as skickaFeedbackAnrop } from "../firebase/functions";
 
 export const FEEDBACK_TYPER = {
   FORSLAG: "forslag",
@@ -56,15 +56,10 @@ export function useFeedback(laddaLista) {
     return unsubscribe;
   }, [laddaLista]);
 
-  async function skickaFeedback({ typ, text, skapadAv, skapadAvNamn }) {
-    return addDoc(collection(db, "feedback"), {
-      typ,
-      text,
-      status: FEEDBACK_STATUS.NY,
-      skapadAv,
-      skapadAvNamn: skapadAvNamn ?? "",
-      skapad: serverTimestamp(),
-    });
+  // Skickas via en Cloud Function (inte en direkt Firestore-skrivning) så att personnummer-
+  // spärren och hastighetsbegränsningen körs server-side.
+  async function skickaFeedback({ typ, text }) {
+    return skickaFeedbackAnrop({ typ, text });
   }
 
   async function taBortFeedback(id) {

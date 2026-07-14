@@ -9,11 +9,14 @@ function formateraTid(tidpunkt) {
   return tidpunkt.toDate().toLocaleDateString("sv-SE", { dateStyle: "medium" });
 }
 
-export default function AnslagKort({ anslag, farHantera, onRedigera, onTaBort }) {
+export default function AnslagKort({ anslag, farHantera, anvandare = [], onRedigera, onTaBort }) {
   const { currentUser } = useAuth();
   const arViktigt = anslag.prioritet === ANSLAG_PRIORITET.VIKTIGT;
   const lasteAv = anslag.lasteAv ?? [];
   const jagHarLast = lasteAv.some((l) => l.uid === currentUser?.uid);
+
+  const fristPasserad = anslag.kvitteringsfrist && new Date(anslag.kvitteringsfrist) < new Date();
+  const ejKvitterat = anvandare.filter((a) => !lasteAv.some((l) => l.uid === a.id));
 
   return (
     <article
@@ -32,6 +35,14 @@ export default function AnslagKort({ anslag, farHantera, onRedigera, onTaBort })
       <MarkdownInnehall className="anslag-kort__innehall" text={anslag.innehall} />
       <div className="anslag-kort__meta">Av {anslag.skapadAvNamn}</div>
 
+      {anslag.kvitteringsfrist && (
+        <div className={`anslag-kort__frist ${fristPasserad ? "anslag-kort__frist--passerad" : ""}`}>
+          {jagHarLast
+            ? `Kvittering krävdes senast ${anslag.kvitteringsfrist}`
+            : `⏰ Kräver kvittering senast ${anslag.kvitteringsfrist}${fristPasserad ? " – frist passerad" : ""}`}
+        </div>
+      )}
+
       <div className="anslag-kort__laskvittering">
         <button
           type="button"
@@ -44,6 +55,14 @@ export default function AnslagKort({ anslag, farHantera, onRedigera, onTaBort })
         {farHantera && lasteAv.length > 0 && (
           <span className="anslag-kort__last-antal" title={lasteAv.map((l) => l.namn).join(", ")}>
             {lasteAv.length} har kvitterat
+          </span>
+        )}
+        {farHantera && anslag.kvitteringsfrist && ejKvitterat.length > 0 && (
+          <span
+            className="anslag-kort__last-antal"
+            title={ejKvitterat.map((a) => a.namn ?? a.email).join(", ")}
+          >
+            {ejKvitterat.length} har INTE kvitterat än
           </span>
         )}
       </div>

@@ -23,6 +23,14 @@
         { "fieldPath": "rutinId", "order": "ASCENDING" },
         { "fieldPath": "skapad", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "feedback",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "skapadAv", "order": "ASCENDING" },
+        { "fieldPath": "skapad", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

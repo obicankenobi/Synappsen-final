@@ -1,17 +1,15 @@
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useKommentarer } from "../hooks/useKommentarer";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import "./Kommentarer.css";
 
-// Matchar @handtag i texten mot användarnas e-post (delen före @), t.ex. "@anna.andersson"
-// mot "anna.andersson@sjukhus.se". Returnerar uid:n för de som blev omnämnda.
-function hittaOmnamndaUid(text, anvandare) {
-  const handtag = [...text.matchAll(/@([a-zA-Z0-9._-]+)/g)].map((m) => m[1].toLowerCase());
-  if (handtag.length === 0) return [];
-  return anvandare
-    .filter((a) => a.email && handtag.includes(a.email.split("@")[0].toLowerCase()))
-    .map((a) => a.id);
+// Hittar ett ofullständigt "@handtag" precis före markörens position, t.ex. text
+// "hej @an|na" med markör vid | ger "an" – används för autocomplete-förslag.
+function hittaPagaendeHandtag(text, markorPosition) {
+  const foreMarkor = text.slice(0, markorPosition);
+  const match = foreMarkor.match(/@([a-zA-Z0-9._-]*)$/);
+  return match ? match[1] : null;
 }
 
 function formateraTid(tidpunkt) {
@@ -60,9 +58,35 @@ export default function Kommentarer({ rutinId, farTaBortAlla, anvandare = [] }) 
   const [text, setText] = useState("");
   const [svararPa, setSvararPa] = useState(null);
   const [skickar, setSkickar] = useState(false);
+  const [pagaendeHandtag, setPagaendeHandtag] = useState(null);
+  const textareaRef = useRef(null);
 
   const toppniva = kommentarer.filter((k) => !k.svarPa);
   const svarTill = (id) => kommentarer.filter((k) => k.svarPa === id);
+
+  const forslag = useMemo(() => {
+    if (pagaendeHandtag === null) return [];
+    const prefix = pagaendeHandtag.toLowerCase();
+    return anvandare
+      .filter((a) => a.email && a.email.split("@")[0].toLowerCase().startsWith(prefix))
+      .slice(0, 5);
+  }, [pagaendeHandtag, anvandare]);
+
+  function hanteraTextandring(e) {
+    const nyText = e.target.value;
+    setText(nyText);
+    setPagaendeHandtag(hittaPagaendeHandtag(nyText, e.target.selectionStart));
+  }
+
+  function valjForslag(anvandarpost) {
+    const handtag = anvandarpost.email.split("@")[0];
+    const markorPosition = textareaRef.current?.selectionStart ?? text.length;
+    const foreMarkor = text.slice(0, markorPosition).replace(/@([a-zA-Z0-9._-]*)$/, `@${handtag} `);
+    const efterMarkor = text.slice(markorPosition);
+    setText(foreMarkor + efterMarkor);
+    setPagaendeHandtag(null);
+    textareaRef.current?.focus();
+  }
 
   async function hanteraSubmit(e) {
     e.preventDefault();
@@ -74,15 +98,11 @@ export default function Kommentarer({ rutinId, farTaBortAlla, anvandare = [] }) 
     }
     setSkickar(true);
     try {
-      await skapaKommentar({
-        text: text.trim(),
-        skapadAv: currentUser.uid,
-        skapadAvNamn: currentUser.email,
-        svarPa: svararPa,
-        omnamnda: hittaOmnamndaUid(text, anvandare),
-      });
+      await skapaKommentar({ text: text.trim(), svarPa: svararPa });
       setText("");
       setSvararPa(null);
+    } catch (fel) {
+      alert(fel.message ?? "Kunde inte spara kommentaren.");
     } finally {
       setSkickar(false);
     }
@@ -118,12 +138,27 @@ export default function Kommentarer({ rutinId, farTaBortAlla, anvandare = [] }) 
                 </button>
               </p>
             )}
-            <textarea
-              rows={2}
-              placeholder="Skriv en kommentar eller fråga... (@anvandarnamn för att nämna någon)"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-            />
+            <div className="kommentarer__textarea-wrapper">
+              <textarea
+                ref={textareaRef}
+                rows={2}
+                placeholder="Skriv en kommentar eller fråga... (@anvandarnamn för att nämna någon)"
+                value={text}
+                onChange={hanteraTextandring}
+                onBlur={() => setTimeout(() => setPagaendeHandtag(null), 150)}
+              />
+              {forslag.length > 0 && (
+                <ul className="kommentarer__forslag">
+                  {forslag.map((a) => (
+                    <li key={a.id}>
+                      <button type="button" onClick={() => valjForslag(a)}>
+                        @{a.email.split("@")[0]} {a.namn ? `(${a.namn})` : ""}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <button type="submit" className="knapp knapp--liten" disabled={skickar}>
               Skicka
             </button>

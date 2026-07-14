@@ -9,6 +9,7 @@ export default function AnslagFormular({ initialaVarden, onSpara, onAvbryt }) {
   const [fastNaglad, setFastNaglad] = useState(initialaVarden?.fastNaglad ?? false);
   const [prioritet, setPrioritet] = useState(initialaVarden?.prioritet ?? ANSLAG_PRIORITET.INFO);
   const [utgangsdatum, setUtgangsdatum] = useState(initialaVarden?.utgangsdatum ?? "");
+  const [kvitteringsfrist, setKvitteringsfrist] = useState(initialaVarden?.kvitteringsfrist ?? "");
   const [sparar, setSparar] = useState(false);
 
   async function hanteraSubmit(e) {
@@ -20,7 +21,7 @@ export default function AnslagFormular({ initialaVarden, onSpara, onAvbryt }) {
     }
     setSparar(true);
     try {
-      await onSpara({ titel, innehall, fastNaglad, prioritet, utgangsdatum });
+      await onSpara({ titel, innehall, fastNaglad, prioritet, utgangsdatum, kvitteringsfrist });
     } finally {
       setSparar(false);
     }
@@ -50,6 +51,14 @@ export default function AnslagFormular({ initialaVarden, onSpara, onAvbryt }) {
       <label>
         Utgångsdatum (valfritt)
         <input type="date" value={utgangsdatum} onChange={(e) => setUtgangsdatum(e.target.value)} />
+      </label>
+      <label>
+        Kräv kvittering senast (valfritt)
+        <input
+          type="date"
+          value={kvitteringsfrist}
+          onChange={(e) => setKvitteringsfrist(e.target.value)}
+        />
       </label>
       <div className="anslag-formular__knappar">
         <button type="button" className="knapp knapp--sekundar" onClick={onAvbryt}>

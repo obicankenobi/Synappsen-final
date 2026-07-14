@@ -61,6 +61,22 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(falt);
     }
 
+    // Server-side backup åt det klientsidiga PII-filtret (src/utils/piiFilter.js), för
+    // direkta Firestore-skrivningar som inte går via en Cloud Function. Kan INTE replikera
+    // den fulla Luhn-checksumman (regelspråket saknar sträng->tal-konvertering per tecken),
+    // men blockerar text som ser ut som ett giltigt personnummer/samordningsnummer:
+    // - 10 siffror: ÅÅMMDD[-+]XXXX, där MM/DD måste vara ett rimligt datum
+    //   (dag 61–91 = samordningsnummer, dag+60)
+    // - 12 siffror: samma, men med sekel 19 eller 20 (ingen levande person är född 18xx/16xx)
+    // \b-gränserna gör att ett 12-siffrigt nummer inte råkar matcha det 10-siffriga
+    // alternativet (en siffra direkt intill bryter ordgränsen).
+    function harTroligtPersonnummer(text) {
+      return text is string && text.matches(
+        '\\b(\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]|6[1-9]|7\\d|8[01])[-+]?\\d{4}'
+        + '|(19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]|6[1-9]|7\\d|8[01])[-+]?\\d{4})\\b'
+      );
+    }
+
     // users/{uid} – innehåller namn, e-post, roll och favoriter
     match /users/{userId} {
       allow read: if arInloggad();
@@ -82,7 +98,10 @@ service cloud.firestore {
       allow read: if arInloggad()
                    && (resource.data.status == 'godkand' || farRedigeraOmrade(resource.data.omrade));
 
-      allow create: if farRedigeraOmrade(request.resource.data.omrade);
+      allow create: if farRedigeraOmrade(request.resource.data.omrade)
+                     && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('innehall', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('referenser', ''));
 
       // Redaktörer får ändra allt enligt vanliga regler. Alla inloggade får kvittera läsning
       // (lasteAv) utan att i övrigt ha redigeringsbehörighet för området.
@@ -90,7 +109,10 @@ service cloud.firestore {
                      // Endast VÖL/superadmin får ändra godkännandestatus för kliniskt stöd
                      && (resource.data.omrade != 'kliniskt-stod'
                          || request.resource.data.status == resource.data.status
-                         || farGodkannaKlinisktInnehall()))
+                         || farGodkannaKlinisktInnehall())
+                     && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('innehall', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('referenser', '')))
                      || (arInloggad() && bararForandrarFalt(['lasteAv']));
 
       allow delete: if farRedigeraOmrade(resource.data.omrade);
@@ -115,24 +137,34 @@ service cloud.firestore {
     match /anslag/{anslagId} {
       allow read: if arInloggad();
       // Alla inloggade får kvittera läsning (lasteAv) utan att i övrigt ha redigeringsbehörighet.
-      allow update: if farHanteraAnslag() || (arInloggad() && bararForandrarFalt(['lasteAv']));
-      allow create, delete: if farHanteraAnslag();
+      allow update: if (farHanteraAnslag()
+                     && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('innehall', '')))
+                     || (arInloggad() && bararForandrarFalt(['lasteAv']));
+      allow create: if farHanteraAnslag()
+                     && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('innehall', ''));
+      allow delete: if farHanteraAnslag();
     }
 
-    // kommentarer/{kommentarId} – frågor/kommentarer kopplade till en rutin
+    // kommentarer/{kommentarId} – frågor/kommentarer kopplade till en rutin.
+    // Skapas ENDAST via Cloud Function (skapaKommentar), som kör den fulla Luhn-validerade
+    // personnummer-kontrollen, hastighetsbegränsning och räknar ut @omnämnanden server-side
+    // (Admin SDK kringgår dessa regler avsiktligt). Direkta klient-skrivningar är avstängda.
     match /kommentarer/{kommentarId} {
       allow read: if arInloggad();
-      allow create: if arInloggad() && request.resource.data.skapadAv == request.auth.uid;
+      allow create: if false;
       allow delete: if arInloggad() && (resource.data.skapadAv == request.auth.uid || arRedaktor());
     }
 
-    // feedback/{feedbackId} – förslag/buggrapporter. Superadmin läser/svarar på allt,
+    // feedback/{feedbackId} – förslag/buggrapporter. Skapas ENDAST via Cloud Function
+    // (skickaFeedback) av samma skäl som kommentarer ovan. Superadmin läser/svarar på allt,
     // avsändaren får bara läsa sina egna inskick (för att se ev. svar/status).
     match /feedback/{feedbackId} {
       allow read: if arSuperadmin() || (arInloggad() && resource.data.skapadAv == request.auth.uid);
       allow update: if arSuperadmin() && bararForandrarFalt(['svar', 'svarDatum', 'status']);
       allow delete: if arSuperadmin();
-      allow create: if arInloggad() && request.resource.data.skapadAv == request.auth.uid;
+      allow create: if false;
     }
 
     // sokloggar/{loggId} – sökningar utan träffar. Endast superadmin kan läsa listan.
@@ -157,7 +189,8 @@ service cloud.firestore {
     // Alla inloggade får skapa och markera som åtgärdat. Ägaren eller en redaktörsroll får ta bort.
     match /skiftrapporter/{postId} {
       allow read: if arInloggad();
-      allow create: if arInloggad() && request.resource.data.skapadAv == request.auth.uid;
+      allow create: if arInloggad() && request.resource.data.skapadAv == request.auth.uid
+                     && !harTroligtPersonnummer(request.resource.data.get('text', ''));
       allow update: if arInloggad() && bararForandrarFalt(['atgardad', 'atgardadAv']);
       allow delete: if arInloggad() && (resource.data.skapadAv == request.auth.uid || arRedaktor());
     }
@@ -177,8 +210,11 @@ service cloud.firestore {
     // anteckningar/{dokId} – privata anteckningar på en rutin, dokId "{uid}_{rutinId}".
     // Endast ägaren själv får någonsin läsa eller skriva sin egen anteckning.
     match /anteckningar/{dokId} {
-      allow read, update, delete: if arInloggad() && resource.data.uid == request.auth.uid;
-      allow create: if arInloggad() && request.resource.data.uid == request.auth.uid;
+      allow read, delete: if arInloggad() && resource.data.uid == request.auth.uid;
+      allow update: if arInloggad() && resource.data.uid == request.auth.uid
+                     && !harTroligtPersonnummer(request.resource.data.get('text', ''));
+      allow create: if arInloggad() && request.resource.data.uid == request.auth.uid
+                     && !harTroligtPersonnummer(request.resource.data.get('text', ''));
     }
 
     // installningar/geminiBudget – budgettak för Gemini Vision-tolkning.

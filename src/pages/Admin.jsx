@@ -11,6 +11,7 @@ import {
 import { useSokloggar } from "../hooks/useSokloggar";
 import { useAuditlogg } from "../hooks/useAuditlogg";
 import { useRutiner } from "../hooks/useRutiner";
+import { useAnslag } from "../hooks/useAnslag";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { useUtloggningsinstallning } from "../hooks/useUtloggningsinstallning";
 import { tvingaUtloggning } from "../firebase/functions";
@@ -48,6 +49,7 @@ export default function Admin() {
   const { auditlogg } = useAuditlogg(arSuperadmin);
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
+  const { anslag } = useAnslag();
   const { artiklar: forradsartiklar } = useForradsartiklar();
   const { minuter: utloggningMinuter, satMinuter: satUtloggningMinuter } = useUtloggningsinstallning();
   const [nyttTak, setNyttTak] = useState("");
@@ -81,6 +83,28 @@ export default function Admin() {
   );
 
   const senasteArtiklarIMittOmrade = useMemo(() => forradsartiklar.slice(0, 5), [forradsartiklar]);
+
+  // Anslag med en kvitteringsfrist – hur många av alla användare som ännu inte kvitterat.
+  const anslagMedFrist = useMemo(() => {
+    const totalAntal = anvandare.length;
+    return anslag
+      .filter((a) => a.kvitteringsfrist)
+      .map((a) => {
+        const lasteAv = a.lasteAv ?? [];
+        const antalKvitterat = lasteAv.length;
+        return {
+          id: a.id,
+          titel: a.titel,
+          frist: a.kvitteringsfrist,
+          passerad: new Date(a.kvitteringsfrist) < new Date(),
+          antalKvitterat,
+          antalTotalt: totalAntal,
+          ejKvitterat: anvandare
+            .filter((u) => !lasteAv.some((l) => l.uid === u.id))
+            .map((u) => u.namn ?? u.email),
+        };
+      });
+  }, [anslag, anvandare]);
 
   // Sökningar utan träffar grupperade per dag, för att se trender över tid (senaste 50 loggade)
   const sokningarPerDag = useMemo(() => {
@@ -191,6 +215,26 @@ export default function Admin() {
             )}
             <p className="sida__beskrivning">Auto-utloggning: {utloggningMinuter} min inaktivitet</p>
           </div>
+        </section>
+      )}
+
+      {arSuperadmin && anslagMedFrist.length > 0 && (
+        <section className="admin-sektion">
+          <h2>⏰ Kvitteringar med deadline</h2>
+          <ol className="admin-statistik-lista">
+            {anslagMedFrist.map((a) => (
+              <li key={a.id}>
+                <strong>{a.titel}</strong> – kvittering senast {a.frist}:{" "}
+                {a.antalKvitterat}/{a.antalTotalt} har kvitterat
+                {a.passerad && a.ejKvitterat.length > 0 && (
+                  <span className="admin-frist-varning" title={a.ejKvitterat.join(", ")}>
+                    {" "}
+                    (frist passerad, {a.ejKvitterat.length} saknas)
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
         </section>
       )}
 

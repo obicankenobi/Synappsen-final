@@ -50,6 +50,7 @@ function markeraTraff(text, term) {
 // rutiner, kontakter och länkbibliotek från Firestore
 export default function SokFalt() {
   const [sokterm, setSokterm] = useState("");
+  const [aktivKategori, setAktivKategori] = useState(null);
   const navigate = useNavigate();
   const inputRef = useRef(null);
   const { artiklar } = useForradsartiklar();
@@ -111,7 +112,11 @@ export default function SokFalt() {
     [alltSokbart]
   );
 
-  const resultat = sokterm.trim() ? fuse.search(sokterm).map((r) => r.item) : [];
+  const allaTraffar = sokterm.trim() ? fuse.search(sokterm).map((r) => r.item) : [];
+  const traffKategorier = [...new Set(allaTraffar.map((p) => p.kategori))];
+  const resultat = aktivKategori
+    ? allaTraffar.filter((p) => p.kategori === aktivKategori)
+    : allaTraffar;
 
   // Loggar sökningar (minst 3 tecken) som ger noll träffar, efter en kort paus i skrivandet,
   // så att ledningen ser vilket innehåll personal efterfrågar men som saknas.
@@ -119,13 +124,18 @@ export default function SokFalt() {
     const term = sokterm.trim();
     if (term.length < 3) return;
     const timer = setTimeout(() => {
-      if (resultat.length === 0) {
+      if (allaTraffar.length === 0) {
         loggaNollTraff(term, currentUser?.uid);
       }
     }, 800);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- resultat/loggaNollTraff läses vid timeout, inte som trigger
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- allaTraffar/loggaNollTraff läses vid timeout, inte som trigger
   }, [sokterm]);
+
+  function hanteraSoktermAndring(varde) {
+    setSokterm(varde);
+    setAktivKategori(null);
+  }
 
   function hanteraKlick(post) {
     registreraVisning(post.titel, post.sokvag);
@@ -134,7 +144,7 @@ export default function SokFalt() {
 
   function hanteraFaltTangent(e) {
     if (e.key === "Escape") {
-      setSokterm("");
+      hanteraSoktermAndring("");
     } else if (e.key === "ArrowDown" && resultat.length > 0) {
       e.preventDefault();
       e.currentTarget.parentElement.querySelector(".sok-falt__resultat button")?.focus();
@@ -151,7 +161,7 @@ export default function SokFalt() {
       if (index === 0) inputRef.current?.focus();
       else knappar[index - 1]?.focus();
     } else if (e.key === "Escape") {
-      setSokterm("");
+      hanteraSoktermAndring("");
       inputRef.current?.focus();
     }
   }
@@ -163,10 +173,31 @@ export default function SokFalt() {
         type="search"
         placeholder="Sök t.ex. 'Ryggsmärta' eller 'Kanyl'..."
         value={sokterm}
-        onChange={(e) => setSokterm(e.target.value)}
+        onChange={(e) => hanteraSoktermAndring(e.target.value)}
         onKeyDown={hanteraFaltTangent}
         aria-label="Sök i kunskapsbanken"
       />
+      {traffKategorier.length > 1 && (
+        <div className="sok-falt__kategorifilter">
+          <button
+            type="button"
+            className={`sok-falt__kategori-chip ${aktivKategori === null ? "sok-falt__kategori-chip--vald" : ""}`}
+            onClick={() => setAktivKategori(null)}
+          >
+            Alla ({allaTraffar.length})
+          </button>
+          {traffKategorier.map((kategori) => (
+            <button
+              type="button"
+              key={kategori}
+              className={`sok-falt__kategori-chip ${aktivKategori === kategori ? "sok-falt__kategori-chip--vald" : ""}`}
+              onClick={() => setAktivKategori(kategori)}
+            >
+              {kategori} ({allaTraffar.filter((p) => p.kategori === kategori).length})
+            </button>
+          ))}
+        </div>
+      )}
       {resultat.length > 0 && (
         <ul className="sok-falt__resultat" role="listbox">
           {resultat.map((post, i) => (

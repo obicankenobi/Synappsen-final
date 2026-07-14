@@ -69,3 +69,26 @@
   color: var(--text-svag);
   font-size: 0.85rem;
 }
+
+.sok-falt__kategorifilter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.sok-falt__kategori-chip {
+  border: 1px solid var(--kant);
+  background: var(--yta);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.sok-falt__kategori-chip--vald {
+  background: var(--primar);
+  border-color: var(--primar);
+  color: #fff;
+}

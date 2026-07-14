@@ -8,6 +8,8 @@ import { useAuth } from "./useAuth";
 import { useAnvandare } from "./useAnvandare";
 import { useAnslag } from "./useAnslag";
 import { useRutiner, RUTIN_STATUS } from "./useRutiner";
+import { narmarSigGranskning } from "../utils/rutinHjalp";
+import { ROLES } from "../firebase/roles";
 
 function efterSenasteBesok(tidpunkt, senasteBesok) {
   if (!tidpunkt?.toDate) return false;
@@ -21,7 +23,7 @@ const OMRADE_SOKVAG = {
 };
 
 export function useNotiser() {
-  const { currentUser } = useAuth();
+  const { currentUser, role } = useAuth();
   const { anvandare } = useAnvandare();
   const { anslag } = useAnslag();
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
@@ -67,10 +69,28 @@ export function useNotiser() {
         };
       });
 
-    return [...anslagsposter, ...rutinposter, ...omnamndeposter].sort(
+    // Påminnelse till redaktörer om rutiner vars granskningsfrist snart går ut. Till skillnad
+    // från de andra posterna ovan är detta ett stående tillstånd (inte en engångshändelse),
+    // så den styrs av rollbehörighet + faktiskt granskningsdatum, inte senasteNotisBesok –
+    // den försvinner av sig själv när rutinen markeras som granskad.
+    const farGranskaKlinisktStod = [ROLES.SUPERADMIN, ROLES.VOL, ROLES.SEKTIONSLEDARE].includes(role);
+    const farGranskaAdministration = [ROLES.SUPERADMIN, ROLES.VEC].includes(role);
+    const granskningsposter = allaRutiner
+      .filter((r) => r.status === RUTIN_STATUS.GODKAND && narmarSigGranskning(r.granskadDatum))
+      .filter((r) =>
+        r.omrade === "kliniskt-stod" ? farGranskaKlinisktStod : farGranskaAdministration
+      )
+      .map((r) => ({
+        id: `granskning-${r.id}`,
+        text: `Rutinen "${r.titel}" behöver granskas snart`,
+        sokvag: `${OMRADE_SOKVAG[r.omrade] ?? "/"}#rutin-${r.id}`,
+        tid: r.granskadDatum,
+      }));
+
+    return [...anslagsposter, ...rutinposter, ...omnamndeposter, ...granskningsposter].sort(
       (a, b) => (b.tid?.toMillis?.() ?? 0) - (a.tid?.toMillis?.() ?? 0)
     );
-  }, [anslag, klinisktRutiner, adminRutiner, omnamnanden, senasteBesok]);
+  }, [anslag, klinisktRutiner, adminRutiner, omnamnanden, senasteBesok, role]);
 
   async function markeraSomLast() {
     if (!currentUser) return;

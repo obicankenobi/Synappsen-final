@@ -63,3 +63,14 @@
   font-size: 0.8rem;
   color: var(--text-svag);
 }
+
+.anslag-kort__frist {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+}
+
+.anslag-kort__frist--passerad {
+  color: var(--farlig);
+  font-weight: 600;
+}

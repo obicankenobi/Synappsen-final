@@ -138,6 +138,21 @@ export default function Sektionssida({
     setMassval(false);
   }
 
+  async function hanteraMassTaggBorttagning() {
+    const tagg = massTagg.trim();
+    if (!tagg || valda.length === 0) return;
+    await Promise.all(
+      valda.map((id) => {
+        const rutin = rutiner.find((r) => r.id === id);
+        const taggar = (rutin?.taggar ?? []).filter((t) => t !== tagg);
+        return uppdateraRutin(id, { taggar }, currentUser.uid);
+      })
+    );
+    setMassTagg("");
+    setValda([]);
+    setMassval(false);
+  }
+
   async function hanteraAterstallVersion(rutinId, version) {
     const { titel: vTitel, innehall, referenser, taggar, utgangsdatum, relateradeRutiner, bilagor } = version;
     await uppdateraRutin(
@@ -199,6 +214,13 @@ export default function Sektionssida({
           />
           <button className="knapp knapp--liten" onClick={hanteraMassTaggning} disabled={valda.length === 0}>
             Lägg till tagg på markerade
+          </button>
+          <button
+            className="knapp knapp--liten knapp--sekundar"
+            onClick={hanteraMassTaggBorttagning}
+            disabled={valda.length === 0}
+          >
+            Ta bort tagg från markerade
           </button>
         </div>
       )}

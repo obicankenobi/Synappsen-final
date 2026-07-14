@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useAnslag } from "../hooks/useAnslag";
+import { useAnvandare } from "../hooks/useAnvandare";
 import { KAN_HANTERA_ANSLAG } from "../firebase/roles";
 import AnslagFormular from "../components/AnslagFormular";
 import AnslagKort from "../components/AnslagKort";
@@ -9,6 +10,7 @@ import AnslagKort from "../components/AnslagKort";
 export default function Anslagstavla() {
   const { currentUser, role } = useAuth();
   const { anslag, laddar, skapaAnslag, uppdateraAnslag, taBortAnslag } = useAnslag();
+  const { anvandare } = useAnvandare();
   const [redigerar, setRedigerar] = useState(null);
   const [visaFormular, setVisaFormular] = useState(false);
 
@@ -65,6 +67,7 @@ export default function Anslagstavla() {
           key={post.id}
           anslag={post}
           farHantera={farHantera}
+          anvandare={anvandare}
           onRedigera={oppnaRedigering}
           onTaBort={(id) => taBortAnslag(id, currentUser.uid)}
         />

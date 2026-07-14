@@ -34,14 +34,11 @@ export default function Feedback() {
     }
     setSkickar(true);
     try {
-      await skickaFeedback({
-        typ,
-        text,
-        skapadAv: currentUser.uid,
-        skapadAvNamn: currentUser.email,
-      });
+      await skickaFeedback({ typ, text });
       setText("");
       setSkickat(true);
+    } catch (fel) {
+      alert(fel.message ?? "Kunde inte skicka feedback.");
     } finally {
       setSkickar(false);
     }

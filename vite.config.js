@@ -4,6 +4,24 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        // Firebase-SDK:t (auth/firestore/storage/functions) står för en stor del av
+        // huvudbundeln men ändras sällan mellan releaser – egen chunk gör att den
+        // cachas separat från appens eget, betydligt oftare ändrade JS.
+        manualChunks(id) {
+          if (id.includes("node_modules/firebase") || id.includes("node_modules/@firebase")) {
+            return "firebase-vendor";
+          }
+        },
+      },
+    },
+  },
+  test: {
+    environment: "node",
+    globals: false,
+  },
   plugins: [
     react(),
     VitePWA({

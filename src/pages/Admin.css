@@ -112,6 +112,12 @@
   font-size: 0.85rem;
 }
 
+.admin-frist-varning {
+  color: var(--farlig);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
 .admin-statistik-trend {
   display: flex;
   flex-direction: column;

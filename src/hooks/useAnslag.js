@@ -37,6 +37,7 @@ export function useAnslag() {
     fastNaglad,
     prioritet,
     utgangsdatum,
+    kvitteringsfrist,
     skapadAv,
     skapadAvNamn,
   }) {
@@ -46,6 +47,7 @@ export function useAnslag() {
       fastNaglad: Boolean(fastNaglad),
       prioritet: prioritet || ANSLAG_PRIORITET.INFO,
       utgangsdatum: utgangsdatum || null,
+      kvitteringsfrist: kvitteringsfrist || null,
       skapadAv,
       skapadAvNamn: skapadAvNamn ?? "",
       skapad: serverTimestamp(),
