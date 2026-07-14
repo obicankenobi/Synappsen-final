@@ -736,3 +736,28 @@ sökfrågan (den REST-baserade `googleSearch`-tool-konfigurationen exponerar ing
 att själva bestämma sökfrågan). Efterhandsvalideringen mot den godkända domänlistan är
 fortfarande den enda faktiska garantin – prompten är bara ett försök att minska hur ofta den
 spärren behöver träda in.
+
+### Fas 9.4 – Den faktiska bugg-grundorsaken: domänvalidering mot fel URL (5.3.4)
+
+Nästa test avslöjade den verkliga grundorsaken bakom att svaret blockerades: de käll-URL:er som
+`groundingChunks[].web.uri` returnerar går ALLTID via
+`vertexaisearch.cloud.google.com/grounding-api-redirect/...` – en redirect-tjänst från Google,
+aldrig sidans riktiga domän direkt. Domänvalideringen (`domanGodkand`) körde alltså hela tiden
+mot `vertexaisearch.cloud.google.com`, som förstås aldrig matchar de fem godkända domänerna –
+oavsett vilken sida Gemini faktiskt hade hittat. Detta hade sannolikt gjort att FUNKTIONEN
+blockerade i princip alla svar permanent, helt oavsett hur bra prompten var.
+
+**Åtgärd:** `functions/index.js` – ny `losUppSlutgiltigUrl(url)`/`losUppKallor(kallor)`: varje
+käll-länk följs (HEAD, med GET som fallback om HEAD avvisas) för att hitta den slutgiltiga,
+riktiga URL:en innan domänen kontrolleras. Om upplösningen misslyckas behålls redirect-länken
+som den är, vilket medvetet gör att den käll-länken inte klarar domänkontrollen (säkert
+default – vi godkänner aldrig en källa vi inte kunnat verifiera). De körlösta URL:erna används
+även i det som visas för användaren, så källänkarna pekar direkt på rätt sida istället för via
+en Google-redirect.
+- `src/version.js` → 5.3.4, `package.json` → 5.3.4, ny post i `src/data/andringslogg.js`.
+
+**Kvarstående osäkerhet:** kunde inte testköras live (samma begränsning som tidigare i den här
+fasen). Om `vertexaisearch.cloud.google.com`-slutpunkten skulle blockera server-till-server-
+anrop (t.ex. kräva en webbläsarliknande User-Agent, eller sätta en kort giltighetstid på
+redirect-länken) skulle upplösningen kunna misslyckas och svaret blockeras i onödan – detta bör
+verifieras vid nästa manuella test.

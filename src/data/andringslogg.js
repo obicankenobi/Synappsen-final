@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.3.4",
+    datum: "2026-07-14",
+    andringar: [
+      "Fix: klinikstöd-sökningen blockerade felaktigt alla svar – källänkarna löses nu upp till sin riktiga webbadress innan de kontrolleras mot de godkända källorna",
+    ],
+  },
+  {
     version: "5.3.3",
     datum: "2026-07-14",
     andringar: [

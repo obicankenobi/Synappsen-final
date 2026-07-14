@@ -368,6 +368,42 @@ function domanGodkand(url) {
   }
 }
 
+// Gemini/Vertex AI:s grounding-API returnerar käll-URL:er som går via
+// vertexaisearch.cloud.google.com/grounding-api-redirect/... – ALDRIG den riktiga sidans
+// domän direkt. Att domänvalidera redirect-länken (som förra versionen gjorde) blockerar
+// därför varje svar, oavsett vilken sida Gemini egentligen använde. Löser upp varje länk
+// till dess slutgiltiga URL (via HEAD + redirect-following) innan domänen kontrolleras,
+// och byter ut länken mot den riktiga sidan i det som visas för användaren.
+async function losUppSlutgiltigUrl(url) {
+  // Vissa redirect-slutpunkter avvisar HEAD – provar GET som fallback om så behövs.
+  for (const metod of ["HEAD", "GET"]) {
+    try {
+      const svar = await fetch(url, {
+        method: metod,
+        redirect: "follow",
+        signal: AbortSignal.timeout(5000),
+      });
+      if (svar.url && !svar.url.includes("vertexaisearch.cloud.google.com")) {
+        return svar.url;
+      }
+    } catch {
+      // provar nästa metod
+    }
+  }
+  // Om upplösningen misslyckas behålls redirect-länken – den klarar aldrig
+  // domänkontrollen, vilket är rätt (vi kan då inte verifiera var den faktiskt pekar).
+  return url;
+}
+
+async function losUppKallor(kallor) {
+  return Promise.all(
+    kallor.map(async (k) => {
+      const slutgiltigUrl = await losUppSlutgiltigUrl(k.url);
+      return { titel: k.titel, url: slutgiltigUrl };
+    })
+  );
+}
+
 // Kliniskt uppslagsstöd: tvingar Gemini att söka live (Google Search-grounding) varje
 // gång istället för att svara ur minnet, och validerar i efterhand att ALLA angivna källor
 // faktiskt ligger på en godkänd domän. Om något inte kan verifieras blockeras svaret hellre
@@ -457,20 +493,23 @@ Regler du MÅSTE följa:
       }
     }
 
-    function tolkaSvar(svarJson) {
+    async function tolkaSvar(svarJson) {
       const kandidat = svarJson.candidates?.[0];
       const svar = kandidat?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
       const grounding = kandidat?.groundingMetadata;
-      const kallor = (grounding?.groundingChunks ?? grounding?.groundingChuncks ?? [])
+      const raKallor = (grounding?.groundingChunks ?? grounding?.groundingChuncks ?? [])
         .map((c) => c.web)
         .filter(Boolean)
         .map((w) => ({ titel: w.title ?? w.uri, url: w.uri }));
+      // Länkarna från grounding-API:et går via vertexaisearch.cloud.google.com och måste
+      // lösas upp till den riktiga sidans URL innan domänen går att kontrollera.
+      const kallor = await losUppKallor(raKallor);
       return { svar, kallor };
     }
 
     let resultat;
     try {
-      resultat = tolkaSvar(await anropaMedOmforsokVid503(byggPrompt()));
+      resultat = await tolkaSvar(await anropaMedOmforsokVid503(byggPrompt()));
 
       // Om Gemini trots instruktionerna hänvisade till otillåtna källor: ge den EN chans till
       // med en skarpare, korrigerande prompt som pekar ut exakt vilka domäner som floppade.
@@ -482,7 +521,7 @@ OBS: ett tidigare försök att besvara den här frågan använde felaktigt käll
         }. Sök EN GÅNG TILL, den här gången strikt med "site:"-sökningar mot endast de fem
 godkända domänerna nedan – ingen annan källa accepteras denna gång.
 `;
-        resultat = tolkaSvar(await anropaMedOmforsokVid503(byggPrompt(korrigering)));
+        resultat = await tolkaSvar(await anropaMedOmforsokVid503(byggPrompt(korrigering)));
       }
     } catch (fel) {
       console.error("Klinikstöd-sökning misslyckades:", fel);
