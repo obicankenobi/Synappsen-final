@@ -14,6 +14,7 @@ export default function Sektionssida({
   beskrivning,
   redigeraRoller,
   godkannaRoller,
+  extra,
 }) {
   const { currentUser, role } = useAuth();
   const { rutiner, laddar, skapaRutin, uppdateraRutin, godkannRutin, taBortRutin, markeraGranskad, hamtaVersioner } =
@@ -121,6 +122,8 @@ export default function Sektionssida({
         {ikon} {titel}
       </h1>
       <p className="sida__beskrivning">{beskrivning}</p>
+
+      {extra}
 
       {farRedigera && !visaFormular && (
         <button className="knapp" onClick={oppnaNyRutin}>

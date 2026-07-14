@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { usePrivatAnteckning } from "../hooks/usePrivatAnteckning";
+import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import "./PrivatAnteckning.css";
 
 export default function PrivatAnteckning({ rutinId }) {
@@ -18,6 +19,11 @@ export default function PrivatAnteckning({ rutinId }) {
   }
 
   async function hanteraSpara() {
+    const kontroll = kontrolleraPatientuppgifter(utkast);
+    if (kontroll.blockerad) {
+      if (kontroll.meddelande) alert(kontroll.meddelande);
+      return;
+    }
     await spara(utkast);
     setSparad(true);
     setTimeout(() => setSparad(false), 1500);

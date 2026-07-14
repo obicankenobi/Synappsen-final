@@ -3,6 +3,15 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.3.0",
+    datum: "2026-07-14",
+    andringar: [
+      "Skydd mot att personnummer sparas i rutiner, kommentarer, anteckningar, skiftrapporter och feedback – sparning blockeras om ett personnummer upptäcks",
+      "Extra varning (ej blockering) om en text verkar innehålla ett namn – kontrollera alltid att det inte gäller en patient",
+      "Ny klinikstöd-sökning under Kliniskt stöd: ställ en generell fråga om sjukdomstillstånd/läkemedel, får ett källhänvisat svar hämtat live från internetmedicin.se, 1177.se, Nationella kliniska kunskapsstödet, FASS vårdpersonal och Läkemedelsverket",
+    ],
+  },
+  {
     version: "5.2.0",
     datum: "2026-07-13",
     andringar: [

@@ -569,3 +569,96 @@ extraheras av Gemini och sättas automatiskt som rutinens utgångsdatum.
   som att hela raden bytts ut, inte som en inline-markering av den ändrade delen.
 - Utgångsdatum-extraktionen litar på Gemini's tolkning av dokumentets datumformat; ett otydligt
   eller tvetydigt datum kan bli fel eller utebli (då sätts inget datum, snarare än ett gissat).
+
+## Fas 9 – PII-filter (GDPR/patientdatalagen) och källbegränsad klinikstöd-sökning
+
+**Datum:** 2026-07-14
+**Branch:** `claude/compassionate-euler-rho0q5`
+
+### Bakgrund
+
+Två uttryckliga, juridiskt motiverade krav från användaren: (1) ett filter som förhindrar att
+patientuppgifter (personnummer, namn) av misstag sparas i appen, med hänvisning till GDPR och
+patientdatalagen; (2) en möjlighet att ställa generella kliniska frågor där Gemini tvingas söka
+upp aktuell information live och bara använder fem namngivna, officiella källor med
+källhänvisning.
+
+Innan implementation ställdes två klargörande frågor till användaren (via `AskUserQuestion`)
+eftersom båda kraven har tekniska begränsningar som är viktiga att vara tydlig med givet den
+juridiska vikten:
+
+1. **Personnummer** går att upptäcka tillförlitligt (giltigt datum + Luhn-checksumma, samma
+   algoritm som används för att validera svenska personnummer på riktigt). **Namn går INTE att
+   upptäcka tillförlitligt** med mönstermatchning – det finns ingen regel som skiljer ett
+   patientnamn från t.ex. ett personalnamn i en signatur eller ett läkemedelsnamn. Användaren
+   valde: hård spärr på personnummer + en icke-blockerande påminnelse (confirm-dialog) vid
+   misstänkta namn, med tydlig disclaimer om att det senare inte är en garanti.
+2. En **hård domänbegränsning** (Gemini kan bara *se* sökresultat från fem godkända domäner)
+   kräver en egen Google Programmable Search Engine och ett nytt Google Cloud-API – manuella
+   steg utanför vad som kan automatiseras här. Användaren valde istället: tvinga fram en riktig
+   websökning varje gång (Gemini Search-grounding) + **efterhandsvalidering** av alla citerade
+   käll-URL:er mot en godkänd-lista – om något inte kan verifieras blockeras hela svaret.
+
+### Genomfört
+
+**PII-filter**
+- `src/utils/piiFilter.js` (ny) – `hittaPersonnummer(text)`: hittar text-sekvenser som ser ut
+  som svenska personnummer/samordningsnummer (regex `\d{6}[-+]?\d{4}` + giltigt datum, dag -60
+  för samordningsnummer + Luhn-checksumma). `hittaMisstankaNamn(text)`: grov heuristik (två
+  efterföljande versalinledda ord), medvetet enkel och med förväntade falska larm.
+  `kontrolleraPatientuppgifter(text)`: kombinerar båda – blockerar hårt vid personnummer,
+  frågar via `window.confirm` vid misstänkta namn.
+- Kopplades in i alla formulär med fritext som skulle kunna innehålla patientuppgifter:
+  `RutinFormular.jsx` (titel+innehåll+referenser), `Kommentarer.jsx`, `PrivatAnteckning.jsx`,
+  `Skiftrapport.jsx` (kompletterar den redan befintliga varningstexten med en faktisk spärr) och
+  `Feedback.jsx`.
+- `functions/index.js` – samma personnummer-algoritm (`innehallerPersonnummer`) duplicerad
+  server-side (Cloud Functions är ett separat CommonJS-paket, delar inte moduler med
+  `src/`). Både `tolkaDokument` och `tolkaForradsbild` kastar nu ett fel och avbryter helt
+  (ingen skrivning till Firestore) om det AI-tolkade innehållet innehåller ett personnummer –
+  detta skyddar även mot att direkta API-anrop (förbi klientens formulär) kringgår filtret.
+
+**Klinikstöd-sökning**
+- `functions/index.js` – ny callable `fragaKlinisktStod`. Blockerar personnummer i själva
+  frågan INNAN något skickas till Gemini (ett tredjepartsapi) – patientuppgifter ska aldrig
+  lämna appen överhuvudtaget, inte bara aldrig sparas. Anropar `gemini-1.5-flash` med
+  `googleSearchRetrieval`-verktyget (`DynamicRetrievalMode.MODE_DYNAMIC`) aktiverat, vilket
+  tvingar en riktig websökning för varje fråga istället för att modellen svarar ur minnet.
+  Prompten instruerar modellen att bara använda internetmedicin.se, 1177.se,
+  nationelltklinisktkunskapsstod.se, fass.se och lakemedelsverket.se, att alltid källhänvisa,
+  att avstå hellre än att gissa, och att aldrig besvara frågor om en namngiven/identifierbar
+  patient.
+- Efter svaret: `groundingMetadata.groundingChuncks` (de faktiska käll-URL:erna Gemini använde)
+  valideras mot en hårdkodad godkänd-lista (`domanGodkand`). Om Gemini inte returnerar några
+  källor alls, eller om NÅGON källa ligger utanför listan, blockeras hela svaret med ett
+  `HttpsError` istället för att visas – även om texten i sig hade varit korrekt. Detta är den
+  faktiska tekniska spärren; prompt-instruktionen ovan är bara första försvarslinjen.
+- `src/firebase/functions.js` – `fragaKlinisktStod(fraga)`-wrapper.
+- `src/components/KlinikfragaSok.jsx` (ny) – sökruta med tydlig disclaimer ("beslutsstöd,
+  ersätter aldrig klinisk bedömning", "ställ aldrig frågor om en specifik patient"), kör
+  `kontrolleraPatientuppgifter` på frågan klientsidan innan anrop (samma filter som ovan),
+  visar svar + klickbara källänkar. Inbäddad i `Sektionssida.jsx` via en ny `extra`-prop,
+  använd från `KlinisktStod.jsx` (visas bara i Kliniskt stöd, inte Administration/Logistik).
+- Inget sparas i Firestore av frågor/svar – helt ephemert i klienten, vilket också minskar
+  risken att en fråga som ändå råkar beröra en patientsituation blir kvar någonstans.
+- `src/version.js` → 5.3.0, `package.json` → 5.3.0, ny post i `src/data/andringslogg.js`.
+- Verifierat: `npm run build`, `npm run lint` och `node -c` på `functions/index.js` gröna.
+
+### Kända begränsningar / medvetna avgränsningar
+
+- **Namn-varningen är en påminnelse, inte ett skydd.** Den missar troligen de flesta riktiga
+  namn och ger falska larm på annat versalinlett (platser, läkemedel, organisationer). Förlita
+  er inte på den juridiskt – den kompletterar utbildning/rutiner, ersätter dem inte.
+- **Domänlistan för klinikstöd-sökningen är inte verifierad mot en aktiv webbuppslagning**
+  (byggd utan nätåtkomst i den här sessionen). Domänen för "Nationella kliniska kunskapsstödet"
+  (`nationelltklinisktkunskapsstod.se`) är en bästa gissning utifrån tränad kunskap, inte en
+  bekräftad uppslagning – dubbelkolla den specifikt innan skarp drift, liksom de övriga fyra.
+- `googleSearchRetrieval`-verktyget requestas mot `gemini-1.5-flash` (inte `gemini-2.5-flash`
+  som används för fototolkning) eftersom det är den modell/verktygsform `@google/generative-ai`
+  v0.21:s typdefinitioner dokumenterar stöd för. Detta har inte kunnat testköras mot skarpt
+  Gemini-API i den här sessionen (ingen nätåtkomst) – **funktionen bör testas manuellt direkt
+  efter driftsättning** innan den littas på i skarpt bruk, i händelse av att verktyget/modellen
+  inte längre stöds eller beter sig annorlunda än typdefinitionerna antyder.
+- Domänvalideringen sker på `groundingChuncks`, dvs. de käll-URL:er Gemini själv anger att den
+  använt. Den kontrollerar inte att svarstexten verkligen är hämtad exakt ordagrant från dessa
+  sidor, bara att de sidor Gemini uppger som källor ligger på godkända domäner.

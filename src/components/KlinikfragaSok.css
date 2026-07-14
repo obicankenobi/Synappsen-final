@@ -1,0 +1,56 @@
+.klinikfraga {
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.klinikfraga h2 {
+  font-size: 1.05rem;
+  margin: 0 0 8px;
+}
+
+.klinikfraga__hjalptext {
+  font-size: 0.85rem;
+  color: var(--text-svag);
+  margin-bottom: 12px;
+}
+
+.klinikfraga__formular {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.klinikfraga__formular input {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 12px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.klinikfraga__fel {
+  color: var(--farlig);
+  font-size: 0.85rem;
+  margin-top: 10px;
+}
+
+.klinikfraga__svar {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--kant);
+}
+
+.klinikfraga__kallor {
+  margin-top: 10px;
+  font-size: 0.85rem;
+}
+
+.klinikfraga__kallor ul {
+  margin: 4px 0 0;
+  padding-left: 20px;
+}

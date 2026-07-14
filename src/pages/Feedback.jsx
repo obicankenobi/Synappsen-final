@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useFeedback, FEEDBACK_TYPER, FEEDBACK_TYP_LABELS } from "../hooks/useFeedback";
+import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import "./Feedback.css";
 
 export default function Feedback() {
@@ -14,6 +15,11 @@ export default function Feedback() {
 
   async function hanteraSubmit(e) {
     e.preventDefault();
+    const kontroll = kontrolleraPatientuppgifter(text);
+    if (kontroll.blockerad) {
+      if (kontroll.meddelande) alert(kontroll.meddelande);
+      return;
+    }
     setSkickar(true);
     try {
       await skickaFeedback({

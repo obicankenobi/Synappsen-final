@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useSkiftrapport } from "../hooks/useSkiftrapport";
 import { arRedaktor } from "../firebase/roles";
+import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import "./Skiftrapport.css";
 
 function formateraTid(tidpunkt) {
@@ -22,6 +23,11 @@ export default function Skiftrapport() {
   async function hanteraSubmit(e) {
     e.preventDefault();
     if (!text.trim()) return;
+    const kontroll = kontrolleraPatientuppgifter(text);
+    if (kontroll.blockerad) {
+      if (kontroll.meddelande) alert(kontroll.meddelande);
+      return;
+    }
     setSkickar(true);
     try {
       await skapaPost({ text: text.trim(), skapadAv: currentUser.uid, skapadAvNamn: currentUser.email });

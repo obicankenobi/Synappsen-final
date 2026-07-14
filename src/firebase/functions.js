@@ -13,3 +13,8 @@ export function tolkaForradsbild(storagePath, forrad) {
   const fn = httpsCallable(functions, "tolkaForradsbild");
   return fn({ storagePath, forrad });
 }
+
+export function fragaKlinisktStod(fraga) {
+  const fn = httpsCallable(functions, "fragaKlinisktStod");
+  return fn({ fraga });
+}

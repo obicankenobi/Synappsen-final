@@ -2,7 +2,7 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
-const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
+const { GoogleGenerativeAI, SchemaType, DynamicRetrievalMode } = require("@google/generative-ai");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -24,6 +24,40 @@ const MAX_PER_ANVANDARE_ORE = 5000; // 50 kr
 function aktuellManadNyckel() {
   const nu = new Date();
   return `${nu.getFullYear()}-${String(nu.getMonth() + 1).padStart(2, "0")}`;
+}
+
+// Upptäcker svenska personnummer/samordningsnummer (giltigt datum + Luhn-checksumma) i
+// AI-tolkat innehåll, så att foton som råkar innehålla patientuppgifter aldrig sparas i
+// Firestore. Samma algoritm som src/utils/piiFilter.js på klienten (duplicerad hit eftersom
+// Cloud Functions är ett separat CommonJS-paket).
+function luhnGiltig(siffror) {
+  let summa = 0;
+  for (let i = 0; i < 9; i++) {
+    let d = siffror[i] * (i % 2 === 0 ? 2 : 1);
+    if (d > 9) d -= 9;
+    summa += d;
+  }
+  return (10 - (summa % 10)) % 10 === siffror[9];
+}
+
+function giltigtDatum(man, dag) {
+  const m = Number(man);
+  let d = Number(dag);
+  if (d > 60) d -= 60;
+  return m >= 1 && m <= 12 && d >= 1 && d <= 31;
+}
+
+function innehallerPersonnummer(text) {
+  if (!text) return false;
+  const regex = /\b(\d{2})(\d{2})(\d{2})[-+]?(\d{4})\b/g;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const [, ar, man, dag, sista4] = match;
+    if (!giltigtDatum(man, dag)) continue;
+    const tioSiffror = `${ar}${man}${dag}${sista4}`.split("").map(Number);
+    if (luhnGiltig(tioSiffror)) return true;
+  }
+  return false;
 }
 
 // Kontrollerar och reserverar budget innan ett dyrt Gemini-anrop görs.
@@ -203,6 +237,12 @@ exports.tolkaForradsbild = onCall(
       const mimeType = metadata.contentType || "image/jpeg";
 
       const artiklar = await tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad);
+      if (artiklar.some((a) => innehallerPersonnummer(`${a.namn} ${(a.sokord ?? []).join(" ")}`))) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Bilden verkar innehålla ett personnummer. Patientuppgifter får inte sparas i Synappsen – ta en ny bild utan sådan text."
+        );
+      }
       const bildUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
 
       // Matcha mot befintliga artiklar i samma förråd på normaliserat namn, så att en ny
@@ -270,6 +310,16 @@ exports.tolkaDokument = onCall(
       const mimeType = metadata.contentType || "image/jpeg";
 
       const extraherat = await tolkaBildMedGemini(bildBuffer, mimeType);
+      if (
+        innehallerPersonnummer(
+          `${extraherat.titel} ${extraherat.innehall} ${(extraherat.komIhagFlaggor ?? []).join(" ")}`
+        )
+      ) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Bilden verkar innehålla ett personnummer. Patientuppgifter får inte sparas i Synappsen – ta en ny bild utan sådan text."
+        );
+      }
       const bildUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
       // Endast ett väl formaterat datum (ÅÅÅÅ-MM-DD) sätts som utgångsdatum – annars ignoreras det.
       const giltigtTill = /^\d{4}-\d{2}-\d{2}$/.test(extraherat.giltigtTill) ? extraherat.giltigtTill : null;
@@ -294,5 +344,117 @@ exports.tolkaDokument = onCall(
       if (fel instanceof HttpsError) throw fel;
       throw new HttpsError("internal", `Tolkning misslyckades: ${fel.message}`);
     }
+  }
+);
+
+// Godkända källor för klinikstöd-frågor. OBS: domänerna nedan är inte verifierade mot en
+// aktiv webbuppslagning (byggd utan nätåtkomst) – dubbelkolla särskilt
+// "nationelltklinisktkunskapsstod.se" innan detta tas i skarp drift, och justera listan
+// vid behov.
+const GODKANDA_KALLDOMANER = [
+  "internetmedicin.se",
+  "1177.se",
+  "nationelltklinisktkunskapsstod.se",
+  "fass.se",
+  "lakemedelsverket.se",
+];
+
+function domanGodkand(url) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    return GODKANDA_KALLDOMANER.some((d) => host === d || host.endsWith(`.${d}`));
+  } catch {
+    return false;
+  }
+}
+
+// Kliniskt uppslagsstöd: tvingar Gemini att söka live (Google Search-grounding) varje
+// gång istället för att svara ur minnet, och validerar i efterhand att ALLA angivna källor
+// faktiskt ligger på en godkänd domän. Om något inte kan verifieras blockeras svaret hellre
+// än att visas som om det vore godkänt.
+exports.fragaKlinisktStod = onCall(
+  { secrets: [GEMINI_API_KEY], region: "europe-west1", memory: "512MiB", timeoutSeconds: 60 },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+    }
+
+    const fraga = (request.data?.fraga ?? "").trim();
+    if (!fraga || fraga.length > 500) {
+      throw new HttpsError("invalid-argument", "Ange en fråga (max 500 tecken).");
+    }
+    // Skickar aldrig en fråga som verkar innehålla ett personnummer vidare till Gemini
+    // (tredjepartstjänst) – patientuppgifter får inte lämna appen överhuvudtaget.
+    if (innehallerPersonnummer(fraga)) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Frågan verkar innehålla ett personnummer. Ställ bara generella frågor, inte frågor om " +
+          "specifika patienter."
+      );
+    }
+
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      tools: [
+        {
+          googleSearchRetrieval: {
+            dynamicRetrievalConfig: { mode: DynamicRetrievalMode.MODE_DYNAMIC, dynamicThreshold: 0 },
+          },
+        },
+      ],
+    });
+
+    const prompt = `Du är ett kliniskt uppslagsverktyg för vårdpersonal på en akutmottagning i Sverige.
+
+Fråga: "${fraga}"
+
+Regler du MÅSTE följa:
+1. Sök alltid upp aktuell information live via websökning – svara ALDRIG enbart ur minnet.
+2. Använd ENDAST information från dessa källor: internetmedicin.se, 1177.se,
+   nationelltklinisktkunskapsstod.se (Nationella kliniska kunskapsstödet), fass.se
+   (Läkemedelsverkets FASS för vårdpersonal), lakemedelsverket.se.
+3. Om du inte hittar ett tillförlitligt svar på dessa sidor: säg det tydligt istället för att
+   gissa eller använda andra källor.
+4. Ange tydligt vilken specifik källa varje påstående kommer ifrån.
+5. Detta är beslutsstöd, inte en diagnos – uppmana alltid till egen klinisk bedömning.
+6. Svara på svenska, kortfattat och praktiskt.
+7. Ställ aldrig frågor om eller referera till en specifik patient – om frågan verkar handla om
+   en namngiven eller identifierbar person, svara att du bara kan besvara generella frågor.`;
+
+    let result;
+    try {
+      result = await model.generateContent(prompt);
+    } catch (fel) {
+      console.error("Klinikstöd-sökning misslyckades:", fel);
+      throw new HttpsError("internal", "Sökningen misslyckades. Försök igen.");
+    }
+
+    const svar = result.response.text();
+    const grounding = result.response.candidates?.[0]?.groundingMetadata;
+    const kallor = (grounding?.groundingChuncks ?? [])
+      .map((c) => c.web)
+      .filter(Boolean)
+      .map((w) => ({ titel: w.title ?? w.uri, url: w.uri }));
+
+    if (kallor.length === 0) {
+      throw new HttpsError(
+        "not-found",
+        "Kunde inte hitta ett verifierbart svar från de godkända källorna. Sök manuellt istället."
+      );
+    }
+
+    const otillatna = kallor.filter((k) => !domanGodkand(k.url));
+    if (otillatna.length > 0) {
+      console.warn("Blockerat svar pga otillåtna källor:", otillatna.map((k) => k.url));
+      throw new HttpsError(
+        "failed-precondition",
+        "Svaret hänvisade till källor utanför de godkända (internetmedicin.se, 1177.se, " +
+          "nationelltklinisktkunskapsstod.se, fass.se, lakemedelsverket.se). Blockerat av " +
+          "säkerhetsskäl – sök manuellt istället."
+      );
+    }
+
+    return { svar, kallor };
   }
 );

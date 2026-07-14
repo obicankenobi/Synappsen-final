@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useKommentarer } from "../hooks/useKommentarer";
+import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import "./Kommentarer.css";
 
 function formateraTid(tidpunkt) {
@@ -56,6 +57,11 @@ export default function Kommentarer({ rutinId, farTaBortAlla }) {
   async function hanteraSubmit(e) {
     e.preventDefault();
     if (!text.trim()) return;
+    const kontroll = kontrolleraPatientuppgifter(text);
+    if (kontroll.blockerad) {
+      if (kontroll.meddelande) alert(kontroll.meddelande);
+      return;
+    }
     setSkickar(true);
     try {
       await skapaKommentar({

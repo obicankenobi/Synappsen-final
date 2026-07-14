@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { RUTIN_MALLAR } from "../data/rutinmallar";
+import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import "./RutinFormular.css";
 
 export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSpara, onAvbryt }) {
@@ -38,6 +39,11 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
     e.preventDefault();
     if (!innehall.trim() && !harBilagor) {
       alert("Fyll i innehåll eller bifoga minst en fil.");
+      return;
+    }
+    const kontroll = kontrolleraPatientuppgifter(`${titel} ${innehall} ${referenser}`);
+    if (kontroll.blockerad) {
+      if (kontroll.meddelande) alert(kontroll.meddelande);
       return;
     }
     const taggar = taggarText
