@@ -72,9 +72,13 @@ export default function Lankbibliotek() {
             {lista.map((l) => (
               <li key={l.id} className="kontakter-rad">
                 <div>
-                  <a href={l.url} target="_blank" rel="noreferrer">
+                  {/^https?:\/\//i.test(l.url) ? (
+                    <a href={l.url} target="_blank" rel="noreferrer">
+                      <strong>{l.titel}</strong>
+                    </a>
+                  ) : (
                     <strong>{l.titel}</strong>
-                  </a>
+                  )}
                   {l.beskrivning && <div className="kontakter-rad__beskrivning">{l.beskrivning}</div>}
                 </div>
                 {farHantera && (

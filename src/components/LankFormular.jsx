@@ -10,6 +10,10 @@ export default function LankFormular({ initialaVarden, befintliga = [], onSpara,
 
   async function hanteraSubmit(e) {
     e.preventDefault();
+    if (!/^https?:\/\//i.test(url.trim())) {
+      alert("Länken måste börja med http:// eller https://.");
+      return;
+    }
     const dubblett = befintliga.some(
       (l) => l.id !== initialaVarden?.id && l.titel.trim().toLowerCase() === titel.trim().toLowerCase()
     );

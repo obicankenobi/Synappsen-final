@@ -429,6 +429,10 @@ exports.fragaKlinisktStod = onCall(
       );
     }
 
+    // Samma budgetspärr som bild-/dokumenttolkningen, så att den här funktionen inte kan
+    // anropas direkt (förbi den pausade UI-vyn) utan tak på kostnad eller antal anrop.
+    await reserveraBudget(request.auth.uid);
+
     const kalldomanerText =
       "internetmedicin.se, 1177.se, nationelltklinisktkunskapsstod.se (Nationella kliniska " +
       "kunskapsstödet), fass.se (Läkemedelsverkets FASS för vårdpersonal), lakemedelsverket.se";
