@@ -2,7 +2,7 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
-const { GoogleGenerativeAI, SchemaType, DynamicRetrievalMode } = require("@google/generative-ai");
+const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -393,18 +393,6 @@ exports.fragaKlinisktStod = onCall(
       );
     }
 
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      tools: [
-        {
-          googleSearchRetrieval: {
-            dynamicRetrievalConfig: { mode: DynamicRetrievalMode.MODE_DYNAMIC, dynamicThreshold: 0 },
-          },
-        },
-      ],
-    });
-
     const prompt = `Du är ett kliniskt uppslagsverktyg för vårdpersonal på en akutmottagning i Sverige.
 
 Fråga: "${fraga}"
@@ -422,17 +410,41 @@ Regler du MÅSTE följa:
 7. Ställ aldrig frågor om eller referera till en specifik patient – om frågan verkar handla om
    en namngiven eller identifierbar person, svara att du bara kan besvara generella frågor.`;
 
-    let result;
+    // Anropar Gemini REST-API direkt (istället för @google/generative-ai-paketet) med
+    // "googleSearch"-verktyget, som är den nuvarande sök-grounding-mekanismen för
+    // gemini-2.5-flash. Paketets typdefinitioner (v0.21) känner bara till det äldre,
+    // 1.5-modell-specifika "googleSearchRetrieval"-verktyget, vilket inte är tillförlitligt
+    // för den modell resten av appen redan använder.
+    let svarJson;
     try {
-      result = await model.generateContent(prompt);
+      const httpSvar = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            tools: [{ googleSearch: {} }],
+          }),
+        }
+      );
+      if (!httpSvar.ok) {
+        const felText = await httpSvar.text();
+        throw new Error(`Gemini API svarade ${httpSvar.status}: ${felText.slice(0, 500)}`);
+      }
+      svarJson = await httpSvar.json();
     } catch (fel) {
       console.error("Klinikstöd-sökning misslyckades:", fel);
-      throw new HttpsError("internal", "Sökningen misslyckades. Försök igen.");
+      // Felmeddelandet visas i klienten (istället för ett generiskt "något gick fel") eftersom
+      // Cloud Functions-loggarna inte är tillgängliga under utveckling/felsökning av den här
+      // funktionen – gör felsökning möjlig direkt från gränssnittet.
+      throw new HttpsError("internal", `Sökningen misslyckades: ${fel.message}`);
     }
 
-    const svar = result.response.text();
-    const grounding = result.response.candidates?.[0]?.groundingMetadata;
-    const kallor = (grounding?.groundingChuncks ?? [])
+    const kandidat = svarJson.candidates?.[0];
+    const svar = kandidat?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+    const grounding = kandidat?.groundingMetadata;
+    const kallor = (grounding?.groundingChunks ?? grounding?.groundingChuncks ?? [])
       .map((c) => c.web)
       .filter(Boolean)
       .map((w) => ({ titel: w.title ?? w.uri, url: w.uri }));

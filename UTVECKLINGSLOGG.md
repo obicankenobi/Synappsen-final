@@ -659,6 +659,32 @@ juridiska vikten:
   Gemini-API i den här sessionen (ingen nätåtkomst) – **funktionen bör testas manuellt direkt
   efter driftsättning** innan den littas på i skarpt bruk, i händelse av att verktyget/modellen
   inte längre stöds eller beter sig annorlunda än typdefinitionerna antyder.
-- Domänvalideringen sker på `groundingChuncks`, dvs. de käll-URL:er Gemini själv anger att den
+- Domänvalideringen sker på `groundingChunks`, dvs. de käll-URL:er Gemini själv anger att den
   använt. Den kontrollerar inte att svarstexten verkligen är hämtad exakt ordagrant från dessa
   sidor, bara att de sidor Gemini uppger som källor ligger på godkända domäner.
+
+### Fas 9.1 – Rättning: klinikstöd-sökningen misslyckades alltid (5.3.1)
+
+Precis som varnat för i Fas 9 gick den manuella testningen inte bra: sökningen misslyckades med
+"Sökningen misslyckades. Försök igen." varje gång. Ingen tillgång till Cloud Functions-loggar
+fanns i den här sessionen (inga `gcloud`/`firebase`-CLI:er, inget loggverktyg), så felsökningen
+fick göras genom kodgranskning istället för att läsa den faktiska felorsaken.
+
+Sannolik grundorsak: `@google/generative-ai` v0.21:s typdefinitioner känner bara till det äldre
+`googleSearchRetrieval`-verktyget (byggt för Gemini 1.0/1.5 med "dynamic retrieval"), inte det
+nyare `googleSearch`-verktyget som `gemini-2.5-flash` (modellen resten av appen redan använder
+framgångsrikt) förväntar sig. Att blanda `gemini-1.5-flash` med det gamla verktyget riskerade
+antingen en utfasad modell eller en verktygskonfiguration modellen inte accepterar.
+
+**Åtgärd:** `functions/index.js` – `fragaKlinisktStod` anropar nu Gemini REST-API:et
+(`generativelanguage.googleapis.com/v1beta/.../gemini-2.5-flash:generateContent`) direkt via
+`fetch`, med `tools: [{ googleSearch: {} }]`, istället för `@google/generative-ai`-paketet.
+Detta kringgår paketets föråldrade typdefinitioner helt. Käll-sökningen (`groundingChunks`,
+rättad stavning – tidigare kod sökte även efter den historiska felstavningen `groundingChuncks`
+som skydd om API:et fortfarande skulle råka använda den).
+
+**Viktigt:** även denna version kunde inte testköras live (ingen nätåtkomst i utvecklingssessionen).
+Skillnaden är att om anropet misslyckas igen visas nu det faktiska HTTP-statuskoden och
+felmeddelandet från Gemini API:et direkt i gränssnittet (`Sökningen misslyckades: ...`), istället
+för ett generiskt meddelande – så nästa felsökningsrunda har faktisk information att gå på utan
+att behöva Cloud Functions-loggar.

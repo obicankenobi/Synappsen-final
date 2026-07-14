@@ -3,6 +3,11 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.3.1",
+    datum: "2026-07-14",
+    andringar: ["Fix: klinikstöd-sökningen misslyckades alltid – bytt sökmetod under huven"],
+  },
+  {
     version: "5.3.0",
     datum: "2026-07-14",
     andringar: [
