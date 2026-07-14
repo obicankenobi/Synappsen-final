@@ -393,36 +393,43 @@ exports.fragaKlinisktStod = onCall(
       );
     }
 
-    const prompt = `Du är ett kliniskt uppslagsverktyg för vårdpersonal på en akutmottagning i Sverige.
+    const kalldomanerText =
+      "internetmedicin.se, 1177.se, nationelltklinisktkunskapsstod.se (Nationella kliniska " +
+      "kunskapsstödet), fass.se (Läkemedelsverkets FASS för vårdpersonal), lakemedelsverket.se";
+
+    function byggPrompt(korrigering) {
+      return `Du är ett kliniskt uppslagsverktyg för vårdpersonal på en akutmottagning i Sverige.
 
 Fråga: "${fraga}"
-
+${korrigering ?? ""}
 Regler du MÅSTE följa:
 1. Sök alltid upp aktuell information live via websökning – svara ALDRIG enbart ur minnet.
-2. Använd ENDAST information från dessa källor: internetmedicin.se, 1177.se,
-   nationelltklinisktkunskapsstod.se (Nationella kliniska kunskapsstödet), fass.se
-   (Läkemedelsverkets FASS för vårdpersonal), lakemedelsverket.se.
-3. Om du inte hittar ett tillförlitligt svar på dessa sidor: säg det tydligt istället för att
-   gissa eller använda andra källor.
-4. Ange tydligt vilken specifik källa varje påstående kommer ifrån.
-5. Detta är beslutsstöd, inte en diagnos – uppmana alltid till egen klinisk bedömning.
-6. Svara på svenska, kortfattat och praktiskt.
-7. Ställ aldrig frågor om eller referera till en specifik patient – om frågan verkar handla om
+2. Använd ENDAST information från dessa källor: ${kalldomanerText}.
+3. Formulera dina sökningar med "site:"-operatorn riktad mot en av dessa domäner i taget, t.ex.
+   "site:internetmedicin.se ${fraga}" eller "site:1177.se ${fraga}" – sök ALDRIG brett på öppna
+   webben utan site:-begränsning.
+4. Om du inte hittar ett tillförlitligt svar på dessa sidor: säg det tydligt istället för att
+   gissa eller använda någon annan källa, oavsett hur relevant den kan verka.
+5. Ange tydligt vilken specifik källa varje påstående kommer ifrån.
+6. Detta är beslutsstöd, inte en diagnos – uppmana alltid till egen klinisk bedömning.
+7. Svara på svenska, kortfattat och praktiskt.
+8. Ställ aldrig frågor om eller referera till en specifik patient – om frågan verkar handla om
    en namngiven eller identifierbar person, svara att du bara kan besvara generella frågor.`;
+    }
 
     // Anropar Gemini REST-API direkt (istället för @google/generative-ai-paketet) med
     // "googleSearch"-verktyget, som är den nuvarande sök-grounding-mekanismen för
     // gemini-2.5-flash. Paketets typdefinitioner (v0.21) känner bara till det äldre,
     // 1.5-modell-specifika "googleSearchRetrieval"-verktyget, vilket inte är tillförlitligt
     // för den modell resten av appen redan använder.
-    async function anropaGemini() {
+    async function anropaGemini(promptText) {
       const httpSvar = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
+            contents: [{ parts: [{ text: promptText }] }],
             tools: [{ googleSearch: {} }],
           }),
         }
@@ -436,19 +443,46 @@ Regler du MÅSTE följa:
       return httpSvar.json();
     }
 
-    let svarJson;
-    try {
+    async function anropaMedOmforsokVid503(promptText) {
       try {
-        svarJson = await anropaGemini();
+        return await anropaGemini(promptText);
       } catch (forstaFel) {
         // 503/UNAVAILABLE betyder att Gemini är tillfälligt överbelastat (inte ett fel i vårt
         // anrop) – ett enda snabbt återförsök löser detta i de flesta fall.
         if (forstaFel.status === 503) {
           await new Promise((r) => setTimeout(r, 2000));
-          svarJson = await anropaGemini();
-        } else {
-          throw forstaFel;
+          return await anropaGemini(promptText);
         }
+        throw forstaFel;
+      }
+    }
+
+    function tolkaSvar(svarJson) {
+      const kandidat = svarJson.candidates?.[0];
+      const svar = kandidat?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+      const grounding = kandidat?.groundingMetadata;
+      const kallor = (grounding?.groundingChunks ?? grounding?.groundingChuncks ?? [])
+        .map((c) => c.web)
+        .filter(Boolean)
+        .map((w) => ({ titel: w.title ?? w.uri, url: w.uri }));
+      return { svar, kallor };
+    }
+
+    let resultat;
+    try {
+      resultat = tolkaSvar(await anropaMedOmforsokVid503(byggPrompt()));
+
+      // Om Gemini trots instruktionerna hänvisade till otillåtna källor: ge den EN chans till
+      // med en skarpare, korrigerande prompt som pekar ut exakt vilka domäner som floppade.
+      const otillatnaForsta = resultat.kallor.filter((k) => !domanGodkand(k.url));
+      if (resultat.kallor.length === 0 || otillatnaForsta.length > 0) {
+        const korrigering = `
+OBS: ett tidigare försök att besvara den här frågan använde felaktigt källor utanför listan${
+          otillatnaForsta.length > 0 ? ` (${otillatnaForsta.map((k) => k.url).join(", ")})` : ""
+        }. Sök EN GÅNG TILL, den här gången strikt med "site:"-sökningar mot endast de fem
+godkända domänerna nedan – ingen annan källa accepteras denna gång.
+`;
+        resultat = tolkaSvar(await anropaMedOmforsokVid503(byggPrompt(korrigering)));
       }
     } catch (fel) {
       console.error("Klinikstöd-sökning misslyckades:", fel);
@@ -464,18 +498,12 @@ Regler du MÅSTE följa:
       throw new HttpsError("internal", `Sökningen misslyckades: ${fel.message}`);
     }
 
-    const kandidat = svarJson.candidates?.[0];
-    const svar = kandidat?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-    const grounding = kandidat?.groundingMetadata;
-    const kallor = (grounding?.groundingChunks ?? grounding?.groundingChuncks ?? [])
-      .map((c) => c.web)
-      .filter(Boolean)
-      .map((w) => ({ titel: w.title ?? w.uri, url: w.uri }));
+    const { svar, kallor } = resultat;
 
     if (kallor.length === 0) {
       throw new HttpsError(
         "not-found",
-        "Kunde inte hitta ett verifierbart svar från de godkända källorna. Sök manuellt istället."
+        "Kunde inte hitta ett verifierbart svar från de godkända källorna (försökte två gånger). Sök manuellt istället."
       );
     }
 
@@ -484,9 +512,9 @@ Regler du MÅSTE följa:
       console.warn("Blockerat svar pga otillåtna källor:", otillatna.map((k) => k.url));
       throw new HttpsError(
         "failed-precondition",
-        "Svaret hänvisade till källor utanför de godkända (internetmedicin.se, 1177.se, " +
-          "nationelltklinisktkunskapsstod.se, fass.se, lakemedelsverket.se). Blockerat av " +
-          "säkerhetsskäl – sök manuellt istället."
+        `Svaret hänvisade fortfarande till källor utanför de godkända (${kalldomanerText}) ` +
+          `efter två försök. Källor det faktiskt använde: ${kallor.map((k) => k.url).join(", ")}. ` +
+          "Blockerat av säkerhetsskäl – sök manuellt istället."
       );
     }
 

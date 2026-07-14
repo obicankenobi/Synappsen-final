@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.3.3",
+    datum: "2026-07-14",
+    andringar: [
+      "Klinikstöd-sökningen instrueras nu att söka med site:-begränsning mot varje godkänd källa, och gör ett andra försök med skarpare instruktion om första svaret hänvisade till fel källor",
+      "Om ett svar ändå blockeras visas nu vilka källor det faktiskt försökte använda",
+    ],
+  },
+  {
     version: "5.3.2",
     datum: "2026-07-14",
     andringar: [

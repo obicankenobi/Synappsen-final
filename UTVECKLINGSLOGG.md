@@ -703,3 +703,36 @@ sekunders paus) specifikt vid `503`-svar, eftersom sådana överbelastningar oft
 Om även återförsöket misslyckas visas ett tydligt, användarvänligt meddelande ("Gemini är
 tillfälligt överbelastat just nu...") istället för rå JSON.
 - `src/version.js` → 5.3.2, `package.json` → 5.3.2, ny post i `src/data/andringslogg.js`.
+
+### Fas 9.3 – Källbegränsningen respekterades inte, och otillräcklig insyn i vad som blockerades (5.3.3)
+
+Nästa test (efter 503-fixen) gick hela vägen fram – anropet lyckades och Gemini sökte faktiskt
+live – men svaret hänvisade till källor utanför de fem godkända, och blockerades korrekt av
+efterhandsvalideringen. Det bekräftade att säkerhetsspärren fungerar som den ska. Två problem
+kvarstod dock: (1) prompten var bara en instruktion, inget som faktiskt styrde vad
+`googleSearch`-verktyget sökte efter, så Gemini gjorde uppenbarligen en bred websökning ändå;
+(2) felmeddelandet talade om ATT något blockerats men inte VILKA källor det gällde, vilket
+gjorde det svårt att bedöma om spärren var för sträng eller körde korrekt.
+
+**Åtgärd:** `functions/index.js`:
+- Prompten instruerar nu uttryckligen Gemini att formulera sina sökningar med `site:`-operatorn
+  riktad mot en domän i taget (t.ex. `site:internetmedicin.se <fråga>`), istället för att bara
+  räkna upp domänerna som en allmän regel. Detta är samma teknik som en riktig Google-sökning
+  respekterar, och ger `googleSearch`-verktyget en konkret sökstrategi att följa istället för en
+  vag instruktion att "bara använda" vissa sidor.
+- Om första svaret ändå hänvisar till otillåtna källor (eller inga källor alls): **ett andra,
+  korrigerande försök** görs automatiskt med en skarpare prompt som pekar ut exakt vilka
+  domäner som floppade förra gången och kräver strikt `site:`-sökning denna gång. Detta är
+  separat från 503-återförsöket (som bara gäller överbelastning) – nu kan funktionen alltså
+  göra upp till två Gemini-anrop totalt av olika anledningar.
+- Om svaret ändå blockeras efter båda försöken listar felmeddelandet nu explicit vilka
+  käll-URL:er Gemini faktiskt använde, så det går att se vad den försökte referera till istället
+  för att bara veta att något blockerades.
+- `src/version.js` → 5.3.3, `package.json` → 5.3.3, ny post i `src/data/andringslogg.js`.
+
+**Kvarstående osäkerhet:** `site:`-instruktionen i prompten är fortfarande bara en instruktion
+till modellen om hur den ska använda sökverktyget, inte en hård teknisk spärr på själva
+sökfrågan (den REST-baserade `googleSearch`-tool-konfigurationen exponerar inga parametrar för
+att själva bestämma sökfrågan). Efterhandsvalideringen mot den godkända domänlistan är
+fortfarande den enda faktiska garantin – prompten är bara ett försök att minska hur ofta den
+spärren behöver träda in.
