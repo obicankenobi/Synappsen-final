@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.3.2",
+    datum: "2026-07-14",
+    andringar: [
+      "Klinikstöd-sökningen försöker nu automatiskt igen om Gemini svarar att den är tillfälligt överbelastad, med ett tydligare felmeddelande om det ändå inte går",
+    ],
+  },
+  {
     version: "5.3.1",
     datum: "2026-07-14",
     andringar: ["Fix: klinikstöd-sökningen misslyckades alltid – bytt sökmetod under huven"],

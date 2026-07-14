@@ -415,8 +415,7 @@ Regler du MÅSTE följa:
     // gemini-2.5-flash. Paketets typdefinitioner (v0.21) känner bara till det äldre,
     // 1.5-modell-specifika "googleSearchRetrieval"-verktyget, vilket inte är tillförlitligt
     // för den modell resten av appen redan använder.
-    let svarJson;
-    try {
+    async function anropaGemini() {
       const httpSvar = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
         {
@@ -430,14 +429,38 @@ Regler du MÅSTE följa:
       );
       if (!httpSvar.ok) {
         const felText = await httpSvar.text();
-        throw new Error(`Gemini API svarade ${httpSvar.status}: ${felText.slice(0, 500)}`);
+        const fel = new Error(`Gemini API svarade ${httpSvar.status}: ${felText.slice(0, 500)}`);
+        fel.status = httpSvar.status;
+        throw fel;
       }
-      svarJson = await httpSvar.json();
+      return httpSvar.json();
+    }
+
+    let svarJson;
+    try {
+      try {
+        svarJson = await anropaGemini();
+      } catch (forstaFel) {
+        // 503/UNAVAILABLE betyder att Gemini är tillfälligt överbelastat (inte ett fel i vårt
+        // anrop) – ett enda snabbt återförsök löser detta i de flesta fall.
+        if (forstaFel.status === 503) {
+          await new Promise((r) => setTimeout(r, 2000));
+          svarJson = await anropaGemini();
+        } else {
+          throw forstaFel;
+        }
+      }
     } catch (fel) {
       console.error("Klinikstöd-sökning misslyckades:", fel);
-      // Felmeddelandet visas i klienten (istället för ett generiskt "något gick fel") eftersom
-      // Cloud Functions-loggarna inte är tillgängliga under utveckling/felsökning av den här
-      // funktionen – gör felsökning möjlig direkt från gränssnittet.
+      if (fel.status === 503) {
+        throw new HttpsError(
+          "unavailable",
+          "Gemini är tillfälligt överbelastat just nu. Vänta en liten stund och försök igen."
+        );
+      }
+      // Övriga felmeddelanden visas i klienten (istället för ett generiskt "något gick fel")
+      // eftersom Cloud Functions-loggarna inte är tillgängliga under utveckling/felsökning av
+      // den här funktionen – gör felsökning möjlig direkt från gränssnittet.
       throw new HttpsError("internal", `Sökningen misslyckades: ${fel.message}`);
     }
 

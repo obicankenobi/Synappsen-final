@@ -688,3 +688,18 @@ Skillnaden är att om anropet misslyckas igen visas nu det faktiska HTTP-statusk
 felmeddelandet från Gemini API:et direkt i gränssnittet (`Sökningen misslyckades: ...`), istället
 för ett generiskt meddelande – så nästa felsökningsrunda har faktisk information att gå på utan
 att behöva Cloud Functions-loggar.
+
+### Fas 9.2 – Bekräftelse: implementationen fungerar, plus återförsök vid överbelastning (5.3.2)
+
+Den förbättrade felsökningen i 5.3.1 gjorde nytta direkt: användarens nästa testförsök gav ett
+konkret, läsbart fel istället för ett generiskt: `Gemini API svarade 503: {"error": {"code": 503,
+"message": "This model is currently experiencing high demand...", "status": "UNAVAILABLE"}}`.
+
+Det bekräftar att REST-anropet, modellen och `googleSearch`-verktyget fungerar korrekt – felet är
+en tillfällig kapacitetsbegränsning hos Google, inte ett konfigurationsfel i vår kod.
+
+**Åtgärd:** `functions/index.js` – `fragaKlinisktStod` gör nu ett automatiskt återförsök (efter 2
+sekunders paus) specifikt vid `503`-svar, eftersom sådana överbelastningar oftast är kortvariga.
+Om även återförsöket misslyckas visas ett tydligt, användarvänligt meddelande ("Gemini är
+tillfälligt överbelastat just nu...") istället för rå JSON.
+- `src/version.js` → 5.3.2, `package.json` → 5.3.2, ny post i `src/data/andringslogg.js`.
