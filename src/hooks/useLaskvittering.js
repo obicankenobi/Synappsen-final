@@ -8,3 +8,9 @@ export async function kvitteraLast(rutinId, uid, namn) {
     lasteAv: arrayUnion({ uid, namn: namn ?? "", tidpunkt: Timestamp.now() }),
   });
 }
+
+export async function kvitteraLastAnslag(anslagId, uid, namn) {
+  return updateDoc(doc(db, "anslag", anslagId), {
+    lasteAv: arrayUnion({ uid, namn: namn ?? "", tidpunkt: Timestamp.now() }),
+  });
+}

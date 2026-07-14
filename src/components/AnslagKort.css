@@ -50,3 +50,16 @@
   gap: 8px;
   margin-top: 10px;
 }
+
+.anslag-kort__laskvittering {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.anslag-kort__last-antal {
+  font-size: 0.8rem;
+  color: var(--text-svag);
+}

@@ -3,6 +3,23 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.4.0",
+    datum: "2026-07-14",
+    andringar: [
+      "Nämn en kollega i en kommentar med @användarnamn – de får en notis",
+      "Egna genvägar på startsidan – välj själv vilka snabblänkar som visas (inställning under Min profil)",
+      "Superadmin kan nu svara på och sätta status på inskickad feedback – avsändaren ser svaret under Feedback",
+      "Läskvittering på anslag, precis som för rutiner",
+      "Ny knapp \"Skriv ut hela sektionen\" för att skriva ut/spara alla rutiner i ett område som PDF",
+      "Enkel formateringsverktygsrad (fet/kursiv/rubrik/lista) ovanför rutinernas innehållsfält",
+      "Bulk-taggning – markera flera rutiner och lägg till samma tagg på alla samtidigt",
+      "Återställ en tidigare version av en rutin direkt från versionshistoriken",
+      "Adminpanelen: systemstatus-översikt, sökbar/filtrerbar ändringslogg, konfigurerbar auto-utloggningstid och möjlighet att tvinga utloggning av en användare",
+      "Tydlig banner när appen tappar internetanslutningen",
+      "Varning vid skapande av en kontakt/länk med samma namn som en befintlig",
+    ],
+  },
+  {
     version: "5.3.5",
     datum: "2026-07-14",
     andringar: [

@@ -67,10 +67,11 @@ service cloud.firestore {
       // Ett nytt konto skapar sitt eget dokument med standardrollen "personal"
       allow create: if arInloggad() && request.auth.uid == userId
                      && request.resource.data.role == 'personal';
-      // Superadmin får ändra allt (t.ex. roller). Ägaren själv får bara ändra sina favoriter
-      // och tidpunkten för senaste notisbesök.
+      // Superadmin får ändra allt (t.ex. roller). Ägaren själv får bara ändra sina favoriter,
+      // tidpunkten för senaste notisbesök och sina egna startsidesgenvägar.
       allow update: if arSuperadmin()
-                     || (request.auth.uid == userId && bararForandrarFalt(['favoriter', 'senasteNotisBesok']));
+                     || (request.auth.uid == userId
+                         && bararForandrarFalt(['favoriter', 'senasteNotisBesok', 'snabblankar']));
       allow delete: if arSuperadmin();
     }
 
@@ -113,7 +114,9 @@ service cloud.firestore {
     // anslag/{anslagId} – anslagstavla, meddelanden från ledningen till all personal
     match /anslag/{anslagId} {
       allow read: if arInloggad();
-      allow create, update, delete: if farHanteraAnslag();
+      // Alla inloggade får kvittera läsning (lasteAv) utan att i övrigt ha redigeringsbehörighet.
+      allow update: if farHanteraAnslag() || (arInloggad() && bararForandrarFalt(['lasteAv']));
+      allow create, delete: if farHanteraAnslag();
     }
 
     // kommentarer/{kommentarId} – frågor/kommentarer kopplade till en rutin
@@ -123,9 +126,12 @@ service cloud.firestore {
       allow delete: if arInloggad() && (resource.data.skapadAv == request.auth.uid || arRedaktor());
     }
 
-    // feedback/{feedbackId} – förslag/buggrapporter. Endast superadmin kan läsa listan.
+    // feedback/{feedbackId} – förslag/buggrapporter. Superadmin läser/svarar på allt,
+    // avsändaren får bara läsa sina egna inskick (för att se ev. svar/status).
     match /feedback/{feedbackId} {
-      allow read, delete: if arSuperadmin();
+      allow read: if arSuperadmin() || (arInloggad() && resource.data.skapadAv == request.auth.uid);
+      allow update: if arSuperadmin() && bararForandrarFalt(['svar', 'svarDatum', 'status']);
+      allow delete: if arSuperadmin();
       allow create: if arInloggad() && request.resource.data.skapadAv == request.auth.uid;
     }
 

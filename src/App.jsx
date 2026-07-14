@@ -1,13 +1,36 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import { useInaktivitetsUtloggning } from "./hooks/useInaktivitetsUtloggning";
+import { useUtloggningsinstallning } from "./hooks/useUtloggningsinstallning";
 import InaktivitetsVarning from "./components/InaktivitetsVarning";
+import OfflineIndikator from "./components/OfflineIndikator";
 import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
 import { REDAKTORSROLLER } from "./firebase/roles";
+
+// Kontrollerar var 5:e minut om sessionen fortfarande är giltig – om en superadmin har
+// tvingat utloggning (återkallade refresh-tokens) upptäcks det här istället för att kunna
+// dröja upp till en timme (ordinarie livslängd för en redan hämtad ID-token).
+function SessionKontroll() {
+  const { currentUser, loggaUt } = useAuth();
+
+  useEffect(() => {
+    if (!currentUser) return undefined;
+    const intervall = setInterval(async () => {
+      try {
+        await currentUser.getIdToken(true);
+      } catch {
+        loggaUt();
+      }
+    }, 5 * 60 * 1000);
+    return () => clearInterval(intervall);
+  }, [currentUser, loggaUt]);
+
+  return null;
+}
 
 // Varje sida laddas i sin egen chunk vid behov istället för att bakas in i huvudbundlen
 const Hem = lazy(() => import("./pages/Hem"));
@@ -47,14 +70,17 @@ function SkyddatLayout({ children }) {
 // Loggar automatiskt ut vid inaktivitet, oavsett vilken skyddad rutt användaren är på
 function InaktivitetsBevakning() {
   const { currentUser, loggaUt } = useAuth();
-  const { visaVarning, fortsattInloggad } = useInaktivitetsUtloggning(Boolean(currentUser), loggaUt);
+  const { minuter } = useUtloggningsinstallning();
+  const { visaVarning, fortsattInloggad } = useInaktivitetsUtloggning(Boolean(currentUser), loggaUt, minuter);
   return visaVarning ? <InaktivitetsVarning onFortsatt={fortsattInloggad} /> : null;
 }
 
 export default function App() {
   return (
     <AuthProvider>
+      <OfflineIndikator />
       <InaktivitetsBevakning />
+      <SessionKontroll />
       <BrowserRouter>
         <Routes>
           <Route

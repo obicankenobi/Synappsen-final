@@ -65,3 +65,10 @@
   color: var(--farlig);
   text-decoration: line-through;
 }
+
+.versionshistorik__post-atgarder {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}

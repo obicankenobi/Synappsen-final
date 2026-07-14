@@ -9,12 +9,20 @@ import { useAuth } from "../hooks/useAuth";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
 import TvaFaktorSektion from "../components/TvaFaktorSektion";
 import TemaVaxlare from "../components/TemaVaxlare";
+import { useSnabblankar, ALLA_SNABBLANKAR } from "../hooks/useSnabblankar";
 import { ROLE_LABELS } from "../firebase/roles";
 import "./Profil.css";
 
 export default function Profil() {
   const { currentUser, role } = useAuth();
   const favoritPoster = useMinaFavoritPoster();
+  const { synliga: snabblankar, satValda: satSnabblankar } = useSnabblankar(currentUser.uid);
+
+  function vaxlaSnabblank(nyckel) {
+    const aktuella = snabblankar.map((s) => s.nyckel);
+    const nya = aktuella.includes(nyckel) ? aktuella.filter((n) => n !== nyckel) : [...aktuella, nyckel];
+    satSnabblankar(nya);
+  }
   const [nuvarandeLosenord, setNuvarandeLosenord] = useState("");
   const [nyttLosenord, setNyttLosenord] = useState("");
   const [sparar, setSparar] = useState(false);
@@ -93,6 +101,23 @@ export default function Profil() {
       <section className="profil-sektion">
         <h2>🎨 Utseende</h2>
         <TemaVaxlare />
+      </section>
+
+      <section className="profil-sektion">
+        <h2>🔗 Genvägar på startsidan</h2>
+        <p className="sida__beskrivning">Välj vilka snabblänkar som visas överst på startsidan.</p>
+        <div className="profil-snabblankar">
+          {ALLA_SNABBLANKAR.map((s) => (
+            <label key={s.nyckel} className="profil-snabblankar__rad">
+              <input
+                type="checkbox"
+                checked={snabblankar.some((v) => v.nyckel === s.nyckel)}
+                onChange={() => vaxlaSnabblank(s.nyckel)}
+              />
+              {s.ikon} {s.namn}
+            </label>
+          ))}
+        </div>
       </section>
 
       <section className="profil-sektion">

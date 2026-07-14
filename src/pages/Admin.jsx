@@ -2,11 +2,19 @@ import { useMemo, useState } from "react";
 import { useAnvandare } from "../hooks/useAnvandare";
 import { useAuth } from "../hooks/useAuth";
 import { useGeminiBudget } from "../hooks/useGeminiBudget";
-import { useFeedback, FEEDBACK_TYP_LABELS } from "../hooks/useFeedback";
+import {
+  useFeedback,
+  FEEDBACK_TYP_LABELS,
+  FEEDBACK_STATUS,
+  FEEDBACK_STATUS_LABELS,
+} from "../hooks/useFeedback";
 import { useSokloggar } from "../hooks/useSokloggar";
 import { useAuditlogg } from "../hooks/useAuditlogg";
 import { useRutiner } from "../hooks/useRutiner";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
+import { useUtloggningsinstallning } from "../hooks/useUtloggningsinstallning";
+import { tvingaUtloggning } from "../firebase/functions";
+import { APP_VERSION } from "../version";
 import { ROLES, ROLE_LABELS } from "../firebase/roles";
 import "./Admin.css";
 
@@ -35,13 +43,19 @@ export default function Admin() {
   const { anvandare, laddar, uppdateraRoll } = useAnvandare();
   const { currentUser } = useAuth();
   const { budget, satTakKr } = useGeminiBudget();
-  const { feedback, taBortFeedback } = useFeedback(arSuperadmin);
+  const { feedback, taBortFeedback, uppdateraFeedbackStatus, svaraPaFeedback } = useFeedback(arSuperadmin);
   const { sokloggar } = useSokloggar(arSuperadmin);
   const { auditlogg } = useAuditlogg(arSuperadmin);
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
   const { artiklar: forradsartiklar } = useForradsartiklar();
+  const { minuter: utloggningMinuter, satMinuter: satUtloggningMinuter } = useUtloggningsinstallning();
   const [nyttTak, setNyttTak] = useState("");
+  const [nyaUtloggningMinuter, setNyaUtloggningMinuter] = useState("");
+  const [loggarUtAnvandare, setLoggarUtAnvandare] = useState(null);
+  const [svarUtkast, setSvarUtkast] = useState({});
+  const [auditSok, setAuditSok] = useState("");
+  const [auditTypFilter, setAuditTypFilter] = useState("");
 
   const mittOmrade = OMRADE_FOR_ROLL[role];
 
@@ -113,9 +127,72 @@ export default function Admin() {
     setNyttTak("");
   }
 
+  async function hanteraNyUtloggningstid(e) {
+    e.preventDefault();
+    if (!nyaUtloggningMinuter) return;
+    await satUtloggningMinuter(Number(nyaUtloggningMinuter));
+    setNyaUtloggningMinuter("");
+  }
+
+  async function hanteraTvingaUtloggning(anvandarpost) {
+    if (!confirm(`Tvinga utloggning av ${anvandarpost.namn || anvandarpost.email}?`)) return;
+    setLoggarUtAnvandare(anvandarpost.id);
+    try {
+      await tvingaUtloggning(anvandarpost.id);
+      alert("Utloggning genomförd. Effekten kan ta upp till en timme om användaren redan har en aktiv session.");
+    } catch (fel) {
+      alert(fel.message ?? "Något gick fel.");
+    } finally {
+      setLoggarUtAnvandare(null);
+    }
+  }
+
+  async function hanteraSvaraPaFeedback(id) {
+    const svar = (svarUtkast[id] ?? "").trim();
+    if (!svar) return;
+    await svaraPaFeedback(id, svar);
+    setSvarUtkast((u) => ({ ...u, [id]: "" }));
+  }
+
+  const filtreradAuditlogg = useMemo(() => {
+    const sokterm = auditSok.trim().toLowerCase();
+    return auditlogg.filter((a) => {
+      if (auditTypFilter && a.entitetTyp !== auditTypFilter) return false;
+      if (sokterm && !(a.beskrivning ?? "").toLowerCase().includes(sokterm)) return false;
+      return true;
+    });
+  }, [auditlogg, auditSok, auditTypFilter]);
+
+  const auditTyper = useMemo(
+    () => [...new Set(auditlogg.map((a) => a.entitetTyp).filter(Boolean))].sort(),
+    [auditlogg]
+  );
+
   return (
     <div className="sida">
       <h1>Adminpanel</h1>
+
+      {arSuperadmin && (
+        <section className="admin-sektion">
+          <h2>📊 Systemstatus</h2>
+          <div className="admin-statistik-grid">
+            <p className="sida__beskrivning">
+              Version <strong>{APP_VERSION}</strong>
+            </p>
+            <p className="sida__beskrivning">
+              {anvandare.length} användare, {klinisktRutiner.length + adminRutiner.length} rutiner,{" "}
+              {forradsartiklar.length} förrådsartiklar
+            </p>
+            {budget && (
+              <p className="sida__beskrivning">
+                Gemini-budget: {(budget.anvantOre / 100).toFixed(0)} kr / {(budget.taketOre / 100).toFixed(0)} kr
+                denna månad
+              </p>
+            )}
+            <p className="sida__beskrivning">Auto-utloggning: {utloggningMinuter} min inaktivitet</p>
+          </div>
+        </section>
+      )}
 
       {mittOmrade && !arSuperadmin && (
         <section className="admin-sektion">
@@ -187,6 +264,28 @@ export default function Admin() {
 
       {arSuperadmin && (
         <section className="admin-sektion">
+          <h2>Auto-utloggningstid</h2>
+          <p className="sida__beskrivning">
+            Nuvarande: <strong>{utloggningMinuter} minuter</strong> inaktivitet innan automatisk utloggning.
+          </p>
+          <form className="admin-budget__form" onSubmit={hanteraNyUtloggningstid}>
+            <input
+              type="number"
+              min="2"
+              step="1"
+              placeholder="Nya minuter"
+              value={nyaUtloggningMinuter}
+              onChange={(e) => setNyaUtloggningMinuter(e.target.value)}
+            />
+            <button type="submit" className="knapp">
+              Uppdatera
+            </button>
+          </form>
+        </section>
+      )}
+
+      {arSuperadmin && (
+        <section className="admin-sektion">
           <h2>Användare och roller</h2>
           {laddar && <p>Laddar...</p>}
           <ul className="admin-lista">
@@ -196,17 +295,29 @@ export default function Admin() {
                   <strong>{anvandarpost.namn || "(namn saknas)"}</strong>
                   <div className="admin-lista__email">{anvandarpost.email}</div>
                 </div>
-                <select
-                  value={anvandarpost.role}
-                  disabled={anvandarpost.id === currentUser.uid}
-                  onChange={(e) => uppdateraRoll(anvandarpost.id, e.target.value)}
-                >
-                  {Object.values(ROLES).map((roll) => (
-                    <option key={roll} value={roll}>
-                      {ROLE_LABELS[roll]}
-                    </option>
-                  ))}
-                </select>
+                <div className="admin-lista__atgarder">
+                  <select
+                    value={anvandarpost.role}
+                    disabled={anvandarpost.id === currentUser.uid}
+                    onChange={(e) => uppdateraRoll(anvandarpost.id, e.target.value)}
+                  >
+                    {Object.values(ROLES).map((roll) => (
+                      <option key={roll} value={roll}>
+                        {ROLE_LABELS[roll]}
+                      </option>
+                    ))}
+                  </select>
+                  {anvandarpost.id !== currentUser.uid && (
+                    <button
+                      type="button"
+                      className="knapp knapp--farlig knapp--liten"
+                      disabled={loggarUtAnvandare === anvandarpost.id}
+                      onClick={() => hanteraTvingaUtloggning(anvandarpost)}
+                    >
+                      {loggarUtAnvandare === anvandarpost.id ? "..." : "Tvinga utloggning"}
+                    </button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
@@ -254,8 +365,34 @@ export default function Admin() {
                   <span className="admin-feedback-rad__typ">{FEEDBACK_TYP_LABELS[f.typ] ?? f.typ}</span>
                   <span>{f.skapadAvNamn}</span>
                   <span>{formateraTid(f.skapad)}</span>
+                  <select
+                    value={f.status ?? FEEDBACK_STATUS.NY}
+                    onChange={(e) => uppdateraFeedbackStatus(f.id, e.target.value)}
+                  >
+                    {Object.values(FEEDBACK_STATUS).map((s) => (
+                      <option key={s} value={s}>
+                        {FEEDBACK_STATUS_LABELS[s]}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <p>{f.text}</p>
+                {f.svar && (
+                  <p className="admin-feedback-rad__svar">
+                    <strong>Ditt svar:</strong> {f.svar}
+                  </p>
+                )}
+                <div className="admin-feedback-rad__svarformular">
+                  <input
+                    type="text"
+                    placeholder="Skriv ett svar till avsändaren..."
+                    value={svarUtkast[f.id] ?? ""}
+                    onChange={(e) => setSvarUtkast((u) => ({ ...u, [f.id]: e.target.value }))}
+                  />
+                  <button className="knapp knapp--liten" onClick={() => hanteraSvaraPaFeedback(f.id)}>
+                    Svara
+                  </button>
+                </div>
                 <button className="knapp knapp--farlig knapp--liten" onClick={() => taBortFeedback(f.id)}>
                   Ta bort
                 </button>
@@ -304,8 +441,26 @@ export default function Admin() {
         <section className="admin-sektion">
           <h2>Ändringslogg</h2>
           {auditlogg.length === 0 && <p className="sida__beskrivning">Inga händelser loggade ännu.</p>}
+          {auditlogg.length > 0 && (
+            <div className="admin-audit-filter">
+              <input
+                type="search"
+                placeholder="Sök i beskrivning..."
+                value={auditSok}
+                onChange={(e) => setAuditSok(e.target.value)}
+              />
+              <select value={auditTypFilter} onChange={(e) => setAuditTypFilter(e.target.value)}>
+                <option value="">Alla typer</option>
+                {auditTyper.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <ul className="admin-lista admin-lista--vertikal">
-            {auditlogg.map((a) => (
+            {filtreradAuditlogg.map((a) => (
               <li key={a.id} className="admin-feedback-rad">
                 <div className="admin-feedback-rad__meta">
                   <span>{a.beskrivning}</span>

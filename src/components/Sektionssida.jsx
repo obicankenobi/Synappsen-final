@@ -23,6 +23,9 @@ export default function Sektionssida({
   const [redigerar, setRedigerar] = useState(null);
   const [visaFormular, setVisaFormular] = useState(false);
   const [aktivTagg, setAktivTagg] = useState(null);
+  const [massval, setMassval] = useState(false);
+  const [valda, setValda] = useState([]);
+  const [massTagg, setMassTagg] = useState("");
 
   const farRedigera = redigeraRoller.includes(role);
   const farGodkanna = godkannaRoller.includes(role);
@@ -116,6 +119,44 @@ export default function Sektionssida({
     setVisaFormular(true);
   }
 
+  function vaxlaVal(id) {
+    setValda((v) => (v.includes(id) ? v.filter((x) => x !== id) : [...v, id]));
+  }
+
+  async function hanteraMassTaggning() {
+    const tagg = massTagg.trim();
+    if (!tagg || valda.length === 0) return;
+    await Promise.all(
+      valda.map((id) => {
+        const rutin = rutiner.find((r) => r.id === id);
+        const taggar = [...new Set([...(rutin?.taggar ?? []), tagg])];
+        return uppdateraRutin(id, { taggar }, currentUser.uid);
+      })
+    );
+    setMassTagg("");
+    setValda([]);
+    setMassval(false);
+  }
+
+  async function hanteraAterstallVersion(rutinId, version) {
+    const { titel: vTitel, innehall, referenser, taggar, utgangsdatum, relateradeRutiner, bilagor } = version;
+    await uppdateraRutin(
+      rutinId,
+      { titel: vTitel, innehall, referenser, taggar, utgangsdatum, relateradeRutiner, bilagor },
+      currentUser.uid
+    );
+  }
+
+  function skrivUtSektion() {
+    document.body.classList.add("utskrift-sektion");
+    window.print();
+    window.addEventListener(
+      "afterprint",
+      () => document.body.classList.remove("utskrift-sektion"),
+      { once: true }
+    );
+  }
+
   return (
     <div className="sida">
       <h1>
@@ -125,10 +166,41 @@ export default function Sektionssida({
 
       {extra}
 
-      {farRedigera && !visaFormular && (
-        <button className="knapp" onClick={oppnaNyRutin}>
-          Lägg till ny rutin
+      <div className="sektionssida__topatgarder">
+        {farRedigera && !visaFormular && (
+          <button className="knapp" onClick={oppnaNyRutin}>
+            Lägg till ny rutin
+          </button>
+        )}
+        {farRedigera && (
+          <button
+            className="knapp knapp--sekundar"
+            onClick={() => {
+              setMassval((v) => !v);
+              setValda([]);
+            }}
+          >
+            {massval ? "Avbryt markering" : "☑️ Markera flera"}
+          </button>
+        )}
+        <button className="knapp knapp--sekundar" onClick={skrivUtSektion}>
+          🖨️ Skriv ut hela sektionen
         </button>
+      </div>
+
+      {massval && (
+        <div className="forrad-vy__bulkatgarder">
+          <span>{valda.length} markerade</span>
+          <input
+            type="text"
+            placeholder="Tagg att lägga till"
+            value={massTagg}
+            onChange={(e) => setMassTagg(e.target.value)}
+          />
+          <button className="knapp knapp--liten" onClick={hanteraMassTaggning} disabled={valda.length === 0}>
+            Lägg till tagg på markerade
+          </button>
+        </div>
       )}
 
       {visaFormular && (
@@ -186,19 +258,27 @@ export default function Sektionssida({
       )}
 
       {filtreradeRutiner.map((rutin) => (
-        <RutinKort
-          key={rutin.id}
-          rutin={rutin}
-          allaRutiner={rutiner}
-          anvandare={farRedigera ? anvandare : []}
-          farRedigera={farRedigera}
-          farGodkanna={farGodkanna}
-          onRedigera={oppnaRedigering}
-          onGodkann={(id) => godkannRutin(id, currentUser.uid, currentUser.email)}
-          onTaBort={(id) => taBortRutin(id, currentUser.uid)}
-          onMarkeraGranskad={(id) => markeraGranskad(id, currentUser.uid, currentUser.email)}
-          hamtaVersioner={hamtaVersioner}
-        />
+        <div key={rutin.id} className={massval ? "sektionssida__valbar-rad" : undefined}>
+          {massval && (
+            <label className="sektionssida__valbar-kryssruta">
+              <input type="checkbox" checked={valda.includes(rutin.id)} onChange={() => vaxlaVal(rutin.id)} />
+              Markera
+            </label>
+          )}
+          <RutinKort
+            rutin={rutin}
+            allaRutiner={rutiner}
+            anvandare={anvandare}
+            farRedigera={farRedigera}
+            farGodkanna={farGodkanna}
+            onRedigera={oppnaRedigering}
+            onGodkann={(id) => godkannRutin(id, currentUser.uid, currentUser.email)}
+            onTaBort={(id) => taBortRutin(id, currentUser.uid)}
+            onMarkeraGranskad={(id) => markeraGranskad(id, currentUser.uid, currentUser.email)}
+            onAterstallVersion={(version) => hanteraAterstallVersion(rutin.id, version)}
+            hamtaVersioner={hamtaVersioner}
+          />
+        </div>
       ))}
     </div>
   );

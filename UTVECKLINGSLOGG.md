@@ -797,3 +797,100 @@ prompt-iterationer eller genom att bygga om till en riktig sökmotor-baserad lö
   att låta Gemini söka fritt och hoppas att den håller sig till instruktionen.
 - PII-filtret (personnummer-spärr + namn-varning) och den övriga säkerhetsgranskningen från
   Fas 9 är opåverkade av pausningen och förblir aktiva.
+
+## Fas 10 – Femton mindre funktioner: samarbete, adminverktyg och kvalitet
+
+**Datum:** 2026-07-14
+**Branch:** `claude/compassionate-euler-rho0q5`
+
+### Bakgrund
+
+Två raka rundor med förslag där användaren valde 15 punkter totalt att implementera direkt:
+systemstatus-widget, @omnämnanden i kommentarer, egna genvägar på startsidan, feedback-svar,
+läskvittering på anslag, PDF-export av hela sektioner, en lätt WYSIWYG-verktygsrad, sökbar
+ändringslogg, bulk-taggning, återställ tidigare version, konfigurerbar auto-utloggningstid,
+force-logout, tydligare offline-indikator, feedback-status och dubblettvarning.
+
+### Genomfört
+
+**Firestore-regler** – tre tillägg: `users/{uid}` tillåter nu självuppdatering av
+`snabblankar` utöver `favoriter`/`senasteNotisBesok`; `anslag` tillåter fältbegränsad
+`lasteAv`-uppdatering av alla inloggade (samma mönster som rutiner); `feedback` tillåter
+avsändaren att läsa sina egna inskick (`resource.data.skapadAv == request.auth.uid`) och
+superadmin att fältbegränsat uppdatera `svar`/`svarDatum`/`status`.
+
+**Samarbete på rutiner**
+- `src/components/Kommentarer.jsx` – `hittaOmnamndaUid()` matchar `@handtag` i kommentartext
+  mot användarnas e-post (delen före @), sparar träffarna som `omnamnda`-array på kommentaren.
+  `src/hooks/useNotiser.js` lyssnar på `kommentarer where omnamnda array-contains uid` och
+  slår ihop dessa med anslags-/rutinnotiserna. `anvandare`-listan skickas nu alltid ner till
+  `RutinKort`/`Kommentarer` (tidigare bara vid `farRedigera`) så mention-matchning fungerar
+  för alla, medan den redan befintliga "olästa"-listan förblir redaktörsgated.
+- `src/components/RutinFormular.jsx` – enkel WYSIWYG-lite-verktygsrad (Fet/Kursiv/Rubrik/Lista)
+  som omsluter/infogar markdown-syntax i textarean via `selectionStart`/`selectionEnd`, istället
+  för att kräva att användaren skriver markdown för hand. Inget nytt beroende.
+- `src/components/VersionsHistorik.jsx` – "Återställ den här versionen"-knapp per historisk
+  version, kopplad via en ny `onAterstall`-prop genom `RutinKort.jsx` till en handler i
+  `Sektionssida.jsx` som återanvänder `uppdateraRutin` (vilket i sin tur snapshotar det
+  nuvarande innehållet som en ny version innan återställningen skrivs, precis som vid vanlig
+  redigering).
+- `src/components/Sektionssida.jsx` – bulk-taggning: ett "☑️ Markera flera"-läge visar
+  kryssrutor bredvid varje rutinkort, en liten verktygsrad lägger till en gemensam tagg på alla
+  markerade (`Promise.all` av `uppdateraRutin`-anrop). Samma fil fick också en
+  "🖨️ Skriv ut hela sektionen"-knapp som sätter en ny body-klass `utskrift-sektion`;
+  `RutinKort.css`s utskriftsregler utökades att även dölja navigering/formulär/verktyg för det
+  nya läget men (till skillnad från den befintliga per-rutin-utskriften) visa ALLA rutinkort
+  istället för bara ett.
+
+**Anslag**
+- `src/hooks/useLaskvittering.js` + `src/components/AnslagKort.jsx` – samma
+  `lasteAv`-mönster som rutiner, egen knapp och kvitteringsräknare.
+
+**Feedback**
+- `src/hooks/useFeedback.js` – nya `FEEDBACK_STATUS`-värden (ny/under_utredning/åtgärdad/
+  avvisad), `uppdateraFeedbackStatus()`, `svaraPaFeedback()` samt en ny `useMinaFeedback(uid)`
+  för avsändarens egen vy. `src/pages/Feedback.jsx` visar nu användarens tidigare inskick med
+  status och ev. svar. `src/pages/Admin.jsx` fick en statusväljare och ett litet
+  svarsformulär per feedbackpost.
+
+**Egna genvägar på startsidan**
+- `src/hooks/useSnabblankar.js` (ny) – sparar valda genvägsnycklar på `users/{uid}.snabblankar`
+  (samma mönster som `useFavoriter.js`). `null` (inget val gjort) tolkas som "visa alla", för
+  bakåtkompatibilitet med befintliga konton. `src/pages/Hem.jsx` renderar nu listan dynamiskt;
+  `src/pages/Profil.jsx` fick en ny sektion med kryssrutor för att välja vilka som visas.
+
+**Adminverktyg**
+- `src/pages/Admin.jsx` – ny "📊 Systemstatus"-sektion (appversion, antal
+  användare/rutiner/artiklar, Gemini-budget, auto-utloggningstid). Ändringsloggen fick ett
+  sök- och typfilter (klientsidig filtrering av redan hämtade poster). Användarlistan fick en
+  "Tvinga utloggning"-knapp per användare (utom sig själv).
+- `src/hooks/useUtloggningsinstallning.js` (ny) – konfigurerbar auto-utloggningstid lagrad i
+  `installningar/utloggning.minuter` (samma collection/regelmönster som Gemini-budgeten:
+  läsbar av alla, skrivbar av superadmin). `src/hooks/useInaktivitetsUtloggning.js` tar nu emot
+  minutervärdet som parameter istället för en hårdkodad konstant.
+- `functions/index.js` – ny callable `tvingaUtloggning({userId})`: verifierar att anroparen är
+  superadmin (slår upp rollen direkt mot `users`-collectionen med Admin SDK, kringgår Firestore-
+  reglerna avsiktligt eftersom detta är en säkerhetskontroll i själva funktionen), anropar sedan
+  `admin.auth().revokeRefreshTokens(userId)`. `src/App.jsx` fick en `SessionKontroll`-komponent
+  som var 5:e minut tvingar fram en tokenförnyelse (`currentUser.getIdToken(true)`) och loggar
+  ut lokalt om den misslyckas – annars hade en redan utfärdad ID-token kunnat fortsätta fungera
+  i upp till en timme efter en påtvingad utloggning.
+
+**Övrigt**
+- `src/components/OfflineIndikator.jsx` (ny) – lyssnar på `online`/`offline`-händelser, visar en
+  sticky banner högst upp när `navigator.onLine` är falskt. Monterad globalt i `src/App.jsx`.
+- `src/components/KontaktFormular.jsx`/`LankFormular.jsx` – varnar (via `confirm()`, inte en
+  hård spärr) om en kontakt/länk med samma namn redan finns, med möjlighet att spara ändå.
+- `src/version.js` → 5.4.0, `package.json` → 5.4.0, ny post i `src/data/andringslogg.js`.
+- Verifierat: `npm run build`, `npm run lint` och `node -c` på `functions/index.js` gröna
+  genomgående under implementationen (byggdes i flera checkpoints).
+
+### Kända begränsningar / medvetna avgränsningar
+
+- Force-logout-effekten kan dröja upp till 5 minuter (kontrollintervallet i `SessionKontroll`)
+  istället för att vara omedelbar, som en avvägning mot att inte göra ett Firestore/Auth-anrop
+  vid varje interaktion.
+- Bulk-taggning stödjer bara att lägga till en tagg på flera rutiner samtidigt, inte att ta
+  bort en tagg i bulk.
+- @omnämnanden matchar mot e-postens lokala del (`namn` i `namn@domän`), inte mot visningsnamn
+  – fungerar bäst om användarna känner till varandras e-postadresser.

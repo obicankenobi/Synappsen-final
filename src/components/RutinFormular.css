@@ -78,3 +78,22 @@
   gap: 12px;
   justify-content: flex-end;
 }
+
+.rutin-formular__verktygsfalt {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.rutin-formular__verktygsfalt button {
+  padding: 6px 10px;
+  border: 1px solid var(--kant);
+  background: var(--yta);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.rutin-formular__verktygsfalt button:hover {
+  background: var(--bg);
+}

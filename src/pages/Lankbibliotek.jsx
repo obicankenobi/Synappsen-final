@@ -49,6 +49,7 @@ export default function Lankbibliotek() {
       {visaFormular && (
         <LankFormular
           initialaVarden={redigerar}
+          befintliga={lankar}
           onSpara={hanteraSpara}
           onAvbryt={() => {
             setVisaFormular(false);

@@ -18,3 +18,8 @@ export function fragaKlinisktStod(fraga) {
   const fn = httpsCallable(functions, "fragaKlinisktStod");
   return fn({ fraga });
 }
+
+export function tvingaUtloggning(userId) {
+  const fn = httpsCallable(functions, "tvingaUtloggning");
+  return fn({ userId });
+}

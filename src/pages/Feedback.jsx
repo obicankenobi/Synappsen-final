@@ -1,13 +1,25 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { useFeedback, FEEDBACK_TYPER, FEEDBACK_TYP_LABELS } from "../hooks/useFeedback";
+import {
+  useFeedback,
+  useMinaFeedback,
+  FEEDBACK_TYPER,
+  FEEDBACK_TYP_LABELS,
+  FEEDBACK_STATUS_LABELS,
+} from "../hooks/useFeedback";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import "./Feedback.css";
+
+function formateraTid(tidpunkt) {
+  if (!tidpunkt?.toDate) return "";
+  return tidpunkt.toDate().toLocaleDateString("sv-SE", { dateStyle: "medium" });
+}
 
 export default function Feedback() {
   const { currentUser } = useAuth();
   const { skickaFeedback } = useFeedback(false);
+  const minaInskick = useMinaFeedback(currentUser.uid);
   const [typ, setTyp] = useState(FEEDBACK_TYPER.FORSLAG);
   const [text, setText] = useState("");
   const [skickar, setSkickar] = useState(false);
@@ -79,6 +91,31 @@ export default function Feedback() {
             {skickar ? "Skickar..." : "Skicka"}
           </button>
         </form>
+      )}
+
+      {minaInskick.length > 0 && (
+        <section className="feedback-mina">
+          <h2>Dina tidigare inskick</h2>
+          <ul className="feedback-mina__lista">
+            {minaInskick.map((f) => (
+              <li key={f.id} className="feedback-mina__rad">
+                <div className="feedback-mina__meta">
+                  <span>{FEEDBACK_TYP_LABELS[f.typ] ?? f.typ}</span>
+                  <span>{formateraTid(f.skapad)}</span>
+                  <span className={`feedback-mina__status feedback-mina__status--${f.status ?? "ny"}`}>
+                    {FEEDBACK_STATUS_LABELS[f.status] ?? "Ny"}
+                  </span>
+                </div>
+                <p>{f.text}</p>
+                {f.svar && (
+                  <div className="feedback-mina__svar">
+                    <strong>Svar:</strong> {f.svar}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </div>
   );

@@ -7,12 +7,14 @@ import MinaUppgifter from "../components/MinaUppgifter";
 import { useAuth } from "../hooks/useAuth";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
 import { usePopularaste } from "../hooks/useVisningar";
+import { useSnabblankar } from "../hooks/useSnabblankar";
 import { ROLE_LABELS } from "../firebase/roles";
 
 export default function Hem() {
   const { currentUser, role, loggaUt } = useAuth();
   const favoritPoster = useMinaFavoritPoster();
   const populara = usePopularaste(5);
+  const { synliga: snabblankar } = useSnabblankar(currentUser?.uid);
 
   // Tangentbordsgenväg: tryck "/" var som helst på sidan för att hoppa till sökfältet,
   // utom när man redan skriver i ett annat fält.
@@ -53,14 +55,11 @@ export default function Hem() {
       </header>
 
       <nav className="hem__snabblankar">
-        <Link to="/anslag">📢 Anslagstavla</Link>
-        <Link to="/nyheter">🆕 Nyheter</Link>
-        <Link to="/feedback">💬 Feedback</Link>
-        <Link to="/hjalp">❓ Hjälp</Link>
-        <Link to="/profil">👤 Min profil</Link>
-        <Link to="/kontakter">☎️ Kontakter</Link>
-        <Link to="/lankbibliotek">🔗 Länkbibliotek</Link>
-        <Link to="/papperskorg">🗑️ Papperskorg</Link>
+        {snabblankar.map((s) => (
+          <Link key={s.nyckel} to={s.sokvag}>
+            {s.ikon} {s.namn}
+          </Link>
+        ))}
       </nav>
 
       <SokFalt />

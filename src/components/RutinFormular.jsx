@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { RUTIN_MALLAR } from "../data/rutinmallar";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import "./RutinFormular.css";
 
 export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSpara, onAvbryt }) {
+  const innehallRef = useRef(null);
   const [titel, setTitel] = useState(initialaVarden?.titel ?? "");
   const [innehall, setInnehall] = useState(initialaVarden?.innehall ?? "");
   const [referenser, setReferenser] = useState(initialaVarden?.referenser ?? "");
@@ -31,6 +32,35 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
 
   function vaxlaRelaterad(id) {
     setRelaterade((r) => (r.includes(id) ? r.filter((x) => x !== id) : [...r, id]));
+  }
+
+  // Enkel "WYSIWYG-lite"-verktygsrad: knapparna omsluter/infogar markdown-syntax i textarean
+  // istället för att kräva att användaren skriver **fet text** m.m. för hand.
+  function omslutMarkering(prefix, suffix = prefix) {
+    const el = innehallRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const markerat = innehall.slice(start, end) || "text";
+    const nyttInnehall = innehall.slice(0, start) + prefix + markerat + suffix + innehall.slice(end);
+    setInnehall(nyttInnehall);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + prefix.length, start + prefix.length + markerat.length);
+    });
+  }
+
+  function infogaRadprefix(prefix) {
+    const el = innehallRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const radStart = innehall.lastIndexOf("\n", start - 1) + 1;
+    const nyttInnehall = innehall.slice(0, radStart) + prefix + innehall.slice(radStart);
+    setInnehall(nyttInnehall);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + prefix.length, start + prefix.length);
+    });
   }
 
   const harBilagor = nyaFiler.length > 0 || befintligaBilagor.length > 0;
@@ -96,13 +126,29 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
 
       <label>
         Innehåll {!harBilagor && "(krävs om ingen bilaga bifogas)"}
+        <div className="rutin-formular__verktygsfalt">
+          <button type="button" onClick={() => omslutMarkering("**")} title="Fet text">
+            <strong>F</strong>
+          </button>
+          <button type="button" onClick={() => omslutMarkering("*")} title="Kursiv">
+            <em>K</em>
+          </button>
+          <button type="button" onClick={() => infogaRadprefix("# ")} title="Rubrik">
+            H1
+          </button>
+          <button type="button" onClick={() => infogaRadprefix("- ")} title="Punktlista">
+            • Lista
+          </button>
+        </div>
         <textarea
+          ref={innehallRef}
           rows={6}
           value={innehall}
           onChange={(e) => setInnehall(e.target.value)}
         />
         <span className="rutin-formular__hjalptext">
-          Stöd för enkel textformatering: **fet text**, *kursiv*, # Rubrik, - punktlista
+          Markera text och klicka F/K för att formatera, eller skriv markdown för hand: **fet
+          text**, *kursiv*, # Rubrik, - punktlista
         </span>
       </label>
       <label>

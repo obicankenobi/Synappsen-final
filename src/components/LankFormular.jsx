@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./KontaktFormular.css";
 
-export default function LankFormular({ initialaVarden, onSpara, onAvbryt }) {
+export default function LankFormular({ initialaVarden, befintliga = [], onSpara, onAvbryt }) {
   const [titel, setTitel] = useState(initialaVarden?.titel ?? "");
   const [url, setUrl] = useState(initialaVarden?.url ?? "");
   const [kategori, setKategori] = useState(initialaVarden?.kategori ?? "");
@@ -10,6 +10,10 @@ export default function LankFormular({ initialaVarden, onSpara, onAvbryt }) {
 
   async function hanteraSubmit(e) {
     e.preventDefault();
+    const dubblett = befintliga.some(
+      (l) => l.id !== initialaVarden?.id && l.titel.trim().toLowerCase() === titel.trim().toLowerCase()
+    );
+    if (dubblett && !confirm(`En länk med titeln "${titel}" finns redan. Spara ändå?`)) return;
     setSparar(true);
     try {
       await onSpara({ titel, url, kategori, beskrivning });

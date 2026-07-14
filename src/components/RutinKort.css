@@ -172,7 +172,17 @@
   body.utskrift-lage .rutin-kort__verktyg,
   body.utskrift-lage .rutin-kort__qr,
   body.utskrift-lage h1,
-  body.utskrift-lage .sida__beskrivning {
+  body.utskrift-lage .sida__beskrivning,
+  body.utskrift-sektion .bottom-nav,
+  body.utskrift-sektion .rutin-formular,
+  body.utskrift-sektion .forrad-vy__bulkatgarder,
+  body.utskrift-sektion .rutin-kort__atgarder,
+  body.utskrift-sektion .rutin-kort__laskvittering,
+  body.utskrift-sektion .rutin-kort__olasta-lista,
+  body.utskrift-sektion .kommentarer,
+  body.utskrift-sektion .rutin-kort__verktyg,
+  body.utskrift-sektion .rutin-kort__qr,
+  body.utskrift-sektion .sektionssida__taggfilter {
     display: none !important;
   }
 
@@ -180,8 +190,10 @@
     display: none !important;
   }
 
-  body.utskrift-lage .rutin-kort--utskrift {
+  body.utskrift-lage .rutin-kort--utskrift,
+  body.utskrift-sektion .rutin-kort {
     border: none;
     box-shadow: none;
+    break-inside: avoid;
   }
 }

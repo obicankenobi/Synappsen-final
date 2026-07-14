@@ -560,3 +560,24 @@ godkända domänerna nedan – ingen annan källa accepteras denna gång.
     return { svar, kallor };
   }
 );
+
+// Tvingar utloggning av en användare genom att återkalla dess refresh-tokens (Admin SDK).
+// Klientens nästa tokenförnyelse (eller sidladdning) gör att den loggas ut automatiskt.
+// En redan hämtad ID-token kan fortsätta fungera i upp till ~1 timme tills den löper ut.
+exports.tvingaUtloggning = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringarensRoll = (await db.collection("users").doc(request.auth.uid).get()).data()?.role;
+  if (uppringarensRoll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan tvinga utloggning.");
+  }
+
+  const { userId } = request.data ?? {};
+  if (!userId) {
+    throw new HttpsError("invalid-argument", "userId krävs.");
+  }
+
+  await admin.auth().revokeRefreshTokens(userId);
+  return { ok: true };
+});

@@ -2,11 +2,10 @@
 // datorer/surfplattor på en akutmottagning. Varnar en kort stund innan utloggningen sker.
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const INAKTIV_MINUTER = 20;
 const VARNING_MINUTER = 1;
 const HANDELSER = ["mousemove", "keydown", "touchstart", "click", "scroll"];
 
-export function useInaktivitetsUtloggning(aktiv, loggaUt) {
+export function useInaktivitetsUtloggning(aktiv, loggaUt, inaktivMinuter = 20) {
   const [visaVarning, setVisaVarning] = useState(false);
   const varningTimer = useRef(null);
   const utloggningTimer = useRef(null);
@@ -16,11 +15,12 @@ export function useInaktivitetsUtloggning(aktiv, loggaUt) {
     clearTimeout(varningTimer.current);
     clearTimeout(utloggningTimer.current);
     if (!aktiv) return;
+    const vantetidMinuter = Math.max(inaktivMinuter - VARNING_MINUTER, 0.5);
     varningTimer.current = setTimeout(() => {
       setVisaVarning(true);
       utloggningTimer.current = setTimeout(loggaUt, VARNING_MINUTER * 60 * 1000);
-    }, (INAKTIV_MINUTER - VARNING_MINUTER) * 60 * 1000);
-  }, [aktiv, loggaUt]);
+    }, vantetidMinuter * 60 * 1000);
+  }, [aktiv, loggaUt, inaktivMinuter]);
 
   const nollstall = useCallback(() => {
     setVisaVarning(false);

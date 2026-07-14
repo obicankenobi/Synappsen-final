@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./KontaktFormular.css";
 
-export default function KontaktFormular({ initialaVarden, onSpara, onAvbryt }) {
+export default function KontaktFormular({ initialaVarden, befintliga = [], onSpara, onAvbryt }) {
   const [namn, setNamn] = useState(initialaVarden?.namn ?? "");
   const [nummer, setNummer] = useState(initialaVarden?.nummer ?? "");
   const [kategori, setKategori] = useState(initialaVarden?.kategori ?? "");
@@ -10,6 +10,10 @@ export default function KontaktFormular({ initialaVarden, onSpara, onAvbryt }) {
 
   async function hanteraSubmit(e) {
     e.preventDefault();
+    const dubblett = befintliga.some(
+      (k) => k.id !== initialaVarden?.id && k.namn.trim().toLowerCase() === namn.trim().toLowerCase()
+    );
+    if (dubblett && !confirm(`En kontakt med namnet "${namn}" finns redan. Spara ändå?`)) return;
     setSparar(true);
     try {
       await onSpara({ namn, nummer, kategori, beskrivning });

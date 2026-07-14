@@ -382,3 +382,30 @@ h1 {
   color: var(--primar-mork);
   font-weight: 600;
 }
+
+.sektionssida__topatgarder {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.sektionssida__valbar-rad {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sektionssida__valbar-rad > .rutin-kort {
+  flex: 1;
+}
+
+.sektionssida__valbar-kryssruta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 18px;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  white-space: nowrap;
+}

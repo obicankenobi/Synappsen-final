@@ -58,9 +58,15 @@ function DiffVy({ rader }) {
   );
 }
 
-export default function VersionsHistorik({ hamtaVersioner, nuvarandeInnehall, onStang }) {
+export default function VersionsHistorik({ hamtaVersioner, nuvarandeInnehall, onAterstall, onStang }) {
   const [versioner, setVersioner] = useState(null);
   const [visarDiff, setVisarDiff] = useState(null);
+
+  async function hanteraAterstall(v) {
+    if (!confirm(`Återställa till versionen från ${formateraTid(v.sparadVersionTidpunkt)}?`)) return;
+    await onAterstall(v);
+    onStang();
+  }
 
   useEffect(() => {
     let aktiv = true;
@@ -94,13 +100,18 @@ export default function VersionsHistorik({ hamtaVersioner, nuvarandeInnehall, on
             ) : (
               <p>{v.innehall}</p>
             )}
-            <button
-              type="button"
-              className="knapp--lank"
-              onClick={() => setVisarDiff((aktuell) => (aktuell === v.id ? null : v.id))}
-            >
-              {visarDiff === v.id ? "Visa vanlig text" : "Visa ändringar sedan denna version"}
-            </button>
+            <div className="versionshistorik__post-atgarder">
+              <button
+                type="button"
+                className="knapp--lank"
+                onClick={() => setVisarDiff((aktuell) => (aktuell === v.id ? null : v.id))}
+              >
+                {visarDiff === v.id ? "Visa vanlig text" : "Visa ändringar sedan denna version"}
+              </button>
+              <button type="button" className="knapp knapp--sekundar knapp--liten" onClick={() => hanteraAterstall(v)}>
+                Återställ den här versionen
+              </button>
+            </div>
           </article>
         ))}
       </div>

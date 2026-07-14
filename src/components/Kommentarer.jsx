@@ -4,6 +4,16 @@ import { useKommentarer } from "../hooks/useKommentarer";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import "./Kommentarer.css";
 
+// Matchar @handtag i texten mot användarnas e-post (delen före @), t.ex. "@anna.andersson"
+// mot "anna.andersson@sjukhus.se". Returnerar uid:n för de som blev omnämnda.
+function hittaOmnamndaUid(text, anvandare) {
+  const handtag = [...text.matchAll(/@([a-zA-Z0-9._-]+)/g)].map((m) => m[1].toLowerCase());
+  if (handtag.length === 0) return [];
+  return anvandare
+    .filter((a) => a.email && handtag.includes(a.email.split("@")[0].toLowerCase()))
+    .map((a) => a.id);
+}
+
 function formateraTid(tidpunkt) {
   if (!tidpunkt?.toDate) return "";
   return tidpunkt.toDate().toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" });
@@ -43,7 +53,7 @@ function KommentarRad({ kommentar, svar, currentUser, farTaBortAlla, taBortKomme
   );
 }
 
-export default function Kommentarer({ rutinId, farTaBortAlla }) {
+export default function Kommentarer({ rutinId, farTaBortAlla, anvandare = [] }) {
   const { currentUser } = useAuth();
   const { kommentarer, skapaKommentar, taBortKommentar } = useKommentarer(rutinId);
   const [oppen, setOppen] = useState(false);
@@ -69,6 +79,7 @@ export default function Kommentarer({ rutinId, farTaBortAlla }) {
         skapadAv: currentUser.uid,
         skapadAvNamn: currentUser.email,
         svarPa: svararPa,
+        omnamnda: hittaOmnamndaUid(text, anvandare),
       });
       setText("");
       setSvararPa(null);
@@ -109,7 +120,7 @@ export default function Kommentarer({ rutinId, farTaBortAlla }) {
             )}
             <textarea
               rows={2}
-              placeholder="Skriv en kommentar eller fråga..."
+              placeholder="Skriv en kommentar eller fråga... (@anvandarnamn för att nämna någon)"
               value={text}
               onChange={(e) => setText(e.target.value)}
             />

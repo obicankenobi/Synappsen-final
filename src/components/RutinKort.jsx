@@ -43,6 +43,7 @@ export default function RutinKort({
   onGodkann,
   onTaBort,
   onMarkeraGranskad,
+  onAterstallVersion,
   hamtaVersioner,
 }) {
   const { currentUser } = useAuth();
@@ -227,12 +228,13 @@ export default function RutinKort({
 
       <PrivatAnteckning rutinId={rutin.id} />
 
-      <Kommentarer rutinId={rutin.id} farTaBortAlla={farRedigera} />
+      <Kommentarer rutinId={rutin.id} farTaBortAlla={farRedigera} anvandare={anvandare} />
 
       {visaHistorik && (
         <VersionsHistorik
           hamtaVersioner={() => hamtaVersioner(rutin.id)}
           nuvarandeInnehall={rutin.innehall}
+          onAterstall={(v) => onAterstallVersion(v)}
           onStang={() => setVisaHistorik(false)}
         />
       )}

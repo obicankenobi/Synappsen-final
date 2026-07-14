@@ -66,6 +66,7 @@ export default function Kontakter() {
       {visaFormular && (
         <KontaktFormular
           initialaVarden={redigerar}
+          befintliga={kontakter}
           onSpara={hanteraSpara}
           onAvbryt={() => {
             setVisaFormular(false);
