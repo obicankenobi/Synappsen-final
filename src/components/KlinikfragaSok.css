@@ -54,3 +54,14 @@
   margin: 4px 0 0;
   padding-left: 20px;
 }
+
+.klinikfraga__feedback {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--kant);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text-svag);
+}

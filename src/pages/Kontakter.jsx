@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useKontakter } from "../hooks/useKontakter";
 import { KAN_HANTERA_ANSLAG } from "../firebase/roles";
 import KontaktFormular from "../components/KontaktFormular";
+import Skelett from "../components/Skelett";
 import "./Kontakter.css";
 
 export default function Kontakter() {
@@ -75,7 +76,7 @@ export default function Kontakter() {
         />
       )}
 
-      {laddar && <p className="sida__beskrivning">Laddar...</p>}
+      {laddar && <Skelett />}
       {!laddar && grupperade.length === 0 && (
         <div className="platshallare">
           <p>Inga kontakter registrerade ännu.</p>

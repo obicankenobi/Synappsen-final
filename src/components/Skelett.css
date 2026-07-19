@@ -1,0 +1,51 @@
+.skelett-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.skelett-kort {
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.skelett-rad {
+  height: 12px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--bg) 25%, var(--kant) 50%, var(--bg) 75%);
+  background-size: 200% 100%;
+  animation: skelett-glans 1.4s ease-in-out infinite;
+}
+
+.skelett-rad:last-child {
+  margin-bottom: 0;
+}
+
+.skelett-rad--titel {
+  height: 16px;
+  width: 45%;
+}
+
+.skelett-rad--kort {
+  width: 65%;
+}
+
+@keyframes skelett-glans {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skelett-rad {
+    animation: none;
+  }
+}

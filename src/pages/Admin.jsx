@@ -14,7 +14,7 @@ import { useRutiner } from "../hooks/useRutiner";
 import { useAnslag } from "../hooks/useAnslag";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { useUtloggningsinstallning } from "../hooks/useUtloggningsinstallning";
-import { tvingaUtloggning } from "../firebase/functions";
+import { tvingaUtloggning, testaBeroenden } from "../firebase/functions";
 import { APP_VERSION } from "../version";
 import { ROLES, ROLE_LABELS } from "../firebase/roles";
 import "./Admin.css";
@@ -55,6 +55,21 @@ export default function Admin() {
   const [nyttTak, setNyttTak] = useState("");
   const [nyaUtloggningMinuter, setNyaUtloggningMinuter] = useState("");
   const [loggarUtAnvandare, setLoggarUtAnvandare] = useState(null);
+  const [beroendeStatus, setBeroendeStatus] = useState(null);
+  const [testarBeroenden, setTestarBeroenden] = useState(false);
+
+  async function hanteraTestaBeroenden() {
+    setTestarBeroenden(true);
+    setBeroendeStatus(null);
+    try {
+      const { data } = await testaBeroenden();
+      setBeroendeStatus(data);
+    } catch (fel) {
+      setBeroendeStatus({ fel: fel.message ?? "Testet misslyckades." });
+    } finally {
+      setTestarBeroenden(false);
+    }
+  }
   const [svarUtkast, setSvarUtkast] = useState({});
   const [auditSok, setAuditSok] = useState("");
   const [auditTypFilter, setAuditTypFilter] = useState("");
@@ -223,6 +238,34 @@ export default function Admin() {
               </p>
             )}
             <p className="sida__beskrivning">Auto-utloggning: {utloggningMinuter} min inaktivitet</p>
+          </div>
+
+          <div className="admin-beroendetest">
+            <button
+              className="knapp knapp--sekundar knapp--liten"
+              onClick={hanteraTestaBeroenden}
+              disabled={testarBeroenden}
+            >
+              {testarBeroenden ? "Testar..." : "🔌 Testa anslutningar"}
+            </button>
+            {beroendeStatus?.fel && <p className="klinikfraga__fel">{beroendeStatus.fel}</p>}
+            {beroendeStatus && !beroendeStatus.fel && (
+              <ul className="admin-beroendetest__lista">
+                {[
+                  ["Gemini (AI-tolkning/klinikstöd)", beroendeStatus.gemini],
+                  ["Sökmotor (klinikstöd-källor)", beroendeStatus.sokmotor],
+                  ["Storage (uppladdade bilder)", beroendeStatus.storage],
+                ].map(([namn, status]) => (
+                  <li key={namn}>
+                    <span className={status.ok ? "admin-beroendetest__punkt--ok" : "admin-beroendetest__punkt--fel"}>
+                      {status.ok ? "🟢" : "🔴"}
+                    </span>{" "}
+                    {namn}
+                    {!status.ok && status.fel && <span> – {status.fel}</span>}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </section>
       )}

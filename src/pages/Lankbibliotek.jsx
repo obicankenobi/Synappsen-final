@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useLankbibliotek } from "../hooks/useLankbibliotek";
 import { KAN_HANTERA_ANSLAG } from "../firebase/roles";
 import LankFormular from "../components/LankFormular";
+import Skelett from "../components/Skelett";
 import "./Kontakter.css";
 
 export default function Lankbibliotek() {
@@ -58,7 +59,7 @@ export default function Lankbibliotek() {
         />
       )}
 
-      {laddar && <p className="sida__beskrivning">Laddar...</p>}
+      {laddar && <Skelett />}
       {!laddar && grupperade.length === 0 && (
         <div className="platshallare">
           <p>Inga länkar registrerade ännu.</p>

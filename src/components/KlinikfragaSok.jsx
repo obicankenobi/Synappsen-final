@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { fragaKlinisktStod } from "../firebase/functions";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
+import { skickaKlinikfrageFeedback } from "../hooks/useKlinikfrageFeedback";
+import { useAuth } from "../hooks/useAuth";
 import "./KlinikfragaSok.css";
 
 // Återaktiverad (2026-07-14, Fas 13): byggdes om att söka via en riktig domänbegränsad
@@ -11,10 +13,13 @@ import "./KlinikfragaSok.css";
 const PAUSAD = false;
 
 export default function KlinikfragaSok() {
+  const { currentUser } = useAuth();
   const [fraga, setFraga] = useState("");
+  const [stalldFraga, setStalldFraga] = useState("");
   const [laddar, setLaddar] = useState(false);
   const [svar, setSvar] = useState(null);
   const [fel, setFel] = useState(null);
+  const [feedbackGiven, setFeedbackGiven] = useState(null);
 
   async function hanteraSubmit(e) {
     e.preventDefault();
@@ -27,13 +32,24 @@ export default function KlinikfragaSok() {
     setLaddar(true);
     setSvar(null);
     setFel(null);
+    setFeedbackGiven(null);
     try {
       const { data } = await fragaKlinisktStod(fraga.trim());
       setSvar(data);
+      setStalldFraga(fraga.trim());
     } catch (e2) {
       setFel(e2.message ?? "Något gick fel. Försök igen.");
     } finally {
       setLaddar(false);
+    }
+  }
+
+  async function hanteraFeedback(hjalpsam) {
+    setFeedbackGiven(hjalpsam);
+    try {
+      await skickaKlinikfrageFeedback(stalldFraga, hjalpsam, currentUser?.uid);
+    } catch {
+      // Feedback är valfri statistik – misslyckad skrivning ska inte visa fel för användaren.
     }
   }
 
@@ -91,6 +107,21 @@ export default function KlinikfragaSok() {
                 </li>
               ))}
             </ul>
+          </div>
+          <div className="klinikfraga__feedback">
+            {feedbackGiven === null ? (
+              <>
+                <span>Var detta hjälpsamt?</span>
+                <button type="button" className="knapp--lank" onClick={() => hanteraFeedback(true)}>
+                  👍 Ja
+                </button>
+                <button type="button" className="knapp--lank" onClick={() => hanteraFeedback(false)}>
+                  👎 Nej
+                </button>
+              </>
+            ) : (
+              <span>Tack för din feedback!</span>
+            )}
           </div>
         </div>
       )}

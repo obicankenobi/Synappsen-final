@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useAnvandare } from "../hooks/useAnvandare";
 import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
@@ -6,6 +6,8 @@ import { laddaUppRutinBilagor } from "../firebase/storage";
 import RutinFormular from "./RutinFormular";
 import RutinKort from "./RutinKort";
 import { arUtgangen } from "../utils/rutinHjalp";
+import Skelett from "./Skelett";
+import { registreraBesok } from "../utils/senastBesokta";
 
 export default function Sektionssida({
   omrade,
@@ -36,6 +38,27 @@ export default function Sektionssida({
     : rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND && !arUtgangen(r));
 
   const utkastRutiner = synligaRutiner.filter((r) => r.status === RUTIN_STATUS.UTKAST);
+
+  // "Senast besökta"-spårning (Hem.jsx): registrerar den rutin URL:ens hash pekar på, oavsett
+  // om användaren kom via sökning, en notis, en QR-länk eller en direkt bokmärkt URL. Lyssnar
+  // även på hashchange eftersom navigering mellan rutiner på SAMMA sida (t.ex. två sökträffar
+  // i samma område) bara ändrar hash, utan att sidan (och därmed detta useEffect) monteras om.
+  const senastRegistreradHash = useRef(null);
+  useEffect(() => {
+    function kollaHash() {
+      const hash = window.location.hash;
+      if (!hash || hash === senastRegistreradHash.current) return;
+      const match = hash.match(/^#rutin-(.+)$/);
+      if (!match) return;
+      const rutin = synligaRutiner.find((r) => r.id === match[1]);
+      if (!rutin) return;
+      senastRegistreradHash.current = hash;
+      registreraBesok({ id: rutin.id, titel: rutin.titel, sokvag: `${window.location.pathname}${hash}` });
+    }
+    kollaHash();
+    window.addEventListener("hashchange", kollaHash);
+    return () => window.removeEventListener("hashchange", kollaHash);
+  }, [synligaRutiner]);
 
   const allaTaggar = useMemo(() => {
     const set = new Set();
@@ -271,7 +294,7 @@ export default function Sektionssida({
         </div>
       )}
 
-      {laddar && <p className="sida__beskrivning">Laddar...</p>}
+      {laddar && <Skelett />}
 
       {!laddar && filtreradeRutiner.length === 0 && (
         <div className="platshallare">

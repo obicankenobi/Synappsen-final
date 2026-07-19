@@ -684,3 +684,69 @@ exports.skickaFeedback = onCall({ region: "europe-west1" }, async (request) => {
   });
   return { id: ref.id };
 });
+
+// Beroende-statustest för adminpanelen: pingar Gemini, den programmerbara sökmotorn och
+// Storage var för sig så en trasig nyckel/konfiguration upptäcks av admin direkt istället för
+// först när en användare stöter på ett fel. Görs INTE mot budgeten (manuellt, sällan använt,
+// minimala anrop) – bara ett kort "OK"-svar från Gemini resp. en enda sökträff.
+exports.testaBeroenden = onCall(
+  { secrets: [GEMINI_API_KEY, SOKMOTOR_API_KEY], region: "europe-west1", timeoutSeconds: 30 },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+    }
+    const roll = (await db.collection("users").doc(request.auth.uid).get()).data()?.role;
+    if (roll !== "superadmin") {
+      throw new HttpsError("permission-denied", "Endast superadmin kan testa anslutningar.");
+    }
+
+    async function testaGemini() {
+      try {
+        const svar = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ parts: [{ text: "Svara med endast ordet OK." }] }] }),
+            signal: AbortSignal.timeout(10000),
+          }
+        );
+        return svar.ok
+          ? { ok: true }
+          : { ok: false, fel: `HTTP ${svar.status}` };
+      } catch (fel) {
+        return { ok: false, fel: fel.message };
+      }
+    }
+
+    async function testaSokmotor() {
+      try {
+        const url = new URL("https://www.googleapis.com/customsearch/v1");
+        url.searchParams.set("key", SOKMOTOR_API_KEY.value());
+        url.searchParams.set("cx", SOKMOTOR_CX);
+        url.searchParams.set("q", "test");
+        url.searchParams.set("num", "1");
+        const svar = await fetch(url, { signal: AbortSignal.timeout(10000) });
+        return svar.ok ? { ok: true } : { ok: false, fel: `HTTP ${svar.status}` };
+      } catch (fel) {
+        return { ok: false, fel: fel.message };
+      }
+    }
+
+    async function testaStorage() {
+      try {
+        await bucket.getMetadata();
+        return { ok: true };
+      } catch (fel) {
+        return { ok: false, fel: fel.message };
+      }
+    }
+
+    const [gemini, sokmotor, storage] = await Promise.all([
+      testaGemini(),
+      testaSokmotor(),
+      testaStorage(),
+    ]);
+    return { gemini, sokmotor, storage };
+  }
+);

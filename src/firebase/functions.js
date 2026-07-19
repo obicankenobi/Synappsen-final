@@ -33,3 +33,8 @@ export function skickaFeedback({ typ, text }) {
   const fn = httpsCallable(functions, "skickaFeedback");
   return fn({ typ, text });
 }
+
+export function testaBeroenden() {
+  const fn = httpsCallable(functions, "testaBeroenden");
+  return fn();
+}

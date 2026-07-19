@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { RUTIN_MALLAR } from "../data/rutinmallar";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
+import MarkdownInnehall from "./MarkdownInnehall";
 import "./RutinFormular.css";
 
 export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSpara, onAvbryt }) {
@@ -14,6 +15,7 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
   const [nyaFiler, setNyaFiler] = useState([]);
   const [befintligaBilagor, setBefintligaBilagor] = useState(initialaVarden?.bilagor ?? []);
   const [sparar, setSparar] = useState(false);
+  const [visaForhandsvisning, setVisaForhandsvisning] = useState(false);
 
   function valjMall(namn) {
     const mall = RUTIN_MALLAR.find((m) => m.namn === namn);
@@ -139,13 +141,25 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
           <button type="button" onClick={() => infogaRadprefix("- ")} title="Punktlista">
             • Lista
           </button>
+          <button
+            type="button"
+            className={visaForhandsvisning ? "rutin-formular__verktygsfalt-knapp--vald" : ""}
+            onClick={() => setVisaForhandsvisning((v) => !v)}
+            title="Förhandsgranska"
+          >
+            👁️ Förhandsgranska
+          </button>
         </div>
-        <textarea
-          ref={innehallRef}
-          rows={6}
-          value={innehall}
-          onChange={(e) => setInnehall(e.target.value)}
-        />
+        {visaForhandsvisning ? (
+          <MarkdownInnehall className="rutin-formular__forhandsvisning" text={innehall} />
+        ) : (
+          <textarea
+            ref={innehallRef}
+            rows={6}
+            value={innehall}
+            onChange={(e) => setInnehall(e.target.value)}
+          />
+        )}
         <span className="rutin-formular__hjalptext">
           Markera text och klicka F/K för att formatera, eller skriv markdown för hand: **fet
           text**, *kursiv*, # Rubrik, - punktlista

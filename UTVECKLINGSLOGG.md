@@ -1198,3 +1198,35 @@ skelettladdning. Alla är fortsatt bra kandidater för nästa fas.
 
 **Verifiering:** build, lint, test (10/10) och `node -c functions/index.js` gröna.
 `src/version.js`/`package.json` → 5.7.0, ny post i andringslogg.
+
+## Fas 15 – Femton-punkter-listans första fem (5.8.0)
+
+Fortsättning på FRAMTIDSPLAN.md "Närmast"-listan. Alla fem klara.
+
+- **Hjälpsamt-knapp:** `klinikfragefeedback`-collection (create-only för egen uid, läsbar
+  bara av superadmin). `KlinikfragaSok.jsx` visar 👍/👎 efter ett svar; tyst felhantering
+  eftersom det bara är statistik, inte kritisk funktionalitet.
+- **Beroende-statustest:** ny `testaBeroenden`-callable (superadmin-only) som pingar Gemini
+  (minimal "svara OK"-prompt), sökmotorn (en sökträff) och Storage (`bucket.getMetadata()`)
+  parallellt med `Promise.all`. Körs INTE mot Gemini-budgeten – manuellt, sällan använt,
+  försumbar kostnad. Ny knapp i adminpanelens Systemstatus-sektion med 🟢/🔴 per tjänst.
+- **Markdown-förhandsvisning:** ny knapp i `RutinFormular.jsx`s verktygsrad växlar mellan
+  textarean och `MarkdownInnehall`-rendering av samma innehåll.
+- **Senast besökta:** `src/utils/senastBesokta.js` (ren `localStorage`, per enhet – inget
+  konto-synkat). `Sektionssida.jsx` registrerar ett besök när URL:ens hash matchar
+  `#rutin-{id}` för en rutin i den aktuella listan – täcker sökträffar, notislänkar,
+  QR-länkar och direkta bokmärken i ett enda ställe. Lyssnar även på `hashchange` eftersom
+  navigering mellan två rutiner på samma sida inte monterar om komponenten.
+- **Skelettladdning:** ny generisk `Skelett`-komponent (tre pulserande platshållarkort),
+  ersätter "Laddar..."-texten i de fem mest besökta listvyerna (rutiner, förråd, anslag,
+  kontakter, länkbibliotek). `Admin.jsx`/`App.jsx`/`Skiftrapport.jsx`/`VersionsHistorik.jsx`
+  lämnades oförändrade (lägre trafik, redan snabba) för att hålla ändringen avgränsad.
+
+**Verifiering:** build, lint, test (10/10) och `node -c functions/index.js` gröna.
+`src/version.js`/`package.json` → 5.8.0, ny post i andringslogg.
+
+### Kvarstående från FRAMTIDSPLAN.md
+
+Kort sikt: rutinägare, schemalagd backup, dödlänk-kontroll, riktig offline-åtkomst
+(IndexedDB). Medellång sikt: tvinga 2FA, PDF-export av kunskapsbasen, kiosk-läge,
+pilotutvärdering. Se FRAMTIDSPLAN.md för fullständig lista och motivering.

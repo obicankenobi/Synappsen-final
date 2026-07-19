@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import SokFalt from "../components/SokFalt";
 import SektionsKort from "../components/SektionsKort";
@@ -9,12 +9,16 @@ import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
 import { usePopularaste } from "../hooks/useVisningar";
 import { useSnabblankar } from "../hooks/useSnabblankar";
 import { ROLE_LABELS } from "../firebase/roles";
+import { lasSenastBesokta } from "../utils/senastBesokta";
 
 export default function Hem() {
   const { currentUser, role, loggaUt } = useAuth();
   const favoritPoster = useMinaFavoritPoster();
   const populara = usePopularaste(5);
   const { synliga: snabblankar } = useSnabblankar(currentUser?.uid);
+  // Lazy useState-init (körs en gång vid montering) istället för useEffect+useState, eftersom
+  // localStorage inte ändras av något annat i appen medan Hem är monterad.
+  const [senastBesokta] = useState(() => lasSenastBesokta());
 
   // Tangentbordsgenväg: tryck "/" var som helst på sidan för att hoppa till sökfältet,
   // utom när man redan skriver i ett annat fält.
@@ -72,6 +76,19 @@ export default function Hem() {
           <ul className="hem__lista">
             {favoritPoster.map((p, i) => (
               <li key={i}>
+                <Link to={p.sokvag}>{p.titel}</Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {senastBesokta.length > 0 && (
+        <section className="hem__sektion">
+          <h2>🕓 Senast besökta</h2>
+          <ul className="hem__lista">
+            {senastBesokta.map((p) => (
+              <li key={p.id}>
                 <Link to={p.sokvag}>{p.titel}</Link>
               </li>
             ))}

@@ -168,6 +168,13 @@ service cloud.firestore {
       allow create: if false;
     }
 
+    // klinikfragefeedback/{id} – "var detta hjälpsamt?"-svar på klinikstöd-sökningen.
+    match /klinikfragefeedback/{feedbackId} {
+      allow read: if arSuperadmin();
+      allow create: if arInloggad() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
     // klinikfrageloggar/{loggId} – frågor ställda till klinikstöd-sökningen (utan uid).
     // Skrivs endast av Cloud Function (Admin SDK). Endast superadmin kan läsa listan.
     match /klinikfrageloggar/{loggId} {

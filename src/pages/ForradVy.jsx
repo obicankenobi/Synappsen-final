@@ -7,6 +7,7 @@ import { FORRAD_SLUGS } from "../firebase/forrad";
 import { KAN_HANTERA_FORRAD } from "../firebase/roles";
 import ForradArtikelFormular from "../components/ForradArtikelFormular";
 import ForradArtikelKort from "../components/ForradArtikelKort";
+import Skelett from "../components/Skelett";
 
 export default function ForradVy() {
   const { forradSlug } = useParams();
@@ -104,7 +105,7 @@ export default function ForradVy() {
         </div>
       )}
 
-      {laddar && <p className="sida__beskrivning">Laddar...</p>}
+      {laddar && <Skelett />}
 
       {!laddar && sorterade.length === 0 && (
         <div className="platshallare">

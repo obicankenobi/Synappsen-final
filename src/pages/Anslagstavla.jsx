@@ -6,6 +6,7 @@ import { useAnvandare } from "../hooks/useAnvandare";
 import { KAN_HANTERA_ANSLAG } from "../firebase/roles";
 import AnslagFormular from "../components/AnslagFormular";
 import AnslagKort from "../components/AnslagKort";
+import Skelett from "../components/Skelett";
 
 export default function Anslagstavla() {
   const { currentUser, role } = useAuth();
@@ -54,7 +55,7 @@ export default function Anslagstavla() {
         />
       )}
 
-      {laddar && <p className="sida__beskrivning">Laddar...</p>}
+      {laddar && <Skelett />}
 
       {!laddar && anslag.length === 0 && (
         <div className="platshallare">

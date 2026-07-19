@@ -97,3 +97,17 @@
 .rutin-formular__verktygsfalt button:hover {
   background: var(--bg);
 }
+
+.rutin-formular__verktygsfalt-knapp--vald {
+  background: var(--primar) !important;
+  color: #fff;
+  border-color: var(--primar) !important;
+}
+
+.rutin-formular__forhandsvisning {
+  min-height: 132px;
+  padding: 8px 10px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  background: var(--bg);
+}
