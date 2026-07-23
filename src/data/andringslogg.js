@@ -3,6 +3,15 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.9.0",
+    datum: "2026-07-14",
+    andringar: [
+      "Rutiner kan nu få en ansvarig person – antingen en roll (alla med den rollen räknas som ansvariga) eller en specifik namngiven person, oavsett roll",
+      "Ny verifieringsfunktion i adminpanelen som kör testfrågor genom klinikstöd-sökningen och visar exakt vilka källor den faktiskt hittar",
+      "Adminpanelens anslutningstest visar nu grönt/gult/rött (fungerar / långsamt / fungerar inte) istället för bara grönt/rött, och kontrollerar även klinikstöd-källorna",
+    ],
+  },
+  {
     version: "5.8.0",
     datum: "2026-07-14",
     andringar: [

@@ -1230,3 +1230,62 @@ Fortsättning på FRAMTIDSPLAN.md "Närmast"-listan. Alla fem klara.
 Kort sikt: rutinägare, schemalagd backup, dödlänk-kontroll, riktig offline-åtkomst
 (IndexedDB). Medellång sikt: tvinga 2FA, PDF-export av kunskapsbasen, kiosk-läge,
 pilotutvärdering. Se FRAMTIDSPLAN.md för fullständig lista och motivering.
+
+## Fas 16 – Ägare per rutin + verifieringsstöd för klinikstöd-sökningen (5.9.0)
+
+Uppföljning på användarens genomgång av framtidsplanen. Tre punkter valdes ut (offline och
+den generella skelettutökningen avvaktas medvetet – se nedan), i prioritetsordning:
+verifieringsstöd (säkerhetsmässigt viktigast), utökad hälsokontroll, sedan ägarfältet.
+
+**Ägare per rutin – `agare: { typ, roll?, uid?, namn? }`**
+
+Precisering från användaren: fältet ska kunna peka på ANTINGEN en roll (alla med den rollen
+räknas som ansvariga) ELLER en specifik person – vem som helst i systemet, oavsett om den
+personen har en roll med redigeringsbehörighet för området. Implementerat som:
+
+- `RutinFormular.jsx`: ny "Ansvarig"-väljare (Ingen / En roll / En specifik person). Vid
+  "person" listas ALLA användare (inte filtrerat på redigeringsbehörighet), enligt uttrycklig
+  instruktion. Namnet cachas i fältet vid sparning (`agare.namn`) för visning utan extra
+  uppslag – kan bli inaktuellt om personen byter namn, en medveten avvägning för v1.
+- `Sektionssida.jsx`: skickar `anvandare`-listan till formuläret, sparar `agare` i både
+  skapa- och redigera-flödet.
+- `RutinKort.jsx`: visar "Ansvarig: X" i signatur-raden när fältet är satt.
+- **Medvetet INTE gjort** (enligt instruktion): ingen koppling till granskningspåminnelser
+  än – `useNotiser.js`s `narmarSigGranskning`-logik riktar sig fortfarande till alla
+  redaktörer för området, inte specifikt till `agare`. Strukturen är förberedd för det.
+- Ingen ny Firestore-regel behövdes – fältet skrivs via samma `farRedigeraOmrade`-skyddade
+  update-regel som alla andra rutinfält.
+
+**Verifieringsstöd för klinikstöd-sökningen – ny `verifieraKlinikstod`-funktion**
+
+Skiljer sig medvetet från `testaBeroenden`: den senare testar bara att API:erna SVARAR
+(HTTP 200), inte att källbegränsningen faktiskt håller. Den nya funktionen kör tre fasta
+testfrågor (olika medicinska ämnesområden) genom `sokViaProgrammerbarSokmotor` – förbi cachen,
+alltid färskt – och kontrollerar att INGEN träff hamnar utanför `GODKANDA_KALLDOMANER`.
+Testar medvetet INTE Gemini-steget: sedan Fas 13-ombyggnaden är sökmotorns egen konfiguration
+den enda punkt där källbegränsningen faktiskt kan drifta (t.ex. om någon råkar ändra
+sökmotorns inställningar i Google-kontot), så det är den punkten som behöver bevakas. Ny
+adminsektion "🔍 Verifiera klinikstöd-sökningen" visar resultat per testfråga: antal träffar,
+och – om något går fel – exakt vilka otillåtna källor som hittades.
+
+**Utökad hälsokontroll – grönt/gult/rött + klinikstöd**
+
+`testaBeroenden` mätte tidigare bara HTTP-status. Lade till svarstidsmätning
+(`DEGRADERAD_GRANS_MS = 4000`): ett svar som kommer igenom men tar för lång tid flaggas nu
+som "degraderad" (gult) istället för att bara vara "ok". La till en fjärde kontrollpunkt,
+`testaKlinikstodKalla()` – en lättviktsversion av `verifieraKlinikstod` (en fråga istället
+för tre) för att ge en snabb indikation i samma vy som de andra tjänsterna. Texten i
+`Admin.jsx` skrevs om till "Fungerar / Fungerar, men långsamt just nu / Fungerar inte" –
+uttryckligen för att vara begriplig för en admin utan teknisk bakgrund, enligt instruktion.
+
+**Verifiering:** build, lint, test (10/10) och `node -c functions/index.js` gröna.
+`src/version.js`/`package.json` → 5.9.0, ny post i andringslogg.
+
+### Medvetet avvaktade (enligt instruktion)
+
+- **Skelettladdning på fler vyer** (startsida/adminpanel/uppladdningsflöde) – lågt
+  prioriterad av användaren, sparas till en framtida fas. Redan klart: de fem mest besökta
+  listvyerna (Fas 15).
+- **Offline-stöd via IndexedDB** – uttryckligen hög prioritet för FRAMTIDEN, men medvetet
+  inte påbörjad i denna fas. Se FRAMTIDSPLAN.md för föreslaget avgränsat första steg
+  (nedladdningsknapp + läs-only-cache, ingen offline-sök eller bakgrundssynk).

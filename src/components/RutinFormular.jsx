@@ -2,9 +2,16 @@ import { useRef, useState } from "react";
 import { RUTIN_MALLAR } from "../data/rutinmallar";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import MarkdownInnehall from "./MarkdownInnehall";
+import { ROLES, ROLE_LABELS } from "../firebase/roles";
 import "./RutinFormular.css";
 
-export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSpara, onAvbryt }) {
+export default function RutinFormular({
+  initialaVarden,
+  ovrigaRutiner = [],
+  anvandare = [],
+  onSpara,
+  onAvbryt,
+}) {
   const innehallRef = useRef(null);
   const [titel, setTitel] = useState(initialaVarden?.titel ?? "");
   const [innehall, setInnehall] = useState(initialaVarden?.innehall ?? "");
@@ -16,6 +23,9 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
   const [befintligaBilagor, setBefintligaBilagor] = useState(initialaVarden?.bilagor ?? []);
   const [sparar, setSparar] = useState(false);
   const [visaForhandsvisning, setVisaForhandsvisning] = useState(false);
+  const [agareTyp, setAgareTyp] = useState(initialaVarden?.agare?.typ ?? "ingen");
+  const [agareRoll, setAgareRoll] = useState(initialaVarden?.agare?.roll ?? "");
+  const [agareUid, setAgareUid] = useState(initialaVarden?.agare?.uid ?? "");
 
   function valjMall(namn) {
     const mall = RUTIN_MALLAR.find((m) => m.namn === namn);
@@ -82,6 +92,13 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
+    let agare = null;
+    if (agareTyp === "roll" && agareRoll) {
+      agare = { typ: "roll", roll: agareRoll };
+    } else if (agareTyp === "person" && agareUid) {
+      const person = anvandare.find((a) => a.id === agareUid);
+      agare = { typ: "person", uid: agareUid, namn: person?.namn ?? person?.email ?? "" };
+    }
     setSparar(true);
     try {
       await onSpara({
@@ -93,6 +110,7 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
         relaterade,
         nyaFiler,
         befintligaBilagor,
+        agare,
       });
     } finally {
       setSparar(false);
@@ -189,6 +207,47 @@ export default function RutinFormular({ initialaVarden, ovrigaRutiner = [], onSp
         <span className="rutin-formular__hjalptext">
           Sätts automatiskt om ett giltighetsdatum hittas vid AI-tolkning av ett foto. Rutinen
           döljs för vanlig personal (men syns för redaktörer) efter detta datum.
+        </span>
+      </label>
+
+      <label>
+        Ansvarig (valfritt)
+        <select
+          value={agareTyp}
+          onChange={(e) => {
+            setAgareTyp(e.target.value);
+            setAgareRoll("");
+            setAgareUid("");
+          }}
+        >
+          <option value="ingen">Ingen angiven</option>
+          <option value="roll">En roll (alla med den rollen)</option>
+          <option value="person">En specifik person</option>
+        </select>
+        {agareTyp === "roll" && (
+          <select value={agareRoll} onChange={(e) => setAgareRoll(e.target.value)}>
+            <option value="">Välj roll...</option>
+            {Object.values(ROLES).map((r) => (
+              <option key={r} value={r}>
+                {ROLE_LABELS[r]}
+              </option>
+            ))}
+          </select>
+        )}
+        {agareTyp === "person" && (
+          <select value={agareUid} onChange={(e) => setAgareUid(e.target.value)}>
+            <option value="">Välj person...</option>
+            {anvandare.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.namn ?? a.email}
+              </option>
+            ))}
+          </select>
+        )}
+        <span className="rutin-formular__hjalptext">
+          Kan tilldelas till en roll (alla med den rollen räknas som ansvariga) eller till en
+          specifik person – vem som helst i systemet, oavsett roll. Används ännu inte till
+          automatiska påminnelser, bara som information.
         </span>
       </label>
 

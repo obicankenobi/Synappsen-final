@@ -38,3 +38,8 @@ export function testaBeroenden() {
   const fn = httpsCallable(functions, "testaBeroenden");
   return fn();
 }
+
+export function verifieraKlinikstod() {
+  const fn = httpsCallable(functions, "verifieraKlinikstod");
+  return fn();
+}

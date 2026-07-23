@@ -4,6 +4,7 @@ import { RUTIN_STATUS } from "../hooks/useRutiner";
 import { useAuth } from "../hooks/useAuth";
 import { kvitteraLast } from "../hooks/useLaskvittering";
 import { borGranskas, arUtgangen } from "../utils/rutinHjalp";
+import { ROLE_LABELS } from "../firebase/roles";
 import FavoritKnapp from "./FavoritKnapp";
 import Kommentarer from "./Kommentarer";
 import VersionsHistorik from "./VersionsHistorik";
@@ -97,6 +98,15 @@ export default function RutinKort({
               {rutin.granskadDatum && ` · ${formateraTid(rutin.granskadDatum)}`}
             </span>
           )}
+        </div>
+      )}
+
+      {rutin.agare && (
+        <div className="rutin-kort__signatur">
+          <span>
+            Ansvarig:{" "}
+            {rutin.agare.typ === "roll" ? ROLE_LABELS[rutin.agare.roll] ?? rutin.agare.roll : rutin.agare.namn}
+          </span>
         </div>
       )}
 

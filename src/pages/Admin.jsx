@@ -14,7 +14,7 @@ import { useRutiner } from "../hooks/useRutiner";
 import { useAnslag } from "../hooks/useAnslag";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { useUtloggningsinstallning } from "../hooks/useUtloggningsinstallning";
-import { tvingaUtloggning, testaBeroenden } from "../firebase/functions";
+import { tvingaUtloggning, testaBeroenden, verifieraKlinikstod } from "../firebase/functions";
 import { APP_VERSION } from "../version";
 import { ROLES, ROLE_LABELS } from "../firebase/roles";
 import "./Admin.css";
@@ -36,6 +36,15 @@ const OMRADE_NAMN = {
   "kliniskt-stod": "Kliniskt stöd",
   administration: "Administration",
   logistik: "Logistik",
+};
+
+// Text skriven för en admin som inte nödvändigtvis är tekniker – "fungerar/långsamt/fungerar
+// inte" istället för tekniska termer som "OK/degraderad/fel".
+const STATUS_IKON = { ok: "🟢", degraderad: "🟡", fel: "🔴" };
+const STATUS_TEXT = {
+  ok: "Fungerar",
+  degraderad: "Fungerar, men långsamt just nu",
+  fel: "Fungerar inte",
 };
 
 export default function Admin() {
@@ -68,6 +77,22 @@ export default function Admin() {
       setBeroendeStatus({ fel: fel.message ?? "Testet misslyckades." });
     } finally {
       setTestarBeroenden(false);
+    }
+  }
+
+  const [klinikstodStatus, setKlinikstodStatus] = useState(null);
+  const [verifierarKlinikstod, setVerifierarKlinikstod] = useState(false);
+
+  async function hanteraVerifieraKlinikstod() {
+    setVerifierarKlinikstod(true);
+    setKlinikstodStatus(null);
+    try {
+      const { data } = await verifieraKlinikstod();
+      setKlinikstodStatus(data.resultat);
+    } catch (fel) {
+      setKlinikstodStatus({ fel: fel.message ?? "Verifieringen misslyckades." });
+    } finally {
+      setVerifierarKlinikstod(false);
     }
   }
   const [svarUtkast, setSvarUtkast] = useState({});
@@ -241,6 +266,10 @@ export default function Admin() {
           </div>
 
           <div className="admin-beroendetest">
+            <p className="sida__beskrivning">
+              Kontrollerar att apps stödtjänster faktiskt fungerar just nu – bra att köra om
+              något känns trögt eller om en användare rapporterar ett fel med AI-funktionerna.
+            </p>
             <button
               className="knapp knapp--sekundar knapp--liten"
               onClick={hanteraTestaBeroenden}
@@ -252,21 +281,67 @@ export default function Admin() {
             {beroendeStatus && !beroendeStatus.fel && (
               <ul className="admin-beroendetest__lista">
                 {[
-                  ["Gemini (AI-tolkning/klinikstöd)", beroendeStatus.gemini],
-                  ["Sökmotor (klinikstöd-källor)", beroendeStatus.sokmotor],
-                  ["Storage (uppladdade bilder)", beroendeStatus.storage],
+                  ["Bildtolkning/klinikstöd-svar (Gemini)", beroendeStatus.gemini],
+                  ["Klinikstöd-sökningen hittar källor", beroendeStatus.sokmotor],
+                  ["Bilduppladdning (lagring)", beroendeStatus.storage],
+                  ["Klinikstöd håller sig till godkända källor", beroendeStatus.klinikstod],
                 ].map(([namn, status]) => (
                   <li key={namn}>
-                    <span className={status.ok ? "admin-beroendetest__punkt--ok" : "admin-beroendetest__punkt--fel"}>
-                      {status.ok ? "🟢" : "🔴"}
+                    <span className={`admin-beroendetest__punkt--${status.status}`}>
+                      {STATUS_IKON[status.status]}
                     </span>{" "}
-                    {namn}
-                    {!status.ok && status.fel && <span> – {status.fel}</span>}
+                    {namn} – {STATUS_TEXT[status.status]}
+                    {status.meddelande && <span> ({status.meddelande})</span>}
                   </li>
                 ))}
               </ul>
             )}
           </div>
+        </section>
+      )}
+
+      {arSuperadmin && (
+        <section className="admin-sektion">
+          <h2>🔍 Verifiera klinikstöd-sökningen</h2>
+          <p className="sida__beskrivning">
+            Kör tre fasta testfrågor genom sökmotorn (förbi cachen) och kontrollerar att ALLA
+            källor den hittar ligger inom de godkända domänerna. Kör detta om ni misstänker att
+            sökningen visar fel källor, eller efter att ha ändrat sökmotorns konfiguration i
+            Google-kontot – det är den delen som kan drifta utan att synas i koden.
+          </p>
+          <button
+            className="knapp knapp--sekundar knapp--liten"
+            onClick={hanteraVerifieraKlinikstod}
+            disabled={verifierarKlinikstod}
+          >
+            {verifierarKlinikstod ? "Verifierar..." : "Kör testfrågor"}
+          </button>
+          {klinikstodStatus?.fel && <p className="klinikfraga__fel">{klinikstodStatus.fel}</p>}
+          {Array.isArray(klinikstodStatus) && (
+            <ul className="admin-beroendetest__lista">
+              {klinikstodStatus.map((r) => (
+                <li key={r.fraga}>
+                  <span className={r.ok ? "admin-beroendetest__punkt--ok" : "admin-beroendetest__punkt--fel"}>
+                    {r.ok ? "🟢" : "🔴"}
+                  </span>{" "}
+                  <strong>"{r.fraga}"</strong>
+                  {r.fel && <span> – Fel: {r.fel}</span>}
+                  {!r.fel && (
+                    <span>
+                      {" "}
+                      – {r.antalTraffar} träff(ar)
+                      {r.otillatnaKallor.length > 0 && (
+                        <span className="admin-frist-varning">
+                          {" "}
+                          ⚠️ {r.otillatnaKallor.length} otillåten källa: {r.otillatnaKallor.join(", ")}
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       )}
 

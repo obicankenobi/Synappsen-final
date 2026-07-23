@@ -96,6 +96,7 @@ export default function Sektionssida({
     relaterade,
     nyaFiler,
     befintligaBilagor,
+    agare,
   }) {
     if (redigerar) {
       const nyaBilagor = nyaFiler.length ? await laddaUppRutinBilagor(omrade, redigerar.id, nyaFiler) : [];
@@ -109,6 +110,7 @@ export default function Sektionssida({
           utgangsdatum,
           relateradeRutiner: relaterade,
           bilagor: [...befintligaBilagor, ...nyaBilagor],
+          agare,
         },
         currentUser.uid
       );
@@ -126,6 +128,7 @@ export default function Sektionssida({
         utgangsdatum,
         relateradeRutiner: relaterade,
         bilagor: nyaFiler.length ? await laddaUppRutinBilagor(omrade, ref.id, nyaFiler) : [],
+        agare,
       });
     }
     setVisaFormular(false);
@@ -252,6 +255,7 @@ export default function Sektionssida({
         <RutinFormular
           initialaVarden={redigerar}
           ovrigaRutiner={rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND)}
+          anvandare={anvandare}
           onSpara={hanteraSpara}
           onAvbryt={() => {
             setVisaFormular(false);

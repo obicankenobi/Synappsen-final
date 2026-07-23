@@ -689,6 +689,15 @@ exports.skickaFeedback = onCall({ region: "europe-west1" }, async (request) => {
 // Storage var för sig så en trasig nyckel/konfiguration upptäcks av admin direkt istället för
 // först när en användare stöter på ett fel. Görs INTE mot budgeten (manuellt, sällan använt,
 // minimala anrop) – bara ett kort "OK"-svar från Gemini resp. en enda sökträff.
+// Tröskel för "fungerar men långsamt" – ett svar som kommer igenom men tar orimligt lång
+// tid är ofta ett tidigt tecken på ett problem (t.ex. Google-tjänsten är överbelastad) innan
+// den blir ett hårt fel. Enkel att förstå för en icke-teknisk admin: grönt/gult/rött.
+const DEGRADERAD_GRANS_MS = 4000;
+
+function statusFranTid(millisekunder) {
+  return millisekunder > DEGRADERAD_GRANS_MS ? "degraderad" : "ok";
+}
+
 exports.testaBeroenden = onCall(
   { secrets: [GEMINI_API_KEY, SOKMOTOR_API_KEY], region: "europe-west1", timeoutSeconds: 30 },
   async (request) => {
@@ -701,6 +710,7 @@ exports.testaBeroenden = onCall(
     }
 
     async function testaGemini() {
+      const start = Date.now();
       try {
         const svar = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
@@ -711,15 +721,17 @@ exports.testaBeroenden = onCall(
             signal: AbortSignal.timeout(10000),
           }
         );
-        return svar.ok
-          ? { ok: true }
-          : { ok: false, fel: `HTTP ${svar.status}` };
+        if (!svar.ok) {
+          return { status: "fel", meddelande: `Svarade med felkod ${svar.status}.` };
+        }
+        return { status: statusFranTid(Date.now() - start), meddelande: null };
       } catch (fel) {
-        return { ok: false, fel: fel.message };
+        return { status: "fel", meddelande: fel.message };
       }
     }
 
     async function testaSokmotor() {
+      const start = Date.now();
       try {
         const url = new URL("https://www.googleapis.com/customsearch/v1");
         url.searchParams.set("key", SOKMOTOR_API_KEY.value());
@@ -727,26 +739,96 @@ exports.testaBeroenden = onCall(
         url.searchParams.set("q", "test");
         url.searchParams.set("num", "1");
         const svar = await fetch(url, { signal: AbortSignal.timeout(10000) });
-        return svar.ok ? { ok: true } : { ok: false, fel: `HTTP ${svar.status}` };
+        if (!svar.ok) {
+          return { status: "fel", meddelande: `Svarade med felkod ${svar.status}.` };
+        }
+        return { status: statusFranTid(Date.now() - start), meddelande: null };
       } catch (fel) {
-        return { ok: false, fel: fel.message };
+        return { status: "fel", meddelande: fel.message };
       }
     }
 
     async function testaStorage() {
       try {
         await bucket.getMetadata();
-        return { ok: true };
+        return { status: "ok", meddelande: null };
       } catch (fel) {
-        return { ok: false, fel: fel.message };
+        return { status: "fel", meddelande: fel.message };
       }
     }
 
-    const [gemini, sokmotor, storage] = await Promise.all([
+    // Lätt version av verifieraKlinikstod (en enda fråga istället för tre) – ger en snabb
+    // indikation här, medan den fullständiga körningen med tre frågor finns i sin egen
+    // sektion ("Verifiera klinikstöd-sökningen") för djupare felsökning.
+    async function testaKlinikstodKalla() {
+      try {
+        const traffar = await sokViaProgrammerbarSokmotor(KLINIKSTOD_TESTFRAGOR[0]);
+        const otillatna = traffar.filter((t) => !domanGodkand(t.url));
+        if (otillatna.length > 0) {
+          return {
+            status: "fel",
+            meddelande: `Hittade källor utanför godkända domäner: ${otillatna.map((t) => t.url).join(", ")}.`,
+          };
+        }
+        if (traffar.length === 0) {
+          return { status: "degraderad", meddelande: "Testfrågan gav inga träffar just nu." };
+        }
+        return { status: "ok", meddelande: null };
+      } catch (fel) {
+        return { status: "fel", meddelande: fel.message };
+      }
+    }
+
+    const [gemini, sokmotor, storage, klinikstod] = await Promise.all([
       testaGemini(),
       testaSokmotor(),
       testaStorage(),
+      testaKlinikstodKalla(),
     ]);
-    return { gemini, sokmotor, storage };
+    return { gemini, sokmotor, storage, klinikstod };
+  }
+);
+
+// Fördefinierade testfrågor som täcker olika medicinska ämnesområden, för att verifiera att
+// klinikstöd-sökningen faktiskt håller sig till de godkända källorna – inte bara att API:et
+// svarar (det gör testaBeroenden redan). Testar ENDAST sökmotorsteget (inte Gemini): det är
+// sökmotorns egen domänkonfiguration som är den riskabla enskilda punkten (kan ändras av
+// misstag i Google-kontot, utanför appens kod), och just det steget är vad domanGodkand()
+// skyddar mot. Kostar ingen Gemini-budget och går förbi cachen (alltid färskt resultat).
+const KLINIKSTOD_TESTFRAGOR = [
+  "behandling hyperkalemi",
+  "dosering amoxicillin barn",
+  "akut anafylaxi vuxen",
+];
+
+exports.verifieraKlinikstod = onCall(
+  { secrets: [SOKMOTOR_API_KEY], region: "europe-west1", timeoutSeconds: 30 },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+    }
+    const roll = (await db.collection("users").doc(request.auth.uid).get()).data()?.role;
+    if (roll !== "superadmin") {
+      throw new HttpsError("permission-denied", "Endast superadmin kan verifiera sökningen.");
+    }
+
+    const resultat = await Promise.all(
+      KLINIKSTOD_TESTFRAGOR.map(async (fraga) => {
+        try {
+          const traffar = await sokViaProgrammerbarSokmotor(fraga);
+          const otillatnaTraffar = traffar.filter((t) => !domanGodkand(t.url));
+          return {
+            fraga,
+            ok: traffar.length > 0 && otillatnaTraffar.length === 0,
+            antalTraffar: traffar.length,
+            kallor: traffar.map((t) => t.url),
+            otillatnaKallor: otillatnaTraffar.map((t) => t.url),
+          };
+        } catch (fel) {
+          return { fraga, ok: false, fel: fel.message };
+        }
+      })
+    );
+    return { resultat };
   }
 );
