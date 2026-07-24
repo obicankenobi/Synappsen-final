@@ -59,7 +59,7 @@ export default function SokFalt() {
   const { kontakter } = useKontakter();
   const { lankar } = useLankbibliotek();
   const { loggaNollTraff } = useSokloggar(false);
-  const { currentUser } = useAuth();
+  const { currentUser, organisationId } = useAuth();
 
   const alltSokbart = useMemo(() => {
     const forradsposter = artiklar
@@ -138,7 +138,7 @@ export default function SokFalt() {
   }
 
   function hanteraKlick(post) {
-    registreraVisning(post.titel, post.sokvag);
+    registreraVisning(post.titel, post.sokvag, organisationId);
     navigate(post.sokvag);
   }
 

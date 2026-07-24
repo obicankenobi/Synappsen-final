@@ -15,13 +15,31 @@ const bucket = admin.storage().bucket("synappsen-final-build.firebasestorage.app
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 const SOKMOTOR_API_KEY = defineSecret("SOKMOTOR_API_KEY");
 
+// Etapp 1 (multi-tenant-grund): organisationen som all data/alla konton tillhör tills en
+// andra kund finns. Måste vara identisk med src/firebase/organisation.js.
+const STANDARD_ORG = "default";
+
+// Slår upp anroparens roll och organisation i EN läsning. Faller tillbaka på STANDARD_ORG
+// om organisationId saknas (konton skapade innan Etapp 1) – samma fallback som i
+// firestore.rules, så server och regler alltid är överens.
+async function hamtaAnvandarInfo(uid) {
+  const data = (await db.collection("users").doc(uid).get()).data() ?? {};
+  return { roll: data.role, organisationId: data.organisationId ?? STANDARD_ORG };
+}
+
 // Grov kostnadsuppskattning per bildtolkning (öre), används för budgetspärren.
 const UPPSKATTAD_KOSTNAD_ORE = 50;
-const BUDGET_DOK = db.collection("installningar").doc("geminiBudget");
 const STANDARD_TAK_ORE = 20000; // 200 kr
 // Tak per enskild användare och månad, så att en person inte kan förbruka hela
 // den gemensamma budgeten själv.
 const MAX_PER_ANVANDARE_ORE = 5000; // 50 kr
+
+// Budgeten är per organisation (Etapp 1) – annars skulle två kunder dela samma pott.
+// Ligger som en egen subcollection under organisationen, i samma dokumentform som tidigare
+// (installningar/geminiBudget), bara omplacerad.
+function budgetDok(orgId) {
+  return db.collection("organisationer").doc(orgId).collection("installningar").doc("geminiBudget");
+}
 
 function aktuellManadNyckel() {
   const nu = new Date();
@@ -90,9 +108,10 @@ async function kontrolleraOchOkaHastighet(uid, typ, maxPerFonster) {
 
 // Kontrollerar och reserverar budget innan ett dyrt Gemini-anrop görs.
 // Kastar fel om månadens tak är nått, så att vi aldrig betalar för anrop vi inte har råd med.
-async function reserveraBudget(uid) {
+async function reserveraBudget(orgId, uid) {
+  const budgetRef = budgetDok(orgId);
   await db.runTransaction(async (tx) => {
-    const snap = await tx.get(BUDGET_DOK);
+    const snap = await tx.get(budgetRef);
     const data = snap.exists ? snap.data() : {};
     const manad = aktuellManadNyckel();
 
@@ -125,7 +144,7 @@ async function reserveraBudget(uid) {
     anvantPerUid = { ...anvantPerUid, [uid]: anvantAvDennaAnvandare + UPPSKATTAD_KOSTNAD_ORE };
 
     tx.set(
-      BUDGET_DOK,
+      budgetRef,
       { anvantOre: anvantOre + UPPSKATTAD_KOSTNAD_ORE, aktuellManad, taketOre, anvantPerUid },
       { merge: true }
     );
@@ -256,7 +275,8 @@ exports.tolkaForradsbild = onCall(
       throw new HttpsError("permission-denied", "storagePath måste peka på ditt eget uppladdade foto.");
     }
 
-    await reserveraBudget(request.auth.uid);
+    const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+    await reserveraBudget(organisationId, request.auth.uid);
 
     try {
       const fil = bucket.file(storagePath);
@@ -273,10 +293,14 @@ exports.tolkaForradsbild = onCall(
       }
       const bildUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(storagePath)}?alt=media`;
 
-      // Matcha mot befintliga artiklar i samma förråd på normaliserat namn, så att en ny
-      // uppladdning ersätter en tidigare (t.ex. felaktig/utdaterad) post istället för att
-      // skapa en duplett varje gång samma lista fotas på nytt.
-      const befintligaSnap = await db.collection("forradsartiklar").where("forrad", "==", forrad).get();
+      // Matcha mot befintliga artiklar i SAMMA organisation och förråd på normaliserat namn,
+      // så att en ny uppladdning ersätter en tidigare (t.ex. felaktig/utdaterad) post – och
+      // aldrig av misstag skriver över en annan organisations artikel.
+      const befintligaSnap = await db
+        .collection("forradsartiklar")
+        .where("organisationId", "==", organisationId)
+        .where("forrad", "==", forrad)
+        .get();
       const befintligaPerNamn = new Map();
       befintligaSnap.forEach((doc) => {
         const namn = (doc.data().namn ?? "").trim().toLowerCase();
@@ -298,6 +322,7 @@ exports.tolkaForradsbild = onCall(
           forrad,
           status: "utkast",
           kalla: "gemini",
+          organisationId,
           skapadAv: request.auth.uid,
           skapad: admin.firestore.FieldValue.serverTimestamp(),
         });
@@ -329,7 +354,8 @@ exports.tolkaDokument = onCall(
       throw new HttpsError("permission-denied", "storagePath måste peka på ditt eget uppladdade foto.");
     }
 
-    await reserveraBudget(request.auth.uid);
+    const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+    await reserveraBudget(organisationId, request.auth.uid);
 
     try {
       const fil = bucket.file(storagePath);
@@ -362,6 +388,7 @@ exports.tolkaDokument = onCall(
         omrade,
         status: "utkast",
         kalla: "gemini",
+        organisationId,
         skapadAv: request.auth.uid,
         skapad: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -453,19 +480,24 @@ exports.fragaKlinisktStod = onCall(
       );
     }
 
+    const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+
     // Frågelogg (utan uid – vi vill se VAD som efterfrågas, inte VEM som frågar) så att
     // ledningen ser vilka kunskapsluckor som finns; vanliga frågor kan bli permanenta rutiner.
+    // organisationId sätts ändå, så en organisations frågestatistik inte blandas med en annans.
     const fragaNyckel = fraga.toLowerCase().replace(/\s+/g, " ");
     db.collection("klinikfrageloggar")
-      .add({ fraga: fragaNyckel, tidpunkt: admin.firestore.FieldValue.serverTimestamp() })
+      .add({ fraga: fragaNyckel, organisationId, tidpunkt: admin.firestore.FieldValue.serverTimestamp() })
       .catch(() => {});
 
     // Cache: samma fråga ställs ofta av flera personer. Ett cachat svar (7 dagar) sparar
     // både Custom Search-kvoten (100 gratis/dag) och Gemini-kostnad, och svarar direkt.
+    // Nyckeln inkluderar organisationId – annars skulle en organisations cachade svar kunna
+    // serveras till en annan (samma fråga, olika kunder ska inte dela cache).
     const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
     const cacheRef = db
       .collection("klinikfragecache")
-      .doc(Buffer.from(fragaNyckel).toString("base64url").slice(0, 480));
+      .doc(Buffer.from(`${organisationId}::${fragaNyckel}`).toString("base64url").slice(0, 480));
     const cacheSnap = await cacheRef.get();
     if (cacheSnap.exists) {
       const c = cacheSnap.data();
@@ -477,7 +509,7 @@ exports.fragaKlinisktStod = onCall(
     // Samma budgetspärr som bild-/dokumenttolkningen, så att den här funktionen inte kan
     // anropas direkt (förbi den pausade UI-vyn) utan tak på kostnad eller antal anrop.
     // Ligger EFTER cache-kontrollen – cachade svar kostar inget och ska inte äta budget.
-    await reserveraBudget(request.auth.uid);
+    await reserveraBudget(organisationId, request.auth.uid);
 
     const kalldomanerText = GODKANDA_KALLDOMANER.join(", ");
 
@@ -583,14 +615,21 @@ exports.tvingaUtloggning = onCall({ region: "europe-west1" }, async (request) =>
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
   }
-  const uppringarensRoll = (await db.collection("users").doc(request.auth.uid).get()).data()?.role;
-  if (uppringarensRoll !== "superadmin") {
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll !== "superadmin") {
     throw new HttpsError("permission-denied", "Endast superadmin kan tvinga utloggning.");
   }
 
   const { userId } = request.data ?? {};
   if (!userId) {
     throw new HttpsError("invalid-argument", "userId krävs.");
+  }
+
+  // En superadmin i organisation A får aldrig kunna tvinga utloggning på en användare i
+  // organisation B, även om de känner till uid:t.
+  const mal = await hamtaAnvandarInfo(userId);
+  if (mal.organisationId !== uppringare.organisationId) {
+    throw new HttpsError("permission-denied", "Användaren tillhör inte din organisation.");
   }
 
   await admin.auth().revokeRefreshTokens(userId);
@@ -623,15 +662,19 @@ exports.skapaKommentar = onCall({ region: "europe-west1" }, async (request) => {
 
   await kontrolleraOchOkaHastighet(request.auth.uid, "kommentar", MAX_KOMMENTARER_PER_TIMME);
 
-  const [skaparSnap, allaAnvandare] = await Promise.all([
+  const { roll: _roll, organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+  void _roll;
+  const [skaparSnap, orgAnvandare] = await Promise.all([
     db.collection("users").doc(request.auth.uid).get(),
-    db.collection("users").get(),
+    // Begränsat till SAMMA organisation – annars skulle man kunna @nämna (och trigga en
+    // notis till) en användare i en helt annan kunds organisation.
+    db.collection("users").where("organisationId", "==", organisationId).get(),
   ]);
   const skapadAvNamn = skaparSnap.data()?.namn ?? skaparSnap.data()?.email ?? "";
 
   const handtag = [...rensadText.matchAll(/@([a-zA-Z0-9._-]+)/g)].map((m) => m[1].toLowerCase());
   const omnamnda = handtag.length
-    ? allaAnvandare.docs
+    ? orgAnvandare.docs
         .filter((d) => {
           const lokalDel = (d.data().email ?? "").split("@")[0].toLowerCase();
           return lokalDel && handtag.includes(lokalDel);
@@ -643,6 +686,7 @@ exports.skapaKommentar = onCall({ region: "europe-west1" }, async (request) => {
   const ref = await db.collection("kommentarer").add({
     rutinId,
     text: rensadText,
+    organisationId,
     skapadAv: request.auth.uid,
     skapadAvNamn,
     svarPa: svarPa ?? null,
@@ -672,13 +716,17 @@ exports.skickaFeedback = onCall({ region: "europe-west1" }, async (request) => {
 
   await kontrolleraOchOkaHastighet(request.auth.uid, "feedback", MAX_FEEDBACK_PER_TIMME);
 
-  const skaparSnap = await db.collection("users").doc(request.auth.uid).get();
+  const [skaparSnap, { organisationId }] = await Promise.all([
+    db.collection("users").doc(request.auth.uid).get(),
+    hamtaAnvandarInfo(request.auth.uid),
+  ]);
   const skapadAvNamn = skaparSnap.data()?.namn ?? skaparSnap.data()?.email ?? "";
 
   const ref = await db.collection("feedback").add({
     typ,
     text: rensadText,
     status: "ny",
+    organisationId,
     skapadAv: request.auth.uid,
     skapadAvNamn,
     skapad: admin.firestore.FieldValue.serverTimestamp(),
@@ -705,7 +753,10 @@ exports.testaBeroenden = onCall(
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
     }
-    const roll = (await db.collection("users").doc(request.auth.uid).get()).data()?.role;
+    // Ingen organisationsskopning här avsiktligt: Gemini-nyckeln, sökmotorn och Storage-
+    // bucketen är delad infrastruktur för hela installationen (inte kunddata), så vem som
+    // helst med superadmin-roll i sin egen organisation får testa/verifiera den.
+    const { roll } = await hamtaAnvandarInfo(request.auth.uid);
     if (roll !== "superadmin") {
       throw new HttpsError("permission-denied", "Endast superadmin kan testa anslutningar.");
     }
@@ -808,7 +859,10 @@ exports.verifieraKlinikstod = onCall(
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
     }
-    const roll = (await db.collection("users").doc(request.auth.uid).get()).data()?.role;
+    // Ingen organisationsskopning här avsiktligt: Gemini-nyckeln, sökmotorn och Storage-
+    // bucketen är delad infrastruktur för hela installationen (inte kunddata), så vem som
+    // helst med superadmin-roll i sin egen organisation får testa/verifiera den.
+    const { roll } = await hamtaAnvandarInfo(request.auth.uid);
     if (roll !== "superadmin") {
       throw new HttpsError("permission-denied", "Endast superadmin kan verifiera sökningen.");
     }
@@ -870,5 +924,77 @@ exports.verifieraKlinikstodSchemalagt = onSchedule(
       meddelande: `Automatisk verifiering av klinikstöd-sökningen hittade problem: ${meddelande}`,
       tidpunkt: admin.firestore.FieldValue.serverTimestamp(),
     });
+  }
+);
+
+// Etapp 1 (multi-tenant-grund) – engångsmigrering: sätter organisationId = STANDARD_ORG på
+// alla dokument som saknar det. Idempotent (hoppar över dokument som redan har fältet), så
+// den kan köras flera gånger utan risk. Kör ALLTID med dryRun (standard) först och verifiera
+// antalet mot förväntan innan den körs skarpt – se ETAPP1-ARBETSUPPGIFTER.md block 1b.
+// klinikfragecache migreras medvetet INTE – cachenycklar är redan organisationsnamngivna för
+// nya svar, och gamla omigrerade cache-poster upphör bara att träffas och byggs om naturligt.
+const MIGRERBARA_COLLECTIONS = [
+  "users",
+  "rutiner",
+  "forradsartiklar",
+  "anslag",
+  "kommentarer",
+  "feedback",
+  "klinikfragefeedback",
+  "klinikfrageloggar",
+  "sokloggar",
+  "auditlogg",
+  "visningar",
+  "skiftrapporter",
+  "kontakter",
+  "lankbibliotek",
+  "anteckningar",
+];
+
+exports.migreraTillOrganisation = onCall(
+  { region: "europe-west1", timeoutSeconds: 540 },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+    }
+    const { roll } = await hamtaAnvandarInfo(request.auth.uid);
+    if (roll !== "superadmin") {
+      throw new HttpsError("permission-denied", "Endast superadmin kan köra migreringen.");
+    }
+
+    const dryRun = request.data?.dryRun !== false;
+
+    if (!dryRun) {
+      await db
+        .collection("organisationer")
+        .doc(STANDARD_ORG)
+        .set(
+          {
+            namn: "Standardorganisation",
+            status: "active",
+            plan: "core",
+            moduler: { operations: true, intelligence: true },
+          },
+          { merge: true }
+        );
+    }
+
+    const resultat = {};
+    for (const samling of MIGRERBARA_COLLECTIONS) {
+      const snap = await db.collection(samling).get();
+      const attSkriva = snap.docs.filter((d) => !d.data().organisationId).map((d) => d.ref);
+      resultat[samling] = { totalt: snap.size, saknarOrganisationId: attSkriva.length };
+
+      if (!dryRun) {
+        for (let i = 0; i < attSkriva.length; i += 500) {
+          const batch = db.batch();
+          attSkriva
+            .slice(i, i + 500)
+            .forEach((ref) => batch.set(ref, { organisationId: STANDARD_ORG }, { merge: true }));
+          await batch.commit();
+        }
+      }
+    }
+    return { dryRun, resultat };
   }
 );

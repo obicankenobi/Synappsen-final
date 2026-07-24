@@ -13,7 +13,7 @@ import "./KlinikfragaSok.css";
 const PAUSAD = false;
 
 export default function KlinikfragaSok() {
-  const { currentUser } = useAuth();
+  const { currentUser, organisationId } = useAuth();
   const [fraga, setFraga] = useState("");
   const [stalldFraga, setStalldFraga] = useState("");
   const [laddar, setLaddar] = useState(false);
@@ -47,7 +47,7 @@ export default function KlinikfragaSok() {
   async function hanteraFeedback(hjalpsam) {
     setFeedbackGiven(hjalpsam);
     try {
-      await skickaKlinikfrageFeedback(stalldFraga, hjalpsam, currentUser?.uid);
+      await skickaKlinikfrageFeedback(stalldFraga, hjalpsam, currentUser?.uid, organisationId);
     } catch {
       // Feedback är valfri statistik – misslyckad skrivning ska inte visa fel för användaren.
     }

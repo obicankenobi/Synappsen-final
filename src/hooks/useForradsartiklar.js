@@ -12,6 +12,8 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { useAuth } from "./useAuth";
+import { STANDARD_ORG } from "../firebase/organisation";
 
 export const ARTIKEL_STATUS = {
   UTKAST: "utkast",
@@ -20,13 +22,15 @@ export const ARTIKEL_STATUS = {
 
 // Om forrad anges filtreras listan till det förrådet, annars hämtas alla (används av sökmotorn)
 export function useForradsartiklar(forrad) {
+  const { organisationId } = useAuth();
   const [artiklar, setArtiklar] = useState([]);
   const [laddar, setLaddar] = useState(true);
 
   useEffect(() => {
+    if (!organisationId) return undefined;
     const villkor = forrad
-      ? [where("forrad", "==", forrad), orderBy("skapad", "desc")]
-      : [orderBy("skapad", "desc")];
+      ? [where("organisationId", "==", organisationId), where("forrad", "==", forrad), orderBy("skapad", "desc")]
+      : [where("organisationId", "==", organisationId), orderBy("skapad", "desc")];
     const q = query(collection(db, "forradsartiklar"), ...villkor);
     const unsubscribe = onSnapshot(q, (snap) => {
       // Mjukraderade artiklar (papperskorg) filtreras bort ur den vanliga listan
@@ -34,7 +38,7 @@ export function useForradsartiklar(forrad) {
       setLaddar(false);
     });
     return unsubscribe;
-  }, [forrad]);
+  }, [forrad, organisationId]);
 
   async function skapaArtikel({
     namn,
@@ -54,6 +58,7 @@ export function useForradsartiklar(forrad) {
       sokord: [],
       bildUrl: bildUrl ?? null,
       forrad: forradFalt,
+      organisationId: organisationId ?? STANDARD_ORG,
       status: kraverGodkannande ? ARTIKEL_STATUS.UTKAST : ARTIKEL_STATUS.GODKAND,
       kalla: "manuell",
       skapadAv,

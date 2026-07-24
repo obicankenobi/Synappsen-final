@@ -23,7 +23,7 @@ const OMRADE_SOKVAG = {
 };
 
 export function useNotiser() {
-  const { currentUser, role } = useAuth();
+  const { currentUser, role, organisationId } = useAuth();
   const { anvandare } = useAnvandare();
   const { anslag } = useAnslag();
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
@@ -32,13 +32,17 @@ export function useNotiser() {
   const [systemvarningar, setSystemvarningar] = useState([]);
 
   useEffect(() => {
-    if (!currentUser?.uid) return undefined;
-    const q = query(collection(db, "kommentarer"), where("omnamnda", "array-contains", currentUser.uid));
+    if (!currentUser?.uid || !organisationId) return undefined;
+    const q = query(
+      collection(db, "kommentarer"),
+      where("organisationId", "==", organisationId),
+      where("omnamnda", "array-contains", currentUser.uid)
+    );
     const unsubscribe = onSnapshot(q, (snap) => {
       setOmnamnanden(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return unsubscribe;
-  }, [currentUser?.uid]);
+  }, [currentUser?.uid, organisationId]);
 
   // Larm från schemalagda kontrollfunktioner (t.ex. klinikstöd-källdrift) – bara superadmin
   // har läsbehörighet enligt firestore.rules, så frågan görs bara för den rollen.

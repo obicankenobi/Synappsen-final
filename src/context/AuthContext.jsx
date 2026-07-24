@@ -9,11 +9,13 @@ import {
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 import { DEFAULT_ROLE } from "../firebase/roles";
+import { STANDARD_ORG } from "../firebase/organisation";
 import { AuthContext } from "./authContextDef";
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [role, setRole] = useState(null);
+  const [organisationId, setOrganisationId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   async function registrera(email, losenord, namn) {
@@ -22,6 +24,7 @@ export function AuthProvider({ children }) {
       namn,
       email,
       role: DEFAULT_ROLE,
+      organisationId: STANDARD_ORG,
       skapad: serverTimestamp(),
     });
     return user;
@@ -41,6 +44,9 @@ export function AuthProvider({ children }) {
       if (user) {
         const snap = await getDoc(doc(db, "users", user.uid));
         setRole(snap.exists() ? snap.data().role : null);
+        // Fallback till STANDARD_ORG för konton skapade innan organisationId infördes
+        // (Etapp 1) – matchar samma fallback som firestore.rules använder.
+        setOrganisationId(snap.exists() ? snap.data().organisationId ?? STANDARD_ORG : null);
         // Spårar senaste inloggning så adminpanelen kan visa inaktiva konton.
         // Får inte blockera inloggningsflödet om skrivningen misslyckas.
         if (snap.exists()) {
@@ -50,13 +56,14 @@ export function AuthProvider({ children }) {
         }
       } else {
         setRole(null);
+        setOrganisationId(null);
       }
       setLoading(false);
     });
     return unsubscribe;
   }, []);
 
-  const value = { currentUser, role, loading, registrera, loggaIn, loggaUt };
+  const value = { currentUser, role, organisationId, loading, registrera, loggaIn, loggaUt };
 
   return (
     <AuthContext.Provider value={value}>

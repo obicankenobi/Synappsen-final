@@ -2,6 +2,14 @@ rules_version = '2';
 
 // Security Rules för Synappsen
 // Roller: superadmin, vol, sektionsledare, vec, forradesansvarig, personal
+//
+// Etapp 1 (multi-tenant-grund, se ETAPP1-ARBETSUPPGIFTER.md): varje dokument hör till en
+// organisation via fältet "organisationId". Roll-kontrollerna nedan (arSuperadmin() m.fl.)
+// är MEDVETET renodlade rollkontroller utan organisationslogik – varje match-block som
+// använder dem för att skydda ett dokument måste ALLTID också kontrollera att dokumentets
+// organisationId matchar anroparens egen, via matcharMinOrg(...). Att bara kontrollera roll
+// (t.ex. "är superadmin") utan detta skulle låta en superadmin i organisation A läsa/ändra
+// organisation B:s data.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -9,8 +17,29 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Enda get()-anropet mot den inloggades egna användardokument – Firestore-regler cachar
+    // identiska get()-anrop inom samma utvärdering, så minRoll()/minOrganisation() kostar
+    // tillsammans bara EN dokumentläsning, inte två.
+    function minAnvandare() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function minRoll() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return minAnvandare().role;
+    }
+
+    // Organisationen all befintlig data/alla befintliga konton tillhör tills en andra kund
+    // finns (se src/firebase/organisation.js STANDARD_ORG – måste vara identisk sträng).
+    // Fallback till 'default' skyddar mot att ett konto/dokument utan organisationId (skapat
+    // innan Etapp 1, före migreringen körts) plötsligt nekas åtkomst.
+    function minOrganisation() {
+      return minAnvandare().get('organisationId', 'default');
+    }
+
+    // Sant om ETT dokuments organisationId matchar anroparens egen organisation. Används på
+    // varje match-block som håller kunddata – den faktiska isoleringen mellan organisationer.
+    function matcharMinOrg(dokumentetsOrgId) {
+      return arInloggad() && dokumentetsOrgId == minOrganisation();
     }
 
     function arSuperadmin() {
@@ -77,36 +106,59 @@ service cloud.firestore {
       );
     }
 
-    // users/{uid} – innehåller namn, e-post, roll och favoriter
+    // organisationer/{orgId} – en kunds inställningar (namn, aktiva moduler m.m.).
+    // Endast läsbar/skrivbar av medlemmar i den egna organisationen.
+    match /organisationer/{orgId} {
+      allow read: if arInloggad() && orgId == minOrganisation();
+      allow write: if arSuperadmin() && orgId == minOrganisation();
+
+      // organisationer/{orgId}/installningar/geminiBudget|utloggning – budgettak och
+      // auto-utloggningstid, per organisation. Skrivs normalt av Cloud Function (Admin SDK,
+      // kringgår dessa regler); superadmin kan justera manuellt i adminpanelen.
+      match /installningar/{dokId} {
+        allow read: if arInloggad() && orgId == minOrganisation();
+        allow write: if arSuperadmin() && orgId == minOrganisation();
+      }
+    }
+
+    // users/{uid} – innehåller namn, e-post, roll, organisationId och favoriter
     match /users/{userId} {
-      allow read: if arInloggad();
-      // Ett nytt konto skapar sitt eget dokument med standardrollen "personal"
+      allow read: if arInloggad() && resource.data.get('organisationId', 'default') == minOrganisation();
+      // Ett nytt konto skapar sitt eget dokument med standardrollen "personal" i
+      // standardorganisationen (ingen egen signup-flow för att välja/skapa organisation
+      // finns ännu – det är en senare etapp, se ETAPPLAN.md).
       allow create: if arInloggad() && request.auth.uid == userId
-                     && request.resource.data.role == 'personal';
-      // Superadmin får ändra allt (t.ex. roller). Ägaren själv får bara ändra sina favoriter,
-      // tidpunkten för senaste notisbesök och sina egna startsidesgenvägar.
-      allow update: if arSuperadmin()
+                     && request.resource.data.role == 'personal'
+                     && request.resource.data.organisationId == 'default';
+      // Superadmin får ändra allt (t.ex. roller) – men ENDAST för användare i sin egen
+      // organisation. Ägaren själv får bara ändra sina favoriter, tidpunkten för senaste
+      // notisbesök och sina egna startsidesgenvägar (bararForandrarFalt utesluter redan
+      // organisationId från den listan, så en användare kan aldrig byta organisation själv).
+      allow update: if (arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation())
                      || (request.auth.uid == userId
                          && bararForandrarFalt(['favoriter', 'senasteNotisBesok', 'snabblankar',
                                                 'senasteInloggning']));
-      allow delete: if arSuperadmin();
+      allow delete: if arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation();
     }
 
     // rutiner/{rutinId} – innehåll för kliniskt stöd, logistik och administration
     // Fältet "omrade" styr vilken roll som får redigera, "status" styr godkännandeflödet
     match /rutiner/{rutinId} {
-      // Utkast (ej godkända) är endast synliga för de som får redigera området
-      allow read: if arInloggad()
+      // Utkast (ej godkända) är endast synliga för de som får redigera området – inom SAMMA
+      // organisation.
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'))
                    && (resource.data.status == 'godkand' || farRedigeraOmrade(resource.data.omrade));
 
       allow create: if farRedigeraOmrade(request.resource.data.omrade)
+                     && request.resource.data.get('organisationId', 'default') == minOrganisation()
                      && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('innehall', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('referenser', ''));
 
-      // Redaktörer får ändra allt enligt vanliga regler. Alla inloggade får kvittera läsning
-      // (lasteAv) utan att i övrigt ha redigeringsbehörighet för området.
+      // Redaktörer får ändra allt enligt vanliga regler. Alla inloggade i SAMMA organisation
+      // får kvittera läsning (lasteAv) utan att i övrigt ha redigeringsbehörighet för området.
       allow update: if (farRedigeraOmrade(resource.data.omrade)
+                     && matcharMinOrg(resource.data.get('organisationId', 'default'))
                      // Endast VÖL/superadmin får ändra godkännandestatus för kliniskt stöd
                      && (resource.data.omrade != 'kliniskt-stod'
                          || request.resource.data.status == resource.data.status
@@ -114,142 +166,166 @@ service cloud.firestore {
                      && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('innehall', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('referenser', '')))
-                     || (arInloggad() && bararForandrarFalt(['lasteAv']));
+                     || (matcharMinOrg(resource.data.get('organisationId', 'default'))
+                         && bararForandrarFalt(['lasteAv']));
 
-      allow delete: if farRedigeraOmrade(resource.data.omrade);
+      allow delete: if farRedigeraOmrade(resource.data.omrade)
+                     && matcharMinOrg(resource.data.get('organisationId', 'default'));
 
       // Versionshistorik – sparas automatiskt vid varje redigering
       match /versioner/{versionId} {
         allow read, create: if farRedigeraOmrade(
           get(/databases/$(database)/documents/rutiner/$(rutinId)).data.omrade
+        ) && matcharMinOrg(
+          get(/databases/$(database)/documents/rutiner/$(rutinId)).data.get('organisationId', 'default')
         );
       }
     }
 
     // forradsartiklar/{artikelId} – inventarie i Logistik-förråden, platsangivet med förråd/skåp/hylla
     match /forradsartiklar/{artikelId} {
-      allow read: if arInloggad()
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'))
                    && (resource.data.status == 'godkand' || farRedigeraOmrade('logistik'));
-      allow create: if farRedigeraOmrade('logistik');
-      allow update, delete: if farRedigeraOmrade('logistik');
+      allow create: if farRedigeraOmrade('logistik')
+                     && request.resource.data.get('organisationId', 'default') == minOrganisation();
+      allow update, delete: if farRedigeraOmrade('logistik')
+                     && matcharMinOrg(resource.data.get('organisationId', 'default'));
     }
 
     // anslag/{anslagId} – anslagstavla, meddelanden från ledningen till all personal
     match /anslag/{anslagId} {
-      allow read: if arInloggad();
-      // Alla inloggade får kvittera läsning (lasteAv) utan att i övrigt ha redigeringsbehörighet.
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
+      // Alla inloggade i SAMMA organisation får kvittera läsning (lasteAv) utan att i övrigt
+      // ha redigeringsbehörighet.
       allow update: if (farHanteraAnslag()
+                     && matcharMinOrg(resource.data.get('organisationId', 'default'))
                      && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('innehall', '')))
-                     || (arInloggad() && bararForandrarFalt(['lasteAv']));
+                     || (matcharMinOrg(resource.data.get('organisationId', 'default'))
+                         && bararForandrarFalt(['lasteAv']));
       allow create: if farHanteraAnslag()
+                     && request.resource.data.get('organisationId', 'default') == minOrganisation()
                      && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('innehall', ''));
-      allow delete: if farHanteraAnslag();
+      allow delete: if farHanteraAnslag() && matcharMinOrg(resource.data.get('organisationId', 'default'));
     }
 
     // kommentarer/{kommentarId} – frågor/kommentarer kopplade till en rutin.
     // Skapas ENDAST via Cloud Function (skapaKommentar), som kör den fulla Luhn-validerade
     // personnummer-kontrollen, hastighetsbegränsning och räknar ut @omnämnanden server-side
-    // (Admin SDK kringgår dessa regler avsiktligt). Direkta klient-skrivningar är avstängda.
+    // (Admin SDK kringgår dessa regler avsiktligt, och sätter organisationId där). Direkta
+    // klient-skrivningar är avstängda.
     match /kommentarer/{kommentarId} {
-      allow read: if arInloggad();
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
       allow create: if false;
-      allow delete: if arInloggad() && (resource.data.skapadAv == request.auth.uid || arRedaktor());
+      allow delete: if matcharMinOrg(resource.data.get('organisationId', 'default'))
+                     && (resource.data.skapadAv == request.auth.uid || arRedaktor());
     }
 
     // feedback/{feedbackId} – förslag/buggrapporter. Skapas ENDAST via Cloud Function
-    // (skickaFeedback) av samma skäl som kommentarer ovan. Superadmin läser/svarar på allt,
-    // avsändaren får bara läsa sina egna inskick (för att se ev. svar/status).
+    // (skickaFeedback) av samma skäl som kommentarer ovan. Superadmin läser/svarar på allt
+    // i sin egen organisation, avsändaren får bara läsa sina egna inskick.
     match /feedback/{feedbackId} {
-      allow read: if arSuperadmin() || (arInloggad() && resource.data.skapadAv == request.auth.uid);
-      allow update: if arSuperadmin() && bararForandrarFalt(['svar', 'svarDatum', 'status']);
-      allow delete: if arSuperadmin();
+      allow read: if (arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default')))
+                   || (arInloggad() && resource.data.skapadAv == request.auth.uid);
+      allow update: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'))
+                     && bararForandrarFalt(['svar', 'svarDatum', 'status']);
+      allow delete: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));
       allow create: if false;
     }
 
     // klinikfragefeedback/{id} – "var detta hjälpsamt?"-svar på klinikstöd-sökningen.
     match /klinikfragefeedback/{feedbackId} {
-      allow read: if arSuperadmin();
-      allow create: if arInloggad() && request.resource.data.uid == request.auth.uid;
+      allow read: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));
+      allow create: if arInloggad() && request.resource.data.uid == request.auth.uid
+                     && request.resource.data.get('organisationId', 'default') == minOrganisation();
       allow update, delete: if false;
     }
 
-    // klinikfrageloggar/{loggId} – frågor ställda till klinikstöd-sökningen (utan uid).
-    // Skrivs endast av Cloud Function (Admin SDK). Endast superadmin kan läsa listan.
+    // klinikfrageloggar/{loggId} – frågor ställda till klinikstöd-sökningen (utan uid, men
+    // med organisationId). Skrivs endast av Cloud Function (Admin SDK). Superadmin läser
+    // bara sin egen organisations frågeloggar.
     match /klinikfrageloggar/{loggId} {
-      allow read: if arSuperadmin();
+      allow read: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));
       allow write: if false;
     }
 
-    // klinikfragecache/{nyckel} – cachade klinikstöd-svar. Endast server-side åtkomst.
+    // klinikfragecache/{nyckel} – cachade klinikstöd-svar (nyckeln inkluderar redan
+    // organisationId, se functions/index.js). Endast server-side åtkomst.
     match /klinikfragecache/{nyckel} {
       allow read, write: if false;
     }
 
-    // systemvarningar/{id} – larm från schemalagda kontrollfunktioner (t.ex. att
-    // klinikstöd-sökningens källbegränsning har driftat). Skrivs endast av Cloud Function.
+    // systemvarningar/{id} – larm från schemalagda kontrollfunktioner om DELAD infrastruktur
+    // (t.ex. att klinikstöd-sökningens källbegränsning, som är gemensam för alla
+    // organisationer, har driftat) – medvetet INTE organisationsskopat, eftersom det handlar
+    // om drift av delad AI-infrastruktur, inte kunddata. Skrivs endast av Cloud Function.
     match /systemvarningar/{varningId} {
       allow read: if arSuperadmin();
       allow write: if false;
     }
 
-    // sokloggar/{loggId} – sökningar utan träffar. Endast superadmin kan läsa listan.
+    // sokloggar/{loggId} – sökningar utan träffar. Superadmin läser bara sin egen
+    // organisations loggar.
     match /sokloggar/{loggId} {
-      allow read: if arSuperadmin();
-      allow create: if arInloggad();
+      allow read: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));
+      allow create: if arInloggad() && request.resource.data.get('organisationId', 'default') == minOrganisation();
     }
 
-    // auditlogg/{handelseId} – ändringslogg. Endast superadmin kan läsa listan.
+    // auditlogg/{handelseId} – ändringslogg. Superadmin läser bara sin egen organisations logg.
     match /auditlogg/{handelseId} {
-      allow read: if arSuperadmin();
-      allow create: if arInloggad();
+      allow read: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));
+      allow create: if arInloggad() && request.resource.data.get('organisationId', 'default') == minOrganisation();
     }
 
-    // visningar/{nyckel} – räknare för populäraste sökträffar, inget känsligt innehåll
+    // visningar/{nyckel} – räknare för populäraste sökträffar, inget känsligt innehåll men
+    // ändå organisationsskopat så en organisations "mest använda"-lista inte blandas med en
+    // annans (nyckeln inkluderar redan organisationId, se useVisningar.js).
     match /visningar/{nyckel} {
-      allow read: if arInloggad();
-      allow create, update: if arInloggad();
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
+      allow create: if request.resource.data.get('organisationId', 'default') == minOrganisation();
+      allow update: if matcharMinOrg(resource.data.get('organisationId', 'default'));
     }
 
     // skiftrapporter/{postId} – praktisk drift-info mellan skift (INTE patientdata).
-    // Alla inloggade får skapa och markera som åtgärdat. Ägaren eller en redaktörsroll får ta bort.
+    // Alla inloggade i SAMMA organisation får skapa och markera som åtgärdat. Ägaren eller
+    // en redaktörsroll (i samma organisation) får ta bort.
     match /skiftrapporter/{postId} {
-      allow read: if arInloggad();
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
       allow create: if arInloggad() && request.resource.data.skapadAv == request.auth.uid
+                     && request.resource.data.get('organisationId', 'default') == minOrganisation()
                      && !harTroligtPersonnummer(request.resource.data.get('text', ''));
-      allow update: if arInloggad() && bararForandrarFalt(['atgardad', 'atgardadAv']);
-      allow delete: if arInloggad() && (resource.data.skapadAv == request.auth.uid || arRedaktor());
+      allow update: if matcharMinOrg(resource.data.get('organisationId', 'default'))
+                     && bararForandrarFalt(['atgardad', 'atgardadAv']);
+      allow delete: if matcharMinOrg(resource.data.get('organisationId', 'default'))
+                     && (resource.data.skapadAv == request.auth.uid || arRedaktor());
     }
 
     // kontakter/{kontaktId} – telefonlista, endast textnummer (ingen ring-funktion i klienten).
     match /kontakter/{kontaktId} {
-      allow read: if arInloggad();
-      allow create, update, delete: if farHanteraAnslag();
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
+      allow create: if farHanteraAnslag()
+                     && request.resource.data.get('organisationId', 'default') == minOrganisation();
+      allow update, delete: if farHanteraAnslag() && matcharMinOrg(resource.data.get('organisationId', 'default'));
     }
 
     // lankbibliotek/{lankId} – samling externa/interna länkar.
     match /lankbibliotek/{lankId} {
-      allow read: if arInloggad();
-      allow create, update, delete: if farHanteraAnslag();
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
+      allow create: if farHanteraAnslag()
+                     && request.resource.data.get('organisationId', 'default') == minOrganisation();
+      allow update, delete: if farHanteraAnslag() && matcharMinOrg(resource.data.get('organisationId', 'default'));
     }
 
     // anteckningar/{dokId} – privata anteckningar på en rutin, dokId "{uid}_{rutinId}".
-    // Endast ägaren själv får någonsin läsa eller skriva sin egen anteckning.
+    // Endast ägaren själv får någonsin läsa eller skriva sin egen anteckning – redan fullt
+    // isolerat per användare oavsett organisation, ingen extra org-kontroll behövs här.
     match /anteckningar/{dokId} {
       allow read, delete: if arInloggad() && resource.data.uid == request.auth.uid;
       allow update: if arInloggad() && resource.data.uid == request.auth.uid
                      && !harTroligtPersonnummer(request.resource.data.get('text', ''));
       allow create: if arInloggad() && request.resource.data.uid == request.auth.uid
                      && !harTroligtPersonnummer(request.resource.data.get('text', ''));
-    }
-
-    // installningar/geminiBudget – budgettak för Gemini Vision-tolkning.
-    // Skrivs normalt endast av Cloud Function (Admin SDK, kringgår dessa regler).
-    // Superadmin kan höja/sänka taket manuellt i adminpanelen.
-    match /installningar/{dokId} {
-      allow read: if arInloggad();
-      allow write: if arSuperadmin();
     }
   }
 }

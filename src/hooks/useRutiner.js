@@ -14,6 +14,8 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { loggaHandelse } from "./useAuditlogg";
+import { useAuth } from "./useAuth";
+import { STANDARD_ORG } from "../firebase/organisation";
 
 export const RUTIN_STATUS = {
   UTKAST: "utkast",
@@ -21,12 +23,15 @@ export const RUTIN_STATUS = {
 };
 
 export function useRutiner(omrade) {
+  const { organisationId } = useAuth();
   const [rutiner, setRutiner] = useState([]);
   const [laddar, setLaddar] = useState(true);
 
   useEffect(() => {
+    if (!organisationId) return undefined;
     const q = query(
       collection(db, "rutiner"),
+      where("organisationId", "==", organisationId),
       where("omrade", "==", omrade),
       orderBy("skapad", "desc")
     );
@@ -36,7 +41,7 @@ export function useRutiner(omrade) {
       setLaddar(false);
     });
     return unsubscribe;
-  }, [omrade]);
+  }, [omrade, organisationId]);
 
   async function skapaRutin({
     titel,
@@ -51,6 +56,7 @@ export function useRutiner(omrade) {
       innehall,
       bildUrl: bildUrl ?? null,
       omrade: omradeFalt,
+      organisationId: organisationId ?? STANDARD_ORG,
       granskadDatum: serverTimestamp(),
       status: kraverGodkannande ? RUTIN_STATUS.UTKAST : RUTIN_STATUS.GODKAND,
       skapadAv,
@@ -61,6 +67,7 @@ export function useRutiner(omrade) {
       entitetTyp: "rutin",
       entitetId: ref.id,
       uid: skapadAv,
+      organisationId,
     });
     return ref;
   }
@@ -78,7 +85,7 @@ export function useRutiner(omrade) {
       });
     }
     await updateDoc(doc(db, "rutiner", id), falt);
-    loggaHandelse({ beskrivning: "Rutin uppdaterad", entitetTyp: "rutin", entitetId: id, uid });
+    loggaHandelse({ beskrivning: "Rutin uppdaterad", entitetTyp: "rutin", entitetId: id, uid, organisationId });
   }
 
   async function godkannRutin(id, uid, namn) {
@@ -88,7 +95,7 @@ export function useRutiner(omrade) {
       godkandAvNamn: namn ?? "",
       godkandDatum: serverTimestamp(),
     });
-    loggaHandelse({ beskrivning: "Rutin godkänd", entitetTyp: "rutin", entitetId: id, uid });
+    loggaHandelse({ beskrivning: "Rutin godkänd", entitetTyp: "rutin", entitetId: id, uid, organisationId });
   }
 
   // Mjuk radering – rutinen hamnar i papperskorgen istället för att raderas direkt
@@ -98,7 +105,7 @@ export function useRutiner(omrade) {
       borttagenAv: uid ?? null,
       borttagenDatum: serverTimestamp(),
     });
-    loggaHandelse({ beskrivning: "Rutin borttagen", entitetTyp: "rutin", entitetId: id, uid });
+    loggaHandelse({ beskrivning: "Rutin borttagen", entitetTyp: "rutin", entitetId: id, uid, organisationId });
   }
 
   async function markeraGranskad(id, uid, namn) {
@@ -107,7 +114,7 @@ export function useRutiner(omrade) {
       granskadAv: uid ?? null,
       granskadAvNamn: namn ?? "",
     });
-    loggaHandelse({ beskrivning: "Rutin markerad som granskad", entitetTyp: "rutin", entitetId: id, uid });
+    loggaHandelse({ beskrivning: "Rutin markerad som granskad", entitetTyp: "rutin", entitetId: id, uid, organisationId });
   }
 
   async function hamtaVersioner(id) {

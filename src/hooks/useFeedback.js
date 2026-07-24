@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { skickaFeedback as skickaFeedbackAnrop } from "../firebase/functions";
+import { useAuth } from "./useAuth";
 
 export const FEEDBACK_TYPER = {
   FORSLAG: "forslag",
@@ -43,18 +44,23 @@ export const FEEDBACK_STATUS_LABELS = {
 
 // laddaLista=true hämtar hela listan (endast superadmin har läsbehörighet i Firestore-reglerna)
 export function useFeedback(laddaLista) {
+  const { organisationId } = useAuth();
   const [feedback, setFeedback] = useState([]);
   const [laddar, setLaddar] = useState(Boolean(laddaLista));
 
   useEffect(() => {
-    if (!laddaLista) return;
-    const q = query(collection(db, "feedback"), orderBy("skapad", "desc"));
+    if (!laddaLista || !organisationId) return undefined;
+    const q = query(
+      collection(db, "feedback"),
+      where("organisationId", "==", organisationId),
+      orderBy("skapad", "desc")
+    );
     const unsubscribe = onSnapshot(q, (snap) => {
       setFeedback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setLaddar(false);
     });
     return unsubscribe;
-  }, [laddaLista]);
+  }, [laddaLista, organisationId]);
 
   // Skickas via en Cloud Function (inte en direkt Firestore-skrivning) så att personnummer-
   // spärren och hastighetsbegränsningen körs server-side.
@@ -83,16 +89,22 @@ export function useFeedback(laddaLista) {
 
 // Egna tidigare inskick, för att se status/svar på det man skickat in själv
 export function useMinaFeedback(uid) {
+  const { organisationId } = useAuth();
   const [feedback, setFeedback] = useState([]);
 
   useEffect(() => {
-    if (!uid) return;
-    const q = query(collection(db, "feedback"), where("skapadAv", "==", uid), orderBy("skapad", "desc"));
+    if (!uid || !organisationId) return undefined;
+    const q = query(
+      collection(db, "feedback"),
+      where("organisationId", "==", organisationId),
+      where("skapadAv", "==", uid),
+      orderBy("skapad", "desc")
+    );
     const unsubscribe = onSnapshot(q, (snap) => {
       setFeedback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return unsubscribe;
-  }, [uid]);
+  }, [uid, organisationId]);
 
   return feedback;
 }

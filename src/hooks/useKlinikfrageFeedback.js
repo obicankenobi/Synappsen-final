@@ -4,11 +4,12 @@
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
 
-export async function skickaKlinikfrageFeedback(fraga, hjalpsam, uid) {
+export async function skickaKlinikfrageFeedback(fraga, hjalpsam, uid, organisationId) {
   return addDoc(collection(db, "klinikfragefeedback"), {
     fraga,
     hjalpsam,
     uid,
+    organisationId,
     tidpunkt: serverTimestamp(),
   });
 }

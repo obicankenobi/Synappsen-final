@@ -1329,3 +1329,103 @@ API:et aktiveras manuellt i Google Cloud Console, innan schemat börjar köras.
 
 **Verifiering:** build, lint, test (10/10) och `node -c functions/index.js` gröna.
 `src/version.js`/`package.json` → 5.10.0, ny post i andringslogg.
+
+## Fas 18 – Etapp 1: multi-tenant-grunden (organisationsmodellen)
+
+Genomförande av ETAPP1-ARBETSUPPGIFTER.md i sin helhet (block 1a–1e), efter att MODULPLAN.md
+och ETAPPLAN.md tagits fram. Detta är den enskilt största enskilda ändringen i projektets
+historia – nästan varje collection, varje regel och flera Cloud Functions berörs.
+
+**Förenkling mot ursprungsskissen (medvetet avsteg, motiverat):** planen skissade en separat
+`organisationer/{orgId}/medlemmar/{uid}`-subcollection för roll+org-medlemskap. Vid
+implementation valdes istället att lägga `organisationId` direkt som ett fält på befintliga
+`users/{uid}` (bredvid det redan existerande `role`-fältet). Motivering: en användare tillhör
+bara EN organisation i den här produkten (ingen multi-org-medlemskap-funktion planerad), så en
+separat subcollection hade bara inneburit extra migreringsyta och extra `get()`-anrop utan
+motsvarande nytta – YAGNI. `organisationer/{orgId}` finns kvar som egen collection för
+organisationens EGNA inställningar (namn, moduler, status).
+
+**1a – Datamodell:** `src/firebase/organisation.js` exporterar `STANDARD_ORG = "default"`,
+identisk sträng återanvänd i klient (`AuthContext.jsx`, alla hooks) och server
+(`functions/index.js`). `AuthContext` läser/exponerar `organisationId` (med fallback till
+STANDARD_ORG för konton från innan denna fas) parallellt med `role`, från samma
+Firestore-läsning.
+
+**1b – Migrering:** ny callable `migreraTillOrganisation` (superadmin-only, `dryRun`-parameter,
+standard `true`). Loopar över 15 collections, sätter `organisationId` på dokument som saknar
+det, i batchar om 500. Idempotent (kollar `!doc.data().organisationId` innan skrivning).
+Exponerad i adminpanelen under en ny sektion "🏢 Organisation (Etapp 1-migrering)" med en
+förhandsgranskningsknapp och en skarp körning (med `confirm()`-spärr). Samtliga create-flöden
+i klienten (alla CRUD-hooks) och i Cloud Functions sätter nu `organisationId` på nya dokument
+framåt, så migreringsluckan aldrig växer efter driftsättning.
+
+**1c – Regelomskrivning:** `firestore.rules` skrevs om i grunden. Ny `minAnvandare()`-funktion
+(ett enda `get()`, cachat av Firestore inom samma utvärdering) ger både `minRoll()` och den nya
+`minOrganisation()` – med fallback till `'default'` så att ett konto/dokument utan
+`organisationId` (innan migreringen körts) aldrig plötsligt nekas åtkomst. Ny
+`matcharMinOrg(orgId)`-hjälpfunktion används i VARJE match-block som håller kunddata (14 av 17
+collections – `anteckningar` är redan fullt isolerad per uid oavsett org och behövde ingen
+ändring, `klinikfragecache`/`hastighetsgranser` är redan `if false` server-only,
+`systemvarningar` lämnades medvetet global eftersom den gäller delad AI-infrastruktur, inte
+kunddata). Kritisk insikt under arbetet: rena rollkontroller (`arSuperadmin()` m.fl.) är
+MEDVETET org-agnostiska – varje ställe de används för att skydda ett dokument måste ANDA ihop
+med ett `matcharMinOrg(...)`-anrop, annars skulle en superadmin i organisation A kunna
+läsa/ändra organisation B:s data. `storage.rules` fick en dokumenterad, medvetet kvarlämnad
+lucka (se filen) – att organisationsskopa lagringssökvägarna kräver en path-omstrukturering
+som skjuts till en senare fas.
+
+**Verifiering som faktiskt kördes (inte bara skriven och lämnad):** Firestore-emulatorn gick
+att starta lokalt (`npx firebase-tools emulators:exec`), vilket gjorde det möjligt att skriva
+och KÖRA en riktig testsvit (`tests/rules/organisationsisolering.test.mjs`,
+`@firebase/rules-unit-testing`) mot de nya reglerna – inte bara skriva testerna utan att kunna
+exekvera dem, vilket var den ursprungliga planens antagande om vad som INTE skulle gå att
+göra i den här miljön. 17 tester, alla gröna (`npm run test:rules`): bevisar att en
+superadmin i organisation B varken kan läsa, uppdatera, ta bort eller förfalska ägarskap
+(skapa med ett annat orgId) av organisation A:s rutiner/anslag/kontakter/förrådsartiklar/
+användare, samtidigt som befintliga rollbaserade begränsningar (t.ex. att "vol" inte får
+redigera administration-rutiner) fortfarande gäller inom en organisation. Detta uppfyller
+"hårda stoppet" som sattes i ETAPP1-ARBETSUPPGIFTER.md 1c.5.
+
+**1d – Per-org AI-budget:** `installningar/geminiBudget` och `installningar/utloggning`
+flyttade till `organisationer/{orgId}/installningar/{...}`. `reserveraBudget(uid)` blev
+`reserveraBudget(orgId, uid)`. `useGeminiBudget.js`/`useUtloggningsinstallning.js`
+uppdaterade. Gamla toppnivå-`installningar`-collectionen är nu oanvänd (ingen kod refererar
+den längre) – lämnad orörd i Firestore (ofarlig, ingen kod läser den), inte aktivt raderad.
+
+**1e – Org-medvetna Cloud Functions:** samtliga nio functions uppdaterade. Två specifika
+säkerhetsfynd under genomgången, båda åtgärdade:
+- `fragaKlinisktStod`s cache-nyckel inkluderar nu `organisationId` – annars hade en
+  organisations cachade klinikstöd-svar kunnat serveras till en annan.
+- `skapaKommentar`s @omnämnande-uppslag (`db.collection("users").get()`) begränsades till
+  `where("organisationId","==",organisationId)` – innan denna fix kunde en kommentar i teorin
+  @nämna (och trigga en notis till) en användare i en helt annan organisation.
+- `tvingaUtloggning` kräver nu att målanvändaren tillhör samma organisation som anroparen.
+
+**Klienthookar:** samtliga 16 hooks som frågar Firestore-collections fick
+`where("organisationId","==",organisationId)` tillagt (härlett via `useAuth()` i varje hook),
+och alla create-anrop sätter fältet. `loggaHandelse()` (fristående funktion, ingen hook) fick
+en ny `organisationId`-parameter som tolv anropsställen uppdaterades att skicka in.
+`registreraVisning()`s dokument-nyckel fick organisationId inbakat för att förhindra
+kollisioner mellan organisationers "mest använda"-räknare.
+
+**Nya composite-index:** 15 poster tillagda i `firestore.indexes.json` (en per collection som
+kombinerar en `organisationId`-likhetsfilter med ytterligare filter/sortering).
+
+**Verifiering:** `npm run build`, `npm run lint`, `npm run test` (10/10) och `node -c
+functions/index.js` gröna. `npm run test:rules` (ny, kräver Firestore-emulatorn – separat
+kommando, inte del av CI ännu eftersom `.github/workflows/ci.yml` inte har Java/emulatorn
+installerad) – 17/17 gröna, körd upprepade gånger under arbetet.
+
+### Kvarstående efter Etapp 1 (medvetet avgränsat, dokumenterat)
+
+- Storage-reglerna för `rutiner`/`forradsartiklar` är inte organisationsskopade än (se
+  kommentar i `storage.rules`).
+- CI (`ci.yml`) kör inte `test:rules` automatiskt ännu – kräver Java + Firestore-emulatorn i
+  GitHub Actions-miljön, en separat uppgift.
+- Migreringen måste triggas manuellt av superadmin (adminpanelens nya knapp) efter deploy,
+  innan siffrorna i "mest använda"/sökloggar/etc. börjar visa data igen (frågorna filtrerar nu
+  på organisationId, vilket kräver att befintliga dokument faktiskt har fältet satt).
+- Ingen egen signup-flow för att välja/skapa en ny organisation – nya konton går fortfarande
+  automatiskt till `STANDARD_ORG`. Det är en senare etapp (Etapp 4/5 i ETAPPLAN.md).
+
+**Version:** `src/version.js`/`package.json` → se nästa post i andringslogg.

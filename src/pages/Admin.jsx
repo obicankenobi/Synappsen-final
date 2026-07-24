@@ -15,7 +15,12 @@ import { useAnslag } from "../hooks/useAnslag";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { useUtloggningsinstallning } from "../hooks/useUtloggningsinstallning";
 import { useKlinikfrageStatistik } from "../hooks/useKlinikfrageStatistik";
-import { tvingaUtloggning, testaBeroenden, verifieraKlinikstod } from "../firebase/functions";
+import {
+  tvingaUtloggning,
+  testaBeroenden,
+  verifieraKlinikstod,
+  migreraTillOrganisation,
+} from "../firebase/functions";
 import { APP_VERSION } from "../version";
 import { ROLES, ROLE_LABELS } from "../firebase/roles";
 import "./Admin.css";
@@ -97,6 +102,25 @@ export default function Admin() {
       setVerifierarKlinikstod(false);
     }
   }
+  const [migreringResultat, setMigreringResultat] = useState(null);
+  const [migrerar, setMigrerar] = useState(false);
+
+  async function hanteraMigrering(dryRun) {
+    if (!dryRun && !confirm("Kör migreringen SKARPT? Detta skriver organisationId på alla dokument som saknar det.")) {
+      return;
+    }
+    setMigrerar(true);
+    setMigreringResultat(null);
+    try {
+      const { data } = await migreraTillOrganisation(dryRun);
+      setMigreringResultat(data);
+    } catch (fel) {
+      setMigreringResultat({ fel: fel.message ?? "Migreringen misslyckades." });
+    } finally {
+      setMigrerar(false);
+    }
+  }
+
   const [svarUtkast, setSvarUtkast] = useState({});
   const [auditSok, setAuditSok] = useState("");
   const [auditTypFilter, setAuditTypFilter] = useState("");
@@ -313,6 +337,50 @@ export default function Admin() {
                   </li>
                 ))}
               </ul>
+            )}
+          </div>
+        </section>
+      )}
+
+      {arSuperadmin && (
+        <section className="admin-sektion">
+          <h2>🏢 Organisation (Etapp 1-migrering)</h2>
+          <p className="sida__beskrivning">
+            Engångsverktyg som sätter organisationId på allt befintligt innehåll (första steget
+            mot att kunna hantera flera kunder). Kör alltid "Förhandsgranska" först och kolla att
+            siffrorna stämmer innan du kör den skarpt – skarp körning kan köras flera gånger utan
+            risk (den skriver bara på dokument som ännu saknar fältet).
+          </p>
+          <div className="admin-beroendetest">
+            <button
+              className="knapp knapp--sekundar knapp--liten"
+              onClick={() => hanteraMigrering(true)}
+              disabled={migrerar}
+            >
+              {migrerar ? "Arbetar..." : "Förhandsgranska (dry-run)"}
+            </button>{" "}
+            <button
+              className="knapp knapp--farlig knapp--liten"
+              onClick={() => hanteraMigrering(false)}
+              disabled={migrerar}
+            >
+              Kör skarpt
+            </button>
+            {migreringResultat?.fel && <p className="klinikfraga__fel">{migreringResultat.fel}</p>}
+            {migreringResultat?.resultat && (
+              <>
+                <p className="sida__beskrivning">
+                  {migreringResultat.dryRun ? "Förhandsgranskning – inget skrivet ännu:" : "Skarpt kört:"}
+                </p>
+                <ul className="admin-beroendetest__lista">
+                  {Object.entries(migreringResultat.resultat).map(([samling, r]) => (
+                    <li key={samling}>
+                      {samling}: {r.totalt} dokument, {r.saknarOrganisationId} saknade organisationId
+                      {!migreringResultat.dryRun && r.saknarOrganisationId > 0 && " (nu åtgärdat)"}
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </div>
         </section>

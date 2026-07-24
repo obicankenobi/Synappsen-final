@@ -4,6 +4,7 @@
       "collectionGroup": "rutiner",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
         { "fieldPath": "omrade", "order": "ASCENDING" },
         { "fieldPath": "skapad", "order": "DESCENDING" }
       ]
@@ -12,7 +13,16 @@
       "collectionGroup": "forradsartiklar",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
         { "fieldPath": "forrad", "order": "ASCENDING" },
+        { "fieldPath": "skapad", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "forradsartiklar",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
         { "fieldPath": "skapad", "order": "DESCENDING" }
       ]
     },
@@ -20,6 +30,7 @@
       "collectionGroup": "kommentarer",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
         { "fieldPath": "rutinId", "order": "ASCENDING" },
         { "fieldPath": "skapad", "order": "ASCENDING" }
       ]
@@ -28,7 +39,88 @@
       "collectionGroup": "feedback",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
         { "fieldPath": "skapadAv", "order": "ASCENDING" },
+        { "fieldPath": "skapad", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "feedback",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
+        { "fieldPath": "skapad", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "anslag",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
+        { "fieldPath": "skapad", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sokloggar",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
+        { "fieldPath": "tidpunkt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "auditlogg",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
+        { "fieldPath": "tidpunkt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "visningar",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
+        { "fieldPath": "antal", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "klinikfragefeedback",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
+        { "fieldPath": "tidpunkt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "klinikfrageloggar",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
+        { "fieldPath": "tidpunkt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "kontakter",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
+        { "fieldPath": "kategori", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "lankbibliotek",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
+        { "fieldPath": "kategori", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "skiftrapporter",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
         { "fieldPath": "skapad", "order": "DESCENDING" }
       ]
     }

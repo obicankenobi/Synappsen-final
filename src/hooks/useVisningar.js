@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import {
   collection,
   query,
+  where,
   orderBy,
   limit,
   onSnapshot,
@@ -14,17 +15,21 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { useAuth } from "./useAuth";
 
-function nyckelFran(titel, sokvag) {
-  return `${sokvag}::${titel}`.replace(/[/.#$[\]]/g, "_").slice(0, 300);
+// organisationId ingår i nyckeln – annars skulle två organisationers räknare för en likadant
+// namngiven rutin/sökväg kunna kollidera och räknas ihop.
+function nyckelFran(titel, sokvag, organisationId) {
+  return `${organisationId}::${sokvag}::${titel}`.replace(/[/.#$[\]]/g, "_").slice(0, 300);
 }
 
-export async function registreraVisning(titel, sokvag) {
+export async function registreraVisning(titel, sokvag, organisationId) {
   return setDoc(
-    doc(db, "visningar", nyckelFran(titel, sokvag)),
+    doc(db, "visningar", nyckelFran(titel, sokvag, organisationId)),
     {
       titel,
       sokvag,
+      organisationId,
       antal: increment(1),
       senastVisad: serverTimestamp(),
     },
@@ -33,15 +38,22 @@ export async function registreraVisning(titel, sokvag) {
 }
 
 export function usePopularaste(antalPost = 5) {
+  const { organisationId } = useAuth();
   const [populara, setPopulara] = useState([]);
 
   useEffect(() => {
-    const q = query(collection(db, "visningar"), orderBy("antal", "desc"), limit(antalPost));
+    if (!organisationId) return undefined;
+    const q = query(
+      collection(db, "visningar"),
+      where("organisationId", "==", organisationId),
+      orderBy("antal", "desc"),
+      limit(antalPost)
+    );
     const unsubscribe = onSnapshot(q, (snap) => {
       setPopulara(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return unsubscribe;
-  }, [antalPost]);
+  }, [antalPost, organisationId]);
 
   return populara;
 }

@@ -20,6 +20,12 @@ service firebase.storage {
         || (omrade == 'administration' && roll == 'vec');
     }
 
+    // KÄND, MEDVETET AVGRÄNSAD LUCKA (Etapp 1, se ETAPP1-ARBETSUPPGIFTER.md 1c.4): dessa två
+    // sökvägar är INTE organisationsskopade ännu. Sökvägen innehåller ett slumpat Firestore-id
+    // (rutinId/artikelId), så att gissa sig till en annan organisations exakta fil är opraktiskt
+    // utan att redan ha läst URL:en någon annanstans – men den teoretiska risken kvarstår tills
+    // sökvägen byggs om att inkludera organisationId (rekommenderad lösning, se ETAPP1-
+    // ARBETSUPPGIFTER.md) eller regeln slår upp organisationId via ett Firestore-uppslag.
     match /rutiner/{omrade}/{rutinId}/{filnamn} {
       allow read: if arInloggad();
       allow write: if arInloggad() && farRedigeraOmrade(omrade);

@@ -3,6 +3,16 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.11.0",
+    datum: "2026-07-24",
+    andringar: [
+      "Grunden lagd för att flera kunder/organisationer ska kunna använda samma installation utan att någonsin se varandras data",
+      "All befintlig data hör nu till en organisation, och en ny adminfunktion kan (med förhandsgranskning innan något sparas) förbereda befintlig data för detta",
+      "AI-budgeten (för klinikstöd och dokumentimport) räknas nu per organisation istället för gemensamt",
+      "Bakomliggande säkerhetsregler skärpta och verifierade med automatiska tester som bevisar att data i en organisation aldrig kan nås från en annan",
+    ],
+  },
+  {
     version: "5.10.0",
     datum: "2026-07-14",
     andringar: [

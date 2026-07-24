@@ -1,21 +1,27 @@
-// Hämtning och justering av månadsbudgeten för Gemini Vision-tolkning
+// Hämtning och justering av månadsbudgeten för Gemini Vision-tolkning – per organisation
+// (Etapp 1), samma dokumentform som tidigare men flyttad från installningar/geminiBudget
+// till organisationer/{orgId}/installningar/geminiBudget så att två kunder aldrig delar pott.
 import { useEffect, useState } from "react";
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
-
-const BUDGET_REF = doc(db, "installningar", "geminiBudget");
+import { useAuth } from "./useAuth";
 
 export function useGeminiBudget() {
+  const { organisationId } = useAuth();
   const [budget, setBudget] = useState(null);
 
   useEffect(() => {
-    return onSnapshot(BUDGET_REF, (snap) => {
+    if (!organisationId) return undefined;
+    const ref = doc(db, "organisationer", organisationId, "installningar", "geminiBudget");
+    return onSnapshot(ref, (snap) => {
       setBudget(snap.exists() ? snap.data() : { anvantOre: 0, taketOre: 20000 });
     });
-  }, []);
+  }, [organisationId]);
 
   async function satTakKr(takKr) {
-    await setDoc(BUDGET_REF, { taketOre: Math.round(takKr * 100) }, { merge: true });
+    if (!organisationId) return;
+    const ref = doc(db, "organisationer", organisationId, "installningar", "geminiBudget");
+    await setDoc(ref, { taketOre: Math.round(takKr * 100) }, { merge: true });
   }
 
   return { budget, satTakKr };

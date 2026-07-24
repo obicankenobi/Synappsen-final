@@ -43,3 +43,8 @@ export function verifieraKlinikstod() {
   const fn = httpsCallable(functions, "verifieraKlinikstod");
   return fn();
 }
+
+export function migreraTillOrganisation(dryRun = true) {
+  const fn = httpsCallable(functions, "migreraTillOrganisation");
+  return fn({ dryRun });
+}

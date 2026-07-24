@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {
   collection,
   query,
+  where,
   orderBy,
   onSnapshot,
   addDoc,
@@ -12,6 +13,8 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { loggaHandelse } from "./useAuditlogg";
+import { useAuth } from "./useAuth";
+import { STANDARD_ORG } from "../firebase/organisation";
 
 export const ANSLAG_PRIORITET = {
   VIKTIGT: "viktigt",
@@ -19,17 +22,23 @@ export const ANSLAG_PRIORITET = {
 };
 
 export function useAnslag() {
+  const { organisationId } = useAuth();
   const [anslag, setAnslag] = useState([]);
   const [laddar, setLaddar] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, "anslag"), orderBy("skapad", "desc"));
+    if (!organisationId) return undefined;
+    const q = query(
+      collection(db, "anslag"),
+      where("organisationId", "==", organisationId),
+      orderBy("skapad", "desc")
+    );
     const unsubscribe = onSnapshot(q, (snap) => {
       setAnslag(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setLaddar(false);
     });
     return unsubscribe;
-  }, []);
+  }, [organisationId]);
 
   async function skapaAnslag({
     titel,
@@ -48,6 +57,7 @@ export function useAnslag() {
       prioritet: prioritet || ANSLAG_PRIORITET.INFO,
       utgangsdatum: utgangsdatum || null,
       kvitteringsfrist: kvitteringsfrist || null,
+      organisationId: organisationId ?? STANDARD_ORG,
       skapadAv,
       skapadAvNamn: skapadAvNamn ?? "",
       skapad: serverTimestamp(),
@@ -57,13 +67,14 @@ export function useAnslag() {
       entitetTyp: "anslag",
       entitetId: ref.id,
       uid: skapadAv,
+      organisationId,
     });
     return ref;
   }
 
   async function uppdateraAnslag(id, falt, uid) {
     await updateDoc(doc(db, "anslag", id), falt);
-    loggaHandelse({ beskrivning: "Anslag uppdaterat", entitetTyp: "anslag", entitetId: id, uid });
+    loggaHandelse({ beskrivning: "Anslag uppdaterat", entitetTyp: "anslag", entitetId: id, uid, organisationId });
   }
 
   // Mjuk radering – anslaget hamnar i papperskorgen istället för att raderas direkt
@@ -73,7 +84,7 @@ export function useAnslag() {
       borttagenAv: uid ?? null,
       borttagenDatum: serverTimestamp(),
     });
-    loggaHandelse({ beskrivning: "Anslag borttaget", entitetTyp: "anslag", entitetId: id, uid });
+    loggaHandelse({ beskrivning: "Anslag borttaget", entitetTyp: "anslag", entitetId: id, uid, organisationId });
   }
 
   // Fastnaglade anslag högst upp, sedan viktiga, sedan nyast först. Utgångna/borttagna anslag filtreras bort.

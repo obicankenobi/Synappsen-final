@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import {
   collection,
   query,
+  where,
   orderBy,
   onSnapshot,
   addDoc,
@@ -15,27 +16,36 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { loggaHandelse } from "./useAuditlogg";
+import { useAuth } from "./useAuth";
+import { STANDARD_ORG } from "../firebase/organisation";
 
 const VISNINGSGRANS_TIMMAR = 48;
 
 export function useSkiftrapport() {
+  const { organisationId } = useAuth();
   const [poster, setPoster] = useState([]);
   const [laddar, setLaddar] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, "skiftrapporter"), orderBy("skapad", "desc"));
+    if (!organisationId) return undefined;
+    const q = query(
+      collection(db, "skiftrapporter"),
+      where("organisationId", "==", organisationId),
+      orderBy("skapad", "desc")
+    );
     const unsubscribe = onSnapshot(q, (snap) => {
       setPoster(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setLaddar(false);
     });
     return unsubscribe;
-  }, []);
+  }, [organisationId]);
 
   async function skapaPost({ text, skapadAv, skapadAvNamn }) {
     const ref = await addDoc(collection(db, "skiftrapporter"), {
       text,
       atgardad: false,
       atgardadAv: null,
+      organisationId: organisationId ?? STANDARD_ORG,
       skapadAv,
       skapadAvNamn: skapadAvNamn ?? "",
       skapad: serverTimestamp(),
@@ -45,18 +55,19 @@ export function useSkiftrapport() {
       entitetTyp: "skiftrapport",
       entitetId: ref.id,
       uid: skapadAv,
+      organisationId,
     });
     return ref;
   }
 
   async function markeraAtgardad(id, uid) {
     await updateDoc(doc(db, "skiftrapporter", id), { atgardad: true, atgardadAv: uid });
-    loggaHandelse({ beskrivning: "Skiftrapport åtgärdad", entitetTyp: "skiftrapport", entitetId: id, uid });
+    loggaHandelse({ beskrivning: "Skiftrapport åtgärdad", entitetTyp: "skiftrapport", entitetId: id, uid, organisationId });
   }
 
   async function taBortPost(id, uid) {
     await deleteDoc(doc(db, "skiftrapporter", id));
-    loggaHandelse({ beskrivning: "Skiftrapport borttagen", entitetTyp: "skiftrapport", entitetId: id, uid });
+    loggaHandelse({ beskrivning: "Skiftrapport borttagen", entitetTyp: "skiftrapport", entitetId: id, uid, organisationId });
   }
 
   const grans = new Date();
