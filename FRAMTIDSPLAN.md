@@ -48,3 +48,8 @@ Redan specificerade, små och lågrisk:
   Firestore-regler; fullt filter finns i klient + Cloud Functions).
 - Klinikstöd-sökningen är ännu inte livetestad efter ombyggnaden till domänbegränsad
   sökmotor – **första åtgärd efter nästa deploy: verifiera i skarp miljö.**
+- **ATT VERIFIERA (5.10.0):** den schemalagda funktionen `verifieraKlinikstodSchemalagt`
+  (Fas 17) kräver att Cloud Scheduler-API:et är aktiverat i Google Cloud-projektet – kolla
+  efter nästa deploy att det schemalagda jobbet faktiskt skapades och körs (Firebase Console
+  → Functions, eller Google Cloud Console → Cloud Scheduler). Om deployen felade på just den
+  funktionen, aktivera API:et manuellt och deploya om.
