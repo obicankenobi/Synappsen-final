@@ -94,6 +94,62 @@ async function main() {
       status: "godkand",
       organisationId: ORG_A,
     });
+
+    await setDoc(doc(db, "kommentarer", "kommentarA"), {
+      text: "En kommentar",
+      rutinId: "rutinA",
+      skapadAv: "volA",
+      organisationId: ORG_A,
+    });
+
+    await setDoc(doc(db, "feedback", "feedbackA"), {
+      text: "Ett förslag",
+      skapadAv: "volA",
+      status: "ny",
+      organisationId: ORG_A,
+    });
+
+    await setDoc(doc(db, "klinikfragefeedback", "klinikfeedbackA"), {
+      fraga: "En fråga",
+      hjalpsam: true,
+      uid: "volA",
+      organisationId: ORG_A,
+    });
+
+    await setDoc(doc(db, "klinikfrageloggar", "klinikloggA"), {
+      fraga: "En fråga",
+      organisationId: ORG_A,
+    });
+
+    await setDoc(doc(db, "sokloggar", "sokloggA"), {
+      sokterm: "något",
+      organisationId: ORG_A,
+    });
+
+    await setDoc(doc(db, "auditlogg", "auditA"), {
+      handelse: "skapade rutin",
+      organisationId: ORG_A,
+    });
+
+    await setDoc(doc(db, "visningar", `${ORG_A}::rutinA`), {
+      titel: "Rutin A",
+      antal: 3,
+      organisationId: ORG_A,
+    });
+
+    await setDoc(doc(db, "skiftrapporter", "skiftA"), {
+      text: "Info till nästa skift",
+      skapadAv: "volA",
+      atgardad: false,
+      organisationId: ORG_A,
+    });
+
+    await setDoc(doc(db, "lankbibliotek", "lankA"), {
+      titel: "En länk",
+      url: "https://example.com",
+      kategori: "Övrigt",
+      organisationId: ORG_A,
+    });
   });
 
   const superA = testEnv.authenticatedContext("superadminA").firestore();
@@ -170,6 +226,89 @@ async function main() {
   console.log("\nforradsartiklar/{artikelId} – organisationsisolering");
   await test("superadminB kan INTE läsa org A:s förrådsartikel", () =>
     assertFails(getDoc(doc(superB, "forradsartiklar", "artikelA")))
+  );
+
+  console.log("\nkommentarer/{kommentarId} – organisationsisolering");
+  await test("superadminB kan INTE läsa org A:s kommentar", () =>
+    assertFails(getDoc(doc(superB, "kommentarer", "kommentarA")))
+  );
+  await test("superadminB kan INTE ta bort org A:s kommentar (fel org, trots redaktörsroll)", () =>
+    assertFails(deleteDoc(doc(superB, "kommentarer", "kommentarA")))
+  );
+
+  console.log("\nfeedback/{feedbackId} – organisationsisolering");
+  await test("superadminB kan INTE läsa org A:s feedback", () =>
+    assertFails(getDoc(doc(superB, "feedback", "feedbackA")))
+  );
+  await test("superadminB kan INTE ta bort org A:s feedback", () =>
+    assertFails(deleteDoc(doc(superB, "feedback", "feedbackA")))
+  );
+
+  console.log("\nklinikfragefeedback/{feedbackId} – organisationsisolering");
+  await test("superadminB kan INTE läsa org A:s klinikfrågefeedback", () =>
+    assertFails(getDoc(doc(superB, "klinikfragefeedback", "klinikfeedbackA")))
+  );
+  await test("vecB kan INTE skapa klinikfrågefeedback och låtsas tillhöra org A", () =>
+    assertFails(
+      setDoc(doc(vecB, "klinikfragefeedback", "forfalskad"), {
+        fraga: "x",
+        hjalpsam: true,
+        uid: "vecB",
+        organisationId: ORG_A,
+      })
+    )
+  );
+
+  console.log("\nklinikfrageloggar/{loggId} – organisationsisolering");
+  await test("superadminB kan INTE läsa org A:s klinikfrågelogg", () =>
+    assertFails(getDoc(doc(superB, "klinikfrageloggar", "klinikloggA")))
+  );
+
+  console.log("\nsokloggar/{loggId} – organisationsisolering");
+  await test("superadminB kan INTE läsa org A:s söklogg", () =>
+    assertFails(getDoc(doc(superB, "sokloggar", "sokloggA")))
+  );
+
+  console.log("\nauditlogg/{handelseId} – organisationsisolering");
+  await test("superadminB kan INTE läsa org A:s auditlogg", () =>
+    assertFails(getDoc(doc(superB, "auditlogg", "auditA")))
+  );
+
+  console.log("\nvisningar/{nyckel} – organisationsisolering");
+  await test("vecB kan INTE läsa org A:s visningsräknare", () =>
+    assertFails(getDoc(doc(vecB, "visningar", `${ORG_A}::rutinA`)))
+  );
+  await test("vecB kan INTE uppdatera org A:s visningsräknare", () =>
+    assertFails(updateDoc(doc(vecB, "visningar", `${ORG_A}::rutinA`), { antal: 99 }))
+  );
+
+  console.log("\nskiftrapporter/{postId} – organisationsisolering");
+  await test("vecB kan INTE läsa org A:s skiftrapport", () =>
+    assertFails(getDoc(doc(vecB, "skiftrapporter", "skiftA")))
+  );
+  await test("vecB kan INTE markera org A:s skiftrapport som åtgärdad", () =>
+    assertFails(updateDoc(doc(vecB, "skiftrapporter", "skiftA"), { atgardad: true }))
+  );
+  await test("vecB kan INTE ta bort org A:s skiftrapport (fel org, trots redaktörsroll)", () =>
+    assertFails(deleteDoc(doc(vecB, "skiftrapporter", "skiftA")))
+  );
+
+  console.log("\nlankbibliotek/{lankId} – organisationsisolering");
+  await test("vecB kan INTE läsa org A:s länk", () =>
+    assertFails(getDoc(doc(vecB, "lankbibliotek", "lankA")))
+  );
+  await test("vecB kan INTE ändra org A:s länk (fel org, trots rätt roll)", () =>
+    assertFails(updateDoc(doc(vecB, "lankbibliotek", "lankA"), { titel: "Kapad" }))
+  );
+  await test("vecB KAN skapa en länk i sin egen organisation", () =>
+    assertSucceeds(
+      setDoc(doc(vecB, "lankbibliotek", "lankB"), {
+        titel: "Länk B",
+        url: "https://example.com/b",
+        kategori: "Övrigt",
+        organisationId: ORG_B,
+      })
+    )
   );
 
   console.log("\nBefintliga rollkontroller INOM en organisation gäller fortfarande");

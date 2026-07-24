@@ -34,14 +34,17 @@ produktion, och det schemalagda jobbet syns köra i Google Cloud Console.
 
 ## Etapp 1 – Multi-tenant-grund (organisationsmodellen)  ·  Storlek: XL  ·  ✅ GENOMFÖRD
 
-**Status:** genomförd och verifierad med automatiska tester mot Firestore-emulatorn
-(`npm run test:rules`, 17/17 gröna) – se ETAPP1-ARBETSUPPGIFTER.md och UTVECKLINGSLOGG.md
+**Status:** genomförd och verifierad med automatiska tester mot Firestore-emulatorn –
+`npm run test:rules` (34/34 gröna, samtliga 14 organisationsskopade collections) och
+`npm run test:functions` (14/14 gröna, migreringsfunktionens faktiska affärslogik: behörighet,
+dry-run, skarp körning, idempotens) – se ETAPP1-ARBETSUPPGIFTER.md och UTVECKLINGSLOGG.md
 Fas 18 för fullständiga detaljer. Förenklad mot ursprungsskissen: `organisationId` ligger
 direkt på `users/{uid}` (ingen separat `medlemmar`-subcollection – onödig komplexitet så länge
 en användare bara tillhör en organisation). Kvarstående, medvetet avgränsat: Storage-reglerna
 för `rutiner`/`forradsartiklar` är ännu inte organisationsskopade (dokumenterad, låg-severity
-lucka), och migreringen måste köras manuellt av superadmin i adminpanelen innan skarp drift
-med en andra kund.
+lucka), migreringen måste köras manuellt av superadmin i adminpanelen innan skarp drift med en
+andra kund, och ingen UI/e2e-testning har gjorts (appen har inte körts i en browser mot
+emulatorerna).
 
 **Mål:** appen kan hålla flera kunders data helt åtskilda. Detta är planens tyngsta arbete.
 

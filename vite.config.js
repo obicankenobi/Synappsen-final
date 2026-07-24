@@ -21,9 +21,10 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: false,
-    // tests/rules/** körs separat mot Firestore-emulatorn (npm run test:rules) – inte en
-    // vitest-testsvit, kräver en körande emulator och är inte skriven med vitests API.
-    exclude: ["**/node_modules/**", "**/dist/**", "tests/rules/**"],
+    // tests/rules/** och tests/functions/** körs separat mot Firestore-emulatorn
+    // (npm run test:rules / npm run test:functions) – inte vitest-testsviter, kräver en
+    // körande emulator och är inte skrivna med vitests API.
+    exclude: ["**/node_modules/**", "**/dist/**", "tests/rules/**", "tests/functions/**"],
   },
   plugins: [
     react(),

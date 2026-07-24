@@ -1414,18 +1414,41 @@ kombinerar en `organisationId`-likhetsfilter med ytterligare filter/sortering).
 **Verifiering:** `npm run build`, `npm run lint`, `npm run test` (10/10) och `node -c
 functions/index.js` gröna. `npm run test:rules` (ny, kräver Firestore-emulatorn – separat
 kommando, inte del av CI ännu eftersom `.github/workflows/ci.yml` inte har Java/emulatorn
-installerad) – 17/17 gröna, körd upprepade gånger under arbetet.
+installerad) – ursprungligen 17/17 gröna, senare utökad (se nedan) till 34/34.
+
+**Kompletterande verifiering (samma dag, efter en självkritisk genomgång av vad som
+faktiskt var bevisat):**
+- `tests/rules/organisationsisolering.test.mjs` utökades från 5 till samtliga 14
+  organisationsskopade collections (lade till `kommentarer`, `feedback`,
+  `klinikfragefeedback`, `klinikfrageloggar`, `sokloggar`, `auditlogg`, `visningar`,
+  `skiftrapporter`, `lankbibliotek`) – **34/34 gröna**. Tidigare täckte testerna bara 5 av 14
+  collections; regelmönstret var identiskt men obevisat för de övriga nio.
+- Ny testsvit `tests/functions/migrering.test.cjs` (`npm run test:functions`) kör
+  **`migreraTillOrganisation`s faktiska affärslogik** mot Firestore-emulatorn – anropar den
+  exporterade funktionens `.run()` direkt (samma mekanism firebase-functions v2 själv
+  exponerar) istället för att bara läsa koden. 14/14 gröna: behörighetsspärren
+  (unauthenticated/permission-denied), att dry-run räknar rätt UTAN att skriva något, att en
+  skarp körning faktiskt sätter `organisationId` och skapar `organisationer/default` med
+  förväntade fält, att redan migrerad data lämnas orörd, och att en andra körning är en sann
+  no-op (idempotens). Detta var tidigare bara kodgranskat, aldrig körkontrollerat.
+- `functions/node_modules` installerades (fanns inte sedan tidigare i denna miljö) för att
+  `test:functions` skulle kunna requira `firebase-admin`/`@google/generative-ai`.
+- `vite.config.js` fick `tests/functions/**` tillagt i `test.exclude` av samma skäl som
+  `tests/rules/**` sedan tidigare (vitest plockade annars upp filen och kraschade).
 
 ### Kvarstående efter Etapp 1 (medvetet avgränsat, dokumenterat)
 
 - Storage-reglerna för `rutiner`/`forradsartiklar` är inte organisationsskopade än (se
   kommentar i `storage.rules`).
-- CI (`ci.yml`) kör inte `test:rules` automatiskt ännu – kräver Java + Firestore-emulatorn i
-  GitHub Actions-miljön, en separat uppgift.
+- CI (`ci.yml`) kör inte `test:rules`/`test:functions` automatiskt ännu – kräver Java +
+  Firestore-emulatorn i GitHub Actions-miljön, en separat uppgift.
 - Migreringen måste triggas manuellt av superadmin (adminpanelens nya knapp) efter deploy,
   innan siffrorna i "mest använda"/sökloggar/etc. börjar visa data igen (frågorna filtrerar nu
   på organisationId, vilket kräver att befintliga dokument faktiskt har fältet satt).
 - Ingen egen signup-flow för att välja/skapa en ny organisation – nya konton går fortfarande
   automatiskt till `STANDARD_ORG`. Det är en senare etapp (Etapp 4/5 i ETAPPLAN.md).
+- Ingen UI/e2e-testning har gjorts (appen har inte körts i en browser mot emulatorerna) –
+  klienthookarnas org-filtrering är bevisad via regel- och byggverifiering, inte via en
+  levande session.
 
 **Version:** `src/version.js`/`package.json` → se nästa post i andringslogg.
