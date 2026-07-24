@@ -1,5 +1,6 @@
 // Cloud Functions för Synappsen – Gemini Vision-tolkning av uppladdade foton
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
@@ -830,5 +831,44 @@ exports.verifieraKlinikstod = onCall(
       })
     );
     return { resultat };
+  }
+);
+
+// Kör samma kontroll som verifieraKlinikstod automatiskt varje morgon, så att en drift i
+// sökmotorns domänkonfiguration (den enda punkt som kan gå sönder utanför appens egen kod,
+// se Fas 13/16) upptäcks utan att någon admin behöver komma ihåg att klicka "Kör testfrågor"
+// manuellt. Skriver en varning till systemvarningar (superadmin-only, se firestore.rules) bara
+// om något faktiskt är fel – ingen notis skapas vid ett normalt, godkänt resultat.
+exports.verifieraKlinikstodSchemalagt = onSchedule(
+  { schedule: "every day 06:00", timeZone: "Europe/Stockholm", secrets: [SOKMOTOR_API_KEY], region: "europe-west1" },
+  async () => {
+    const resultat = await Promise.all(
+      KLINIKSTOD_TESTFRAGOR.map(async (fraga) => {
+        try {
+          const traffar = await sokViaProgrammerbarSokmotor(fraga);
+          const otillatna = traffar.filter((t) => !domanGodkand(t.url));
+          return { fraga, otillatna: otillatna.map((t) => t.url) };
+        } catch (fel) {
+          return { fraga, fel: fel.message };
+        }
+      })
+    );
+
+    const problem = resultat.filter((r) => r.fel || r.otillatna?.length > 0);
+    if (problem.length === 0) return;
+
+    const meddelande = problem
+      .map((r) =>
+        r.fel
+          ? `"${r.fraga}": sökningen misslyckades (${r.fel})`
+          : `"${r.fraga}": otillåtna källor – ${r.otillatna.join(", ")}`
+      )
+      .join(" | ");
+
+    await db.collection("systemvarningar").add({
+      typ: "klinikstod_kalla",
+      meddelande: `Automatisk verifiering av klinikstöd-sökningen hittade problem: ${meddelande}`,
+      tidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+    });
   }
 );

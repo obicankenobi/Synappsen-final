@@ -1289,3 +1289,43 @@ uttryckligen för att vara begriplig för en admin utan teknisk bakgrund, enligt
 - **Offline-stöd via IndexedDB** – uttryckligen hög prioritet för FRAMTIDEN, men medvetet
   inte påbörjad i denna fas. Se FRAMTIDSPLAN.md för föreslaget avgränsat första steg
   (nedladdningsknapp + läs-only-cache, ingen offline-sök eller bakgrundssynk).
+
+## Fas 17 – Slutför ägare + klinikstöd-arbetet (5.10.0)
+
+Uppföljning enligt prioritetsordning A1–A3 från föregående diskussion: fullfölj det som redan
+var påbörjat innan nya lösa trådar läggs till.
+
+**Ägare kopplat till granskningspåminnelser**
+
+`useNotiser.js`s `granskningsposter`-filter tar nu hänsyn till `rutin.agare`: om satt till en
+roll visas påminnelsen bara för den rollen (inte alla redaktörer för området); om satt till en
+specifik person visas den bara för den personen, oavsett roll (även om personen saknar
+redigeringsbehörighet för området – i linje med hur fältet designades i Fas 16). Utan `agare`
+gäller det gamla beteendet oförändrat. `MinaUppgifter.jsx` fick en ny rad: "X rutin(er) du
+ansvarar för behöver granskas snart", beräknad separat från den befintliga
+områdesbehörighets-baserade raden.
+
+**Klinikstöd-data synliggjord**
+
+Ny `useKlinikfrageStatistik.js`-hook läser `klinikfragefeedback` och `klinikfrageloggar`
+(båda redan superadmin-only enligt reglerna, skapades i Fas 15/14 men visades ingenstans).
+Ny adminsektion "💬 Klinikstöd – hur används det?": andel positiva hjälpsamhets-svar, samt de
+10 vanligaste frågorna (grupperade från den anonyma loggen) med en "Kopiera"-knapp per fråga
+(för att t.ex. klistra in som titel när en ny rutin skapas från en återkommande fråga).
+
+**Automatisk daglig klinikstöd-verifiering**
+
+Ny schemalagd funktion `verifieraKlinikstodSchemalagt` (`onSchedule`, `firebase-functions/v2/
+scheduler`, dagligen 06:00 Europe/Stockholm) kör samma kontroll som den manuella
+"Verifiera klinikstöd-sökningen"-knappen (Fas 16), men skriver bara något om ett problem
+faktiskt hittas – inget brus vid normal drift. Ny `systemvarningar`-collection
+(superadmin-only läsning, server-only skrivning) och en ny källa i `useNotiser.js` som visar
+en sådan varning i notisklockan för superadmin, med länk till `/admin`.
+
+**Obs (infrastruktur):** schemalagda Cloud Functions kräver att Cloud Scheduler-API:et är
+aktiverat i Google Cloud-projektet. Om det inte redan är på (t.ex. om det här är första
+schemalagda funktionen i projektet) kan `firebase deploy` behöva köras en gång till, eller
+API:et aktiveras manuellt i Google Cloud Console, innan schemat börjar köras.
+
+**Verifiering:** build, lint, test (10/10) och `node -c functions/index.js` gröna.
+`src/version.js`/`package.json` → 5.10.0, ny post i andringslogg.

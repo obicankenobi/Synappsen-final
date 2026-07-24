@@ -14,6 +14,7 @@ import { useRutiner } from "../hooks/useRutiner";
 import { useAnslag } from "../hooks/useAnslag";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { useUtloggningsinstallning } from "../hooks/useUtloggningsinstallning";
+import { useKlinikfrageStatistik } from "../hooks/useKlinikfrageStatistik";
 import { tvingaUtloggning, testaBeroenden, verifieraKlinikstod } from "../firebase/functions";
 import { APP_VERSION } from "../version";
 import { ROLES, ROLE_LABELS } from "../firebase/roles";
@@ -55,6 +56,7 @@ export default function Admin() {
   const { budget, satTakKr } = useGeminiBudget();
   const { feedback, taBortFeedback, uppdateraFeedbackStatus, svaraPaFeedback } = useFeedback(arSuperadmin);
   const { sokloggar } = useSokloggar(arSuperadmin);
+  const { feedback: klinikfeedback, fragor: klinikfragor } = useKlinikfrageStatistik(arSuperadmin);
   const { auditlogg } = useAuditlogg(arSuperadmin);
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
@@ -145,6 +147,22 @@ export default function Admin() {
         };
       });
   }, [anslag, anvandare]);
+
+  // Klinikstöd: andel hjälpsamma svar (kvalitetsmått) och vanligaste frågorna (kunskapsluckor).
+  const klinikHjalpsamAndel = useMemo(() => {
+    if (klinikfeedback.length === 0) return null;
+    const antalJa = klinikfeedback.filter((f) => f.hjalpsam).length;
+    return Math.round((antalJa / klinikfeedback.length) * 100);
+  }, [klinikfeedback]);
+
+  const klinikVanligaFragor = useMemo(() => {
+    const antalPerFraga = new Map();
+    klinikfragor.forEach((f) => antalPerFraga.set(f.fraga, (antalPerFraga.get(f.fraga) ?? 0) + 1));
+    return [...antalPerFraga.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([fraga, antal]) => ({ fraga, antal }));
+  }, [klinikfragor]);
 
   // Sökningar utan träffar grupperade per dag, för att se trender över tid (senaste 50 loggade)
   const sokningarPerDag = useMemo(() => {
@@ -341,6 +359,42 @@ export default function Admin() {
                 </li>
               ))}
             </ul>
+          )}
+        </section>
+      )}
+
+      {arSuperadmin && (klinikHjalpsamAndel !== null || klinikVanligaFragor.length > 0) && (
+        <section className="admin-sektion">
+          <h2>💬 Klinikstöd – hur används det?</h2>
+          {klinikHjalpsamAndel !== null && (
+            <p className="sida__beskrivning">
+              {klinikHjalpsamAndel}% av {klinikfeedback.length} besvarade "var detta
+              hjälpsamt?"-frågor var positiva.
+            </p>
+          )}
+          {klinikVanligaFragor.length > 0 && (
+            <>
+              <h3>Vanligaste frågorna</h3>
+              <p className="sida__beskrivning">
+                Loggen är anonym (inget uid sparas) – ger en bild av vilka kunskapsluckor
+                personalen efterfrågar, inte vem som frågat.
+              </p>
+              <ul className="admin-statistik-lista">
+                {klinikVanligaFragor.map((f) => (
+                  <li key={f.fraga}>
+                    "{f.fraga}" <span>({f.antal} gånger)</span>{" "}
+                    <button
+                      type="button"
+                      className="knapp--lank"
+                      onClick={() => navigator.clipboard?.writeText(f.fraga)}
+                      title="Kopiera frågan, t.ex. för att använda som titel på en ny rutin"
+                    >
+                      Kopiera
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </section>
       )}

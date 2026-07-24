@@ -187,6 +187,13 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // systemvarningar/{id} – larm från schemalagda kontrollfunktioner (t.ex. att
+    // klinikstöd-sökningens källbegränsning har driftat). Skrivs endast av Cloud Function.
+    match /systemvarningar/{varningId} {
+      allow read: if arSuperadmin();
+      allow write: if false;
+    }
+
     // sokloggar/{loggId} – sökningar utan träffar. Endast superadmin kan läsa listan.
     match /sokloggar/{loggId} {
       allow read: if arSuperadmin();

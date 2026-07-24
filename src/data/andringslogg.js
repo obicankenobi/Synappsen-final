@@ -3,6 +3,16 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.10.0",
+    datum: "2026-07-14",
+    andringar: [
+      "Granskningspåminnelser riktas nu till en rutins ansvarige (om angiven) istället för alla redaktörer i området",
+      "Ny rad i \"Mina uppgifter\" för rutiner du själv är ansvarig för och som snart behöver granskas",
+      "Adminpanelen visar nu hur nöjda användare är med klinikstöd-svaren och vilka frågor som ställs mest",
+      "Klinikstöd-sökningens källor kontrolleras nu automatiskt varje morgon, med en varning till superadmin om något avviker",
+    ],
+  },
+  {
     version: "5.9.0",
     datum: "2026-07-14",
     andringar: [

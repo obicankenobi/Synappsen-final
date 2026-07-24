@@ -3,7 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { useNotiser } from "../hooks/useNotiser";
-import { borGranskas } from "../utils/rutinHjalp";
+import { borGranskas, narmarSigGranskning } from "../utils/rutinHjalp";
 import {
   KAN_REDIGERA_RUTINER,
   KAN_GODKANNA_RUTINER,
@@ -13,7 +13,7 @@ import {
 
 // Samlar det som väntar på just den inloggade användaren, så man slipper leta i varje sektion.
 export default function MinaUppgifter() {
-  const { role } = useAuth();
+  const { currentUser, role } = useAuth();
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
   const { artiklar: forradsartiklar } = useForradsartiklar();
@@ -54,6 +54,22 @@ export default function MinaUppgifter() {
   }
   if (flaggadeAdmin > 0) {
     uppgifter.push({ text: `${flaggadeAdmin} rutiner bör granskas i Administration`, sokvag: "/administration" });
+  }
+
+  // Rutiner där just den inloggade uttryckligen är ansvarig (agare-fältet) och som snart
+  // behöver granskas – oberoende av vanlig redigeringsbehörighet, eftersom en specifik person
+  // kan tilldelas ansvar utan att ha en roll med redigeringsrätt för området.
+  const minaAnsvarsrutiner = [...klinisktRutiner, ...adminRutiner].filter((r) => {
+    if (r.status !== RUTIN_STATUS.GODKAND || !narmarSigGranskning(r.granskadDatum)) return false;
+    if (r.agare?.typ === "roll") return role === r.agare.roll;
+    if (r.agare?.typ === "person") return currentUser?.uid === r.agare.uid;
+    return false;
+  });
+  if (minaAnsvarsrutiner.length > 0) {
+    uppgifter.push({
+      text: `${minaAnsvarsrutiner.length} rutin(er) du ansvarar för behöver granskas snart`,
+      sokvag: minaAnsvarsrutiner[0].omrade === "kliniskt-stod" ? "/kliniskt-stod" : "/administration",
+    });
   }
 
   if (notiser.length > 0) {

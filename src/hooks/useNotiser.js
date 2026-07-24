@@ -29,6 +29,7 @@ export function useNotiser() {
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
   const [omnamnanden, setOmnamnanden] = useState([]);
+  const [systemvarningar, setSystemvarningar] = useState([]);
 
   useEffect(() => {
     if (!currentUser?.uid) return undefined;
@@ -38,6 +39,16 @@ export function useNotiser() {
     });
     return unsubscribe;
   }, [currentUser?.uid]);
+
+  // Larm från schemalagda kontrollfunktioner (t.ex. klinikstöd-källdrift) – bara superadmin
+  // har läsbehörighet enligt firestore.rules, så frågan görs bara för den rollen.
+  useEffect(() => {
+    if (role !== ROLES.SUPERADMIN) return undefined;
+    const unsubscribe = onSnapshot(collection(db, "systemvarningar"), (snap) => {
+      setSystemvarningar(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+    return unsubscribe;
+  }, [role]);
 
   const senasteBesok = anvandare.find((a) => a.id === currentUser?.uid)?.senasteNotisBesok;
 
@@ -73,24 +84,38 @@ export function useNotiser() {
     // från de andra posterna ovan är detta ett stående tillstånd (inte en engångshändelse),
     // så den styrs av rollbehörighet + faktiskt granskningsdatum, inte senasteNotisBesok –
     // den försvinner av sig själv när rutinen markeras som granskad.
+    // Om en rutin har en ägare (agare-fältet) riktas påminnelsen ENDAST dit – en specifik
+    // person (oavsett roll) eller alla med en viss roll – istället för till alla redaktörer
+    // för hela området. Utan ägare gäller det gamla beteendet (alla redaktörer för området).
     const farGranskaKlinisktStod = [ROLES.SUPERADMIN, ROLES.VOL, ROLES.SEKTIONSLEDARE].includes(role);
     const farGranskaAdministration = [ROLES.SUPERADMIN, ROLES.VEC].includes(role);
     const granskningsposter = allaRutiner
       .filter((r) => r.status === RUTIN_STATUS.GODKAND && narmarSigGranskning(r.granskadDatum))
-      .filter((r) =>
-        r.omrade === "kliniskt-stod" ? farGranskaKlinisktStod : farGranskaAdministration
-      )
+      .filter((r) => {
+        if (r.agare?.typ === "roll") return role === r.agare.roll;
+        if (r.agare?.typ === "person") return currentUser?.uid === r.agare.uid;
+        return r.omrade === "kliniskt-stod" ? farGranskaKlinisktStod : farGranskaAdministration;
+      })
       .map((r) => ({
         id: `granskning-${r.id}`,
-        text: `Rutinen "${r.titel}" behöver granskas snart`,
+        text: `Rutinen "${r.titel}" behöver granskas snart${r.agare ? " (du är ansvarig)" : ""}`,
         sokvag: `${OMRADE_SOKVAG[r.omrade] ?? "/"}#rutin-${r.id}`,
         tid: r.granskadDatum,
       }));
 
-    return [...anslagsposter, ...rutinposter, ...omnamndeposter, ...granskningsposter].sort(
+    const systemvarningsposter = systemvarningar
+      .filter((v) => efterSenasteBesok(v.tidpunkt, senasteBesok))
+      .map((v) => ({
+        id: `systemvarning-${v.id}`,
+        text: `⚠️ ${v.meddelande}`,
+        sokvag: "/admin",
+        tid: v.tidpunkt,
+      }));
+
+    return [...anslagsposter, ...rutinposter, ...omnamndeposter, ...granskningsposter, ...systemvarningsposter].sort(
       (a, b) => (b.tid?.toMillis?.() ?? 0) - (a.tid?.toMillis?.() ?? 0)
     );
-  }, [anslag, klinisktRutiner, adminRutiner, omnamnanden, senasteBesok, role]);
+  }, [anslag, klinisktRutiner, adminRutiner, omnamnanden, systemvarningar, senasteBesok, role, currentUser?.uid]);
 
   async function markeraSomLast() {
     if (!currentUser) return;
