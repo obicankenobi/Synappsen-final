@@ -48,8 +48,8 @@ jobs:
       - name: Sätt sökmotor-nyckeln i Secret Manager
         run: echo "${{ secrets.SOKMOTOR_API_KEY }}" | firebase functions:secrets:set SOKMOTOR_API_KEY --data-file=- --project synappsen-final-build --force
 
-      - name: Deploya till Firebase (endast hosting – akut, se commit-meddelande)
-        run: firebase deploy --project synappsen-final-build --non-interactive --force --only hosting
+      - name: Deploya till Firebase
+        run: firebase deploy --project synappsen-final-build --non-interactive --force
         continue-on-error: true
 
       - name: Sätt cleanup policy för container-images
