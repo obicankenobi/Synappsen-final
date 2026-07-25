@@ -1460,15 +1460,45 @@ fallen (36/36 gröna efter tillägget). Detta hade INTE upptäckts av rules- ell
 functions-testerna – de testar aldrig en riktig `onSnapshot`-lyssnare mot ett dokument som
 saknas, bara direkta `get()`/`set()`-anrop mot kända dokument-id:n.
 
+### Produktionsdeploy och migrering (2026-07-25)
+
+Deployad till `synappsen-final-build` via `.github/workflows/deploy.yml`. Två tidigare
+okända, driftsblockerande brister i tjänstekontots (`github-deploy@synappsen-final-build
+.iam.gserviceaccount.com`) IAM-rättigheter upptäcktes och åtgärdades under arbetet (av
+kontots ägare, i Cloud Console – inget jag kunde göra själv):
+
+- Saknade `roles/serviceusage.serviceUsageAdmin` → `firebase deploy` kunde inte aktivera
+  `cloudscheduler.googleapis.com`, vilket fick HELA deploy-kommandot att avbryta sig självt
+  innan något över huvud taget hann släppas (deploy.yml:s `continue-on-error: true` på
+  deploy-steget maskerade detta som "success" på jobbnivå – en riktig fälla, loggen var enda
+  sättet att se den faktiska statusen).
+- Efter den fixen kom deployen förbi, och släppte regler/index/8 av 9 functions – men
+  kraschade återigen på den SISTA function (`verifieraKlinikstodSchemalagt`, saknade det mer
+  specifika `roles/cloudscheduler.jobs.update`/`roles/cloudscheduler.admin`) precis innan
+  hosting-releasen. Eftersom Firebase CLI bara finaliserar/släpper hosting som sista steg i
+  en lyckad körning innebar detta ett par minuter där de NYA organisationsskopade
+  Firestore-reglerna var live men den GAMLA frontend-byggen (utan organisationId-filter i
+  sina queries) fortfarande var det som faktiskt kördes för besökare – en verklig risk för
+  permission-denied-fel i skarp drift. Åtgärdat akut med en tillfällig `--only hosting`-körning
+  (reverterad igen efter bekräftad korrekt hosting-version) för att snabbt återskapa
+  konsistens, i väntan på att den sista IAM-rollen lades till och en fullständig deploy kunde
+  köras rent.
+- Tredje körningen, efter att `roles/cloudscheduler.admin` lagts till, gick igenom helt utan
+  fel (`Deploy complete!`, alla 9 functions, hosting, regler och index).
+
+Migreringen kördes därefter skarpt av superadmin i adminpanelen: 466 dokument (1 användare,
+463 förrådsartiklar, 2 sökloggar) fick `organisationId: "default"`. Produktionen är nu fullt
+konsistent på den nya datamodellen.
+
 ### Kvarstående efter Etapp 1 (medvetet avgränsat, dokumenterat)
 
 - Storage-reglerna för `rutiner`/`forradsartiklar` är inte organisationsskopade än (se
   kommentar i `storage.rules`).
 - CI (`ci.yml`) kör inte `test:rules`/`test:functions` automatiskt ännu – kräver Java +
   Firestore-emulatorn i GitHub Actions-miljön, en separat uppgift.
-- Migreringen måste triggas manuellt av superadmin (adminpanelens nya knapp) efter deploy,
-  innan siffrorna i "mest använda"/sökloggar/etc. börjar visa data igen (frågorna filtrerar nu
-  på organisationId, vilket kräver att befintliga dokument faktiskt har fältet satt).
+- `deploy.yml`s deploy-steg har fortfarande `continue-on-error: true`, vilket maskerar
+  faktiska deploy-fel som "success" på jobbnivå (upptäckt och kringgått manuellt denna gång,
+  men bör städas bort eller ersättas med explicit loggranskning i en senare uppgift).
 - Ingen egen signup-flow för att välja/skapa en ny organisation – nya konton går fortfarande
   automatiskt till `STANDARD_ORG`. Det är en senare etapp (Etapp 4/5 i ETAPPLAN.md).
 

@@ -42,11 +42,14 @@ Fas 18 för fullständiga detaljer. Förenklad mot ursprungsskissen: `organisati
 direkt på `users/{uid}` (ingen separat `medlemmar`-subcollection – onödig komplexitet så länge
 en användare bara tillhör en organisation). Kvarstående, medvetet avgränsat: Storage-reglerna
 för `rutiner`/`forradsartiklar` är ännu inte organisationsskopade (dokumenterad, låg-severity
-lucka), och migreringen måste köras manuellt av superadmin i adminpanelen innan skarp drift
-med en andra kund. UI-verifiering (appen körd i en riktig browser mot emulatorerna som två
-olika inloggade testorganisationer) är genomförd – 8/8 gröna – och avslöjade en verklig, sedan
-tidigare befintlig bugg i `anteckningar`-regeln (ej en Etapp 1-regression) som samtidigt
-fixades.
+lucka). UI-verifiering (appen körd i en riktig browser mot emulatorerna som två olika inloggade
+testorganisationer) är genomförd – 8/8 gröna – och avslöjade en verklig, sedan tidigare
+befintlig bugg i `anteckningar`-regeln (ej en Etapp 1-regression) som samtidigt fixades.
+
+**Live i produktion sedan 2026-07-25:** deployad till `synappsen-final-build` (regler, index,
+alla 9 Cloud Functions och ny frontend) och migreringen körd skarpt av superadmin – 466
+dokument (1 användare, 463 förrådsartiklar, 2 sökloggar) fick `organisationId: "default"`.
+Produktionen är nu fullt konsistent på den nya datamodellen.
 
 **Mål:** appen kan hålla flera kunders data helt åtskilda. Detta är planens tyngsta arbete.
 
