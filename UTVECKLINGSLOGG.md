@@ -1800,3 +1800,78 @@ buggarna funnits, se Fas 11/18/20/21).
 (6/6) gröna – ingen av dessa svit rörs av ändringarna, men kördes om för säkerhets skull.
 
 **Version:** 5.15.1.
+
+---
+
+## Fas 24 – Ny etappplan (ETAPPLAN2.md) och start på Etapp 6–8, 10
+
+Efter Etapp 1–5 gjordes en fristående genomgång av hela kodbasen på användarens begäran,
+resulterande i `ETAPPLAN2.md` (Etapp 6–11). Huvudslutsatsen: multi-tenant-isoleringen är
+byggd och bevisad, men det finns ingen väg till kund nummer två (registrering hårdkodar
+`organisationId: "default"`), gatingen av Intelligence-funktioner var ofullständig, och
+Node 20 avvecklas 2026-10-30. Användaren valde att påbörja Etapp 6, 7, 8 samt 10b–10e.
+Denna fas täcker det som hanns med i den första omgången: **Etapp 7 (fyra delmål, alla
+klara), Etapp 8a och 8b.**
+
+- **Etapp 8a – Node 20 → Node 22.** `firebase.json`:s `functions.runtime` var fortfarande
+  hårdkodat till `"nodejs20"` trots att `functions/package.json`:s `engines`-fält redan sa
+  22 (den faktiska deployade runtimen styrs av `firebase.json`, inte `engines`). Rättat till
+  `"nodejs22"`. `firebase-functions` uppgraderad `^7.2.5` → `^7.3.0` (senaste stabila –
+  `firebase-admin` lämnad på `^13.10.0` eftersom 7.x kräver `firebase-admin` ^11–13 som
+  peer-beroende; en bump till firebase-admin 14 gav en olöst peer-konflikt). Alla 24 (nu 32,
+  se nedan) functions-tester kördes om grönt mot den nya konfigurationen.
+- **Etapp 8b – `deploy.yml`.** Tog bort `continue-on-error: true` på "Deploya till
+  Firebase"-steget, som gjort att ett faktiskt `firebase deploy`-fel visats som jobb-nivå
+  "success" – ett problem som gett upprepat extraarbete under Etapp 1–5 (varje deploy var
+  tvungen att verifieras genom att läsa rå loggtext, inte lita på jobbstatus). Höjde även
+  `node-version` i både `deploy.yml` och `ci.yml` till 22, i linje med 8a.
+- **Etapp 7a – Gata `fragaKlinisktStod`.** Den enskilt viktigaste kostnadsläckan från
+  genomgången: `fragaKlinisktStod` är en Intelligence-funktion enligt `features.js`
+  (`FEATURE.CLINICAL_SUPPORT`) men saknade helt serverkontroll – en Core-kund kunde anropa
+  den obegränsat och förbruka både Gemini- och sökmotor-kvot på leverantörens bekostnad.
+  Lade till `kravModul(organisationId, "intelligence", …)` direkt efter organisations-
+  uppslaget, före frågelogg/cache/sökmotor-anrop. La samtidigt till UI-gating i
+  `KlinikfragaSok.jsx` (samma mönster som `LaddaUpp.jsx` för AI-import) – tidigare visades
+  sökrutan för alla oavsett modul. Nytt test i `modulgating.test.cjs`.
+- **Etapp 7b – Servergating av Operations.** Genomgången av samtliga `PACKAGE_FEATURES.
+  operations`-nycklar visade: `EXPORT_BACKUP` var redan korrekt gated (den schemalagda
+  veckobackupen hoppar redan över organisationer utan modulen), `OFFLINE_CENTER` är
+  medvetet bara UI-gated (läs-only, ingen extra kostnad/risk utöver vad användaren redan
+  får läsa), `KIOSK_MODE` är inte byggt alls (inget att gata), men `OWNER_REMINDERS`
+  (ägarpåminnelser om rutingranskning i `useNotiser.js`) hade INGEN gating alls – varje
+  organisation, oavsett modul, fick den funktionen "gratis". Fixat med `hasFeature
+  (FEATURE.OWNER_REMINDERS)` runt `granskningsposter`. `HEALTH_HISTORY` lämnades medvetet
+  ogated: `testaBeroenden` är explicit dokumenterad i koden som delad infrastruktur (Gemini/
+  sökmotor/Storage-hälsa för hela installationen, inte kunddata) – att gata den per
+  organisation skulle motsäga den designen. Den hör snarare hemma som en leverantörsadmin-
+  vy (Etapp 6a) i en framtida omarbetning, inte en kundmodul.
+- **Etapp 7c – Gating-matris som test.** Ny `tests/functions/gatingmatris.test.cjs`: en
+  datadriven tabell (funktion × modul × förväntat utfall) PLUS ett statiskt käll-check som
+  läser `functions/index.js` som text, hittar varje `exports.X = onCall(...)` vars kropp
+  anropar `kravModul(...)`, och FALLERAR om den funktionen saknas i testets egen tabell.
+  Detta var precis den typ av lucka som gjorde att `fragaKlinisktStod` glömdes bort vid
+  Etapp 2 (bara `tolkaForradsbild`/`tolkaDokument` fick gating då) – nu kan en framtida ny
+  Intelligence-funktion inte läggas till utan att antingen gatas eller få testet att
+  fallera.
+- **Etapp 7d – Kvotskydd utöver kronbudgeten.** `reserveraBudget` hade redan ett tak per
+  användare i kronor (`MAX_PER_ANVANDARE_ORE`), men det tillåter ändå ~100 anrop/månad per
+  person – och sökmotorn (Custom Search) delar en gemensam kvot på bara 100 GRATIS
+  sökningar/DAG för HELA installationen (alla kunder). En enskild klient i en snabb
+  återförsöksloop hade på några sekunder kunnat förbruka hela dagens delade sökkvot för
+  samtliga kunder, långt innan kronbudgeten ens märkte något. Ny
+  `MAX_KLINIKSTOD_FRAGOR_PER_TIMME` (20/timme, rullande fönster) via den redan befintliga
+  `kontrolleraOchOkaHastighet`-hjälpfunktionen (tidigare bara använd av
+  `skapaKommentar`/`skickaFeedback`), nu även exporterad för test. Nytt
+  `tests/functions/klinikstodratelimit.test.cjs`.
+
+**Verifiering:** `npm run lint`, `npm run build` gröna. `npm run test:functions` nu **32/32**
+gröna (14 migrering + 6 modulgating + 4 gatingmatris + 3 klinikstodratelimit + 2 backup +
+3 kostnadshistorik). `npm run test:rules` 50/50, `npm run test:storage` 6/6, `npx vitest
+run` 10/10 – alla omkörda och gröna, opåverkade av ändringarna.
+
+**Kvarstående i denna omgång (fortsätter i efterföljande commits):** Etapp 6 (leverantörs-
+admin, organisationsetablering, inbjudningsflöde, avetablering), Etapp 8c–8e (Admin.jsx-
+uppdelning, frontend-tester, confirm/alert), Etapp 10b–10e (bulkimport, ledningsrapport,
+rutinmallar, tid-att-hitta).
+
+**Version:** 5.16.0.

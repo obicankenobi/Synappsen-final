@@ -3,6 +3,8 @@ import { fragaKlinisktStod } from "../firebase/functions";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import { skickaKlinikfrageFeedback } from "../hooks/useKlinikfrageFeedback";
 import { useAuth } from "../hooks/useAuth";
+import { useFeatures } from "../hooks/useFeatures";
+import { FEATURE } from "../config/features";
 import "./KlinikfragaSok.css";
 
 // Återaktiverad (2026-07-14, Fas 13): byggdes om att söka via en riktig domänbegränsad
@@ -14,6 +16,7 @@ const PAUSAD = false;
 
 export default function KlinikfragaSok() {
   const { currentUser, organisationId } = useAuth();
+  const { laddat: featuresLaddade, hasFeature } = useFeatures();
   const [fraga, setFraga] = useState("");
   const [stalldFraga, setStalldFraga] = useState("");
   const [laddar, setLaddar] = useState(false);
@@ -62,6 +65,18 @@ export default function KlinikfragaSok() {
           enbart godkända medicinska källor, så den är avstängd tills det är löst – för att inte
           riskera att visa information från ej godkända källor. Hör av dig till superadmin om du
           vill veta mer.
+        </p>
+      </section>
+    );
+  }
+
+  if (featuresLaddade && !hasFeature(FEATURE.CLINICAL_SUPPORT)) {
+    return (
+      <section className="klinikfraga">
+        <h2>🔍 Klinikstöd-sökning</h2>
+        <p className="klinikfraga__hjalptext">
+          Klinikstöd-sökning kräver Intelligence-modulen, som inte är aktiverad för din
+          organisation. Kontakta en superadmin om ni vill aktivera den.
         </p>
       </section>
     );

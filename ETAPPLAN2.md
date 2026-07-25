@@ -66,7 +66,7 @@ isolera. Det är den enskilt viktigaste luckan och den styr hela denna plans ord
 
 ---
 
-## Etapp 6 – Kund nummer två  ·  Storlek: L  ·  **Hård grind**
+## Etapp 6 – Kund nummer två  ·  Storlek: L  ·  **Hård grind**  ·  ⬜ PÅGÅR
 
 **Mål:** en ny kundorganisation kan etableras och bemannas utan att någon rör Firestore
 manuellt. Detta är denna plans motsvarighet till Etapp 1 – allt annat är mindre värt före den.
@@ -98,7 +98,12 @@ buggar i Etapp 1 och 3. Egen gren, utökad regeltestning, säkerhetsgenomgång i
 
 ---
 
-## Etapp 7 – Stäng gatings- och åtkomstluckorna  ·  Storlek: M
+## Etapp 7 – Stäng gatings- och åtkomstluckorna  ·  Storlek: M  ·  ✅ GENOMFÖRD
+
+**Status:** samtliga fyra delmål (7a–7d) genomförda och verifierade, se UTVECKLINGSLOGG.md
+Fas 24. `fragaKlinisktStod` är nu gated på server (och i UI), en gating-matris-testsvit
+förhindrar att en framtida ny betalfunktion glöms bort, `OWNER_REMINDERS` gated i UI, och ett
+separat hastighetstak skyddar den delade sökmotorkvoten oavsett kronbudget.
 
 **Mål:** varje funktion som kostar pengar eller ingår i ett betalpaket är faktiskt skyddad,
 på server, inte bara i gränssnittet.
@@ -124,7 +129,9 @@ kund nummer två faktiskt får inloggning.
 
 ---
 
-## Etapp 8 – Driftskulder & plattformshälsa  ·  Storlek: S–M
+## Etapp 8 – Driftskulder & plattformshälsa  ·  Storlek: S–M  ·  🔶 DELVIS GENOMFÖRD
+
+**Status:** 8a och 8b klara, se UTVECKLINGSLOGG.md Fas 24. 8c–8e återstår.
 
 **Mål:** ta bort de skulder som redan aktivt kostar tid vid varje leverans, samt den enda
 daterade deadline i planen.

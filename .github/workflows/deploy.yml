@@ -11,7 +11,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Skapa .env med Firebase-konfiguration
         run: |
@@ -50,7 +50,6 @@ jobs:
 
       - name: Deploya till Firebase
         run: firebase deploy --project synappsen-final-build --non-interactive --force
-        continue-on-error: true
 
       - name: Sätt cleanup policy för container-images
         run: firebase functions:artifacts:setpolicy --location=europe-west1 --project=synappsen-final-build --force

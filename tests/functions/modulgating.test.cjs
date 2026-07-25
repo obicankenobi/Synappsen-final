@@ -112,6 +112,22 @@ async function main() {
     }
   });
 
+  console.log("\nfragaKlinisktStod – modulkontrollen sitter på rätt plats i det riktiga anropet");
+  await test("nekas med failed-precondition INNAN sökmotor/Gemini nås, även vid direktanrop", async () => {
+    try {
+      await funcs.fragaKlinisktStod.run({
+        data: { fraga: "Dosering amoxicillin vuxen" },
+        auth: { uid: "uidUtan" },
+      });
+      throw new Error("förväntade fel, fick inget");
+    } catch (fel) {
+      vantaSig(
+        fel.code === "failed-precondition",
+        `fick fel kod ${fel.code} istället för failed-precondition (${fel.message}) – om detta är ett sökmotor-/Gemini-relaterat fel sitter kontrollen på fel plats`
+      );
+    }
+  });
+
   console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);
   if (antalMisslyckade > 0) {
     process.exit(1);

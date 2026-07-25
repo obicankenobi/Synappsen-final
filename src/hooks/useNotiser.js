@@ -10,6 +10,8 @@ import { useAnslag } from "./useAnslag";
 import { useRutiner, RUTIN_STATUS } from "./useRutiner";
 import { narmarSigGranskning } from "../utils/rutinHjalp";
 import { ROLES } from "../firebase/roles";
+import { useFeatures } from "./useFeatures";
+import { FEATURE } from "../config/features";
 
 function efterSenasteBesok(tidpunkt, senasteBesok) {
   if (!tidpunkt?.toDate) return false;
@@ -24,6 +26,7 @@ const OMRADE_SOKVAG = {
 
 export function useNotiser() {
   const { currentUser, role, organisationId } = useAuth();
+  const { hasFeature } = useFeatures();
   const { anvandare } = useAnvandare();
   const { anslag } = useAnslag();
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
@@ -93,7 +96,9 @@ export function useNotiser() {
     // för hela området. Utan ägare gäller det gamla beteendet (alla redaktörer för området).
     const farGranskaKlinisktStod = [ROLES.SUPERADMIN, ROLES.VOL, ROLES.SEKTIONSLEDARE].includes(role);
     const farGranskaAdministration = [ROLES.SUPERADMIN, ROLES.VEC].includes(role);
-    const granskningsposter = allaRutiner
+    const granskningsposter = !hasFeature(FEATURE.OWNER_REMINDERS)
+      ? []
+      : allaRutiner
       .filter((r) => r.status === RUTIN_STATUS.GODKAND && narmarSigGranskning(r.granskadDatum))
       .filter((r) => {
         if (r.agare?.typ === "roll") return role === r.agare.roll;
@@ -119,7 +124,17 @@ export function useNotiser() {
     return [...anslagsposter, ...rutinposter, ...omnamndeposter, ...granskningsposter, ...systemvarningsposter].sort(
       (a, b) => (b.tid?.toMillis?.() ?? 0) - (a.tid?.toMillis?.() ?? 0)
     );
-  }, [anslag, klinisktRutiner, adminRutiner, omnamnanden, systemvarningar, senasteBesok, role, currentUser?.uid]);
+  }, [
+    anslag,
+    klinisktRutiner,
+    adminRutiner,
+    omnamnanden,
+    systemvarningar,
+    senasteBesok,
+    role,
+    currentUser?.uid,
+    hasFeature,
+  ]);
 
   async function markeraSomLast() {
     if (!currentUser) return;

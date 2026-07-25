@@ -3,6 +3,16 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.16.0",
+    datum: "2026-07-25",
+    andringar: [
+      "Klinikstöd-sökningen är nu en del av Intelligence-modulen på samma sätt som AI-import – organisationer utan modulen ser en tydlig förklaring istället för sökrutan",
+      "Ägarpåminnelser om rutingranskning visas nu bara för organisationer som har Operations-modulen",
+      "Ett nytt hastighetstak skyddar klinikstöd-sökningen mot att en enskild felaktig upprepning förbrukar hela den delade sökkvoten",
+      "Driftuppdatering: Cloud Functions körs nu på en nyare, stödd Node.js-version",
+    ],
+  },
+  {
     version: "5.15.1",
     datum: "2026-07-25",
     andringar: [

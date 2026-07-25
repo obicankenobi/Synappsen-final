@@ -51,6 +51,15 @@ const STANDARD_TAK_ORE = 20000; // 200 kr
 // den gemensamma budgeten själv.
 const MAX_PER_ANVANDARE_ORE = 5000; // 50 kr
 
+// Etapp 7d: separat hastighetstak för klinikstöd-sökningen, UTÖVER kronbudgeten ovan. Anledningen
+// är att sökmotorn (Custom Search) delar en gemensam kvot på 100 gratis sökningar/DAG för HELA
+// installationen (alla organisationer), inte per organisation eller användare. Kronbudgeten
+// (MAX_PER_ANVANDARE_ORE) skyddar mot kostnad men tillåter ändå ~100 anrop/månad per användare –
+// en enskild klient som råkar hamna i en snabb återförsöksloop skulle på några sekunder kunna
+// förbruka HELA dagens delade sökkvot för samtliga kunder. Detta rullande 1-timmesfönster stoppar
+// den bristen oavsett budgettak.
+const MAX_KLINIKSTOD_FRAGOR_PER_TIMME = 20;
+
 // Budgeten är per organisation (Etapp 1) – annars skulle två kunder dela samma pott.
 // Ligger som en egen subcollection under organisationen, i samma dokumentform som tidigare
 // (installningar/geminiBudget), bara omplacerad.
@@ -122,6 +131,8 @@ async function kontrolleraOchOkaHastighet(uid, typ, maxPerFonster) {
     tx.set(ref, { antal: antal + 1, fonsterStart });
   });
 }
+// Exporterad enbart för tests/functions/klinikstodratelimit.test.cjs.
+exports.kontrolleraOchOkaHastighet = kontrolleraOchOkaHastighet;
 
 // Kontrollerar och reserverar budget innan ett dyrt Gemini-anrop görs.
 // Kastar fel om månadens tak är nått, så att vi aldrig betalar för anrop vi inte har råd med.
@@ -513,6 +524,11 @@ exports.fragaKlinisktStod = onCall(
     }
 
     const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+    await kravModul(organisationId, "intelligence", "Klinikstöd kräver Intelligence-modulen.");
+    // Se kommentaren vid MAX_KLINIKSTOD_FRAGOR_PER_TIMME: skyddar den delade sökkvoten, inte
+    // bara kronbudgeten. Ligger EFTER modulkontrollen (ingen anledning att räkna mot en
+    // organisation som ändå skulle nekas) men FÖRE cache/sökmotor.
+    await kontrolleraOchOkaHastighet(request.auth.uid, "klinikstod", MAX_KLINIKSTOD_FRAGOR_PER_TIMME);
 
     // Frågelogg (utan uid – vi vill se VAD som efterfrågas, inte VEM som frågar) så att
     // ledningen ser vilka kunskapsluckor som finns; vanliga frågor kan bli permanenta rutiner.
