@@ -1,7 +1,7 @@
 {
   "name": "synappsen-final",
   "private": true,
-  "version": "5.14.0",
+  "version": "5.15.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:rules": "firebase emulators:exec --project demo-test --only firestore \"node tests/rules/organisationsisolering.test.mjs && node tests/rules/mfapolicy.test.mjs\"",
-    "test:functions": "firebase emulators:exec --project demo-test --only firestore,storage \"node tests/functions/migrering.test.cjs && node tests/functions/modulgating.test.cjs && node tests/functions/backup.test.cjs\"",
+    "test:functions": "firebase emulators:exec --project demo-test --only firestore,storage \"node tests/functions/migrering.test.cjs && node tests/functions/modulgating.test.cjs && node tests/functions/backup.test.cjs && node tests/functions/kostnadshistorik.test.cjs\"",
     "test:storage": "firebase emulators:exec --project demo-test --only firestore,storage \"node tests/rules/storage.test.mjs\""
   },
   "dependencies": {

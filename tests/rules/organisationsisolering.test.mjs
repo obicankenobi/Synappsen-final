@@ -348,6 +348,34 @@ async function main() {
     assertSucceeds(getDoc(doc(superA, "soksstatistik", ORG_A)))
   );
 
+  console.log("\norganisationer/{orgId}/kostnadshistorik/{manad} – Etapp 5");
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, "organisationer", ORG_A, "kostnadshistorik", "2026-01"), {
+      manad: "2026-01",
+      anvantOre: 500,
+      antalAnvandare: 2,
+    });
+  });
+  await test("superadminA kan läsa sin egen organisations kostnadshistorik", () =>
+    assertSucceeds(getDoc(doc(superA, "organisationer", ORG_A, "kostnadshistorik", "2026-01")))
+  );
+  await test("superadminB kan INTE läsa org A:s kostnadshistorik", () =>
+    assertFails(getDoc(doc(superB, "organisationer", ORG_A, "kostnadshistorik", "2026-01")))
+  );
+  await test("volA (fel roll, superadmin krävs) kan INTE läsa kostnadshistorik", () =>
+    assertFails(getDoc(doc(volA, "organisationer", ORG_A, "kostnadshistorik", "2026-01")))
+  );
+  await test("superadminA kan INTE skriva till kostnadshistorik (endast Cloud Function)", () =>
+    assertFails(
+      setDoc(doc(superA, "organisationer", ORG_A, "kostnadshistorik", "2026-02"), {
+        manad: "2026-02",
+        anvantOre: 0,
+        antalAnvandare: 0,
+      })
+    )
+  );
+
   console.log("\nBefintliga rollkontroller INOM en organisation gäller fortfarande");
   await test('volA (fel roll för "administration") kan INTE skapa en administration-rutin', () =>
     assertFails(

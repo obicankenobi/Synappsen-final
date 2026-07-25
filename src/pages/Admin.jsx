@@ -5,6 +5,7 @@ import { useAnvandare } from "../hooks/useAnvandare";
 import { useAuth } from "../hooks/useAuth";
 import { useFeatures } from "../hooks/useFeatures";
 import { useGeminiBudget } from "../hooks/useGeminiBudget";
+import { useKostnadshistorik } from "../hooks/useKostnadshistorik";
 import {
   useFeedback,
   FEEDBACK_TYP_LABELS,
@@ -97,6 +98,7 @@ export default function Admin() {
   }
 
   const { budget, satTakKr } = useGeminiBudget();
+  const { historik: kostnadshistorik } = useKostnadshistorik(arSuperadmin);
   const { feedback, taBortFeedback, uppdateraFeedbackStatus, svaraPaFeedback } = useFeedback(arSuperadmin);
   const { sokloggar } = useSokloggar(arSuperadmin);
   const { feedback: klinikfeedback, fragor: klinikfragor } = useKlinikfrageStatistik(arSuperadmin);
@@ -239,6 +241,27 @@ export default function Admin() {
       .slice(0, 10)
       .map(([fraga, antal]) => ({ fraga, antal }));
   }, [klinikfragor]);
+
+  // Etapp 5: hjälpsamhetsgrad per vecka (istället för bara ett totalvärde), så en försämring
+  // eller förbättring över tid syns – inte bara ett snapshot. Veckan räknas från söndagen
+  // (samma som JS:s Date.getDay()) i den bedömningen skedde.
+  const klinikTrendPerVecka = useMemo(() => {
+    const perVecka = new Map();
+    klinikfeedback.forEach((f) => {
+      if (!f.tidpunkt?.toDate) return;
+      const datum = f.tidpunkt.toDate();
+      const veckoStart = new Date(datum);
+      veckoStart.setDate(datum.getDate() - datum.getDay());
+      const nyckel = veckoStart.toLocaleDateString("sv-SE", { month: "short", day: "numeric" });
+      const grupp = perVecka.get(nyckel) ?? { ja: 0, totalt: 0 };
+      grupp.totalt += 1;
+      if (f.hjalpsam) grupp.ja += 1;
+      perVecka.set(nyckel, grupp);
+    });
+    return [...perVecka.entries()]
+      .map(([vecka, g]) => ({ vecka, andel: Math.round((g.ja / g.totalt) * 100), totalt: g.totalt }))
+      .reverse();
+  }, [klinikfeedback]);
 
   // Sökningar utan träffar grupperade per dag, för att se trender över tid (senaste 50 loggade)
   const sokningarPerDag = useMemo(() => {
@@ -620,6 +643,22 @@ export default function Admin() {
               hjälpsamt?"-frågor var positiva.
             </p>
           )}
+          {klinikTrendPerVecka.length > 1 && (
+            <>
+              <h3>Hjälpsamhetsgrad per vecka (Etapp 5)</h3>
+              <p className="sida__beskrivning">
+                Så att en försämring eller förbättring över tid syns, inte bara totalvärdet
+                ovan (baserat på de senaste {klinikfeedback.length} bedömningarna).
+              </p>
+              <ul className="admin-statistik-lista">
+                {klinikTrendPerVecka.map((v) => (
+                  <li key={v.vecka}>
+                    Vecka från {v.vecka}: {v.andel}% hjälpsamma ({v.totalt} bedömda)
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
           {klinikVanligaFragor.length > 0 && (
             <>
               <h3>Vanligaste frågorna</h3>
@@ -751,6 +790,30 @@ export default function Admin() {
               Uppdatera tak
             </button>
           </form>
+        </section>
+      )}
+
+      {arSuperadmin && (
+        <section className="admin-sektion">
+          <h2>💰 Kostnadsuppföljning (Etapp 5)</h2>
+          <p className="sida__beskrivning">
+            AI-kostnad per avslutad månad, arkiverad automatiskt vid varje månadsskifte – för
+            att se en trend, inte bara denna månads förbrukning ovan.
+          </p>
+          {kostnadshistorik.length === 0 && (
+            <p className="sida__beskrivning">
+              Ingen historik ännu – första posten skapas vid nästa månadsskifte.
+            </p>
+          )}
+          {kostnadshistorik.length > 0 && (
+            <ul className="admin-beroendetest__lista">
+              {kostnadshistorik.map((h) => (
+                <li key={h.id}>
+                  {h.manad}: {(h.anvantOre / 100).toFixed(2)} kr ({h.antalAnvandare} användare)
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       )}
 

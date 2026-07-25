@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.15.0",
+    datum: "2026-07-25",
+    andringar: [
+      "Adminpanelen visar nu klinikstödets hjälpsamhetsgrad per vecka, så en förändring över tid syns – inte bara ett totalvärde",
+      "Ny kostnadsuppföljning för AI-användning – varje avslutad månads kostnad sparas nu så en trend syns över tid",
+    ],
+  },
+  {
     version: "5.14.0",
     datum: "2026-07-25",
     andringar: [

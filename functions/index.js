@@ -138,6 +138,17 @@ async function reserveraBudget(orgId, uid) {
     const taketOre = data.taketOre ?? STANDARD_TAK_ORE;
 
     if (aktuellManad !== manad) {
+      // Etapp 5: arkivera föregående månads slutliga förbrukning innan den nollställs, så
+      // kostnadsuppföljning över tid blir möjlig (annars går siffrorna förlorade för alltid).
+      // Sker "lativt" (första gången någon använder AI-import i den NYA månaden), inte via
+      // ett schemalagt jobb exakt vid månadsskiftet – samma lata mönster budgeten redan
+      // använde för själva nollställningen.
+      if (data.aktuellManad) {
+        tx.set(
+          db.collection("organisationer").doc(orgId).collection("kostnadshistorik").doc(aktuellManad),
+          { manad: aktuellManad, anvantOre, antalAnvandare: Object.keys(anvantPerUid).length }
+        );
+      }
       anvantOre = 0;
       anvantPerUid = {};
       aktuellManad = manad;
@@ -167,6 +178,8 @@ async function reserveraBudget(orgId, uid) {
     );
   });
 }
+// Exporterad enbart för tests/functions/kostnadshistorik.test.cjs.
+exports.reserveraBudget = reserveraBudget;
 
 const extraktionsSchema = {
   type: SchemaType.OBJECT,

@@ -183,7 +183,23 @@ kunden faktiskt värderar, samt en godkänd säkerhetsgenomgång av org-isolerin
 
 ---
 
-## Etapp 5 – Intelligence-lansering (selektivt)  ·  Storlek: M
+## Etapp 5 – Intelligence-lansering (selektivt)  ·  Storlek: M  ·  🔶 DELVIS GENOMFÖRD
+
+**Status:** de två tekniska delmålen (djupare AI-feedbackanalys, kostnadsuppföljning) är
+klara. Resten av etappen – att faktiskt LANSERA AI-import/klinikstöd som betalda funktioner
+och få minst en kund att betala – är ett affärs-/prissättningsbeslut, inte kod. Klargjort
+med användaren innan arbetet startade (samma mönster som Etapp 4). Se UTVECKLINGSLOGG.md
+Fas 22.
+
+- **Djupare AI-feedbackanalys:** klinikstöd-hjälpsamhetsgraden visas nu per vecka i
+  adminpanelen (`klinikTrendPerVecka`), inte bara ett totalvärde – beräknat direkt från
+  redan laddad `klinikfragefeedback`-data, ingen ny instrumentering behövdes.
+- **Kostnadsuppföljning:** ny `organisationer/{orgId}/kostnadshistorik/{manad}`-subcollection.
+  `reserveraBudget` (functions/index.js) arkiverar nu föregående månads slutliga AI-kostnad
+  innan den nollställs vid ett månadsskifte (tidigare gick de siffrorna förlorade för alltid).
+  Ny adminpanel-sektion "💰 Kostnadsuppföljning" visar kr/månad över tid. Verifierat med 3 nya
+  functions-tester (arkivering vid månadsskifte, ingen arkivering första gången) och 4 nya
+  rules-tester.
 
 **Mål:** börja ta betalt för AI, i kontrollerad ordning.
 

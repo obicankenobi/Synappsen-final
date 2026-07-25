@@ -1717,3 +1717,50 @@ gröna.
   min egen, grundlig men inte en oberoende extern revision.
 
 **Version:** 5.14.0.
+
+---
+
+## Fas 22 – Etapp 5 (delvis): AI-feedbackanalys per vecka, kostnadsuppföljning över tid
+
+**Mål (ETAPPLAN.md):** börja ta betalt för AI i kontrollerad ordning. Klargjort med
+användaren först (samma mönster som Etapp 4): att faktiskt lansera AI-import/klinikstöd som
+betalda funktioner och få en kund att betala är ett affärsbeslut, inte kod. Fokus lades på de
+två tekniska delmålen.
+
+**Djupare AI-feedbackanalys:** ny `klinikTrendPerVecka`-beräkning i `Admin.jsx`, grupperar
+redan laddad `klinikfragefeedback` (senaste 200, redan hämtad av `useKlinikfrageStatistik`
+sedan tidigare) per veckostart och räknar hjälpsamhetsgrad per vecka. Ingen ny Firestore-
+läsning eller regeländring behövdes – all data fanns redan, bara oanvänd för trender.
+
+**Kostnadsuppföljning per organisation:** `useGeminiBudget`/adminpanelen visade bara
+INNEVARANDE månads förbrukning – när `reserveraBudget` (functions/index.js) nollställer
+budgeten vid ett månadsskifte gick föregående månads siffror förlorade för alltid. Fixat:
+innan nollställningen skrivs nu en arkivpost till en ny
+`organisationer/{orgId}/kostnadshistorik/{manad}`-subcollection (samma transaktion, ingen
+extra Firestore-kostnad). Sker "lativt" (första AI-import-anropet i den nya månaden), inte
+via ett eget schemalagt jobb – samma mönster nollställningen redan använde. Ny
+Firestore-regel (superadmin läser sin egen organisations historik, skrivning endast via Cloud
+Function) och ny `src/hooks/useKostnadshistorik.js`. Ny adminpanel-sektion "💰
+Kostnadsuppföljning" visar kr/månad + antal användare per månad.
+
+**Verifiering:**
+- Ny testsvit `tests/functions/kostnadshistorik.test.cjs` (del av `npm run test:functions`) –
+  3 gröna: ingen arkivering vid en organisations FÖRSTA användning (ingen tidigare månad att
+  arkivera), korrekt arkivering av föregående månads slutsumma vid ett simulerat
+  månadsskifte (seedad med en gammal `aktuellManad`), och att budgeten faktiskt nollställs
+  och sätter den nya månaden efteråt. `reserveraBudget` exporterad enbart för detta test.
+- 4 nya rules-tester i `tests/rules/organisationsisolering.test.mjs` (org-isolering +
+  superadmin-only + read-only för kostnadshistorik).
+- `npm run test:rules` (50/50), `npm run test:functions` (24/24), `npm run test:storage`
+  (6/6), `npm run lint`, `npm run build`, `npx vitest run` (10/10) och
+  `node -c functions/index.js` gröna.
+
+### Kvarstående efter Etapp 5
+
+- Själva lanseringen (prissättning, marknadsföring, att faktiskt fakturera en kund för
+  Intelligence) är inte påbörjad – ett affärsbeslut, inget tekniskt arbete återstår för att
+  kunna göra det (modulen är redan byggd och gated sedan Etapp 2).
+- Kostnadshistoriken börjar tom – första posten skapas vid nästa månadsskifte en organisation
+  faktiskt använder AI-import.
+
+**Version:** 5.15.0.
