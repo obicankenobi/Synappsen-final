@@ -1,0 +1,12 @@
+.offline-center__kraver-modul {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  background: var(--yta);
+  color: var(--text-svag);
+}
+
+.offline-center__fel {
+  color: var(--farlig);
+}

@@ -6,6 +6,7 @@ import { useInaktivitetsUtloggning } from "./hooks/useInaktivitetsUtloggning";
 import { useUtloggningsinstallning } from "./hooks/useUtloggningsinstallning";
 import InaktivitetsVarning from "./components/InaktivitetsVarning";
 import OfflineIndikator from "./components/OfflineIndikator";
+import MfaPolicyBanner from "./components/MfaPolicyBanner";
 import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
@@ -51,6 +52,7 @@ const Profil = lazy(() => import("./pages/Profil"));
 const Kontakter = lazy(() => import("./pages/Kontakter"));
 const Lankbibliotek = lazy(() => import("./pages/Lankbibliotek"));
 const Papperskorg = lazy(() => import("./pages/Papperskorg"));
+const OfflineCenter = lazy(() => import("./pages/OfflineCenter"));
 
 function SidLaddare() {
   return <div className="sida sida--laddar">Laddar...</div>;
@@ -82,6 +84,7 @@ export default function App() {
       <InaktivitetsBevakning />
       <SessionKontroll />
       <BrowserRouter>
+        <MfaPolicyBanner />
         <Routes>
           <Route
             path="/logga-in"
@@ -216,6 +219,14 @@ export default function App() {
             element={
               <SkyddatLayout>
                 <Papperskorg />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/offline-center"
+            element={
+              <SkyddatLayout>
+                <OfflineCenter />
               </SkyddatLayout>
             }
           />

@@ -3,6 +3,16 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.13.0",
+    datum: "2026-07-25",
+    andringar: [
+      "Nytt Offline-center på startsidan – ladda ner alla godkända rutiner så de går att läsa även utan internet",
+      "Veckovis säkerhetskopiering av innehållet införd (körs automatiskt i bakgrunden)",
+      "Adminpanelen sparar nu historik från \"Testa anslutningar\" och den dagliga klinikstöd-kontrollen, så trender syns över tid istället för bara senaste körningen",
+      "Superadmin kan nu kräva tvåfaktorsautentisering för valda roller – den som saknar det påminns i appen och blockeras från att ändra roller/organisationsinställningar tills det aktiverats",
+    ],
+  },
+  {
     version: "5.12.0",
     datum: "2026-07-25",
     andringar: [

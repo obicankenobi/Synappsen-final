@@ -140,6 +140,12 @@ export default function Hem() {
           ikon="🛠️"
           lank="/skiftrapport"
         />
+        <SektionsKort
+          titel="Offline-center"
+          beskrivning="Ladda ner godkända rutiner så de går att läsa utan internet"
+          ikon="📥"
+          lank="/offline-center"
+        />
       </div>
     </div>
   );

@@ -856,6 +856,15 @@ exports.testaBeroenden = onCall(
       testaStorage(),
       testaKlinikstodKalla(),
     ]);
+    // Etapp 3c: sparar resultatet så trender syns över tid i adminpanelen, inte bara senaste
+    // körningen. Delad infrastruktur (som systemvarningar) – medvetet INTE organisationsskopat.
+    await db.collection("halsokontrollhistorik").add({
+      gemini,
+      sokmotor,
+      storage,
+      klinikstod,
+      tidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+    });
     return { gemini, sokmotor, storage, klinikstod };
   }
 );
@@ -928,6 +937,20 @@ exports.verifieraKlinikstodSchemalagt = onSchedule(
     );
 
     const problem = resultat.filter((r) => r.fel || r.otillatna?.length > 0);
+
+    // Etapp 3c: sparar ett dagligt resultat (även när allt är OK), så adminpanelens historik
+    // visar en obruten trend – inte bara larm vid problem.
+    await db.collection("halsokontrollhistorik").add({
+      klinikstod: {
+        status: problem.length === 0 ? "ok" : "fel",
+        meddelande:
+          problem.length === 0
+            ? null
+            : problem.map((r) => r.fel ?? `otillåtna källor: ${r.otillatna.join(", ")}`).join(" | "),
+      },
+      tidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
     if (problem.length === 0) return;
 
     const meddelande = problem
@@ -945,6 +968,52 @@ exports.verifieraKlinikstodSchemalagt = onSchedule(
     });
   }
 );
+
+// Etapp 3b (Operations): veckovis backup av kärncollections till Storage, per organisation.
+// Endast för organisationer med Operations-modulen påslagen (samma modul som EXPORT_BACKUP-
+// featuren i src/config/features.js hör till). Skriver EN json-fil per organisation och
+// körning till backups/{orgId}/{datum}.json (se storage.rules – helt stängd för klienter,
+// bara läsbar via Cloud Console/gsutil av den som har tillgång till projektet).
+const BACKUP_COLLECTIONS = [
+  "rutiner",
+  "anslag",
+  "kontakter",
+  "lankbibliotek",
+  "forradsartiklar",
+  "skiftrapporter",
+  "kommentarer",
+];
+
+async function backupaOrganisation(orgId) {
+  const samlingar = {};
+  for (const namn of BACKUP_COLLECTIONS) {
+    const snap = await db.collection(namn).where("organisationId", "==", orgId).get();
+    samlingar[namn] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  }
+  const datum = new Date().toISOString().slice(0, 10);
+  const path = `backups/${orgId}/${datum}.json`;
+  await bucket.file(path).save(JSON.stringify({ orgId, datum, samlingar }, null, 2), {
+    contentType: "application/json",
+  });
+  return path;
+}
+
+exports.veckovisBackupSchemalagt = onSchedule(
+  { schedule: "every monday 03:00", timeZone: "Europe/Stockholm", region: "europe-west1", timeoutSeconds: 300 },
+  async () => {
+    const orgSnap = await db.collection("organisationer").get();
+    for (const orgDoc of orgSnap.docs) {
+      if (orgDoc.data()?.moduler?.operations !== true) continue;
+      try {
+        await backupaOrganisation(orgDoc.id);
+      } catch (fel) {
+        console.error(`Backup misslyckades för organisation ${orgDoc.id}:`, fel);
+      }
+    }
+  }
+);
+// Exporterad enbart för tests/functions/backup.test.cjs.
+exports.backupaOrganisation = backupaOrganisation;
 
 // Etapp 1 (multi-tenant-grund) – engångsmigrering: sätter organisationId = STANDARD_ORG på
 // alla dokument som saknar det. Idempotent (hoppar över dokument som redan har fältet), så

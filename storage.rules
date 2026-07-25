@@ -48,5 +48,13 @@ service firebase.storage {
       allow read: if arInloggad() && request.auth.uid == uid;
       allow write: if arInloggad() && request.auth.uid == uid;
     }
+
+    // backups/{orgId}/{filnamn} – veckovis Firestore-backup (Etapp 3b), skriven ENDAST av
+    // den schemalagda Cloud Function-jobbet (Admin SDK, kringgår dessa regler helt). Ingen
+    // klientåtkomst – skulle redan vara implicit nekad (ingen matchande regel annars), men
+    // skrivs ut explicit för tydlighet.
+    match /backups/{orgId}/{filnamn} {
+      allow read, write: if false;
+    }
   }
 }

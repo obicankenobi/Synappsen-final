@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { doc, updateDoc } from "firebase/firestore";
+import { useEffect, useMemo, useState } from "react";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAnvandare } from "../hooks/useAnvandare";
 import { useAuth } from "../hooks/useAuth";
@@ -18,6 +18,7 @@ import { useAnslag } from "../hooks/useAnslag";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { useUtloggningsinstallning } from "../hooks/useUtloggningsinstallning";
 import { useKlinikfrageStatistik } from "../hooks/useKlinikfrageStatistik";
+import { useHalsokontrollhistorik } from "../hooks/useHalsokontrollhistorik";
 import {
   tvingaUtloggning,
   testaBeroenden,
@@ -25,7 +26,7 @@ import {
   migreraTillOrganisation,
 } from "../firebase/functions";
 import { APP_VERSION } from "../version";
-import { ROLES, ROLE_LABELS } from "../firebase/roles";
+import { ROLES, ROLE_LABELS, REDAKTORSROLLER } from "../firebase/roles";
 import "./Admin.css";
 
 function formateraTid(tidpunkt) {
@@ -70,11 +71,36 @@ export default function Admin() {
     setSparadModul(modul);
     setTimeout(() => setSparadModul(null), 2000);
   }
+
+  // Etapp 3d: 2FA-policy – vilka roller organisationen kräver tvåfaktorsautentisering för.
+  const [kravMfaForRoller, setKravMfaForRoller] = useState([]);
+  const [sakerhetSparad, setSakerhetSparad] = useState(false);
+  useEffect(() => {
+    if (!organisationId) return undefined;
+    const unsubscribe = onSnapshot(doc(db, "organisationer", organisationId), (snap) => {
+      setKravMfaForRoller(snap.data()?.sakerhet?.kravMfaForRoller ?? []);
+    });
+    return unsubscribe;
+  }, [organisationId]);
+
+  async function vaxlaMfaKrav(roll, kravs) {
+    if (!organisationId) return;
+    const nyLista = kravs
+      ? [...new Set([...kravMfaForRoller, roll])]
+      : kravMfaForRoller.filter((r) => r !== roll);
+    await updateDoc(doc(db, "organisationer", organisationId), {
+      "sakerhet.kravMfaForRoller": nyLista,
+    });
+    setSakerhetSparad(true);
+    setTimeout(() => setSakerhetSparad(false), 2000);
+  }
+
   const { budget, satTakKr } = useGeminiBudget();
   const { feedback, taBortFeedback, uppdateraFeedbackStatus, svaraPaFeedback } = useFeedback(arSuperadmin);
   const { sokloggar } = useSokloggar(arSuperadmin);
   const { feedback: klinikfeedback, fragor: klinikfragor } = useKlinikfrageStatistik(arSuperadmin);
   const { auditlogg } = useAuditlogg(arSuperadmin);
+  const { historik: halsokontrollhistorik } = useHalsokontrollhistorik(arSuperadmin);
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
   const { anslag } = useAnslag();
@@ -351,6 +377,30 @@ export default function Admin() {
               </ul>
             )}
           </div>
+
+          {halsokontrollhistorik.length > 0 && (
+            <div className="admin-beroendetest">
+              <p className="sida__beskrivning">
+                Sparad historik – bygger med varje "Testa anslutningar" och den dagliga
+                klinikstöd-kontrollen, så trender syns över tid.
+              </p>
+              <ul className="admin-beroendetest__lista">
+                {halsokontrollhistorik.map((h) => (
+                  <li key={h.id}>
+                    {formateraTid(h.tidpunkt)}:{" "}
+                    {[
+                      h.gemini && `Gemini ${STATUS_IKON[h.gemini.status]}`,
+                      h.sokmotor && `Sökmotor ${STATUS_IKON[h.sokmotor.status]}`,
+                      h.storage && `Lagring ${STATUS_IKON[h.storage.status]}`,
+                      h.klinikstod && `Klinikstöd ${STATUS_IKON[h.klinikstod.status]}`,
+                    ]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </section>
       )}
 
@@ -390,6 +440,34 @@ export default function Admin() {
                 </li>
               </ul>
             )}
+          </div>
+        </section>
+      )}
+
+      {arSuperadmin && (
+        <section className="admin-sektion">
+          <h2>🔐 Säkerhet</h2>
+          <p className="sida__beskrivning">
+            Kräv tvåfaktorsautentisering för valda roller. Den som inte har aktiverat det
+            möts av en påminnelse i appen och blockeras från att ändra roller eller
+            organisationsinställningar tills det är aktiverat (under Profil).
+          </p>
+          <div className="admin-beroendetest">
+            <ul className="admin-beroendetest__lista">
+              {REDAKTORSROLLER.map((roll) => (
+                <li key={roll}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={kravMfaForRoller.includes(roll)}
+                      onChange={(e) => vaxlaMfaKrav(roll, e.target.checked)}
+                    />{" "}
+                    {ROLE_LABELS[roll]}
+                  </label>
+                </li>
+              ))}
+            </ul>
+            {sakerhetSparad && "✓ Sparat"}
           </div>
         </section>
       )}

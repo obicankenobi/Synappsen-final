@@ -1561,3 +1561,82 @@ har redan skrivrätt dit sedan Etapp 1 – ingen ny regel behövdes).
   själv – "Ladda upp dokument"-kortet på startsidan visas alltid (medvetet, se ovan).
 
 **Version:** 5.12.0.
+
+---
+
+## Fas 20 – Etapp 3 (3a–3d): offline-center, veckobackup, hälsohistorik, 2FA-policy
+
+**Mål (ETAPPLAN.md):** bygga färdigt de delar av Operations-paketet som saknades. 3e
+(kiosk-/delad-enhetsläge) hoppades medvetet över – ingen pilot har efterfrågat det, precis
+som planen själv förutsätter.
+
+**3a – Offline-center:** appen hade redan Firestores egen persistenta lokala cache
+(`persistentLocalCache` i `src/firebase/config.js`, från tidigare arbete) – varje rutin en
+användare besökt fanns redan sparad lokalt. Det som saknades var att MEDVETET hämta hem ALLA
+godkända rutiner i förväg. Ny `src/hooks/useOfflineCenter.js` + `src/pages/OfflineCenter.jsx`
+(ny route `/offline-center`, nytt kort på startsidan) kör en engångs-`getDocs()` över alla
+godkända rutiner (org-skopat, inget nytt index behövs – två likhetsfilter). Visar senaste
+nedladdningstid (lagrad i `localStorage`, per enhet) och antal. Nätverksbanner
+(`OfflineIndikator.jsx`) fanns redan sedan tidigare och uppfyllde redan "visar sparad
+kopia"-kravet – ingen ändring behövdes där. Gatad bakom `FEATURE.OFFLINE_CENTER` (Operations),
+samma mönster som AI-import i Etapp 2. Medvetet avgränsat enligt planen: ingen offline-sök,
+ingen bakgrundssynk, inga bilagor.
+
+**3b – Veckovis Firestore-backup:** ny schemalagd funktion `veckovisBackupSchemalagt`
+(måndagar 03:00) i `functions/index.js`. Loopar över `organisationer`, hoppar över de som
+inte har Operations påslagen, och skriver en json-fil per organisation
+(`backups/{orgId}/{datum}.json`) med `rutiner`, `anslag`, `kontakter`, `lankbibliotek`,
+`forradsartiklar`, `skiftrapporter`, `kommentarer` – org-skopat. `storage.rules` fick ett
+explicit `allow read, write: if false` för `backups/{orgId}/{filnamn}` (var redan implicit
+nekad, men skrivs ut för tydlighet). `firebase.json` fick en `storage`-emulator (port 9199)
+så testerna kan verifiera en riktig fil-skrivning/läsning, inte bara mocka anropet.
+
+**3c – Sparad hälsokontroll-historik:** ny collection `halsokontrollhistorik` (delad
+infrastruktur, medvetet INTE organisationsskopad – samma resonemang som `systemvarningar`).
+`testaBeroenden` sparar nu sitt fullständiga resultat vid varje körning; den redan befintliga
+dagliga `verifieraKlinikstodSchemalagt` sparar nu ETT resultat per dag (inte bara vid problem
+som tidigare) så adminpanelens nya historik-lista visar en obruten trend. Ny
+`src/hooks/useHalsokontrollhistorik.js` + en lista i `Admin.jsx` under "Testa
+anslutningar"-sektionen.
+
+**3d – 2FA-policy:** ny `organisationer/{orgId}.sakerhet.kravMfaForRoller`-array, redigerbar
+av superadmin i en ny "🔐 Säkerhet"-sektion i adminpanelen (kryssrutor per redaktörsroll).
+Klientlagret (`src/hooks/useMfaPolicy.js` + `MfaPolicyBanner.jsx`) visar en påminnelse-banner
+(döljs på `/profil` så man faktiskt kan aktivera 2FA där, TOTP-flödet fanns redan sedan
+tidigare i `TvaFaktorSektion.jsx`). Den verkliga spärren sitter i `firestore.rules`: Firebase
+Auth lägger automatiskt till `firebase.sign_in_second_factor` i ID-token när en session
+faktiskt använde en TOTP-faktor – detta kunde läsas direkt i regelspråket
+(`request.auth.token.get('firebase', {}).get('sign_in_second_factor', null)`), så **ingen
+egen custom claim eller Identity Platform-blocking-function behövdes**. Ny
+`mfaKravUppfylld()`-regelhjälpare tillämpad på de två känsligaste superadmin-skrivningarna:
+rolländringar (`users/{userId}` update) och organisationsinställningar
+(`organisationer/{orgId}` write) – medvetet INTE alla skrivningar i hela appen, för att hålla
+blast radius litet och begripligt i denna v1.
+
+**Fel hittat och fixat under arbetet:** första versionen av `kravMfaForRoll()` läste
+`get(...organisationer/{orgId}).data.get('sakerhet', {})` utan att kontrollera att
+organisationsdokumentet faktiskt finns – exakt samma klass av bugg som `anteckningar`-fixen i
+Fas 18 (Etapp 1): `.data` på ett obefintligt dokument är `null`, och `.get()` på `null`
+kraschar regelutvärderingen. Upptäcktes direkt av `npm run test:rules` (en befintlig
+"superadminA ändrar roll"-testcase gick från grön till röd), fixat med ett `exists()`-vakt
+innan `get()`.
+
+**Verifiering:**
+- `npm run test:rules` – 41/41 gröna (36 tidigare + 5 nya 2FA-policytester, inklusive en
+  bakåtkompatibilitetstest som bevisar att organisationer UTAN policyn är helt opåverkade).
+- `npm run test:functions` – 21/21 gröna (14 migrering + 5 modulgating + 2 nya backuptester,
+  det senare mot en riktig Storage-emulator som bevisar att den skrivna filen faktiskt går
+  att läsa tillbaka och bara innehåller rätt organisations data).
+- `npm run lint`, `npm run build`, `npx vitest run` (10/10) och `node -c functions/index.js`
+  gröna.
+
+### Kvarstående efter Etapp 3 (medvetet avgränsat)
+
+- 2FA-policyns servergating täcker bara de två känsligaste superadmin-skrivningarna, inte
+  alla skrivningar en gated roll gör – en medveten v1-avgränsning, inte en lucka som glömdes.
+- Ingen rules-emulator-test för att `backups/`-sökvägen i Storage faktiskt nekar klienter
+  (verifierat genom kodgranskning/resonemang – implicit deny genom att ingen `allow`-regel
+  matchar – men inte körtestat som storage.rules övriga sökvägar).
+- 3e (kiosk-/delad-enhetsläge) inte byggt – väntar på pilotefterfrågan enligt planen.
+
+**Version:** 5.13.0.

@@ -1,0 +1,16 @@
+.mfa-policy-banner {
+  position: sticky;
+  top: 0;
+  z-index: 300;
+  background: var(--farlig-ljus);
+  color: var(--farlig);
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.mfa-policy-banner a {
+  color: inherit;
+  text-decoration: underline;
+}

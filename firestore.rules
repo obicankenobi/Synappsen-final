@@ -36,6 +36,29 @@ service cloud.firestore {
       return minAnvandare().get('organisationId', 'default');
     }
 
+    // Etapp 3d (2FA-policy): sant om anroparens NUVARANDE inloggningssession faktiskt
+    // använde en andra faktor. Firebase Auth lägger själv till detta i ID-token när en
+    // TOTP-faktor användes vid inloggningen (firebase.sign_in_second_factor) – kräver ingen
+    // egen custom claim eller Cloud Function.
+    function harAndrafaktor() {
+      return request.auth.token.get('firebase', {}).get('sign_in_second_factor', null) != null;
+    }
+
+    // Sant om organisationen kräver 2FA för en given roll (organisationer/{orgId}.sakerhet.
+    // kravMfaForRoller, satt av superadmin i adminpanelen). Tomt/saknat fält = inget krav,
+    // så befintliga organisationer inte påverkas förrän en superadmin aktivt slår på det.
+    function kravMfaForRoll(roll) {
+      return exists(/databases/$(database)/documents/organisationer/$(minOrganisation()))
+        && roll in get(/databases/$(database)/documents/organisationer/$(minOrganisation()))
+             .data.get('sakerhet', {}).get('kravMfaForRoller', []);
+    }
+
+    // Används på de mest känsliga superadmin-skrivningarna (rolländringar, organisations-
+    // inställningar) – INTE på alla skrivningar (se ETAPPLAN.md 3d, medvetet avgränsat v1).
+    function mfaKravUppfylld() {
+      return !kravMfaForRoll(minRoll()) || harAndrafaktor();
+    }
+
     // Sant om ETT dokuments organisationId matchar anroparens egen organisation. Används på
     // varje match-block som håller kunddata – den faktiska isoleringen mellan organisationer.
     function matcharMinOrg(dokumentetsOrgId) {
@@ -110,7 +133,7 @@ service cloud.firestore {
     // Endast läsbar/skrivbar av medlemmar i den egna organisationen.
     match /organisationer/{orgId} {
       allow read: if arInloggad() && orgId == minOrganisation();
-      allow write: if arSuperadmin() && orgId == minOrganisation();
+      allow write: if arSuperadmin() && orgId == minOrganisation() && mfaKravUppfylld();
 
       // organisationer/{orgId}/installningar/geminiBudget|utloggning – budgettak och
       // auto-utloggningstid, per organisation. Skrivs normalt av Cloud Function (Admin SDK,
@@ -134,7 +157,8 @@ service cloud.firestore {
       // organisation. Ägaren själv får bara ändra sina favoriter, tidpunkten för senaste
       // notisbesök och sina egna startsidesgenvägar (bararForandrarFalt utesluter redan
       // organisationId från den listan, så en användare kan aldrig byta organisation själv).
-      allow update: if (arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation())
+      allow update: if (arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation()
+                        && mfaKravUppfylld())
                      || (request.auth.uid == userId
                          && bararForandrarFalt(['favoriter', 'senasteNotisBesok', 'snabblankar',
                                                 'senasteInloggning']));
@@ -261,6 +285,15 @@ service cloud.firestore {
     // organisationer, har driftat) – medvetet INTE organisationsskopat, eftersom det handlar
     // om drift av delad AI-infrastruktur, inte kunddata. Skrivs endast av Cloud Function.
     match /systemvarningar/{varningId} {
+      allow read: if arSuperadmin();
+      allow write: if false;
+    }
+
+    // halsokontrollhistorik/{id} – Etapp 3c: sparade resultat från "Testa anslutningar" och
+    // den dagliga klinikstöd-verifieringen, så trender syns över tid. Samma resonemang som
+    // systemvarningar ovan – delad infrastruktur, medvetet INTE organisationsskopat. Skrivs
+    // endast av Cloud Functions.
+    match /halsokontrollhistorik/{id} {
       allow read: if arSuperadmin();
       allow write: if false;
     }

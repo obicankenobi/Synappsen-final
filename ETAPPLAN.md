@@ -112,7 +112,19 @@ Operations-funktionerna (offline-center, ägarpåminnelser m.fl. – flera av de
 
 ---
 
-## Etapp 3 – Bygg Operations klart  ·  Storlek: L
+## Etapp 3 – Bygg Operations klart  ·  Storlek: L  ·  ✅ GENOMFÖRD (3a–3d)
+
+**Status:** 3a–3d genomförda och verifierade. Offline-centret bygger vidare på Firestores
+redan aktiverade lokala cache (`persistentLocalCache`, se `src/firebase/config.js`) istället
+för en egen IndexedDB-lösning – en medveten förenkling, samma effekt med mindre kod. Veckobackupen
+körs bara för organisationer med Operations påslagen (samma modul som `FEATURE.EXPORT_BACKUP`).
+2FA-policyn utnyttjar att Firebase Auth självt lägger `firebase.sign_in_second_factor` i
+ID-token vid en TOTP-inloggning – ingen egen custom claim/blocking function behövdes. Servergating
+(Firestore-regler) är avsiktligt avgränsad till de två känsligaste superadmin-skrivningarna
+(rolländringar, organisationsinställningar), inte alla skrivningar (se UTVECKLINGSLOGG.md Fas
+20). Verifierat med 5 nya rules-tester (2FA-policy) och 2 nya functions-tester (backup, mot en
+riktig Storage-emulator). **3e (kiosk-/delad-enhetsläge) medvetet hoppad över** – ingen pilot
+har efterfrågat det ännu, exakt som planen själv föreskriver ("annars nedprioriterat").
 
 **Mål:** Operations-paketet håller vad säljmaterialet lovar. ~Halva paketet återstår idag.
 
