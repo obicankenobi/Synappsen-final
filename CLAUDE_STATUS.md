@@ -24,7 +24,21 @@ complete!" bekräftat i GitHub Actions-loggen).
 **Det finns just nu inga kända öppna buggar eller pågående uppgifter.**
 Arbetet väntar på nästa instruktion från användaren.
 
-## Vad som återstår (icke-brådskande, se ETAPPLAN.md för detaljer)
+## Nästa plan: ETAPPLAN2.md (Etapp 6–11)
+
+En ny etappplan har tagits fram efter en genomgång av kodbasen – se
+`ETAPPLAN2.md`. Huvudslutsatsen: multi-tenant-isoleringen är byggd och
+bevisad, men det finns **ingen väg till kund nummer två** (registrering
+hårdkodar `organisationId: 'default'` i både `AuthContext.jsx` och
+`firestore.rules`). Övriga fynd: öppen registrering, `fragaKlinisktStod` är
+ogatad trots att den är en Intelligence-funktion som kostar pengar per
+anrop, ingen leverantörsnivå ovanför superadmin, i praktiken otestad
+frontend, och Node 20 avvecklas 2026-10-30 (hård deadline).
+
+De tre mest angelägna: gata `fragaKlinisktStod` (7a), uppgradera till
+Node 22 (8a), bygg organisationsetablering + inbjudningsflöde (6a–6c).
+
+## Vad som återstår från den gamla planen (se ETAPPLAN.md för detaljer)
 
 - Etapp 4: Admin.jsx är fortfarande stor (kodgranskningens förslag om att dela
   upp den valdes bort som lägre prioritet, inte akut).
