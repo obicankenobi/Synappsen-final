@@ -1,8 +1,13 @@
 // Anrop till Cloud Functions för Synappsen
-import { getFunctions, httpsCallable } from "firebase/functions";
+import { getFunctions, httpsCallable, connectFunctionsEmulator } from "firebase/functions";
 import { app } from "./config";
 
 const functions = getFunctions(app, "europe-west1");
+
+// Se motsvarande flagga/kommentar i ./config.js.
+if (import.meta.env.VITE_USE_EMULATOR === "true") {
+  connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+}
 
 export function tolkaDokument(storagePath, omrade) {
   const fn = httpsCallable(functions, "tolkaDokument");

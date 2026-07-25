@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.11.1",
+    datum: "2026-07-25",
+    andringar: [
+      "Fixat: dina privata anteckningar på en rutin kunde ibland fastna i \"laddar\" första gången du öppnade rutinen, innan du skrivit något",
+    ],
+  },
+  {
     version: "5.11.0",
     datum: "2026-07-24",
     andringar: [

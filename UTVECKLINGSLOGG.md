@@ -1436,6 +1436,30 @@ faktiskt var bevisat):**
 - `vite.config.js` fick `tests/functions/**` tillagt i `test.exclude` av samma skäl som
   `tests/rules/**` sedan tidigare (vitest plockade annars upp filen och kraschade).
 
+**UI-verifiering mot emulatorerna (samma dag, sista steget):** appen kördes faktiskt i en
+riktig browser (Chromium, styrd via Playwright) mot Auth+Firestore+Functions-emulatorerna,
+inloggad som en riktig användare i två seedade testorganisationer. Detta krävde att koppla in
+`connectAuthEmulator`/`connectFirestoreEmulator`/`connectFunctionsEmulator`, gated bakom en ny
+`VITE_USE_EMULATOR`-flagga (av som standard, satt via en icke-committad `.env.local`) i
+`src/firebase/config.js` och `src/firebase/functions.js`, plus en `emulators`-sektion i
+`firebase.json`. 8/8 kontroller gröna: inloggning, att org A:s superadmin ser sin egen
+organisations rutin men inte org B:s (och tvärtom för org B), att adminpanelens
+migreringsknapp faktiskt fungerar i UI:t, och att inga oväntade permission-denied-fel dyker
+upp i webbläsarkonsolen under ett normalt flöde.
+
+Den sista kontrollen fångade en **verklig, tidigare okänd bugg** (inte en Etapp 1-regression –
+`anteckningar`-reglerna var explicit oförändrade): `usePrivatAnteckning.js` lyssnar på en
+anteckning INNAN användaren någonsin skrivit en, dvs. dokumentet finns ännu inte. Den gamla
+regeln `resource.data.uid == request.auth.uid` refererar `.uid` på `resource.data`, som är
+`null` för ett dokument som inte finns – det gav ett rules-evaluationsfel (permission-denied)
+istället för en tom, giltig läsning, vilket i praktiken innebar att den privata
+anteckningsrutan aldrig blev redo att skriva i förrän efter en omladdning. Fixat genom att
+istället kontrollera dokument-id:ts prefix (`dokId.split('_')[0] == request.auth.uid`), som
+fungerar oavsett om dokumentet finns eller ej. Ny rules-testcase lagd till som bevisar båda
+fallen (36/36 gröna efter tillägget). Detta hade INTE upptäckts av rules- eller
+functions-testerna – de testar aldrig en riktig `onSnapshot`-lyssnare mot ett dokument som
+saknas, bara direkta `get()`/`set()`-anrop mot kända dokument-id:n.
+
 ### Kvarstående efter Etapp 1 (medvetet avgränsat, dokumenterat)
 
 - Storage-reglerna för `rutiner`/`forradsartiklar` är inte organisationsskopade än (se
@@ -1447,8 +1471,5 @@ faktiskt var bevisat):**
   på organisationId, vilket kräver att befintliga dokument faktiskt har fältet satt).
 - Ingen egen signup-flow för att välja/skapa en ny organisation – nya konton går fortfarande
   automatiskt till `STANDARD_ORG`. Det är en senare etapp (Etapp 4/5 i ETAPPLAN.md).
-- Ingen UI/e2e-testning har gjorts (appen har inte körts i en browser mot emulatorerna) –
-  klienthookarnas org-filtrering är bevisad via regel- och byggverifiering, inte via en
-  levande session.
 
 **Version:** `src/version.js`/`package.json` → se nästa post i andringslogg.

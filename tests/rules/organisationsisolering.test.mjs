@@ -311,6 +311,14 @@ async function main() {
     )
   );
 
+  console.log("\nanteckningar/{dokId} – läsning av ett dokument som INTE finns än");
+  await test("volA kan lyssna på sin egen (ännu ej skapade) anteckning utan rules-fel", () =>
+    assertSucceeds(getDoc(doc(volA, "anteckningar", "volA_rutinA")))
+  );
+  await test("superB kan INTE läsa volA:s (ännu ej skapade) anteckning", () =>
+    assertFails(getDoc(doc(superB, "anteckningar", "volA_rutinA")))
+  );
+
   console.log("\nBefintliga rollkontroller INOM en organisation gäller fortfarande");
   await test('volA (fel roll för "administration") kan INTE skapa en administration-rutin', () =>
     assertFails(

@@ -320,8 +320,13 @@ service cloud.firestore {
     // anteckningar/{dokId} – privata anteckningar på en rutin, dokId "{uid}_{rutinId}".
     // Endast ägaren själv får någonsin läsa eller skriva sin egen anteckning – redan fullt
     // isolerat per användare oavsett organisation, ingen extra org-kontroll behövs här.
+    // Läsningen kollar dokId-prefixet (inte resource.data.uid) eftersom klienten (se
+    // usePrivatAnteckning.js) lyssnar på dokumentet REDAN INNAN användaren skrivit något –
+    // resource.data är null för ett dokument som inte finns än, och .uid på null hade gett
+    // ett rules-evaluationsfel (upptäckt via manuell UI-verifiering mot emulatorn) istället
+    // för en tom, giltig "inget skrivet än"-läsning.
     match /anteckningar/{dokId} {
-      allow read, delete: if arInloggad() && resource.data.uid == request.auth.uid;
+      allow read, delete: if arInloggad() && dokId.split('_')[0] == request.auth.uid;
       allow update: if arInloggad() && resource.data.uid == request.auth.uid
                      && !harTroligtPersonnummer(request.resource.data.get('text', ''));
       allow create: if arInloggad() && request.resource.data.uid == request.auth.uid
