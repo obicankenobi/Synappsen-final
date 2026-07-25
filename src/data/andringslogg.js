@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.18.0",
+    datum: "2026-07-25",
+    andringar: [
+      "Bekräftelserutor (t.ex. \"radera permanent?\") och meddelanden visas nu i appens egen stil istället för webbläsarens inbyggda rutor",
+    ],
+  },
+  {
     version: "5.17.0",
     datum: "2026-07-25",
     andringar: [

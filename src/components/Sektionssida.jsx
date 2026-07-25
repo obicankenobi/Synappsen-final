@@ -8,6 +8,7 @@ import RutinKort from "./RutinKort";
 import { arUtgangen } from "../utils/rutinHjalp";
 import Skelett from "./Skelett";
 import { registreraBesok } from "../utils/senastBesokta";
+import { useDialog } from "../hooks/useDialog";
 
 export default function Sektionssida({
   omrade,
@@ -19,6 +20,7 @@ export default function Sektionssida({
   extra,
 }) {
   const { currentUser, role } = useAuth();
+  const { confirm } = useDialog();
   const { rutiner, laddar, skapaRutin, uppdateraRutin, godkannRutin, taBortRutin, markeraGranskad, hamtaVersioner } =
     useRutiner(omrade);
   const { anvandare } = useAnvandare();
@@ -83,7 +85,7 @@ export default function Sektionssida({
   }
 
   async function nekaAllaUtkast() {
-    if (!confirm(`Ta bort alla ${utkastRutiner.length} utkast? Detta går inte att ångra.`)) return;
+    if (!(await confirm(`Ta bort alla ${utkastRutiner.length} utkast? Detta går inte att ångra.`))) return;
     await Promise.all(utkastRutiner.map((r) => taBortRutin(r.id, currentUser.uid)));
   }
 

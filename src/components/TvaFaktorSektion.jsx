@@ -6,9 +6,11 @@ import {
   taBortTotp,
   hamtaInskrivnaFaktorer,
 } from "../firebase/mfa";
+import { useDialog } from "../hooks/useDialog";
 import "./TvaFaktorSektion.css";
 
 export default function TvaFaktorSektion({ currentUser }) {
+  const { confirm } = useDialog();
   const [steg, setSteg] = useState("vila"); // vila | reauth | registrera
   const [nuvarandeLosenord, setNuvarandeLosenord] = useState("");
   const [registreringsdata, setRegistreringsdata] = useState(null);
@@ -54,7 +56,7 @@ export default function TvaFaktorSektion({ currentUser }) {
   }
 
   async function hanteraTaBort(faktorUid) {
-    if (!confirm("Inaktivera tvåfaktorsautentisering?")) return;
+    if (!(await confirm("Inaktivera tvåfaktorsautentisering?"))) return;
     await taBortTotp(currentUser, faktorUid);
     setMeddelande({ typ: "ok", text: "Tvåfaktorsautentisering är inaktiverad." });
   }

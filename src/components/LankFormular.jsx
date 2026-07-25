@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useDialog } from "../hooks/useDialog";
 import "./KontaktFormular.css";
 
 export default function LankFormular({ initialaVarden, befintliga = [], onSpara, onAvbryt }) {
+  const { confirm, visaMeddelande } = useDialog();
   const [titel, setTitel] = useState(initialaVarden?.titel ?? "");
   const [url, setUrl] = useState(initialaVarden?.url ?? "");
   const [kategori, setKategori] = useState(initialaVarden?.kategori ?? "");
@@ -11,13 +13,13 @@ export default function LankFormular({ initialaVarden, befintliga = [], onSpara,
   async function hanteraSubmit(e) {
     e.preventDefault();
     if (!/^https?:\/\//i.test(url.trim())) {
-      alert("Länken måste börja med http:// eller https://.");
+      visaMeddelande("Länken måste börja med http:// eller https://.");
       return;
     }
     const dubblett = befintliga.some(
       (l) => l.id !== initialaVarden?.id && l.titel.trim().toLowerCase() === titel.trim().toLowerCase()
     );
-    if (dubblett && !confirm(`En länk med titeln "${titel}" finns redan. Spara ändå?`)) return;
+    if (dubblett && !(await confirm(`En länk med titeln "${titel}" finns redan. Spara ändå?`))) return;
     setSparar(true);
     try {
       await onSpara({ titel, url, kategori, beskrivning });

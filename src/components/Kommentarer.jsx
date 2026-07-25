@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useKommentarer } from "../hooks/useKommentarer";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
+import { useDialog } from "../hooks/useDialog";
 import "./Kommentarer.css";
 
 // Hittar ett ofullständigt "@handtag" precis före markörens position, t.ex. text
@@ -53,6 +54,7 @@ function KommentarRad({ kommentar, svar, currentUser, farTaBortAlla, taBortKomme
 
 export default function Kommentarer({ rutinId, farTaBortAlla, anvandare = [] }) {
   const { currentUser } = useAuth();
+  const { visaMeddelande } = useDialog();
   const { kommentarer, skapaKommentar, taBortKommentar } = useKommentarer(rutinId);
   const [oppen, setOppen] = useState(false);
   const [text, setText] = useState("");
@@ -93,7 +95,7 @@ export default function Kommentarer({ rutinId, farTaBortAlla, anvandare = [] }) 
     if (!text.trim()) return;
     const kontroll = kontrolleraPatientuppgifter(text);
     if (kontroll.blockerad) {
-      if (kontroll.meddelande) alert(kontroll.meddelande);
+      if (kontroll.meddelande) visaMeddelande(kontroll.meddelande);
       return;
     }
     setSkickar(true);
@@ -102,7 +104,7 @@ export default function Kommentarer({ rutinId, farTaBortAlla, anvandare = [] }) 
       setText("");
       setSvararPa(null);
     } catch (fel) {
-      alert(fel.message ?? "Kunde inte spara kommentaren.");
+      visaMeddelande(fel.message ?? "Kunde inte spara kommentaren.");
     } finally {
       setSkickar(false);
     }

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { DialogProvider } from "./context/DialogProvider";
 import { useAuth } from "./hooks/useAuth";
 import { useInaktivitetsUtloggning } from "./hooks/useInaktivitetsUtloggning";
 import { useUtloggningsinstallning } from "./hooks/useUtloggningsinstallning";
@@ -84,6 +85,7 @@ function InaktivitetsBevakning() {
 export default function App() {
   return (
     <AuthProvider>
+      <DialogProvider>
       <OfflineIndikator />
       <InaktivitetsBevakning />
       <SessionKontroll />
@@ -263,6 +265,7 @@ export default function App() {
           />
         </Routes>
       </BrowserRouter>
+      </DialogProvider>
     </AuthProvider>
   );
 }

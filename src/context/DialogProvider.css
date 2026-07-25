@@ -1,0 +1,52 @@
+.bekraftelse-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.bekraftelse-ruta {
+  background: var(--yta);
+  border-radius: var(--radius);
+  box-shadow: var(--skugga-hover);
+  padding: 20px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.bekraftelse-ruta p {
+  margin: 0 0 18px;
+  color: var(--text);
+}
+
+.bekraftelse-knappar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.meddelande-stack {
+  position: fixed;
+  bottom: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+  width: min(420px, calc(100vw - 32px));
+}
+
+.meddelande-ruta {
+  background: var(--text);
+  color: var(--bg);
+  border-radius: var(--radius-liten);
+  box-shadow: var(--skugga-hover);
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { usePapperskorg } from "../hooks/usePapperskorg";
 import { arRedaktor } from "../firebase/roles";
+import { useDialog } from "../hooks/useDialog";
 import "./Papperskorg.css";
 
 function formateraTid(tidpunkt) {
@@ -11,6 +12,7 @@ function formateraTid(tidpunkt) {
 
 export default function Papperskorg() {
   const { currentUser, role } = useAuth();
+  const { confirm, visaMeddelande } = useDialog();
   const { rutiner, artiklar, anslag, aterstall, raderaPermanent } = usePapperskorg();
 
   if (!arRedaktor(role)) {
@@ -65,7 +67,7 @@ export default function Papperskorg() {
                           try {
                             await aterstall(samling, p.id, currentUser.uid);
                           } catch {
-                            alert("Du har inte behörighet att återställa detta.");
+                            visaMeddelande("Du har inte behörighet att återställa detta.");
                           }
                         }}
                       >
@@ -74,11 +76,11 @@ export default function Papperskorg() {
                       <button
                         className="knapp knapp--farlig knapp--liten"
                         onClick={async () => {
-                          if (confirm("Radera permanent? Detta går inte att ångra.")) {
+                          if (await confirm("Radera permanent? Detta går inte att ångra.")) {
                             try {
                               await raderaPermanent(samling, p.id, currentUser.uid);
                             } catch {
-                              alert("Du har inte behörighet att radera detta.");
+                              visaMeddelande("Du har inte behörighet att radera detta.");
                             }
                           }
                         }}

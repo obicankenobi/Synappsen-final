@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { ANSLAG_PRIORITET } from "../hooks/useAnslag";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
+import { useDialog } from "../hooks/useDialog";
 import "./AnslagFormular.css";
 
 export default function AnslagFormular({ initialaVarden, onSpara, onAvbryt }) {
+  const { visaMeddelande } = useDialog();
   const [titel, setTitel] = useState(initialaVarden?.titel ?? "");
   const [innehall, setInnehall] = useState(initialaVarden?.innehall ?? "");
   const [fastNaglad, setFastNaglad] = useState(initialaVarden?.fastNaglad ?? false);
@@ -16,7 +18,7 @@ export default function AnslagFormular({ initialaVarden, onSpara, onAvbryt }) {
     e.preventDefault();
     const kontroll = kontrolleraPatientuppgifter(`${titel} ${innehall}`);
     if (kontroll.blockerad) {
-      if (kontroll.meddelande) alert(kontroll.meddelande);
+      if (kontroll.meddelande) visaMeddelande(kontroll.meddelande);
       return;
     }
     setSparar(true);

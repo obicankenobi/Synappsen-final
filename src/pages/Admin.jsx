@@ -30,6 +30,7 @@ import {
 import { APP_VERSION } from "../version";
 import { ROLES, ROLE_LABELS, REDAKTORSROLLER } from "../firebase/roles";
 import InbjudanFormular from "../components/InbjudanFormular";
+import { useDialog } from "../hooks/useDialog";
 import "./Admin.css";
 
 function formateraTid(tidpunkt) {
@@ -65,6 +66,7 @@ export default function Admin() {
   const arSuperadmin = role === ROLES.SUPERADMIN;
   const { anvandare, laddar, uppdateraRoll } = useAnvandare();
   const { currentUser } = useAuth();
+  const { confirm, visaMeddelande } = useDialog();
   const { moduler, laddat: modulerLaddade } = useFeatures();
   const [sparadModul, setSparadModul] = useState(null);
 
@@ -149,7 +151,10 @@ export default function Admin() {
   const [migrerar, setMigrerar] = useState(false);
 
   async function hanteraMigrering(dryRun) {
-    if (!dryRun && !confirm("Kör migreringen SKARPT? Detta skriver organisationId på alla dokument som saknar det.")) {
+    if (
+      !dryRun &&
+      !(await confirm("Kör migreringen SKARPT? Detta skriver organisationId på alla dokument som saknar det."))
+    ) {
       return;
     }
     setMigrerar(true);
@@ -317,13 +322,13 @@ export default function Admin() {
   }
 
   async function hanteraTvingaUtloggning(anvandarpost) {
-    if (!confirm(`Tvinga utloggning av ${anvandarpost.namn || anvandarpost.email}?`)) return;
+    if (!(await confirm(`Tvinga utloggning av ${anvandarpost.namn || anvandarpost.email}?`))) return;
     setLoggarUtAnvandare(anvandarpost.id);
     try {
       await tvingaUtloggning(anvandarpost.id);
-      alert("Utloggning genomförd. Effekten kan ta upp till en timme om användaren redan har en aktiv session.");
+      visaMeddelande("Utloggning genomförd. Effekten kan ta upp till en timme om användaren redan har en aktiv session.");
     } catch (fel) {
-      alert(fel.message ?? "Något gick fel.");
+      visaMeddelande(fel.message ?? "Något gick fel.");
     } finally {
       setLoggarUtAnvandare(null);
     }

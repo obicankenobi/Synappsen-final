@@ -54,6 +54,11 @@ export function hittaMisstankaNamn(text) {
 
 // Körs innan sparning i formulär som kan innehålla fritext. Blockerar hårt vid personnummer,
 // frågar (via window.confirm) vid misstänkta namn. Returnerar { blockerad, meddelande }.
+// Etapp 8e: medvetet KVAR på window.confirm (till skillnad från alla andra confirm()/alert()-
+// anrop i appen, se DialogProvider.jsx) – detta är en vanlig, synkron util-funktion (inte en
+// komponent), så React-hooken useDialog() kan inte användas här utan att göra funktionen
+// async och uppdatera samtliga sju anropsställen. Låg frekvens (bara vid misstänkta namn,
+// inte varje sparning) gjorde att det inte bedömdes värt den bredare refaktoreringen nu.
 export function kontrolleraPatientuppgifter(text) {
   const personnummer = hittaPersonnummer(text);
   if (personnummer.length > 0) {

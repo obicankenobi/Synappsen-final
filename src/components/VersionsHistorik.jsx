@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useDialog } from "../hooks/useDialog";
 import "./VersionsHistorik.css";
 
 function formateraTid(tidpunkt) {
@@ -59,11 +60,12 @@ function DiffVy({ rader }) {
 }
 
 export default function VersionsHistorik({ hamtaVersioner, nuvarandeInnehall, onAterstall, onStang }) {
+  const { confirm } = useDialog();
   const [versioner, setVersioner] = useState(null);
   const [visarDiff, setVisarDiff] = useState(null);
 
   async function hanteraAterstall(v) {
-    if (!confirm(`Återställa till versionen från ${formateraTid(v.sparadVersionTidpunkt)}?`)) return;
+    if (!(await confirm(`Återställa till versionen från ${formateraTid(v.sparadVersionTidpunkt)}?`))) return;
     await onAterstall(v);
     onStang();
   }

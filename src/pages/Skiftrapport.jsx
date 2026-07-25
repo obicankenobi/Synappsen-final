@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useSkiftrapport } from "../hooks/useSkiftrapport";
 import { arRedaktor } from "../firebase/roles";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
+import { useDialog } from "../hooks/useDialog";
 import "./Skiftrapport.css";
 
 function formateraTid(tidpunkt) {
@@ -13,6 +14,7 @@ function formateraTid(tidpunkt) {
 
 export default function Skiftrapport() {
   const { currentUser, role } = useAuth();
+  const { visaMeddelande } = useDialog();
   const { aktiva, atgardadeSenaste, laddar, skapaPost, markeraAtgardad, taBortPost } = useSkiftrapport();
   const [text, setText] = useState("");
   const [skickar, setSkickar] = useState(false);
@@ -25,7 +27,7 @@ export default function Skiftrapport() {
     if (!text.trim()) return;
     const kontroll = kontrolleraPatientuppgifter(text);
     if (kontroll.blockerad) {
-      if (kontroll.meddelande) alert(kontroll.meddelande);
+      if (kontroll.meddelande) visaMeddelande(kontroll.meddelande);
       return;
     }
     setSkickar(true);

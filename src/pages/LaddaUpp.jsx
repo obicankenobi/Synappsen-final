@@ -5,6 +5,7 @@ import { FEATURE } from "../config/features";
 import { laddaUppInkommandeFoto } from "../firebase/storage";
 import { tolkaDokument, tolkaForradsbild } from "../firebase/functions";
 import { FORRAD } from "../firebase/forrad";
+import { useDialog } from "../hooks/useDialog";
 import "./LaddaUpp.css";
 
 const OMRADEN = [
@@ -29,6 +30,7 @@ function genId() {
 
 export default function LaddaUpp() {
   const { currentUser } = useAuth();
+  const { confirm } = useDialog();
   const { laddat: featuresLaddade, hasFeature } = useFeatures();
   const [omrade, setOmrade] = useState(OMRADEN[0].varde);
   const [forrad, setForrad] = useState(FORRAD[0]);
@@ -58,7 +60,7 @@ export default function LaddaUpp() {
     }
   }, [poster]);
 
-  function valjFiler(e) {
+  async function valjFiler(e) {
     const filer = Array.from(e.target.files ?? []);
     e.target.value = "";
     if (filer.length === 0) return;
@@ -69,7 +71,7 @@ export default function LaddaUpp() {
     const stora = filer.filter((f) => f.size > STOR_FIL_BYTE);
     if (stora.length > 0) {
       const namn = stora.map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(1)} MB)`).join(", ");
-      if (!confirm(`${namn} är större än 8 MB och kan ta lång tid på mobilnät. Ladda upp ändå?`)) {
+      if (!(await confirm(`${namn} är större än 8 MB och kan ta lång tid på mobilnät. Ladda upp ändå?`))) {
         return;
       }
     }

@@ -9,6 +9,7 @@ import {
   FEEDBACK_STATUS_LABELS,
 } from "../hooks/useFeedback";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
+import { useDialog } from "../hooks/useDialog";
 import "./Feedback.css";
 
 function formateraTid(tidpunkt) {
@@ -18,6 +19,7 @@ function formateraTid(tidpunkt) {
 
 export default function Feedback() {
   const { currentUser } = useAuth();
+  const { visaMeddelande } = useDialog();
   const { skickaFeedback } = useFeedback(false);
   const minaInskick = useMinaFeedback(currentUser.uid);
   const [typ, setTyp] = useState(FEEDBACK_TYPER.FORSLAG);
@@ -29,7 +31,7 @@ export default function Feedback() {
     e.preventDefault();
     const kontroll = kontrolleraPatientuppgifter(text);
     if (kontroll.blockerad) {
-      if (kontroll.meddelande) alert(kontroll.meddelande);
+      if (kontroll.meddelande) visaMeddelande(kontroll.meddelande);
       return;
     }
     setSkickar(true);
@@ -38,7 +40,7 @@ export default function Feedback() {
       setText("");
       setSkickat(true);
     } catch (fel) {
-      alert(fel.message ?? "Kunde inte skicka feedback.");
+      visaMeddelande(fel.message ?? "Kunde inte skicka feedback.");
     } finally {
       setSkickar(false);
     }

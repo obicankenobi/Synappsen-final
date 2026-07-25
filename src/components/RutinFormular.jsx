@@ -3,6 +3,7 @@ import { RUTIN_MALLAR } from "../data/rutinmallar";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import MarkdownInnehall from "./MarkdownInnehall";
 import { ROLES, ROLE_LABELS } from "../firebase/roles";
+import { useDialog } from "../hooks/useDialog";
 import "./RutinFormular.css";
 
 export default function RutinFormular({
@@ -12,6 +13,7 @@ export default function RutinFormular({
   onSpara,
   onAvbryt,
 }) {
+  const { confirm, visaMeddelande } = useDialog();
   const innehallRef = useRef(null);
   const [titel, setTitel] = useState(initialaVarden?.titel ?? "");
   const [innehall, setInnehall] = useState(initialaVarden?.innehall ?? "");
@@ -27,10 +29,10 @@ export default function RutinFormular({
   const [agareRoll, setAgareRoll] = useState(initialaVarden?.agare?.roll ?? "");
   const [agareUid, setAgareUid] = useState(initialaVarden?.agare?.uid ?? "");
 
-  function valjMall(namn) {
+  async function valjMall(namn) {
     const mall = RUTIN_MALLAR.find((m) => m.namn === namn);
     if (!mall) return;
-    if (innehall.trim() && !confirm("Ersätta nuvarande innehåll med mallen?")) return;
+    if (innehall.trim() && !(await confirm("Ersätta nuvarande innehåll med mallen?"))) return;
     setInnehall(mall.innehall);
   }
 
@@ -80,12 +82,12 @@ export default function RutinFormular({
   async function hanteraSubmit(e) {
     e.preventDefault();
     if (!innehall.trim() && !harBilagor) {
-      alert("Fyll i innehåll eller bifoga minst en fil.");
+      visaMeddelande("Fyll i innehåll eller bifoga minst en fil.");
       return;
     }
     const kontroll = kontrolleraPatientuppgifter(`${titel} ${innehall} ${referenser}`);
     if (kontroll.blockerad) {
-      if (kontroll.meddelande) alert(kontroll.meddelande);
+      if (kontroll.meddelande) visaMeddelande(kontroll.meddelande);
       return;
     }
     const taggar = taggarText

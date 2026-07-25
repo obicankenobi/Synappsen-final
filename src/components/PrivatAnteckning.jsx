@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { usePrivatAnteckning } from "../hooks/usePrivatAnteckning";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
+import { useDialog } from "../hooks/useDialog";
 import "./PrivatAnteckning.css";
 
 export default function PrivatAnteckning({ rutinId }) {
   const { currentUser } = useAuth();
+  const { visaMeddelande } = useDialog();
   const { text, laddad, spara } = usePrivatAnteckning(currentUser?.uid, rutinId);
   const [oppen, setOppen] = useState(false);
   const [utkast, setUtkast] = useState("");
@@ -21,7 +23,7 @@ export default function PrivatAnteckning({ rutinId }) {
   async function hanteraSpara() {
     const kontroll = kontrolleraPatientuppgifter(utkast);
     if (kontroll.blockerad) {
-      if (kontroll.meddelande) alert(kontroll.meddelande);
+      if (kontroll.meddelande) visaMeddelande(kontroll.meddelande);
       return;
     }
     await spara(utkast);

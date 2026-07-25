@@ -157,7 +157,7 @@ daterade deadline i planen.
   faktiskt bor (`useFeatures`, `useOfflineCenter`, `useMfaPolicy`, budget-/kostnadshookarna)
   och på `ErrorBoundary`. Målet är inte hög täckningsgrad utan att den logik som är svår att
   se med ögat är fastspikad.
-- **8e. Ersätt `confirm()`/`alert()`** med appens egen dialog. Kosmetiskt, men det är det
+- **8e. ✅ GENOMFÖRD.** Ersätt `confirm()`/`alert()` med appens egen dialog. Kosmetiskt, men det är det
   första en kund reagerar på i en demo.
 
 **Klart när:** Cloud Functions kör på Node 22 i produktion, ett medvetet trasigt deploy

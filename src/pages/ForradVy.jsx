@@ -8,11 +8,13 @@ import { KAN_HANTERA_FORRAD } from "../firebase/roles";
 import ForradArtikelFormular from "../components/ForradArtikelFormular";
 import ForradArtikelKort from "../components/ForradArtikelKort";
 import Skelett from "../components/Skelett";
+import { useDialog } from "../hooks/useDialog";
 
 export default function ForradVy() {
   const { forradSlug } = useParams();
   const forrad = FORRAD_SLUGS[forradSlug];
   const { currentUser, role } = useAuth();
+  const { confirm } = useDialog();
   const { artiklar, laddar, skapaArtikel, uppdateraArtikel, godkannArtikel, taBortArtikel } =
     useForradsartiklar(forrad);
   const [redigerar, setRedigerar] = useState(null);
@@ -45,7 +47,7 @@ export default function ForradVy() {
   }
 
   async function nekaAllaUtkast() {
-    if (!confirm(`Ta bort alla ${utkast.length} utkast? De hamnar i papperskorgen.`)) return;
+    if (!(await confirm(`Ta bort alla ${utkast.length} utkast? De hamnar i papperskorgen.`))) return;
     await Promise.all(utkast.map((a) => taBortArtikel(a.id, currentUser.uid)));
   }
 

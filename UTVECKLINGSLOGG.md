@@ -1937,3 +1937,41 @@ organisation nekar/återfår åtkomst). `npm run test:functions` nu **54/54**, `
 test:rules` nu **60/60**. `npm run lint`, `npm run build`, `npx vitest run` (10/10) gröna.
 
 **Version:** 5.17.0.
+
+---
+
+## Fas 26 – Etapp 8e: ersätt confirm()/alert() med en egen dialog
+
+Sista kvarvarande punkten från den externa kodgranskningen (Fas 23) som ännu inte var
+åtgärdad. Native `confirm()`/`alert()` går inte att styla, känns malplacerade på mobil, och
+blockerar hela sidans JS-tråd. Ny global `DialogProvider` (monterad en gång i `App.jsx`,
+innanför `AuthProvider`) exponerar två primitiv via `useDialog()`:
+
+- **`confirm(text)`** – returnerar ett `Promise<boolean>` (samma anropsmönster som
+  `window.confirm`, bara asynkront: `if (!(await confirm(...))) return;`). Renderar en
+  inline-dialog (`.bekraftelse-overlay`/`.bekraftelse-ruta`) med Avbryt/Ja.
+- **`visaMeddelande(text)`** – ersätter `alert()`, fire-and-forget. Renderar ett litet
+  meddelande i appens stil längst ner på skärmen, auto-stängs efter 5 sekunder eller vid
+  klick.
+
+Alla ~24 anropsställen i 15 filer konverterade (`Sektionssida`, `RutinFormular`,
+`KontaktFormular`, `VersionsHistorik`, `PrivatAnteckning`, `Kommentarer`, `AnslagFormular`,
+`TvaFaktorSektion`, `LankFormular`, `Papperskorg`, `Skiftrapport`, `Feedback`, `Admin`,
+`LaddaUpp`, `ForradVy`). Funktioner som anropade `confirm()` synkront gjordes `async` och
+fick `await`.
+
+**Medveten avgränsning:** `src/utils/piiFilter.js`s `window.confirm` (varning vid ett
+misstänkt namn i fritext) lämnades OFÖRÄNDRAD – det är en vanlig synkron util-funktion, inte
+en komponent, så `useDialog()` går inte att använda där utan att göra funktionen `async` och
+uppdatera samtliga sju anropsställen. Låg utlösningsfrekvens (bara vid misstänkta namn, inte
+varje sparning) gjorde att den bredare refaktoreringen inte bedömdes värd det just nu.
+Dokumenterat med en kommentar i filen.
+
+**Verifiering:** manuell Playwright-körning mot en riktig browser (emulatorer + dev-server):
+klickade på adminpanelens "Kör migreringen SKARPT"-knapp, bekräftade att appens EGEN dialog
+renderades med rätt text, att "Avbryt" stängde den, och att INGET nativt
+`window.confirm`/`alert` någonsin utlöstes (lyssnade på sidans `dialog`-event). `npm run
+lint`, `npm run build`, `npm run test:rules` (60/60), `npm run test:functions` (54/54),
+`npm run test:storage` (6/6), `npx vitest run` (10/10) – alla gröna.
+
+**Version:** 5.18.0.
