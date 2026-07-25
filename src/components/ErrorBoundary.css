@@ -1,0 +1,11 @@
+.error-boundary {
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 24px;
+  text-align: center;
+}
+
+.error-boundary p {
+  color: var(--text-svag);
+  margin-bottom: 16px;
+}

@@ -6,6 +6,7 @@ import { useInaktivitetsUtloggning } from "./hooks/useInaktivitetsUtloggning";
 import { useUtloggningsinstallning } from "./hooks/useUtloggningsinstallning";
 import InaktivitetsVarning from "./components/InaktivitetsVarning";
 import OfflineIndikator from "./components/OfflineIndikator";
+import ErrorBoundary from "./components/ErrorBoundary";
 import MfaPolicyBanner from "./components/MfaPolicyBanner";
 import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
@@ -62,7 +63,9 @@ function SkyddatLayout({ children }) {
   return (
     <SkyddadRoute>
       <div className="app-innehall">
-        <Suspense fallback={<SidLaddare />}>{children}</Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<SidLaddare />}>{children}</Suspense>
+        </ErrorBoundary>
       </div>
       <BottomNav />
     </SkyddadRoute>
@@ -89,17 +92,21 @@ export default function App() {
           <Route
             path="/logga-in"
             element={
-              <Suspense fallback={<SidLaddare />}>
-                <LoggaIn />
-              </Suspense>
+              <ErrorBoundary>
+                <Suspense fallback={<SidLaddare />}>
+                  <LoggaIn />
+                </Suspense>
+              </ErrorBoundary>
             }
           />
           <Route
             path="/registrera"
             element={
-              <Suspense fallback={<SidLaddare />}>
-                <Registrera />
-              </Suspense>
+              <ErrorBoundary>
+                <Suspense fallback={<SidLaddare />}>
+                  <Registrera />
+                </Suspense>
+              </ErrorBoundary>
             }
           />
           <Route
@@ -235,9 +242,11 @@ export default function App() {
             element={
               <RollSkyddadRoute tillatnaRoller={REDAKTORSROLLER}>
                 <div className="app-innehall">
-                  <Suspense fallback={<SidLaddare />}>
-                    <Admin />
-                  </Suspense>
+                  <ErrorBoundary>
+                    <Suspense fallback={<SidLaddare />}>
+                      <Admin />
+                    </Suspense>
+                  </ErrorBoundary>
                 </div>
                 <BottomNav />
               </RollSkyddadRoute>

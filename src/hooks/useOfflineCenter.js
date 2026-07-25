@@ -10,13 +10,20 @@ import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { RUTIN_STATUS } from "./useRutiner";
 
-const LAGRINGSNYCKEL = "offlineCenter_senasteNedladdning";
+// Nyckeln inkluderar uid – annars visar en delad/kiosk-dator fel "senast nedladdad"-tid för
+// nästa person som loggar in, som ser en tidigare användares nedladdning som sin egen.
+function lagringsnyckel(uid) {
+  return `offlineCenter_senasteNedladdning_${uid}`;
+}
 
 export function useOfflineCenter() {
-  const { organisationId } = useAuth();
+  const { currentUser, organisationId } = useAuth();
   const [online, setOnline] = useState(navigator.onLine);
+  // Lazy init (körs bara vid montering) – currentUser finns redan här (AuthProvider
+  // renderar aldrig sina children förrän inloggningsstatusen är känd, se AuthContext.jsx).
   const [senasteNedladdning, setSenasteNedladdning] = useState(() => {
-    const sparad = localStorage.getItem(LAGRINGSNYCKEL);
+    if (!currentUser) return null;
+    const sparad = localStorage.getItem(lagringsnyckel(currentUser.uid));
     return sparad ? new Date(sparad) : null;
   });
   const [antalNedladdade, setAntalNedladdade] = useState(null);
@@ -39,7 +46,7 @@ export function useOfflineCenter() {
   }, []);
 
   async function nedladda() {
-    if (!organisationId) return;
+    if (!organisationId || !currentUser) return;
     setLaddarNer(true);
     setFel(null);
     try {
@@ -53,7 +60,7 @@ export function useOfflineCenter() {
         )
       );
       const nu = new Date();
-      localStorage.setItem(LAGRINGSNYCKEL, nu.toISOString());
+      localStorage.setItem(lagringsnyckel(currentUser.uid), nu.toISOString());
       setSenasteNedladdning(nu);
       setAntalNedladdade(snap.size);
     } catch (e) {

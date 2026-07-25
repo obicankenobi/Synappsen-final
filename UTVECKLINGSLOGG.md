@@ -1764,3 +1764,39 @@ Kostnadsuppföljning" visar kr/månad + antal användare per månad.
   faktiskt använder AI-import.
 
 **Version:** 5.15.0.
+
+---
+
+## Fas 23 – Två fynd från extern kodgranskning: delad-dator-bugg och ErrorBoundary
+
+En extern genomgång av kodbasen (v5.15.0) lämnades av användaren för kommentar. De flesta
+observationerna stämde och var redan kända/medvetna avvägningar, men två var verkliga,
+tidigare omärkta fynd som åtgärdades direkt:
+
+- **`useOfflineCenter` – delad-dator-bugg.** `senasteNedladdning` lagrades i `localStorage`
+  under en global nyckel (`offlineCenter_senasteNedladdning`), inte per användare. På en
+  delad/kiosk-dator (vanligt på en akutmottagning) hade nästa inloggade person sett en
+  FÖREGÅENDE persons nedladdningstid som sin egen. Fixat: nyckeln inkluderar nu
+  `currentUser.uid` (`offlineCenter_senasteNedladdning_{uid}`).
+- **Ingen `ErrorBoundary` fanns någonstans.** En krasch i en enskild sidas rendering (t.ex.
+  ett Firestore-dokument i oväntat format) skulle ha tagit ner hela appen till en vit skärm.
+  Ny `src/components/ErrorBoundary.jsx` (klasskomponent – React har ingen hook-motsvarighet
+  för `getDerivedStateFromError`/`componentDidCatch`), inslagen runt varje routes
+  `Suspense`-block i `App.jsx` (både `SkyddatLayout`, `/admin`-rutten och de oautentiserade
+  `/logga-in`/`/registrera`). Verifierat MANUELLT i en riktig browser (Chromium via
+  Playwright, mot emulatorerna): en tillfällig `throw` injicerad i `OfflineCenter.jsx` gav en
+  synlig "Något gick fel"-vy med en "Ladda om"-knapp, och `BottomNav`/navigationen förblev
+  synlig runt felet (kraschen isolerades till just den sidan) – sedan togs test-`throw`:en
+  bort igen.
+
+Övriga punkter i granskningen (dela upp `Admin.jsx`, byt `confirm()`/`alert()` mot
+inline-bekräftelse, skeleton-loaders, `void _id`-mönstret) bedömdes som rimliga men lägre
+prioriterade stil-/underhållbarhetsfrågor, inte buggar – lämnade orörda denna gång.
+Granskningen missade multi-tenant-säkerhetslagret helt (där de historiskt faktiska
+buggarna funnits, se Fas 11/18/20/21).
+
+**Verifiering:** `npm run lint`, `npm run build`, `npx vitest run` (10/10),
+`npm run test:rules` (50/50), `npm run test:functions` (24/24), `npm run test:storage`
+(6/6) gröna – ingen av dessa svit rörs av ändringarna, men kördes om för säkerhets skull.
+
+**Version:** 5.15.1.

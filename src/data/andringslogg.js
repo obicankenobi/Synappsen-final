@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.15.1",
+    datum: "2026-07-25",
+    andringar: [
+      "Fixat: \"senast nedladdad för offline\"-tiden visade fel person på delade datorer – visar nu rätt tid för den som faktiskt är inloggad",
+      "En trasig sida kraschar inte längre hela appen – visar nu ett enkelt felmeddelande med möjlighet att ladda om",
+    ],
+  },
+  {
     version: "5.15.0",
     datum: "2026-07-25",
     andringar: [
