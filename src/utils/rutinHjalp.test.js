@@ -1,0 +1,64 @@
+import { describe, it, expect } from "vitest";
+import { borGranskas, narmarSigGranskning, arUtgangen } from "./rutinHjalp";
+
+function tidsstampel(datum) {
+  return { toDate: () => datum };
+}
+
+function dagarSedan(antal) {
+  const d = new Date();
+  d.setDate(d.getDate() - antal);
+  return d;
+}
+
+describe("borGranskas", () => {
+  it("är falskt utan granskadDatum", () => {
+    expect(borGranskas(undefined)).toBe(false);
+  });
+
+  it("är falskt för en nyligen granskad rutin (10 dagar sedan)", () => {
+    expect(borGranskas(tidsstampel(dagarSedan(10)))).toBe(false);
+  });
+
+  it("är falskt precis innan 180-dagarsgränsen (179 dagar)", () => {
+    expect(borGranskas(tidsstampel(dagarSedan(179)))).toBe(false);
+  });
+
+  it("är sant precis efter 180-dagarsgränsen (181 dagar)", () => {
+    expect(borGranskas(tidsstampel(dagarSedan(181)))).toBe(true);
+  });
+});
+
+describe("narmarSigGranskning", () => {
+  it("är falskt utan granskadDatum", () => {
+    expect(narmarSigGranskning(undefined)).toBe(false);
+  });
+
+  it("är falskt långt innan påminnelsefönstret (100 dagar sedan)", () => {
+    expect(narmarSigGranskning(tidsstampel(dagarSedan(100)))).toBe(false);
+  });
+
+  it("är sant inom de sista 14 dagarna innan gränsen (170 dagar sedan)", () => {
+    expect(narmarSigGranskning(tidsstampel(dagarSedan(170)))).toBe(true);
+  });
+
+  it("är falskt efter att rutinen redan bör granskas (181 dagar sedan)", () => {
+    expect(narmarSigGranskning(tidsstampel(dagarSedan(181)))).toBe(false);
+  });
+});
+
+describe("arUtgangen", () => {
+  it("är falskt utan utgångsdatum", () => {
+    expect(arUtgangen({})).toBe(false);
+  });
+
+  it("är falskt för ett utgångsdatum i framtiden", () => {
+    const imorgon = new Date();
+    imorgon.setDate(imorgon.getDate() + 1);
+    expect(arUtgangen({ utgangsdatum: imorgon.toISOString().slice(0, 10) })).toBe(false);
+  });
+
+  it("är sant för ett utgångsdatum i det förflutna", () => {
+    expect(arUtgangen({ utgangsdatum: "2020-01-01" })).toBe(true);
+  });
+});

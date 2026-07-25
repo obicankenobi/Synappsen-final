@@ -153,7 +153,7 @@ daterade deadline i planen.
   `setpolicy`-steget om det är genuint frivilligt.
 - **8c. Dela upp `Admin.jsx`** (1054 rader) i sektionskomponenter – en per adminpanel-sektion,
   med den delade datahämtningen kvar i hookar. Ingen funktionsändring, ren struktur.
-- **8d. Grundläggande frontend-testning.** Vitest + Testing Library på de hookar där logiken
+- **8d. ✅ GENOMFÖRD. Grundläggande frontend-testning.** Vitest + Testing Library på de hookar där logiken
   faktiskt bor (`useFeatures`, `useOfflineCenter`, `useMfaPolicy`, budget-/kostnadshookarna)
   och på `ErrorBoundary`. Målet är inte hög täckningsgrad utan att den logik som är svår att
   se med ögat är fastspikad.

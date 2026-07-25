@@ -1975,3 +1975,33 @@ lint`, `npm run build`, `npm run test:rules` (60/60), `npm run test:functions` (
 `npm run test:storage` (6/6), `npx vitest run` (10/10) – alla gröna.
 
 **Version:** 5.18.0.
+
+---
+
+## Fas 27 – Etapp 8d: grundläggande frontend-tester
+
+Innan detta fanns exakt ETT vitest-testfall i `src/` (`piiFilter.test.js`) – all annan
+automatiserad verifiering låg på regel-/funktionsnivå. Bytt ut mot en riktig, om än
+avgränsad, start: `@testing-library/react` och `happy-dom` tillagda som devDependencies.
+`vitest.config` (i `vite.config.js`) kör fortfarande "node"-miljö som standard (snabbare,
+inget DOM behövs för rena util-tester); komponenttester som faktiskt behöver en DOM sätter
+`// @vitest-environment happy-dom` som en fil-docblock (testat och verifierat att fungera –
+ett försök med `environmentMatchGlobs` i configen gav ingen effekt av okänd anledning,
+docblock-varianten är den robusta vägen).
+
+Tre nya testfiler, valda efter genuin nytta snarare än täckningsprocent:
+
+- **`src/utils/rutinHjalp.test.js`** – `borGranskas`/`narmarSigGranskning`/`arUtgangen`, ren
+  datumlogik som styr granskningspåminnelser och utgångsspärrar men som aldrig testats
+  automatiskt förut (bara verifierats manuellt genom att vänta ut riktiga datum).
+- **`src/config/features.test.js`** – `aktivaFeatures()`, den centrala fail-closed-logiken
+  bakom HELA Etapp 2:s modul-gating. Testar uttryckligen att ett saknat `moduler`-fält ger
+  en TOM mängd (fail closed), inte en krasch eller fail-open.
+- **`src/components/ErrorBoundary.test.jsx`** – ett riktigt komponenttest (inte bara manuell
+  Playwright-verifiering som i Fas 23): renderar normalt utan fel, och fångar ett kastat fel
+  och visar reservvyn, med `@testing-library/react`.
+
+**Verifiering:** `npx vitest run` nu **29/29** (tidigare 10). `npm run lint`, `npm run
+build` gröna.
+
+**Version:** 5.19.0.
