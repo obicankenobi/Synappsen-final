@@ -1503,3 +1503,61 @@ konsistent på den nya datamodellen.
   automatiskt till `STANDARD_ORG`. Det är en senare etapp (Etapp 4/5 i ETAPPLAN.md).
 
 **Version:** `src/version.js`/`package.json` → se nästa post i andringslogg.
+
+---
+
+## Fas 19 – Etapp 2: feature-gating (moduler), gata AI-import
+
+**Mål (ETAPPLAN.md):** kunder ska kunna ha olika moduler påslagna, kontrollerat i tre lager
+(UI/klient/server), med AI-import som referens-implementation.
+
+**Ny feature-registry:** `src/config/features.js` – `FEATURE`-konstanter (åtta funktioner
+över Operations/Intelligence, sammanställda i MODULPLAN.md) och `PACKAGE_FEATURES` som mappar
+modul → vilka features den ger. `aktivaFeatures(moduler)` härleder en `Set` av påslagna
+features från organisationens `moduler`-fält (`{operations: bool, intelligence: bool}`).
+
+**`src/hooks/useFeatures.js`:** lyssnar i realtid på `organisationer/{orgId}` (redan läsbart
+för alla medlemmar sedan Etapp 1:s regler) och ger `{ laddat, moduler, hasFeature(feature) }`.
+
+**UI-gating (referens: AI-import):** `src/pages/LaddaUpp.jsx` visar en neutral förklaring
+("AI-import kräver Intelligence-modulen... Kontakta en superadmin") istället för
+uppladdningsflödet när `hasFeature(FEATURE.AI_IMPORT)` är falskt – knappen till sidan på
+startsidan döljs INTE (medvetet, enligt MODULPLAN.md: en kund ska förstå VARFÖR något saknas,
+inte bara se en tyst borttagen funktion).
+
+**Serverkontroll (den faktiska spärren):** ny helper `kravModul(organisationId, modul,
+felmeddelande)` i `functions/index.js`, körs i både `tolkaForradsbild` och `tolkaDokument`
+**innan** budgetreservation och innan Storage/Gemini nås. "Fail closed": om en organisation
+helt saknar `moduler`-fältet nekas anropet (kastar `failed-precondition`) istället för att
+tillåtas – annars hade ett bortglömt/oskrivet fält av misstag gett full åtkomst. Standard­
+organisationens `moduler.intelligence` sattes till `true` vid Etapp 1:s migrering, så detta
+ändrar inget för befintlig drift förrän en superadmin faktiskt stänger av modulen.
+
+**Adminpanel:** ny sektion "🧩 Moduler" (superadmin) i `Admin.jsx` med kryssrutor för
+Operations/Intelligence, skriver direkt till `organisationer/{orgId}.moduler.<namn>` (klienten
+har redan skrivrätt dit sedan Etapp 1 – ingen ny regel behövdes).
+
+**Verifiering:** ny testsvit `tests/functions/modulgating.test.cjs` (del av
+`npm run test:functions`, tillsammans med migreringstestet) – 5 gröna:
+- `kravModul` nekar när modulen är av, nekar (fail closed) när `moduler`-fältet helt saknas,
+  och tillåter när modulen är på.
+- `tolkaForradsbild`/`tolkaDokument` nekar med `failed-precondition` vid ett direktanrop mot
+  den exporterade funktionen (kringgår UI:t helt), INNAN något Storage-/Gemini-anrop görs –
+  exakt det ETAPPLAN.md:s "klart när"-kriterium efterfrågar ("kan inte utlösa ett enda
+  Gemini-anrop ens via ett manipulerat direktanrop"). `kravModul` exporteras enbart för detta
+  test, för att undvika ett långsamt/instabilt test som annars hade behövt låta anropet nå
+  riktig Storage/Gemini för att bevisa att det INTE stoppades av modulkontrollen.
+- `npm run test:rules` (36/36), `npm run lint`, `npm run build`, `npx vitest run` (10/10) och
+  `node -c functions/index.js` gröna.
+
+### Kvarstående efter Etapp 2 (medvetet avgränsat)
+
+- Endast AI-import är faktiskt gatad – klinikstöd (`fragaKlinisktStod`, också en
+  Intelligence-funktion) är INTE gatad ännu. Nästa modul att gata är ett eget, litet
+  uppföljningsarbete.
+- Operations-funktionerna i `PACKAGE_FEATURES.operations` är till största delen inte byggda
+  än (offline-center m.fl. – se Etapp 3 i ETAPPLAN.md), så gating av dem väntar naturligt.
+- Ingen UI-gating av navigationslänkar/kort baserat på moduler ännu utöver `LaddaUpp.jsx`
+  själv – "Ladda upp dokument"-kortet på startsidan visas alltid (medvetet, se ovan).
+
+**Version:** 5.12.0.

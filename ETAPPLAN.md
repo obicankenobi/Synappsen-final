@@ -80,7 +80,15 @@ då blir dataläckage mellan kunder en reell risk.
 
 ---
 
-## Etapp 2 – Feature-gating (moduler)  ·  Storlek: M
+## Etapp 2 – Feature-gating (moduler)  ·  Storlek: M  ·  ✅ GENOMFÖRD
+
+**Status:** genomförd och verifierad. `src/config/features.js` + `useFeatures()` läser
+`organisationer/{orgId}.moduler`. AI-import (`tolkaForradsbild`/`tolkaDokument`) är den första
+gatade funktionen: UI visar en neutral förklaring (`LaddaUpp.jsx`) istället för att dölja
+knappen, och Cloud Functions nekar med `failed-precondition` **innan** Storage/Gemini nås –
+även vid ett manipulerat direktanrop, "fail closed" om `moduler`-fältet helt saknas. Superadmin
+kan slå av/på Operations/Intelligence i en ny adminpanel-sektion. Verifierat med
+`npm run test:functions` (5 nya moduleringstester, se UTVECKLINGSLOGG.md).
 
 **Mål:** kunder kan ha olika moduler påslagna, kontrollerat i tre lager.
 
@@ -95,6 +103,12 @@ då blir dataläckage mellan kunder en reell risk.
 inte utlösa ett enda Gemini-anrop ens via ett manipulerat direktanrop (verifierat test).
 
 **Beroenden:** Etapp 1 (moduler hänger på organisationen).
+
+**Kvarstående, medvetet avgränsat:** endast AI-import är faktiskt gatad hittills (referens-
+implementationen). Klinikstöd (`fragaKlinisktStod`, också en Intelligence-funktion) och
+Operations-funktionerna (offline-center, ägarpåminnelser m.fl. – flera av dem inte ens byggda
+än, se Etapp 3) är INTE gatade ännu; det är efterföljande arbete, inte del av denna etapps
+"klart när"-kriterium.
 
 ---
 

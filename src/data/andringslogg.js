@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.12.0",
+    datum: "2026-07-25",
+    andringar: [
+      "Grunden lagd för att slå på/av hela funktionsgrupper (moduler) per organisation, med en ny sektion i adminpanelen för superadmin",
+      "AI-import (fotografering/tolkning av dokument och förrådsartiklar) är först ut och kan nu stängas av per organisation – visar en tydlig förklaring istället för att bara dölja knappen",
+    ],
+  },
+  {
     version: "5.11.1",
     datum: "2026-07-25",
     andringar: [

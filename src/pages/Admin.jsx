@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase/config";
 import { useAnvandare } from "../hooks/useAnvandare";
 import { useAuth } from "../hooks/useAuth";
+import { useFeatures } from "../hooks/useFeatures";
 import { useGeminiBudget } from "../hooks/useGeminiBudget";
 import {
   useFeedback,
@@ -54,10 +57,19 @@ const STATUS_TEXT = {
 };
 
 export default function Admin() {
-  const { role } = useAuth();
+  const { role, organisationId } = useAuth();
   const arSuperadmin = role === ROLES.SUPERADMIN;
   const { anvandare, laddar, uppdateraRoll } = useAnvandare();
   const { currentUser } = useAuth();
+  const { moduler, laddat: modulerLaddade } = useFeatures();
+  const [sparadModul, setSparadModul] = useState(null);
+
+  async function vaxlaModul(modul, paslagen) {
+    if (!organisationId) return;
+    await updateDoc(doc(db, "organisationer", organisationId), { [`moduler.${modul}`]: paslagen });
+    setSparadModul(modul);
+    setTimeout(() => setSparadModul(null), 2000);
+  }
   const { budget, satTakKr } = useGeminiBudget();
   const { feedback, taBortFeedback, uppdateraFeedbackStatus, svaraPaFeedback } = useFeedback(arSuperadmin);
   const { sokloggar } = useSokloggar(arSuperadmin);
@@ -336,6 +348,46 @@ export default function Admin() {
                     {status.meddelande && <span> ({status.meddelande})</span>}
                   </li>
                 ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      )}
+
+      {arSuperadmin && (
+        <section className="admin-sektion">
+          <h2>🧩 Moduler</h2>
+          <p className="sida__beskrivning">
+            Slår av/på moduler för er organisation. Core (grundfunktionerna) är alltid
+            tillgängligt. Att stänga av en modul döljer inte redan sparad data, bara
+            funktionerna som kräver modulen (t.ex. AI-import kräver Intelligence).
+          </p>
+          <div className="admin-beroendetest">
+            {!modulerLaddade && <p>Laddar...</p>}
+            {modulerLaddade && (
+              <ul className="admin-beroendetest__lista">
+                <li>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={moduler.operations === true}
+                      onChange={(e) => vaxlaModul("operations", e.target.checked)}
+                    />{" "}
+                    Operations
+                  </label>
+                  {sparadModul === "operations" && " ✓ Sparat"}
+                </li>
+                <li>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={moduler.intelligence === true}
+                      onChange={(e) => vaxlaModul("intelligence", e.target.checked)}
+                    />{" "}
+                    Intelligence (AI-import m.m.)
+                  </label>
+                  {sparadModul === "intelligence" && " ✓ Sparat"}
+                </li>
               </ul>
             )}
           </div>

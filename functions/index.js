@@ -27,6 +27,23 @@ async function hamtaAnvandarInfo(uid) {
   return { roll: data.role, organisationId: data.organisationId ?? STANDARD_ORG };
 }
 
+// Etapp 2 (feature-gating): serverkontroll av att organisationens Intelligence-modul är
+// påslagen. Måste köras INNAN budgetreservation/Gemini-anrop – detta är den verkliga
+// spärren (UI-gating i src/hooks/useFeatures.js är bara UX). Standardorganisationens
+// moduler.intelligence sattes till true vid migreringen (Etapp 1), så detta ändrar inget
+// för befintlig drift förrän en superadmin faktiskt slår av modulen.
+async function kravModul(organisationId, modul, felmeddelande) {
+  const orgSnap = await db.collection("organisationer").doc(organisationId).get();
+  if (orgSnap.data()?.moduler?.[modul] !== true) {
+    throw new HttpsError("failed-precondition", felmeddelande);
+  }
+}
+// Exporterad enbart för tests/functions/modulgating.test.cjs – låter testet verifiera
+// gatingen direkt utan att behöva låta ett riktigt anrop nå Storage/Gemini (vilket i en
+// testmiljö utan de tjänsterna hade gett ett långsamt/instabilt test snarare än ett snabbt,
+// deterministiskt).
+exports.kravModul = kravModul;
+
 // Grov kostnadsuppskattning per bildtolkning (öre), används för budgetspärren.
 const UPPSKATTAD_KOSTNAD_ORE = 50;
 const STANDARD_TAK_ORE = 20000; // 200 kr
@@ -276,6 +293,7 @@ exports.tolkaForradsbild = onCall(
     }
 
     const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+    await kravModul(organisationId, "intelligence", "AI-import kräver Intelligence-modulen.");
     await reserveraBudget(organisationId, request.auth.uid);
 
     try {
@@ -355,6 +373,7 @@ exports.tolkaDokument = onCall(
     }
 
     const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+    await kravModul(organisationId, "intelligence", "AI-import kräver Intelligence-modulen.");
     await reserveraBudget(organisationId, request.auth.uid);
 
     try {

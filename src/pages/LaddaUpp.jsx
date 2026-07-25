@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useFeatures } from "../hooks/useFeatures";
+import { FEATURE } from "../config/features";
 import { laddaUppInkommandeFoto } from "../firebase/storage";
 import { tolkaDokument, tolkaForradsbild } from "../firebase/functions";
 import { FORRAD } from "../firebase/forrad";
@@ -27,6 +29,7 @@ function genId() {
 
 export default function LaddaUpp() {
   const { currentUser } = useAuth();
+  const { laddat: featuresLaddade, hasFeature } = useFeatures();
   const [omrade, setOmrade] = useState(OMRADEN[0].varde);
   const [forrad, setForrad] = useState(FORRAD[0]);
 
@@ -142,6 +145,18 @@ export default function LaddaUpp() {
 
   const antalVantar = poster.filter((p) => p.status === STATUS.VANTAR).length;
   const laddararUpp = poster.some((p) => p.status === STATUS.LADDAR_UPP);
+
+  if (featuresLaddade && !hasFeature(FEATURE.AI_IMPORT)) {
+    return (
+      <div className="sida">
+        <h1>📷 Ladda upp dokument</h1>
+        <div className="ladda-upp__kraver-modul">
+          <p>AI-import kräver Intelligence-modulen, som inte är aktiverad för din organisation.</p>
+          <p>Kontakta en superadmin om ni vill aktivera den.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="sida">
