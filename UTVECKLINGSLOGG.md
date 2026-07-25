@@ -1640,3 +1640,80 @@ innan `get()`.
 - 3e (kiosk-/delad-enhetsläge) inte byggt – väntar på pilotefterfrågan enligt planen.
 
 **Version:** 5.13.0.
+
+---
+
+## Fas 21 – Etapp 4 (delvis): säkerhetsgenomgång, prestanda/index-granskning, pilot-mätvärden
+
+**Mål (ETAPPLAN.md):** bevisa nyttan hos en riktig kund och härda produkten. Klargjort med
+användaren först: själva piloten och "verklig användningsdata över en mätperiod" kräver en
+riktig kund och att tid går – inget som kan byggas i kod. Fokus lades istället på de tre
+tekniska delmålen som faktiskt är kod jag kan skriva/granska nu.
+
+**Säkerhetsgenomgång av multi-tenant-lagret** (metod: samma som Fas 11 – manuell
+genomläsning av `firestore.rules`/`storage.rules` i sin helhet, grep efter riskabla mönster,
+genomgång av samtliga Cloud Functions och klienthooks som frågar org-skopade collections):
+
+- **Fynd, åtgärdat:** `storage.rules`s sedan Etapp 1 dokumenterade, medvetet avgränsade lucka
+  – `rutiner/{omrade}/{rutinId}/{filnamn}` och `forradsartiklar/{forradSlug}/{artikelId}/
+  {filnamn}` var inte organisationsskopade. Löst med en Firestore-uppslagning
+  (`dokumentOrganisation()`, samma cross-service-mekanism `firestore.get()`/`firestore.exists()`
+  som `minRoll()` redan använde för rollkontroll) istället för att bygga om storage-pathen.
+  `exists()`-vakt mot `.data` på ett obefintligt dokument (samma buggklass som fixades två
+  gånger tidigare, Fas 18/20) – i praktiken finns Firestore-dokumentet alltid redan när en
+  bild laddas upp (klienten skapar rutinen/artikeln FÖRST, se `Sektionssida.jsx`/
+  `ForradVy.jsx`), men annars nekas det istället för att av misstag släppas igenom.
+  Verifierat med en ny Storage-rules-emulator-testsvit (`tests/rules/storage.test.mjs`,
+  `npm run test:storage`, ny Storage-emulator i `firebase.json`) – 6/6 gröna, inklusive att
+  en organisation B inte kan läsa/skriva en organisation A-bild, och att en obefintlig
+  rutinId nekas ("fail closed").
+- **Granskat, inga fynd:** samtliga 14 organisationsskopade collections rules-lager,
+  samtliga klienthooks (`collection(db, ...)`-anrop) för saknad `organisationId`-filtrering,
+  samtliga Cloud Functions för saknad org-derivering, `mfaKravUppfylld()`/`kravMfaForRoll()`s
+  självlåsnings-resonemang (en superadmin som stänger av sin egen 2FA-policy utan att ha 2FA
+  aktiverat kan alltid ändå aktivera 2FA via `/profil`, som inte går via denna regel).
+
+**Prestanda-/bundle-genomgång:**
+- Samtliga 15 composite-index i `firestore.indexes.json` matchade en verklig klientfråga –
+  inga överflödiga, inga saknade (Etapp 2–4:s nya frågor behövde inga nya index: antingen
+  bara likhetsfilter utan `orderBy`, eller enkelfältsindex som redan skapas automatiskt).
+- Bundlestorlek dokumenterad: `firebase-vendor` (~678 kB obyggd / ~200 kB gzip) är och
+  förblir den dominerande kostnaden – redan i sin egen chunk sedan tidigare, en följd av att
+  använda hela den modulära Firebase-SDK:n (Auth+Firestore+Storage+Functions+persistent
+  cache), inte något Etapp 1–4 introducerat. Huvudbunten (`index-*.js`) växte måttligt
+  (~9 kB gzip) över hela Etapp 1–4-arbetet, rimligt givet mängden ny funktionalitet.
+  Sidspecifika chunkar (t.ex. `Profil` som drar in `qrcode` för TOTP-QR-koder) är redan
+  korrekt lazy-loadade och ligger inte i huvudbunten.
+
+**Pilot-mätvärden i adminpanelen:** ny sektion "📈 Pilot-mätvärden".
+- **Andel nollträffar** – upptäckte under arbetet att detta INTE gick att räkna ut korrekt
+  tidigare: `sokloggar` begränsas till de 50 senaste nollträffarna (ingen nämnare för totalt
+  antal sökningar). Ny `soksstatistik/{orgId}`-collection (två räknarfält, `increment()`)
+  löser detta – `src/hooks/useSokstatistik.js`, ökas i `SokFalt.jsx` vid varje avslutad
+  sökning (≥3 tecken, samma 800ms-debounce som den befintliga nollträff-loggningen).
+  Firestore-regel skräddarsydd: alla inloggade i organisationen får öka ENDAST de två
+  räknarfälten (`hasOnly`), bara superadmin läser dem. Verifierat med 5 nya rules-tester.
+- **Kvitteringsgrad** och **upplevd nytta (klinikstöd)** – beräknas från redan befintlig,
+  redan laddad data (`lasteAv` på rutiner, `klinikfrageStatistik`), ingen ny instrumentering
+  behövdes.
+- **Tid-att-hitta** – medvetet INTE byggt. Skulle kräva sessionsnivå-tidmätning (tidpunkt när
+  en sökning påbörjas → tidpunkt för klick på ett resultat) som inte fanns någonstans i
+  kodbasen och som är en meningsfull egen avgränsad uppgift, inte något att klämma in i
+  befintlig kod under tidspress. Dokumenterat tydligt i adminpanelen som "inte
+  instrumenterat ännu" istället för att fejkas fram.
+
+**Verifiering:** `npm run test:rules` (46/46: tidigare 41 + 5 nya soksstatistik-tester),
+`npm run test:functions` (21/21, oförändrat), `npm run test:storage` (ny, 6/6),
+`npm run lint`, `npm run build`, `npx vitest run` (10/10) och `node -c functions/index.js`
+gröna.
+
+### Kvarstående efter Etapp 4
+
+- Själva piloten (Core+Operations till en riktig avdelning, mätperiod, betalningsvilja för
+  Operations) är inte påbörjad – kräver en riktig kund, inget tekniskt arbete återstår för
+  att kunna starta en.
+- "Tid-att-hitta" saknar instrumentering (se ovan).
+- Ingen formell godkänd säkerhetsgenomgångs-signoff från en tredje part – denna genomgång är
+  min egen, grundlig men inte en oberoende extern revision.
+
+**Version:** 5.14.0.

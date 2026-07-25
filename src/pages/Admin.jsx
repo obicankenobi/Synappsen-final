@@ -19,6 +19,7 @@ import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar"
 import { useUtloggningsinstallning } from "../hooks/useUtloggningsinstallning";
 import { useKlinikfrageStatistik } from "../hooks/useKlinikfrageStatistik";
 import { useHalsokontrollhistorik } from "../hooks/useHalsokontrollhistorik";
+import { useSokstatistik } from "../hooks/useSokstatistik";
 import {
   tvingaUtloggning,
   testaBeroenden,
@@ -99,6 +100,7 @@ export default function Admin() {
   const { feedback, taBortFeedback, uppdateraFeedbackStatus, svaraPaFeedback } = useFeedback(arSuperadmin);
   const { sokloggar } = useSokloggar(arSuperadmin);
   const { feedback: klinikfeedback, fragor: klinikfragor } = useKlinikfrageStatistik(arSuperadmin);
+  const { statistik: sokstatistik } = useSokstatistik(arSuperadmin);
   const { auditlogg } = useAuditlogg(arSuperadmin);
   const { historik: halsokontrollhistorik } = useHalsokontrollhistorik(arSuperadmin);
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
@@ -209,6 +211,18 @@ export default function Admin() {
         };
       });
   }, [anslag, anvandare]);
+
+  // Etapp 4 (pilot-mätvärden): genomsnittlig andel av personalen som kvitterat läsning av
+  // varje godkänd rutin – ett grovt mått på hur väl information faktiskt når fram.
+  const kvitteringsgrad = useMemo(() => {
+    const godkanda = [...klinisktRutiner, ...adminRutiner].filter((r) => r.status === "godkand");
+    if (godkanda.length === 0 || anvandare.length === 0) return null;
+    const summaAndelar = godkanda.reduce(
+      (sum, r) => sum + (r.lasteAv ?? []).length / anvandare.length,
+      0
+    );
+    return Math.round((summaAndelar / godkanda.length) * 100);
+  }, [klinisktRutiner, adminRutiner, anvandare]);
 
   // Klinikstöd: andel hjälpsamma svar (kvalitetsmått) och vanligaste frågorna (kunskapsluckor).
   const klinikHjalpsamAndel = useMemo(() => {
@@ -401,6 +415,42 @@ export default function Admin() {
               </ul>
             </div>
           )}
+        </section>
+      )}
+
+      {arSuperadmin && (
+        <section className="admin-sektion">
+          <h2>📈 Pilot-mätvärden</h2>
+          <p className="sida__beskrivning">
+            Sammanställning inför/under en pilot (Etapp 4): vilka Operations/Intelligence-
+            funktioner som faktiskt värderas och hur väl information når fram.
+          </p>
+          <ul className="admin-beroendetest__lista">
+            <li>
+              <strong>Andel nollträffar:</strong>{" "}
+              {sokstatistik && sokstatistik.totaltAntalSokningar > 0
+                ? `${Math.round((sokstatistik.antalNollTraffar / sokstatistik.totaltAntalSokningar) * 100)}% av ${sokstatistik.totaltAntalSokningar} sökningar`
+                : "Inga sökningar loggade ännu"}
+            </li>
+            <li>
+              <strong>Kvitteringsgrad:</strong>{" "}
+              {kvitteringsgrad !== null
+                ? `${kvitteringsgrad}% av personalen har i snitt kvitterat läsning av varje godkänd rutin`
+                : "Inga godkända rutiner/användare att räkna på ännu"}
+            </li>
+            <li>
+              <strong>Upplevd nytta (klinikstöd):</strong>{" "}
+              {klinikHjalpsamAndel !== null
+                ? `${klinikHjalpsamAndel}% hjälpsamma svar av ${klinikfeedback.length} bedömda`
+                : "Ingen klinikstöd-feedback ännu"}
+              . Allmän feedback: {feedback.length} inskick totalt.
+            </li>
+            <li>
+              <strong>Tid-att-hitta:</strong> inte instrumenterat ännu – skulle kräva att mäta
+              tiden mellan påbörjad sökning och klick på ett resultat per session, en separat
+              uppgift om piloten efterfrågar det.
+            </li>
+          </ul>
         </section>
       )}
 

@@ -319,6 +319,35 @@ async function main() {
     assertFails(getDoc(doc(superB, "anteckningar", "volA_rutinA")))
   );
 
+  console.log("\nsoksstatistik/{orgId} – Etapp 4 mätvärden");
+  await test("volA kan öka sina egna organisations sökräknare", () =>
+    assertSucceeds(
+      setDoc(
+        doc(volA, "soksstatistik", ORG_A),
+        { totaltAntalSokningar: 1, antalNollTraffar: 0 },
+        { merge: true }
+      )
+    )
+  );
+  await test("vecB kan INTE öka org A:s sökräknare (fel org)", () =>
+    assertFails(
+      setDoc(
+        doc(vecB, "soksstatistik", ORG_A),
+        { totaltAntalSokningar: 1, antalNollTraffar: 0 },
+        { merge: true }
+      )
+    )
+  );
+  await test("volA kan INTE skriva andra fält än räknarna i soksstatistik", () =>
+    assertFails(setDoc(doc(volA, "soksstatistik", ORG_A), { annatFalt: "x" }, { merge: true }))
+  );
+  await test("volA (fel roll, superadmin krävs) kan INTE läsa soksstatistik", () =>
+    assertFails(getDoc(doc(volA, "soksstatistik", ORG_A)))
+  );
+  await test("superadminA KAN läsa sin egen organisations soksstatistik", () =>
+    assertSucceeds(getDoc(doc(superA, "soksstatistik", ORG_A)))
+  );
+
   console.log("\nBefintliga rollkontroller INOM en organisation gäller fortfarande");
   await test('volA (fel roll för "administration") kan INTE skapa en administration-rutin', () =>
     assertFails(

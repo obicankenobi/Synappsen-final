@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.14.0",
+    datum: "2026-07-25",
+    andringar: [
+      "Säkerhetsgenomgång av multi-tenant-grunden, en tidigare känd (och avgränsad) lucka i bilduppladdningen är nu täppt",
+      "Adminpanelen har en ny sektion med mätvärden inför pilotdrift: andel nollträffar i sökningen, kvitteringsgrad och upplevd nytta från klinikstöd-sökningen",
+    ],
+  },
+  {
     version: "5.13.0",
     datum: "2026-07-25",
     andringar: [

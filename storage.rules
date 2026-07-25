@@ -20,20 +20,35 @@ service firebase.storage {
         || (omrade == 'administration' && roll == 'vec');
     }
 
-    // KÄND, MEDVETET AVGRÄNSAD LUCKA (Etapp 1, se ETAPP1-ARBETSUPPGIFTER.md 1c.4): dessa två
-    // sökvägar är INTE organisationsskopade ännu. Sökvägen innehåller ett slumpat Firestore-id
-    // (rutinId/artikelId), så att gissa sig till en annan organisations exakta fil är opraktiskt
-    // utan att redan ha läst URL:en någon annanstans – men den teoretiska risken kvarstår tills
-    // sökvägen byggs om att inkludera organisationId (rekommenderad lösning, se ETAPP1-
-    // ARBETSUPPGIFTER.md) eller regeln slår upp organisationId via ett Firestore-uppslag.
+    // Etapp 4 (säkerhetsgenomgång): stänger den tidigare KÄNDA, MEDVETET AVGRÄNSADE luckan
+    // (Etapp 1, se ETAPP1-ARBETSUPPGIFTER.md 1c.4) där dessa sökvägar inte var
+    // organisationsskopade. Slår upp ägande dokuments organisationId via ett Firestore-
+    // uppslag (samma cross-service-mekanism som minRoll() ovan redan använder för roll).
+    // exists()-vakten skyddar mot att .data blir null (samma buggklass som fixades i
+    // firestore.rules för anteckningar/2FA-policyn, se UTVECKLINGSLOGG.md Fas 18/20) – i
+    // praktiken finns Firestore-dokumentet alltid redan när en bild laddas upp (klienten
+    // skapar rutinen/artikeln FÖRST, laddar sedan upp bilden med det redan tilldelade id:t,
+    // se src/components/Sektionssida.jsx och src/pages/ForradVy.jsx), men om det av någon
+    // anledning saknas nekas skrivningen/läsningen istället för att av misstag släppas igenom.
+    function minOrganisation() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('organisationId', 'default');
+    }
+
+    function dokumentOrganisation(samling, dokId) {
+      let path = /databases/(default)/documents/$(samling)/$(dokId);
+      return firestore.exists(path) ? firestore.get(path).data.get('organisationId', 'default') : 'ingen-sadan-organisation';
+    }
+
     match /rutiner/{omrade}/{rutinId}/{filnamn} {
-      allow read: if arInloggad();
-      allow write: if arInloggad() && farRedigeraOmrade(omrade);
+      allow read: if arInloggad() && dokumentOrganisation('rutiner', rutinId) == minOrganisation();
+      allow write: if arInloggad() && farRedigeraOmrade(omrade)
+                    && dokumentOrganisation('rutiner', rutinId) == minOrganisation();
     }
 
     match /forradsartiklar/{forradSlug}/{artikelId}/{filnamn} {
-      allow read: if arInloggad();
-      allow write: if arInloggad() && farRedigeraOmrade('logistik');
+      allow read: if arInloggad() && dokumentOrganisation('forradsartiklar', artikelId) == minOrganisation();
+      allow write: if arInloggad() && farRedigeraOmrade('logistik')
+                    && dokumentOrganisation('forradsartiklar', artikelId) == minOrganisation();
     }
 
     // inkommande/{uid}/{filnamn} – råfoton från personal innan Gemini-tolkning.

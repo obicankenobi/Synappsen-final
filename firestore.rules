@@ -305,6 +305,20 @@ service cloud.firestore {
       allow create: if arInloggad() && request.resource.data.get('organisationId', 'default') == minOrganisation();
     }
 
+    // soksstatistik/{orgId} – Etapp 4: enkla räknare (totaltAntalSokningar,
+    // antalNollTraffar) för att kunna visa "andel nollträffar" som en riktig procentsats.
+    // sokloggar räcker inte ensamt (bara de 50 senaste nollträffarna hålls, ingen nämnare
+    // för totalt antal sökningar). Alla inloggade i organisationen får öka räknarna (bara
+    // siffror, ingen känslig data); bara superadmin läser dem samlat.
+    match /soksstatistik/{orgId} {
+      allow read: if arSuperadmin() && orgId == minOrganisation();
+      allow create: if arInloggad() && orgId == minOrganisation()
+                     && request.resource.data.keys().hasOnly(['totaltAntalSokningar', 'antalNollTraffar']);
+      allow update: if arInloggad() && orgId == minOrganisation()
+                     && request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(['totaltAntalSokningar', 'antalNollTraffar']);
+    }
+
     // auditlogg/{handelseId} – ändringslogg. Superadmin läser bara sin egen organisations logg.
     match /auditlogg/{handelseId} {
       allow read: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));

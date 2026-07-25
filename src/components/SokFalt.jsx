@@ -9,6 +9,7 @@ import { useLankbibliotek } from "../hooks/useLankbibliotek";
 import { forradTillSlug } from "../firebase/forrad";
 import { registreraVisning } from "../hooks/useVisningar";
 import { useSokloggar } from "../hooks/useSokloggar";
+import { loggaSokning } from "../hooks/useSokstatistik";
 import { useAuth } from "../hooks/useAuth";
 import "./SokFalt.css";
 
@@ -118,15 +119,18 @@ export default function SokFalt() {
     ? allaTraffar.filter((p) => p.kategori === aktivKategori)
     : allaTraffar;
 
-  // Loggar sökningar (minst 3 tecken) som ger noll träffar, efter en kort paus i skrivandet,
-  // så att ledningen ser vilket innehåll personal efterfrågar men som saknas.
+  // Loggar sökningar (minst 3 tecken) efter en kort paus i skrivandet: dels de som ger noll
+  // träffar (så ledningen ser vilket innehåll som efterfrågas men saknas), dels räknare för
+  // totalt antal sökningar/nollträffar (Etapp 4 – ger en riktig "andel nollträffar"-procent).
   useEffect(() => {
     const term = sokterm.trim();
     if (term.length < 3) return;
     const timer = setTimeout(() => {
-      if (allaTraffar.length === 0) {
+      const gavTraff = allaTraffar.length > 0;
+      if (!gavTraff) {
         loggaNollTraff(term, currentUser?.uid);
       }
+      loggaSokning(organisationId, gavTraff);
     }, 800);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- allaTraffar/loggaNollTraff läses vid timeout, inte som trigger

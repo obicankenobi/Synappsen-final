@@ -145,7 +145,27 @@ i Storage, och 2FA kan tvingas för redaktörsroller.
 
 ---
 
-## Etapp 4 – Pilot & härdning  ·  Storlek: M
+## Etapp 4 – Pilot & härdning  ·  Storlek: M  ·  🔶 DELVIS GENOMFÖRD
+
+**Status:** de tekniska delmålen är klara – säkerhetsgenomgången, prestanda/index-genomgången
+och mätvärdes-instrumenteringen. Själva piloten (en riktig avdelning som faktiskt använder
+appen en mätperiod) är **inte** något som kan göras i kod – den kräver en riktig kund och att
+tid faktiskt går. Se UTVECKLINGSLOGG.md Fas 21 för fullständiga detaljer.
+
+- **Säkerhetsgenomgång:** stängde den sista kända luckan i multi-tenant-lagret – Storage-
+  reglerna för `rutiner`/`forradsartiklar` var inte organisationsskopade (dokumenterad sedan
+  Etapp 1), nu åtgärdad med en Firestore-uppslagning och verifierad med en ny
+  Storage-rules-emulator-testsvit (6/6 gröna). Övrigt granskat utan fynd.
+- **Prestanda/index:** samtliga 15 composite-index matchar faktiska klientfrågor, inga
+  saknade eller överflödiga. Bundlestorlek dokumenterad – `firebase-vendor` (~200 kB gzip)
+  är den dominerande, redan egen-chunkade kostnaden av den fulla Firebase-modul-SDK:n
+  (Auth+Firestore+Storage+Functions+persistent cache), inte något som introducerats av
+  Etapp 1–4:s arbete.
+- **Mätvärden:** ny instrumentering (`soksstatistik`) ger en riktig "andel nollträffar"-
+  procent (fanns inte tidigare – bara en begränsad lista på de 50 senaste nollträffarna,
+  ingen nämnare). Kvitteringsgrad och upplevd nytta (klinikstöd) beräknas från redan
+  befintlig data. "Tid-att-hitta" är medvetet INTE byggt – kräver sessionsnivå-tidmätning
+  mellan sökstart och klick, en egen avgränsad uppgift om en pilot efterfrågar det.
 
 **Mål:** bevisa nyttan hos en riktig kund och härda produkten inför bredare försäljning.
 
