@@ -6,12 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useFeatures } from "../hooks/useFeatures";
 import { useGeminiBudget } from "../hooks/useGeminiBudget";
 import { useKostnadshistorik } from "../hooks/useKostnadshistorik";
-import {
-  useFeedback,
-  FEEDBACK_TYP_LABELS,
-  FEEDBACK_STATUS,
-  FEEDBACK_STATUS_LABELS,
-} from "../hooks/useFeedback";
+import { useFeedback } from "../hooks/useFeedback";
 import { useSokloggar } from "../hooks/useSokloggar";
 import { useAuditlogg } from "../hooks/useAuditlogg";
 import { useRutiner } from "../hooks/useRutiner";
@@ -27,16 +22,28 @@ import {
   verifieraKlinikstod,
   migreraTillOrganisation,
 } from "../firebase/functions";
-import { APP_VERSION } from "../version";
-import { ROLES, ROLE_LABELS, REDAKTORSROLLER } from "../firebase/roles";
+import { ROLES } from "../firebase/roles";
 import InbjudanFormular from "../components/InbjudanFormular";
 import { useDialog } from "../hooks/useDialog";
+import SystemstatusSektion from "../components/admin/SystemstatusSektion";
+import PilotMatvardenSektion from "../components/admin/PilotMatvardenSektion";
+import ModulerSektion from "../components/admin/ModulerSektion";
+import SakerhetSektion from "../components/admin/SakerhetSektion";
+import OrganisationMigreringSektion from "../components/admin/OrganisationMigreringSektion";
+import VerifieraKlinikstodSektion from "../components/admin/VerifieraKlinikstodSektion";
+import KlinikstodAnvandningSektion from "../components/admin/KlinikstodAnvandningSektion";
+import KvitteringarMedDeadlineSektion from "../components/admin/KvitteringarMedDeadlineSektion";
+import MittOmradeStatistikSektion from "../components/admin/MittOmradeStatistikSektion";
+import BudgetSektion from "../components/admin/BudgetSektion";
+import KostnadsuppfoljningSektion from "../components/admin/KostnadsuppfoljningSektion";
+import AutoUtloggningSektion from "../components/admin/AutoUtloggningSektion";
+import AnvandareRollerSektion from "../components/admin/AnvandareRollerSektion";
+import InaktivaKontonSektion from "../components/admin/InaktivaKontonSektion";
+import StatistikAllaOmradenSektion from "../components/admin/StatistikAllaOmradenSektion";
+import FeedbackSektion from "../components/admin/FeedbackSektion";
+import SokningarUtanTraffarSektion from "../components/admin/SokningarUtanTraffarSektion";
+import AndringsloggSektion from "../components/admin/AndringsloggSektion";
 import "./Admin.css";
-
-function formateraTid(tidpunkt) {
-  if (!tidpunkt?.toDate) return "";
-  return tidpunkt.toDate().toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" });
-}
 
 // Vilket område en icke-superadmin-redaktörsroll ansvarar för, för den områdesscopade statistiken
 const OMRADE_FOR_ROLL = {
@@ -44,21 +51,6 @@ const OMRADE_FOR_ROLL = {
   [ROLES.SEKTIONSLEDARE]: "kliniskt-stod",
   [ROLES.VEC]: "administration",
   [ROLES.FORRADSANSVARIG]: "logistik",
-};
-
-const OMRADE_NAMN = {
-  "kliniskt-stod": "Kliniskt stöd",
-  administration: "Administration",
-  logistik: "Logistik",
-};
-
-// Text skriven för en admin som inte nödvändigtvis är tekniker – "fungerar/långsamt/fungerar
-// inte" istället för tekniska termer som "OK/degraderad/fel".
-const STATUS_IKON = { ok: "🟢", degraderad: "🟡", fel: "🔴" };
-const STATUS_TEXT = {
-  ok: "Fungerar",
-  degraderad: "Fungerar, men långsamt just nu",
-  fel: "Fungerar inte",
 };
 
 export default function Admin() {
@@ -369,480 +361,97 @@ export default function Admin() {
       <h1>Adminpanel</h1>
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>📊 Systemstatus</h2>
-          <div className="admin-statistik-grid">
-            <p className="sida__beskrivning">
-              Version <strong>{APP_VERSION}</strong>
-            </p>
-            <p className="sida__beskrivning">
-              {anvandare.length} användare, {klinisktRutiner.length + adminRutiner.length} rutiner,{" "}
-              {forradsartiklar.length} förrådsartiklar
-            </p>
-            {budget && (
-              <p className="sida__beskrivning">
-                Gemini-budget: {(budget.anvantOre / 100).toFixed(0)} kr / {(budget.taketOre / 100).toFixed(0)} kr
-                denna månad
-              </p>
-            )}
-            <p className="sida__beskrivning">Auto-utloggning: {utloggningMinuter} min inaktivitet</p>
-          </div>
-
-          <div className="admin-beroendetest">
-            <p className="sida__beskrivning">
-              Kontrollerar att apps stödtjänster faktiskt fungerar just nu – bra att köra om
-              något känns trögt eller om en användare rapporterar ett fel med AI-funktionerna.
-            </p>
-            <button
-              className="knapp knapp--sekundar knapp--liten"
-              onClick={hanteraTestaBeroenden}
-              disabled={testarBeroenden}
-            >
-              {testarBeroenden ? "Testar..." : "🔌 Testa anslutningar"}
-            </button>
-            {beroendeStatus?.fel && <p className="klinikfraga__fel">{beroendeStatus.fel}</p>}
-            {beroendeStatus && !beroendeStatus.fel && (
-              <ul className="admin-beroendetest__lista">
-                {[
-                  ["Bildtolkning/klinikstöd-svar (Gemini)", beroendeStatus.gemini],
-                  ["Klinikstöd-sökningen hittar källor", beroendeStatus.sokmotor],
-                  ["Bilduppladdning (lagring)", beroendeStatus.storage],
-                  ["Klinikstöd håller sig till godkända källor", beroendeStatus.klinikstod],
-                ].map(([namn, status]) => (
-                  <li key={namn}>
-                    <span className={`admin-beroendetest__punkt--${status.status}`}>
-                      {STATUS_IKON[status.status]}
-                    </span>{" "}
-                    {namn} – {STATUS_TEXT[status.status]}
-                    {status.meddelande && <span> ({status.meddelande})</span>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {halsokontrollhistorik.length > 0 && (
-            <div className="admin-beroendetest">
-              <p className="sida__beskrivning">
-                Sparad historik – bygger med varje "Testa anslutningar" och den dagliga
-                klinikstöd-kontrollen, så trender syns över tid.
-              </p>
-              <ul className="admin-beroendetest__lista">
-                {halsokontrollhistorik.map((h) => (
-                  <li key={h.id}>
-                    {formateraTid(h.tidpunkt)}:{" "}
-                    {[
-                      h.gemini && `Gemini ${STATUS_IKON[h.gemini.status]}`,
-                      h.sokmotor && `Sökmotor ${STATUS_IKON[h.sokmotor.status]}`,
-                      h.storage && `Lagring ${STATUS_IKON[h.storage.status]}`,
-                      h.klinikstod && `Klinikstöd ${STATUS_IKON[h.klinikstod.status]}`,
-                    ]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
+        <SystemstatusSektion
+          anvandare={anvandare}
+          antalRutiner={klinisktRutiner.length + adminRutiner.length}
+          forradsartiklar={forradsartiklar}
+          budget={budget}
+          utloggningMinuter={utloggningMinuter}
+          hanteraTestaBeroenden={hanteraTestaBeroenden}
+          testarBeroenden={testarBeroenden}
+          beroendeStatus={beroendeStatus}
+          halsokontrollhistorik={halsokontrollhistorik}
+        />
       )}
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>📈 Pilot-mätvärden</h2>
-          <p className="sida__beskrivning">
-            Sammanställning inför/under en pilot (Etapp 4): vilka Operations/Intelligence-
-            funktioner som faktiskt värderas och hur väl information når fram.
-          </p>
-          <ul className="admin-beroendetest__lista">
-            <li>
-              <strong>Andel nollträffar:</strong>{" "}
-              {sokstatistik && sokstatistik.totaltAntalSokningar > 0
-                ? `${Math.round((sokstatistik.antalNollTraffar / sokstatistik.totaltAntalSokningar) * 100)}% av ${sokstatistik.totaltAntalSokningar} sökningar`
-                : "Inga sökningar loggade ännu"}
-            </li>
-            <li>
-              <strong>Kvitteringsgrad:</strong>{" "}
-              {kvitteringsgrad !== null
-                ? `${kvitteringsgrad}% av personalen har i snitt kvitterat läsning av varje godkänd rutin`
-                : "Inga godkända rutiner/användare att räkna på ännu"}
-            </li>
-            <li>
-              <strong>Upplevd nytta (klinikstöd):</strong>{" "}
-              {klinikHjalpsamAndel !== null
-                ? `${klinikHjalpsamAndel}% hjälpsamma svar av ${klinikfeedback.length} bedömda`
-                : "Ingen klinikstöd-feedback ännu"}
-              . Allmän feedback: {feedback.length} inskick totalt.
-            </li>
-            <li>
-              <strong>Tid-att-hitta:</strong> inte instrumenterat ännu – skulle kräva att mäta
-              tiden mellan påbörjad sökning och klick på ett resultat per session, en separat
-              uppgift om piloten efterfrågar det.
-            </li>
-          </ul>
-        </section>
+        <PilotMatvardenSektion
+          sokstatistik={sokstatistik}
+          kvitteringsgrad={kvitteringsgrad}
+          klinikHjalpsamAndel={klinikHjalpsamAndel}
+          klinikfeedback={klinikfeedback}
+          feedback={feedback}
+        />
       )}
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>🧩 Moduler</h2>
-          <p className="sida__beskrivning">
-            Slår av/på moduler för er organisation. Core (grundfunktionerna) är alltid
-            tillgängligt. Att stänga av en modul döljer inte redan sparad data, bara
-            funktionerna som kräver modulen (t.ex. AI-import kräver Intelligence).
-          </p>
-          <div className="admin-beroendetest">
-            {!modulerLaddade && <p>Laddar...</p>}
-            {modulerLaddade && (
-              <ul className="admin-beroendetest__lista">
-                <li>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={moduler.operations === true}
-                      onChange={(e) => vaxlaModul("operations", e.target.checked)}
-                    />{" "}
-                    Operations
-                  </label>
-                  {sparadModul === "operations" && " ✓ Sparat"}
-                </li>
-                <li>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={moduler.intelligence === true}
-                      onChange={(e) => vaxlaModul("intelligence", e.target.checked)}
-                    />{" "}
-                    Intelligence (AI-import m.m.)
-                  </label>
-                  {sparadModul === "intelligence" && " ✓ Sparat"}
-                </li>
-              </ul>
-            )}
-          </div>
-        </section>
+        <ModulerSektion
+          modulerLaddade={modulerLaddade}
+          moduler={moduler}
+          sparadModul={sparadModul}
+          vaxlaModul={vaxlaModul}
+        />
       )}
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>🔐 Säkerhet</h2>
-          <p className="sida__beskrivning">
-            Kräv tvåfaktorsautentisering för valda roller. Den som inte har aktiverat det
-            möts av en påminnelse i appen och blockeras från att ändra roller eller
-            organisationsinställningar tills det är aktiverat (under Profil).
-          </p>
-          <div className="admin-beroendetest">
-            <ul className="admin-beroendetest__lista">
-              {REDAKTORSROLLER.map((roll) => (
-                <li key={roll}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={kravMfaForRoller.includes(roll)}
-                      onChange={(e) => vaxlaMfaKrav(roll, e.target.checked)}
-                    />{" "}
-                    {ROLE_LABELS[roll]}
-                  </label>
-                </li>
-              ))}
-            </ul>
-            {sakerhetSparad && "✓ Sparat"}
-          </div>
-        </section>
+        <SakerhetSektion
+          kravMfaForRoller={kravMfaForRoller}
+          vaxlaMfaKrav={vaxlaMfaKrav}
+          sakerhetSparad={sakerhetSparad}
+        />
       )}
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>🏢 Organisation (Etapp 1-migrering)</h2>
-          <p className="sida__beskrivning">
-            Engångsverktyg som sätter organisationId på allt befintligt innehåll (första steget
-            mot att kunna hantera flera kunder). Kör alltid "Förhandsgranska" först och kolla att
-            siffrorna stämmer innan du kör den skarpt – skarp körning kan köras flera gånger utan
-            risk (den skriver bara på dokument som ännu saknar fältet).
-          </p>
-          <div className="admin-beroendetest">
-            <button
-              className="knapp knapp--sekundar knapp--liten"
-              onClick={() => hanteraMigrering(true)}
-              disabled={migrerar}
-            >
-              {migrerar ? "Arbetar..." : "Förhandsgranska (dry-run)"}
-            </button>{" "}
-            <button
-              className="knapp knapp--farlig knapp--liten"
-              onClick={() => hanteraMigrering(false)}
-              disabled={migrerar}
-            >
-              Kör skarpt
-            </button>
-            {migreringResultat?.fel && <p className="klinikfraga__fel">{migreringResultat.fel}</p>}
-            {migreringResultat?.resultat && (
-              <>
-                <p className="sida__beskrivning">
-                  {migreringResultat.dryRun ? "Förhandsgranskning – inget skrivet ännu:" : "Skarpt kört:"}
-                </p>
-                <ul className="admin-beroendetest__lista">
-                  {Object.entries(migreringResultat.resultat).map(([samling, r]) => (
-                    <li key={samling}>
-                      {samling}: {r.totalt} dokument, {r.saknarOrganisationId} saknade organisationId
-                      {!migreringResultat.dryRun && r.saknarOrganisationId > 0 && " (nu åtgärdat)"}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
-        </section>
+        <OrganisationMigreringSektion
+          hanteraMigrering={hanteraMigrering}
+          migrerar={migrerar}
+          migreringResultat={migreringResultat}
+        />
       )}
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>🔍 Verifiera klinikstöd-sökningen</h2>
-          <p className="sida__beskrivning">
-            Kör tre fasta testfrågor genom sökmotorn (förbi cachen) och kontrollerar att ALLA
-            källor den hittar ligger inom de godkända domänerna. Kör detta om ni misstänker att
-            sökningen visar fel källor, eller efter att ha ändrat sökmotorns konfiguration i
-            Google-kontot – det är den delen som kan drifta utan att synas i koden.
-          </p>
-          <button
-            className="knapp knapp--sekundar knapp--liten"
-            onClick={hanteraVerifieraKlinikstod}
-            disabled={verifierarKlinikstod}
-          >
-            {verifierarKlinikstod ? "Verifierar..." : "Kör testfrågor"}
-          </button>
-          {klinikstodStatus?.fel && <p className="klinikfraga__fel">{klinikstodStatus.fel}</p>}
-          {Array.isArray(klinikstodStatus) && (
-            <ul className="admin-beroendetest__lista">
-              {klinikstodStatus.map((r) => (
-                <li key={r.fraga}>
-                  <span className={r.ok ? "admin-beroendetest__punkt--ok" : "admin-beroendetest__punkt--fel"}>
-                    {r.ok ? "🟢" : "🔴"}
-                  </span>{" "}
-                  <strong>"{r.fraga}"</strong>
-                  {r.fel && <span> – Fel: {r.fel}</span>}
-                  {!r.fel && (
-                    <span>
-                      {" "}
-                      – {r.antalTraffar} träff(ar)
-                      {r.otillatnaKallor.length > 0 && (
-                        <span className="admin-frist-varning">
-                          {" "}
-                          ⚠️ {r.otillatnaKallor.length} otillåten källa: {r.otillatnaKallor.join(", ")}
-                        </span>
-                      )}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <VerifieraKlinikstodSektion
+          hanteraVerifieraKlinikstod={hanteraVerifieraKlinikstod}
+          verifierarKlinikstod={verifierarKlinikstod}
+          klinikstodStatus={klinikstodStatus}
+        />
       )}
 
       {arSuperadmin && (klinikHjalpsamAndel !== null || klinikVanligaFragor.length > 0) && (
-        <section className="admin-sektion">
-          <h2>💬 Klinikstöd – hur används det?</h2>
-          {klinikHjalpsamAndel !== null && (
-            <p className="sida__beskrivning">
-              {klinikHjalpsamAndel}% av {klinikfeedback.length} besvarade "var detta
-              hjälpsamt?"-frågor var positiva.
-            </p>
-          )}
-          {klinikTrendPerVecka.length > 1 && (
-            <>
-              <h3>Hjälpsamhetsgrad per vecka (Etapp 5)</h3>
-              <p className="sida__beskrivning">
-                Så att en försämring eller förbättring över tid syns, inte bara totalvärdet
-                ovan (baserat på de senaste {klinikfeedback.length} bedömningarna).
-              </p>
-              <ul className="admin-statistik-lista">
-                {klinikTrendPerVecka.map((v) => (
-                  <li key={v.vecka}>
-                    Vecka från {v.vecka}: {v.andel}% hjälpsamma ({v.totalt} bedömda)
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-          {klinikVanligaFragor.length > 0 && (
-            <>
-              <h3>Vanligaste frågorna</h3>
-              <p className="sida__beskrivning">
-                Loggen är anonym (inget uid sparas) – ger en bild av vilka kunskapsluckor
-                personalen efterfrågar, inte vem som frågat.
-              </p>
-              <ul className="admin-statistik-lista">
-                {klinikVanligaFragor.map((f) => (
-                  <li key={f.fraga}>
-                    "{f.fraga}" <span>({f.antal} gånger)</span>{" "}
-                    <button
-                      type="button"
-                      className="knapp--lank"
-                      onClick={() => navigator.clipboard?.writeText(f.fraga)}
-                      title="Kopiera frågan, t.ex. för att använda som titel på en ny rutin"
-                    >
-                      Kopiera
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </section>
+        <KlinikstodAnvandningSektion
+          klinikHjalpsamAndel={klinikHjalpsamAndel}
+          klinikfeedback={klinikfeedback}
+          klinikTrendPerVecka={klinikTrendPerVecka}
+          klinikVanligaFragor={klinikVanligaFragor}
+        />
       )}
 
       {arSuperadmin && anslagMedFrist.length > 0 && (
-        <section className="admin-sektion">
-          <h2>⏰ Kvitteringar med deadline</h2>
-          <button
-            className="knapp knapp--sekundar knapp--liten"
-            onClick={() => {
-              const rader = [
-                "Anslag;Frist;Kvitterat;Totalt;Saknas",
-                ...anslagMedFrist.map((a) =>
-                  [a.titel.replaceAll(";", ","), a.frist, a.antalKvitterat, a.antalTotalt, a.ejKvitterat.join(", ").replaceAll(";", ",")].join(";")
-                ),
-              ];
-              const blob = new Blob(["﻿" + rader.join("\n")], { type: "text/csv;charset=utf-8" });
-              const a = document.createElement("a");
-              a.href = URL.createObjectURL(blob);
-              a.download = `kvitteringar-${new Date().toISOString().slice(0, 10)}.csv`;
-              a.click();
-              URL.revokeObjectURL(a.href);
-            }}
-          >
-            Exportera som CSV
-          </button>
-          <ol className="admin-statistik-lista">
-            {anslagMedFrist.map((a) => (
-              <li key={a.id}>
-                <strong>{a.titel}</strong> – kvittering senast {a.frist}:{" "}
-                {a.antalKvitterat}/{a.antalTotalt} har kvitterat
-                {a.passerad && a.ejKvitterat.length > 0 && (
-                  <span className="admin-frist-varning" title={a.ejKvitterat.join(", ")}>
-                    {" "}
-                    (frist passerad, {a.ejKvitterat.length} saknas)
-                  </span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </section>
+        <KvitteringarMedDeadlineSektion anslagMedFrist={anslagMedFrist} />
       )}
 
       {mittOmrade && !arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>Statistik för mitt område ({OMRADE_NAMN[mittOmrade]})</h2>
-          {mittOmrade === "logistik" ? (
-            <>
-              <p className="sida__beskrivning">{utkastIMittOmrade} artikelutkast väntar på granskning.</p>
-              <h3>Senast tillagda artiklar</h3>
-              {senasteArtiklarIMittOmrade.length === 0 && (
-                <p className="sida__beskrivning">Ingen data ännu.</p>
-              )}
-              <ol className="admin-statistik-lista">
-                {senasteArtiklarIMittOmrade.map((a) => (
-                  <li key={a.id}>
-                    {a.namn} <span>({a.forrad})</span>
-                  </li>
-                ))}
-              </ol>
-            </>
-          ) : (
-            <>
-              <p className="sida__beskrivning">{utkastIMittOmrade} utkast väntar på granskning.</p>
-              <h3>Mest kvitterade rutiner</h3>
-              {kvitteradeIMittOmrade.length === 0 && (
-                <p className="sida__beskrivning">Ingen data ännu.</p>
-              )}
-              <ol className="admin-statistik-lista">
-                {kvitteradeIMittOmrade.map((r) => (
-                  <li key={r.id}>
-                    {r.titel} <span>({r.antal} kvitteringar)</span>
-                  </li>
-                ))}
-              </ol>
-            </>
-          )}
-        </section>
+        <MittOmradeStatistikSektion
+          mittOmrade={mittOmrade}
+          utkastIMittOmrade={utkastIMittOmrade}
+          senasteArtiklarIMittOmrade={senasteArtiklarIMittOmrade}
+          kvitteradeIMittOmrade={kvitteradeIMittOmrade}
+        />
       )}
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>Budget för bildtolkning (Gemini)</h2>
-          {budget && (
-            <p className="sida__beskrivning">
-              Använt denna månad: <strong>{(budget.anvantOre / 100).toFixed(2)} kr</strong> av{" "}
-              <strong>{(budget.taketOre / 100).toFixed(2)} kr</strong>.
-              {budget.anvantOre >= budget.taketOre && (
-                <span className="admin-budget__sparrad"> Taket är nått – tolkning är pausad.</span>
-              )}
-              <br />
-              Varje enskild användare kan max använda 50 kr av detta per månad, så att ingen enskild
-              person kan förbruka hela budgeten.
-            </p>
-          )}
-          <form className="admin-budget__form" onSubmit={hanteraNyttTak}>
-            <input
-              type="number"
-              min="0"
-              step="10"
-              placeholder="Nytt tak i kr"
-              value={nyttTak}
-              onChange={(e) => setNyttTak(e.target.value)}
-            />
-            <button type="submit" className="knapp">
-              Uppdatera tak
-            </button>
-          </form>
-        </section>
+        <BudgetSektion budget={budget} nyttTak={nyttTak} setNyttTak={setNyttTak} hanteraNyttTak={hanteraNyttTak} />
       )}
 
-      {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>💰 Kostnadsuppföljning (Etapp 5)</h2>
-          <p className="sida__beskrivning">
-            AI-kostnad per avslutad månad, arkiverad automatiskt vid varje månadsskifte – för
-            att se en trend, inte bara denna månads förbrukning ovan.
-          </p>
-          {kostnadshistorik.length === 0 && (
-            <p className="sida__beskrivning">
-              Ingen historik ännu – första posten skapas vid nästa månadsskifte.
-            </p>
-          )}
-          {kostnadshistorik.length > 0 && (
-            <ul className="admin-beroendetest__lista">
-              {kostnadshistorik.map((h) => (
-                <li key={h.id}>
-                  {h.manad}: {(h.anvantOre / 100).toFixed(2)} kr ({h.antalAnvandare} användare)
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
+      {arSuperadmin && <KostnadsuppfoljningSektion kostnadshistorik={kostnadshistorik} />}
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>Auto-utloggningstid</h2>
-          <p className="sida__beskrivning">
-            Nuvarande: <strong>{utloggningMinuter} minuter</strong> inaktivitet innan automatisk utloggning.
-          </p>
-          <form className="admin-budget__form" onSubmit={hanteraNyUtloggningstid}>
-            <input
-              type="number"
-              min="2"
-              step="1"
-              placeholder="Nya minuter"
-              value={nyaUtloggningMinuter}
-              onChange={(e) => setNyaUtloggningMinuter(e.target.value)}
-            />
-            <button type="submit" className="knapp">
-              Uppdatera
-            </button>
-          </form>
-        </section>
+        <AutoUtloggningSektion
+          utloggningMinuter={utloggningMinuter}
+          nyaUtloggningMinuter={nyaUtloggningMinuter}
+          setNyaUtloggningMinuter={setNyaUtloggningMinuter}
+          hanteraNyUtloggningstid={hanteraNyUtloggningstid}
+        />
       )}
 
       {arSuperadmin && (
@@ -858,214 +467,53 @@ export default function Admin() {
       )}
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>Användare och roller</h2>
-          {laddar && <p>Laddar...</p>}
-          <ul className="admin-lista">
-            {anvandare.map((anvandarpost) => (
-              <li key={anvandarpost.id} className="admin-lista__rad">
-                <div>
-                  <strong>{anvandarpost.namn || "(namn saknas)"}</strong>
-                  <div className="admin-lista__email">{anvandarpost.email}</div>
-                </div>
-                <div className="admin-lista__atgarder">
-                  <select
-                    value={anvandarpost.role}
-                    disabled={anvandarpost.id === currentUser.uid}
-                    onChange={(e) => uppdateraRoll(anvandarpost.id, e.target.value)}
-                  >
-                    {Object.values(ROLES).map((roll) => (
-                      <option key={roll} value={roll}>
-                        {ROLE_LABELS[roll]}
-                      </option>
-                    ))}
-                  </select>
-                  {anvandarpost.id !== currentUser.uid && (
-                    <button
-                      type="button"
-                      className="knapp knapp--farlig knapp--liten"
-                      disabled={loggarUtAnvandare === anvandarpost.id}
-                      onClick={() => hanteraTvingaUtloggning(anvandarpost)}
-                    >
-                      {loggarUtAnvandare === anvandarpost.id ? "..." : "Tvinga utloggning"}
-                    </button>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <AnvandareRollerSektion
+          anvandare={anvandare}
+          laddar={laddar}
+          currentUser={currentUser}
+          uppdateraRoll={uppdateraRoll}
+          loggarUtAnvandare={loggarUtAnvandare}
+          hanteraTvingaUtloggning={hanteraTvingaUtloggning}
+        />
       )}
 
       {arSuperadmin && inaktivaKonton.length > 0 && (
-        <section className="admin-sektion">
-          <h2>💤 Inaktiva konton (ingen inloggning på 90 dagar)</h2>
-          <p className="sida__beskrivning">
-            Gamla konton är en onödig attackyta – överväg att ta bort de som inte längre används.
-            Konton skapade före v5.7.0 visas här tills de loggar in en första gång efter
-            uppdateringen (inloggningstid spårades inte tidigare).
-          </p>
-          <ul className="admin-statistik-lista">
-            {inaktivaKonton.map((a) => (
-              <li key={a.id}>
-                {a.namn || a.email}{" "}
-                <span>
-                  {a.senasteInloggning?.toDate
-                    ? `senast ${a.senasteInloggning.toDate().toLocaleDateString("sv-SE")}`
-                    : "aldrig registrerad inloggning"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <InaktivaKontonSektion inaktivaKonton={inaktivaKonton} />
       )}
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>Statistik (alla områden)</h2>
-          <div className="admin-statistik-grid">
-            <div>
-              <h3>Mest aktiva användare</h3>
-              {mestAktiva.length === 0 && <p className="sida__beskrivning">Ingen data ännu.</p>}
-              <ol className="admin-statistik-lista">
-                {mestAktiva.map((u) => (
-                  <li key={u.uid}>
-                    {u.namn} <span>({u.antal} händelser)</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-            <div>
-              <h3>Mest kvitterade rutiner</h3>
-              {mestKvitterade.length === 0 && <p className="sida__beskrivning">Ingen data ännu.</p>}
-              <ol className="admin-statistik-lista">
-                {mestKvitterade.map((r) => (
-                  <li key={r.id}>
-                    {r.titel} <span>({r.antal} kvitteringar)</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </div>
-        </section>
+        <StatistikAllaOmradenSektion mestAktiva={mestAktiva} mestKvitterade={mestKvitterade} />
       )}
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>Feedback från användare ({feedback.length})</h2>
-          {feedback.length === 0 && <p className="sida__beskrivning">Ingen feedback ännu.</p>}
-          <ul className="admin-lista admin-lista--vertikal">
-            {feedback.map((f) => (
-              <li key={f.id} className="admin-feedback-rad">
-                <div className="admin-feedback-rad__meta">
-                  <span className="admin-feedback-rad__typ">{FEEDBACK_TYP_LABELS[f.typ] ?? f.typ}</span>
-                  <span>{f.skapadAvNamn}</span>
-                  <span>{formateraTid(f.skapad)}</span>
-                  <select
-                    value={f.status ?? FEEDBACK_STATUS.NY}
-                    onChange={(e) => uppdateraFeedbackStatus(f.id, e.target.value)}
-                  >
-                    {Object.values(FEEDBACK_STATUS).map((s) => (
-                      <option key={s} value={s}>
-                        {FEEDBACK_STATUS_LABELS[s]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <p>{f.text}</p>
-                {f.svar && (
-                  <p className="admin-feedback-rad__svar">
-                    <strong>Ditt svar:</strong> {f.svar}
-                  </p>
-                )}
-                <div className="admin-feedback-rad__svarformular">
-                  <input
-                    type="text"
-                    placeholder="Skriv ett svar till avsändaren..."
-                    value={svarUtkast[f.id] ?? ""}
-                    onChange={(e) => setSvarUtkast((u) => ({ ...u, [f.id]: e.target.value }))}
-                  />
-                  <button className="knapp knapp--liten" onClick={() => hanteraSvaraPaFeedback(f.id)}>
-                    Svara
-                  </button>
-                </div>
-                <button className="knapp knapp--farlig knapp--liten" onClick={() => taBortFeedback(f.id)}>
-                  Ta bort
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <FeedbackSektion
+          feedback={feedback}
+          svarUtkast={svarUtkast}
+          setSvarUtkast={setSvarUtkast}
+          hanteraSvaraPaFeedback={hanteraSvaraPaFeedback}
+          taBortFeedback={taBortFeedback}
+          uppdateraFeedbackStatus={uppdateraFeedbackStatus}
+        />
       )}
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>Sökningar utan träffar</h2>
-          {sokloggar.length === 0 && (
-            <p className="sida__beskrivning">Inga nolleträffar loggade ännu.</p>
-          )}
-          {sokningarPerDag.length > 0 && (
-            <div className="admin-statistik-trend">
-              {sokningarPerDag.map(([dag, antal]) => (
-                <div key={dag} className="admin-statistik-trend__rad">
-                  <span className="admin-statistik-trend__dag">{dag}</span>
-                  <div className="admin-statistik-trend__bar-bakgrund">
-                    <div
-                      className="admin-statistik-trend__bar"
-                      style={{ width: `${(antal / maxPerDag) * 100}%` }}
-                    />
-                  </div>
-                  <span className="admin-statistik-trend__antal">{antal}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          <ul className="admin-lista admin-lista--vertikal">
-            {sokloggar.map((s) => (
-              <li key={s.id} className="admin-feedback-rad">
-                <div className="admin-feedback-rad__meta">
-                  <span>"{s.term}"</span>
-                  <span>{formateraTid(s.tidpunkt)}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <SokningarUtanTraffarSektion
+          sokloggar={sokloggar}
+          sokningarPerDag={sokningarPerDag}
+          maxPerDag={maxPerDag}
+        />
       )}
 
       {arSuperadmin && (
-        <section className="admin-sektion">
-          <h2>Ändringslogg</h2>
-          {auditlogg.length === 0 && <p className="sida__beskrivning">Inga händelser loggade ännu.</p>}
-          {auditlogg.length > 0 && (
-            <div className="admin-audit-filter">
-              <input
-                type="search"
-                placeholder="Sök i beskrivning..."
-                value={auditSok}
-                onChange={(e) => setAuditSok(e.target.value)}
-              />
-              <select value={auditTypFilter} onChange={(e) => setAuditTypFilter(e.target.value)}>
-                <option value="">Alla typer</option>
-                {auditTyper.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          <ul className="admin-lista admin-lista--vertikal">
-            {filtreradAuditlogg.map((a) => (
-              <li key={a.id} className="admin-feedback-rad">
-                <div className="admin-feedback-rad__meta">
-                  <span>{a.beskrivning}</span>
-                  <span>{formateraTid(a.tidpunkt)}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <AndringsloggSektion
+          auditlogg={auditlogg}
+          auditSok={auditSok}
+          setAuditSok={setAuditSok}
+          auditTypFilter={auditTypFilter}
+          setAuditTypFilter={setAuditTypFilter}
+          auditTyper={auditTyper}
+          filtreradAuditlogg={filtreradAuditlogg}
+        />
       )}
     </div>
   );

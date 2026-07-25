@@ -136,9 +136,9 @@ kund nummer två faktiskt får inloggning.
 
 ---
 
-## Etapp 8 – Driftskulder & plattformshälsa  ·  Storlek: S–M  ·  🔶 DELVIS GENOMFÖRD
+## Etapp 8 – Driftskulder & plattformshälsa  ·  Storlek: S–M  ·  ✅ GENOMFÖRD
 
-**Status:** 8a och 8b klara, se UTVECKLINGSLOGG.md Fas 24. 8c–8e återstår.
+**Status:** samtliga fem delmål (8a–8e) klara, se UTVECKLINGSLOGG.md Fas 24, 26, 27, 28.
 
 **Mål:** ta bort de skulder som redan aktivt kostar tid vid varje leverans, samt den enda
 daterade deadline i planen.
@@ -151,7 +151,7 @@ daterade deadline i planen.
 - **8b. Ta bort `continue-on-error: true`** från deploysteget i `deploy.yml`, så att ett
   misslyckat deploy faktiskt rödmarkerar jobbet. Behåll det eventuellt på det efterföljande
   `setpolicy`-steget om det är genuint frivilligt.
-- **8c. Dela upp `Admin.jsx`** (1054 rader) i sektionskomponenter – en per adminpanel-sektion,
+- **8c. ✅ GENOMFÖRD.** Dela upp `Admin.jsx` (1054 rader) i sektionskomponenter – en per adminpanel-sektion,
   med den delade datahämtningen kvar i hookar. Ingen funktionsändring, ren struktur.
 - **8d. ✅ GENOMFÖRD. Grundläggande frontend-testning.** Vitest + Testing Library på de hookar där logiken
   faktiskt bor (`useFeatures`, `useOfflineCenter`, `useMfaPolicy`, budget-/kostnadshookarna)

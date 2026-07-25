@@ -2005,3 +2005,33 @@ Tre nya testfiler, valda efter genuin nytta snarare än täckningsprocent:
 build` gröna.
 
 **Version:** 5.19.0.
+
+---
+
+## Fas 28 – Etapp 8c: dela upp Admin.jsx
+
+Sista punkten från den externa kodgranskningen (Fas 23). `Admin.jsx` var 1072 rader och
+växande – varje ny adminpanel-funktion i Etapp 2–6 hade landat där. Bröt ut alla 19
+`<section>`-block till egna presentationskomponenter under nya `src/components/admin/`:
+`SystemstatusSektion`, `PilotMatvardenSektion`, `ModulerSektion`, `SakerhetSektion`,
+`OrganisationMigreringSektion`, `VerifieraKlinikstodSektion`, `KlinikstodAnvandningSektion`,
+`KvitteringarMedDeadlineSektion`, `MittOmradeStatistikSektion`, `BudgetSektion`,
+`KostnadsuppfoljningSektion`, `AutoUtloggningSektion`, `AnvandareRollerSektion`,
+`InaktivaKontonSektion`, `StatistikAllaOmradenSektion`, `FeedbackSektion`,
+`SokningarUtanTraffarSektion`, `AndringsloggSektion`, plus en delad `adminHjalp.js`
+(`formateraTid`, `STATUS_IKON`/`STATUS_TEXT`, `OMRADE_NAMN`).
+
+**Medveten avgränsning:** all datahämtning (samtliga `useX()`-hookar, `useState`,
+`useMemo`-beräkningar) ligger KVAR i `Admin.jsx` oförändrad – bara JSX:en och rent lokal
+presentationslogik bröts ut, som tunna komponenter som tar emot färdigberäknad data via
+props. Detta var den lägre-risk vägen: ingen ändring i datahämtningsmönster, inga nya
+Firestore-lyssnare, ingen ändrad timing. `Admin.jsx` gick från **1072 → 520 rader**.
+
+**Verifiering:** manuell Playwright-körning mot en riktig browser (emulatorer + dev-server):
+loggade in, öppnade `/admin`, bekräftade att 15 av 19 sektioner renderades (de 4 övriga är
+villkorade på data som inte finns i en tom testinstallation – förväntat), inga
+konsolfel, och att `ErrorBoundary`s reservvy INTE visades (dvs. ingen krasch). `npm run
+lint`, `npm run build`, `npm run test:rules` (60/60), `npm run test:functions` (54/54),
+`npm run test:storage` (6/6), `npx vitest run` (29/29) – alla gröna.
+
+**Version:** 5.20.0.

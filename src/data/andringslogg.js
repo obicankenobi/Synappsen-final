@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.20.0",
+    datum: "2026-07-25",
+    andringar: [
+      "Interna kvalitetsförbättringar: adminpanelens kod är omstrukturerad för enklare underhåll, ingen synlig ändring i appen",
+    ],
+  },
+  {
     version: "5.19.0",
     datum: "2026-07-25",
     andringar: [
