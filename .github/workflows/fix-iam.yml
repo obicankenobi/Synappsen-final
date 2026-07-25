@@ -15,9 +15,6 @@ jobs:
       - name: Sätt upp gcloud
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Visa vilket tjänstekonto GitHub Actions faktiskt autentiserar som
-        run: gcloud config get-value account
-
       - name: Ge compute-tjänstekontot Firestore-behörighet
         run: |
           gcloud projects add-iam-policy-binding synappsen-final-build \
