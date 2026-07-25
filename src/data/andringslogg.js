@@ -3,6 +3,16 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.17.0",
+    datum: "2026-07-25",
+    andringar: [
+      "Registrering kräver nu en inbjudan från en superadmin – den tidigare öppna sidan för att skapa konto själv är stängd",
+      "Superadmin kan bjuda in nya kollegor direkt från adminpanelen, med vald roll och en tidsbegränsad länk",
+      "Ny leverantörsvy för att administrera flera kundorganisationer: skapa nya, se användare/kostnad, pausa eller exportera",
+      "En pausad organisations konton kan tillfälligt spärras från sitt innehåll, utan att organisationen eller dess data raderas",
+    ],
+  },
+  {
     version: "5.16.0",
     datum: "2026-07-25",
     andringar: [

@@ -1,0 +1,45 @@
+.leverantor__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 360px;
+}
+
+.leverantor__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.leverantor__checkbox {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.leverantor__form input[type="text"] {
+  padding: 10px 12px;
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.leverantor__rad {
+  align-items: flex-start;
+}
+
+.leverantor__pausad {
+  color: var(--amber-text);
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.leverantor__fel {
+  color: var(--farlig);
+}
+
+.leverantor__info {
+  color: var(--success);
+}

@@ -66,7 +66,14 @@ isolera. Det är den enskilt viktigaste luckan och den styr hela denna plans ord
 
 ---
 
-## Etapp 6 – Kund nummer två  ·  Storlek: L  ·  **Hård grind**  ·  ⬜ PÅGÅR
+## Etapp 6 – Kund nummer två  ·  Storlek: L  ·  **Hård grind**  ·  ✅ GENOMFÖRD
+
+**Status:** samtliga fyra delmål (6a–6d) genomförda och verifierade, se UTVECKLINGSLOGG.md
+Fas 25. Ny `plattformsadmin`-collection (leverantörsadmin), `skapaOrganisation`/
+`listaOrganisationer`/`pausaOrganisation`/`exporteraOrganisation` (Cloud Functions), och ett
+helt inbjudningsbaserat registreringsflöde som ersätter den tidigare öppna
+självbetjänings-registreringen. Avetablering enforcas i firestore.rules via
+`organisationenArAktiv()`, inflätad i det centrala `matcharMinOrg()`.
 
 **Mål:** en ny kundorganisation kan etableras och bemannas utan att någon rör Firestore
 manuellt. Detta är denna plans motsvarighet till Etapp 1 – allt annat är mindre värt före den.

@@ -1,15 +1,35 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { granskaInbjudan } from "../firebase/functions";
+import { ROLE_LABELS } from "../firebase/roles";
 
+// Etapp 6c: registrering kräver numera alltid en giltig inbjudan (?bjudan=token i länken),
+// skickad av en superadmin från adminpanelen. Den tidigare öppna självbetjänings-
+// registreringen (vem som helst fick ett konto i standardorganisationen) stängdes – se
+// firestore.rules users/{userId} och UTVECKLINGSLOGG.md Fas 24.
 export default function Registrera() {
+  const [sokparametrar] = useSearchParams();
+  const token = sokparametrar.get("bjudan");
+
+  const [granskar, setGranskar] = useState(() => Boolean(token));
+  const [inbjudan, setInbjudan] = useState(null);
+  const [granskningsfel, setGranskningsfel] = useState("");
+
   const [namn, setNamn] = useState("");
-  const [email, setEmail] = useState("");
   const [losenord, setLosenord] = useState("");
   const [fel, setFel] = useState("");
   const [laddar, setLaddar] = useState(false);
   const { registrera } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token) return;
+    granskaInbjudan(token)
+      .then(({ data }) => setInbjudan(data))
+      .catch((e) => setGranskningsfel(e.message ?? "Inbjudan kunde inte kontrolleras."))
+      .finally(() => setGranskar(false));
+  }, [token]);
 
   async function hanteraSubmit(e) {
     e.preventDefault();
@@ -22,20 +42,46 @@ export default function Registrera() {
 
     setLaddar(true);
     try {
-      await registrera(email, losenord, namn);
+      await registrera(inbjudan.epost, losenord, namn, token);
       navigate("/");
-    } catch {
-      setFel("Kunde inte skapa konto. E-postadressen kan redan vara registrerad.");
+    } catch (e2) {
+      setFel(e2.message ?? "Kunde inte skapa konto. E-postadressen kan redan vara registrerad.");
     } finally {
       setLaddar(false);
     }
+  }
+
+  if (!token || granskningsfel) {
+    return (
+      <div className="sida sida--auth">
+        <h1>Skapa konto</h1>
+        <p className="auth__undertext">
+          Registrering kräver en inbjudan från din organisations administratör. Be en
+          superadmin bjuda in dig från adminpanelen.
+        </p>
+        {granskningsfel && <p className="auth__fel">{granskningsfel}</p>}
+        <p className="auth__bytlank">
+          Har du redan ett konto? <Link to="/logga-in">Logga in</Link>
+        </p>
+      </div>
+    );
+  }
+
+  if (granskar) {
+    return (
+      <div className="sida sida--auth">
+        <h1>Skapa konto</h1>
+        <p className="auth__undertext">Kontrollerar inbjudan...</p>
+      </div>
+    );
   }
 
   return (
     <div className="sida sida--auth">
       <h1>Skapa konto</h1>
       <p className="auth__undertext">
-        Nya konton får rollen Personal. En administratör kan höja behörigheten senare.
+        Du bjöds in till <strong>{inbjudan.organisationsNamn}</strong> med rollen{" "}
+        <strong>{ROLE_LABELS[inbjudan.roll] ?? inbjudan.roll}</strong> ({inbjudan.epost}).
       </p>
       <form onSubmit={hanteraSubmit} className="auth-form">
         <label>
@@ -46,16 +92,6 @@ export default function Registrera() {
             value={namn}
             onChange={(e) => setNamn(e.target.value)}
             autoComplete="name"
-          />
-        </label>
-        <label>
-          E-post
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
           />
         </label>
         <label>

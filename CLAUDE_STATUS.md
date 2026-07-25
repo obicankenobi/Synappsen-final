@@ -6,47 +6,33 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-07-25, version 5.15.1
+**Senast uppdaterad:** 2026-07-25, version 5.17.0
 
 ## Nuläge i ett stycke
 
-Etapp 1–3 är helt genomförda. Etapp 4 och 5 är delvis genomförda (medvetet –
-de innehåller organisatoriska moment som pilotdrift och säljlansering som inte
-är kodarbete; tekniska deluppgifter inom dem är klara, se `ETAPPLAN.md`).
-Efter Etapp 5 gick vi igenom en extern kodgranskning ("Synappsen 5.15.0 –
-Fullständig kodfeedback") som användaren klistrade in, bedömde den kritiskt
-(inte bara höll med), och åtgärdade de två fynd som bedömdes vara reella och
-prioriterade: en delad-dator-bugg i offline-centrets localStorage-nyckel, och
-avsaknaden av en `ErrorBoundary`. Detta blev v5.15.1, som är **deployad till
-produktion** och verifierad (asset-hash `index-BtZVzwsZ.js`, "Deploy
-complete!" bekräftat i GitHub Actions-loggen).
+Etapp 1–5 (ETAPPLAN.md) är genomförda. Efter dem gjordes en fristående
+kodgenomgång som resulterade i `ETAPPLAN2.md` (Etapp 6–11). Användaren bad om
+Etapp 6, 7, 8 samt 10b–10e. Hittills genomfört och verifierat: **Etapp 7
+(a–d, helt klar), Etapp 8a–8b (Node 22, deploy.yml), Etapp 6 (a–d, helt
+klar)** – se UTVECKLINGSLOGG.md Fas 24–25 för fullständiga detaljer.
+`npm run test:rules` 60/60, `npm run test:functions` 54/54, `npm run
+test:storage` 6/6, `npx vitest run` 10/10, build+lint gröna.
 
-**Det finns just nu inga kända öppna buggar eller pågående uppgifter.**
-Arbetet väntar på nästa instruktion från användaren.
+**Kvarstående av det användaren bad om denna omgång:** Etapp 8c (dela upp
+Admin.jsx), 8d (frontend-tester), 8e (ersätt confirm/alert), samt Etapp 10b
+(bulkimport), 10c (ledningsrapport), 10d (rutinmallar), 10e
+(tid-att-hitta-mätning). Se tasklistan (TaskList) för exakt status – varje
+deluppgift är en egen task.
 
-## Nästa plan: ETAPPLAN2.md (Etapp 6–11)
+**Ännu inte deployat till produktion** – all denna omgångs arbete (Etapp
+6+7+8a-b) ligger committat på `claude/compassionate-euler-rho0q5` men väntar
+på nästa "Deploya till produktion"-instruktion (eller så fortsätter arbetet
+med 8c-e/10b-e först, beroende på vad användaren väljer).
 
-En ny etappplan har tagits fram efter en genomgång av kodbasen – se
-`ETAPPLAN2.md`. Huvudslutsatsen: multi-tenant-isoleringen är byggd och
-bevisad, men det finns **ingen väg till kund nummer två** (registrering
-hårdkodar `organisationId: 'default'` i både `AuthContext.jsx` och
-`firestore.rules`). Övriga fynd: öppen registrering, `fragaKlinisktStod` är
-ogatad trots att den är en Intelligence-funktion som kostar pengar per
-anrop, ingen leverantörsnivå ovanför superadmin, i praktiken otestad
-frontend, och Node 20 avvecklas 2026-10-30 (hård deadline).
+## Vad som återstår från den gamla planen (ETAPPLAN.md, lägre prioritet)
 
-De tre mest angelägna: gata `fragaKlinisktStod` (7a), uppgradera till
-Node 22 (8a), bygg organisationsetablering + inbjudningsflöde (6a–6c).
-
-## Vad som återstår från den gamla planen (se ETAPPLAN.md för detaljer)
-
-- Etapp 4: Admin.jsx är fortfarande stor (kodgranskningens förslag om att dela
-  upp den valdes bort som lägre prioritet, inte akut).
-- Etapp 4/5: `confirm()`/`alert()`-mönstret i vissa vyer (samma – lägre
-  prioritet, fungerar men är inte snyggast).
-- `void _id`-mönstret som kodgranskningen påpekade – bedömdes som en svag
-  föreslagen lösning, inte åtgärdat, se UTVECKLINGSLOGG.md Fas 23 för
-  resonemang.
+- `void _id`-mönstret som en extern kodgranskning påpekade – bedömdes som en
+  svag föreslagen lösning, inte åtgärdat, se UTVECKLINGSLOGG.md Fas 23.
 - Organisatoriska moment i Etapp 4/5 (faktisk pilotdrift, säljlansering) –
   kan inte göras i kod, kräver beslut/aktivitet av användaren utanför denna
   session.
@@ -95,7 +81,8 @@ Node 22 (8a), bygg organisationsetablering + inbjudningsflöde (6a–6c).
 ## Nyckelfiler att känna till
 
 - `ETAPPLAN.md` – den etappindelade planen (Etapp 0–5), status per etapp.
-- `UTVECKLINGSLOGG.md` – fullständig kronologisk teknisk historik, "Fas 1–23".
+- `ETAPPLAN2.md` – uppföljande plan (Etapp 6–11), status per etapp.
+- `UTVECKLINGSLOGG.md` – fullständig kronologisk teknisk historik, "Fas 1–25".
 - `SAKERHETSRAPPORT.md` – säkerhetsgranskning av multi-tenant-lagret.
 - `src/data/andringslogg.js` – användarvänd ändringslogg (visas i appen).
 - `firestore.rules` / `storage.rules` – multi-tenant-säkerhetsmodellen,

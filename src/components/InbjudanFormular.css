@@ -1,0 +1,47 @@
+.inbjudan-formular form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.inbjudan-formular label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.inbjudan-formular input,
+.inbjudan-formular select {
+  padding: 10px 12px;
+  border: 1px solid var(--kant);
+  box-shadow: var(--skugga);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.inbjudan-formular__fel {
+  color: var(--farlig);
+  margin-top: 10px;
+}
+
+.inbjudan-formular__lank {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--primar-ljus);
+}
+
+.inbjudan-formular__lank input {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  font: inherit;
+}

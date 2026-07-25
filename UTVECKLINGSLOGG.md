@@ -1875,3 +1875,65 @@ uppdelning, frontend-tester, confirm/alert), Etapp 10b–10e (bulkimport, lednin
 rutinmallar, tid-att-hitta).
 
 **Version:** 5.16.0.
+
+---
+
+## Fas 25 – Etapp 6: kund nummer två (leverantörsadmin, organisationsetablering, inbjudan, avetablering)
+
+Den enskilt viktigaste luckan från ETAPPLAN2.md: det fanns ingen väg till kund nummer två.
+`/registrera` var helt öppen (vem som helst fick ett konto med läsåtkomst till organisationens
+vårdrutiner), och det gick inte att skapa en ny organisation eller administrera flera kunder
+utan att manuellt redigera Firestore. Alla fyra delmål (6a–6d) genomförda i en enda
+sammanhängande omgång eftersom de delar samma datamodell och rör samma säkerhetskritiska yta
+(autentisering, roller, regler).
+
+- **Ny collection `plattformsadmin/{uid}`** – existens ÄR hela behörigheten (samma mönster
+  som redan användes för `dokumentOrganisation()` i storage.rules). Aldrig skrivbar av någon
+  klient (`allow write: if false`). Utses via `blibForstaPlattformsadmin` (fungerar bara
+  EN gång, innan någon plattformsadmin finns, och kräver att anroparen redan är superadmin
+  någonstans – stoppar en anonym nyregistrerad från att bootstrappa sig själv i en tom
+  installation) eller `gorTillPlattformsadmin` (kräver en BEFINTLIG plattformsadmin).
+- **`organisationenArAktiv()` inflätad i `matcharMinOrg()`** (firestore.rules) – den enda
+  funktion som används i 31 av rules-filens match-block. En enda ny rad
+  (`&& organisationenArAktiv()`) fick avetableringsspärren att gälla för i praktiken ALL
+  org-skopad data i ett svep, utan att röra ett enda annat match-block. `organisationer/
+  {orgId}` läses fortfarande av organisationens egna medlemmar även när pausad (så de ser
+  VARFÖR de är utestängda), men allt annat (rutiner, anslag, förråd, …) nekas.
+- **`skapaOrganisation`** (Cloud Function, plattformsadmin-only) – skapar organisations-
+  dokumentet OCH standardbudgeten (`installningar/geminiBudget`) i samma anrop, så en ny
+  kund aldrig möter ett dokument som råkar sakna förväntade fält.
+- **`listaOrganisationer`** – leverantörsöversikt: moduler, antal användare, senaste
+  avslutade månadens AI-kostnad (återanvänder Etapp 5:s `kostnadshistorik` rakt av).
+- **`pausaOrganisation` / `exporteraOrganisation`** – avetablering. Export återanvänder
+  Etapp 3b:s `backupaOrganisation()` oförändrad (samma filformat, `backups/{orgId}/
+  {datum}.json`), bara nu nåbar på begäran istället för bara via veckojobbet.
+- **Inbjudningsflödet (6c) – den mest säkerhetskänsliga biten.** `firestore.rules` stänger
+  `users/{userId}`s `allow create` helt (`if false`) – det gamla självbetjänings-hålet
+  ("alla nya konton hamnar i 'default' som personal") är stängt. Enda vägen in:
+  1. En superadmin anropar `skapaInbjudan({epost, roll})` (organisationId hämtas server-
+     side från ANROPAREN, tas aldrig emot som klientdata – annars hade en superadmin kunnat
+     bjuda in någon till en ANNAN organisation). Genererar ett 192-bitars slumpat token
+     (`crypto.randomBytes(24)`), giltigt 7 dagar.
+  2. Mottagaren öppnar `/registrera?bjudan=token`, som anropar `granskaInbjudan` (kräver
+     INGEN inloggning – personen har ännu inget konto). Avslöjar bara e-post/roll/
+     organisationsNAMN, aldrig organisationId rakt av.
+  3. Klienten skapar Firebase Auth-kontot FÖRST (`createUserWithEmailAndPassword`), anropar
+     sedan `losInInbjudan({token, namn})` som (Admin SDK) skriver `users/{uid}` och märker
+     token som använt i en transaktion. Kräver att den nu inloggade e-postadressen matchar
+     inbjudans e-post – annars kunde vem som helst med token lösa in NÅGON ANNANS inbjudan.
+     Misslyckas inlösningen (t.ex. token redan använt av en annan flik) raderar klienten det
+     precis skapade auth-kontot igen (`user.delete()`) så inget föräldralöst konto blir kvar.
+- **Ny UI:** `InbjudanFormular.jsx` i adminpanelen ("✉️ Bjud in kollega"), `Leverantor.jsx`
+  (`/leverantor`) för leverantörsöversikten – båda tunna gränssnitt ovanpå server-kontrollerna,
+  ingen egen klientsäkerhet. `Registrera.jsx` omskriven helt: utan giltigt `?bjudan=`-token
+  visas nu "kräver en inbjudan" istället för ett öppet formulär.
+
+**Verifiering:** Ny `tests/functions/etapp6.test.cjs` (22 tester – bootstrap, utnämning,
+organisationsetablering, leverantörsöversikt, pausning, export, hela inbjudningskedjan
+inklusive dubbelinlösning och fel e-post). Nya sektioner i
+`tests/rules/organisationsisolering.test.mjs` (10 nya tester – stängt self-serve-create,
+plattformsadmin-läsning/skrivspärr, inbjudningar helt onåbara för klienter, pausad
+organisation nekar/återfår åtkomst). `npm run test:functions` nu **54/54**, `npm run
+test:rules` nu **60/60**. `npm run lint`, `npm run build`, `npx vitest run` (10/10) gröna.
+
+**Version:** 5.17.0.

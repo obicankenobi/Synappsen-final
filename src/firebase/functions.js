@@ -53,3 +53,47 @@ export function migreraTillOrganisation(dryRun = true) {
   const fn = httpsCallable(functions, "migreraTillOrganisation");
   return fn({ dryRun });
 }
+
+// Etapp 6a – leverantörsadmin
+export function blibForstaPlattformsadmin() {
+  const fn = httpsCallable(functions, "blibForstaPlattformsadmin");
+  return fn();
+}
+
+export function listaOrganisationer() {
+  const fn = httpsCallable(functions, "listaOrganisationer");
+  return fn();
+}
+
+// Etapp 6b – organisationsetablering
+export function skapaOrganisation(namn, moduler) {
+  const fn = httpsCallable(functions, "skapaOrganisation");
+  return fn({ namn, moduler });
+}
+
+// Etapp 6d – avetablering
+export function pausaOrganisation(orgId, pausad) {
+  const fn = httpsCallable(functions, "pausaOrganisation");
+  return fn({ orgId, pausad });
+}
+
+export function exporteraOrganisation(orgId) {
+  const fn = httpsCallable(functions, "exporteraOrganisation");
+  return fn({ orgId });
+}
+
+// Etapp 6c – inbjudningsflöde
+export function skapaInbjudan(epost, roll) {
+  const fn = httpsCallable(functions, "skapaInbjudan");
+  return fn({ epost, roll });
+}
+
+export function granskaInbjudan(token) {
+  const fn = httpsCallable(functions, "granskaInbjudan");
+  return fn({ token });
+}
+
+export function losInInbjudan(token, namn) {
+  const fn = httpsCallable(functions, "losInInbjudan");
+  return fn({ token, namn });
+}

@@ -400,6 +400,68 @@ async function main() {
     )
   );
 
+  console.log("\nusers/{userId} – Etapp 6c: självbetjänings-create är stängt helt");
+  await test("volA kan INTE skapa sitt eget users-dokument direkt (måste gå via losInInbjudan)", () =>
+    assertFails(
+      setDoc(doc(volA, "users", "nyttKontoA"), { role: "personal", organisationId: ORG_A })
+    )
+  );
+  await test('en klient kan INTE ens skapa sig själv i "default" med rollen personal (gamla hålet)', () =>
+    assertFails(
+      setDoc(doc(volA, "users", "nyttKontoDefault"), { role: "personal", organisationId: "default" })
+    )
+  );
+
+  console.log("\nplattformsadmin/{uid} – Etapp 6a: existens är hela behörigheten");
+  await test("volA (ingen plattformsadmin) kan INTE läsa plattformsadmin-collectionen", () =>
+    assertFails(getDoc(doc(volA, "plattformsadmin", "vemsomhelst")))
+  );
+  await test("ingen klient kan NÅGONSIN skriva till plattformsadmin, inte ens sig själv", () =>
+    assertFails(setDoc(doc(superA, "plattformsadmin", "superadminA"), { blevPlattformsadmin: true }))
+  );
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "plattformsadmin", "superadminA"), { blevPlattformsadmin: true });
+  });
+  await test("en utsedd leverantörsadmin KAN läsa organisationer/{orgId} för VILKEN organisation som helst", () =>
+    Promise.all([
+      assertSucceeds(getDoc(doc(superA, "organisationer", ORG_A))),
+      assertSucceeds(getDoc(doc(superA, "organisationer", ORG_B))),
+    ])
+  );
+
+  console.log("\ninbjudningar/{token} – Etapp 6c: bara nåbar via Cloud Functions");
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "inbjudningar", "test-token"), {
+      organisationId: ORG_A,
+      roll: "personal",
+      epost: "ny@exempel.se",
+      anvand: false,
+    });
+  });
+  await test("ingen klient (ens superadmin i rätt org) kan läsa en inbjudan direkt", () =>
+    assertFails(getDoc(doc(superA, "inbjudningar", "test-token")))
+  );
+  await test("ingen klient kan skriva/skapa en inbjudan direkt", () =>
+    assertFails(setDoc(doc(superA, "inbjudningar", "eget-token"), { organisationId: ORG_A }))
+  );
+
+  console.log("\nEtapp 6d – pausad organisation nekar org-skopat innehåll (organisationenArAktiv)");
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "organisationer", ORG_A), { status: "pausad" }, { merge: true });
+  });
+  await test("volA kan INTE längre läsa org A:s rutin när organisationen är pausad", () =>
+    assertFails(getDoc(doc(volA, "rutiner", "rutinA")))
+  );
+  await test("volA kan fortfarande läsa organisationer/{orgId} själv (ser att den är pausad)", () =>
+    assertSucceeds(getDoc(doc(volA, "organisationer", ORG_A)))
+  );
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "organisationer", ORG_A), { status: "aktiv" }, { merge: true });
+  });
+  await test("volA kan läsa org A:s rutin igen efter att organisationen återaktiverats", () =>
+    assertSucceeds(getDoc(doc(volA, "rutiner", "rutinA")))
+  );
+
   await testEnv.cleanup();
 
   console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);

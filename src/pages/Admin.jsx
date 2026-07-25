@@ -29,6 +29,7 @@ import {
 } from "../firebase/functions";
 import { APP_VERSION } from "../version";
 import { ROLES, ROLE_LABELS, REDAKTORSROLLER } from "../firebase/roles";
+import InbjudanFormular from "../components/InbjudanFormular";
 import "./Admin.css";
 
 function formateraTid(tidpunkt) {
@@ -836,6 +837,18 @@ export default function Admin() {
               Uppdatera
             </button>
           </form>
+        </section>
+      )}
+
+      {arSuperadmin && (
+        <section className="admin-sektion">
+          <h2>✉️ Bjud in kollega</h2>
+          <p className="sida__beskrivning">
+            Registrering kräver numera en inbjudan. Skapa en länk för en specifik
+            e-postadress och roll – den kan bara lösas in av den adressen och slutar gälla
+            efter 7 dagar.
+          </p>
+          <InbjudanFormular />
         </section>
       )}
 

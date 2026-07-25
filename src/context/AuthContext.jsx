@@ -6,10 +6,10 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
-import { DEFAULT_ROLE } from "../firebase/roles";
 import { STANDARD_ORG } from "../firebase/organisation";
+import { losInInbjudan } from "../firebase/functions";
 import { AuthContext } from "./authContextDef";
 
 export function AuthProvider({ children }) {
@@ -18,15 +18,19 @@ export function AuthProvider({ children }) {
   const [organisationId, setOrganisationId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  async function registrera(email, losenord, namn) {
+  // Etapp 6c: registrering kräver numera alltid en giltig inbjudan – öppen självbetjänings-
+  // registrering stängdes (se firestore.rules users/{userId} allow create: if false). Skapar
+  // Firebase Auth-kontot FÖRST, löser sedan in inbjudan (Cloud Function, Admin SDK skriver
+  // users/{uid}). Om inlösningen misslyckas (t.ex. token redan använt av en annan flik under
+  // tiden) raderas det precis skapade auth-kontot igen, så inget föräldralöst konto blir kvar.
+  async function registrera(email, losenord, namn, token) {
     const { user } = await createUserWithEmailAndPassword(auth, email, losenord);
-    await setDoc(doc(db, "users", user.uid), {
-      namn,
-      email,
-      role: DEFAULT_ROLE,
-      organisationId: STANDARD_ORG,
-      skapad: serverTimestamp(),
-    });
+    try {
+      await losInInbjudan(token, namn);
+    } catch (fel) {
+      await user.delete().catch(() => {});
+      throw fel;
+    }
     return user;
   }
 

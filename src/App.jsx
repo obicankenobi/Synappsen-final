@@ -54,6 +54,7 @@ const Kontakter = lazy(() => import("./pages/Kontakter"));
 const Lankbibliotek = lazy(() => import("./pages/Lankbibliotek"));
 const Papperskorg = lazy(() => import("./pages/Papperskorg"));
 const OfflineCenter = lazy(() => import("./pages/OfflineCenter"));
+const Leverantor = lazy(() => import("./pages/Leverantor"));
 
 function SidLaddare() {
   return <div className="sida sida--laddar">Laddar...</div>;
@@ -234,6 +235,14 @@ export default function App() {
             element={
               <SkyddatLayout>
                 <OfflineCenter />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/leverantor"
+            element={
+              <SkyddatLayout>
+                <Leverantor />
               </SkyddatLayout>
             }
           />

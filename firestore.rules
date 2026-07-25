@@ -59,10 +59,30 @@ service cloud.firestore {
       return !kravMfaForRoll(minRoll()) || harAndrafaktor();
     }
 
-    // Sant om ETT dokuments organisationId matchar anroparens egen organisation. Används på
-    // varje match-block som håller kunddata – den faktiska isoleringen mellan organisationer.
+    // Etapp 6a (leverantörsadmin): existens i plattformsadmin/{uid} ÄR behörigheten – ingen
+    // klient kan någonsin skriva till den collectionen (se match-blocket längre ner), bara
+    // Admin SDK från functions/index.js (blibForstaPlattformsadmin/gorTillPlattformsadmin).
+    function arPlattformsadmin() {
+      return arInloggad()
+        && exists(/databases/$(database)/documents/plattformsadmin/$(request.auth.uid));
+    }
+
+    // Etapp 6d (avetablering): falskt ENDAST om organisationen uttryckligen är pausad
+    // (status == 'pausad', satt av leverantörsadmin via pausaOrganisation). Saknat fält eller
+    // saknad organisation räknas som aktiv – samma "fail open bara vid frånvaro av data"-
+    // princip som minOrganisation()s egen fallback, så att detta aldrig kan låsa ute en
+    // organisation som helt enkelt inte har fältet satt än.
+    function organisationenArAktiv() {
+      return !exists(/databases/$(database)/documents/organisationer/$(minOrganisation()))
+        || get(/databases/$(database)/documents/organisationer/$(minOrganisation()))
+             .data.get('status', 'aktiv') != 'pausad';
+    }
+
+    // Sant om ETT dokuments organisationId matchar anroparens egen organisation OCH den
+    // organisationen inte är pausad. Används på varje match-block som håller kunddata – den
+    // faktiska isoleringen mellan organisationer OCH avetableringsspärren i ett enda ställe.
     function matcharMinOrg(dokumentetsOrgId) {
-      return arInloggad() && dokumentetsOrgId == minOrganisation();
+      return arInloggad() && dokumentetsOrgId == minOrganisation() && organisationenArAktiv();
     }
 
     function arSuperadmin() {
@@ -129,10 +149,29 @@ service cloud.firestore {
       );
     }
 
+    // Etapp 6a: leverantörsadmin-allowlist. Existens ÄR behörigheten (se arPlattformsadmin()
+    // ovan) – ingen klient får NÅGONSIN skriva hit, oavsett roll. Utses uteslutande via
+    // blibForstaPlattformsadmin/gorTillPlattformsadmin (Admin SDK) i functions/index.js.
+    match /plattformsadmin/{uid} {
+      allow read: if arPlattformsadmin();
+      allow write: if false;
+    }
+
+    // Etapp 6c: inbjudningar till nya konton. Ett token är hela hemligheten (192 bitar
+    // slumpmässigt, se crypto.randomBytes i functions/index.js) – ingen klient (varken
+    // inloggad eller inte) ska någonsin kunna läsa eller lista dessa direkt, bara via
+    // Cloud Functions (skapaInbjudan/granskaInbjudan/losInInbjudan, Admin SDK).
+    match /inbjudningar/{token} {
+      allow read, write: if false;
+    }
+
     // organisationer/{orgId} – en kunds inställningar (namn, aktiva moduler m.m.).
-    // Endast läsbar/skrivbar av medlemmar i den egna organisationen.
+    // Läsbar av medlemmar i den egna organisationen ELLER en leverantörsadmin (som
+    // administrerar flera organisationer och behöver kunna se dem, t.ex. en pausad
+    // organisations status). Skrivbar bara av superadmin i den egna organisationen –
+    // leverantörsadmins skrivningar (skapaOrganisation/pausaOrganisation) går via Admin SDK.
     match /organisationer/{orgId} {
-      allow read: if arInloggad() && orgId == minOrganisation();
+      allow read: if (arInloggad() && orgId == minOrganisation()) || arPlattformsadmin();
       allow write: if arSuperadmin() && orgId == minOrganisation() && mfaKravUppfylld();
 
       // organisationer/{orgId}/installningar/geminiBudget|utloggning – budgettak och
@@ -155,12 +194,13 @@ service cloud.firestore {
     // users/{uid} – innehåller namn, e-post, roll, organisationId och favoriter
     match /users/{userId} {
       allow read: if arInloggad() && resource.data.get('organisationId', 'default') == minOrganisation();
-      // Ett nytt konto skapar sitt eget dokument med standardrollen "personal" i
-      // standardorganisationen (ingen egen signup-flow för att välja/skapa organisation
-      // finns ännu – det är en senare etapp, se ETAPPLAN.md).
-      allow create: if arInloggad() && request.auth.uid == userId
-                     && request.resource.data.role == 'personal'
-                     && request.resource.data.organisationId == 'default';
+      // Etapp 6c: en klient får ALDRIG skapa sitt eget users/{uid}-dokument längre – den
+      // tidigare öppna självbetjänings-registreringen ("alla nya konton hamnar i 'default'
+      // med rollen personal") stängdes, eftersom vem som helst som hittade /registrera fick
+      // läsåtkomst till organisationens vårdrutiner. Den enda vägen in är nu losInInbjudan
+      // (Admin SDK, kringgår denna regel) via en giltig, e-postbunden inbjudan från en
+      // superadmin (skapaInbjudan). Se functions/index.js.
+      allow create: if false;
       // Superadmin får ändra allt (t.ex. roller) – men ENDAST för användare i sin egen
       // organisation. Ägaren själv får bara ändra sina favoriter, tidpunkten för senaste
       // notisbesök och sina egna startsidesgenvägar (bararForandrarFalt utesluter redan

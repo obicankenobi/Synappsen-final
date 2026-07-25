@@ -17,7 +17,8 @@ export const ROLE_LABELS = {
   [ROLES.PERSONAL]: "Personal",
 };
 
-// Standardroll för nya konton skapade via registreringsformuläret
+// Föreslagen standardroll när en superadmin bjuder in ett nytt konto (Etapp 6c) – inte
+// längre en självbetjänings-standard, eftersom registrering kräver en inbjudan.
 export const DEFAULT_ROLE = ROLES.PERSONAL;
 
 // Roller som får skapa/ändra/ta bort medicinska rutiner

@@ -4,6 +4,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
+const crypto = require("node:crypto");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -1115,3 +1116,289 @@ exports.migreraTillOrganisation = onCall(
     return { dryRun, resultat };
   }
 );
+
+// ---------------------------------------------------------------------------------------
+// Etapp 6 (kund nummer två): leverantörsadmin, organisationsetablering och ett
+// inbjudningsflöde som ersätter den tidigare öppna självbetjänings-registreringen.
+// Se ETAPPLAN2.md Etapp 6 och firestore.rules (arPlattformsadmin, organisationenArAktiv).
+// ---------------------------------------------------------------------------------------
+
+// Existens i denna collection ÄR behörigheten – inget annat fält kontrolleras. Collectionen
+// kan ALDRIG skrivas av en klient (se firestore.rules), bara av Admin SDK härifrån, så en
+// leverantörsadmin kan aldrig utses av misstag eller av en kund. Medvetet frikopplad från
+// organisationId/role på users/{uid} – en leverantörsadmin behöver inte tillhöra någon
+// specifik kundorganisation alls.
+async function arPlattformsadminServer(uid) {
+  const snap = await db.collection("plattformsadmin").doc(uid).get();
+  return snap.exists;
+}
+
+async function kravPlattformsadmin(uid) {
+  if (!(await arPlattformsadminServer(uid))) {
+    throw new HttpsError("permission-denied", "Endast en leverantörsadmin har åtkomst till detta.");
+  }
+}
+
+// Engångsbootstrap: fungerar ENDAST innan någon leverantörsadmin finns alls, och kräver då
+// att anroparen redan är superadmin i sin egen organisation (stoppar en godtycklig
+// nyregistrerad från att bootstrappa sig själv till leverantörsadmin i en tom installation).
+// Efter den första finns är detta anrop permanent stängt – gorTillPlattformsadmin används då.
+exports.blibForstaPlattformsadmin = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const { roll } = await hamtaAnvandarInfo(request.auth.uid);
+  if (roll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast en superadmin kan bootstrappa den första leverantörsadmin-kontot.");
+  }
+  const befintliga = await db.collection("plattformsadmin").limit(1).get();
+  if (!befintliga.empty) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Det finns redan minst en leverantörsadmin. Be en befintlig leverantörsadmin om åtkomst istället."
+    );
+  }
+  await db.collection("plattformsadmin").doc(request.auth.uid).set({
+    blevPlattformsadmin: admin.firestore.FieldValue.serverTimestamp(),
+    satteSig: request.auth.uid,
+  });
+  return { ok: true };
+});
+
+// Låter en BEFINTLIG leverantörsadmin utse fler – normalfallet efter bootstrap.
+exports.gorTillPlattformsadmin = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { uid } = request.data ?? {};
+  if (!uid || typeof uid !== "string") {
+    throw new HttpsError("invalid-argument", "uid krävs.");
+  }
+  await db.collection("plattformsadmin").doc(uid).set({
+    blevPlattformsadmin: admin.firestore.FieldValue.serverTimestamp(),
+    satteSig: request.auth.uid,
+  });
+  return { ok: true };
+});
+
+// Etapp 6b: skapar en ny kundorganisation i en enda skrivning – standardinställningar
+// (budgettak) sätts direkt så en superadmin i den nya organisationen möter en färdig,
+// fungerande installation, inte en tom lucka som råkar sakna förväntade fält.
+exports.skapaOrganisation = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const namn = (request.data?.namn ?? "").trim();
+  if (!namn) {
+    throw new HttpsError("invalid-argument", "Ett organisationsnamn krävs.");
+  }
+  const moduler = {
+    operations: Boolean(request.data?.moduler?.operations),
+    intelligence: Boolean(request.data?.moduler?.intelligence),
+  };
+
+  const orgRef = db.collection("organisationer").doc();
+  await orgRef.set({
+    namn,
+    status: "aktiv",
+    moduler,
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapadAv: request.auth.uid,
+  });
+  await orgRef.collection("installningar").doc("geminiBudget").set({
+    anvantOre: 0,
+    aktuellManad: aktuellManadNyckel(),
+    taketOre: STANDARD_TAK_ORE,
+    anvantPerUid: {},
+  });
+
+  return { orgId: orgRef.id };
+});
+
+// Etapp 6a: översikt åt leverantörsadmin – en rad per kundorganisation med moduler, antal
+// användare och senaste avslutade månadens AI-kostnad (redan arkiverad av reserveraBudget,
+// se Etapp 5). Ingen kunddata (rutiner/anslag/etc) exponeras, bara administrativ metadata.
+exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+
+  const orgSnap = await db.collection("organisationer").get();
+  const organisationer = await Promise.all(
+    orgSnap.docs.map(async (orgDoc) => {
+      const data = orgDoc.data();
+      const [anvandareSnap, kostnadSnap] = await Promise.all([
+        db.collection("users").where("organisationId", "==", orgDoc.id).get(),
+        orgDoc.ref.collection("kostnadshistorik").orderBy("manad", "desc").limit(1).get(),
+      ]);
+      return {
+        orgId: orgDoc.id,
+        namn: data.namn ?? orgDoc.id,
+        status: data.status ?? "aktiv",
+        moduler: data.moduler ?? {},
+        antalAnvandare: anvandareSnap.size,
+        senasteKostnad: kostnadSnap.empty ? null : kostnadSnap.docs[0].data(),
+      };
+    })
+  );
+  return { organisationer };
+});
+
+// Etapp 6d: pausar/återaktiverar en organisation. Enforcementet sker i firestore.rules
+// (organisationenArAktiv(), infogat i matcharMinOrg()) – en pausad organisations medlemmar
+// nekas läs-/skrivåtkomst till allt organisationsskopat innehåll, men kan fortfarande läsa
+// organisationer/{orgId} själv (så de faktiskt ser meddelandet om att kontot är pausat).
+exports.pausaOrganisation = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId, pausad } = request.data ?? {};
+  if (!orgId || typeof pausad !== "boolean") {
+    throw new HttpsError("invalid-argument", "orgId och pausad (boolean) krävs.");
+  }
+  await db.collection("organisationer").doc(orgId).set({ status: pausad ? "pausad" : "aktiv" }, { merge: true });
+  return { ok: true };
+});
+
+// Etapp 6d: GDPR-/uppsägningsexport – återanvänder Etapp 3b:s backupaOrganisation() rakt av,
+// samma filformat och lagringsplats (backups/{orgId}/{datum}.json), bara nåbar på begäran
+// istället för bara via det schemalagda veckojobbet.
+exports.exporteraOrganisation = onCall({ region: "europe-west1", timeoutSeconds: 120 }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId } = request.data ?? {};
+  if (!orgId) {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+  const path = await backupaOrganisation(orgId);
+  return { path };
+});
+
+// Etapp 6c: inbjudningsflöde istället för öppen självbetjänings-registrering. Ett nytt konto
+// kan numera ALDRIG skapa sitt eget users/{uid}-dokument direkt (se firestore.rules – create
+// är stängt helt) – den enda vägen in är att lösa in en giltig inbjudan här, som körs med
+// Admin SDK och därför kan kringgå den regeln på ett kontrollerat sätt.
+const GILTIGA_ROLLER = ["superadmin", "vol", "sektionsledare", "vec", "forradesansvarig", "personal"];
+const INBJUDAN_GILTIGHETSTID_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Skapas av en superadmin i adminpanelen (KAN bara bjuda in till sin EGEN organisation –
+// organisationId hämtas här server-side från anroparen, tas ALDRIG emot som klientdata,
+// annars hade en superadmin kunnat bjuda in någon till en annan organisation).
+exports.skapaInbjudan = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const { roll: anroparRoll, organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+  if (anroparRoll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan bjuda in nya konton.");
+  }
+  const epost = (request.data?.epost ?? "").trim().toLowerCase();
+  const roll = request.data?.roll;
+  if (!epost || !epost.includes("@")) {
+    throw new HttpsError("invalid-argument", "En giltig e-postadress krävs.");
+  }
+  if (!GILTIGA_ROLLER.includes(roll)) {
+    throw new HttpsError("invalid-argument", "En giltig roll krävs.");
+  }
+
+  const token = crypto.randomBytes(24).toString("base64url");
+  await db.collection("inbjudningar").doc(token).set({
+    organisationId,
+    roll,
+    epost,
+    anvand: false,
+    skapadAv: request.auth.uid,
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    utgangstid: Date.now() + INBJUDAN_GILTIGHETSTID_MS,
+  });
+  return { token };
+});
+
+// Publikt (INGEN inloggning krävs – personen har ännu inget konto) läs-anrop som bara
+// avslöjar det minimum som behövs för att visa ett meningsfullt registreringsformulär:
+// e-postadress, roll och organisationsnamn. Avslöjar ALDRIG organisationId rakt av eller
+// någon annan organisations existens – token är den enda hemligheten (192 bitar, se
+// crypto.randomBytes(24) ovan, praktiskt taget ogissningsbar).
+exports.granskaInbjudan = onCall({ region: "europe-west1" }, async (request) => {
+  const token = request.data?.token;
+  if (!token || typeof token !== "string") {
+    throw new HttpsError("invalid-argument", "token krävs.");
+  }
+  const snap = await db.collection("inbjudningar").doc(token).get();
+  if (!snap.exists) {
+    throw new HttpsError("not-found", "Inbjudan hittades inte. Kontrollera länken eller be om en ny.");
+  }
+  const data = snap.data();
+  if (data.anvand) {
+    throw new HttpsError("failed-precondition", "Inbjudan har redan använts.");
+  }
+  if (Date.now() > data.utgangstid) {
+    throw new HttpsError("failed-precondition", "Inbjudan har gått ut. Be om en ny.");
+  }
+  const orgSnap = await db.collection("organisationer").doc(data.organisationId).get();
+  return {
+    epost: data.epost,
+    roll: data.roll,
+    organisationsNamn: orgSnap.data()?.namn ?? data.organisationId,
+  };
+});
+
+// Löser in en inbjudan för ett REDAN skapat Firebase Auth-konto (klienten anropar
+// createUserWithEmailAndPassword FÖRST, sedan detta – se src/context/AuthContext.jsx).
+// Skriver users/{uid} via Admin SDK, vilket är den enda vägen in numera eftersom
+// firestore.rules stänger klientens egen create-rätt helt.
+exports.losInInbjudan = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const token = request.data?.token;
+  const namn = (request.data?.namn ?? "").trim();
+  if (!token || typeof token !== "string" || !namn) {
+    throw new HttpsError("invalid-argument", "token och namn krävs.");
+  }
+
+  const inbjudanRef = db.collection("inbjudningar").doc(token);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(inbjudanRef);
+    if (!snap.exists) {
+      throw new HttpsError("not-found", "Inbjudan hittades inte.");
+    }
+    const data = snap.data();
+    if (data.anvand) {
+      throw new HttpsError("failed-precondition", "Inbjudan har redan använts.");
+    }
+    if (Date.now() > data.utgangstid) {
+      throw new HttpsError("failed-precondition", "Inbjudan har gått ut.");
+    }
+    // Kräver att kontot som faktiskt loggade in matchar den inbjudna e-postadressen – annars
+    // skulle vem som helst med token kunna lösa in NÅGON ANNANS inbjudan mot sitt eget konto.
+    const inloggadEpost = (request.auth.token.email ?? "").trim().toLowerCase();
+    if (inloggadEpost !== data.epost) {
+      throw new HttpsError(
+        "permission-denied",
+        "Den inloggade e-postadressen matchar inte inbjudans e-postadress."
+      );
+    }
+
+    tx.set(db.collection("users").doc(request.auth.uid), {
+      namn,
+      email: data.epost,
+      role: data.roll,
+      organisationId: data.organisationId,
+      skapad: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    tx.set(
+      inbjudanRef,
+      { anvand: true, anvandAv: request.auth.uid, anvandTid: admin.firestore.FieldValue.serverTimestamp() },
+      { merge: true }
+    );
+  });
+
+  return { ok: true };
+});
