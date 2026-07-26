@@ -2610,3 +2610,41 @@ uppdaterad med samma resultat.
 Kvarstår i Etapp 13: 13b (underbiträdesförteckning), 13c (DPIA-underlag), 13d (IT-faktablad),
 13e (uppdatera PITCH.md), 13f (SSO/Entra ID – kräver ägarbeslut om SAML/OIDC före byggstart),
 13g (WCAG-A-snabbfixar).
+
+---
+
+## Fas 42 – Etapp 13b: Underbiträdesförteckning
+
+Ren dokumentation, ingen kodändring.
+
+Skapade `avtal/UNDERBITRADEN.md`: en tabell över samtliga underbiträden/tredjepartstjänster
+verifierade direkt i koden – Google Firebase (Auth/Firestore/Storage/Functions/Hosting),
+Google Generative AI (Gemini API), Google Custom Search API (klinikstöd-sökningen, pausad i
+UI), Sentry, Google reCAPTCHA/App Check, samt Linear (internt verktyg, ingen kunddata) och
+en not om den ännu inte upphandlade e-postleverantören för Etapp 16.
+
+**Verifierat direkt i koden (inte antaget):**
+- Samtliga Cloud Functions kör `region: "europe-west1"` (redan känt sedan 13a-arbetet).
+- Sentry-DSN:erna i `.github/workflows/deploy.yml` pekar mot `ingest.de.sentry.io` – Sentrys
+  EU-region (Frankfurt), bekräftat.
+
+**Nytt fynd vid premisskontroll (genomgående krav 8):** `functions/index.js` använder det
+publika Gemini API:et (`GoogleGenerativeAI` mot `generativelanguage.googleapis.com`), inte
+Vertex AI. Vertex AI har en tydlig regional databehandlingsgaranti (EU-only-drift möjlig);
+det publika Gemini API:et har det inte på samma dokumenterade sätt. Detta var inte känt
+sedan tidigare och är fört in i `UNDERBITRADEN.md` som en öppen punkt: kontrollera Googles
+aktuella villkor innan avtalet undertecknas mot en kund med strikta regionkrav på
+AI-behandlingen, med migrering till Vertex AI (samma modell, regional endpoint) som teknisk
+lösning om det krävs.
+
+Firestore-/Storage-regionen kvarstår som en konsolkontroll för ägaren, oförändrat sedan
+13a – kan inte verifieras genom kodgranskning eftersom den sätts vid projektskapande.
+
+`ETAPPLAN3.md` 13b uppdaterad med samma resultat.
+
+**Verifiering:** dokumentationsarbete, ingen build/lint/test-svep relevant.
+
+**Ingen versionsbump.**
+
+Kvarstår i Etapp 13: 13c (DPIA-underlag), 13d (IT-faktablad), 13e (uppdatera PITCH.md),
+13f (SSO/Entra ID), 13g (WCAG-A-snabbfixar).

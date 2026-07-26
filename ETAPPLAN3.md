@@ -86,7 +86,7 @@ fråga IT och dataskyddsombudet" och dör där.
   en kund med strikta raderingskrav är införd i mallen. Ingen kod ändrades i detta delmål –
   rent dokumentationsarbete.
 
-### 13b – Subprocessor- och datalagringsförteckning
+### 13b – Subprocessor- och datalagringsförteckning ✅ KLAR
 
 - Lista varje underbiträde: Google Firebase (Auth, Firestore, Storage, Functions, Hosting),
   Google Gemini, Sentry, den sökmotor som klinikstöd-sökningen använder, samt (från etapp 16)
@@ -101,6 +101,18 @@ fråga IT och dataskyddsombudet" och dör där.
   Svara med en skärmdump av konfigurationen, inte med en formulering – det är den enskilt
   vanligaste invändningen från ett dataskyddsombud.
 - **Arbetsuppgift:** `avtal/UNDERBITRADEN.md`.
+- **Resultat:** `avtal/UNDERBITRADEN.md` skriven med en tabell över alla nio
+  underbiträden/verktyg i drift, plus den ej upphandlade e-postleverantören (Etapp 16).
+  Sentry-regionen verifierades konkret i koden: `ingest.de.sentry.io`, dvs. Sentrys
+  EU-region (Frankfurt) – bra att kunna visa. **Nytt fynd vid premisskontroll (genomgående
+  krav 8):** koden använder det publika Gemini API:et (`GoogleGenerativeAI`-klienten mot
+  `generativelanguage.googleapis.com`), inte Vertex AI – Vertex AI har en tydlig regional
+  databehandlingsgaranti (EU-only möjlig), vilket det publika Gemini API:et historiskt inte
+  garanterat på samma sätt. Detta är fört in i `UNDERBITRADEN.md` som en öppen punkt att
+  kontrollera mot Googles aktuella villkor innan avtalet undertecknas mot en kund med
+  strikta regionkrav, med migrering till Vertex AI föreslagen som teknisk lösning om så
+  krävs. Firestore-/Storage-regionen kvarstår som en konsolkontroll för ägaren (oförändrat
+  från planen).
 
 ### 13c – Underlag för konsekvensbedömning (DPIA/ROS)
 

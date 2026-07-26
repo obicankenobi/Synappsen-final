@@ -93,13 +93,17 @@ lyfte några reella punkter. Genomfört hittills:
 kräver en egen, försiktig testcykel, se ETAPPLAN2.md för den exakta checklistan). Ska
 INTE göras som en snabb sidoeffekt av något annat.
 
-**ETAPPLAN3.md (Etapp 13–21), 13a klart:** skrev `avtal/PUB-AVTAL-MALL.md` (GDPR art. 28-mall).
-Vid premisskontroll mot faktisk kod (genomgående krav 8 i ETAPPLAN3.md) visade det sig att
-"radering vid avetablering" bara delvis stämmer – `pausaOrganisation`/`exporteraOrganisation`
-finns, men ingen automatiserad permanent radering av data eller backuper. Mallen skriver detta
-ärligt istället för att felaktigt lova automatik, med rekommendation att bygga det innan avtalet
-undertecknas mot en kund med strikta raderingskrav. Nästa steg i Etapp 13: 13b
-(underbiträdesförteckning), sedan 13c–13g.
+**ETAPPLAN3.md (Etapp 13–21), 13a–13b klara:** 13a skrev `avtal/PUB-AVTAL-MALL.md` (GDPR
+art. 28-mall). Vid premisskontroll mot faktisk kod (genomgående krav 8 i ETAPPLAN3.md) visade
+det sig att "radering vid avetablering" bara delvis stämmer – `pausaOrganisation`/
+`exporteraOrganisation` finns, men ingen automatiserad permanent radering av data eller
+backuper. Mallen skriver detta ärligt istället för att felaktigt lova automatik. 13b skrev
+`avtal/UNDERBITRADEN.md` – full underbiträdeslista verifierad mot koden; Sentry bekräftat
+EU-region (Frankfurt); nytt fynd: Gemini-anropen går via det publika Gemini API:et, inte
+Vertex AI, som inte har samma dokumenterade regionsgaranti – flaggat som en öppen punkt att
+kontrollera innan avtal mot en kund med strikta regionkrav. Firestore-/Storage-regionen
+kvarstår som en konsolkontroll för ägaren (kan inte verifieras i kod). Nästa steg i Etapp 13:
+13c (DPIA-underlag), sedan 13d–13g.
 
 ## Vad som återstår (se ETAPPLAN2.md för detaljer)
 
