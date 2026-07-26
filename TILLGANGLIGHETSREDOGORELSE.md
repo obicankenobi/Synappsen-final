@@ -53,6 +53,11 @@ dem – men det finns kända brister på **WCAG nivå A**, vilket gör att tjän
 beskrivas som fullt förenlig. Bristerna är åtgärdbara och ingen av dem hindrar en
 tangentbordsanvändare från att nå tjänstens huvudfunktioner.
 
+**Uppdatering 2026-07-26 (Etapp 13g):** de fyra punkter av dessa som var enklast att
+åtgärda och som prioriterades i den ursprungliga bedömningen (#1, #2, #3 och #7 i tabellen
+nedan) är nu åtgärdade i koden – se raderna för status. Kvarstår gör punkterna #4–#6 och
+#8–#11, samtliga fortsatt spårade som ärende SYN-6.
+
 ### Vad som fungerar bra
 
 Följande är kontrollerat och uppfyller kraven:
@@ -77,24 +82,24 @@ Följande är kontrollerat och uppfyller kraven:
 
 Följande brister är kända och planerade att åtgärdas.
 
-| # | Brist | WCAG-krav | Nivå | Konsekvens för användaren |
-|---|-------|-----------|------|---------------------------|
-| 1 | Ingen "hoppa till innehåll"-länk, och inget `<main>`-landmärke. Tio navigeringslänkar passeras innan huvudinnehållet nås. | 2.4.1 Hoppa över block | **A** | Tangentbords- och skärmläsaranvändare måste tabba förbi hela menyn på varje sida. |
-| 2 | Sidans titel är "Synappsen" på samtliga sidor och ändras inte vid navigering. | 2.4.2 Sidans titel | **A** | Skärmläsaranvändare får ingen bekräftelse på vilken sida de kommit till; flera öppna flikar går inte att skilja åt. |
-| 3 | Rollväljaren i adminpanelens användarlista saknar tillgängligt namn. | 4.1.2 Namn, roll, värde | **A** | Skärmläsaren läser upp menyn utan att ange vad den styr. Påverkar endast superadministratörer. |
-| 4 | Anslagstavlan saknar huvudrubrik (`<h1>`). | 1.3.1 Information och relationer | **A** | Sidans syfte framgår inte vid rubriknavigering. |
-| 5 | Bekräftelsemeddelanden (notiser) kan bara stängas med musklick. | 2.1.1 Tangentbord | **A** | Kan inte avfärdas med tangentbord; de försvinner dock av sig själva. |
-| 6 | Bekräftelsemeddelanden försvinner automatiskt efter 5 sekunder utan möjlighet att förlänga. | 2.2.1 Justerbar tidsgräns | **A** | Användare som läser långsamt eller använder skärmläsare hinner kanske inte uppfatta meddelandet. |
-| 7 | Bekräftelsedialogen kan inte stängas med Esc, håller inte kvar fokus inuti sig, återlämnar inte fokus vid stängning och saknar tillgängligt namn. | 2.4.3 Fokusordning, 4.1.2 | A/AA | Skärmläsaranvändare kan hamna i bakgrundsinnehållet medan dialogen är öppen. |
-| 8 | Ramfärgen på inmatningsfält och kort har kontrasten 1,23:1 mot vit bakgrund (kravet är 3:1). | 1.4.11 Kontrast för icke-text | **AA** | Fältgränser kan vara svåra att urskilja vid nedsatt syn eller i starkt ljus. |
-| 9 | I mörkt tema har den blå accentfärgen kontrasten 3,98:1 mot kortbakgrund (kravet är 4,5:1). | 1.4.3 Kontrast (minimum) | **AA** | Länktext i mörkt läge kan vara svårläst. Ljust tema är opåverkat. |
-| 10 | En etikett i rutinformuläret omsluter både en verktygsrad med knappar och ett textfält. | 1.3.1 Information och relationer | **A** | Kopplingen mellan etikett och fält blir tvetydig för hjälpmedel. |
-| 11 | Emoji förekommer i rubriker och navigeringslänkar. | 1.3.1 (tolkning) | – | Skärmläsare läser upp emojinamn, vilket gör uppläsningen omständlig. Formellt inget krav­brott, men en reell försämring. |
+| # | Brist | WCAG-krav | Nivå | Konsekvens för användaren | Status |
+|---|-------|-----------|------|---------------------------|--------|
+| 1 | Ingen "hoppa till innehåll"-länk, och inget `<main>`-landmärke. Tio navigeringslänkar passeras innan huvudinnehållet nås. | 2.4.1 Hoppa över block | **A** | Tangentbords- och skärmläsaranvändare måste tabba förbi hela menyn på varje sida. | **Åtgärdat 2026-07-26** – synlig-vid-fokus "Hoppa till innehåll"-länk samt `<main id="huvudinnehall">` på samtliga skyddade sidor. |
+| 2 | Sidans titel är "Synappsen" på samtliga sidor och ändras inte vid navigering. | 2.4.2 Sidans titel | **A** | Skärmläsaranvändare får ingen bekräftelse på vilken sida de kommit till; flera öppna flikar går inte att skilja åt. | **Åtgärdat 2026-07-26** – `document.title` sätts per rutt (`useSidTitel`). |
+| 3 | Rollväljaren i adminpanelens användarlista saknar tillgängligt namn. | 4.1.2 Namn, roll, värde | **A** | Skärmläsaren läser upp menyn utan att ange vad den styr. Påverkar endast superadministratörer. | **Åtgärdat 2026-07-26** – `aria-label` med användarens namn tillagt. |
+| 4 | Anslagstavlan saknar huvudrubrik (`<h1>`). | 1.3.1 Information och relationer | **A** | Sidans syfte framgår inte vid rubriknavigering. | Kvarstår, spåras i SYN-6. |
+| 5 | Bekräftelsemeddelanden (notiser) kan bara stängas med musklick. | 2.1.1 Tangentbord | **A** | Kan inte avfärdas med tangentbord; de försvinner dock av sig själva. | Kvarstår, spåras i SYN-6. |
+| 6 | Bekräftelsemeddelanden försvinner automatiskt efter 5 sekunder utan möjlighet att förlänga. | 2.2.1 Justerbar tidsgräns | **A** | Användare som läser långsamt eller använder skärmläsare hinner kanske inte uppfatta meddelandet. | Kvarstår, spåras i SYN-6. |
+| 7 | Bekräftelsedialogen kan inte stängas med Esc, håller inte kvar fokus inuti sig, återlämnar inte fokus vid stängning och saknar tillgängligt namn. | 2.4.3 Fokusordning, 4.1.2 | A/AA | Skärmläsaranvändare kan hamna i bakgrundsinnehållet medan dialogen är öppen. | **Åtgärdat 2026-07-26** – Esc stänger, fokus fångas inuti dialogen (Tab-cykel), fokus återlämnas till det som var fokuserat innan, `aria-labelledby` mot frågetexten. |
+| 8 | Ramfärgen på inmatningsfält och kort har kontrasten 1,23:1 mot vit bakgrund (kravet är 3:1). | 1.4.11 Kontrast för icke-text | **AA** | Fältgränser kan vara svåra att urskilja vid nedsatt syn eller i starkt ljus. | Kvarstår, spåras i SYN-6. |
+| 9 | I mörkt tema har den blå accentfärgen kontrasten 3,98:1 mot kortbakgrund (kravet är 4,5:1). | 1.4.3 Kontrast (minimum) | **AA** | Länktext i mörkt läge kan vara svårläst. Ljust tema är opåverkat. | Kvarstår, spåras i SYN-6. |
+| 10 | En etikett i rutinformuläret omsluter både en verktygsrad med knappar och ett textfält. | 1.3.1 Information och relationer | **A** | Kopplingen mellan etikett och fält blir tvetydig för hjälpmedel. | Kvarstår, spåras i SYN-6. |
+| 11 | Emoji förekommer i rubriker och navigeringslänkar. | 1.3.1 (tolkning) | – | Skärmläsare läser upp emojinamn, vilket gör uppläsningen omständlig. Formellt inget krav­brott, men en reell försämring. | Kvarstår, spåras i SYN-6. |
 
-**Planerad åtgärd:** samtliga punkter ovan hanteras inom Etapp 9b i produktens
-utvecklingsplan (spåras som ärende SYN-6). Punkterna 1–4 är enkla att åtgärda och bör
-prioriteras först, eftersom de är på nivå A och påverkar alla användare.
-Beräknat åtgärdat senast `[FYLL I: datum]`.
+**Planerad åtgärd:** punkterna 1–3 och 7 (samtliga nivå A, de fyra som identifierades som
+enklast att åtgärda) är åtgärdade – se Etapp 13g (`ETAPPLAN3.md`) och `UTVECKLINGSLOGG.md`
+fas 46. Övriga punkter hanteras inom Etapp 9b i produktens utvecklingsplan (spåras som
+ärende SYN-6). Beräknat åtgärdat senast `[FYLL I: datum]`.
 
 ### 2. Oskäligt betungande anpassning
 

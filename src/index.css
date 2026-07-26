@@ -400,6 +400,25 @@ h1 {
   flex: 1;
 }
 
+/* Etapp 13g (WCAG 2.4.1): osynlig tills den får tangentbordsfokus, då hoppar länken
+   direkt till huvudinnehållet och tar tangentbords-/skärmläsaranvändare förbi menyn. */
+.hoppa-till-innehall {
+  position: absolute;
+  top: -40px;
+  left: 8px;
+  z-index: 1000;
+  padding: 10px 16px;
+  background: var(--primar);
+  color: #fff;
+  border-radius: var(--radius-liten);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hoppa-till-innehall:focus {
+  top: 8px;
+}
+
 .sektionssida__valbar-kryssruta {
   display: flex;
   align-items: center;

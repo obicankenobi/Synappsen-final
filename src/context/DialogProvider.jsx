@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DialogContext } from "./dialogContextDef";
 import "./DialogProvider.css";
 
@@ -10,6 +10,8 @@ export function DialogProvider({ children }) {
   const [fraga, setFraga] = useState(null);
   const resolveRef = useRef(null);
   const [meddelanden, setMeddelanden] = useState([]);
+  const rutaRef = useRef(null);
+  const senasteFokusRef = useRef(null);
 
   const confirm = useCallback((text) => {
     return new Promise((resolve) => {
@@ -23,6 +25,44 @@ export function DialogProvider({ children }) {
     resolveRef.current?.(resultat);
     resolveRef.current = null;
   }
+
+  // Etapp 13g (WCAG 2.4.3/4.1.2): kom ihåg vad som var fokuserat innan dialogen öppnades,
+  // flytta fokus in i dialogen, och fånga Tab/Esc så fokus aldrig läcker ut till
+  // bakgrundsinnehållet medan dialogen är öppen. Vid stängning återlämnas fokus dit det kom
+  // ifrån.
+  useEffect(() => {
+    if (!fraga) return undefined;
+
+    senasteFokusRef.current = document.activeElement;
+    const jaKnapp = rutaRef.current?.querySelector("[data-dialog-ja]");
+    jaKnapp?.focus();
+
+    function hanteraTangent(e) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        svara(false);
+        return;
+      }
+      if (e.key !== "Tab" || !rutaRef.current) return;
+      const fokuserbara = rutaRef.current.querySelectorAll("button, [href], input, select, textarea");
+      if (fokuserbara.length === 0) return;
+      const forsta = fokuserbara[0];
+      const sista = fokuserbara[fokuserbara.length - 1];
+      if (e.shiftKey && document.activeElement === forsta) {
+        e.preventDefault();
+        sista.focus();
+      } else if (!e.shiftKey && document.activeElement === sista) {
+        e.preventDefault();
+        forsta.focus();
+      }
+    }
+
+    document.addEventListener("keydown", hanteraTangent);
+    return () => {
+      document.removeEventListener("keydown", hanteraTangent);
+      senasteFokusRef.current?.focus?.();
+    };
+  }, [fraga]);
 
   const visaMeddelande = useCallback((text) => {
     const id = crypto.randomUUID();
@@ -41,14 +81,14 @@ export function DialogProvider({ children }) {
       {children}
 
       {fraga && (
-        <div className="bekraftelse-overlay" role="alertdialog" aria-modal="true">
-          <div className="bekraftelse-ruta">
-            <p>{fraga}</p>
+        <div className="bekraftelse-overlay" role="alertdialog" aria-modal="true" aria-labelledby="bekraftelse-text">
+          <div className="bekraftelse-ruta" ref={rutaRef}>
+            <p id="bekraftelse-text">{fraga}</p>
             <div className="bekraftelse-knappar">
               <button type="button" className="knapp knapp--sekundar" onClick={() => svara(false)}>
                 Avbryt
               </button>
-              <button type="button" className="knapp" onClick={() => svara(true)} autoFocus>
+              <button type="button" className="knapp" onClick={() => svara(true)} data-dialog-ja autoFocus>
                 Ja
               </button>
             </div>

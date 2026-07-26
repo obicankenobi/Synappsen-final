@@ -111,7 +111,18 @@ nytt öppet fält identifierat – ingen dokumenterad återställningstid (RTO) 
 finns, markerad `[FYLLS I]`. 13e uppdaterade `PITCH.md` (version 5.7.0 → 5.25.0) och
 **rättade ett sakfel:** dokumentet påstod att klinikstöd-sökningen "hämtar live" svar,
 men funktionen är i själva verket medvetet pausad i gränssnittet sedan v5.3.5 – omskrivet
-till att öppet berätta det. Nästa steg i Etapp 13: 13f (SSO/Entra ID), sedan 13g.
+till att öppet berätta det.
+
+**13g klart (13f avvaktar på ägarens instruktion):** fyra WCAG-A-brister från fas 34/SYN-6
+åtgärdade i kod – "hoppa till innehåll"-länk + `<main>`-landmärke, dynamisk sidtitel per
+rutt (`useSidTitel`), tillgängligt namn på adminpanelens rollväljare, och
+bekräftelsedialogen (`DialogProvider.jsx`) stängs nu med Esc, håller kvar fokus (Tab-cykel)
+och återlämnar det vid stängning. `TILLGANGLIGHETSREDOGORELSE.md` uppdaterad med status
+per rad (fortsatt "delvis förenlig" – sju punkter kvarstår). Version bumpad 5.25.0 →
+**5.25.1** eftersom detta är en faktisk beteendeändring, inte dokumentation. **Linear
+SYN-6 kunde inte uppdateras från den här sessionen** (ingen Linear-verktygsåtkomst
+tillgänglig just nu) – uppdatera ärendet manuellt. Grönt `npm run lint`/`build`/
+`npx vitest run` (29/29). Nästa steg i Etapp 13: 13f (SSO/Entra ID) när ägaren är redo.
 
 ## Vad som återstår (se ETAPPLAN2.md för detaljer)
 

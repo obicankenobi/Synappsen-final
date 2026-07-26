@@ -192,7 +192,7 @@ fråga IT och dataskyddsombudet" och dör där.
   kan logga in med sitt Entra-konto och hamnar i rätt organisation med rätt roll, samtidigt
   som en annan kund utan SSO fortsätter fungera med e-post/lösenord precis som idag.
 
-### 13g – WCAG-A-snabbfixar (SYN-6) *(ny – saknades i tidigare utkast)*
+### 13g – WCAG-A-snabbfixar (SYN-6) ✅ KLAR *(ny – saknades i tidigare utkast)*
 
 - De fyra kvarvarande nivå A-bristerna som redan identifierades och dokumenterades i
   `TILLGANGLIGHETSREDOGORELSE.md` (fas 34) men aldrig schemalades i en etapp: inget
@@ -205,6 +205,15 @@ fråga IT och dataskyddsombudet" och dör där.
 - **Arbetsuppgift:** åtgärda de fyra punkterna, uppdatera `TILLGANGLIGHETSREDOGORELSE.md`
   från "delvis förenlig" till (förhoppningsvis) "helt förenlig" eller motivera vad som
   eventuellt kvarstår, stäng Linear-ärendet SYN-6.
+- **Resultat:** samtliga fyra punkter åtgärdade i kod – se `UTVECKLINGSLOGG.md` fas 46 för
+  den fullständiga tekniska beskrivningen. `TILLGANGLIGHETSREDOGORELSE.md` uppdaterad med
+  status per rad i tabellen; dokumentet ändras INTE till "helt förenlig" eftersom sju andra
+  punkter (#4–#6, #8–#11) fortfarande kvarstår och är oförändrat spårade i SYN-6 – det vore
+  fel att påstå full förenlighet. Linear-ärendet SYN-6 kunde inte stängas från den här
+  sessionen (ingen Linear-verktygsåtkomst tillgänglig i detta körningsläge) – **ägaren
+  behöver själv uppdatera SYN-6** med att fyra av elva punkter är klara, resten kvarstår.
+  Version bumpad 5.25.0 → 5.25.1 eftersom detta är en faktisk, användarmärkbar
+  beteendeändring (till skillnad från 13a–13f som är ren dokumentation).
 
 **Klart när:** de fem dokumenten (13a–13e) finns i repot, `PITCH.md` matchar aktuell
 version, ägaren kan svara på en IT-avdelnings standardfrågor utan att skriva något nytt,

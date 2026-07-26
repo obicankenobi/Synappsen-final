@@ -5,6 +5,7 @@ import { DialogProvider } from "./context/DialogProvider";
 import { useAuth } from "./hooks/useAuth";
 import { useInaktivitetsUtloggning } from "./hooks/useInaktivitetsUtloggning";
 import { useUtloggningsinstallning } from "./hooks/useUtloggningsinstallning";
+import { useSidTitel } from "./hooks/useSidTitel";
 import InaktivitetsVarning from "./components/InaktivitetsVarning";
 import OfflineIndikator from "./components/OfflineIndikator";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -65,14 +66,21 @@ function SidLaddare() {
 function SkyddatLayout({ children }) {
   return (
     <SkyddadRoute>
-      <div className="app-innehall">
+      <main id="huvudinnehall" className="app-innehall" tabIndex={-1}>
         <ErrorBoundary>
           <Suspense fallback={<SidLaddare />}>{children}</Suspense>
         </ErrorBoundary>
-      </div>
+      </main>
       <BottomNav />
     </SkyddadRoute>
   );
+}
+
+// Etapp 13g (WCAG 2.4.2): sätter document.title per rutt. Måste monteras inuti
+// BrowserRouter (useLocation kräver Router-kontext), renderar inget synligt.
+function SidTitelBevakning() {
+  useSidTitel();
+  return null;
 }
 
 // Loggar automatiskt ut vid inaktivitet, oavsett vilken skyddad rutt användaren är på
@@ -91,6 +99,10 @@ export default function App() {
       <InaktivitetsBevakning />
       <SessionKontroll />
       <BrowserRouter>
+        <a href="#huvudinnehall" className="hoppa-till-innehall">
+          Hoppa till innehåll
+        </a>
+        <SidTitelBevakning />
         <MfaPolicyBanner />
         <Routes>
           <Route
@@ -253,13 +265,13 @@ export default function App() {
             path="/admin"
             element={
               <RollSkyddadRoute tillatnaRoller={REDAKTORSROLLER}>
-                <div className="app-innehall">
+                <main id="huvudinnehall" className="app-innehall" tabIndex={-1}>
                   <ErrorBoundary>
                     <Suspense fallback={<SidLaddare />}>
                       <Admin />
                     </Suspense>
                   </ErrorBoundary>
-                </div>
+                </main>
                 <BottomNav />
               </RollSkyddadRoute>
             }
@@ -268,13 +280,13 @@ export default function App() {
             path="/ledningsrapport"
             element={
               <RollSkyddadRoute tillatnaRoller={REDAKTORSROLLER}>
-                <div className="app-innehall">
+                <main id="huvudinnehall" className="app-innehall" tabIndex={-1}>
                   <ErrorBoundary>
                     <Suspense fallback={<SidLaddare />}>
                       <Ledningsrapport />
                     </Suspense>
                   </ErrorBoundary>
-                </div>
+                </main>
                 <BottomNav />
               </RollSkyddadRoute>
             }

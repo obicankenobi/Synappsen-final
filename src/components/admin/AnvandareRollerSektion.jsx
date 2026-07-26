@@ -24,6 +24,7 @@ export default function AnvandareRollerSektion({
                 value={anvandarpost.role}
                 disabled={anvandarpost.id === currentUser.uid}
                 onChange={(e) => uppdateraRoll(anvandarpost.id, e.target.value)}
+                aria-label={`Roll för ${anvandarpost.namn || anvandarpost.email || "användare"}`}
               >
                 {Object.values(ROLES).map((roll) => (
                   <option key={roll} value={roll}>

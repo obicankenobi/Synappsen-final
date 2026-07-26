@@ -2738,3 +2738,55 @@ faktiskt sakfel rättat, inte bara en versionsuppdatering.
 appkod eller appbeteende.
 
 Kvarstår i Etapp 13: 13f (SSO/Entra ID), 13g (WCAG-A-snabbfixar).
+
+---
+
+## Fas 46 – Etapp 13g: fyra WCAG-A-snabbfixar (SYN-6)
+
+Åtgärdade de fyra punkter (#1, #2, #3, #7 i `TILLGANGLIGHETSREDOGORELSE.md`) som
+identifierades vid granskningen i fas 34 men aldrig schemalades förrän nu, samtliga på
+WCAG nivå A. Enda kodändringen i Etapp 13 hittills (13a–13f är dokumentation).
+
+- **#1 – "Hoppa till innehåll" + `<main>`-landmärke:** ny CSS-klass
+  `.hoppa-till-innehall` i `index.css` (osynlig tills tangentbordsfokus, synlig vid
+  `:focus`). Länken renders överst i `App.jsx`, direkt inuti `<BrowserRouter>`, och pekar
+  mot `#huvudinnehall`. `SkyddatLayout` samt de två inline-layouterna för `/admin` och
+  `/ledningsrapport` bytte sin `<div className="app-innehall">` mot
+  `<main id="huvudinnehall" className="app-innehall" tabIndex={-1}>`.
+- **#2 – dynamisk sidtitel:** ny hook `src/hooks/useSidTitel.js`, en tabell av
+  path→titel-mönster, satt via `useEffect`/`useLocation` varje gång rutten ändras
+  (`document.title = "<Titel> – Synappsen"`). Monterad som en osynlig komponent
+  `SidTitelBevakning` inuti `<BrowserRouter>` i `App.jsx` (måste vara innanför Router-
+  kontexten för att `useLocation` ska fungera).
+- **#3 – rollväljarens tillgängliga namn:** `AnvandareRollerSektion.jsx`, `<select>`-
+  elementet fick `aria-label={"Roll för " + användarens namn/e-post}`.
+- **#7 – bekräftelsedialogen:** `DialogProvider.jsx` skrevs om. Ett `useEffect` som körs
+  när dialogen öppnas: sparar `document.activeElement`, flyttar fokus till "Ja"-knappen,
+  lägger på en `keydown`-lyssnare som (a) stänger dialogen vid Escape, (b) fångar Tab/
+  Shift+Tab i en cykel mellan de två knapparna så fokus aldrig lämnar dialogen. Vid
+  stängning (cleanup-funktionen) återlämnas fokus till det som var fokuserat innan
+  dialogen öppnades. `aria-labelledby="bekraftelse-text"` kopplar dialogens
+  `role="alertdialog"` till frågetexten som tillgängligt namn.
+
+**Medvetet INTE gjort i denna fas:** punkterna #4–#6 och #8–#11 i redogörelsen (H1 på
+anslagstavlan, tangentbordsstängbara notiser, kontrastfixar, etikettstruktur i
+rutinformuläret, emoji i rubriker) – dessa var inte del av "de fyra enklaste" som
+identifierades i fas 34 och `ETAPPLAN3.md` 13g avgränsade explicit till just de fyra.
+`TILLGANGLIGHETSREDOGORELSE.md` uppdaterad med status per rad, men INTE ändrad till "helt
+förenlig" eftersom de sju kvarstår.
+
+**Linear SYN-6:** kunde inte stängas/uppdateras från den här sessionen – ingen
+Linear-verktygsåtkomst var tillgänglig i detta körningsläge (till skillnad från när
+ärendena skapades, fas 33). Ägaren behöver själv markera de fyra delpunkterna som klara
+i SYN-6.
+
+**Verifiering:** `npm run lint` (0 fel, en tidigare `eslint-disable`-varning togs bort
+efter kontroll att regeln inte behövde den), `npm run build` (grönt), `npx vitest run`
+**29/29** grönt.
+
+**Versionsbump:** 5.25.0 → 5.25.1 (`package.json`, `src/version.js`,
+`src/data/andringslogg.js`) – till skillnad från 13a–13f är detta en faktisk,
+användarmärkbar beteendeändring (tangentbordsnavigering, dialogbeteende), inte ren
+dokumentation.
+
+Kvarstår i Etapp 13: 13f (SSO/Entra ID, avvaktar enligt ägarens instruktion).

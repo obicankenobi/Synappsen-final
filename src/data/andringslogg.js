@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.25.1",
+    datum: "2026-07-26",
+    andringar: [
+      "Fyra tillgänglighetsförbättringar för tangentbords- och skärmläsaranvändare: en \"hoppa till innehåll\"-länk, sidtitlar som ändras vid navigering, en tydligare bekräftelsedialog (går att stänga med Esc) och en tydligare rollväljare i adminpanelen",
+    ],
+  },
+  {
     version: "5.25.0",
     datum: "2026-07-26",
     andringar: [
