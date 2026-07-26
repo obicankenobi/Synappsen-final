@@ -2410,4 +2410,45 @@ functions/index.js` – alla gröna, ingen regression.
 
 Kvarstår i Etapp 12: 12c (App Check), 12d–12g (PII-härdning). En framtida
 `firebase-tools`-majoruppgradering (13→15) är identifierad men medvetet inte schemalagd
-här – kräver en egen, försiktig testcykel.
+här – kräver en egen, försiktig testcykel. Denna uppgradering är nu formellt spårad som
+**Etapp 12h** i ETAPPLAN2.md (EJ PÅBÖRJAD), med testcykeln (isolerad gren, läsa
+ändringsloggen för brytande CLI-ändringar, hela testsvepet mot den nya versionen, en
+deploy-verifiering mot ett separat testprojekt) uttryckligen nedskriven där så den inte
+glöms bort eller görs som en snabb sidoeffekt av något annat delmål.
+
+---
+
+## Fas 37 – Etapp 12c-i: App Check aktiverat i klienten (mätfas)
+
+Steg ett av tre i Etapp 12c. `enforceAppCheck` förekom noll gånger i `functions/index.js` –
+rules och `kravModul`-gating bär redan hela den verkliga säkerhetsbördan (bevisat av
+testsviterna), men App Check är standardfrågan vid en Firebase-säkerhetsgranskning och
+saknades helt som lager.
+
+**Ändring:** `src/firebase/config.js` initierar nu `initializeAppCheck()` med
+`ReCaptchaV3Provider`, direkt efter `initializeApp()` och före `getAuth()`. Aktiveras bara
+om `VITE_RECAPTCHA_SITE_KEY` är satt OCH `VITE_USE_EMULATOR` inte är `"true"` – utan
+sitenyckel är det ett rent no-op, samma mönster som Sentry-DSN:et i Fas 33. Ingen
+serverkontroll läggs till i detta steg (det är 12c-ii, medvetet separat).
+
+**Detta steg kräver en extern, manuell åtgärd som inte kan göras av Claude:** en
+reCAPTCHA v3-sitenyckel måste registreras på google.com/recaptcha/admin, appen måste
+registreras för App Check i Firebase-konsolen med den nyckeln, och nyckeln måste läggas
+till som `VITE_RECAPTCHA_SITE_KEY` i `deploy.yml` (icke-hemlig, samma hantering som
+Firebase-konfigen – en reCAPTCHA-sitenyckel är avsedd att vara publik). Full instruktion
+i ETAPPLAN2.md Etapp 12c. Fram tills dess är koden inaktiv men ofarlig.
+
+**Verifiering:** `npm run build` (firebase-app-check-modulen bäddas in, `firebase-vendor`-
+chunken växer marginellt, ~678 kB → ~686 kB), `npm run lint`, `npx vitest run` (29/29) –
+alla gröna. Manuell Playwright-körning mot emulatorer i riktig browser (samma inloggning
+som tidigare sessioner verifierat med): inga sid- eller konsollfel, inloggningen fungerar
+identiskt som innan ändringen – bekräftar att no-op-vägen (ingen sitenyckel konfigurerad,
+vilket är det verkliga läget just nu) inte introducerar några regressioner.
+
+**Ingen versionsbump.** Koden är för närvarande helt inaktiv (ingen sitenyckel existerar
+ännu) – det finns inget beteende att beskriva i en användarvänd ändringslogg förrän
+sitenyckeln är på plats och App Check faktiskt börjar utfärda tokens.
+
+Kvarstår i Etapp 12: 12c-ii (`enforceAppCheck`, väntar på mätperiod efter att sitenyckeln
+finns), 12c-iii (test), 12d–12g (PII-härdning), 12h (`firebase-tools`-uppgradering,
+EJ PÅBÖRJAD, egen testcykel krävs).
