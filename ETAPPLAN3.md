@@ -241,7 +241,7 @@ granskningsbar.
 > obehörig ändring via normal appanvändning, är inte en garanti mot en administratör med
 > full systemåtkomst." Att lova mer än så håller inte vid en riktig incident.
 
-### 14a – Skrivskyddad loggcollection
+### 14a – Skrivskyddad loggcollection ✅ KLAR
 
 - Ny collection `revisionslogg` med fält: `organisationId`, `tidpunkt` (serverTimestamp),
   `aktorUid`, `aktorRoll`, `handelsetyp`, `objektTyp`, `objektId`, `sammanfattning`,
@@ -251,6 +251,23 @@ granskningsbar.
   organisation.
 - **Test:** `tests/rules/revisionslogg.test.mjs` som bevisar att en inloggad superadmin
   *inte* kan skriva, uppdatera eller radera en post.
+- **Resultat:** ny `match /revisionslogg/{loggId}` i `firestore.rules` – läsning kräver
+  `arSuperadmin() && matcharMinOrg(...)` eller `arPlattformsadmin()` (leverantörsadmin,
+  läser tvärs organisationer, samma mönster som `organisationer/{orgId}`), skrivning
+  `if false` rakt av (bara Admin SDK kringgår reglerna). Ny testfil
+  `tests/rules/revisionslogg.test.mjs`, 8 tester, tillagd i `test:rules`-scriptet i
+  `package.json` (nu 3 testfiler i den kedjan). Alla 8 gröna, hela `test:rules`-svepet
+  (62+5+8 = 75 tester) grönt.
+  **Viktigt fynd vid premisskontroll (genomgående krav 8):** en redan existerande
+  `auditlogg`-collection upptäcktes under arbetet – den tillåter i dag att **VILKEN
+  inloggad klient som helst** skriver en egen post direkt (`allow create: if
+  arInloggad() && ...`, ingen rollkontroll). Det bekräftar Etapp 14:s premiss skarpare än
+  planen antog: dagens logg är inte bara "utan manipuleringsdetektion" utan rent
+  klientskrivbar, vilket gör `revisionslogg` (helt stängd för klienter) till en reell
+  förstärkning, inte bara ett komplement. `auditlogg` lämnades orörd – den fyller
+  fortfarande sitt syfte som en enkel, snabb ändringslogg, men bör inte förväxlas med
+  `revisionslogg`s granskningsgaranti. Kommentaren i `firestore.rules` förklarar
+  skillnaden på plats.
 
 ### 14b – Hashkedja
 

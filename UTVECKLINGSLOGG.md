@@ -2790,3 +2790,46 @@ användarmärkbar beteendeändring (tangentbordsnavigering, dialogbeteende), int
 dokumentation.
 
 Kvarstår i Etapp 13: 13f (SSO/Entra ID, avvaktar enligt ägarens instruktion).
+
+---
+
+## Fas 47 – Etapp 14a: skrivskyddad revisionslogg-collection
+
+Första delmålet i Etapp 14 (`ETAPPLAN3.md`) – en exporterbar revisionslogg med begränsad
+manipuleringsdetektion. Det här steget bygger bara skalet: en collection ingen klient kan
+skriva till. Hashkedjan (14b) och de faktiska loggningsanropen (14c) är separata,
+kommande delmål.
+
+- Ny `match /revisionslogg/{loggId}` i `firestore.rules`: `allow read` kräver
+  `arSuperadmin() && matcharMinOrg(...)` (egen organisation) eller `arPlattformsadmin()`
+  (leverantörsadmin, samma mönster som redan finns för `organisationer/{orgId}`).
+  `allow create, update, delete: if false` – ingen klient, oavsett roll, kan någonsin
+  skriva. Bara Cloud Functions (Admin SDK) kringgår detta, via den kommande
+  `loggaRevision()`-funktionen (Etapp 14c).
+- Ny testfil `tests/rules/revisionslogg.test.mjs`, 8 tester: läsning respekterar
+  organisationsisolering (superadminA läser egen post, superadminB nekas, en vanlig
+  "vol"-roll nekas helt, en plattformsadmin läser tvärs organisationer), och att varken en
+  superadmin i sin egen organisation eller en plattformsadmin kan skapa/uppdatera/radera
+  en post. Tillagd i `package.json`s `test:rules`-script (tredje testfilen i kedjan).
+
+**Fynd vid premisskontroll (genomgående krav 8):** en redan existerande `auditlogg`-
+collection hittades i `firestore.rules` under arbetet. Den tillåter i dag att **vilken
+inloggad klient som helst** skapar en egen post direkt (`allow create: if arInloggad()
+&& ...`), utan någon rollkontroll. Detta var inte tidigare dokumenterat som en brist –
+`avtal/DPIA-UNDERLAG.md` (fas 43) nämnde bara att revisionsloggen "saknar
+manipuleringsskydd", inte att den befintliga ändringsloggen är helt klientskrivbar. Detta
+skärper motiveringen för Etapp 14 rejält: `revisionslogg` är inte bara ett komplement utan
+en reell täppning av en lucka. `auditlogg` lämnades oförändrad (fyller fortfarande sitt
+syfte som en snabb, enkel logg) men en kommentar i `firestore.rules` förklarar nu
+skillnaden mellan de två collectionerna på plats, så framtida läsning inte förväxlar dem.
+
+**Verifiering:** `npm run test:rules` – 75 tester gröna (62 + 5 + 8, tre testfiler i
+kedjan), `npm run lint`, `npm run build`, `node -c functions/index.js` – samtliga gröna.
+
+**Ingen versionsbump.** Ny regel/collection utan någon motsvarande UI-yta ännu – inget
+användarmärkbart att skriva i changeloggen förrän 14c/14d ger en faktisk vy att visa.
+
+`ETAPPLAN3.md` 14a uppdaterad med samma resultat.
+
+Kvarstår i Etapp 14: 14b (hashkedja), 14c (vilka händelser som loggas), 14d (export/
+verifiering).

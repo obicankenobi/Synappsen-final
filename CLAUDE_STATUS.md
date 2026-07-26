@@ -122,7 +122,19 @@ per rad (fortsatt "delvis förenlig" – sju punkter kvarstår). Version bumpad 
 **5.25.1** eftersom detta är en faktisk beteendeändring, inte dokumentation. **Linear
 SYN-6 kunde inte uppdateras från den här sessionen** (ingen Linear-verktygsåtkomst
 tillgänglig just nu) – uppdatera ärendet manuellt. Grönt `npm run lint`/`build`/
-`npx vitest run` (29/29). Nästa steg i Etapp 13: 13f (SSO/Entra ID) när ägaren är redo.
+`npx vitest run` (29/29). Etapp 13 är nu klar utom 13f (SSO/Entra ID), som väntar på
+ägarens instruktion.
+
+**Etapp 14 påbörjad – 14a klart:** ny `revisionslogg`-collection i `firestore.rules`,
+helt stängd för klientskrivning (`allow create, update, delete: if false`), läsning bara
+för superadmin (egen organisation) eller leverantörsadmin. Ny testfil
+`tests/rules/revisionslogg.test.mjs` (8 tester, tillagd i `test:rules`-scriptet). **Viktigt
+fynd vid premisskontroll:** en redan existerande `auditlogg`-collection visade sig tillåta
+att VILKEN inloggad klient som helst skriver en egen post direkt utan rollkontroll – det
+skärper motiveringen för Etapp 14 rejält (revisionslogg täpper en verklig lucka, inte bara
+ett komplement). `auditlogg` lämnad orörd, men kommenterad i `firestore.rules` för att
+skilja de två åt. `npm run test:rules` grönt (75 tester). Ingen versionsbump (ingen
+motsvarande UI-yta ännu). Nästa steg i Etapp 14: 14b (hashkedjan).
 
 ## Vad som återstår (se ETAPPLAN2.md för detaljer)
 

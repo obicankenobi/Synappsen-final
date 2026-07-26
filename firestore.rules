@@ -399,6 +399,22 @@ service cloud.firestore {
       allow create: if arInloggad() && request.resource.data.get('organisationId', 'default') == minOrganisation();
     }
 
+    // revisionslogg/{loggId} – Etapp 14a: en granskningsbar revisionslogg, medvetet skild
+    // från auditlogg ovan. auditlogg kan skrivas direkt av VILKEN inloggad klient som helst
+    // (se create-regeln ovan) – vilket duger för en enkel "vem gjorde vad"-vy, men betyder
+    // att en klient i teorin kan fabricera eller helt utelämna en post. revisionslogg finns
+    // till för händelser där just den egenskapen är poängen: INGEN klient, oavsett roll,
+    // får skapa/ändra/radera en post här – bara Cloud Functions (Admin SDK, via
+    // loggaRevision() i functions/index.js, se Etapp 14c) skriver, vilket kringgår dessa
+    // regler helt. Hashkedjan som gör en manipulerad/borttagen post upptäckbar byggs i
+    // Etapp 14b – se den begränsning som beskrivs där (skyddar mot en klient, INTE mot
+    // Admin SDK-åtkomst).
+    match /revisionslogg/{loggId} {
+      allow read: if (arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default')))
+                   || arPlattformsadmin();
+      allow create, update, delete: if false;
+    }
+
     // visningar/{nyckel} – räknare för populäraste sökträffar, inget känsligt innehåll men
     // ändå organisationsskopat så en organisations "mest använda"-lista inte blandas med en
     // annans (nyckeln inkluderar redan organisationId, se useVisningar.js).
