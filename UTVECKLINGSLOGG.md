@@ -2833,3 +2833,28 @@ användarmärkbart att skriva i changeloggen förrän 14c/14d ger en faktisk vy 
 
 Kvarstår i Etapp 14: 14b (hashkedja), 14c (vilka händelser som loggas), 14d (export/
 verifiering).
+
+---
+
+## Fas 48 – Etapp 14b (förberedelse): regel för revisionsloggHuvud
+
+Liten, fristående del av 14b, gjord separat p.g.a. begränsad sessionstid (användaren nära
+sin usage-gräns). Bara Firestore-regeln för huvuddokumentet som håller senaste hash –
+INTE själva transaktions-/hashlogiken, som kvarstår.
+
+- Ny `match /revisionsloggHuvud/{orgId}` i `firestore.rules`: dokumentets ID är
+  organisationens ID (samma mönster som `organisationer/{orgId}`), helt stängt för
+  klienter (`allow create, update, delete: if false`), läsning för superadmin (egen
+  organisation) eller leverantörsadmin.
+- 5 nya tester i `tests/rules/revisionslogg.test.mjs` (nu 13 tester i den filen totalt).
+  Ingen ny testfil eller ändring av `package.json` behövdes – redan inkopplad i
+  `test:rules` sedan fas 47.
+
+**Verifiering:** `npm run test:rules` – 80 tester gröna (62+5+13), `npm run lint` grönt.
+Build/vitest/functions-svepet kördes inte om i denna mini-fas (ingen kod i `src/` eller
+`functions/` ändrades).
+
+**Ingen versionsbump.** Ren regelförberedelse utan användarmärkbar effekt.
+
+Kvarstår i Etapp 14: resten av 14b (`loggaRevision()`-funktionen, hashberäkningen,
+transaktionen, en ny testfil under `tests/functions/`), 14c, 14d.

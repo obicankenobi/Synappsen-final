@@ -415,6 +415,19 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // revisionsloggHuvud/{orgId} – Etapp 14b (förberedelse): ett dokument per organisation
+    // som håller den senaste posten i revisionslogg-hashkedjan (fältet "senasteHash").
+    // Dokumentets ID ÄR organisationens ID (samma mönster som organisationer/{orgId} ovan),
+    // så kontrollen är orgId == minOrganisation(), inte ett organisationId-fält i datan.
+    // Precis som revisionslogg är detta helt stängt för klienter – bara Cloud Functions
+    // (den transaktion som byggs i Etapp 14b) läser och skriver det, för att serialisera
+    // hashkedjans skrivningar per organisation. Läsning tillåts ändå för superadmin/
+    // leverantörsadmin, ifall en framtida diagnos-/felsökningsvy behöver visa senaste hash.
+    match /revisionsloggHuvud/{orgId} {
+      allow read: if (arSuperadmin() && orgId == minOrganisation()) || arPlattformsadmin();
+      allow create, update, delete: if false;
+    }
+
     // visningar/{nyckel} – räknare för populäraste sökträffar, inget känsligt innehåll men
     // ändå organisationsskopat så en organisations "mest använda"-lista inte blandas med en
     // annans (nyckeln inkluderar redan organisationId, se useVisningar.js).

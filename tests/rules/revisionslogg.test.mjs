@@ -69,6 +69,9 @@ async function main() {
       hash: "def456",
     });
     await setDoc(doc(db, "plattformsadmin", "superadminA"), { blevPlattformsadmin: true });
+
+    await setDoc(doc(db, "revisionsloggHuvud", ORG_A), { senasteHash: "abc123" });
+    await setDoc(doc(db, "revisionsloggHuvud", ORG_B), { senasteHash: "def456" });
   });
 
   const superA = testEnv.authenticatedContext("superadminA").firestore();
@@ -117,6 +120,23 @@ async function main() {
         hash: "fejk2",
       })
     )
+  );
+
+  console.log("\nrevisionsloggHuvud/{orgId} – Etapp 14b-förberedelse: håller senaste hash");
+  await test("superadminA kan läsa sin egen organisations huvuddokument", () =>
+    assertSucceeds(getDoc(doc(superA, "revisionsloggHuvud", ORG_A)))
+  );
+  await test("superadminB kan INTE läsa org A:s huvuddokument", () =>
+    assertFails(getDoc(doc(superB, "revisionsloggHuvud", ORG_A)))
+  );
+  await test("en vanlig roll (vol) kan INTE läsa sin egen organisations huvuddokument", () =>
+    assertFails(getDoc(doc(volA, "revisionsloggHuvud", ORG_A)))
+  );
+  await test("en plattformsadmin kan läsa ÄVEN org B:s huvuddokument", () =>
+    assertSucceeds(getDoc(doc(superA, "revisionsloggHuvud", ORG_B)))
+  );
+  await test("superadminA kan INTE skriva till sin egen organisations huvuddokument", () =>
+    assertFails(updateDoc(doc(superA, "revisionsloggHuvud", ORG_A), { senasteHash: "fejk" }))
   );
 
   await testEnv.cleanup();

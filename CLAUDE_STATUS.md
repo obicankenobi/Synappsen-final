@@ -134,7 +134,15 @@ att VILKEN inloggad klient som helst skriver en egen post direkt utan rollkontro
 skärper motiveringen för Etapp 14 rejält (revisionslogg täpper en verklig lucka, inte bara
 ett komplement). `auditlogg` lämnad orörd, men kommenterad i `firestore.rules` för att
 skilja de två åt. `npm run test:rules` grönt (75 tester). Ingen versionsbump (ingen
-motsvarande UI-yta ännu). Nästa steg i Etapp 14: 14b (hashkedjan).
+motsvarande UI-yta ännu).
+
+**14b påbörjad, endast förberedelse (användaren nära sin usage-gräns, medvetet liten
+bit):** regeln för `revisionsloggHuvud/{orgId}` (huvuddokumentet som håller senaste hash)
+tillagd i `firestore.rules`, samma stängda mönster som `revisionslogg`. 5 nya tester
+(13 totalt i `tests/rules/revisionslogg.test.mjs`). `npm run test:rules` grönt (80
+tester). **Kvarstår av 14b:** själva `loggaRevision()`-funktionen, hashberäkningen och
+transaktionslogiken i `functions/index.js`, plus en ny testfil under
+`tests/functions/`. Nästa steg: fortsätt 14b (den delen som faktiskt bygger kedjan).
 
 ## Vad som återstår (se ETAPPLAN2.md för detaljer)
 

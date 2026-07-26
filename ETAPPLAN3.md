@@ -269,7 +269,15 @@ granskningsbar.
   `revisionslogg`s granskningsgaranti. Kommentaren i `firestore.rules` förklarar
   skillnaden på plats.
 
-### 14b – Hashkedja
+### 14b – Hashkedja 🔶 FÖRBEREDELSE KLAR (huvuddokumentets regel), transaktionslogiken kvarstår
+
+- **Delvist gjort:** `revisionsloggHuvud/{orgId}`-dokumentet som beskrivs nedan (fältet
+  `senasteHash`) har fått sin Firestore-regel redan nu, tillsammans med 14a – helt stängt
+  för klienter (`allow create, update, delete: if false`), läsning för superadmin/
+  leverantörsadmin (samma mönster som `revisionslogg`). 5 nya tester i
+  `tests/rules/revisionslogg.test.mjs` (totalt 13 i den filen). Detta var en liten,
+  fristående del av 14b som gjordes separat p.g.a. begränsad sessionstid – kvar återstår
+  själva `loggaRevision()`-funktionen och transaktionslogiken nedan.
 
 - Varje post får `hash = sha256(foregaendeHash + kanoniserad JSON av postens fält)`.
 - En brytning i kedjan avslöjar en manipulerad eller borttagen post – men se
