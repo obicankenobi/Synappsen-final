@@ -214,7 +214,7 @@ betala – inte bara personalen en anledning att använda.
   har 400 dokument, vi orkar inte flytta över dem". AI-dokumentimporten finns redan – bygg
   ett bulkläge ovanpå: ladda upp en mapp, granska förslagen i en kö, godkänn i klump. Detta
   är sannolikt den enskilt starkaste säljfunktionen i hela planen.
-- **10c. Ledningsrapport.** En månadsrapport per avdelning: kvitteringsgrad, rutiner som
+- **10c. ✅ GENOMFÖRD. Ledningsrapport.** En månadsrapport per avdelning: kvitteringsgrad, rutiner som
   passerat granskningsdatum, mest sökta frågor, andel nollträffar. Exporterbar till PDF.
   Personalen använder appen för att den är snabb; chefen betalar för att kunna visa att
   rutinerna faktiskt är lästa.

@@ -2069,3 +2069,34 @@ test:storage` (6/6), `npx vitest run` (29/29) – alla gröna (ingen av testsvit
 rent klientsidiga funktion, men kördes om för säkerhets skull).
 
 **Version:** 5.21.0.
+
+---
+
+## Fas 30 – Etapp 10c: ledningsrapport
+
+En enda utskriftsvänlig sida (`/ledningsrapport`, länkad från adminpanelen) riktad mot
+verksamhetschefer snarare än redaktörer – medan adminpanelen visar operativa detaljer
+(feedback, ändringslogg, budget) samlar den här sidan bara det en chef faktiskt vill kunna
+visa uppåt: läser personalen det som publiceras, och hittar de vad de söker efter.
+
+- **Kvitteringsgrad per område** (Kliniskt stöd/Administration separat, inte bara ett
+  kombinerat globalt snitt som i adminpanelens "Pilot-mätvärden") – samma beräkning
+  (godkända rutiners `lasteAv`/antal användare) som redan fanns i `Admin.jsx`, bara uppdelad.
+  Logistik särredovisas separat (utkast/godkända) eftersom förrådsartiklar inte har samma
+  läskvitteringsspårning som rutiner.
+- **Rutiner som bör granskas**, per område – återanvänder `borGranskas()` från
+  `utils/rutinHjalp.js` (samma logik som redan flaggar enskilda rutinkort i `RutinKort.jsx`
+  och `MinaUppgifter.jsx`), men listar dem samlat istället för spridda per rutin.
+- **Klinikstöd-nytta och vanligaste frågor** samt **andel nollträffar** – återanvänder
+  `useKlinikfrageStatistik`/`useSokstatistik` rakt av, samma data som redan visas i
+  adminpanelen.
+- **"Exportera som PDF"** är webbläsarens egen `window.print()` med en `@media print`-
+  stilmall som gömmer navigation/knappar – inget nytt PDF-bibliotek eller server-genererat
+  dokument behövdes, "Spara som PDF" är redan en standardknapp i webbläsarens utskriftsdialog.
+
+**Verifiering:** manuell Playwright-körning mot en riktig browser (emulatorer + dev-server):
+sidan renderade alla fem sektioner korrekt utan konsol-/sidfel, ingen `ErrorBoundary`-krasch.
+`npm run lint`, `npm run build`, `npm run test:rules` (60/60), `npm run test:functions`
+(54/54), `npm run test:storage` (6/6), `npx vitest run` (29/29) – alla gröna.
+
+**Version:** 5.22.0.

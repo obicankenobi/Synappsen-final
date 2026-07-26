@@ -1,0 +1,36 @@
+.ledningsrapport__verktygsrad {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.ledningsrapport__tabell {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.ledningsrapport__tabell th,
+.ledningsrapport__tabell td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--kant);
+}
+
+/* Utskrift/PDF-export: göm navigation och knappar, ge sidan gott om vitt utrymme. */
+@media print {
+  .ledningsrapport__verktygsrad button,
+  .ledningsrapport__verktygsrad a,
+  nav {
+    display: none !important;
+  }
+
+  .ledningsrapport {
+    padding: 0;
+  }
+
+  .admin-sektion {
+    break-inside: avoid;
+  }
+}

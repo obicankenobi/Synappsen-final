@@ -56,6 +56,7 @@ const Lankbibliotek = lazy(() => import("./pages/Lankbibliotek"));
 const Papperskorg = lazy(() => import("./pages/Papperskorg"));
 const OfflineCenter = lazy(() => import("./pages/OfflineCenter"));
 const Leverantor = lazy(() => import("./pages/Leverantor"));
+const Ledningsrapport = lazy(() => import("./pages/Ledningsrapport"));
 
 function SidLaddare() {
   return <div className="sida sida--laddar">Laddar...</div>;
@@ -256,6 +257,21 @@ export default function App() {
                   <ErrorBoundary>
                     <Suspense fallback={<SidLaddare />}>
                       <Admin />
+                    </Suspense>
+                  </ErrorBoundary>
+                </div>
+                <BottomNav />
+              </RollSkyddadRoute>
+            }
+          />
+          <Route
+            path="/ledningsrapport"
+            element={
+              <RollSkyddadRoute tillatnaRoller={REDAKTORSROLLER}>
+                <div className="app-innehall">
+                  <ErrorBoundary>
+                    <Suspense fallback={<SidLaddare />}>
+                      <Ledningsrapport />
                     </Suspense>
                   </ErrorBoundary>
                 </div>

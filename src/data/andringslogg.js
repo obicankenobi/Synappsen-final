@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.22.0",
+    datum: "2026-07-26",
+    andringar: [
+      "Ny ledningsrapport: en samlad, utskriftsvänlig sammanfattning av kvitteringsgrad, rutiner som bör granskas, klinikstöd-nytta och sökträffar – går att exportera som PDF direkt från sidan",
+    ],
+  },
+  {
     version: "5.21.0",
     datum: "2026-07-26",
     andringar: [

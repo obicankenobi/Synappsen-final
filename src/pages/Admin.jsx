@@ -22,6 +22,7 @@ import {
   verifieraKlinikstod,
   migreraTillOrganisation,
 } from "../firebase/functions";
+import { Link } from "react-router-dom";
 import { ROLES } from "../firebase/roles";
 import InbjudanFormular from "../components/InbjudanFormular";
 import { useDialog } from "../hooks/useDialog";
@@ -359,6 +360,7 @@ export default function Admin() {
   return (
     <div className="sida">
       <h1>Adminpanel</h1>
+      {arSuperadmin && <p><Link to="/ledningsrapport">📄 Ledningsrapport (utskriftsvänlig sammanfattning)</Link></p>}
 
       {arSuperadmin && (
         <SystemstatusSektion
