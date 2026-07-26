@@ -1,6 +1,7 @@
 // Cloud Functions för Synappsen – Gemini Vision-tolkning av uppladdade foton
 const { onCall: onCallUtanRapportering, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
@@ -713,6 +714,15 @@ exports.tvingaUtloggning = onCall({ region: "europe-west1" }, async (request) =>
   }
 
   await admin.auth().revokeRefreshTokens(userId);
+  await loggaRevision({
+    organisationId: uppringare.organisationId,
+    aktorUid: request.auth.uid,
+    aktorRoll: uppringare.roll,
+    handelsetyp: "anvandare_utloggning_tvingad",
+    objektTyp: "users",
+    objektId: userId,
+    sammanfattning: "Tvingade utloggning av en användare",
+  });
   return { ok: true };
 });
 
@@ -1168,6 +1178,89 @@ async function verifieraRevisionskedja(organisationId) {
 exports.loggaRevision = loggaRevision;
 exports.verifieraRevisionskedja = verifieraRevisionskedja;
 
+// Etapp 14c: kopplar loggaRevision() till händelser som redan sker idag. De flesta av
+// dessa (rutinens godkännande och mjuka radering) skrivs DIREKT av klienten till
+// Firestore (se useRutiner.js) – inte via en Cloud Function – så den enda platsen att
+// pålitligt fånga dem server-side är en Firestore-trigger. En trigger får INTE automatiskt
+// veta vem som gjorde skrivningen (bara dokumentets före/efter-innehåll), så aktören
+// hämtas ur de fält klienten redan sparar (skapadAv/godkandAv/borttagenAv).
+async function hamtaRollForAktor(uid) {
+  if (!uid) return null;
+  try {
+    const snap = await db.collection("users").doc(uid).get();
+    return snap.exists ? (snap.data().role ?? null) : null;
+  } catch {
+    return null;
+  }
+}
+
+// Kärnlogiken är en egen, direkt anropbar funktion (inte bara triggerns callback) av samma
+// skäl som backupaOrganisation/loggaRevision exporteras separat: `test:functions` kör bara
+// firestore+storage-emulatorerna, INTE functions-emulatorn, så en riktig
+// onDocumentCreated/onDocumentUpdated-trigger utlöses aldrig i testerna – bara den
+// underliggande logiken kan testas direkt.
+
+// Fångar det fall en rutin skapas SOM redan godkänd (en VÖL/superadmin som inte behöver
+// eget godkännande, se kraverGodkannande i useRutiner.js) – det finns då ingen separat
+// "godkännande"-skrivning att fånga med en update-trigger.
+async function hanteraRutinSkapad(data, rutinId) {
+  if (data.status !== "godkand") return;
+  await loggaRevision({
+    organisationId: data.organisationId ?? "default",
+    aktorUid: data.skapadAv ?? null,
+    aktorRoll: await hamtaRollForAktor(data.skapadAv),
+    handelsetyp: "rutin_publicerad",
+    objektTyp: "rutiner",
+    objektId: rutinId,
+    sammanfattning: `Rutin publicerad direkt vid skapande: ${data.titel ?? "(namnlös)"}`,
+  });
+}
+
+exports.loggaRutinSkapadTrigger = onDocumentCreated(
+  { document: "rutiner/{rutinId}", region: "europe-west1" },
+  (event) => hanteraRutinSkapad(event.data.data(), event.params.rutinId)
+);
+exports.hanteraRutinSkapad = hanteraRutinSkapad;
+
+// Fångar godkännande av ett tidigare utkast, samt mjuk radering (papperskorg).
+// "Avpublicerad" nämns i ETAPPLAN3.md Etapp 14c, men finns inte som en faktisk funktion i
+// appen (bara utkast→godkänd och mjuk radering existerar, se useRutiner.js) – loggas
+// därför inte, i enlighet med genomgående krav 8 (bygg inte efter en premiss som inte
+// stämmer mot koden).
+async function hanteraRutinAndrad(fore, efter, rutinId) {
+  const organisationId = efter.organisationId ?? fore.organisationId ?? "default";
+
+  if (fore.status !== "godkand" && efter.status === "godkand") {
+    await loggaRevision({
+      organisationId,
+      aktorUid: efter.godkandAv ?? null,
+      aktorRoll: await hamtaRollForAktor(efter.godkandAv),
+      handelsetyp: "rutin_godkand",
+      objektTyp: "rutiner",
+      objektId: rutinId,
+      sammanfattning: `Rutin godkänd: ${efter.titel ?? "(namnlös)"}`,
+    });
+  }
+
+  if (!fore.borttagen && efter.borttagen === true) {
+    await loggaRevision({
+      organisationId,
+      aktorUid: efter.borttagenAv ?? null,
+      aktorRoll: await hamtaRollForAktor(efter.borttagenAv),
+      handelsetyp: "rutin_borttagen",
+      objektTyp: "rutiner",
+      objektId: rutinId,
+      sammanfattning: `Rutin borttagen: ${efter.titel ?? "(namnlös)"}`,
+    });
+  }
+}
+
+exports.loggaRutinAndradTrigger = onDocumentUpdated(
+  { document: "rutiner/{rutinId}", region: "europe-west1" },
+  (event) => hanteraRutinAndrad(event.data.before.data(), event.data.after.data(), event.params.rutinId)
+);
+exports.hanteraRutinAndrad = hanteraRutinAndrad;
+
 // Etapp 1 (multi-tenant-grund) – engångsmigrering: sätter organisationId = STANDARD_ORG på
 // alla dokument som saknar det. Idempotent (hoppar över dokument som redan har fältet), så
 // den kan köras flera gånger utan risk. Kör ALLTID med dryRun (standard) först och verifiera
@@ -1362,6 +1455,16 @@ exports.skapaOrganisation = onCall({ region: "europe-west1" }, async (request) =
     await batch.commit();
   }
 
+  await loggaRevision({
+    organisationId: orgRef.id,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "organisation_etablerad",
+    objektTyp: "organisationer",
+    objektId: orgRef.id,
+    sammanfattning: `Organisationen "${namn}" etablerad`,
+  });
+
   return { orgId: orgRef.id, antalMallrutiner };
 });
 
@@ -1409,6 +1512,15 @@ exports.pausaOrganisation = onCall({ region: "europe-west1" }, async (request) =
     throw new HttpsError("invalid-argument", "orgId och pausad (boolean) krävs.");
   }
   await db.collection("organisationer").doc(orgId).set({ status: pausad ? "pausad" : "aktiv" }, { merge: true });
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: pausad ? "organisation_pausad" : "organisation_atveraktiverad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: pausad ? "Organisationen pausades" : "Organisationen återaktiverades",
+  });
   return { ok: true };
 });
 
@@ -1425,6 +1537,15 @@ exports.exporteraOrganisation = onCall({ region: "europe-west1", timeoutSeconds:
     throw new HttpsError("invalid-argument", "orgId krävs.");
   }
   const path = await backupaOrganisation(orgId);
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "organisation_exporterad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: `Organisationsdata exporterad (${path})`,
+  });
   return { path };
 });
 
@@ -1512,6 +1633,11 @@ exports.losInInbjudan = onCall({ region: "europe-west1" }, async (request) => {
   }
 
   const inbjudanRef = db.collection("inbjudningar").doc(token);
+  // organisationId/roll fångas här och används EFTER transaktionen för att logga
+  // revisionen – loggaRevision() kör sin egen transaktion (mot revisionsloggHuvud) och kan
+  // därför inte anropas inifrån den här transaktionens callback.
+  let inbjudanOrganisationId;
+  let inbjudanRoll;
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(inbjudanRef);
     if (!snap.exists) {
@@ -1534,6 +1660,9 @@ exports.losInInbjudan = onCall({ region: "europe-west1" }, async (request) => {
       );
     }
 
+    inbjudanOrganisationId = data.organisationId;
+    inbjudanRoll = data.roll;
+
     tx.set(db.collection("users").doc(request.auth.uid), {
       namn,
       email: data.epost,
@@ -1546,6 +1675,16 @@ exports.losInInbjudan = onCall({ region: "europe-west1" }, async (request) => {
       { anvand: true, anvandAv: request.auth.uid, anvandTid: admin.firestore.FieldValue.serverTimestamp() },
       { merge: true }
     );
+  });
+
+  await loggaRevision({
+    organisationId: inbjudanOrganisationId,
+    aktorUid: request.auth.uid,
+    aktorRoll: inbjudanRoll,
+    handelsetyp: "anvandare_skapad",
+    objektTyp: "users",
+    objektId: request.auth.uid,
+    sammanfattning: `Nytt konto skapat via inbjudan, roll: ${inbjudanRoll}`,
   });
 
   return { ok: true };

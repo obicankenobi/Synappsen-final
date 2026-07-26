@@ -147,9 +147,23 @@ det som gör att en direkt Firestore-ändring av en posts innehåll (utan att r�
 testfil `tests/functions/revisionslogg-hash.test.cjs` (4 tester: giltig kedja,
 huvuddokumentets hash, manipulerat innehåll upptäcks, kapad länk upptäcks), tillagd i
 `test:functions`. Allt grönt: `test:functions`, `test:rules` (13), `lint`, `build`,
-`vitest run` (29/29). Ingen versionsbump (ingen anropsplats än). Nästa steg i Etapp 14:
-14c (koppla `loggaRevision()` till faktiska händelser i appen), sedan 14d
-(export/verifieringsvy).
+`vitest run` (29/29). Ingen versionsbump (ingen anropsplats än).
+
+**14c klart, avgränsat efter en verklig premisskontroll:** planen antog att alla nio
+händelser redan gick via Cloud Functions – bara hälften gör det. Direkta anrop tillagda i
+`skapaOrganisation`/`pausaOrganisation`/`exporteraOrganisation`/`tvingaUtloggning`/
+`losInInbjudan`. Rutinlivscykeln (godkännande, mjuk radering) skrivs DIREKT av klienten
+(`useRutiner.js`) – löst med två Firestore-triggers vars kärnlogik ligger i separata,
+direkt testbara funktioner (`hanteraRutinSkapad`/`hanteraRutinAndrad`), eftersom
+`test:functions` inte kör functions-emulatorn. **Medvetet inte gjort:** "rutin
+avpublicerad" (finns inte i appen), inloggningshändelser (kräver Auth-blockerande
+funktioner), rollbyte/modulgating/geminiBudget-ändringar (kräver nya aktörsfält vid
+klientskrivning – inte gjort i detta delmål). Ny testfil
+`tests/functions/revisionslogg-handelser.test.cjs` (11 tester). Bifynd: `test:functions`
+körde inte Auth-emulatorn, vilket gjorde `tvingaUtloggning` otestbar/otestad – fixat
+(`--only firestore,storage,auth`). Allt grönt: `test:functions` (72 tester totalt),
+`test:rules` (13), `lint`, `build`, `vitest run` (29/29). Ingen versionsbump. Nästa steg:
+14d (export-/verifieringsvy i adminpanelen).
 
 ## Vad som återstår (se ETAPPLAN2.md för detaljer)
 

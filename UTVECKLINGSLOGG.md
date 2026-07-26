@@ -2919,3 +2919,91 @@ befintligt flöde (det är Etapp 14c) och det finns ingen admin-vy eller
 
 Kvarstår i Etapp 14: 14c (koppla `loggaRevision()` till faktiska händelser), 14d
 (export/verifieringsvy).
+
+---
+
+## Fas 50 – Etapp 14c: kopplar revisionsloggen till faktiska händelser
+
+Den mest omfattande premisskontrollen i Etapp 14 hittills (genomgående krav 8 i
+`ETAPPLAN3.md`). Planens text ("en central hjälpfunktion `loggaRevision()`, anropad från
+befintliga flöden") antog implicit att de nio listade händelserna redan går via Cloud
+Functions. Vid genomläsning av `functions/index.js` och `src/hooks/useRutiner.js` visade
+det sig att bara HÄLFTEN av dem gör det.
+
+**Direkta anrop (Admin SDK, säker aktör):**
+- `skapaOrganisation` → `organisation_etablerad`
+- `pausaOrganisation` → `organisation_pausad` / `organisation_atveraktiverad` (beroende på
+  `pausad`-parametern)
+- `exporteraOrganisation` → `organisation_exporterad`
+- `tvingaUtloggning` → `anvandare_utloggning_tvingad`
+- `losInInbjudan` → `anvandare_skapad` – **loggas EFTER funktionens egen
+  `db.runTransaction()`, inte inifrån den.** `loggaRevision()` kör sin egen transaktion mot
+  `revisionsloggHuvud`, och Firestore stödjer inte nästlade transaktioner – organisationId
+  och roll fångas i variabler inuti transaktionen och används efteråt.
+
+**Rutinlivscykeln – en verklig, oväntad premissskillnad:** `useRutiner.js` visar att
+rutingodkännande och mjuk radering (`taBortRutin`) skrivs DIREKT av klienten till
+Firestore, inte via en Cloud Function. En Firestore-trigger är den enda pålitliga platsen
+att fånga dessa server-side. Byggde två triggers:
+- `loggaRutinSkapadTrigger` (`onDocumentCreated`) – fångar en rutin som skapas REDAN
+  godkänd (en VÖL/superadmin som inte kräver eget godkännande, se `kraverGodkannande` i
+  `useRutiner.js`) → `rutin_publicerad`.
+- `loggaRutinAndradTrigger` (`onDocumentUpdated`) – fångar övergången utkast→godkänd
+  (→ `rutin_godkand`) och mjuk radering (→ `rutin_borttagen`).
+
+En Firestore-trigger vet INTE automatiskt vem som gjorde skrivningen (bara
+före-/efter-innehållet) – aktören hämtas istället ur fält klienten redan sparar
+(`skapadAv`/`godkandAv`/`borttagenAv`, redan etablerad konvention i `useRutiner.js`, inte
+något nytt fält som lades till).
+
+**Refaktorering för testbarhet:** varje triggers kärnlogik ligger i en egen, direkt
+anropbar funktion (`hanteraRutinSkapad`/`hanteraRutinAndrad`), av samma skäl som
+`backupaOrganisation`/`loggaRevision` redan exporteras separat – `test:functions` startar
+bara firestore- och storage-emulatorerna, INTE functions-emulatorn, så en riktig
+`onDocumentCreated`/`onDocumentUpdated`-trigger utlöses aldrig i testerna. Utan denna
+refaktorering hade koden sett testad ut (alla andra tester gröna) men triggerlogiken hade
+aldrig faktiskt körts av något test – ett tyst hål i täckningen. Upptäcktes genom att
+faktiskt läsa igenom vilka emulatorer `test:functions` startar, inte anta att "grönt
+totalt" betydde att allt nytt också testades.
+
+**Medvetet INTE gjort, med skäl (istället för att gissa en lösning):**
+- **"Rutin avpublicerad"** loggas inte – funktionen finns inte i appen. Bara
+  utkast→godkänd och mjuk radering existerar (`RUTIN_STATUS` har bara `UTKAST`/`GODKAND`,
+  ingen träff på "avpublicer"/"unpublish" i koden). Planens formulering var fel; korrigerad
+  snarare än att bygga en händelse för något som inte kan inträffa.
+- **Inloggning lyckad/misslyckad:** sker helt inom Firebase Auth SDK:t, ingen Cloud
+  Function inblandad. Att fånga detta kräver Identity Platform-blockerande funktioner
+  (`beforeSignIn`) – ett separat arkitekturbeslut med egna avvägningar (extra latens på
+  varje inloggning, kräver Identity Platform aktiverat), inte en "quick win" att bygga in
+  i förbifarten.
+- **Rollbyte (`uppdateraRoll` i `useAnvandare.js`):** en direkt klient-Firestore-skrivning
+  som bara sätter `{role: roll}` – inget aktörsfält att läsa i en trigger.
+- **Modulgating- och `geminiBudget`-ändringar:** samma mönster, direkta klientskrivningar
+  utan aktörsfält.
+
+  De tre sistnämnda kräver antingen att lägga till ett aktörsfält vid varje sådan
+  klientskrivning (en liten men bred ändring över flera filer) eller att flytta
+  skrivningen bakom en Cloud Function. Ingetdera gjordes i detta delmål – dokumenterat
+  som kvarstående arbete, inte tyst hoppat över.
+
+**Ny testfil `tests/functions/revisionslogg-handelser.test.cjs`, 11 tester:** verifierar
+varje call-site ovan skriver rätt `handelsetyp`/aktör, samt att en rutin-uppdatering utan
+någon bevakad statusövergång inte loggar något alls.
+
+**Miljöfix som gjordes samtidigt, oberoende värdefull:** `tvingaUtloggning` anropar
+`admin.auth().revokeRefreshTokens()`, som kräver Auth-emulatorn – `test:functions` körde
+bara `--only firestore,storage`. Utökat till `--only firestore,storage,auth` i
+`package.json`. Detta betyder att `tvingaUtloggning` (som aldrig testats förut, oavsett
+Etapp 14) nu faktiskt har testtäckning.
+
+**Verifiering:** `npm run test:functions` – 72 tester totalt i kedjan (11 nya), gröna.
+`npm run test:rules` (13, oförändrat), `npm run lint`, `npm run build`, `npx vitest run`
+(29/29) – samtliga gröna.
+
+**Ingen versionsbump.** Ingen synlig UI-yta ännu (det är Etapp 14d).
+
+`ETAPPLAN3.md` 14c uppdaterad med samma resultat och avgränsning.
+
+Kvarstår i Etapp 14: 14d (export/verifieringsvy). Kvarstår, dokumenterat men medvetet
+inte byggt: inloggningshändelser (kräver Auth-blockerande funktioner), rollbyte,
+modulgating- och geminiBudget-ändringar (kräver nya aktörsfält vid klientskrivning).
