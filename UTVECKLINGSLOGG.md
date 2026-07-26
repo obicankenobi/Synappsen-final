@@ -2544,3 +2544,34 @@ attacken – som nu faktiskt stoppas istället för att bara se ut att vara stop
 Kvarstår i Etapp 12: 12c-ii/iii (App Check-enforcement, väntar på sitenyckel + mätperiod),
 12g (affärsbeslut om regelstrikthet), 12h (`firebase-tools`-uppgradering, EJ PÅBÖRJAD,
 egen testcykel krävs). 12f avskriven som ursprungligen skriven.
+
+---
+
+## Fas 40 – Etapp 12c-i: reCAPTCHA-sitenyckeln på plats, App Check aktivt
+
+Ägaren registrerade en reCAPTCHA v3-sitenyckel (google.com/recaptcha/admin) för
+produktionsdomänen och skickade den. `VITE_RECAPTCHA_SITE_KEY` tillagd i `deploy.yml`s
+`.env`-genereringssteg, identiskt mönster som `VITE_FIREBASE_*`/`VITE_SENTRY_DSN` – en
+icke-hemlig, publik nyckel som bara låser upp att BE om ett App Check-intyg, inte att
+bevilja ett.
+
+Ingen ytterligare kodändring krävdes – `src/firebase/config.js`s villkor
+(`VITE_RECAPTCHA_SITE_KEY` satt OCH inte emulator) slår nu igenom automatiskt från och med
+nästa deploy. App Check går därmed live i **mätläge**: klienten skickar App Check-tokens,
+men `functions/index.js` kräver dem ännu inte (`enforceAppCheck` är fortfarande inte satt
+någonstans – det är 12c-ii, medvetet uppskjutet).
+
+**Verifiering:** `npm run lint`, `npm run build` – gröna. Ingen browserverifiering mot en
+riktig reCAPTCHA-nyckel gjordes i den här sessionen (skulle kräva ett riktigt
+produktionsdeploy och nätverksåtkomst till Googles reCAPTCHA-tjänst, som denna
+sandboxmiljö inte nödvändigtvis har); koden följer samma redan testade no-op/aktiv-mönster
+som Sentry-DSN:et, och `initializeAppCheck()` är designad att aldrig blockera
+apprendering synkront oavsett nätverksstatus.
+
+**Ingen versionsbump.** Ren konfigurationsändring (en env-variabel i CI), ingen kodändring.
+
+**Nästa steg (kräver ingen kod från Claude just nu):** efter nästa produktionsdeploy bör
+ägaren låta en mätperiod (1–2 veckor rekommenderas) passera, kontrollera Firebase-konsolens
+App Check-metrik (Build → App Check → Metrics) för att bekräfta att så gott som all trafik
+bär giltiga tokens, och sedan be en session aktivera 12c-ii (`enforceAppCheck: true`) samt
+12c-iii (testet som bevisar att ett anrop utan token nekas).

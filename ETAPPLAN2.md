@@ -310,39 +310,27 @@ Etapp 9c). De dubbleras inte i denna etapp.
   i `deploy.yml`. **Storlek: S**, men ska INTE göras som en snabb sidoeffekt av något annat
   delmål – kräver sin egen session med fokus enbart på detta.
 
-- **12c. 🔶 DELVIS GENOMFÖRD (12c-i klar, 12c-ii/12c-iii väntar).** Ingen App Check.
-  Firebase App Check (attestering av att anrop kommer från den riktiga appen, inte ett
-  skript) var inte aktiverat – `enforceAppCheck` förekom noll gånger i `functions/index.js`.
-  Detta är inte ett akut hål (rules och `kravModul`-gating bär redan hela den verkliga
-  bördan, bevisat av testsviterna), men är standardfrågan vid en Firebase-säkerhetsgranskning
-  och stänger ett lager helt. Tre steg:
-  - **12c-i. ✅ GENOMFÖRD.** App Check aktiverat i klienten (`src/firebase/config.js`,
-    `ReCaptchaV3Provider`), no-op om ingen sitenyckel finns konfigurerad (samma mönster som
-    Sentry-DSN:et). **Kräver en extern, manuell åtgärd innan den är aktiv på riktigt** – se
-    "EJ PÅBÖRJAD, kräver ägarens medverkan" nedan. Ingen serverkontroll ännu.
-  - **12c-ii. EJ PÅBÖRJAD.** Sätt `enforceAppCheck: true` på Cloud Functions. Får INTE göras
-    förrän en mätperiod (se nedan) visar att riktig trafik faktiskt bär giltiga tokens –
-    annars risk att stänga ute riktiga användare (t.ex. en gammal cachad PWA-version utan
-    App Check-kod).
+- **12c. 🔶 DELVIS GENOMFÖRD (12c-i klar OCH aktiv, mätperiod pågår, 12c-ii/12c-iii
+  väntar).** Ingen App Check. Firebase App Check (attestering av att anrop kommer från den
+  riktiga appen, inte ett skript) var inte aktiverat – `enforceAppCheck` förekom noll
+  gånger i `functions/index.js`. Detta är inte ett akut hål (rules och `kravModul`-gating
+  bär redan hela den verkliga bördan, bevisat av testsviterna), men är standardfrågan vid
+  en Firebase-säkerhetsgranskning och stänger ett lager helt. Tre steg:
+  - **12c-i. ✅ GENOMFÖRD OCH AKTIV.** App Check aktiverat i klienten
+    (`src/firebase/config.js`, `ReCaptchaV3Provider`). Ägaren registrerade en reCAPTCHA
+    v3-sitenyckel och den är nu inlagd i `deploy.yml` (`VITE_RECAPTCHA_SITE_KEY`) – App
+    Check är alltså skarpt igång från och med nästa deploy, i mätläge (ingen
+    serverkontroll ännu, se 12c-ii).
+  - **12c-ii. EJ PÅBÖRJAD – väntar på mätperiod.** Sätt `enforceAppCheck: true` på Cloud
+    Functions. Får INTE göras förrän en mätperiod (rekommenderat 1–2 veckor riktig
+    produktionstrafik efter nästa deploy, kontrollerad i Firebase-konsolens
+    App Check-metrik: Build → App Check → Metrics) visar att så gott som all trafik
+    faktiskt bär giltiga tokens – annars risk att stänga ute riktiga användare (t.ex. en
+    gammal cachad PWA-version utan App Check-kod).
   - **12c-iii. EJ PÅBÖRJAD.** Test som bevisar att ett anrop utan App Check-token nekas,
     efter 12c-ii.
 
-  **Extern åtgärd som krävs innan 12c-i är aktiv på riktigt (kan inte göras av Claude):**
-  1. Registrera en reCAPTCHA v3-sitenyckel på <https://www.google.com/recaptcha/admin>
-     för produktionsdomänen (`synappsen-final-build.web.app` och ev. egen domän).
-  2. Registrera App Check för webbappen i Firebase-konsolen (Build → App Check) med den
-     sitenyckeln.
-  3. Lägg till `VITE_RECAPTCHA_SITE_KEY=<sitenyckeln>` i `deploy.yml`s
-     `.env`-genereringssteg, på samma sätt som `VITE_FIREBASE_*`. Sitenyckeln är avsedd att
-     vara publik (den låser bara upp att BE om ett App Check-intyg, den beviljar det inte),
-     så samma icke-hemliga hantering som Firebase-konfigen används.
-
-  Efter det steget behövs ingen ytterligare kodändring – initieringen i `config.js` slår på
-  sig själv automatiskt så fort miljövariabeln finns. Sedan bör en mätperiod (t.ex. 1–2
-  veckor riktig trafik, kontrollerad i Firebase-konsolens App Check-metrik) passera innan
-  12c-ii aktiveras.
-
-  **Storlek: M**, mest på grund av mätfasen som bör pågå en tid innan 12c-ii slås på skarpt.
+  **Storlek: M**, mest på grund av mätfasen som nu återstår innan 12c-ii kan slås på skarpt.
 
 - **12d. ✅ GENOMFÖRD. PII-härdning, del 1: förrådsartikelformuläret.** Den enda konkreta,
   omedelbart åtgärdbara luckan rapporten pekade på: `ForradArtikelFormular` saknade
