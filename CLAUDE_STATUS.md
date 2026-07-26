@@ -136,13 +136,20 @@ ett komplement). `auditlogg` lämnad orörd, men kommenterad i `firestore.rules`
 skilja de två åt. `npm run test:rules` grönt (75 tester). Ingen versionsbump (ingen
 motsvarande UI-yta ännu).
 
-**14b påbörjad, endast förberedelse (användaren nära sin usage-gräns, medvetet liten
-bit):** regeln för `revisionsloggHuvud/{orgId}` (huvuddokumentet som håller senaste hash)
-tillagd i `firestore.rules`, samma stängda mönster som `revisionslogg`. 5 nya tester
-(13 totalt i `tests/rules/revisionslogg.test.mjs`). `npm run test:rules` grönt (80
-tester). **Kvarstår av 14b:** själva `loggaRevision()`-funktionen, hashberäkningen och
-transaktionslogiken i `functions/index.js`, plus en ny testfil under
-`tests/functions/`. Nästa steg: fortsätt 14b (den delen som faktiskt bygger kedjan).
+**14b klart:** `loggaRevision()` och `verifieraRevisionskedja()` i `functions/index.js`.
+`loggaRevision()` kör en Firestore-transaktion mot `revisionsloggHuvud/{organisationId}`,
+räknar `hash = sha256(kanoniserad JSON)` via en egen `kanoniseraJSON()` (sorterade
+nycklar), skriver posten och huvuddokumentet atomiskt. `verifieraRevisionskedja()` bygger
+om hela kedjan från noll och kontrollerar BÅDE `foregaendeHash`-länken OCH att en
+omräkning av varje posts innehåll matchar dess lagrade `hash` – den andra kontrollen är
+det som gör att en direkt Firestore-ändring av en posts innehåll (utan att röra
+`hash`-fältet) faktiskt upptäcks. Ny composite-index i `firestore.indexes.json`. Ny
+testfil `tests/functions/revisionslogg-hash.test.cjs` (4 tester: giltig kedja,
+huvuddokumentets hash, manipulerat innehåll upptäcks, kapad länk upptäcks), tillagd i
+`test:functions`. Allt grönt: `test:functions`, `test:rules` (13), `lint`, `build`,
+`vitest run` (29/29). Ingen versionsbump (ingen anropsplats än). Nästa steg i Etapp 14:
+14c (koppla `loggaRevision()` till faktiska händelser i appen), sedan 14d
+(export/verifieringsvy).
 
 ## Vad som återstår (se ETAPPLAN2.md för detaljer)
 

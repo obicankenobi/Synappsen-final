@@ -1076,6 +1076,98 @@ exports.veckovisBackupSchemalagt = onSchedule(
 // Exporterad enbart för tests/functions/backup.test.cjs.
 exports.backupaOrganisation = backupaOrganisation;
 
+// Etapp 14b: hashkedjan för revisionslogg (se firestore.rules – collectionen är helt
+// stängd för klienter, bara denna funktion skriver dit). Varje post länkas till den
+// föregående via foregaendeHash, så en manipulerad eller borttagen post gör att kedjan
+// inte längre stämmer. VIKTIG BEGRÄNSNING (se ETAPPLAN3.md Etapp 14): detta skyddar mot
+// en icke-privilegierad klient som skriver direkt mot Firestore – INTE mot någon med
+// Admin SDK- eller Firebase-konsolåtkomst, som kan skriva om hela kedjan inklusive
+// omräknade hashar. Denna begränsning ska alltid anges tydligt i en export (Etapp 14d).
+const REVISIONSLOGG_GENESIS_HASH = "genesis";
+
+// Deterministisk JSON-serialisering (sorterade nycklar) – en vanlig JSON.stringify räcker
+// inte, eftersom nyckelordningen annars kan skilja mellan skrivning och verifiering och ge
+// en annan hash för identiskt innehåll.
+function kanoniseraJSON(varde) {
+  if (Array.isArray(varde)) {
+    return `[${varde.map(kanoniseraJSON).join(",")}]`;
+  }
+  if (varde !== null && typeof varde === "object") {
+    const nycklar = Object.keys(varde).sort();
+    return `{${nycklar.map((k) => `${JSON.stringify(k)}:${kanoniseraJSON(varde[k])}`).join(",")}}`;
+  }
+  return JSON.stringify(varde);
+}
+
+function raknaHash(post) {
+  return crypto.createHash("sha256").update(kanoniseraJSON(post)).digest("hex");
+}
+
+// tidpunkt sätts som Date.now() (inte FieldValue.serverTimestamp()) eftersom hashen måste
+// beräknas över ett KÄNT värde innan skrivningen – ett serverTimestamp-sentinel-objekt vet
+// vi inte det faktiska värdet av förrän efter commit. Funktionen körs ändå bara på servern
+// (Cloud Functions), så tidsstämpeln är fortfarande betrodd, inte klientstyrd.
+async function loggaRevision({ organisationId, aktorUid, aktorRoll, handelsetyp, objektTyp = null, objektId = null, sammanfattning }) {
+  const huvudRef = db.collection("revisionsloggHuvud").doc(organisationId);
+  const loggRef = db.collection("revisionslogg").doc();
+
+  await db.runTransaction(async (transaktion) => {
+    const huvudSnap = await transaktion.get(huvudRef);
+    const foregaendeHash = huvudSnap.exists ? huvudSnap.data().senasteHash : REVISIONSLOGG_GENESIS_HASH;
+
+    const post = {
+      organisationId,
+      tidpunkt: Date.now(),
+      aktorUid,
+      aktorRoll,
+      handelsetyp,
+      objektTyp,
+      objektId,
+      sammanfattning,
+      foregaendeHash,
+    };
+    const hash = raknaHash(post);
+
+    transaktion.set(loggRef, { ...post, hash });
+    transaktion.set(huvudRef, { senasteHash: hash }, { merge: true });
+  });
+
+  return loggRef.id;
+}
+
+// Läser hela kedjan för en organisation i skrivordning och bygger om den från noll,
+// oberoende av det som faktiskt står lagrat i respektive posts "hash"-fält – en post vars
+// innehåll ändrats i efterhand (utan att hash-fältet räknades om) upptäcks alltså också,
+// inte bara ett trasigt foregaendeHash-fält.
+async function verifieraRevisionskedja(organisationId) {
+  const snap = await db
+    .collection("revisionslogg")
+    .where("organisationId", "==", organisationId)
+    .orderBy("tidpunkt", "asc")
+    .get();
+
+  let forvantadFoeregaendeHash = REVISIONSLOGG_GENESIS_HASH;
+  for (const dokument of snap.docs) {
+    const data = dokument.data();
+    if (data.foregaendeHash !== forvantadFoeregaendeHash) {
+      return { giltig: false, avvikelseVidId: dokument.id, orsak: "kedjan bruten (foregaendeHash matchar inte föregående post)" };
+    }
+    const { hash: lagradHash, ...postUtanHash } = data;
+    const raknadHash = raknaHash(postUtanHash);
+    if (raknadHash !== lagradHash) {
+      return { giltig: false, avvikelseVidId: dokument.id, orsak: "posten har manipulerats (hash matchar inte innehållet)" };
+    }
+    forvantadFoeregaendeHash = raknadHash;
+  }
+  return { giltig: true, avvikelseVidId: null };
+}
+
+// Exporterade enbart för tests/functions/revisionslogg-hash.test.cjs och för framtida
+// interna anrop (Etapp 14c: loggaRevision() anropas från befintliga flöden; Etapp 14d:
+// verifieraRevisionskedja() nås via en admin-vy).
+exports.loggaRevision = loggaRevision;
+exports.verifieraRevisionskedja = verifieraRevisionskedja;
+
 // Etapp 1 (multi-tenant-grund) – engångsmigrering: sätter organisationId = STANDARD_ORG på
 // alla dokument som saknar det. Idempotent (hoppar över dokument som redan har fältet), så
 // den kan köras flera gånger utan risk. Kör ALLTID med dryRun (standard) först och verifiera

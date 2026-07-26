@@ -269,15 +269,33 @@ granskningsbar.
   `revisionslogg`s granskningsgaranti. Kommentaren i `firestore.rules` förklarar
   skillnaden på plats.
 
-### 14b – Hashkedja 🔶 FÖRBEREDELSE KLAR (huvuddokumentets regel), transaktionslogiken kvarstår
+### 14b – Hashkedja ✅ KLAR
 
-- **Delvist gjort:** `revisionsloggHuvud/{orgId}`-dokumentet som beskrivs nedan (fältet
-  `senasteHash`) har fått sin Firestore-regel redan nu, tillsammans med 14a – helt stängt
-  för klienter (`allow create, update, delete: if false`), läsning för superadmin/
-  leverantörsadmin (samma mönster som `revisionslogg`). 5 nya tester i
-  `tests/rules/revisionslogg.test.mjs` (totalt 13 i den filen). Detta var en liten,
-  fristående del av 14b som gjordes separat p.g.a. begränsad sessionstid – kvar återstår
-  själva `loggaRevision()`-funktionen och transaktionslogiken nedan.
+- **Resultat:** `loggaRevision()` och `verifieraRevisionskedja()` implementerade i
+  `functions/index.js`. `loggaRevision()` kör en Firestore-transaktion mot
+  `revisionsloggHuvud/{organisationId}` (läser `senasteHash`, skriver den nya posten OCH
+  det uppdaterade huvuddokumentet atomiskt), räknar `hash = sha256(kanoniserad JSON av
+  posten inkl. foregaendeHash)` via en egen `kanoniseraJSON()`-hjälpfunktion (sorterade
+  nycklar, så identiskt innehåll alltid ger samma hash oavsett skrivordning).
+  `tidpunkt` sätts som `Date.now()` snarare än `FieldValue.serverTimestamp()`, eftersom
+  hashen måste räknas över ett känt värde innan skrivningen – fortfarande betrott, koden
+  körs bara på servern.
+  `verifieraRevisionskedja(organisationId)` läser hela kedjan i skrivordning och bygger
+  om den från noll: kontrollerar både att `foregaendeHash`-länken stämmer mot föregående
+  post OCH att den lagrade hashen matchar en omräkning av postens faktiska innehåll (så en
+  post vars fält ändrats i efterhand utan att hasha om upptäcks också, inte bara en trasig
+  länk).
+- **Ny composite-index** i `firestore.indexes.json` (`revisionslogg`:
+  organisationId ASC + tidpunkt ASC) för `verifieraRevisionskedja()`s fråga.
+- **Test:** ny `tests/functions/revisionslogg-hash.test.cjs`, 4 tester – bygger en giltig
+  treposters-kedja och verifierar den, kontrollerar att huvuddokumentet håller rätt hash,
+  manipulerar en post direkt i Firestore (ändrar `sammanfattning` utan att räkna om hash)
+  och bevisar att det upptäcks, samt en separat organisation där bara
+  `foregaendeHash`-länken kapas och det också upptäcks. Tillagd i `test:functions`-scriptet
+  i `package.json`.
+- **Ej gjort i detta delmål (medvetet, hör till 14c/14d):** ingen anropsplats
+  (`loggaRevision()` är inte kopplad till några befintliga flöden än) och ingen
+  admin-vy/export/"verifiera kedjan"-knapp.
 
 - Varje post får `hash = sha256(foregaendeHash + kanoniserad JSON av postens fält)`.
 - En brytning i kedjan avslöjar en manipulerad eller borttagen post – men se

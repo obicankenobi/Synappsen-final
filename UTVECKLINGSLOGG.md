@@ -2858,3 +2858,64 @@ Build/vitest/functions-svepet kördes inte om i denna mini-fas (ingen kod i `src
 
 Kvarstår i Etapp 14: resten av 14b (`loggaRevision()`-funktionen, hashberäkningen,
 transaktionen, en ny testfil under `tests/functions/`), 14c, 14d.
+
+---
+
+## Fas 49 – Etapp 14b: hashkedjan färdig
+
+Slutförde 14b (fas 48 var bara regeln för huvuddokumentet).
+
+- **`loggaRevision({ organisationId, aktorUid, aktorRoll, handelsetyp, objektTyp,
+  objektId, sammanfattning })`** i `functions/index.js`: en Firestore-transaktion mot
+  `revisionsloggHuvud/{organisationId}` läser `senasteHash` (eller den fasta strängen
+  `"genesis"` om huvuddokumentet inte finns än), bygger posten, räknar
+  `hash = sha256(kanoniseraJSON(post))` och skriver BÅDE den nya `revisionslogg`-posten
+  och det uppdaterade huvuddokumentet inom samma transaktion – atomiskt, så två
+  samtidiga loggningar för samma organisation aldrig kan råka länka till samma
+  `foregaendeHash`.
+- **`kanoniseraJSON()`:** egen hjälpfunktion som sorterar objektnycklar rekursivt innan
+  serialisering. Behövs eftersom ordinarie `JSON.stringify` inte garanterar
+  nyckelordning mellan olika anrop/miljöer – utan den skulle identiskt innehåll kunna ge
+  olika hash beroende på i vilken ordning fälten råkade sättas.
+- **Medvetet val:** `tidpunkt` sätts till `Date.now()`, inte
+  `admin.firestore.FieldValue.serverTimestamp()`. Ett serverTimestamp-fält är ett
+  sentinel-objekt fram till commit – dess faktiska värde är okänt när hashen måste
+  beräknas. `Date.now()` ger ett känt värde direkt, och eftersom `loggaRevision()` bara
+  körs på servern (Cloud Functions) är tidsstämpeln fortfarande betrodd, bara satt på
+  ett sätt som fungerar ihop med hashningen.
+- **`verifieraRevisionskedja(organisationId)`:** läser hela organisationens kedja i
+  `tidpunkt`-ordning och bygger om den från noll – kontrollerar för varje post BÅDE att
+  `foregaendeHash` matchar föregående posts hash OCH att en omräkning av postens
+  faktiska innehåll ger samma hash som det lagrade `hash`-fältet. Den andra kontrollen
+  är avgörande: utan den skulle en direkt Firestore-uppdatering av en posts
+  `sammanfattning` (utan att röra `hash`-fältet) inte upptäckas, eftersom
+  `foregaendeHash`-länkarna före och efter den ändrade posten fortfarande stämmer.
+- Ny composite-index i `firestore.indexes.json`
+  (`revisionslogg`: `organisationId` ASC + `tidpunkt` ASC), samma mönster som redan
+  finns för `auditlogg`/`sokloggar` m.fl. – krävs för
+  `where(organisationId==).orderBy(tidpunkt)`.
+- Ny testfil `tests/functions/revisionslogg-hash.test.cjs`, 4 tester: en giltig
+  treposters-kedja verifieras, huvuddokumentets hash kontrolleras mot sista posten, en
+  direkt Firestore-manipulation av en posts innehåll (utan att röra `hash`-fältet)
+  upptäcks korrekt, och en separat organisation där bara `foregaendeHash`-länken kapas
+  (utan att röra innehållet) upptäcks också – bevisar att båda kontrollerna i
+  `verifieraRevisionskedja()` faktiskt behövs, inte bara en av dem. Tillagd i
+  `test:functions`-scriptet i `package.json`.
+
+**Verifiering:** `npm run test:functions` (samtliga tidigare test + de 4 nya, gröna,
+gating-matrisens statiska scanner larmade inte på de nya exporten `loggaRevision`/
+`verifieraRevisionskedja` eftersom de INTE är `onCall`-funktioner), `npm run test:rules`
+(13 tester, oförändrat sedan fas 48), `npm run lint`, `npm run build`, `npx vitest run`
+(29/29) – samtliga gröna.
+
+**Medvetet inte gjort i detta delmål:** `loggaRevision()` anropas ännu inte från något
+befintligt flöde (det är Etapp 14c) och det finns ingen admin-vy eller
+"verifiera kedjan"-knapp (Etapp 14d).
+
+**Ingen versionsbump.** Ny intern mekanism utan någon anropsplats eller synlig effekt
+ännu – väntar på 14c/14d.
+
+`ETAPPLAN3.md` 14b uppdaterad med samma resultat.
+
+Kvarstår i Etapp 14: 14c (koppla `loggaRevision()` till faktiska händelser), 14d
+(export/verifieringsvy).

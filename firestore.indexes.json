@@ -123,6 +123,14 @@
         { "fieldPath": "organisationId", "order": "ASCENDING" },
         { "fieldPath": "skapad", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "revisionslogg",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
+        { "fieldPath": "tidpunkt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
