@@ -2703,3 +2703,38 @@ faktabladet används mot en kund som frågar specifikt om detta.
 
 Kvarstår i Etapp 13: 13e (uppdatera PITCH.md), 13f (SSO/Entra ID),
 13g (WCAG-A-snabbfixar).
+
+---
+
+## Fas 45 – Etapp 13e: uppdatera PITCH.md
+
+Skrev om säljdokumentet `PITCH.md`, i grunden en dokumentationsändring men med ett
+faktiskt sakfel rättat, inte bara en versionsuppdatering.
+
+- Version 5.7.0 → 5.25.0, datum uppdaterat.
+- Tillagt: tid-att-hitta-mätning (fas 32), ledningsrapport (fas 30), App Check (fas 37/40,
+  beskrivet som "kontrollerad mätfas" – inte överdrivet till att redan vara obligatoriskt),
+  det utökade CI-testsvepet, tillgänglighetsgranskningen (fas 34), samt en ny rad om att
+  upphandlingspaketet (Etapp 13a–13d, denna sessions arbete) finns färdigt.
+- **Sakfel hittat och rättat vid premisskontroll (genomgående krav 8):** dokumentet
+  påstod att klinikstöd-sökningen "hämtar live" ett källhänvisat svar. Enligt
+  `SAKERHETSRAPPORT.md` är funktionen **medvetet pausad i användargränssnittet** sedan
+  v5.3.5 (kunde i vissa fall citera källor utanför den godkända listan). Detta är
+  allvarligare än ett omodernt versionsnummer – ett säljdokument som beskriver en
+  avstängd funktion som live riskerar att bli en missvisande utfästelse mot en kund.
+  Omskrivet till att öppet berätta att funktionen är pausad och varför, framställt som
+  ett medvetet kvalitetsval snarare än en brist att dölja.
+- Nyttosiffrorna (sektionen "Nyttan i siffror") lämnades oförändrade, fortsatt märkta
+  som uppskattning – ingen pilotdata finns ännu att validera mot, så varken att ta bort
+  eller att "validera" dem vore ärligt.
+- Sidfotens "14 dokumenterade utvecklingsfaser" (kraftigt inaktuellt, det finns nu 44
+  faser i den här loggen) uppdaterat till "40+".
+
+`ETAPPLAN3.md` 13e uppdaterad med samma resultat.
+
+**Verifiering:** dokumentationsarbete, ingen build/lint/test-svep relevant.
+
+**Ingen versionsbump** av `package.json`/appen – detta är ett säljdokument, inte
+appkod eller appbeteende.
+
+Kvarstår i Etapp 13: 13f (SSO/Entra ID), 13g (WCAG-A-snabbfixar).

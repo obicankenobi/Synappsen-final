@@ -148,7 +148,7 @@ fråga IT och dataskyddsombudet" och dör där.
   ägaren, eftersom återställning idag är en manuell process utan en definierad
   målsatt tid.
 
-### 13e – Uppdatera PITCH.md
+### 13e – Uppdatera PITCH.md ✅ KLAR
 
 - Versionsnumret i `PITCH.md` ska stämma mot `package.json` (varningen i CLAUDE.md).
 - Lägg till det som hänt sedan v5.7.0 och som stärker säljargumenten: ledningsrapport
@@ -156,6 +156,21 @@ fråga IT och dataskyddsombudet" och dör där.
   CI-testsvepet (fas 35), App Check (fas 37/40).
 - Ta bort eller validera nyttosiffrorna – de är fortfarande märkta "uppskattning att
   validera i pilot".
+- **Resultat:** version uppdaterad 5.7.0 → 5.25.0, datum till 2026-07-26. Tillagt:
+  tid-att-hitta-mätning, ledningsrapport, App Check, CI-testsvepet (som "automatiska
+  tester som körs vid varje ändring – inklusive databehörighetsreglerna"),
+  tillgänglighetsgranskning (WCAG 2.1 AA), samt en ny rad om att upphandlingspaketet
+  (13a–13d) nu finns färdigt – rimligt att nämna eftersom just det paketet är avsett att
+  användas i säljprocessen. **Ett viktigt sakfel hittades och rättades vid
+  premisskontroll (genomgående krav 8):** dokumentet påstod att klinikstöd-sökningen
+  "hämtar live" ett källhänvisat svar, men enligt `SAKERHETSRAPPORT.md` är funktionen
+  **medvetet pausad i gränssnittet** sedan v5.3.5 (visade sig kunna citera källor
+  utanför den godkända listan). Ett säljdokument som påstår att en pausad funktion är
+  live är ett allvarligare fel än ett omodernt versionsnummer – omskrivet till att
+  öppet beskriva att funktionen är under vidareutveckling och varför den stängdes av.
+  Nyttosiffrorna lämnades kvar märkta som uppskattning – ingen pilotdata finns ännu att
+  validera mot. "14 dokumenterade utvecklingsfaser" i sidfoten uppdaterat till "40+"
+  (var kraftigt inaktuellt, det finns nu 44 faser i UTVECKLINGSLOGG.md).
 
 ### 13f – SSO / Microsoft Entra ID *(ny – saknades i tidigare utkast)*
 

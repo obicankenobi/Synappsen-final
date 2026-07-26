@@ -1,6 +1,6 @@
 # Synappsen – rätt information, direkt i handen, när det är bråttom
 
-*Beslutsunderlag för verksamhetsledning · Version 5.7.0 · 2026-07-14*
+*Beslutsunderlag för verksamhetsledning · Version 5.25.0 · 2026-07-26*
 
 ---
 
@@ -22,10 +22,15 @@ nät) som samlar mottagningens hela praktiska kunskap på ett ställe – sökba
 - **Fota en whiteboard eller inventarielista → färdigt utkast.** AI:n tolkar foton och
   skapar sökbart innehåll automatiskt. Inget publiceras utan att en behörig person granskat
   och godkänt det.
-- **Klinikstöd-sökning:** ställ en generell medicinsk fråga och få ett källhänvisat svar
-  hämtat live från enbart godkända svenska källor (Internetmedicin, 1177, Nationella
-  kliniska kunskapsstödet, FASS, Läkemedelsverket, Vårdhandboken, Folkhälsomyndigheten) –
-  tekniskt spärrat från alla andra källor, inte bara "instruerat".
+- **Klinikstöd-sökning (under vidareutveckling):** en funktion byggd för att besvara en
+  generell medicinsk fråga med källhänvisning, tekniskt begränsad till enbart godkända
+  svenska källor (Internetmedicin, 1177, Nationella kliniska kunskapsstödet, FASS,
+  Läkemedelsverket m.fl.). Funktionen är **medvetet pausad i gränssnittet** just nu –
+  den visade sig i vissa fall kunna citera källor utanför listan, och vi valde att stänga
+  av den istället för att lita på en lösning med osäker träffsäkerhet. Koden finns kvar
+  och återaktiveras när en mer robust lösning (en riktigt domänbegränsad sökmotor) är på
+  plats. Vi nämner detta öppet eftersom det säger något om hur vi hanterar osäkerhet i
+  produkten.
 
 ## Vad ledningen får
 
@@ -34,7 +39,11 @@ nät) som samlar mottagningens hela praktiska kunskap på ett ställe – sökba
 - **Kvalitetskontroll:** versionshistorik, granskningssignaturer, automatiska påminnelser
   när en rutin behöver ses över, och en fullständig ändringslogg (vem gjorde vad, när).
 - **Datadriven prioritering:** appen loggar vad personalen söker efter utan att hitta –
-  ledningen ser exakt vilka rutiner som saknas och efterfrågas mest.
+  ledningen ser exakt vilka rutiner som saknas och efterfrågas mest. Sedan senaste
+  versionen mäts även **tiden från påbörjad sökning till klick** per session, så det går
+  att se om det tar sekunder eller minuter att hitta rätt.
+- **Ledningsrapport:** en utskriftsvänlig sida byggd specifikt för det en chef vill kunna
+  visa uppåt – kvitteringsgrad per område, inte bara operativa detaljer.
 - **Kommunikation som når fram:** anslagstavla med prioritet, skiftrapport för driftinfo
   (aldrig patientdata), notiser och @omnämnanden.
 
@@ -45,10 +54,19 @@ nät) som samlar mottagningens hela praktiska kunskap på ett ställe – sökba
   misstänkta namn. Utformad utifrån GDPR och patientdatalagen från dag ett.
 - **Rollstyrd behörighet** (6 roller), tvåfaktorsautentisering, automatisk utloggning på
   delade datorer, och möjlighet för admin att omedelbart återkalla en session.
+- **App Check:** ett tekniskt lager (Google reCAPTCHA) som verifierar att anrop till
+  servern faktiskt kommer från den riktiga, installerade appen – infört sommaren 2026,
+  för närvarande i en kontrollerad mätfas innan det görs obligatoriskt.
 - **Kostnadskontroll:** AI-funktionerna har hårda månadsbudgetar (totalt och per
   användare) som styrs från adminpanelen – kostnaden kan aldrig skena.
-- **Granskad:** hela kodbasen har genomgått en dokumenterad säkerhets- och buggenomgång
-  (se SAKERHETSRAPPORT.md), med automatiska tester och kontroller vid varje ändring.
+- **Granskad, löpande:** hela kodbasen har genomgått flera dokumenterade säkerhets- och
+  buggenomgångar (se SAKERHETSRAPPORT.md), med automatiska tester som körs i CI vid varje
+  ändring – inklusive databehörighetsreglerna, inte bara applikationskoden.
+- **Tillgänglighet:** granskad mot WCAG 2.1 AA (se TILLGANGLIGHETSREDOGORELSE.md), med
+  kända kvarstående punkter öppet redovisade snarare än dolda.
+- **Upphandlingsklart:** PUB-avtalsmall, underbiträdesförteckning, DPIA-underlag och ett
+  tekniskt faktablad till IT-avdelningen finns färdiga (se avtal/-katalogen), så ett
+  inköpsbeslut inte behöver vänta på att någon skriver dessa från grunden.
 
 ## Nyttan i siffror (uppskattning att validera i pilot)
 
@@ -69,5 +87,5 @@ nät) som samlar mottagningens hela praktiska kunskap på ett ställe – sökba
 
 ---
 
-*Synappsen är utvecklad iterativt med verksamhetens krav i centrum – 14 dokumenterade
+*Synappsen är utvecklad iterativt med verksamhetens krav i centrum – 40+ dokumenterade
 utvecklingsfaser, fullständig teknisk logg och säkerhetsrapport finns att tillgå.*

@@ -108,8 +108,10 @@ redan verifierat innehåll (inte nyskrivna påståenden), med en ärlig risktabe
 att revisionsloggens manipuleringsskydd (Etapp 14) inte är byggt än. 13d skrev
 `avtal/IT-FAKTABLAD.md` för kundens IT-avdelning, återanvänder samma verifierade fakta;
 nytt öppet fält identifierat – ingen dokumenterad återställningstid (RTO) efter backup
-finns, markerad `[FYLLS I]`. Nästa steg i Etapp 13: 13e (uppdatera PITCH.md), sedan
-13f–13g.
+finns, markerad `[FYLLS I]`. 13e uppdaterade `PITCH.md` (version 5.7.0 → 5.25.0) och
+**rättade ett sakfel:** dokumentet påstod att klinikstöd-sökningen "hämtar live" svar,
+men funktionen är i själva verket medvetet pausad i gränssnittet sedan v5.3.5 – omskrivet
+till att öppet berätta det. Nästa steg i Etapp 13: 13f (SSO/Entra ID), sedan 13g.
 
 ## Vad som återstår (se ETAPPLAN2.md för detaljer)
 
