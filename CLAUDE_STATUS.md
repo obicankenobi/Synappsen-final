@@ -105,8 +105,11 @@ kontrollera innan avtal mot en kund med strikta regionkrav. Firestore-/Storage-r
 kvarstår som en konsolkontroll för ägaren (kan inte verifieras i kod). 13c skrev
 `avtal/DPIA-UNDERLAG.md` – icke-teknisk sammanställning för kundens dataskyddsombud, byggd på
 redan verifierat innehåll (inte nyskrivna påståenden), med en ärlig risktabell som noterar
-att revisionsloggens manipuleringsskydd (Etapp 14) inte är byggt än. Nästa steg i Etapp 13:
-13d (IT-faktablad), sedan 13e–13g.
+att revisionsloggens manipuleringsskydd (Etapp 14) inte är byggt än. 13d skrev
+`avtal/IT-FAKTABLAD.md` för kundens IT-avdelning, återanvänder samma verifierade fakta;
+nytt öppet fält identifierat – ingen dokumenterad återställningstid (RTO) efter backup
+finns, markerad `[FYLLS I]`. Nästa steg i Etapp 13: 13e (uppdatera PITCH.md), sedan
+13f–13g.
 
 ## Vad som återstår (se ETAPPLAN2.md för detaljer)
 

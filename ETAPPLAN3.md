@@ -131,13 +131,22 @@ fråga IT och dataskyddsombudet" och dör där.
   Gemini-regionsfrågan (från 13b) är öppen – ingen överdrift av vad som faktiskt finns på
   plats.
 
-### 13d – Teknisk faktablad till kundens IT
+### 13d – Teknisk faktablad till kundens IT ✅ KLAR
 
 - Arkitekturskiss, autentisering (inkl. 2FA-policy från fas 20), App Check-status (nu aktivt
   i mätläge sedan fas 40 – uppdatera texten när 12c-ii/enforcement slås på), nätverkskrav,
   incident- och backupsrutin (veckobackup finns sedan fas 20), återställningstid, vad som
   händer vid avslutat avtal.
 - **Arbetsuppgift:** `avtal/IT-FAKTABLAD.md`.
+- **Resultat:** `avtal/IT-FAKTABLAD.md` skriven med åtta avsnitt (arkitektur, autentisering/
+  behörighet, App Check-status, nätverkskrav, incidentrutin, backup/återställning,
+  datalagringsregion, avslutat avtal). Återanvänder samma verifierade fakta som 13a–13c
+  (europe-west1 för Cloud Functions, veckovis backup varje måndag 03:00, den öppna
+  Gemini-regionfrågan, den manuella raderingsbegränsningen). **Ett nytt öppet fält
+  tillkom vid skrivandet:** återställningstiden (RTO) efter en backup är inte
+  dokumenterad någonstans i kodbasen eller tidigare planer – markerad `[FYLLS I]` för
+  ägaren, eftersom återställning idag är en manuell process utan en definierad
+  målsatt tid.
 
 ### 13e – Uppdatera PITCH.md
 

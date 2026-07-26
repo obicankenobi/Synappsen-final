@@ -2675,3 +2675,31 @@ underhålls och testas, inte bara påstås fungera.
 
 Kvarstår i Etapp 13: 13d (IT-faktablad), 13e (uppdatera PITCH.md), 13f (SSO/Entra ID),
 13g (WCAG-A-snabbfixar).
+
+---
+
+## Fas 44 – Etapp 13d: Tekniskt faktablad till kundens IT
+
+Ren dokumentation, ingen kodändring.
+
+Skapade `avtal/IT-FAKTABLAD.md` – avsett att kunna skickas rakt av till en kunds
+IT-avdelning. Återanvänder samma verifierade fakta som redan etablerats i 13a–13c
+(Cloud Functions-regionen europe-west1, veckovis backup varje måndag 03:00 verifierad i
+`functions/index.js`s `veckovisBackupSchemalagt`, App Check-status i mätfas, den öppna
+Firestore-/Storage-regionfrågan och Gemini-regionfrågan, den manuella
+raderingsbegränsningen från 13a) istället för att skriva nya, overifierade påståenden.
+
+**Nytt öppet fält identifierat vid skrivandet:** en dokumenterad återställningstid (RTO)
+efter en backup finns inte någonstans i kodbasen eller tidigare planeringsdokument –
+återställning är idag en manuell process utan en angiven målsatt tid. Markerad
+`[FYLLS I]` i faktabladet som en punkt ägaren/leverantören bör besvara innan
+faktabladet används mot en kund som frågar specifikt om detta.
+
+`ETAPPLAN3.md` 13d uppdaterad med samma resultat.
+
+**Verifiering:** dokumentationsarbete, ingen build/lint/test-svep relevant.
+
+**Ingen versionsbump.**
+
+Kvarstår i Etapp 13: 13e (uppdatera PITCH.md), 13f (SSO/Entra ID),
+13g (WCAG-A-snabbfixar).
