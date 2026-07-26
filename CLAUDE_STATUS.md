@@ -6,7 +6,9 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-07-26, version 5.25.0 (+ Etapp 12a/12b/12c-i, ingen versionsbump)
+**Senast uppdaterad:** 2026-07-26, version 5.25.0 (+ Etapp 12a/12b/12c-i/12e, ingen
+versionsbump) – **DEPLOYAT TILL PRODUKTION** (commit d7a3719, körning #46, "Deploy
+complete!" bekräftat i loggen, ny asset-hash `index-s-jPubo9.js` bekräftad live).
 
 ## Nuläge i ett stycke
 
@@ -35,9 +37,10 @@ emulatorer (inte bara automatiska tester) – bl.a. confirm-dialogen, Admin.jsx-
 refaktoreringen, bulkimport-UI:t, ledningsrapporten och hela
 sök→klick→mätning-flödet för tid-att-hitta.
 
-**Ännu INTE deployat till produktion** – allt arbete denna omgång (9 commits,
-v5.15.1 → v5.24.0) ligger på `claude/compassionate-euler-rho0q5` men väntar
-på en "Deploya till produktion"-instruktion.
+**DEPLOYAT TILL PRODUKTION 2026-07-26** (körning #46, commit `d7a3719`) – allt arbete
+t.o.m. Etapp 12e (se nedan) är live. "Deploy complete!" bekräftat i den faktiska
+loggtexten (inte bara jobb-`conclusion`), samtliga Cloud Functions uppdaterade/skapade
+utan fel, ny asset-hash `index-s-jPubo9.js` bekräftad via `curl` mot produktions-URL:en.
 
 **Uppföljning (v5.25.0, se UTVECKLINGSLOGG.md Fas 33):** användaren kopplade in Sentry- och
 Linear-connectorerna. Utifrån det: (1) Sentry-SDK:t är nu faktiskt inkopplat i koden – två
@@ -65,18 +68,28 @@ lyfte några reella punkter. Genomfört hittills:
   `"overrides": { "uuid": "^11.1.1" }` i båda `package.json`, istället för npm audits
   felaktiga förslag att NEDGRADERA `firebase-admin`/`firebase-functions`. Kvarvarande 24 i
   roten är dev-only-verktyg eller träffar inte vår användning – fullt motiverat i Fas 36.
-- **12c-i ✅:** App Check aktiverat i klienten (`src/firebase/config.js`), men **helt
-  inaktivt tills en extern åtgärd görs** – se nästa stycke. 12c-ii/12c-iii väntar på det.
+- **12c-i ✅ OCH LIVE:** App Check aktiverat i klienten (`src/firebase/config.js`).
+  Ägaren registrerade en reCAPTCHA v3-sitenyckel och den ligger nu i `deploy.yml`
+  (`VITE_RECAPTCHA_SITE_KEY`) – App Check går skarpt från och med detta deploy, i
+  **mätläge** (klienten skickar tokens, men `enforceAppCheck` är ännu inte satt).
+  **Nästa steg (kräver ägaren, inte kod):** låt en mätperiod (1–2 veckor) passera,
+  kolla Firebase-konsolen (Build → App Check → Metrics) att riktig trafik bär
+  giltiga tokens, be sedan en session göra 12c-ii (`enforceAppCheck: true`) + 12c-iii
+  (test).
+- **12d ✅:** PII-kontroll i `ForradArtikelFormular.jsx` (var sista formuläret utan den).
+- **12e ✅ (omfattning omprövad):** ursprungsplanen (Cloud Function för rutinskapande)
+  visade sig lösa ett redan löst problem – rutiner/anslag/skiftrapporter/anteckningar
+  hade redan regelnivå-skydd, kommentarer/feedback redan helt låsta. Fokus flyttat till
+  `forradsartiklar` (saknade skyddet helt) OCH en riktig, redan existerande bugg hittad
+  och fixad: `harTroligtPersonnummer()` fångade bara ett fält vars HELA innehåll var
+  exakt ett personnummer (pga Firestore-reglernas fullt förankrade `matches()`), aldrig
+  ett personnummer inbäddat i en mening – påverkade fyra collections. Fixat med
+  `[\s\S]*` runt mönstret. Se UTVECKLINGSLOGG.md Fas 39. 12f avskriven av samma skäl.
 
-**VIKTIGT – kräver ägarens medverkan, kan inte göras av Claude:** för att App Check
-faktiskt ska börja göra något (12c-i → verkligt skydd) måste ägaren (1) registrera en
-reCAPTCHA v3-sitenyckel på google.com/recaptcha/admin, (2) registrera appen för App Check
-i Firebase-konsolen med den nyckeln, (3) be en Claude-session lägga till
-`VITE_RECAPTCHA_SITE_KEY` i `deploy.yml`. Fram tills dess är koden ett ofarligt no-op.
-
-**Spårat men EJ påbörjat:** Etapp 12h (`firebase-tools` 13→15-majoruppgradering) –
-identifierad i 12b, kräver en egen, försiktig testcykel (se ETAPPLAN2.md för den exakta
-checklistan) innan den görs. Ska INTE göras som en snabb sidoeffekt av något annat.
+**Spårat men EJ påbörjat:** Etapp 12g (affärsbeslut om regelns strikthet – väntar på
+ägaren) och Etapp 12h (`firebase-tools` 13→15-majoruppgradering, identifierad i 12b,
+kräver en egen, försiktig testcykel, se ETAPPLAN2.md för den exakta checklistan). Ska
+INTE göras som en snabb sidoeffekt av något annat.
 
 ## Vad som återstår (se ETAPPLAN2.md för detaljer)
 
