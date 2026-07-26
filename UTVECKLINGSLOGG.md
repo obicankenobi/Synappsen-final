@@ -2482,3 +2482,65 @@ av misstag saknade den – inte en ny funktion i sig.
 Kvarstår i Etapp 12: 12e (rutiner → Cloud Function), 12f (skiftrapport → Cloud Function),
 12g (regelbaserad spärr för resten, kräver ett föregående beslut om strikthet), 12c-ii/iii,
 12h.
+
+---
+
+## Fas 39 – Etapp 12e: omprövad efter regelgranskning, och en riktig bugg hittad och fixad
+
+Innan implementation av 12e (planerad Cloud-Function-omskrivning av rutinskapande) lästes
+`firestore.rules` igenom rad för rad för `rutiner`-collectionen, för att förstå exakt vad
+som redan skyddade den. Det visade sig att premissen i ETAPPLAN2.md:s ursprungliga 12e –
+att rutiner bara hade klientsidigt PII-skydd och kunde kringgås via ett direktanrop mot
+Firestore – **inte stämde**. `rutiner`, `anslag`, `skiftrapporter` och `anteckningar` hade
+alla redan en `harTroligtPersonnummer()`-kontroll på regelnivå (create/update),
+`kommentarer`/`feedback` var redan helt låsta (`allow create: if false`, går bara via
+Cloud Functions med full Luhn). Detta lyftes till användaren innan något byggdes –
+att skriva om hela rutin-CRUD:et till Cloud Functions (bilagor, versionshistorik, taggar,
+återställning) hade varit stort, riskabelt arbete för att lösa ett problem som redan var
+löst. Användaren valde att istället fokusera på den enda verkliga luckan: `forradsartiklar`
+saknade regelskyddet helt (12d hade bara lagt en klientkontroll där).
+
+**Ändring 1 – den verkliga luckan stängd.** `harTroligtPersonnummer()` läggs till på
+`forradsartiklar`s create/update (namn/skap/hylla), identiskt mönster som de fyra andra
+collectionerna redan hade.
+
+**Ändring 2 – en allvarligare, redan existerande bugg hittades och fixades under
+testverifieringen.** Ett nytt rules-test skrevs för att bevisa att `forradsartiklar`s nya
+spärr fungerar: ett personnummer i `namn`-fältet skulle blockeras. Testet med ETT ord
+prefix ("Handskar 900101-0017") misslyckades oväntat – anropet SLAPP igenom. Ett test med
+bara det bara siffrorna ("900101-0017", inget prefix) blockerades korrekt. Det avslöjade
+att Firestore-reglernas `string.matches()` gör en **helt förankrad** matchning (hela
+strängen måste matcha mönstret, som `String.fullmatch` i andra språk) – till skillnad från
+JavaScripts `regex.test()`/`.matches()` i klienten, som söker var som helst i strängen.
+
+Konsekvensen: `harTroligtPersonnummer()` i sin ursprungliga form fångade bara ett fält vars
+**HELA** innehåll var exakt ett personnummer – aldrig ett personnummer inbäddat i en
+mening ("Patientens pnr 900101-0017 gäller uppföljning..."), vilket är det realistiska
+sättet ett personnummer faktiskt hade hamnat i ett titel- eller innehållsfält. Denna bugg
+fanns redan i produktion och påverkade ALLA FYRA collections som använde funktionen
+(`rutiner`, `anslag`, `skiftrapporter`, `anteckningar`) – inte bara den nya
+forradsartiklar-kontrollen. Fixad genom att omsluta regexmönstret med `[\s\S]*` på båda
+sidor i den delade `harTroligtPersonnummer()`-funktionen.
+
+**Verifiering av fixen:** ett nytt regressionstest på `rutiner` (den collection med störst
+klinisk relevans) bevisar att ett personnummer INBÄDDAT i innehållet nu blockeras (skulle
+ha slunkit igenom före fixen), och ett kompletterande test bevisar att normalt innehåll
+utan personnummer fortfarande går igenom utan problem. Totalt sex nya rules-test (tre för
+forradsartiklar, två regressionstest för rutiner, en uppdatering-test). `npm run
+test:rules` **67/67** (upp från 61). `npm run lint`, `npm run build`, `npx vitest run`
+(29/29), `npm run test:functions` (57/57), `npm run test:storage` (6/6) – alla gröna,
+ingen regression.
+
+**Beslut om resten av PII-härdningen:** 12f (skiftrapport → Cloud Function) är avskriven
+som ursprungligen skriven, av samma skäl som 12e – premissen höll inte. 12g (regelbaserad
+spärr för resten) är till största delen redan uppfylld av denna fas; kvarvarande fråga är
+ett affärsbeslut (är regelns datumregex lagom strikt, eller behövs en annan avvägning för
+något specifikt fält) som väntar på ägarens ställningstagande.
+
+**Ingen versionsbump.** Ren regel- och testhärdning; appens beteende för en användare som
+skriver normalt innehåll är oförändrat. Beteendet ändras bara för den (tidigare möjliga)
+attacken – som nu faktiskt stoppas istället för att bara se ut att vara stoppad.
+
+Kvarstår i Etapp 12: 12c-ii/iii (App Check-enforcement, väntar på sitenyckel + mätperiod),
+12g (affärsbeslut om regelstrikthet), 12h (`firebase-tools`-uppgradering, EJ PÅBÖRJAD,
+egen testcykel krävs). 12f avskriven som ursprungligen skriven.

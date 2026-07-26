@@ -228,6 +228,46 @@ async function main() {
     assertFails(getDoc(doc(superB, "forradsartiklar", "artikelA")))
   );
 
+  console.log("\nforradsartiklar/{artikelId} – personnummerspärr på regelnivå (Etapp 12e)");
+  await test("superadminA kan INTE skapa en förrådsartikel med ett personnummer i namnet", () =>
+    assertFails(
+      setDoc(doc(superA, "forradsartiklar", "artikelMedPersonnummer"), {
+        namn: "Handskar 900101-0017",
+        forrad: "Engångsförrådet",
+        status: "utkast",
+        organisationId: ORG_A,
+      })
+    )
+  );
+  await test("superadminA kan INTE skapa en förrådsartikel med ett personnummer i skåp-fältet", () =>
+    assertFails(
+      setDoc(doc(superA, "forradsartiklar", "artikelMedPersonnummerSkap"), {
+        namn: "Kompresser",
+        skap: "900101-0017",
+        forrad: "Engångsförrådet",
+        status: "utkast",
+        organisationId: ORG_A,
+      })
+    )
+  );
+  await test("superadminA KAN skapa en vanlig förrådsartikel utan personnummer", () =>
+    assertSucceeds(
+      setDoc(doc(superA, "forradsartiklar", "artikelUtanPersonnummer"), {
+        namn: "Kompresser 10x10",
+        skap: "B",
+        hylla: "3",
+        forrad: "Engångsförrådet",
+        status: "utkast",
+        organisationId: ORG_A,
+      })
+    )
+  );
+  await test("superadminA kan INTE uppdatera en förrådsartikel så namnet blir ett personnummer", () =>
+    assertFails(
+      updateDoc(doc(superA, "forradsartiklar", "artikelA"), { namn: "900101-0017" })
+    )
+  );
+
   console.log("\nkommentarer/{kommentarId} – organisationsisolering");
   await test("superadminB kan INTE läsa org A:s kommentar", () =>
     assertFails(getDoc(doc(superB, "kommentarer", "kommentarA")))
@@ -405,6 +445,30 @@ async function main() {
         organisationId: ORG_A,
         titel: "x",
         innehall: "x",
+      })
+    )
+  );
+
+  console.log("\nharTroligtPersonnummer – måste fånga ett INBÄDDAT personnummer, inte bara ett exakt fält (Etapp 12e-fixen)");
+  await test("volA kan INTE skapa en rutin där innehållet INNEHÅLLER ett personnummer mitt i en mening", () =>
+    assertFails(
+      addDoc(collection(volA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "Patientuppföljning",
+        innehall: "Se journalanteckning för patient med personnummer 900101-0017 för detaljer.",
+      })
+    )
+  );
+  await test("volA KAN fortfarande skapa en rutin med normalt innehåll utan personnummer", () =>
+    assertSucceeds(
+      addDoc(collection(volA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "Handläggning vid bröstsmärta",
+        innehall: "Kontrollera vitalparametrar och gör EKG inom 10 minuter.",
       })
     )
   );

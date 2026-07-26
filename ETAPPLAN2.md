@@ -354,31 +354,66 @@ Etapp 9c). De dubbleras inte i denna etapp.
   blockeras med ett synligt felmeddelande och formuläret förblir öppet; en vanlig artikel
   sparas precis som innan. Se UTVECKLINGSLOGG.md Fas 38.
 
-- **12e. PII-härdning, del 2: flytta rutinskapande till Cloud Function.** Idag har
-  Cloud Functions (AI-text) den fulla Luhn-kontrollerade personnummerkontrollen, medan
-  rutiner skrivs direkt från klienten mot Firestore med bara klientsidig kontroll plus
-  regelbaserad regex (som inte kan implementera Luhn). En användare med giltig
-  Auth-session som skriver direkt mot Firestore-REST-API:et kan teoretiskt kringgå
-  klientfiltret. Åtgärd: en `skapaRutin`/`uppdateraRutin`-Cloud Function med samma
-  Luhn-kontroll som redan finns för AI-text, och stäng motsvarande direkt-skrivrätt i
-  `firestore.rules`. **Detta är det största delmålet** – det är samma mönster som redan
-  användes för `skapaKommentar`/`skickaFeedback`, men rutiner har fler fält och
-  användningsställen (mallar, versionshistorik, bilagor) så omfattningen är större.
-  **Storlek: M–L.**
+- **12e. ✅ GENOMFÖRD (omfattning ändrad, se nedan). PII-härdning, del 2.**
 
-- **12f. PII-härdning, del 3: skiftrapport.** Samma åtgärd som 12e, men för
-  skiftrapportens fritextfält. Mindre omfattning eftersom skiftrapport har färre
-  användningsställen än rutiner. **Storlek: M.** Bör göras efter 12e så mönstret från
-  den Cloud Function-omskrivningen kan återanvändas.
+  **Ursprunglig plan (INTE genomförd som skriven):** flytta rutinskapande till en
+  Cloud Function med full Luhn-kontroll, med motiveringen att rutiner bara hade
+  klientsidigt skydd och kunde kringgås via ett direktanrop mot Firestore-REST-API:et.
 
-- **12g. PII-härdning, del 4: regelbaserad spärr för övriga fritextfält.** För fält som
-  inte flyttas till en Cloud Function (t.ex. anteckningar) – en enkel regex-spärr i
-  `firestore.rules` av samma typ som redan finns i backup-filtret, med känd begränsning
-  (falska positiva på tal som ser ut som personnummer men inte är det) dokumenterad i
-  SAKERHETSRAPPORT.md. **Detta är ett affärsbeslut, inte bara ett tekniskt val** – fler
-  falska positiva stör den dagliga användningen, så vilken strikthet som är rimlig bör
-  avgöras av verksamheten, inte gissas fram. **Storlek: S**, men bör inte påbörjas förrän
-  ägaren tagit ställning till den avvägningen.
+  **Vad en genomläsning av firestore.rules innan implementation visade:** den
+  motiveringen stämde inte. `rutiner`, `anslag`, `skiftrapporter` och `anteckningar`
+  hade ALLA redan en regelnivå-spärr (`harTroligtPersonnummer()`, en datumstrukturbaserad
+  regex) på create/update – ett direktanrop kunde alltså inte kringgå skyddet genom att
+  bara hoppa över klienten. `kommentarer`/`feedback` var redan helt låsta
+  (`allow create: if false`, går bara via `skapaKommentar`/`skickaFeedback` med full
+  Luhn). En Cloud-Function-omskrivning av rutinskapande (stor omfattning: bilagor,
+  versionshistorik, taggar, återställning) hade alltså löst ett problem som redan var
+  löst. Den enda collection som verkligen SAKNADE regelnivå-skyddet var
+  `forradsartiklar` (dit 12d bara lade en klientkontroll).
+
+  **Vad som faktiskt gjordes, i samråd med ägaren:**
+  1. La till `harTroligtPersonnummer()` på `forradsartiklar`s create/update
+     (namn/skap/hylla) – den verkliga luckan.
+  2. **Hittade och fixade en allvarligare, redan existerande bugg under
+     testverifieringen:** Firestore-reglernas `string.matches()` gör en HELT FÖRANKRAD
+     matchning (hela strängen måste matcha), inte en delsträngssökning som
+     JavaScripts `regex.test()`. Det betyder att `harTroligtPersonnummer()` i sin
+     ursprungliga form bara fångade ett fält vars HELA innehåll var exakt ett
+     personnummer – inte ett personnummer inbäddat i en mening (t.ex. "Pnr
+     900101-0017 gäller..."), vilket är det realistiska sättet PII faktiskt hade
+     läckt in. Denna bugg påverkade alla fyra collections som redan använde
+     funktionen, inte bara den nya forradsartiklar-kontrollen. Fixad genom att
+     omsluta mönstret med `[\s\S]*` på båda sidor.
+
+  **Resultat:** regelnivå-skyddet mot personnummer är nu på riktigt effektivt (fångar
+  inbäddade personnummer) på samtliga fem collections: rutiner, anslag,
+  skiftrapporter, anteckningar, forradsartiklar. Två nya rules-test bevisar fixen:
+  ett som visar att ett INBÄDDAT personnummer i en rutins innehåll nu blockeras (skulle
+  ha slunkit igenom före fixen), och ett som visar att normalt innehåll fortfarande
+  går igenom. `npm run test:rules` **67/67** (upp från 61, sex nya tester).
+
+  **Den ursprungliga Cloud-Function-idén för rutiner är avskriven, inte bara
+  uppskjuten** – den löste inte ett verkligt problem givet vad regelnivå-skyddet redan
+  gjorde (efter fixen). Om ett verkligt behov av full Luhn-kontroll (istället för
+  regelns datumregex, som har kända falska positiva på tal som ser ut som datum men
+  inte är personnummer) uppstår i framtiden, är det en ny, separat avvägning – inte en
+  kvarstående skuld från denna etapp.
+
+- **12f. EJ PÅBÖRJAD (omprövning krävs innan den görs).** Var tänkt som samma
+  Cloud-Function-åtgärd som 12e men för skiftrapport. Eftersom 12e:s premiss inte
+  höll (skiftrapport hade, liksom rutiner, redan regelnivå-skydd – nu dessutom fixat
+  för inbäddade personnummer i samma omgång) bör 12f INTE göras som ursprungligen
+  skriven. Kvarstår bara om ett konkret, nytt behov av full Luhn (utöver regelns
+  datumregex) identifieras för skiftrapport specifikt.
+
+- **12g. PII-härdning, del 4: regelbaserad spärr för övriga fritextfält.** Delvis
+  inaktuell efter 12e – anteckningar hade redan regelskyddet (nu fixat för inbäddade
+  personnummer). Kvarvarande frågeställning: är regelns datumregex (med kända falska
+  positiva på tal som ser ut som datum men inte är personnummer, dokumenterat i
+  SAKERHETSRAPPORT.md) tillräckligt strikt/förlåtande för verksamhetens smak, eller
+  bör något fält ha en annan avvägning? **Detta är ett affärsbeslut, inte ett tekniskt
+  val** – bör inte avgöras utan ägarens ställningstagande. **Storlek: S** om något
+  över huvud taget behöver ändras.
 
 **Rekommenderad ordning:** 12a → 12b → 12d (alla tre är små, snabba, riskfria) → 12c
 (kräver en mätperiod, så starta den tidigt även om den avslutas sent) → 12e → 12f → 12g

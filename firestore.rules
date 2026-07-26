@@ -142,10 +142,18 @@ service cloud.firestore {
     // - 12 siffror: samma, men med sekel 19 eller 20 (ingen levande person är född 18xx/16xx)
     // \b-gränserna gör att ett 12-siffrigt nummer inte råkar matcha det 10-siffriga
     // alternativet (en siffra direkt intill bryter ordgränsen).
+    // OBS (Etapp 12e): Firestore-reglernas string.matches() gör en HELT FÖRANKRAD matchning
+    // (hela strängen måste matcha), till skillnad från JavaScripts regex.test() som söker var
+    // som helst i strängen. Ett omslutande [\s\S]* på båda sidor krävs därför för att detta
+    // ska fånga ett personnummer INBÄDDAT i en längre text (t.ex. "Pnr 900101-0017 gäller...")
+    // och inte bara ett fält vars HELA innehåll råkar vara exakt ett personnummer. Denna bugg
+    // fanns i den ursprungliga versionen av funktionen (upptäckt av ett nytt rules-test i
+    // Etapp 12e) och påverkade alla fyra collections som redan använde funktionen: rutiner,
+    // anslag, skiftrapporter, anteckningar – inte bara den nya forradsartiklar-kontrollen.
     function harTroligtPersonnummer(text) {
       return text is string && text.matches(
-        '\\b(\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]|6[1-9]|7\\d|8[01])[-+]?\\d{4}'
-        + '|(19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]|6[1-9]|7\\d|8[01])[-+]?\\d{4})\\b'
+        '[\\s\\S]*(\\b(\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]|6[1-9]|7\\d|8[01])[-+]?\\d{4}'
+        + '|(19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]|6[1-9]|7\\d|8[01])[-+]?\\d{4})\\b)[\\s\\S]*'
       );
     }
 
@@ -254,13 +262,26 @@ service cloud.firestore {
       }
     }
 
-    // forradsartiklar/{artikelId} – inventarie i Logistik-förråden, platsangivet med förråd/skåp/hylla
+    // forradsartiklar/{artikelId} – inventarie i Logistik-förråden, platsangivet med förråd/skåp/hylla.
+    // Etapp 12e: harTroligtPersonnummer()-spärren (samma som rutiner/anslag/skiftrapporter/
+    // anteckningar redan har) läggs till här på namn/skap/hylla – tidigare fanns bara
+    // klientens kontroll (Etapp 12d), som ett direktanrop mot Firestore-REST-API:et hade
+    // kunnat kringgå. Detta var den enda collection av de granskade som saknade
+    // regelnivå-skyddet helt.
     match /forradsartiklar/{artikelId} {
       allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'))
                    && (resource.data.status == 'godkand' || farRedigeraOmrade('logistik'));
       allow create: if farRedigeraOmrade('logistik')
-                     && request.resource.data.get('organisationId', 'default') == minOrganisation();
-      allow update, delete: if farRedigeraOmrade('logistik')
+                     && request.resource.data.get('organisationId', 'default') == minOrganisation()
+                     && !harTroligtPersonnummer(request.resource.data.get('namn', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('skap', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('hylla', ''));
+      allow update: if farRedigeraOmrade('logistik')
+                     && matcharMinOrg(resource.data.get('organisationId', 'default'))
+                     && !harTroligtPersonnummer(request.resource.data.get('namn', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('skap', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('hylla', ''));
+      allow delete: if farRedigeraOmrade('logistik')
                      && matcharMinOrg(resource.data.get('organisationId', 'default'));
     }
 
