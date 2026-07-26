@@ -2305,3 +2305,33 @@ leverantörens juridiska namn, e-postadress för tillgänglighetsfrågor och må
 åtgärder. Dokumentet får inte publiceras förrän de fyllts i – och publiceringen i sig
 (en `/tillganglighet`-sida) är inte gjord, eftersom en publicerad redogörelse är ett
 juridiskt åtagande som ägaren ska fatta beslut om.
+
+---
+
+## Fas 35 – Etapp 12a: emulator-testerna in i CI
+
+En extern "säkerhetsgenomlysning" av projektet visade sig i praktiken vara en
+sammanställning av vår egen dokumentation snarare än en oberoende granskning (noll nya
+fynd, ett sakfel om en påhittad "Etapp 12"). Den lyfte ändå en verklig, obekväm sanning:
+`ci.yml` körde bara `npm run test` (vitest, 29 tester på ren klientlogik). De tester som
+faktiskt bevisar organisationsisoleringen – rules (61), functions (57) och storage (6),
+alla mot riktiga Firestore-/Storage-emulatorer – kördes bara när någon startade dem
+manuellt. En regression i `firestore.rules` eller `functions/index.js` hade kunnat mergas
+utan att CI slog larm.
+
+**Ändring:** `ci.yml` kör nu, i denna ordning: `npm ci` (rot), `npm ci` i `functions/`
+(behövdes inte tidigare eftersom inget CI-steg läste functions-kod), lint, vitest, sedan
+`npm run test:rules`, `npm run test:functions`, `npm run test:storage` – samma
+`firebase emulators:exec`-kommandon som redan användes lokalt, oförändrade. Sist bygg och
+`node -c functions/index.js`, som tidigare.
+
+Inget nytt skrevs – detta lägger bara till kontroller som redan fanns lokalt. Ingen risk
+för produktionsbeteende, men verifierat ändå genom att köra precis den sekvens CI kommer
+köra (inklusive `npm ci` i `functions/`, inte det mer förlåtande `npm install`) lokalt:
+lint, vitest (29/29), test:rules (61/61), test:functions (57/57), test:storage (6/6), bygg,
+och syntaxkontroll – alla gröna.
+
+**Ingen versionsbump.** Ren CI-/infrastrukturändring utan någon som helst effekt på
+appens beteende för en användare.
+
+Kvarstår i Etapp 12: 12b (beroendesårbarheter), 12c (App Check), 12d–12g (PII-härdning).

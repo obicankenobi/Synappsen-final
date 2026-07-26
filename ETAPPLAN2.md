@@ -273,7 +273,7 @@ Etapp 9c). De dubbleras inte i denna etapp.
 
 **Delmål (oberoende av varandra, kan göras i valfri ordning – 12a föreslås först):**
 
-- **12a. CI kör bara `npm run test` (vitest).** De tester som faktiskt bevisar
+- **12a. ✅ GENOMFÖRD. CI kör bara `npm run test` (vitest).** De tester som faktiskt bevisar
   organisationsisoleringen – rules (61), functions (57) och storage (6) – körs idag bara
   när någon startar dem manuellt mot en lokal emulator. En regression i `firestore.rules`
   eller `functions/index.js` skulle inte stoppa en PR. Åtgärd: lägg till emulator-baserade

@@ -19,11 +19,24 @@ jobs:
       - name: Installera beroenden
         run: npm ci
 
+      - name: Installera functions-beroenden
+        run: npm ci
+        working-directory: functions
+
       - name: Lint
         run: npm run lint
 
       - name: Enhetstester
         run: npm run test
+
+      - name: Regeltester (Firestore-emulator)
+        run: npm run test:rules
+
+      - name: Functions-tester (Firestore- + Storage-emulator)
+        run: npm run test:functions
+
+      - name: Storage-regeltester (Firestore- + Storage-emulator)
+        run: npm run test:storage
 
       - name: Bygg
         run: npm run build
