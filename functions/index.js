@@ -1,11 +1,41 @@
 // Cloud Functions för Synappsen – Gemini Vision-tolkning av uppladdade foton
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onCall: onCallUtanRapportering, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
 const crypto = require("node:crypto");
 const { VERKSAMHETSMALLAR } = require("./verksamhetsmallar");
+const Sentry = require("@sentry/node");
+
+// Ingen SENTRY_DSN i miljön (lokala emulatorer, tester) → Sentry.init() no-opar tyst.
+Sentry.init({ dsn: process.env.SENTRY_DSN, tracesSampleRate: 0 });
+
+// Alla callable-exports i den här filen (varje "onCall(...)"-anrop) ska rapportera oväntade
+// fel till Sentry innan de når klienten, utan att ändra svaret. Att wrappa själva
+// onCall-importen (istället
+// för varje enskilt anropsställe) gör det gäller automatiskt för både befintliga och
+// framtida funktioner. onCall fångar redan avvisade promises och gör om dem till ett
+// felsvar – det är därför Sentry inte kan förlita sig på sina egna globala
+// uncaughtException/unhandledRejection-lyssnare här. Medvetna HttpsError-avvisningar
+// (saknad modul, budget, valideringsfel) är inte buggar och rapporteras inte.
+function onCall(optionerEllerHanterare, kanskeHanterare) {
+  const harEgnaOptioner = typeof optionerEllerHanterare !== "function";
+  const hanterare = harEgnaOptioner ? kanskeHanterare : optionerEllerHanterare;
+  const medRapportering = async (request) => {
+    try {
+      return await hanterare(request);
+    } catch (fel) {
+      if (!(fel instanceof HttpsError)) {
+        Sentry.captureException(fel);
+      }
+      throw fel;
+    }
+  };
+  return harEgnaOptioner
+    ? onCallUtanRapportering(optionerEllerHanterare, medRapportering)
+    : onCallUtanRapportering(medRapportering);
+}
 
 admin.initializeApp();
 const db = admin.firestore();

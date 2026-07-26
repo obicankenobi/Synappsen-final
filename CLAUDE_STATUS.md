@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-07-26, version 5.24.0
+**Senast uppdaterad:** 2026-07-26, version 5.25.0
 
 ## Nuläge i ett stycke
 
@@ -38,6 +38,22 @@ sök→klick→mätning-flödet för tid-att-hitta.
 **Ännu INTE deployat till produktion** – allt arbete denna omgång (9 commits,
 v5.15.1 → v5.24.0) ligger på `claude/compassionate-euler-rho0q5` men väntar
 på en "Deploya till produktion"-instruktion.
+
+**Uppföljning (v5.25.0, se UTVECKLINGSLOGG.md Fas 33):** användaren kopplade in Sentry- och
+Linear-connectorerna. Utifrån det: (1) Sentry-SDK:t är nu faktiskt inkopplat i koden – två
+projekt (`synappsen-frontend`, `synappsen-functions`), DSN:er satta som icke-hemliga
+build-time-env i `deploy.yml` (samma mönster som Firebase-configen), `ErrorBoundary.jsx`
+rapporterar renderingsfel, `functions/index.js`s `onCall`-import är wrappad EN gång så alla
+callable-funktioner automatiskt rapporterar oväntade fel utan att varje anropsställe
+behövde ändras. (2) Ett Linear-projekt ("Synappsen") med sju issues för hela den
+återstående backloggen (Etapp 9a–9e, 10a, 11) – ETAPPLAN2.md är fortfarande källan till den
+fylliga motiveringen. (3) En `SessionStart`-hook (`.claude/hooks/session-start.sh`) kör
+`npm install` automatiskt i både rot och `functions/` vid ny fjärrsession. (4)
+`.claude/settings.json`s `permissions.allow` fylld med skrivskyddade kommandon
+(lint/build/test-scripts, `npx vitest`, `sed -n`, `node -c`, en avgränsad `curl` mot
+produktions-URL:en, två read-only GitHub Actions-MCP-verktyg) baserat på faktisk användning
+i sessionen – minskar antalet tillståndsprompter utan att öppna för deploy/push/godtycklig
+kodkörning.
 
 ## Vad som återstår (se ETAPPLAN2.md för detaljer)
 

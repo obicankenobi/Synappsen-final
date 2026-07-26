@@ -22,6 +22,7 @@ jobs:
           VITE_FIREBASE_STORAGE_BUCKET=synappsen-final-build.firebasestorage.app
           VITE_FIREBASE_MESSAGING_SENDER_ID=773838769422
           VITE_FIREBASE_APP_ID=1:773838769422:web:2f9cdc586378cdc5145b5f
+          VITE_SENTRY_DSN=https://c9f27406c8d174a27212d88dca1acaf9@o4511801594281984.ingest.de.sentry.io/4511801670107216
           EOF
 
       - name: Installera frontend-beroenden
@@ -29,6 +30,12 @@ jobs:
 
       - name: Bygg frontend
         run: npm run build
+
+      - name: Skapa .env med Sentry-konfiguration för Cloud Functions
+        run: |
+          cat > functions/.env <<'EOF'
+          SENTRY_DSN=https://da30c8927ae17c2eed23e57ccedbd281@o4511801594281984.ingest.de.sentry.io/4511801671155792
+          EOF
 
       - name: Installera functions-beroenden
         run: npm install

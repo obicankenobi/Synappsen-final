@@ -2171,3 +2171,61 @@ test:functions` (57/57), `npm run test:storage` (6/6), `npx vitest run` (29/29) 
 Med detta är ETAPPLAN2.md:s Etapp 6, 7, 8 och 10 (b–e) samtliga genomförda.
 
 **Version:** 5.24.0.
+
+---
+
+## Fas 33 – Felövervakning (Sentry), backlogg i Linear, sessionsverktyg
+
+Inte en egen etapp i ETAPPLAN.md/ETAPPLAN2.md – ett svar på frågan "vad saknas fortfarande i
+verktygslådan runt projektet, inte i själva appen". Ingen kodbas hade tidigare någon
+produktionsövervakning av fel alls (`ErrorBoundary.jsx` loggade bara till `console.error`),
+och den återstående backloggen (Etapp 9, 10a, 11) fanns bara som text i ETAPPLAN2.md.
+
+**Felövervakning:**
+- Två Sentry-projekt skapade (`synappsen-frontend`, `synappsen-functions`) under
+  organisationen `synappsen`.
+- `src/sentry.js`: `Sentry.init()` med DSN från `VITE_SENTRY_DSN` (build-time env, satt i
+  `deploy.yml` på samma sätt som Firebase-konfigurationen redan sattes där – en DSN är
+  designad för att vara publik, den tillåter bara att SKICKA in fel, aldrig att läsa dem, så
+  den behandlas inte som en hemlighet). `ErrorBoundary.jsx` skickar nu varje fångat
+  renderingsfel vidare till `Sentry.captureException`.
+- `functions/index.js`: `@sentry/node` initieras med DSN från `process.env.SENTRY_DSN` (satt
+  via ett `functions/.env` som skrivs i `deploy.yml`, samma icke-hemliga mönster). Istället
+  för att röra alla ~18 `exports.X = onCall(...)`-anropsställen wrappas själva `onCall`-
+  importen EN gång i en lokal `onCall()`-funktion som fångar och vidarerapporterar oväntade
+  fel (men inte medvetna `HttpsError`-avvisningar som saknad modul/budget) innan den kastar
+  vidare – gäller därför automatiskt för både befintliga och framtida callable-funktioner
+  utan någon ytterligare ändring.
+- **Fälla under vägen:** gating-matris-testet (`gatingmatris.test.cjs`) bygger sin statiska
+  kontroll på en regex som letar efter bokstavlig text `exports.X = onCall(` i källkoden. En
+  kommentar som (i förklarande syfte) innehöll exakt den strängen fick testet att felaktigt
+  tro att en gated funktion literally hette "X" och saknades i matrisen. Löst genom att skriva
+  om kommentaren utan den bokstavliga regex-träffbara formen.
+
+**Linear (backlogg):** ett projekt ("Synappsen") kopplat till teamet, och sju issues skapade
+för hela den återstående, icke-påbörjade delen av ETAPPLAN2.md: Etapp 9a–9e
+(upphandlingsbarhet: SSO, WCAG, GDPR, granskningslogg, driftdokumentation), Etapp 10a
+(demoläge/sandlåda) och Etapp 11 (Intelligence 2.0, uttryckligen märkt att den INTE ska
+påbörjas förrän en betalande Intelligence-kund finns). ETAPPLAN2.md förblir källan till den
+fylliga motiveringen per punkt – Linear-issuen länkar dit istället för att duplicera texten.
+
+**Claude Code-sessionsverktyg (inget av detta är applikationskod):**
+- `.claude/hooks/session-start.sh` + `.claude/settings.json`: kör `npm install` (rot och
+  `functions/`) automatiskt vid start av en ny fjärrsession, så beroenden alltid är på plats
+  innan första testkörningen.
+- `.claude/settings.json`s `permissions.allow`: ett tillståndsurval baserat på faktisk
+  användning i den här sessionens transkript (`npm run lint/build/test:*`, `npx vitest`,
+  `npx eslint`, `sed -n`, `node -c`, en smalt avgränsad `curl` mot produktions-URL:en för
+  asset-hash-verifiering, samt de två read-only GitHub Actions-MCP-verktygen) – enbart
+  skrivskyddade/icke-muterande kommandon, inget som kan trigga deploy, push eller godtycklig
+  kodkörning.
+
+**Verifiering:** `npm run lint`, `npm run build`, `npx vitest run` (29/29), `npm run
+test:rules` (61/61), `npm run test:functions` (57/57, inklusive gating-matris-testet efter
+kommentarfixen), `npm run test:storage` (6/6) – alla gröna. `node -c functions/index.js`
+grönt. Sentry/Linear-integrationen är INTE verifierad mot en riktig utlöst felrapport i den
+här sessionen (skulle kräva en riktig produktionsdeploy och ett framprovocerat fel) – DSN:er
+och SDK-inkoppling är verifierade genom kod-/syntaxgranskning och att befintliga tester
+(inklusive `ErrorBoundary.test.jsx`) fortfarande går igenom oförändrade.
+
+**Version:** 5.25.0.

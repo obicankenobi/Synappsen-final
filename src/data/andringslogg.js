@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.25.0",
+    datum: "2026-07-26",
+    andringar: [
+      "Oväntade fel rapporteras nu automatiskt till ett internt felövervakningsverktyg, så driftstörningar kan upptäckas och åtgärdas snabbare",
+    ],
+  },
+  {
     version: "5.24.0",
     datum: "2026-07-26",
     andringar: [

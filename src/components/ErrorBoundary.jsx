@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { Sentry } from "../sentry.js";
 import "./ErrorBoundary.css";
 
 // Fångar renderingsfel i sina children (t.ex. ett Firestore-dokument i ett oväntat format)
@@ -14,6 +15,7 @@ export default class ErrorBoundary extends Component {
 
   componentDidCatch(fel, info) {
     console.error("Något gick fel i vyn:", fel, info);
+    Sentry.captureException(fel, { extra: { componentStack: info.componentStack } });
   }
 
   render() {
