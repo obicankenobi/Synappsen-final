@@ -344,11 +344,15 @@ Etapp 9c). De dubbleras inte i denna etapp.
 
   **Storlek: M**, mest på grund av mätfasen som bör pågå en tid innan 12c-ii slås på skarpt.
 
-- **12d. PII-härdning, del 1: förrådsartikelformuläret.** Den enda konkreta, omedelbart
-  åtgärdbara luckan rapporten pekade på: `ForradArtikelFormular`-motsvarigheten saknar
+- **12d. ✅ GENOMFÖRD. PII-härdning, del 1: förrådsartikelformuläret.** Den enda konkreta,
+  omedelbart åtgärdbara luckan rapporten pekade på: `ForradArtikelFormular` saknade
   `kontrolleraPatientuppgifter()`, till skillnad från rutiner, kommentarer, anslag,
   skiftrapport, anteckningar och feedback som alla redan har den. Lågriskfält (namn,
   skåp, hylla, antal) men inkonsekvent mot övrig policy. **Storlek: S.**
+  **Resultat:** kontrollen körs nu på namn/skåp/hylla-fälten innan sparning (samma mönster
+  som `AnslagFormular.jsx`). Verifierat i riktig browser: ett personnummer i namnfältet
+  blockeras med ett synligt felmeddelande och formuläret förblir öppet; en vanlig artikel
+  sparas precis som innan. Se UTVECKLINGSLOGG.md Fas 38.
 
 - **12e. PII-härdning, del 2: flytta rutinskapande till Cloud Function.** Idag har
   Cloud Functions (AI-text) den fulla Luhn-kontrollerade personnummerkontrollen, medan

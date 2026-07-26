@@ -2452,3 +2452,33 @@ sitenyckeln är på plats och App Check faktiskt börjar utfärda tokens.
 Kvarstår i Etapp 12: 12c-ii (`enforceAppCheck`, väntar på mätperiod efter att sitenyckeln
 finns), 12c-iii (test), 12d–12g (PII-härdning), 12h (`firebase-tools`-uppgradering,
 EJ PÅBÖRJAD, egen testcykel krävs).
+
+---
+
+## Fas 38 – Etapp 12d: PII-kontroll i förrådsartikelformuläret
+
+Första av fyra PII-härdningsdelmål i Etapp 12. Den enda konkreta, omedelbart åtgärdbara
+luckan den externa rapporten pekade på: `ForradArtikelFormular.jsx` var det sista
+fritextformuläret i appen utan `kontrolleraPatientuppgifter()` – rutiner, kommentarer,
+anslag, skiftrapport, anteckningar och feedback hade redan kontrollen.
+
+**Ändring:** exakt samma mönster som `AnslagFormular.jsx` – `kontrolleraPatientuppgifter()`
+körs på `namn`/`skap`/`hylla` (fritextfälten; `antal` och bilden lämnas orörda, ingen
+anledning att kontrollera ett numeriskt fält eller en bildfil) innan `onSpara` anropas.
+Vid träff visas meddelandet via `useDialog()`s `visaMeddelande` och sparningen avbryts.
+
+**Verifiering:** manuell Playwright-körning mot en riktig browser (emulatorer + dev-server,
+inloggad testanvändare, `/logistik/engangsforradet`): (1) ett giltigt testpersonnummer
+(`900101-0017`, samma Luhn-giltiga testvärde som redan används i `piiFilter`-testerna)
+skrivet i namnfältet blockerar sparningen med ett synligt felmeddelande och formuläret
+förblir öppet; (2) en vanlig artikel ("Kompresser 10x10") sparas normalt, formuläret stängs
+och artikeln syns i listan – ingen regression för det vanliga flödet. `npm run lint`,
+`npm run build`, `npx vitest run` (29/29), `npm run test:rules` (61/61), `npm run
+test:functions` (57/57), `npm run test:storage` (6/6) – alla gröna.
+
+**Ingen versionsbump.** Konsekvenshöjning av en redan existerande policy till ett fält som
+av misstag saknade den – inte en ny funktion i sig.
+
+Kvarstår i Etapp 12: 12e (rutiner → Cloud Function), 12f (skiftrapport → Cloud Function),
+12g (regelbaserad spärr för resten, kräver ett föregående beslut om strikthet), 12c-ii/iii,
+12h.

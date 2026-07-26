@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
+import { useDialog } from "../hooks/useDialog";
 import "./ForradArtikelFormular.css";
 
 export default function ForradArtikelFormular({ initialaVarden, onSpara, onAvbryt }) {
+  const { visaMeddelande } = useDialog();
   const [namn, setNamn] = useState(initialaVarden?.namn ?? "");
   const [skap, setSkap] = useState(initialaVarden?.skap ?? "");
   const [hylla, setHylla] = useState(initialaVarden?.hylla ?? "");
@@ -11,6 +14,11 @@ export default function ForradArtikelFormular({ initialaVarden, onSpara, onAvbry
 
   async function hanteraSubmit(e) {
     e.preventDefault();
+    const kontroll = kontrolleraPatientuppgifter(`${namn} ${skap} ${hylla}`);
+    if (kontroll.blockerad) {
+      if (kontroll.meddelande) visaMeddelande(kontroll.meddelande);
+      return;
+    }
     setSparar(true);
     try {
       await onSpara({ namn, skap, hylla, antal, bild });
