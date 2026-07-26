@@ -65,10 +65,10 @@ export function listaOrganisationer() {
   return fn();
 }
 
-// Etapp 6b – organisationsetablering
-export function skapaOrganisation(namn, moduler) {
+// Etapp 6b – organisationsetablering (verksamhetstyp: Etapp 10d, valfritt startbibliotek)
+export function skapaOrganisation(namn, moduler, verksamhetstyp) {
   const fn = httpsCallable(functions, "skapaOrganisation");
-  return fn({ namn, moduler });
+  return fn({ namn, moduler, verksamhetstyp });
 }
 
 // Etapp 6d – avetablering

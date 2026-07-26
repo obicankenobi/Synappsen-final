@@ -109,6 +109,38 @@ async function main() {
     )
   );
 
+  console.log("\nskapaOrganisation – Etapp 10d verksamhetsmallar");
+  await test("en organisation med verksamhetstyp='akutmottagning' får startbibliotekets rutiner, redan godkända", async () => {
+    const resultat = await funcs.skapaOrganisation.run({
+      data: { namn: "Akutmottagning Test", verksamhetstyp: "akutmottagning" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    vantaSig(resultat.antalMallrutiner === 2, `förväntade 2 mallrutiner, fick ${resultat.antalMallrutiner}`);
+    const rutinSnap = await db
+      .collection("rutiner")
+      .where("organisationId", "==", resultat.orgId)
+      .get();
+    vantaSig(rutinSnap.size === 2, `förväntade 2 sparade rutiner, fick ${rutinSnap.size}`);
+    rutinSnap.forEach((doc) => {
+      vantaSig(doc.data().status === "godkand", "mallrutiner ska vara direkt godkända/synliga");
+      vantaSig(doc.data().titel.includes("(mall)"), "mallrutinens titel ska vara märkt som mall");
+    });
+  });
+  await test("en organisation UTAN verksamhetstyp får inga mallrutiner (bakåtkompatibelt)", async () => {
+    const resultat = await funcs.skapaOrganisation.run({
+      data: { namn: "Utan Mall Test" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    vantaSig(resultat.antalMallrutiner === 0, "förväntade 0 mallrutiner utan verksamhetstyp");
+  });
+  await test("ett okänt verksamhetstyp-värde ger inga mallrutiner (fail closed, ingen krasch)", async () => {
+    const resultat = await funcs.skapaOrganisation.run({
+      data: { namn: "Okänd Typ Test", verksamhetstyp: "finns-inte" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    vantaSig(resultat.antalMallrutiner === 0, "förväntade 0 mallrutiner för okänd verksamhetstyp");
+  });
+
   console.log("\nlistaOrganisationer – Etapp 6a leverantörsöversikt");
   await test("en icke-plattformsadmin kan INTE lista organisationer", () =>
     forvantaFel("permission-denied", () =>

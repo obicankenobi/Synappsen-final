@@ -5,6 +5,7 @@ const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
 const crypto = require("node:crypto");
+const { VERKSAMHETSMALLAR } = require("./verksamhetsmallar");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -1214,7 +1215,32 @@ exports.skapaOrganisation = onCall({ region: "europe-west1" }, async (request) =
     anvantPerUid: {},
   });
 
-  return { orgId: orgRef.id };
+  // Etapp 10d: valfritt startbibliotek av rutinmallar så en ny kund inte möter en helt tom
+  // app. Skapas som REDAN GODKÄNDA (synliga direkt) men tydligt märkta "(mall)" i titeln och
+  // med en anmärkning i innehållet – se verksamhetsmallar.js för resonemanget kring varför
+  // detta är strukturella exempel, inte riktig klinisk vägledning.
+  const verksamhetstyp = request.data?.verksamhetstyp;
+  const mallar = VERKSAMHETSMALLAR[verksamhetstyp];
+  let antalMallrutiner = 0;
+  if (mallar) {
+    const batch = db.batch();
+    for (const mall of mallar) {
+      batch.set(db.collection("rutiner").doc(), {
+        titel: mall.titel,
+        innehall: mall.innehall,
+        omrade: mall.omrade,
+        status: "godkand",
+        organisationId: orgRef.id,
+        kalla: "verksamhetsmall",
+        skapadAv: request.auth.uid,
+        skapad: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      antalMallrutiner += 1;
+    }
+    await batch.commit();
+  }
+
+  return { orgId: orgRef.id, antalMallrutiner };
 });
 
 // Etapp 6a: översikt åt leverantörsadmin – en rad per kundorganisation med moduler, antal

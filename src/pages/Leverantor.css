@@ -18,7 +18,8 @@
   gap: 8px !important;
 }
 
-.leverantor__form input[type="text"] {
+.leverantor__form input[type="text"],
+.leverantor__form select {
   padding: 10px 12px;
   border: 1px solid var(--kant);
   box-shadow: var(--skugga);

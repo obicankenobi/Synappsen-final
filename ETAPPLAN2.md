@@ -218,7 +218,7 @@ betala – inte bara personalen en anledning att använda.
   passerat granskningsdatum, mest sökta frågor, andel nollträffar. Exporterbar till PDF.
   Personalen använder appen för att den är snabb; chefen betalar för att kunna visa att
   rutinerna faktiskt är lästa.
-- **10d. Rutinmallar per verksamhetstyp.** Ett startbibliotek (t.ex. slutenvårdsavdelning,
+- **10d. ✅ GENOMFÖRD. Rutinmallar per verksamhetstyp.** Ett startbibliotek (t.ex. slutenvårdsavdelning,
   vårdcentral, kommunal hemtjänst) så att en ny kund inte möts av en tom app.
 - **10e. "Tid-att-hitta"-mätning.** Medvetet bortvald i Etapp 4. Ta upp den nu om piloten
   efterfrågar den – det är den siffra som mest direkt översätts till kronor i en kalkyl

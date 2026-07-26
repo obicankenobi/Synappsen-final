@@ -2100,3 +2100,35 @@ sidan renderade alla fem sektioner korrekt utan konsol-/sidfel, ingen `ErrorBoun
 (54/54), `npm run test:storage` (6/6), `npx vitest run` (29/29) – alla gröna.
 
 **Version:** 5.22.0.
+
+---
+
+## Fas 31 – Etapp 10d: rutinmallar per verksamhetstyp
+
+Ett startbibliotek så att en ny kundorganisation inte möter en helt tom app direkt efter
+etablering (Etapp 6b). Ny `functions/verksamhetsmallar.js`: tre verksamhetstyper
+(`akutmottagning`, `vardcentral`, `hemtjanst`), vardera med två startrutiner. `skapaOrganisation`
+tar nu emot ett valfritt `verksamhetstyp`-fält och seedar, om det matchar en känd typ, den nya
+organisationen med dessa rutiner – redan satta till `status: "godkand"` (synliga direkt,
+inget granskningssteg krävs för startmaterial) men tydligt märkta "(mall)" i titeln och med
+en anmärkningstext i innehållet.
+
+**Ett medvetet, viktigt övervägande:** mallinnehållet är EXPLICIT skrivet som strukturella
+platshållare ("Beskriv er lokala rutin för...", inga faktiska doser/diagnoskriterier), inte
+fabricerad klinisk vägledning. Att låta AI hitta på eller hårdkoda medicinskt innehåll och
+presentera det som en riktig rutin hade varit både medicinskt och juridiskt oansvarigt – varje
+mall bär en anmärkning om att den ska ersättas med verksamhetens egen, granskade rutin.
+
+Ny UI i `Leverantor.jsx`: en "Startbibliotek (valfritt)"-väljare i formuläret för att skapa en
+organisation (`src/config/verksamhetstyper.js`, nycklar synkade manuellt med
+`verksamhetsmallar.js` – kommenterat i båda filerna), samt ett kvitto ("skapades med N
+startmall-rutiner") efter lyckad skapelse.
+
+**Verifiering:** tre nya tester i `tests/functions/etapp6.test.cjs` – en känd verksamhetstyp
+ger rätt antal redan godkända, mall-märkta rutiner; ingen verksamhetstyp ger noll (bakåt-
+kompatibelt, alla tidigare `skapaOrganisation`-anrop opåverkade); ett okänt värde ger noll
+utan att krascha (fail closed). `npm run test:functions` nu **57/57**. `npm run lint`, `npm
+run build`, `npm run test:rules` (60/60), `npm run test:storage` (6/6), `npx vitest run`
+(29/29) – alla gröna.
+
+**Version:** 5.23.0.

@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.23.0",
+    datum: "2026-07-26",
+    andringar: [
+      "Leverantörsvyn kan nu skapa en ny organisation med ett valfritt startbibliotek av rutinmallar (akutmottagning, vårdcentral, kommunal hemtjänst) – en ny kund möts inte av en helt tom app",
+    ],
+  },
+  {
     version: "5.22.0",
     datum: "2026-07-26",
     andringar: [

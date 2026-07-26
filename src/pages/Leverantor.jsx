@@ -7,6 +7,7 @@ import {
   exporteraOrganisation,
   blibForstaPlattformsadmin,
 } from "../firebase/functions";
+import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
 import "./Leverantor.css";
 
 // Etapp 6a: leverantörsvy – en enda plats för att se/administrera ALLA kundorganisationer.
@@ -20,7 +21,9 @@ export default function Leverantor() {
   const [namn, setNamn] = useState("");
   const [operations, setOperations] = useState(false);
   const [intelligence, setIntelligence] = useState(false);
+  const [verksamhetstyp, setVerksamhetstyp] = useState("");
   const [skapar, setSkapar] = useState(false);
+  const [skapadInfo, setSkapadInfo] = useState(null);
   const [atgard, setAtgard] = useState(null);
   const [bootstrapar, setBootstrapar] = useState(false);
   const [exportMeddelande, setExportMeddelande] = useState(null);
@@ -59,11 +62,16 @@ export default function Leverantor() {
   async function hanteraSkapa(e) {
     e.preventDefault();
     setSkapar(true);
+    setSkapadInfo(null);
     try {
-      await skapaOrganisation(namn.trim(), { operations, intelligence });
+      const { data } = await skapaOrganisation(namn.trim(), { operations, intelligence }, verksamhetstyp || undefined);
+      if (data.antalMallrutiner > 0) {
+        setSkapadInfo(`Organisationen skapades med ${data.antalMallrutiner} startmall-rutiner.`);
+      }
       setNamn("");
       setOperations(false);
       setIntelligence(false);
+      setVerksamhetstyp("");
       await ladda();
     } catch (e2) {
       setFel(e2);
@@ -153,10 +161,21 @@ export default function Leverantor() {
             <input type="checkbox" checked={intelligence} onChange={(e) => setIntelligence(e.target.checked)} />
             Intelligence
           </label>
+          <label>
+            Startbibliotek (valfritt)
+            <select value={verksamhetstyp} onChange={(e) => setVerksamhetstyp(e.target.value)}>
+              {VERKSAMHETSTYPER.map((v) => (
+                <option key={v.varde} value={v.varde}>
+                  {v.namn}
+                </option>
+              ))}
+            </select>
+          </label>
           <button type="submit" className="knapp" disabled={skapar}>
             {skapar ? "Skapar..." : "Skapa organisation"}
           </button>
         </form>
+        {skapadInfo && <p className="leverantor__info">{skapadInfo}</p>}
       </section>
 
       <section className="admin-sektion">
