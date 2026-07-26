@@ -2229,3 +2229,79 @@ och SDK-inkoppling är verifierade genom kod-/syntaxgranskning och att befintlig
 (inklusive `ErrorBoundary.test.jsx`) fortfarande går igenom oförändrade.
 
 **Version:** 5.25.0.
+
+---
+
+## Fas 34 – Tillgänglighetsgranskning och tillgänglighetsredogörelse (Etapp 9b, delvis)
+
+Första halvan av ETAPPLAN2.md:s Etapp 9b (WCAG 2.1 AA): en faktisk granskning genomförd och
+dokumenterad i `TILLGANGLIGHETSREDOGORELSE.md`. **Inga tillgänglighetsfel är åtgärdade i
+den här fasen** – detta är mätningen, inte fixarna. Åtgärderna spåras som Linear-ärende
+SYN-6.
+
+**Ingen versionsbump.** Endast dokumentation har tillkommit; ingen kod i appen har ändrats.
+Att höja `APP_VERSION` och lägga en post i `andringslogg.js` hade visat användarna en ny
+version utan någon synlig förändring, vilket vore missvisande.
+
+### Metod
+
+Granskningen kördes mot en fullständig lokal miljö (auth+firestore-emulatorer, seedad
+organisation med rutiner och anslag, riktig inloggning via UI, Vite-dev-server) i Chromium
+via Playwright – alltså mot appen som den faktiskt renderas, inte mot statisk kod.
+
+- **axe-core** (`--no-save`-installerad, ej tillagd som projektberoende) med regeluppsättning
+  `wcag2a, wcag2aa, wcag21a, wcag21aa`, körd på fem flöden.
+- **Numerisk kontrastberäkning** av hela färgpaletten i båda teman enligt WCAG:s
+  luminansformel.
+- **Tangentbordsgenomgång** (12 tabbsteg från sidtoppen, med avläsning av `outline` och
+  `box-shadow` på `document.activeElement`).
+- **Kodgranskning** av landmärken, rubriker, etiketter, ARIA och dialoghantering.
+
+### Resultat i siffror
+
+axe-core: **0 överträdelser** på inloggning, startsida, kliniskt stöd och anslagstavla.
+**1 överträdelse** på adminpanelen (`select-name`, critical, WCAG 4.1.2) – rollväljaren i
+`AnvandareRollerSektion.jsx` saknar tillgängligt namn.
+
+Kontrast, ljust tema (krav 4,5:1 för normal text): brödtext 17,06 · dämpad text 7,24 ·
+primärfärg 4,94 · success 4,79 · farlig 4,62 · amber-text 6,78 – **samtliga godkända**.
+Färgpaletten bär redan kommentarer om att `--text-svag` och `--success` medvetet mörkats för
+att nå AA; granskningen bekräftar att de valen faktiskt håller.
+
+Två kontrastbrister hittades: `--kant` (#e2e8f0) mot `--yta` (#ffffff) ger **1,23:1** mot
+kravet 3:1 i WCAG 1.4.11 – och den färgen används som ram i 68 CSS-regler, inklusive
+inmatningsfält. I mörkt tema ger `--primar` (#3b82f6) mot `--yta` (#1e293b) **3,98:1** mot
+kravet 4,5:1.
+
+### Strukturella fynd (verifierade i browser, inte bara i kod)
+
+- **Inget `<main>`-landmärke** finns någonstans i appen, och **ingen "hoppa till
+  innehåll"-länk**. Tabbgenomgången bekräftade konsekvensen konkret: tabbsteg 1–10 är
+  notisklocka, utloggning och åtta navigeringslänkar; sökfältet – sidans huvudfunktion – nås
+  först vid steg 11. Det är ett brott mot WCAG 2.4.1 på **nivå A**.
+- **`<title>` är "Synappsen" på samtliga testade routes** (`/`, `/kliniskt-stod`,
+  `/anslagstavla`, `/admin`, `/nyheter`) och uppdateras aldrig vid navigering. WCAG 2.4.2,
+  nivå A. Typiskt SPA-problem som ingen märker utan skärmläsare.
+- **Anslagstavlan saknar `<h1>`** helt (övriga sidor har en).
+- Fokusmarkering finns på samtliga 12 kontrollerade element. De fyra `outline: none` i
+  CSS visade sig alla ha ersättningsindikator (`box-shadow`-ring eller bakgrundsbyte), så
+  det som såg ut som en brist vid kodläsning var det inte.
+- `DialogProvider` har `role="alertdialog"`, `aria-modal` och `autoFocus` – men saknar
+  Esc-stängning, fokusfälla, fokusåterlämning och tillgängligt namn. Notiserna är
+  `<div onClick>` (endast mus) och självstängs efter 5 s utan möjlighet att förlänga.
+
+### Bedömning
+
+Statusen i redogörelsen är **"delvis förenlig"**. Det är den ärliga slutsatsen: grunden är
+klart bättre än väntat för ett projekt som aldrig gjort ett tillgänglighetsarbete – fyra av
+fem flöden helt rena maskinellt, korrekt `lang`, alt-texter överallt, etiketter kopplade,
+kontrast genomtänkt – men det finns kvarstående brott på nivå A, och nivå A-brott utesluter
+"fullt förenlig". Redogörelsen redovisar också uttryckligen vad som **inte** testats
+(skärmläsare, 400 % zoom, träffytor, ~28 övriga sidor), eftersom en redogörelse som döljer
+sina egna luckor är värdelös som upphandlingsunderlag.
+
+Tre uppgifter i dokumentet är markerade `[FYLL I]` och kan inte härledas ur koden:
+leverantörens juridiska namn, e-postadress för tillgänglighetsfrågor och måldatum för
+åtgärder. Dokumentet får inte publiceras förrän de fyllts i – och publiceringen i sig
+(en `/tillganglighet`-sida) är inte gjord, eftersom en publicerad redogörelse är ett
+juridiskt åtagande som ägaren ska fatta beslut om.
