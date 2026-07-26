@@ -2335,3 +2335,79 @@ och syntaxkontroll – alla gröna.
 appens beteende för en användare.
 
 Kvarstår i Etapp 12: 12b (beroendesårbarheter), 12c (App Check), 12d–12g (PII-härdning).
+
+---
+
+## Fas 36 – Etapp 12b: beroendesårbarheter
+
+`npm audit` hade aldrig körts systematiskt tidigare i projektet – 33 sårbarheter i roten
+(1 kritisk, 25 höga, 6 måttliga, 1 låg) och 11 i `functions/` (1 hög, 9 måttliga, 1 låg),
+ingen omnämnd i någon dokumentation. Genomfört i tre steg enligt planen i ETAPPLAN2.md.
+
+**Steg 1 – `npm audit fix` (icke-brytande) i båda katalogerna.** Fixade `dompurify` (låg),
+`postcss`, `protobufjs` och `fast-uri` i roten; `body-parser` och `fast-xml-parser` i
+`functions/`. Rot: 33 → 29. Functions: 11 → 9.
+
+**Steg 2 – grundorsaksanalys av det som blev kvar.** Samtliga 9 kvarvarande i `functions/`,
+och flera i roten (`gcp-metadata`, `googleapis-common`, `uuid` m.fl.), spårade till EN enda
+CVE: [GHSA-w5hq-g745-h8pq](https://github.com/advisories/GHSA-w5hq-g745-h8pq) – en
+buffer-gränskontroll som saknas i `uuid` <11.1.1, men ENDAST utnyttjas om anroparen skickar
+en egen `buf`-parameter till `uuid.v3()/v5()/v6()`. Googles egna klientbibliotek
+(`google-gax`, `gaxios`, `teeny-request` – alla interna beroenden till `firebase-admin`/
+`firebase-tools`) anropar aldrig `uuid` på det sättet, bara det argumentlösa `uuidv4()`.
+`npm audit fix` föreslog i praktiken en NEDGRADERING (`firebase-admin` 13.10.0 → 10.3.0,
+`firebase-functions` 7.3.0 → 4.9.0) som "fix" – ett resultat av att äldre versioner råkar
+undvika hela den beroendekedjan, inte en riktig fix. Att följa det hade varit en regression,
+inte en härdning.
+
+**Åtgärd:** ett riktat `"overrides": { "uuid": "^11.1.1" }` i BÅDA `package.json`
+(rot och `functions/`), som tvingar hela beroendeträdet till en patchad `uuid`-version utan
+att röra `firebase-admin`/`firebase-tools`/`firebase-functions` alls. `uuid`s publika API
+för argumentlös `uuidv4()`-generering är oförändrat över de här major-versionerna, så
+ändringen är osynlig för all kod som faktiskt anropar den (vår egen kod anropar aldrig
+`uuid` direkt – det är helt internt i Googles bibliotek).
+
+**Resultat:** `functions/` **11 → 0**. Rot **33 → 24** (0 kritiska/höga kvar i något som
+faktiskt körs i produktion).
+
+**De 24 kvarvarande i roten, med motivering (`npm audit`s eget "fixAvailable" pekade här
+konsekvent på en NEDGRADERING, inte en uppgradering – samma mönster som ovan):**
+
+- **`firebase-tools`-kedjan** (`archiver`, `archiver-utils`, `tar` (kritisk), `glob`,
+  `minimatch`, `brace-expansion`, `rimraf`, `superstatic`, `exegesis`, `exegesis-express`,
+  `readdir-glob`, `gaxios`, `gcp-metadata`, `googleapis-common`, `firebase-tools` självt –
+  16 poster): `firebase-tools` är en **devDependency** – ett CLI-verktyg som körs interaktivt
+  av en utvecklare eller i den betrodda GitHub Actions-miljön för att köra `firebase deploy`.
+  Det skeppas aldrig till någon användares webbläsare och körs aldrig i den deployade
+  Cloud Functions-runtimen. En riktig fix finns (`firebase-tools@15.24.0`, en majorversion
+  nyare än vår `^13.35.1`) men är en CLI-majoruppgradering som kan ändra kommandoflaggor
+  och konfigurationsformat – bör göras som en egen, uppmärksamt testad uppgift (deploy
+  dry-run mot en testorganisation), inte i förbigående här. **Accepterad risk tills vidare**,
+  kandidat för en framtida egen delmål.
+- **`vite-plugin-pwa`-kedjan** (`ejs`, `jake`, `filelist`, `workbox-build`,
+  `@trickfilm400/rollup-plugin-off-main-thread` – 5 poster): samma resonemang –
+  **devDependency**, körs bara vid `vite build` för att generera service workern, skeppas
+  aldrig till klienten. Verifierat att `^1.3.0` (vår version) redan ÄR den senast publicerade
+  – det finns i skrivande stund ingen nyare version som löser detta uppströms.
+  **Accepterad risk**, ingen uppgradering möjlig just nu.
+- **`react-router-dom`/`react-router`** (2 poster, **direkt runtime-beroende, skeppas till
+  webbläsaren**): [GHSA-qwww-vcr4-c8h2](https://github.com/advisories/GHSA-qwww-vcr4-c8h2),
+  en CSRF-kringgång specifik för React Routers "RSC mode" (React Server Components/
+  server actions, ett opt-in-ramverksläge). Synappsen använder `<BrowserRouter>` i ett rent
+  klientsidigt SPA – inga server actions, ingen RSC, ingen datarouter-serverdel. Sårbarheten
+  har ingen anfallsyta i vår användning. Verifierat att `^7.18.0` redan är senaste publicerade
+  version (7.18.1 finns, men samma sårbara intervall `>=7.12.0 <8.3.0` täcker den också –
+  det finns ingen patchad 7.x). **Accepterad risk**, ingen anfallsyta för vår
+  användningsmodell.
+
+**Verifiering:** hela testsvepet kört på nytt efter `overrides`-ändringen (viktigast:
+functions-testerna, eftersom `firebase-admin` nu drar in `uuid@11` internt istället för
+`uuid@9`) – `npm run lint`, `npm run build`, `npx vitest run` (29/29), `npm run test:rules`
+(61/61), `npm run test:functions` (57/57), `npm run test:storage` (6/6), `node -c
+functions/index.js` – alla gröna, ingen regression.
+
+**Ingen versionsbump.** Beroendehärdning utan förändrat appbeteende för en användare.
+
+Kvarstår i Etapp 12: 12c (App Check), 12d–12g (PII-härdning). En framtida
+`firebase-tools`-majoruppgradering (13→15) är identifierad men medvetet inte schemalagd
+här – kräver en egen, försiktig testcykel.

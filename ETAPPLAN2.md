@@ -283,7 +283,7 @@ Etapp 9c). De dubbleras inte i denna etapp.
   rödmarkerar CI. **Storlek: S.** Ingen risk – lägger bara till kontroller, ändrar inget
   produktionsbeteende.
 
-- **12b. Beroendesårbarheter är osynliga.** `npm audit` visar 33 sårbarheter i roten
+- **12b. ✅ GENOMFÖRD. Beroendesårbarheter är osynliga.** `npm audit` visar 33 sårbarheter i roten
   (1 kritisk, 25 höga) och 11 i `functions/` (1 hög) – ingen av dem är omnämnda någonstans
   i projektets dokumentation eller i den externa rapporten. Åtgärd i två steg: (1) kör
   `npm audit fix` (icke-brytande) i båda katalogerna och kör hela testsvepet efteråt; (2)
@@ -292,6 +292,10 @@ Etapp 9c). De dubbleras inte i denna etapp.
   med en dokumenterad motivering. Klart när: `npm audit`s kritiska/höga-antal är antingen
   0 eller varje kvarvarande post har en skriven motivering i UTVECKLINGSLOGG.md.
   **Storlek: S–M**, beroende på hur många brytande uppgraderingar steg 2 kräver.
+  **Resultat:** `functions/` 11 → **0**. Rot 33 → **24** (0 kritiska/höga i produktionskod;
+  kvarvarande 24 är uteslutande dev-only build-/CLI-verktyg (`firebase-tools`,
+  `vite-plugin-pwa`) plus `react-router-dom` där sårbarheten inte träffar vår
+  användning). Fullständig motivering per kvarvarande post i UTVECKLINGSLOGG.md Fas 36.
 
 - **12c. Ingen App Check.** Firebase App Check (attestering av att anrop kommer från den
   riktiga appen, inte ett skript) är inte aktiverat – `enforceAppCheck` förekommer noll
