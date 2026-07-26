@@ -6,31 +6,46 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-07-25, version 5.17.0
+**Senast uppdaterad:** 2026-07-26, version 5.24.0
 
 ## Nuläge i ett stycke
 
 Etapp 1–5 (ETAPPLAN.md) är genomförda. Efter dem gjordes en fristående
 kodgenomgång som resulterade i `ETAPPLAN2.md` (Etapp 6–11). Användaren bad om
-Etapp 6, 7, 8 samt 10b–10e. Hittills genomfört och verifierat: **Etapp 7
-(a–d, helt klar), Etapp 8a–8b (Node 22, deploy.yml), Etapp 6 (a–d, helt
-klar)** – se UTVECKLINGSLOGG.md Fas 24–25 för fullständiga detaljer.
-`npm run test:rules` 60/60, `npm run test:functions` 54/54, `npm run
-test:storage` 6/6, `npx vitest run` 10/10, build+lint gröna.
+Etapp 6, 7, 8 samt 10b–10e – **samtliga är nu genomförda, testade och
+pushade** (v5.15.1 → v5.24.0, se UTVECKLINGSLOGG.md Fas 24–32 för fullständiga
+detaljer per delmål):
 
-**Kvarstående av det användaren bad om denna omgång:** Etapp 8c (dela upp
-Admin.jsx), 8d (frontend-tester), 8e (ersätt confirm/alert), samt Etapp 10b
-(bulkimport), 10c (ledningsrapport), 10d (rutinmallar), 10e
-(tid-att-hitta-mätning). Se tasklistan (TaskList) för exakt status – varje
-deluppgift är en egen task.
+- **Etapp 6 (a–d):** leverantörsadmin, organisationsetablering, inbjudnings-
+  flöde (ersätter öppen registrering), avetablering/pausning.
+- **Etapp 7 (a–d):** `fragaKlinisktStod` gated, Operations-funktioner gated,
+  gating-matris-test, hastighetstak utöver kronbudget.
+- **Etapp 8 (a–e):** Node 22, `deploy.yml` utan `continue-on-error`, Admin.jsx
+  delad i sektionskomponenter, grundläggande frontend-tester, egen
+  confirm/alert-dialog.
+- **Etapp 10 (b–e):** bulkimport (mappuppladdning + granskningskö),
+  ledningsrapport (utskriftsvänlig, PDF-export via `window.print()`),
+  rutinmallar per verksamhetstyp, tid-att-hitta-mätning.
 
-**Ännu inte deployat till produktion** – all denna omgångs arbete (Etapp
-6+7+8a-b) ligger committat på `claude/compassionate-euler-rho0q5` men väntar
-på nästa "Deploya till produktion"-instruktion (eller så fortsätter arbetet
-med 8c-e/10b-e först, beroende på vad användaren väljer).
+Löpande testsvep i slutet av sessionen: `npm run test:rules` **61/61**,
+`npm run test:functions` **57/57**, `npm run test:storage` **6/6**,
+`npx vitest run` **29/29**, `npm run lint`/`npm run build` gröna. Flera
+delar verifierade manuellt i en riktig browser via Playwright mot lokala
+emulatorer (inte bara automatiska tester) – bl.a. confirm-dialogen, Admin.jsx-
+refaktoreringen, bulkimport-UI:t, ledningsrapporten och hela
+sök→klick→mätning-flödet för tid-att-hitta.
 
-## Vad som återstår från den gamla planen (ETAPPLAN.md, lägre prioritet)
+**Ännu INTE deployat till produktion** – allt arbete denna omgång (9 commits,
+v5.15.1 → v5.24.0) ligger på `claude/compassionate-euler-rho0q5` men väntar
+på en "Deploya till produktion"-instruktion.
 
+## Vad som återstår (se ETAPPLAN2.md för detaljer)
+
+- **Etapp 9 (upphandlingsbarhet)** – SSO/Entra ID, WCAG 2.1 AA, GDPR-underlag,
+  driftdokumentation. Inte påbörjad, inte efterfrågad ännu.
+- **Etapp 10a (demoläge/sandlåda)** – enda ej genomförda delmålet i Etapp 10.
+- **Etapp 11 (Intelligence 2.0)** – uttryckligen villkorad i planen: bör
+  vänta tills minst en kund faktiskt betalar för Intelligence-modulen.
 - `void _id`-mönstret som en extern kodgranskning påpekade – bedömdes som en
   svag föreslagen lösning, inte åtgärdat, se UTVECKLINGSLOGG.md Fas 23.
 - Organisatoriska moment i Etapp 4/5 (faktisk pilotdrift, säljlansering) –
@@ -82,7 +97,7 @@ med 8c-e/10b-e först, beroende på vad användaren väljer).
 
 - `ETAPPLAN.md` – den etappindelade planen (Etapp 0–5), status per etapp.
 - `ETAPPLAN2.md` – uppföljande plan (Etapp 6–11), status per etapp.
-- `UTVECKLINGSLOGG.md` – fullständig kronologisk teknisk historik, "Fas 1–25".
+- `UTVECKLINGSLOGG.md` – fullständig kronologisk teknisk historik, "Fas 1–32".
 - `SAKERHETSRAPPORT.md` – säkerhetsgranskning av multi-tenant-lagret.
 - `src/data/andringslogg.js` – användarvänd ändringslogg (visas i appen).
 - `firestore.rules` / `storage.rules` – multi-tenant-säkerhetsmodellen,
