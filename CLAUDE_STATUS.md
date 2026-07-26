@@ -8,7 +8,9 @@
 
 **Senast uppdaterad:** 2026-07-26, version 5.25.0 (+ Etapp 12a/12b/12c-i/12e, ingen
 versionsbump) – **DEPLOYAT TILL PRODUKTION** (commit d7a3719, körning #46, "Deploy
-complete!" bekräftat i loggen, ny asset-hash `index-s-jPubo9.js` bekräftad live).
+complete!" bekräftat i loggen, ny asset-hash `index-s-jPubo9.js` bekräftad live). Därefter
+skrevs `ETAPPLAN3.md` (Etapp 13–21, granskad och reviderad) och dess första delmål **13a
+(PUB/DPA-avtalsmall) är nu klart** – se UTVECKLINGSLOGG.md Fas 41.
 
 ## Nuläge i ett stycke
 
@@ -90,6 +92,14 @@ lyfte några reella punkter. Genomfört hittills:
 ägaren) och Etapp 12h (`firebase-tools` 13→15-majoruppgradering, identifierad i 12b,
 kräver en egen, försiktig testcykel, se ETAPPLAN2.md för den exakta checklistan). Ska
 INTE göras som en snabb sidoeffekt av något annat.
+
+**ETAPPLAN3.md (Etapp 13–21), 13a klart:** skrev `avtal/PUB-AVTAL-MALL.md` (GDPR art. 28-mall).
+Vid premisskontroll mot faktisk kod (genomgående krav 8 i ETAPPLAN3.md) visade det sig att
+"radering vid avetablering" bara delvis stämmer – `pausaOrganisation`/`exporteraOrganisation`
+finns, men ingen automatiserad permanent radering av data eller backuper. Mallen skriver detta
+ärligt istället för att felaktigt lova automatik, med rekommendation att bygga det innan avtalet
+undertecknas mot en kund med strikta raderingskrav. Nästa steg i Etapp 13: 13b
+(underbiträdesförteckning), sedan 13c–13g.
 
 ## Vad som återstår (se ETAPPLAN2.md för detaljer)
 

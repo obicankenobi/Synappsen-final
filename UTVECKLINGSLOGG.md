@@ -2575,3 +2575,38 @@ apprendering synkront oavsett nätverksstatus.
 App Check-metrik (Build → App Check → Metrics) för att bekräfta att så gott som all trafik
 bär giltiga tokens, och sedan be en session aktivera 12c-ii (`enforceAppCheck: true`) samt
 12c-iii (testet som bevisar att ett anrop utan token nekas).
+
+---
+
+## Fas 41 – Etapp 13a: Personuppgiftsbiträdesavtal (PUB/DPA)-mall
+
+Första delmålet i `ETAPPLAN3.md` (Etapp 13, upphandlings- och granskningspaketet). Ren
+dokumentation, ingen kodändring.
+
+Skapade `avtal/PUB-AVTAL-MALL.md`: en GDPR art. 28-mall med Synappsen som
+personuppgiftsbiträde och kundorganisationen som personuppgiftsansvarig, med tydligt
+markerade `[FYLLS I: ...]`-fält för det som är kundspecifikt. Innehåller behandlingens art
+och ändamål, kategorier av registrerade (personal, uttryckligen inte patienter),
+kategorier av personuppgifter, hänvisning till den kommande underbiträdesförteckningen
+(Etapp 13b), lagringstid/radering, säkerhetsåtgärder, incidenthantering (72 h) och
+granskningsrätt.
+
+**Avvikelse funnen vid premisskontroll (genomgående krav 8 i ETAPPLAN3.md):** planen antog
+att radering vid avetablering var kopplad till "befintligt avetableringsflöde från fas 25".
+Vid genomläsning av `functions/index.js` visade det sig att fas 25 byggde
+`pausaOrganisation` (stänger åtkomst) och `exporteraOrganisation` (GDPR-/uppsägningsexport)
+– men **ingen** funktion för att permanent radera en avetablerad organisations data i
+Firestore, och ingen livslängdsgräns (lifecycle-regel) på de veckovisa backupfilerna i
+Storage (`backups/{orgId}/...`). Permanent radering är alltså i praktiken ett manuellt steg
+idag, inte automatiserat. Mallen skriver detta explicit (punkt 6) istället för att felaktigt
+lova en automatiserad process, med en rekommendation om att bygga radering + lifecycle-regel
+innan avtalet undertecknas mot en kund med strikta raderingskrav. `ETAPPLAN3.md` 13a
+uppdaterad med samma resultat.
+
+**Verifiering:** dokumentationsarbete, ingen build/lint/test-svep relevant.
+
+**Ingen versionsbump.** Nytt avtalsmaterial i repot, ingen ändring av appens beteende.
+
+Kvarstår i Etapp 13: 13b (underbiträdesförteckning), 13c (DPIA-underlag), 13d (IT-faktablad),
+13e (uppdatera PITCH.md), 13f (SSO/Entra ID – kräver ägarbeslut om SAML/OIDC före byggstart),
+13g (WCAG-A-snabbfixar).

@@ -67,7 +67,7 @@ fråga IT och dataskyddsombudet" och dör där.
 
 **Modul:** ingen (leverantörsinternt material), utom 13f som är en egen, gate:ad modul.
 
-### 13a – Personuppgiftsbiträdesavtal (PUB/DPA)
+### 13a – Personuppgiftsbiträdesavtal (PUB/DPA) ✅ KLAR
 
 - Mall enligt GDPR art. 28 med Synappsen som biträde, kundorganisationen som ansvarig.
 - Bilaga: behandlingens art och ändamål, kategorier av registrerade (personal, **inte**
@@ -75,6 +75,16 @@ fråga IT och dataskyddsombudet" och dör där.
   avetableringsflöde från fas 25).
 - **Arbetsuppgift:** skriv `avtal/PUB-AVTAL-MALL.md` i repot, med tydlig markering av vad
   som fylls i per kund.
+- **Resultat:** `avtal/PUB-AVTAL-MALL.md` skriven. Vid kontroll mot faktisk kod (genomgående
+  krav 8) visade det sig att premissen "radering vid avetablering" bara stämmer delvis:
+  `pausaOrganisation` och `exporteraOrganisation` finns och fungerar (pausning + export), men
+  det finns **ingen automatiserad permanent radering** av en avetablerad organisations data
+  eller dess veckobackuper i Storage. Avtalsmallen är skriven för att vara ärlig om detta
+  (punkt 6): radering sker idag manuellt av leverantören på begäran, inom en avtalad frist.
+  Avvikelsen är dokumenterad i `UTVECKLINGSLOGG.md` (fas 41) och en rekommendation om att bygga
+  en automatiserad raderingsfunktion + lifecycle-regel för backuper innan avtalet används mot
+  en kund med strikta raderingskrav är införd i mallen. Ingen kod ändrades i detta delmål –
+  rent dokumentationsarbete.
 
 ### 13b – Subprocessor- och datalagringsförteckning
 
