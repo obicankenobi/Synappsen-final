@@ -2648,3 +2648,30 @@ Firestore-/Storage-regionen kvarstår som en konsolkontroll för ägaren, oför�
 
 Kvarstår i Etapp 13: 13c (DPIA-underlag), 13d (IT-faktablad), 13e (uppdatera PITCH.md),
 13f (SSO/Entra ID), 13g (WCAG-A-snabbfixar).
+
+---
+
+## Fas 43 – Etapp 13c: DPIA-underlag
+
+Ren dokumentation, ingen kodändring.
+
+Skapade `avtal/DPIA-UNDERLAG.md`: ett underlag som Kunden kan lämna vidare till sitt eget
+dataskyddsombud, skrivet för en icke-teknisk läsare. Bygger vidare på redan verifierat
+innehåll från `SAKERHETSRAPPORT.md` (PII-filtrets tre lager, roll-/behörighetsmodell) och
+`avtal/UNDERBITRADEN.md` (Etapp 13b) snarare än att skriva nya, overifierade påståenden.
+
+Innehåller en sammanfattande risktabell som medvetet inte överdriver vad som är byggt: den
+anger explicit att dagens ändringslogg saknar manipuleringsskydd (den planerade hashkedjan
+i Etapp 14 är inte byggd än) och att Gemini API:ets regionsgaranti är en öppen fråga (samma
+fynd som i fas 42). Fas 39-bugfixen (den fullt förankrade `matches()`-buggen i
+`harTroligtPersonnummer()`) används som ett konkret exempel på att PII-skyddet aktivt
+underhålls och testas, inte bara påstås fungera.
+
+`ETAPPLAN3.md` 13c uppdaterad med samma resultat.
+
+**Verifiering:** dokumentationsarbete, ingen build/lint/test-svep relevant.
+
+**Ingen versionsbump.**
+
+Kvarstår i Etapp 13: 13d (IT-faktablad), 13e (uppdatera PITCH.md), 13f (SSO/Entra ID),
+13g (WCAG-A-snabbfixar).

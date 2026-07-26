@@ -114,13 +114,22 @@ fråga IT och dataskyddsombudet" och dör där.
   krävs. Firestore-/Storage-regionen kvarstår som en konsolkontroll för ägaren (oförändrat
   från planen).
 
-### 13c – Underlag för konsekvensbedömning (DPIA/ROS)
+### 13c – Underlag för konsekvensbedömning (DPIA/ROS) ✅ KLAR
 
 - Ifyllt underlag som kunden kan lämna vidare: vilka uppgifter som behandlas, varför ingen
   patientdata förekommer, hur PII-filtret fungerar i tre lager, roll- och behörighetsmodell,
   loggning, incidentrutin.
 - **Arbetsuppgift:** `avtal/DPIA-UNDERLAG.md`. Återanvänd innehåll ur `SAKERHETSRAPPORT.md`
   men skriv för en icke-teknisk läsare.
+- **Resultat:** `avtal/DPIA-UNDERLAG.md` skriven med tio avsnitt (syfte, patientuppgifts-
+  frånvaro i tre lager, kategorier av uppgifter, nödvändighet/proportionalitet, roll-
+  modell, loggning, tekniska åtgärder, underbiträden, incidentrutin, sammanfattande
+  risktabell). Byggd på faktiskt verifierat innehåll från `SAKERHETSRAPPORT.md`,
+  `avtal/UNDERBITRADEN.md` och `UTVECKLINGSLOGG.md` (bl.a. fas 39-bugfixen som ett konkret
+  exempel på att skyddet aktivt testas), inte nyskriva påståenden. Är explicit ärlig om att
+  dagens ändringslogg saknar manipuleringsskydd (Etapp 14 ännu inte byggd) och att
+  Gemini-regionsfrågan (från 13b) är öppen – ingen överdrift av vad som faktiskt finns på
+  plats.
 
 ### 13d – Teknisk faktablad till kundens IT
 
