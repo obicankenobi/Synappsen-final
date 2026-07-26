@@ -200,7 +200,10 @@ publicerad, och det finns ett PUB-avtal och en registerförteckning att bifoga i
 
 ---
 
-## Etapp 10 – Det som gör att kunden säger ja  ·  Storlek: M
+## Etapp 10 – Det som gör att kunden säger ja  ·  Storlek: M  ·  🔶 DELVIS GENOMFÖRD
+
+**Status:** 10b–10e genomförda, se UTVECKLINGSLOGG.md Fas 29–32. 10a (demoläge/sandlåda)
+återstår – inte efterfrågad i den här omgången.
 
 **Mål:** minska tröskeln från "intressant" till "vi kör", och ge chefsledet en anledning att
 betala – inte bara personalen en anledning att använda.
@@ -220,7 +223,7 @@ betala – inte bara personalen en anledning att använda.
   rutinerna faktiskt är lästa.
 - **10d. ✅ GENOMFÖRD. Rutinmallar per verksamhetstyp.** Ett startbibliotek (t.ex. slutenvårdsavdelning,
   vårdcentral, kommunal hemtjänst) så att en ny kund inte möts av en tom app.
-- **10e. "Tid-att-hitta"-mätning.** Medvetet bortvald i Etapp 4. Ta upp den nu om piloten
+- **10e. ✅ GENOMFÖRD. "Tid-att-hitta"-mätning.** Medvetet bortvald i Etapp 4. Ta upp den nu om piloten
   efterfrågar den – det är den siffra som mest direkt översätts till kronor i en kalkyl
   ("30 sekunder × 40 sökningar/dag × 25 anställda").
 

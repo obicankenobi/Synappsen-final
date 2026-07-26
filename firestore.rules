@@ -358,13 +358,18 @@ service cloud.firestore {
     // sokloggar räcker inte ensamt (bara de 50 senaste nollträffarna hålls, ingen nämnare
     // för totalt antal sökningar). Alla inloggade i organisationen får öka räknarna (bara
     // siffror, ingen känslig data); bara superadmin läser dem samlat.
+    // Etapp 10e: totalTidTillKlickMs/antalTidmatningar – samma summa/antal-mönster, ger ett
+    // genomsnittligt "tid-att-hitta" (se useSokstatistik.js loggaTidTillKlick).
     match /soksstatistik/{orgId} {
       allow read: if arSuperadmin() && orgId == minOrganisation();
       allow create: if arInloggad() && orgId == minOrganisation()
-                     && request.resource.data.keys().hasOnly(['totaltAntalSokningar', 'antalNollTraffar']);
+                     && request.resource.data.keys().hasOnly(
+                          ['totaltAntalSokningar', 'antalNollTraffar', 'totalTidTillKlickMs', 'antalTidmatningar']
+                        );
       allow update: if arInloggad() && orgId == minOrganisation()
-                     && request.resource.data.diff(resource.data).affectedKeys()
-                          .hasOnly(['totaltAntalSokningar', 'antalNollTraffar']);
+                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+                          ['totaltAntalSokningar', 'antalNollTraffar', 'totalTidTillKlickMs', 'antalTidmatningar']
+                        );
     }
 
     // auditlogg/{handelseId} – ändringslogg. Superadmin läser bara sin egen organisations logg.

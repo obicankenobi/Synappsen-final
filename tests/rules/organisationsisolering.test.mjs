@@ -341,6 +341,15 @@ async function main() {
   await test("volA kan INTE skriva andra fält än räknarna i soksstatistik", () =>
     assertFails(setDoc(doc(volA, "soksstatistik", ORG_A), { annatFalt: "x" }, { merge: true }))
   );
+  await test("volA kan öka Etapp 10e:s tid-att-hitta-räknare i soksstatistik", () =>
+    assertSucceeds(
+      setDoc(
+        doc(volA, "soksstatistik", ORG_A),
+        { totalTidTillKlickMs: 4200, antalTidmatningar: 1 },
+        { merge: true }
+      )
+    )
+  );
   await test("volA (fel roll, superadmin krävs) kan INTE läsa soksstatistik", () =>
     assertFails(getDoc(doc(volA, "soksstatistik", ORG_A)))
   );

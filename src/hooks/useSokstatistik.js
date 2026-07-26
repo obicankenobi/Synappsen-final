@@ -18,6 +18,22 @@ export async function loggaSokning(organisationId, gavTraff) {
   );
 }
 
+// Etapp 10e: "tid-att-hitta" – tiden från att en sökning påbörjades till att användaren
+// klickade på ett resultat, summerad + räknad så ett snitt kan visas (samma lätta
+// summa/antal-mönster som redan används för nollträffar ovan, inte varje enskild mätning
+// sparad för sig – ingen anledning att spara per-session-data mer detaljerat än så).
+export async function loggaTidTillKlick(organisationId, tidMs) {
+  if (!organisationId) return;
+  await setDoc(
+    doc(db, "soksstatistik", organisationId),
+    {
+      totalTidTillKlickMs: increment(tidMs),
+      antalTidmatningar: increment(1),
+    },
+    { merge: true }
+  );
+}
+
 export function useSokstatistik(laddaLista) {
   const { organisationId } = useAuth();
   const [statistik, setStatistik] = useState(null);

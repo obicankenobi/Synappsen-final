@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.24.0",
+    datum: "2026-07-26",
+    andringar: [
+      "Ny mätning: tiden från att en sökning påbörjas till att man klickar på ett resultat visas nu i adminpanelen och ledningsrapporten (\"tid-att-hitta\")",
+    ],
+  },
+  {
     version: "5.23.0",
     datum: "2026-07-26",
     andringar: [

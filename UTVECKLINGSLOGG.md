@@ -2132,3 +2132,42 @@ run build`, `npm run test:rules` (60/60), `npm run test:storage` (6/6), `npx vit
 (29/29) – alla gröna.
 
 **Version:** 5.23.0.
+
+---
+
+## Fas 32 – Etapp 10e: tid-att-hitta-mätning
+
+Sista punkten från ETAPPLAN2.md:s Etapp 10, medvetet bortvald i Etapp 4 ("skulle kräva att
+mäta tiden mellan påbörjad sökning och klick på ett resultat per session") – nu byggd.
+
+- **`SokFalt.jsx`:** en `ref` (`sokStartTid`, INTE `useState` – ska aldrig trigga en
+  omrendering) sätts till tidpunkten första gången sökfältet går från tomt till icke-tomt
+  (start på en "sökningssession"). Nollställs om fältet töms igen utan klick (avbruten
+  sökning räknas inte). Vid klick på ett resultat räknas `nu - sokStartTid` ut och skickas
+  till en ny `loggaTidTillKlick()`.
+- **`useSokstatistik.js`:** samma lätta summa/antal-räknarmönster som redan användes för
+  nollträffar (Etapp 4) – `totalTidTillKlickMs`/`antalTidmatningar` i `soksstatistik/{orgId}`,
+  inte en rad sparad per sökning. Ett snitt räknas fram i UI (`totalTidTillKlickMs /
+  antalTidmatningar`).
+- **`firestore.rules`:** `soksstatistik/{orgId}`s `hasOnly(...)`-fältlista utökad med de två
+  nya fälten (samma skrivbehörighet som redan gällde – vem som helst inloggad i sin egen
+  organisation får öka räknarna, bara superadmin läser dem samlat).
+- Visas nu på riktigt i både `PilotMatvardenSektion` (adminpanelen) och `Ledningsrapport.jsx`
+  – ersätter den tidigare texten "inte instrumenterat ännu".
+- **`react-hooks/purity`-fynd under vägen:** ett direktanrop till `Date.now()` inuti en
+  event-handler definierad i komponentkroppen flaggades av linter-regeln (även fast det
+  bara körs vid en användarhändelse, aldrig i render-passet) – löst genom att flytta anropet
+  till en liten `nuTid()`-hjälpfunktion definierad UTANFÖR komponenten, samma mönster som
+  redan användes av `genId()` i `LaddaUpp.jsx`.
+
+**Verifiering:** manuell Playwright-körning mot en riktig browser (emulatorer + dev-server,
+en seedad godkänd rutin att söka fram): sökte, klickade på träffen, navigerade till
+adminpanelen och bekräftade att raden verkligen visade en riktig uppmätt siffra ("0.9
+sekunder i snitt (1 mätningar)"), inte platshållartexten. Nytt test i
+`tests/rules/organisationsisolering.test.mjs` som bevisar att de två nya fälten går att
+skriva. `npm run test:rules` nu **61/61**. `npm run lint`, `npm run build`, `npm run
+test:functions` (57/57), `npm run test:storage` (6/6), `npx vitest run` (29/29) – alla gröna.
+
+Med detta är ETAPPLAN2.md:s Etapp 6, 7, 8 och 10 (b–e) samtliga genomförda.
+
+**Version:** 5.24.0.

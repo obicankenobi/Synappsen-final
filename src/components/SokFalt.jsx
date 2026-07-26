@@ -9,9 +9,16 @@ import { useLankbibliotek } from "../hooks/useLankbibliotek";
 import { forradTillSlug } from "../firebase/forrad";
 import { registreraVisning } from "../hooks/useVisningar";
 import { useSokloggar } from "../hooks/useSokloggar";
-import { loggaSokning } from "../hooks/useSokstatistik";
+import { loggaSokning, loggaTidTillKlick } from "../hooks/useSokstatistik";
 import { useAuth } from "../hooks/useAuth";
 import "./SokFalt.css";
+
+// Egen liten wrapper runt Date.now(), definierad UTANFÖR komponenten – react-hooks/purity
+// flaggar annars ett direktanrop till Date.now() inuti komponentkroppen (även när det bara
+// sker i en event-handler, aldrig i själva render-passet).
+function nuTid() {
+  return Date.now();
+}
 
 function platsBeskrivning(artikel) {
   const delar = [artikel.forrad];
@@ -54,6 +61,10 @@ export default function SokFalt() {
   const [aktivKategori, setAktivKategori] = useState(null);
   const navigate = useNavigate();
   const inputRef = useRef(null);
+  // Etapp 10e (tid-att-hitta): tidpunkten då den PÅGÅENDE sökningen påbörjades (första
+  // tecknet efter ett tomt fält) – en ref, inte state, eftersom den aldrig ska trigga en
+  // omrendering. Nollställs när fältet töms igen (sökningen avbröts utan klick).
+  const sokStartTid = useRef(null);
   const { artiklar } = useForradsartiklar();
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
@@ -137,12 +148,21 @@ export default function SokFalt() {
   }, [sokterm]);
 
   function hanteraSoktermAndring(varde) {
+    if (varde.trim() && !sokterm.trim()) {
+      sokStartTid.current = nuTid();
+    } else if (!varde.trim()) {
+      sokStartTid.current = null;
+    }
     setSokterm(varde);
     setAktivKategori(null);
   }
 
   function hanteraKlick(post) {
     registreraVisning(post.titel, post.sokvag, organisationId);
+    if (sokStartTid.current) {
+      loggaTidTillKlick(organisationId, nuTid() - sokStartTid.current);
+      sokStartTid.current = null;
+    }
     navigate(post.sokvag);
   }
 

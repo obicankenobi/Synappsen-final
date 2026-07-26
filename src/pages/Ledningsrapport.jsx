@@ -182,6 +182,13 @@ export default function Ledningsrapport() {
           . En hög andel kan betyda att innehåll saknas eller att sökorden inte matchar det
           som faktiskt finns.
         </p>
+        <p className="sida__beskrivning">
+          <strong>Tid-att-hitta:</strong>{" "}
+          {sokstatistik?.antalTidmatningar > 0
+            ? `${(sokstatistik.totalTidTillKlickMs / sokstatistik.antalTidmatningar / 1000).toFixed(1)} sekunder i snitt från påbörjad sökning till klick på ett resultat (${sokstatistik.antalTidmatningar} mätningar)`
+            : "Inga mätningar ännu"}
+          .
+        </p>
       </section>
     </div>
   );

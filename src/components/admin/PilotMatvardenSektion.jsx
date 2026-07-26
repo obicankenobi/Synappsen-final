@@ -33,9 +33,10 @@ export default function PilotMatvardenSektion({
           . Allmän feedback: {feedback.length} inskick totalt.
         </li>
         <li>
-          <strong>Tid-att-hitta:</strong> inte instrumenterat ännu – skulle kräva att mäta
-          tiden mellan påbörjad sökning och klick på ett resultat per session, en separat
-          uppgift om piloten efterfrågar det.
+          <strong>Tid-att-hitta:</strong>{" "}
+          {sokstatistik?.antalTidmatningar > 0
+            ? `${(sokstatistik.totalTidTillKlickMs / sokstatistik.antalTidmatningar / 1000).toFixed(1)} sekunder i snitt (${sokstatistik.antalTidmatningar} mätningar) från påbörjad sökning till klick på ett resultat`
+            : "Inga mätningar ännu"}
         </li>
       </ul>
     </section>
