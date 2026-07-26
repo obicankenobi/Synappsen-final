@@ -256,6 +256,97 @@ betalande kund.
 
 ---
 
+## Etapp 12 – Härdning efter den externa säkerhetsgenomlysningen  ·  Storlek: M
+
+**Bakgrund:** en extern rapport ("Synappsen – teknisk och säkerhetsmässig genomlysning")
+granskades 2026-07-26. Den visade sig i praktiken vara en sammanställning av vår egen
+dokumentation (UTVECKLINGSLOGG.md, SAKERHETSRAPPORT.md) snarare än en oberoende
+genomlysning – bland annat hittade den noll nya fynd och innehöll ett sakfel (hänvisning
+till en "Etapp 12" som inte fanns när rapporten skrevs). Den lyfte ändå några reella,
+giltiga punkter, och pekade på ett par saker som varken rapporten eller vår egen
+dokumentation tidigare täckt. Denna etapp samlar åtgärderna, uppdelade så att var och en
+kan tas för sig.
+
+Två av rapportens rekommendationer täcks INTE här utan har egna spår sedan tidigare:
+WCAG-A-bristerna (Linear SYN-6, se även Fas 34) och PUB-avtal/DPIA (Linear SYN-7, del av
+Etapp 9c). De dubbleras inte i denna etapp.
+
+**Delmål (oberoende av varandra, kan göras i valfri ordning – 12a föreslås först):**
+
+- **12a. CI kör bara `npm run test` (vitest).** De tester som faktiskt bevisar
+  organisationsisoleringen – rules (61), functions (57) och storage (6) – körs idag bara
+  när någon startar dem manuellt mot en lokal emulator. En regression i `firestore.rules`
+  eller `functions/index.js` skulle inte stoppa en PR. Åtgärd: lägg till emulator-baserade
+  testkörningar i `ci.yml` (`firebase emulators:exec`, samma kommandon som
+  `package.json`s `test:rules`/`test:functions`/`test:storage`-scripts redan använder
+  lokalt). Klart när: en medvetet trasig regel eller ett medvetet trasigt functions-test
+  rödmarkerar CI. **Storlek: S.** Ingen risk – lägger bara till kontroller, ändrar inget
+  produktionsbeteende.
+
+- **12b. Beroendesårbarheter är osynliga.** `npm audit` visar 33 sårbarheter i roten
+  (1 kritisk, 25 höga) och 11 i `functions/` (1 hög) – ingen av dem är omnämnda någonstans
+  i projektets dokumentation eller i den externa rapporten. Åtgärd i två steg: (1) kör
+  `npm audit fix` (icke-brytande) i båda katalogerna och kör hela testsvepet efteråt; (2)
+  gå igenom det som återstår efter det och avgör per post om det kräver en brytande
+  uppgradering, är en dev-only-sårbarhet utan produktionspåverkan, eller kan accepteras
+  med en dokumenterad motivering. Klart när: `npm audit`s kritiska/höga-antal är antingen
+  0 eller varje kvarvarande post har en skriven motivering i UTVECKLINGSLOGG.md.
+  **Storlek: S–M**, beroende på hur många brytande uppgraderingar steg 2 kräver.
+
+- **12c. Ingen App Check.** Firebase App Check (attestering av att anrop kommer från den
+  riktiga appen, inte ett skript) är inte aktiverat – `enforceAppCheck` förekommer noll
+  gånger i `functions/index.js`. Detta är inte ett akut hål (rules och `kravModul`-gating
+  bär redan hela den verkliga bördan, bevisat av testsviterna), men är standardfrågan vid
+  en Firebase-säkerhetsgranskning och stänger ett lager helt. Delas i tre steg som kan tas
+  var för sig: **12c-i** aktivera App Check i klienten (reCAPTCHA v3-provider) utan att
+  ännu kräva det server-side (mätfas, ingen risk för att stänga ute riktiga användare);
+  **12c-ii** sätt `enforceAppCheck: true` på Cloud Functions sedan mätningen visar att
+  legitim trafik har giltiga tokens; **12c-iii** test som bevisar att ett anrop utan
+  App Check-token nekas. **Storlek: M**, mest på grund av mätfasen i 12c-i som bör pågå
+  en tid innan 12c-ii slås på skarpt (annars risk att stänga ute riktiga klienter, t.ex.
+  äldre cachade PWA-versioner).
+
+- **12d. PII-härdning, del 1: förrådsartikelformuläret.** Den enda konkreta, omedelbart
+  åtgärdbara luckan rapporten pekade på: `ForradArtikelFormular`-motsvarigheten saknar
+  `kontrolleraPatientuppgifter()`, till skillnad från rutiner, kommentarer, anslag,
+  skiftrapport, anteckningar och feedback som alla redan har den. Lågriskfält (namn,
+  skåp, hylla, antal) men inkonsekvent mot övrig policy. **Storlek: S.**
+
+- **12e. PII-härdning, del 2: flytta rutinskapande till Cloud Function.** Idag har
+  Cloud Functions (AI-text) den fulla Luhn-kontrollerade personnummerkontrollen, medan
+  rutiner skrivs direkt från klienten mot Firestore med bara klientsidig kontroll plus
+  regelbaserad regex (som inte kan implementera Luhn). En användare med giltig
+  Auth-session som skriver direkt mot Firestore-REST-API:et kan teoretiskt kringgå
+  klientfiltret. Åtgärd: en `skapaRutin`/`uppdateraRutin`-Cloud Function med samma
+  Luhn-kontroll som redan finns för AI-text, och stäng motsvarande direkt-skrivrätt i
+  `firestore.rules`. **Detta är det största delmålet** – det är samma mönster som redan
+  användes för `skapaKommentar`/`skickaFeedback`, men rutiner har fler fält och
+  användningsställen (mallar, versionshistorik, bilagor) så omfattningen är större.
+  **Storlek: M–L.**
+
+- **12f. PII-härdning, del 3: skiftrapport.** Samma åtgärd som 12e, men för
+  skiftrapportens fritextfält. Mindre omfattning eftersom skiftrapport har färre
+  användningsställen än rutiner. **Storlek: M.** Bör göras efter 12e så mönstret från
+  den Cloud Function-omskrivningen kan återanvändas.
+
+- **12g. PII-härdning, del 4: regelbaserad spärr för övriga fritextfält.** För fält som
+  inte flyttas till en Cloud Function (t.ex. anteckningar) – en enkel regex-spärr i
+  `firestore.rules` av samma typ som redan finns i backup-filtret, med känd begränsning
+  (falska positiva på tal som ser ut som personnummer men inte är det) dokumenterad i
+  SAKERHETSRAPPORT.md. **Detta är ett affärsbeslut, inte bara ett tekniskt val** – fler
+  falska positiva stör den dagliga användningen, så vilken strikthet som är rimlig bör
+  avgöras av verksamheten, inte gissas fram. **Storlek: S**, men bör inte påbörjas förrän
+  ägaren tagit ställning till den avvägningen.
+
+**Rekommenderad ordning:** 12a → 12b → 12d (alla tre är små, snabba, riskfria) → 12c
+(kräver en mätperiod, så starta den tidigt även om den avslutas sent) → 12e → 12f → 12g
+(störst, kräver mest omtanke, och 12g kräver ett föregående beslut).
+
+**Beroenden:** inga hårda mot andra etapper. 12e/12f bör göras i nämnd ordning eftersom de
+delar mönster. 12g bör invänta ett uttryckligt beslut om regelstriktheten.
+
+---
+
 ## Föreslagen ordning och motivering
 
 ```
@@ -273,6 +364,7 @@ Etapp 8b–8e         ─  löpande, mellan de tunga blocken
 | 9 | Upphandlingsbarhet | L | Störst säljeffekt per timme |
 | 10 | Säljbar nytta | M | Kräver 6; 10b är starkast enskilda funktion |
 | 11 | Intelligence 2.0 | M–L | Villkorad – först efter betalande kund |
+| 12 | Härdning efter genomlysningen | M | Sju oberoende delmål, valfri ordning (12a–12d först) |
 
 **Om bara tre saker görs härnäst:** gata `fragaKlinisktStod` (7a, en halvdag, stoppar en
 löpande kostnadsläcka), uppgradera till Node 22 (8a, hård deadline), och bygg
