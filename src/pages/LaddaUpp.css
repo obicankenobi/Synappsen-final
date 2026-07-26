@@ -58,6 +58,8 @@
 .ladda-upp__rad {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 10px 0;
   border-bottom: 1px solid var(--kant);
@@ -70,6 +72,21 @@
 
 .ladda-upp__fel {
   color: var(--farlig);
+}
+
+.ladda-upp__granska {
+  display: flex;
+  gap: 6px;
+}
+
+.ladda-upp__hanterad {
+  color: var(--text-svag);
+}
+
+.ladda-upp__mapp-hjalptext {
+  font-size: 0.85rem;
+  color: var(--text-svag);
+  margin: -8px 0 16px;
 }
 
 .ladda-upp__kraver-modul {

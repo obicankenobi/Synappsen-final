@@ -210,7 +210,7 @@ betala – inte bara personalen en anledning att använda.
   förrådsartiklar och anslag, som återställs automatiskt. Att kunna visa en fungerande app
   på trettio sekunder istället för att prata om den är den billigaste säljinvesteringen som
   finns. Bygger direkt på Etapp 6:s organisationsetablering.
-- **10b. Uppstartsimport i bulk.** Den vanligaste invändningen mot ett rutinsystem är "vi
+- **10b. ✅ GENOMFÖRD. Uppstartsimport i bulk.** Den vanligaste invändningen mot ett rutinsystem är "vi
   har 400 dokument, vi orkar inte flytta över dem". AI-dokumentimporten finns redan – bygg
   ett bulkläge ovanpå: ladda upp en mapp, granska förslagen i en kö, godkänn i klump. Detta
   är sannolikt den enskilt starkaste säljfunktionen i hela planen.

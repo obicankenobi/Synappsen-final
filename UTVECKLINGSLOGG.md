@@ -2035,3 +2035,37 @@ lint`, `npm run build`, `npm run test:rules` (60/60), `npm run test:functions` (
 `npm run test:storage` (6/6), `npx vitest run` (29/29) – alla gröna.
 
 **Version:** 5.20.0.
+
+---
+
+## Fas 29 – Etapp 10b: bulkimport av dokument
+
+Den enligt ETAPPLAN2.md sannolikt starkaste enskilda säljfunktionen: "vi har 400 dokument,
+vi orkar inte flytta över dem" är den vanligaste invändningen mot ett nytt rutinsystem.
+`LaddaUpp.jsx` hade redan stöd för att köa och tolka FLERA filer i en batch (multi-file-
+uppladdning fanns sedan tidigare) – det som saknades var (a) ett sätt att välja en hel mapp
+på en gång, och (b) en riktig granskningskö där de färska utkasten kan godkännas/nekas direkt,
+istället för att behöva navigera till varje områdes egen sida efteråt.
+
+- **Mappuppladdning:** ny fil-input med `webkitdirectory` (fungerar i Chrome/Edge-
+  skrivbordsläge), filtrerar bort allt som inte är en bild klientsidan, återanvänder sedan
+  exakt samma uppladdnings-/köflöde som redan fanns (`valjFilerFranLista`, extraherad ur den
+  tidigare `valjFiler` för att delas mellan galleri-/kamera-/mappval).
+- **Granskningskö på samma sida:** varje klar post visar nu Godkänn/Ta bort-knappar direkt i
+  listan, plus en "Godkänn alla N klara"-knapp när fler än en post väntar. Återanvänder
+  MEDVETET samma `godkannRutin`/`taBortRutin` (`useRutiner`) och `godkannArtikel`/
+  `taBortArtikel` (`useForradsartiklar`) som `Sektionssida.jsx`/`ForradVy.jsx` redan
+  använder – ingen ny godkännande-logik eller behörighetskontroll, bara ett bekvämare
+  ställe att köra den befintliga från direkt efter en bulkimport.
+- Statusen "klar/hanterad" per post härleds live från den faktiska rutin-/artikeldatan
+  (`rutiner`/`artiklar`-listorna), inte ett eget lokalt godkänt-flagga – om en annan
+  redaktör godkänner samma utkast från en annan flik/sida syns det direkt.
+
+**Verifiering:** manuell Playwright-körning mot en riktig browser (emulatorer + dev-server):
+bekräftade att mappuppladdningsknappen och dess hjälptext renderas korrekt tillsammans med
+de befintliga galleri-/kameraknapparna, inga konsol- eller sidfel. `npm run lint`, `npm run
+build`, `npm run test:rules` (60/60), `npm run test:functions` (54/54), `npm run
+test:storage` (6/6), `npx vitest run` (29/29) – alla gröna (ingen av testsviterna rör denna
+rent klientsidiga funktion, men kördes om för säkerhets skull).
+
+**Version:** 5.21.0.

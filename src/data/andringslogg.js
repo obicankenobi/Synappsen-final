@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.21.0",
+    datum: "2026-07-26",
+    andringar: [
+      "Ladda upp-sidan stödjer nu att importera en hel mapp med bilder på en gång (skrivbordsläget)",
+      "Nytolkade utkast kan nu godkännas eller tas bort direkt på Ladda upp-sidan, inklusive en \"godkänn alla klara\"-knapp – slipper navigera till varje område för att granska",
+    ],
+  },
+  {
     version: "5.20.0",
     datum: "2026-07-25",
     andringar: [
