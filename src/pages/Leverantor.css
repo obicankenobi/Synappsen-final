@@ -44,3 +44,18 @@
 .leverantor__info {
   color: var(--success);
 }
+
+.leverantor__avtalsstatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.leverantor__avtalsstatus select {
+  padding: 4px 8px;
+  border: 1px solid var(--kant);
+  border-radius: 6px;
+  font: inherit;
+}

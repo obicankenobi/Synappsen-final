@@ -1606,10 +1606,53 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         moduler: data.moduler ?? {},
         antalAnvandare: anvandareSnap.size,
         senasteKostnad: kostnadSnap.empty ? null : kostnadSnap.docs[0].data(),
+        // Saknas fältet helt (organisationer etablerade före Etapp 15a) antas de redan vara
+        // en riktig, aktiv kund – annars skulle en befintlig kund plötsligt visas som "offert".
+        avtalsstatus: data.avtalsstatus ?? "aktiv",
       };
     })
   );
   return { organisationer };
+});
+
+// Etapp 15d: avtals-/betalningsflödet sker MEDVETET utanför appen (avtalssignering och
+// fakturering, se beslutspunkt 6 i ETAPPLAN3.md) – det här är bara en statusflagga en
+// leverantörsadmin sätter manuellt i takt med att det faktiskt händer. Ingen koppling till
+// organisationer/{orgId}.status (drift-på/av, se pausaOrganisation) – en organisation kan
+// mycket väl vara avtalsstatus="signerat" men ännu inte satts i drift, eller vice versa.
+const GILTIGA_AVTALSSTATUSAR = ["offert", "signerat", "aktiv", "pausad", "avslutad"];
+
+exports.satAvtalsstatus = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId, avtalsstatus } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+  if (!GILTIGA_AVTALSSTATUSAR.includes(avtalsstatus)) {
+    throw new HttpsError(
+      "invalid-argument",
+      `avtalsstatus måste vara en av: ${GILTIGA_AVTALSSTATUSAR.join(", ")}.`
+    );
+  }
+  const orgRef = db.collection("organisationer").doc(orgId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists) {
+    throw new HttpsError("not-found", "Organisationen hittades inte.");
+  }
+  await orgRef.set({ avtalsstatus }, { merge: true });
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "organisation_avtalsstatus_andrad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: `Avtalsstatus ändrad till "${avtalsstatus}"`,
+  });
+  return { ok: true };
 });
 
 // Etapp 15c: faktureringsunderlaget – en rad per organisation med den här månadens

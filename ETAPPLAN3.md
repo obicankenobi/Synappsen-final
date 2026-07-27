@@ -455,14 +455,19 @@ utan det skyddslagret på plats. Se beslutspunkt 6 nedan.
   som CSV (samma nedladdningsmönster som revisionslogg-exporten från Etapp 14d).
 - 2 nya emulatortester i `tests/functions/etapp6.test.cjs`.
 
-### 15d – Avtals- och betalningsflöde
+### 15d – Avtals- och betalningsflöde ✅ KLAR
 
-- **Beslutspunkt för ägaren:** ska avtalssignering och betalning ske i appen (kräver
-  integration och nytt regelverk kring betalningsuppgifter) eller utanför, med enbart en
-  statusflagga i appen?
-- Rekommendation: börja med statusflagga (`avtalsstatus`: offert / signerat / aktiv /
-  pausad / avslutad) och manuell fakturering. Bygg inte betalningsintegration förrän kund
-  nummer tre finns.
+- **Beslutspunkt för ägaren – TAGEN:** avtalssignering och betalning sker MEDVETET utanför
+  appen (manuell fakturering), inte alternativet med en betalningsintegration i appen.
+- Ny Cloud Function `satAvtalsstatus` (plattformsadmin, `functions/index.js`): sätter
+  `avtalsstatus` (offert/signerat/aktiv/pausad/avslutad – fältet reserverades redan av
+  Etapp 15a) på en organisation, loggar `organisation_avtalsstatus_andrad` i revisionsloggen.
+  Fristående från `organisationer/{orgId}.status` (drift-på/av, se `pausaOrganisation`) – en
+  organisation kan vara avtalsstatus="signerat" utan att ännu vara satt i drift.
+  `listaOrganisationer` antar `avtalsstatus: "aktiv"` för organisationer som saknar fältet
+  helt (etablerade före Etapp 15a), så en befintlig kund inte plötsligt visas som "offert".
+- Ny dropdown i leverantörsvyns organisationslista (`Leverantor.jsx`) för att ändra statusen.
+- 5 nya emulatortester i `tests/functions/etapp6.test.cjs`.
 
 ### 15e – Provperiod och automatisk pausning
 

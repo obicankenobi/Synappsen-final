@@ -95,6 +95,13 @@ export function pausaOrganisation(orgId, pausad) {
   return fn({ orgId, pausad });
 }
 
+// Etapp 15d – avtalsstatus (offert/signerat/aktiv/pausad/avslutad), betalning/signering sker
+// utanför appen (statusflagga, se ETAPPLAN3.md beslutspunkt 6)
+export function satAvtalsstatus(orgId, avtalsstatus) {
+  const fn = httpsCallable(functions, "satAvtalsstatus");
+  return fn({ orgId, avtalsstatus });
+}
+
 export function exporteraOrganisation(orgId) {
   const fn = httpsCallable(functions, "exporteraOrganisation");
   return fn({ orgId });

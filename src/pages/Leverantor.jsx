@@ -5,11 +5,22 @@ import {
   skapaOrganisation,
   pausaOrganisation,
   exporteraOrganisation,
+  satAvtalsstatus,
   blibForstaPlattformsadmin,
 } from "../firebase/functions";
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
 import ManadsrapportSektion from "../components/ManadsrapportSektion";
 import "./Leverantor.css";
+
+// Etapp 15d: avtalssignering och betalning sker MEDVETET utanför appen – det här är bara en
+// statusflagga leverantörsadmin sätter manuellt, se ETAPPLAN3.md beslutspunkt 6.
+const AVTALSSTATUS_ETIKETT = {
+  offert: "Offert",
+  signerat: "Signerat",
+  aktiv: "Aktiv",
+  pausad: "Pausad",
+  avslutad: "Avslutad",
+};
 
 // Etapp 6a: leverantörsvy – en enda plats för att se/administrera ALLA kundorganisationer.
 // Åtkomsten avgörs helt server-side (plattformsadmin/{uid}-collectionen, se firestore.rules
@@ -107,6 +118,18 @@ export default function Leverantor() {
     setAtgard(orgId);
     try {
       await pausaOrganisation(orgId, pausad);
+      await ladda();
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setAtgard(null);
+    }
+  }
+
+  async function hanteraAvtalsstatus(orgId, avtalsstatus) {
+    setAtgard(orgId);
+    try {
+      await satAvtalsstatus(orgId, avtalsstatus);
       await ladda();
     } catch (e) {
       setFel(e);
@@ -250,6 +273,20 @@ export default function Leverantor() {
                 </div>
               </div>
               <div className="admin-lista__atgarder">
+                <label className="leverantor__avtalsstatus">
+                  Avtalsstatus
+                  <select
+                    value={org.avtalsstatus}
+                    disabled={atgard === org.orgId}
+                    onChange={(e) => hanteraAvtalsstatus(org.orgId, e.target.value)}
+                  >
+                    {Object.entries(AVTALSSTATUS_ETIKETT).map(([varde, etikett]) => (
+                      <option key={varde} value={varde}>
+                        {etikett}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <button
                   type="button"
                   className="knapp knapp--liten"

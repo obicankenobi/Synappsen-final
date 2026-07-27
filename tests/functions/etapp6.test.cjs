@@ -269,6 +269,52 @@ async function main() {
     vantaSig(rad.lagringBytes === 1000, `förväntade 1000 bytes lagring, fick ${rad.lagringBytes}`);
   });
 
+  console.log("\nsatAvtalsstatus – Etapp 15d avtals-/betalningsflöde (statusflagga)");
+  await test("en icke-plattformsadmin kan INTE ändra avtalsstatus", () =>
+    forvantaFel("permission-denied", () =>
+      funcs.satAvtalsstatus.run({
+        data: { orgId: nyOrgId, avtalsstatus: "signerat" },
+        auth: { uid: "vanligPersonal" },
+      })
+    )
+  );
+  await test("en plattformsadmin KAN ändra avtalsstatus till ett giltigt värde", async () => {
+    await funcs.satAvtalsstatus.run({
+      data: { orgId: nyOrgId, avtalsstatus: "signerat" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const orgSnap = await db.collection("organisationer").doc(nyOrgId).get();
+    vantaSig(orgSnap.data().avtalsstatus === "signerat", "avtalsstatus uppdaterades inte");
+  });
+  await test("ett ogiltigt avtalsstatus-värde nekas med invalid-argument", () =>
+    forvantaFel("invalid-argument", () =>
+      funcs.satAvtalsstatus.run({
+        data: { orgId: nyOrgId, avtalsstatus: "hittepå" },
+        auth: { uid: "vanligSuperadmin" },
+      })
+    )
+  );
+  await test("en okänd organisation ger not-found", () =>
+    forvantaFel("not-found", () =>
+      funcs.satAvtalsstatus.run({
+        data: { orgId: "finns-inte", avtalsstatus: "aktiv" },
+        auth: { uid: "vanligSuperadmin" },
+      })
+    )
+  );
+  await test("listaOrganisationer visar den uppdaterade avtalsstatusen", async () => {
+    const resultat = await funcs.listaOrganisationer.run({ data: {}, auth: { uid: "vanligSuperadmin" } });
+    const rad = resultat.organisationer.find((o) => o.orgId === nyOrgId);
+    vantaSig(rad.avtalsstatus === "signerat", `förväntade avtalsstatus 'signerat', fick ${rad.avtalsstatus}`);
+  });
+  await test("en organisation UTAN avtalsstatus-fält (etablerad före Etapp 15a) antas vara 'aktiv'", async () => {
+    // orgVanlig sattes upp längst upp i filen utan något avtalsstatus-fält alls - simulerar
+    // en organisation etablerad innan Etapp 15a fanns.
+    const resultat = await funcs.listaOrganisationer.run({ data: {}, auth: { uid: "vanligSuperadmin" } });
+    const rad = resultat.organisationer.find((o) => o.orgId === "orgVanlig");
+    vantaSig(rad.avtalsstatus === "aktiv", `förväntade fallback-avtalsstatus 'aktiv', fick ${rad.avtalsstatus}`);
+  });
+
   console.log("\npausaOrganisation – Etapp 6d");
   await test("en icke-plattformsadmin kan INTE pausa en organisation", () =>
     forvantaFel("permission-denied", () =>
