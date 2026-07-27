@@ -1460,9 +1460,24 @@ exports.gorTillPlattformsadmin = onCall({ region: "europe-west1" }, async (reque
   return { ok: true };
 });
 
-// Etapp 6b: skapar en ny kundorganisation i en enda skrivning – standardinställningar
-// (budgettak) sätts direkt så en superadmin i den nya organisationen möter en färdig,
-// fungerande installation, inte en tom lucka som råkar sakna förväntade fält.
+// Etapp 15a: nyckelstegen i etableringsguidens välkomstchecklista för kundens superadmin.
+// Bara en lista av nycklar än så länge – Etapp 15b bygger den interaktiva vyn som läser/
+// bockar av dessa, men dokumentet skapas redan här så steget inte glöms bort separat.
+const VALKOMSTCHECKLISTA_STEG = [
+  "bjud_in_kollegor",
+  "satt_roller",
+  "importera_rutiner",
+  "aktivera_2fa_policy",
+  "satt_gemini_budget",
+];
+
+// Etapp 6b (utökad i 15a): skapar en ny kundorganisation i en enda skrivning – standard-
+// inställningar (budgettak) sätts direkt så en superadmin i den nya organisationen möter en
+// färdig, fungerande installation, inte en tom lucka som råkar sakna förväntade fält.
+// Etapp 15a lägger till de fält upphandlings-/faktureringsunderlaget (15c/15d) behöver
+// (org.nr, kontaktperson, användartak, avtalsstatus) samt bjuder in kundens första
+// superadmin i samma anrop – tidigare krävde det ett manuellt steg utanför appen, eftersom
+// skapaInbjudan bara kan anropas av en superadmin som redan finns i organisationen.
 exports.skapaOrganisation = onCall({ region: "europe-west1" }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
@@ -1477,11 +1492,34 @@ exports.skapaOrganisation = onCall({ region: "europe-west1" }, async (request) =
     intelligence: Boolean(request.data?.moduler?.intelligence),
   };
 
+  const orgnr = (request.data?.orgnr ?? "").trim();
+  const kontaktNamn = (request.data?.kontaktperson?.namn ?? "").trim();
+  const kontaktEpost = (request.data?.kontaktperson?.epost ?? "").trim().toLowerCase();
+  if (kontaktEpost && !kontaktEpost.includes("@")) {
+    throw new HttpsError("invalid-argument", "Kontaktpersonens e-postadress är ogiltig.");
+  }
+  const anvandartakRaw = request.data?.anvandartak;
+  const anvandartak =
+    anvandartakRaw === undefined || anvandartakRaw === null || anvandartakRaw === ""
+      ? null
+      : Number(anvandartakRaw);
+  if (anvandartak !== null && (!Number.isInteger(anvandartak) || anvandartak < 1)) {
+    throw new HttpsError("invalid-argument", "Användartak måste vara ett positivt heltal.");
+  }
+
   const orgRef = db.collection("organisationer").doc();
   await orgRef.set({
     namn,
     status: "aktiv",
     moduler,
+    orgnr: orgnr || null,
+    kontaktperson: kontaktNamn || kontaktEpost ? { namn: kontaktNamn || null, epost: kontaktEpost || null } : null,
+    anvandartak,
+    // 15d: statusflagga istället för avtalssignering/betalning i appen (se ETAPPLAN3.md,
+    // rekommendationen under 15d) – "offert" tills leverantören manuellt sätter den vidare.
+    avtalsstatus: "offert",
+    // 15e: sätts av ett separat steg när provperioden faktiskt startar, inte här.
+    provperiodSlut: null,
     skapad: admin.firestore.FieldValue.serverTimestamp(),
     skapadAv: request.auth.uid,
   });
@@ -1491,6 +1529,20 @@ exports.skapaOrganisation = onCall({ region: "europe-west1" }, async (request) =
     taketOre: STANDARD_TAK_ORE,
     anvantPerUid: {},
   });
+  await orgRef.collection("installningar").doc("valkomstchecklista").set({
+    steg: Object.fromEntries(VALKOMSTCHECKLISTA_STEG.map((nyckel) => [nyckel, false])),
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  let inbjudanToken = null;
+  if (kontaktEpost) {
+    inbjudanToken = await skapaInbjudanIntern({
+      organisationId: orgRef.id,
+      epost: kontaktEpost,
+      roll: "superadmin",
+      skapadAv: request.auth.uid,
+    });
+  }
 
   // Etapp 10d: valfritt startbibliotek av rutinmallar så en ny kund inte möter en helt tom
   // app. Skapas som REDAN GODKÄNDA (synliga direkt) men tydligt märkta "(mall)" i titeln och
@@ -1527,7 +1579,7 @@ exports.skapaOrganisation = onCall({ region: "europe-west1" }, async (request) =
     sammanfattning: `Organisationen "${namn}" etablerad`,
   });
 
-  return { orgId: orgRef.id, antalMallrutiner };
+  return { orgId: orgRef.id, antalMallrutiner, inbjudanToken };
 });
 
 // Etapp 6a: översikt åt leverantörsadmin – en rad per kundorganisation med moduler, antal
@@ -1618,6 +1670,23 @@ exports.exporteraOrganisation = onCall({ region: "europe-west1", timeoutSeconds:
 const GILTIGA_ROLLER = ["superadmin", "vol", "sektionsledare", "vec", "forradesansvarig", "personal"];
 const INBJUDAN_GILTIGHETSTID_MS = 7 * 24 * 60 * 60 * 1000;
 
+// Delad av skapaInbjudan (superadmin bjuder in till sin egen organisation) och skapaOrganisation
+// (Etapp 15a: leverantörsadmin bjuder in den nya kundens första superadmin i samma anrop som
+// etableringen). Ingen egen behörighetskontroll här – anroparen ansvarar för det.
+async function skapaInbjudanIntern({ organisationId, epost, roll, skapadAv }) {
+  const token = crypto.randomBytes(24).toString("base64url");
+  await db.collection("inbjudningar").doc(token).set({
+    organisationId,
+    roll,
+    epost,
+    anvand: false,
+    skapadAv,
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    utgangstid: Date.now() + INBJUDAN_GILTIGHETSTID_MS,
+  });
+  return token;
+}
+
 // Skapas av en superadmin i adminpanelen (KAN bara bjuda in till sin EGEN organisation –
 // organisationId hämtas här server-side från anroparen, tas ALDRIG emot som klientdata,
 // annars hade en superadmin kunnat bjuda in någon till en annan organisation).
@@ -1638,16 +1707,7 @@ exports.skapaInbjudan = onCall({ region: "europe-west1" }, async (request) => {
     throw new HttpsError("invalid-argument", "En giltig roll krävs.");
   }
 
-  const token = crypto.randomBytes(24).toString("base64url");
-  await db.collection("inbjudningar").doc(token).set({
-    organisationId,
-    roll,
-    epost,
-    anvand: false,
-    skapadAv: request.auth.uid,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
-    utgangstid: Date.now() + INBJUDAN_GILTIGHETSTID_MS,
-  });
+  const token = await skapaInbjudanIntern({ organisationId, epost, roll, skapadAv: request.auth.uid });
   return { token };
 });
 

@@ -22,8 +22,13 @@ export default function Leverantor() {
   const [operations, setOperations] = useState(false);
   const [intelligence, setIntelligence] = useState(false);
   const [verksamhetstyp, setVerksamhetstyp] = useState("");
+  const [orgnr, setOrgnr] = useState("");
+  const [kontaktNamn, setKontaktNamn] = useState("");
+  const [kontaktEpost, setKontaktEpost] = useState("");
+  const [anvandartak, setAnvandartak] = useState("");
   const [skapar, setSkapar] = useState(false);
   const [skapadInfo, setSkapadInfo] = useState(null);
+  const [inbjudanLank, setInbjudanLank] = useState(null);
   const [atgard, setAtgard] = useState(null);
   const [bootstrapar, setBootstrapar] = useState(false);
   const [exportMeddelande, setExportMeddelande] = useState(null);
@@ -63,15 +68,32 @@ export default function Leverantor() {
     e.preventDefault();
     setSkapar(true);
     setSkapadInfo(null);
+    setInbjudanLank(null);
     try {
-      const { data } = await skapaOrganisation(namn.trim(), { operations, intelligence }, verksamhetstyp || undefined);
+      const { data } = await skapaOrganisation(namn.trim(), { operations, intelligence }, verksamhetstyp || undefined, {
+        orgnr: orgnr.trim() || undefined,
+        kontaktperson:
+          kontaktNamn.trim() || kontaktEpost.trim()
+            ? { namn: kontaktNamn.trim(), epost: kontaktEpost.trim() }
+            : undefined,
+        anvandartak: anvandartak.trim() || undefined,
+      });
+      const meddelanden = [];
       if (data.antalMallrutiner > 0) {
-        setSkapadInfo(`Organisationen skapades med ${data.antalMallrutiner} startmall-rutiner.`);
+        meddelanden.push(`${data.antalMallrutiner} startmall-rutiner`);
+      }
+      setSkapadInfo(meddelanden.length > 0 ? `Organisationen skapades med ${meddelanden.join(", ")}.` : "Organisationen skapades.");
+      if (data.inbjudanToken) {
+        setInbjudanLank(`${window.location.origin}/registrera?bjudan=${data.inbjudanToken}`);
       }
       setNamn("");
       setOperations(false);
       setIntelligence(false);
       setVerksamhetstyp("");
+      setOrgnr("");
+      setKontaktNamn("");
+      setKontaktEpost("");
+      setAnvandartak("");
       await ladda();
     } catch (e2) {
       setFel(e2);
@@ -171,11 +193,43 @@ export default function Leverantor() {
               ))}
             </select>
           </label>
+          <label>
+            Org.nr (valfritt)
+            <input type="text" value={orgnr} onChange={(e) => setOrgnr(e.target.value)} />
+          </label>
+          <label>
+            Kontaktperson – namn (valfritt)
+            <input type="text" value={kontaktNamn} onChange={(e) => setKontaktNamn(e.target.value)} />
+          </label>
+          <label>
+            Kontaktperson – e-post (valfritt, bjuder in som superadmin)
+            <input
+              type="email"
+              value={kontaktEpost}
+              onChange={(e) => setKontaktEpost(e.target.value)}
+              placeholder="kontakt@kund.se"
+            />
+          </label>
+          <label>
+            Användartak (valfritt)
+            <input
+              type="number"
+              min="1"
+              value={anvandartak}
+              onChange={(e) => setAnvandartak(e.target.value)}
+            />
+          </label>
           <button type="submit" className="knapp" disabled={skapar}>
             {skapar ? "Skapar..." : "Skapa organisation"}
           </button>
         </form>
         {skapadInfo && <p className="leverantor__info">{skapadInfo}</p>}
+        {inbjudanLank && (
+          <div className="leverantor__info">
+            <p>Skicka den här länken till kundens första superadmin (giltig i 7 dagar):</p>
+            <input type="text" readOnly value={inbjudanLank} onFocus={(e) => e.target.select()} />
+          </div>
+        )}
       </section>
 
       <section className="admin-sektion">

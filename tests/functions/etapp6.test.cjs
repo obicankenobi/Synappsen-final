@@ -109,6 +109,72 @@ async function main() {
     )
   );
 
+  console.log("\nskapaOrganisation – Etapp 15a etableringsguide");
+  await test("org.nr, kontaktperson och användartak sparas, avtalsstatus börjar som 'offert'", async () => {
+    const resultat = await funcs.skapaOrganisation.run({
+      data: {
+        namn: "Etableringstest AB",
+        orgnr: "556677-8899",
+        kontaktperson: { namn: "Kim Testsson", epost: "kim@etableringstest.se" },
+        anvandartak: 25,
+      },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const orgSnap = await db.collection("organisationer").doc(resultat.orgId).get();
+    const data = orgSnap.data();
+    vantaSig(data.orgnr === "556677-8899", "org.nr sparades inte");
+    vantaSig(data.kontaktperson?.epost === "kim@etableringstest.se", "kontaktpersonens e-post sparades inte");
+    vantaSig(data.anvandartak === 25, "användartaket sparades inte");
+    vantaSig(data.avtalsstatus === "offert", "avtalsstatus ska starta som 'offert'");
+    vantaSig(data.provperiodSlut === null, "provperiodSlut ska vara null tills 15e sätter den");
+  });
+  await test("en kontaktperson-e-post skapar automatiskt en superadmin-inbjudan för den nya organisationen", async () => {
+    const resultat = await funcs.skapaOrganisation.run({
+      data: { namn: "Autoinbjudan AB", kontaktperson: { epost: "ny.kund@autoinbjudan.se" } },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    vantaSig(Boolean(resultat.inbjudanToken), "ingen inbjudanToken returnerades trots kontakt-e-post");
+    const inbjudanSnap = await db.collection("inbjudningar").doc(resultat.inbjudanToken).get();
+    vantaSig(inbjudanSnap.exists, "inbjudan skapades inte i Firestore");
+    vantaSig(inbjudanSnap.data().organisationId === resultat.orgId, "inbjudan pekar på fel organisation");
+    vantaSig(inbjudanSnap.data().roll === "superadmin", "första inbjudan ska vara rollen superadmin");
+    vantaSig(inbjudanSnap.data().epost === "ny.kund@autoinbjudan.se", "fel e-post på inbjudan");
+  });
+  await test("ingen kontaktperson → ingen inbjudanToken (bakåtkompatibelt)", async () => {
+    const resultat = await funcs.skapaOrganisation.run({
+      data: { namn: "Utan Kontakt AB" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    vantaSig(resultat.inbjudanToken === null, "inbjudanToken ska vara null utan kontaktperson");
+  });
+  await test("ett ogiltigt användartak (0) nekas med invalid-argument", () =>
+    forvantaFel("invalid-argument", () =>
+      funcs.skapaOrganisation.run({
+        data: { namn: "Ogiltigt Tak AB", anvandartak: 0 },
+        auth: { uid: "vanligSuperadmin" },
+      })
+    )
+  );
+  await test("en ny organisation får ett välkomstchecklista-dokument med alla steg obockade", async () => {
+    const resultat = await funcs.skapaOrganisation.run({
+      data: { namn: "Checklista Test AB" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const checklistaSnap = await db
+      .collection("organisationer")
+      .doc(resultat.orgId)
+      .collection("installningar")
+      .doc("valkomstchecklista")
+      .get();
+    vantaSig(checklistaSnap.exists, "välkomstchecklistan skapades inte");
+    const steg = checklistaSnap.data().steg;
+    vantaSig(Object.keys(steg).length > 0, "checklistan saknar steg");
+    vantaSig(
+      Object.values(steg).every((klar) => klar === false),
+      "alla checklistesteg ska börja obockade"
+    );
+  });
+
   console.log("\nskapaOrganisation – Etapp 10d verksamhetsmallar");
   await test("en organisation med verksamhetstyp='akutmottagning' får startbibliotekets rutiner, redan godkända", async () => {
     const resultat = await funcs.skapaOrganisation.run({

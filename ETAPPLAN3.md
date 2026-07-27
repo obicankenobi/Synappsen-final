@@ -410,13 +410,21 @@ prissättning blir en gissning.
 (Etapp 12c-ii, väntar på mätperiod efter fas 40) är aktiverat – annars tas nya kunder emot
 utan det skyddslagret på plats. Se beslutspunkt 6 nedan.
 
-### 15a – Etableringsguide (leverantörsadmin)
+### 15a – Etableringsguide (leverantörsadmin) ✅ KLAR
 
 - Formulär: organisationsnamn, org.nr, verksamhetstyp, kontaktperson, valda moduler,
-  användartak.
-- Skapar organisationen, första superadmin-inbjudan, standardinnehåll (rutinmallar per
-  verksamhetstyp finns sedan fas 31) och en välkomstcheckista i appen.
-- Ersätter dagens manuella steg – dokumentera vilka de är innan ni bygger, så inget tappas.
+  användartak. `skapaOrganisation` sparar `orgnr`, `kontaktperson`, `anvandartak` samt
+  reserverar `avtalsstatus` ("offert", se 15d) och `provperiodSlut` (null tills 15e).
+- Skapar organisationen, första superadmin-inbjudan (om kontaktpersonens e-post angetts –
+  återanvänder samma inbjudningsmekanism som Etapp 6c, via en delad `skapaInbjudanIntern`),
+  standardinnehåll (rutinmallar per verksamhetstyp, fas 31) och ett välkomstchecklista-
+  dokument (`installningar/valkomstchecklista`, steg obockade – 15b bygger den interaktiva
+  vyn ovanpå detta).
+- Manuella steg som ersätts: (1) att skapa organisationsdokumentet saknade tidigare org.nr/
+  kontaktperson/användartak helt, (2) leverantörsadmin kunde inte bjuda in kundens första
+  superadmin alls (skapaInbjudan kräver en redan existerande superadmin i organisationen) –
+  det krävde tidigare en manuell Firebase-konsol-åtgärd, (3) ingen välkomstchecklista fanns.
+- Test: `tests/functions/etapp6.test.cjs` ("skapaOrganisation – Etapp 15a etableringsguide").
 
 ### 15b – Guidad uppstart för kundens superadmin
 
