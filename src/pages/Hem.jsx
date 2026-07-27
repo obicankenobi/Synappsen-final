@@ -61,6 +61,10 @@ export default function Hem() {
         </div>
       </header>
 
+      <Link to="/akutlage" className="hem__akutlage-knapp">
+        🚨 Akutläge
+      </Link>
+
       <nav className="hem__snabblankar">
         {snabblankar.map((s) => (
           <Link key={s.nyckel} to={s.sokvag}>

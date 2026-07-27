@@ -233,6 +233,9 @@ service cloud.firestore {
 
       allow create: if farRedigeraOmrade(request.resource.data.omrade)
                      && request.resource.data.get('organisationId', 'default') == minOrganisation()
+                     // Etapp 17c: en helt ny rutin kan inte skapas direkt in i akutläget av
+                     // någon annan än VÖL/superadmin (samma spärr som update ovan).
+                     && (request.resource.data.get('akutlage', false) == false || farGodkannaKlinisktInnehall())
                      && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('innehall', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('referenser', ''));
@@ -244,6 +247,13 @@ service cloud.firestore {
                      // Endast VÖL/superadmin får ändra godkännandestatus för kliniskt stöd
                      && (resource.data.omrade != 'kliniskt-stod'
                          || request.resource.data.status == resource.data.status
+                         || farGodkannaKlinisktInnehall())
+                     // Etapp 17c: bara VÖL/superadmin kurerar akutläget, oavsett vilket
+                     // område rutinen tillhör – annars kan vem som helst med redigeringsrätt
+                     // för ETT område fylla akutläget med ocertifierat innehåll.
+                     && (request.resource.data.get('akutlage', false) == resource.data.get('akutlage', false)
+                         || farGodkannaKlinisktInnehall())
+                     && (request.resource.data.get('akutlageOrdning', 0) == resource.data.get('akutlageOrdning', 0)
                          || farGodkannaKlinisktInnehall())
                      && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('innehall', ''))

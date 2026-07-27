@@ -25,6 +25,12 @@
   font: inherit;
 }
 
+.kontakt-formular__checkbox {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
 .kontakt-formular__knappar {
   display: flex;
   gap: 10px;

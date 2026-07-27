@@ -9,6 +9,7 @@ import { arUtgangen } from "../utils/rutinHjalp";
 import Skelett from "./Skelett";
 import { useSenastBesokta } from "../hooks/useSenastBesokta";
 import { useDialog } from "../hooks/useDialog";
+import { ROLES } from "../firebase/roles";
 
 export default function Sektionssida({
   omrade,
@@ -34,6 +35,10 @@ export default function Sektionssida({
 
   const farRedigera = redigeraRoller.includes(role);
   const farGodkanna = godkannaRoller.includes(role);
+  // Etapp 17c: bara VÖL/superadmin kurerar akutläget, oavsett vilket område rutinen tillhör
+  // (samma roller som farGodkannaKlinisktInnehall() i firestore.rules, som spärrar fältet
+  // faktiskt på servern – det här är bara motsvarande UI-gating).
+  const farKureraAkutlage = role === ROLES.SUPERADMIN || role === ROLES.VOL;
   // Om ingen separat godkännarroll finns publiceras innehållet direkt vid sparning
   const kraverGodkannande = redigeraRoller.some((r) => !godkannaRoller.includes(r));
   const synligaRutiner = farRedigera
@@ -100,6 +105,8 @@ export default function Sektionssida({
     nyaFiler,
     befintligaBilagor,
     agare,
+    akutlage,
+    akutlageOrdning,
   }) {
     if (redigerar) {
       const nyaBilagor = nyaFiler.length ? await laddaUppRutinBilagor(omrade, redigerar.id, nyaFiler) : [];
@@ -114,6 +121,7 @@ export default function Sektionssida({
           relateradeRutiner: relaterade,
           bilagor: [...befintligaBilagor, ...nyaBilagor],
           agare,
+          ...(farKureraAkutlage ? { akutlage, akutlageOrdning } : {}),
         },
         currentUser.uid
       );
@@ -259,6 +267,7 @@ export default function Sektionssida({
           initialaVarden={redigerar}
           ovrigaRutiner={rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND)}
           anvandare={anvandare}
+          farKureraAkutlage={farKureraAkutlage && Boolean(redigerar)}
           onSpara={hanteraSpara}
           onAvbryt={() => {
             setVisaFormular(false);

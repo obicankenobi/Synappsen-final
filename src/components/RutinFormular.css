@@ -67,6 +67,24 @@
   font-weight: 400;
 }
 
+.rutin-formular__akutlage {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rutin-formular__checkbox-rad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.rutin-formular__akutlage input[type="number"] {
+  width: 80px;
+  margin-left: 8px;
+}
+
 .rutin-formular__hjalptext {
   font-weight: 400;
   color: var(--text-svag);

@@ -36,12 +36,13 @@ export function useKontakter() {
     return unsubscribe;
   }, [organisationId]);
 
-  async function skapaKontakt({ namn, nummer, kategori, beskrivning, uid }) {
+  async function skapaKontakt({ namn, nummer, kategori, beskrivning, akutnummer, uid }) {
     const ref = await addDoc(collection(db, "kontakter"), {
       namn,
       nummer,
       kategori: kategori || "Övrigt",
       beskrivning: beskrivning || "",
+      akutnummer: Boolean(akutnummer),
       organisationId: organisationId ?? STANDARD_ORG,
       skapad: serverTimestamp(),
     });

@@ -1,0 +1,64 @@
+import { Link } from "react-router-dom";
+import { useAkutlageRutiner } from "../hooks/useAkutlageRutiner";
+import { useKontakter } from "../hooks/useKontakter";
+import MarkdownInnehall from "../components/MarkdownInnehall";
+import "./Akutlage.css";
+
+// Etapp 17c: helskärms, hög kontrast, medvetet FÅ val. Innehållet är kuraterat i förväg
+// (rutiner: akutlage=true, VÖL/superadmin, se Sektionssida.jsx/RutinFormular.jsx; kontakter:
+// akutnummer=true) och läses via samma useRutiner/useKontakter-frågor som resten av appen,
+// som redan går via Firestores IndexedDB-cache (persistentLocalCache, src/firebase/
+// config.js) – ingen separat nedladdningsknapp behövs, bara att sidan/frågan besökts en
+// gång med nät gör innehållet läsbart offline efteråt. Ingen sökning krävs: den enda vägen
+// hit är en enda knapptryckning från startsidan.
+export default function Akutlage() {
+  const { rutiner, laddar: laddarRutiner } = useAkutlageRutiner();
+  const { kontakter, laddar: laddarKontakter } = useKontakter();
+  const akutnummer = kontakter.filter((k) => k.akutnummer);
+
+  return (
+    <div className="akutlage">
+      <header className="akutlage__header">
+        <h1>🚨 Akutläge</h1>
+        <Link to="/" className="akutlage__stang">
+          ✕ Stäng
+        </Link>
+      </header>
+
+      {!laddarRutiner && !laddarKontakter && rutiner.length === 0 && akutnummer.length === 0 && (
+        <p className="akutlage__tomt">
+          Inget innehåll är kuraterat för akutläget än. En VÖL eller superadmin kan markera
+          rutiner via "Visa i akutläget" och kontakter via "Visa i akutläget" i kontaktlistan.
+        </p>
+      )}
+
+      {akutnummer.length > 0 && (
+        <section className="akutlage__sektion">
+          <h2>☎️ Larmnummer</h2>
+          <ul className="akutlage__nummerlista">
+            {akutnummer.map((k) => (
+              <li key={k.id} className="akutlage__nummerrad">
+                <span className="akutlage__nummer-namn">{k.namn}</span>
+                <span className="akutlage__nummer">{k.nummer}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {rutiner.length > 0 && (
+        <section className="akutlage__sektion">
+          <h2>🩺 Tidskritiska rutiner</h2>
+          <ul className="akutlage__rutinlista">
+            {rutiner.map((r) => (
+              <li key={r.id} className="akutlage__rutin">
+                <h3>{r.titel}</h3>
+                <MarkdownInnehall className="akutlage__rutin-innehall" text={r.innehall} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  );
+}

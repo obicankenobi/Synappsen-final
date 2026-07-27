@@ -10,6 +10,7 @@ export default function RutinFormular({
   initialaVarden,
   ovrigaRutiner = [],
   anvandare = [],
+  farKureraAkutlage = false,
   onSpara,
   onAvbryt,
 }) {
@@ -28,6 +29,8 @@ export default function RutinFormular({
   const [agareTyp, setAgareTyp] = useState(initialaVarden?.agare?.typ ?? "ingen");
   const [agareRoll, setAgareRoll] = useState(initialaVarden?.agare?.roll ?? "");
   const [agareUid, setAgareUid] = useState(initialaVarden?.agare?.uid ?? "");
+  const [akutlage, setAkutlage] = useState(initialaVarden?.akutlage ?? false);
+  const [akutlageOrdning, setAkutlageOrdning] = useState(initialaVarden?.akutlageOrdning ?? 0);
 
   async function valjMall(namn) {
     const mall = RUTIN_MALLAR.find((m) => m.namn === namn);
@@ -113,6 +116,8 @@ export default function RutinFormular({
         nyaFiler,
         befintligaBilagor,
         agare,
+        akutlage,
+        akutlageOrdning: Number(akutlageOrdning) || 0,
       });
     } finally {
       setSparar(false);
@@ -252,6 +257,30 @@ export default function RutinFormular({
           automatiska påminnelser, bara som information.
         </span>
       </label>
+
+      {farKureraAkutlage && (
+        <label className="rutin-formular__akutlage">
+          <span className="rutin-formular__checkbox-rad">
+            <input type="checkbox" checked={akutlage} onChange={(e) => setAkutlage(e.target.checked)} />
+            Visa i akutläget
+          </span>
+          {akutlage && (
+            <span>
+              Ordning i akutläget (lägre visas högre upp)
+              <input
+                type="number"
+                min="0"
+                value={akutlageOrdning}
+                onChange={(e) => setAkutlageOrdning(e.target.value)}
+              />
+            </span>
+          )}
+          <span className="rutin-formular__hjalptext">
+            Akutläget visar max ett fåtal rutiner totalt (över alla områden) – kuratera med
+            omtanke, det ska gå snabbt att hitta rätt under stress.
+          </span>
+        </label>
+      )}
 
       {valbaraRutiner.length > 0 && (
         <label>

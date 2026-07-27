@@ -11,6 +11,7 @@ import OfflineIndikator from "./components/OfflineIndikator";
 import ErrorBoundary from "./components/ErrorBoundary";
 import MfaPolicyBanner from "./components/MfaPolicyBanner";
 import ProvperiodBanner from "./components/ProvperiodBanner";
+import AkutlagePrefetch from "./components/AkutlagePrefetch";
 import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
@@ -59,6 +60,7 @@ const Papperskorg = lazy(() => import("./pages/Papperskorg"));
 const OfflineCenter = lazy(() => import("./pages/OfflineCenter"));
 const Leverantor = lazy(() => import("./pages/Leverantor"));
 const Ledningsrapport = lazy(() => import("./pages/Ledningsrapport"));
+const Akutlage = lazy(() => import("./pages/Akutlage"));
 
 function SidLaddare() {
   return <div className="sida sida--laddar">Laddar...</div>;
@@ -106,6 +108,7 @@ export default function App() {
         <SidTitelBevakning />
         <MfaPolicyBanner />
         <ProvperiodBanner />
+        <AkutlagePrefetch />
         <Routes>
           <Route
             path="/logga-in"
@@ -291,6 +294,18 @@ export default function App() {
                 </main>
                 <BottomNav />
               </RollSkyddadRoute>
+            }
+          />
+          <Route
+            path="/akutlage"
+            element={
+              <SkyddadRoute>
+                <ErrorBoundary>
+                  <Suspense fallback={<SidLaddare />}>
+                    <Akutlage />
+                  </Suspense>
+                </ErrorBoundary>
+              </SkyddadRoute>
             }
           />
         </Routes>

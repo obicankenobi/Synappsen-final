@@ -59,6 +59,17 @@ async function main() {
     await setDoc(doc(db, "users", "superadminB"), { role: "superadmin", organisationId: ORG_B });
     await setDoc(doc(db, "users", "volA"), { role: "vol", organisationId: ORG_A });
     await setDoc(doc(db, "users", "vecB"), { role: "vec", organisationId: ORG_B });
+    await setDoc(doc(db, "users", "sektionsledareA"), { role: "sektionsledare", organisationId: ORG_A });
+
+    await setDoc(doc(db, "rutiner", "rutinKurateradA"), {
+      omrade: "kliniskt-stod",
+      status: "godkand",
+      organisationId: ORG_A,
+      titel: "Kurateringstest",
+      innehall: "Innehåll",
+      akutlage: false,
+      akutlageOrdning: 0,
+    });
 
     await setDoc(doc(db, "rutiner", "rutinA"), {
       omrade: "kliniskt-stod",
@@ -160,6 +171,7 @@ async function main() {
   const superB = testEnv.authenticatedContext("superadminB").firestore();
   const volA = testEnv.authenticatedContext("volA").firestore();
   const vecB = testEnv.authenticatedContext("vecB").firestore();
+  const sektionsledareA = testEnv.authenticatedContext("sektionsledareA").firestore();
 
   console.log("\nusers/{uid} – organisationsisolering");
   await test("superadminA kan läsa sin egen organisations användare (volA)", () =>
@@ -492,6 +504,39 @@ async function main() {
         organisationId: ORG_A,
         titel: "x",
         innehall: "x",
+      })
+    )
+  );
+
+  console.log("\nrutiner/{rutinId} – Etapp 17c: bara VÖL/superadmin kurerar akutläget");
+  await test("sektionsledareA (får redigera kliniskt-stod, men inte VÖL/superadmin) kan INTE sätta akutlage=true", () =>
+    assertFails(
+      updateDoc(doc(sektionsledareA, "rutiner", "rutinKurateradA"), { akutlage: true })
+    )
+  );
+  await test("sektionsledareA kan INTE ändra akutlageOrdning", () =>
+    assertFails(
+      updateDoc(doc(sektionsledareA, "rutiner", "rutinKurateradA"), { akutlageOrdning: 3 })
+    )
+  );
+  await test("sektionsledareA KAN fortfarande redigera övrigt innehåll på samma rutin", () =>
+    assertSucceeds(updateDoc(doc(sektionsledareA, "rutiner", "rutinKurateradA"), { titel: "Uppdaterad titel" }))
+  );
+  await test("volA (VÖL) KAN sätta akutlage=true", () =>
+    assertSucceeds(updateDoc(doc(volA, "rutiner", "rutinKurateradA"), { akutlage: true }))
+  );
+  await test("superadminA KAN ändra akutlageOrdning", () =>
+    assertSucceeds(updateDoc(doc(superA, "rutiner", "rutinKurateradA"), { akutlageOrdning: 1 }))
+  );
+  await test("sektionsledareA kan INTE skapa en ny rutin direkt in i akutläget", () =>
+    assertFails(
+      addDoc(collection(sektionsledareA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "Ny",
+        innehall: "x",
+        akutlage: true,
       })
     )
   );

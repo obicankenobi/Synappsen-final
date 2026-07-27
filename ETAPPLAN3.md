@@ -566,26 +566,44 @@ den är en förutsättning för att checklistläget (etapp 18) ska nås snabbt n
   Firestore-synken sker i bakgrunden. `firestore.rules` utökad så en användare får ändra sitt
   eget `senastBesokta`-fält (samma vitlista som favoriter/snabblänkar).
 
-### 17c – Akutläge
+### 17c – Akutläge ✅ KLAR
 
-- En tydligt avvikande knapp på startsidan → helskärmsvy med stor typografi, hög kontrast,
-  få val: kuraterade tidskritiska rutiner, larmnummer från kontaktlistan, roll-/ansvarslista
-  för pågående skift.
-- Innehållet kurateras av VÖL/superadmin: en flagga `akutlage: true` på rutiner, max ~12
-  poster, manuell ordning.
-- **Måste fungera offline.** Akutlägets innehåll cachas aggressivt av service workern
-  (offline-center finns sedan fas 20) – det är den enda vyn där offline är ett hårt krav.
-- Ingen sökning krävs för att nå innehållet. Max två tryck från låst skärm på en installerad
-  PWA.
+- Tydligt avvikande röd knapp direkt under headern på Hem.jsx → `/akutlage`, en helskärmsvy
+  (`Akutlage.jsx`, forcerad svart/vit/röd hög kontrast oavsett användarens tema) med bara två
+  sektioner: kuraterade tidskritiska rutiner och larmnummer.
+- Kuratering: `akutlage`/`akutlageOrdning` på `rutiner` (endast VÖL/superadmin – enforcat i
+  `firestore.rules`, inte bara UI, se testerna nedan) via en ny sektion i `RutinFormular.jsx`
+  (bara synlig vid redigering av en befintlig, redan godkänd rutin). `akutnummer` på
+  `kontakter` (samma roller som redan hanterar kontaktlistan) via `KontaktFormular.jsx`.
+  `useAkutlageRutiner.js` läser org-övergripande (alla områden), sorterar klientsidan på
+  `akutlageOrdning` – inget nytt sammansatt index.
+- **Roll-/ansvarslista för pågående skift skippades medvetet** – ingen datamodell för vem som
+  är i tjänst just nu finns (skiftrapporter är fristående drifthändelser, inte en
+  bemanningslista). Kräver en ny bemanningsfunktion, utanför den här etappens omfattning.
+- **Offline:** ingen separat nedladdningsknapp – `Akutlage.jsx` och kontakt-/rutinfrågorna
+  läser via samma Firestore-klient som redan har `persistentLocalCache` (IndexedDB) påslaget
+  (Etapp 1). En ny osynlig `AkutlagePrefetch.jsx`, monterad globalt i `App.jsx`, håller
+  frågorna "varma" i cachen oavsett vilken sida användaren är på, så innehållet är läsbart
+  offline utan att någon först behövt besöka `/akutlage` med nät.
+- Ingen sökning krävs: en knapptryckning från Hem (appens `start_url`) rakt in i akutläget.
+- 6 nya rules-tester (`tests/rules/organisationsisolering.test.mjs`) som visar att en
+  sektionsledare (får redigera kliniskt-stod-innehåll, men är inte VÖL/superadmin) INTE kan
+  sätta `akutlage`/`akutlageOrdning`, varken vid skapande eller uppdatering, men fortfarande
+  kan redigera rutinens övriga innehåll.
 
-### 17d – Tillgänglighet under stress
+### 17d – Tillgänglighet under stress ⚠ DELVIS
 
-- Träffytor minst 48×48 px, ingen tidsberoende interaktion, fungerar med handskar och i
-  starkt ljus (kontrastkontroll även i ljust läge).
-- Testa på en riktig enhet i verksamheten innan etappen stängs.
+- Träffytor minst 48×48 px och forcerad hög kontrast: gjort för akutläget och dess
+  startsidesknapp (`Akutlage.css`, `.hem__akutlage-knapp`). Ingen tidsberoende interaktion i
+  akutläget – statiskt kuraterat innehåll, inga timers/auto-uppdateringar där.
+- **Inte gjort av mig, kräver en riktig enhet:** "fungerar med handskar och i starkt ljus"
+  går inte att verifiera i en kodmiljö utan fysisk hårdvara. Detta måste testas manuellt av
+  verksamheten på en riktig telefon/surfplatta innan etappen kan stängas helt, precis som
+  planen kräver.
 
 **Klart när:** en ny användare kan hitta rätt utan att söka, och akutläget öppnas och
-fungerar med flygplansläge på.
+fungerar med flygplansläge på. (Det sista – verifiering på riktig hårdvara med handskar/i
+starkt ljus – är kvar och kräver fysisk närvaro i verksamheten.)
 
 ---
 

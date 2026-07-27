@@ -8,6 +8,7 @@ export default function KontaktFormular({ initialaVarden, befintliga = [], onSpa
   const [nummer, setNummer] = useState(initialaVarden?.nummer ?? "");
   const [kategori, setKategori] = useState(initialaVarden?.kategori ?? "");
   const [beskrivning, setBeskrivning] = useState(initialaVarden?.beskrivning ?? "");
+  const [akutnummer, setAkutnummer] = useState(initialaVarden?.akutnummer ?? false);
   const [sparar, setSparar] = useState(false);
 
   async function hanteraSubmit(e) {
@@ -18,7 +19,7 @@ export default function KontaktFormular({ initialaVarden, befintliga = [], onSpa
     if (dubblett && !(await confirm(`En kontakt med namnet "${namn}" finns redan. Spara ändå?`))) return;
     setSparar(true);
     try {
-      await onSpara({ namn, nummer, kategori, beskrivning });
+      await onSpara({ namn, nummer, kategori, beskrivning, akutnummer });
     } finally {
       setSparar(false);
     }
@@ -46,6 +47,10 @@ export default function KontaktFormular({ initialaVarden, befintliga = [], onSpa
       <label>
         Beskrivning (valfritt)
         <input type="text" value={beskrivning} onChange={(e) => setBeskrivning(e.target.value)} />
+      </label>
+      <label className="kontakt-formular__checkbox">
+        <input type="checkbox" checked={akutnummer} onChange={(e) => setAkutnummer(e.target.checked)} />
+        Visa i akutläget (Etapp 17c)
       </label>
       <div className="kontakt-formular__knappar">
         <button type="button" className="knapp knapp--sekundar" onClick={onAvbryt}>
