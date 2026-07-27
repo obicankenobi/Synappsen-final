@@ -8,6 +8,7 @@ import {
   blibForstaPlattformsadmin,
 } from "../firebase/functions";
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
+import ManadsrapportSektion from "../components/ManadsrapportSektion";
 import "./Leverantor.css";
 
 // Etapp 6a: leverantörsvy – en enda plats för att se/administrera ALLA kundorganisationer.
@@ -270,6 +271,8 @@ export default function Leverantor() {
           ))}
         </ul>
       </section>
+
+      <ManadsrapportSektion />
     </div>
   );
 }

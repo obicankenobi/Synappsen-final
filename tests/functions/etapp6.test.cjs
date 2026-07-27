@@ -222,6 +222,53 @@ async function main() {
     vantaSig(vanlig.antalAnvandare >= 2, `förväntade minst 2 användare i orgVanlig, fick ${vanlig.antalAnvandare}`);
   });
 
+  console.log("\nmanadsrapportOrganisationer – Etapp 15c faktureringsunderlag");
+  await test("en icke-plattformsadmin kan INTE hämta månadsrapporten", () =>
+    forvantaFel("permission-denied", () =>
+      funcs.manadsrapportOrganisationer.run({ data: {}, auth: { uid: "vanligPersonal" } })
+    )
+  );
+  await test("rapporten räknar rutiner (exkl. borttagna), AI-kostnad/anrop och Storage-lagring korrekt", async () => {
+    const rapportOrg = await funcs.skapaOrganisation.run({
+      data: { namn: "Rapportorganisation" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const rapportOrgId = rapportOrg.orgId;
+
+    await db.collection("rutiner").doc("rapportRutin1").set({
+      titel: "Räknas",
+      omrade: "kliniskt-stod",
+      status: "godkand",
+      organisationId: rapportOrgId,
+    });
+    await db.collection("rutiner").doc("rapportRutin2").set({
+      titel: "Räknas INTE (borttagen)",
+      omrade: "kliniskt-stod",
+      status: "godkand",
+      organisationId: rapportOrgId,
+      borttagen: true,
+    });
+
+    // En "AI-anrop" via reserveraBudget – samma mekanism som tolkaDokument/tolkaForradsbild
+    // använder (se kostnadshistorik.test.cjs för samma mönster).
+    await funcs.reserveraBudget(rapportOrgId, "nagonAnvandare");
+
+    const bucket = admin.storage().bucket("synappsen-final-build.firebasestorage.app");
+    const filInnehall = Buffer.from("x".repeat(1000));
+    await bucket.file(`rutiner/kliniskt-stod/rapportRutin1/bild.png`).save(filInnehall);
+
+    const resultat = await funcs.manadsrapportOrganisationer.run({
+      data: {},
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const rad = resultat.organisationer.find((o) => o.orgId === rapportOrgId);
+    vantaSig(Boolean(rad), "rapportorganisationen saknas i månadsrapporten");
+    vantaSig(rad.antalRutiner === 1, `förväntade 1 icke-borttagen rutin, fick ${rad.antalRutiner}`);
+    vantaSig(rad.anvantOre === 50, `förväntade 50 öre använt, fick ${rad.anvantOre}`);
+    vantaSig(rad.antalAnropUppskattat === 1, `förväntade 1 uppskattat AI-anrop, fick ${rad.antalAnropUppskattat}`);
+    vantaSig(rad.lagringBytes === 1000, `förväntade 1000 bytes lagring, fick ${rad.lagringBytes}`);
+  });
+
   console.log("\npausaOrganisation – Etapp 6d");
   await test("en icke-plattformsadmin kan INTE pausa en organisation", () =>
     forvantaFel("permission-denied", () =>

@@ -1,0 +1,28 @@
+.manadsrapport__atgarder {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.manadsrapport__tabell-wrapper {
+  overflow-x: auto;
+}
+
+.manadsrapport__tabell {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.manadsrapport__tabell th,
+.manadsrapport__tabell td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--kant);
+  white-space: nowrap;
+}
+
+.manadsrapport__tabell th {
+  font-weight: 600;
+  color: var(--text-svag);
+}

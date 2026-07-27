@@ -442,12 +442,18 @@ utan det skyddslagret på plats. Se beslutspunkt 6 nedan.
 - Nya rules-tester i `tests/rules/organisationsisolering.test.mjs`: en superadmin kan bocka av
   sin egen organisations steg, men varken fel roll eller fel organisation kommer åt dokumentet.
 
-### 15c – Användnings- och kostnadsmätning per organisation
+### 15c – Användnings- och kostnadsmätning per organisation ✅ KLAR
 
-- Månadsvis sammanställning per organisation: aktiva användare, antal rutiner, AI-anrop och
-  AI-kostnad (kostnadshistoriken finns sedan fas 22), lagringsvolym.
-- Vy hos leverantörsadmin + export. Detta är faktureringsunderlaget och gör en prismodell
-  möjlig att sätta på riktiga siffror.
+- Ny Cloud Function `manadsrapportOrganisationer` (plattformsadmin, `functions/index.js`):
+  en rad per organisation för innevarande månad med aktiva användare, antal icke-borttagna
+  rutiner, AI-kostnad/AI-anrop (uppskattat utifrån samma fasta per-anrops-kostnad som
+  `reserveraBudget` redan reserverar) och lagringsvolym (Storage-bucketen gås igenom EN gång
+  totalt och fördelas per organisation via en uppslagskarta rutin/artikel-id → organisationId,
+  istället för en genomgång per organisation).
+- Ny vy hos leverantörsadmin (`ManadsrapportSektion.jsx` i `Leverantor.jsx`), hämtas på
+  begäran (inte vid varje sidladdning, eftersom bucket-genomgången är för dyr för det) + export
+  som CSV (samma nedladdningsmönster som revisionslogg-exporten från Etapp 14d).
+- 2 nya emulatortester i `tests/functions/etapp6.test.cjs`.
 
 ### 15d – Avtals- och betalningsflöde
 

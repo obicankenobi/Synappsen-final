@@ -1612,6 +1612,80 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
   return { organisationer };
 });
 
+// Etapp 15c: faktureringsunderlaget – en rad per organisation med den här månadens
+// användning så en prismodell kan sättas på riktiga siffror istället för en gissning.
+// Läser bara metadata (antal/summor), aldrig kunddatans innehåll. Lagringsvolymen kräver en
+// bucket-genomgång eftersom Storage-sökvägarna är strukturerade per rutin/artikel-id, inte
+// per organisation (se storage.rules) – görs en gång för HELA bucketen och fördelas sedan
+// på organisationer via en uppslagskarta, istället för en genomgång per organisation.
+exports.manadsrapportOrganisationer = onCall({ region: "europe-west1", timeoutSeconds: 120 }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+
+  const [orgSnap, rutinerSnap, forradsartiklarSnap] = await Promise.all([
+    db.collection("organisationer").get(),
+    db.collection("rutiner").select("organisationId", "borttagen").get(),
+    db.collection("forradsartiklar").select("organisationId").get(),
+  ]);
+
+  // rutinId/artikelId -> organisationId, för att fördela Storage-filernas storlek nedan.
+  const agareOrganisation = new Map();
+  const antalRutinerPerOrg = new Map();
+  for (const rutinDoc of rutinerSnap.docs) {
+    const data = rutinDoc.data();
+    agareOrganisation.set(rutinDoc.id, data.organisationId);
+    if (!data.borttagen) {
+      antalRutinerPerOrg.set(data.organisationId, (antalRutinerPerOrg.get(data.organisationId) ?? 0) + 1);
+    }
+  }
+  for (const artikelDoc of forradsartiklarSnap.docs) {
+    agareOrganisation.set(artikelDoc.id, artikelDoc.data().organisationId);
+  }
+
+  const lagringBytesPerOrg = new Map();
+  const [rutinFiler, artikelFiler] = await Promise.all([
+    bucket.getFiles({ prefix: "rutiner/" }),
+    bucket.getFiles({ prefix: "forradsartiklar/" }),
+  ]);
+  for (const fil of [...rutinFiler[0], ...artikelFiler[0]]) {
+    // Sökvägsformen är {rutiner|forradsartiklar}/{omrade|forradSlug}/{agarId}/{filnamn} –
+    // se storage.rules – så ägarens id sitter alltid på index 2.
+    const agarId = fil.name.split("/")[2];
+    const orgId = agareOrganisation.get(agarId);
+    if (!orgId) continue;
+    const storlek = Number(fil.metadata?.size ?? 0);
+    lagringBytesPerOrg.set(orgId, (lagringBytesPerOrg.get(orgId) ?? 0) + storlek);
+  }
+
+  const organisationer = await Promise.all(
+    orgSnap.docs.map(async (orgDoc) => {
+      const data = orgDoc.data();
+      const [anvandareSnap, budgetSnap] = await Promise.all([
+        db.collection("users").where("organisationId", "==", orgDoc.id).select().get(),
+        orgDoc.ref.collection("installningar").doc("geminiBudget").get(),
+      ]);
+      const budget = budgetSnap.exists ? budgetSnap.data() : {};
+      const anvantOre = budget.anvantOre ?? 0;
+      return {
+        orgId: orgDoc.id,
+        namn: data.namn ?? orgDoc.id,
+        aktuellManad: budget.aktuellManad ?? aktuellManadNyckel(),
+        antalAnvandare: anvandareSnap.size,
+        antalRutiner: antalRutinerPerOrg.get(orgDoc.id) ?? 0,
+        anvantOre,
+        // Grovt uppskattat: varje AI-anrop reserverar en FAST uppskattad kostnad
+        // (UPPSKATTAD_KOSTNAD_ORE), inte den faktiska Gemini-fakturan per anrop – se
+        // reserveraBudget(). Exakt antal anrop loggas inte separat någonstans.
+        antalAnropUppskattat: Math.round(anvantOre / UPPSKATTAD_KOSTNAD_ORE),
+        lagringBytes: lagringBytesPerOrg.get(orgDoc.id) ?? 0,
+      };
+    })
+  );
+  return { organisationer };
+});
+
 // Etapp 6d: pausar/återaktiverar en organisation. Enforcementet sker i firestore.rules
 // (organisationenArAktiv(), infogat i matcharMinOrg()) – en pausad organisations medlemmar
 // nekas läs-/skrivåtkomst till allt organisationsskopat innehåll, men kan fortfarande läsa

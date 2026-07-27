@@ -75,6 +75,12 @@ export function listaOrganisationer() {
   return fn();
 }
 
+// Etapp 15c – faktureringsunderlag/månadsrapport per organisation
+export function manadsrapportOrganisationer() {
+  const fn = httpsCallable(functions, "manadsrapportOrganisationer");
+  return fn();
+}
+
 // Etapp 6b – organisationsetablering (verksamhetstyp: Etapp 10d, valfritt startbibliotek).
 // Etapp 15a lade till orgnr/kontaktperson/anvandartak – kontaktperson.epost bjuder samtidigt
 // in kundens första superadmin (svaret innehåller då en inbjudanToken).
