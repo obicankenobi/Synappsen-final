@@ -4,6 +4,9 @@ import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import MarkdownInnehall from "./MarkdownInnehall";
 import { ROLES, ROLE_LABELS } from "../firebase/roles";
 import { useDialog } from "../hooks/useDialog";
+import { useFeatures } from "../hooks/useFeatures";
+import { FEATURE } from "../config/features";
+import { foreslaChecklistSteg } from "../firebase/functions";
 import "./RutinFormular.css";
 
 export default function RutinFormular({
@@ -15,6 +18,7 @@ export default function RutinFormular({
   onAvbryt,
 }) {
   const { confirm, visaMeddelande } = useDialog();
+  const { hasFeature } = useFeatures();
   const innehallRef = useRef(null);
   const [titel, setTitel] = useState(initialaVarden?.titel ?? "");
   const [innehall, setInnehall] = useState(initialaVarden?.innehall ?? "");
@@ -31,6 +35,50 @@ export default function RutinFormular({
   const [agareUid, setAgareUid] = useState(initialaVarden?.agare?.uid ?? "");
   const [akutlage, setAkutlage] = useState(initialaVarden?.akutlage ?? false);
   const [akutlageOrdning, setAkutlageOrdning] = useState(initialaVarden?.akutlageOrdning ?? 0);
+  const [steg, setSteg] = useState(initialaVarden?.steg ?? []);
+  const [foreslarSteg, setForeslarSteg] = useState(false);
+
+  function laggTillSteg() {
+    setSteg((s) => [...s, { text: "", bild: "", varning: "", timerSekunder: null }]);
+  }
+
+  function taBortSteg(index) {
+    setSteg((s) => s.filter((_, i) => i !== index));
+  }
+
+  function uppdateraSteg(index, falt, varde) {
+    setSteg((s) => s.map((steget, i) => (i === index ? { ...steget, [falt]: varde } : steget)));
+  }
+
+  function flyttaSteg(index, riktning) {
+    setSteg((s) => {
+      const nyttIndex = index + riktning;
+      if (nyttIndex < 0 || nyttIndex >= s.length) return s;
+      const kopia = [...s];
+      [kopia[index], kopia[nyttIndex]] = [kopia[nyttIndex], kopia[index]];
+      return kopia;
+    });
+  }
+
+  // Etapp 18b: skapar ALDRIG nytt kliniskt innehåll – delar bara upp den redan skrivna texten
+  // i steg. Resultatet läggs bara i formuläret, inte i Firestore, så det granskas som ett
+  // vanligt utkast innan det sparas (precis som all annan AI-tolkning i appen).
+  async function hanteraForeslaSteg() {
+    if (!innehall.trim()) {
+      visaMeddelande("Skriv eller klistra in innehållet först, så kan det delas upp i steg.");
+      return;
+    }
+    if (steg.length > 0 && !(await confirm("Ersätta den nuvarande steglistan med AI:ns förslag?"))) return;
+    setForeslarSteg(true);
+    try {
+      const { data } = await foreslaChecklistSteg(innehall);
+      setSteg(data.steg.map((s) => ({ text: s.text, bild: "", varning: "", timerSekunder: null })));
+    } catch (fel) {
+      visaMeddelande(fel.message ?? "Kunde inte ta fram ett stegförslag.");
+    } finally {
+      setForeslarSteg(false);
+    }
+  }
 
   async function valjMall(namn) {
     const mall = RUTIN_MALLAR.find((m) => m.namn === namn);
@@ -88,7 +136,9 @@ export default function RutinFormular({
       visaMeddelande("Fyll i innehåll eller bifoga minst en fil.");
       return;
     }
-    const kontroll = kontrolleraPatientuppgifter(`${titel} ${innehall} ${referenser}`);
+    const kontroll = kontrolleraPatientuppgifter(
+      `${titel} ${innehall} ${referenser} ${steg.map((s) => s.text).join(" ")}`
+    );
     if (kontroll.blockerad) {
       if (kontroll.meddelande) visaMeddelande(kontroll.meddelande);
       return;
@@ -118,6 +168,14 @@ export default function RutinFormular({
         agare,
         akutlage,
         akutlageOrdning: Number(akutlageOrdning) || 0,
+        steg: steg
+          .filter((s) => s.text.trim())
+          .map((s) => ({
+            text: s.text.trim(),
+            bild: s.bild || null,
+            varning: s.varning || null,
+            timerSekunder: s.timerSekunder ? Number(s.timerSekunder) : null,
+          })),
       });
     } finally {
       setSparar(false);
@@ -216,6 +274,66 @@ export default function RutinFormular({
           döljs för vanlig personal (men syns för redaktörer) efter detta datum.
         </span>
       </label>
+
+      <fieldset className="rutin-formular__checklista">
+        <legend>Checklistläge – steg (valfritt)</legend>
+        <p className="rutin-formular__hjalptext">
+          Om rutinen har steg kan den köras ett steg i taget i checklistläget, istället för
+          att bara läsas som löptext. Stegen är bara en annan LAYOUT på innehållet ovan –
+          lägg inte till ny information här som inte redan finns i texten.
+        </p>
+        {hasFeature(FEATURE.AI_IMPORT) && (
+          <button type="button" className="knapp knapp--sekundar knapp--liten" disabled={foreslarSteg} onClick={hanteraForeslaSteg}>
+            {foreslarSteg ? "Föreslår..." : "✨ Föreslå steg från innehållet"}
+          </button>
+        )}
+        {steg.length > 0 && (
+          <ul className="rutin-formular__steglista">
+            {steg.map((s, i) => (
+              <li key={i} className="rutin-formular__stegrad">
+                <span className="rutin-formular__stegnummer">{i + 1}.</span>
+                <div className="rutin-formular__stegfalt">
+                  <textarea
+                    rows={2}
+                    placeholder="Steg-text"
+                    value={s.text}
+                    onChange={(e) => uppdateraSteg(i, "text", e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Varning (valfritt)"
+                    value={s.varning ?? ""}
+                    onChange={(e) => uppdateraSteg(i, "varning", e.target.value)}
+                  />
+                  <label className="rutin-formular__stegtimer">
+                    Timer (sekunder, valfritt)
+                    <input
+                      type="number"
+                      min="0"
+                      value={s.timerSekunder ?? ""}
+                      onChange={(e) => uppdateraSteg(i, "timerSekunder", e.target.value)}
+                    />
+                  </label>
+                </div>
+                <div className="rutin-formular__stegatgarder">
+                  <button type="button" className="knapp knapp--liten" disabled={i === 0} onClick={() => flyttaSteg(i, -1)} aria-label={`Flytta steg ${i + 1} uppåt`}>
+                    ↑
+                  </button>
+                  <button type="button" className="knapp knapp--liten" disabled={i === steg.length - 1} onClick={() => flyttaSteg(i, 1)} aria-label={`Flytta steg ${i + 1} nedåt`}>
+                    ↓
+                  </button>
+                  <button type="button" className="knapp knapp--liten knapp--sekundar" onClick={() => taBortSteg(i)}>
+                    Ta bort
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <button type="button" className="knapp knapp--liten" onClick={laggTillSteg}>
+          + Lägg till steg
+        </button>
+      </fieldset>
 
       <label>
         Ansvarig (valfritt)

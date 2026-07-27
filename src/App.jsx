@@ -61,6 +61,7 @@ const OfflineCenter = lazy(() => import("./pages/OfflineCenter"));
 const Leverantor = lazy(() => import("./pages/Leverantor"));
 const Ledningsrapport = lazy(() => import("./pages/Ledningsrapport"));
 const Akutlage = lazy(() => import("./pages/Akutlage"));
+const Korvy = lazy(() => import("./pages/Korvy"));
 
 function SidLaddare() {
   return <div className="sida sida--laddar">Laddar...</div>;
@@ -303,6 +304,18 @@ export default function App() {
                 <ErrorBoundary>
                   <Suspense fallback={<SidLaddare />}>
                     <Akutlage />
+                  </Suspense>
+                </ErrorBoundary>
+              </SkyddadRoute>
+            }
+          />
+          <Route
+            path="/checklista/:rutinId"
+            element={
+              <SkyddadRoute>
+                <ErrorBoundary>
+                  <Suspense fallback={<SidLaddare />}>
+                    <Korvy />
                   </Suspense>
                 </ErrorBoundary>
               </SkyddadRoute>

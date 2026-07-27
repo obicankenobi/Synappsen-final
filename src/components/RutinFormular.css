@@ -67,6 +67,64 @@
   font-weight: 400;
 }
 
+.rutin-formular__checklista {
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rutin-formular__checklista legend {
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.rutin-formular__steglista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rutin-formular__stegrad {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.rutin-formular__stegnummer {
+  font-weight: 700;
+  padding-top: 10px;
+}
+
+.rutin-formular__stegfalt {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rutin-formular__stegtimer {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+  font-weight: 400 !important;
+}
+
+.rutin-formular__stegtimer input {
+  width: 100px;
+}
+
+.rutin-formular__stegatgarder {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .rutin-formular__akutlage {
   display: flex;
   flex-direction: column;

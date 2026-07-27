@@ -1,0 +1,131 @@
+/* Etapp 18c/17d: stor text, stora tryckytor (min 48px) – körs ofta med en hand medan den
+   andra är upptagen. */
+.korvy {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  overflow-y: auto;
+  background: var(--bg);
+  color: var(--text);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.korvy__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.korvy__stang {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 8px;
+  border: 1px solid var(--kant);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 1.3rem;
+}
+
+.korvy__progress {
+  font-weight: 600;
+  color: var(--text-svag);
+}
+
+.korvy__progressbar {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--kant);
+  overflow: hidden;
+}
+
+.korvy__progressbar-fyllnad {
+  height: 100%;
+  background: var(--primar);
+  transition: width 0.2s ease;
+}
+
+.korvy__titel {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.korvy__steg {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+
+.korvy__stegtext {
+  font-size: 1.8rem;
+  line-height: 1.4;
+  font-weight: 600;
+  margin: 0;
+}
+
+.korvy__varning {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--farlig);
+  background: var(--farlig-ljus);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 0;
+}
+
+.korvy__timer {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.korvy__timer--klar {
+  color: var(--farlig);
+  animation: korvy-puls 1s infinite;
+}
+
+@keyframes korvy-puls {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.korvy__knappar {
+  display: flex;
+  gap: 12px;
+}
+
+.korvy__knapp {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+  background: var(--primar);
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.korvy__knapp:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.korvy__knapp--sekundar {
+  background: transparent;
+  border: 2px solid var(--kant-stark);
+  color: var(--text);
+}

@@ -478,6 +478,93 @@ exports.tolkaDokument = onCall(
   }
 );
 
+// Etapp 18b: "Föreslå steg" – delar upp en REDAN GODKÄND rutins befintliga text i
+// stegförslag. Skapar ALDRIG nytt kliniskt innehåll, bara en annan layout på det som redan
+// står i den godkända rutinen (se SAKERHETSRAPPORT.md, MDR-ställningstagandet för Etapp 18).
+// Går under samma Gemini-budgetspärr som bildtolkning, och resultatet är alltid ett förslag
+// som klienten visar upp för granskning – ingen skrivning till Firestore sker härifrån.
+const stegForslagSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    steg: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          text: { type: SchemaType.STRING },
+        },
+        required: ["text"],
+      },
+    },
+  },
+  required: ["steg"],
+};
+
+async function foreslaStegMedGemini(innehall) {
+  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: stegForslagSchema,
+    },
+  });
+
+  const prompt = `Du delar upp en REDAN GODKÄND rutintext från en akutmottagning i en
+stegvis checklista, till för att köras ett steg i taget under ett akut arbetsmoment.
+
+VIKTIGT: Återge ENDAST innehåll som redan står i texten nedan, omformulerat till korta,
+konkreta handlingssteg. Lägg ALDRIG till nya rekommendationer, doser, bedömningar eller
+information som inte redan finns i texten – det är en ren omstrukturering, inte en
+klinisk bedömning.
+
+Rutintext:
+"""
+${innehall}
+"""
+
+Returnera en lista med steg, i den ordning de ska utföras. Varje steg ska vara en kort mening
+som beskriver EN handling.`;
+
+  const result = await model.generateContent(prompt);
+  return JSON.parse(result.response.text()).steg;
+}
+
+exports.foreslaChecklistSteg = onCall(
+  { secrets: [GEMINI_API_KEY], region: "europe-west1", timeoutSeconds: 60 },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+    }
+    const innehall = (request.data?.innehall ?? "").trim();
+    if (!innehall) {
+      throw new HttpsError("invalid-argument", "innehall krävs.");
+    }
+    if (innehallerPersonnummer(innehall)) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Texten verkar innehålla ett personnummer. Patientuppgifter får inte sparas i Synappsen."
+      );
+    }
+
+    const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+    await kravModul(organisationId, "intelligence", "Föreslå steg kräver Intelligence-modulen.");
+    await reserveraBudget(organisationId, request.auth.uid);
+
+    try {
+      const steg = await foreslaStegMedGemini(innehall);
+      const rensadeSteg = steg
+        .filter((s) => !innehallerPersonnummer(s.text))
+        .slice(0, 12);
+      return { steg: rensadeSteg };
+    } catch (fel) {
+      console.error("Stegförslag misslyckades:", fel);
+      if (fel instanceof HttpsError) throw fel;
+      throw new HttpsError("internal", `Stegförslag misslyckades: ${fel.message}`);
+    }
+  }
+);
+
 // Godkända källor för klinikstöd-frågor – samma domäner som är konfigurerade i den
 // programmerbara sökmotorn (se SOKMOTOR_CX nedan). Fungerar som ett extra skyddslager om
 // sökmotorns egen domänbegränsning någonsin skulle ändras av misstag.

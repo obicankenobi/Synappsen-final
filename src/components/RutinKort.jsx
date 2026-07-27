@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import QRCode from "qrcode";
 import { RUTIN_STATUS } from "../hooks/useRutiner";
 import { useAuth } from "../hooks/useAuth";
@@ -217,6 +218,11 @@ export default function RutinKort({
       )}
 
       <div className="rutin-kort__verktyg">
+        {!arUtkast && (rutin.steg?.length ?? 0) > 0 && (
+          <Link to={`/checklista/${rutin.id}`} className="knapp knapp--liten">
+            ▶️ Kör checklista
+          </Link>
+        )}
         <button
           type="button"
           className="knapp knapp--sekundar knapp--liten rutin-kort__skriv-ut"

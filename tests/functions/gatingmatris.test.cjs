@@ -79,6 +79,15 @@ const MATRIS = [
         auth: { uid },
       }),
   },
+  {
+    namn: "foreslaChecklistSteg",
+    modul: "intelligence",
+    anropa: (uid) =>
+      funcs.foreslaChecklistSteg.run({
+        data: { innehall: "1. Kontrollera puls. 2. Kontrollera andning." },
+        auth: { uid },
+      }),
+  },
 ];
 
 // Statiskt check: hitta varje `exports.X = onCall(` i källkoden vars kropp innehåller ett

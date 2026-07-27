@@ -49,6 +49,7 @@ import SokningarUtanTraffarSektion from "../components/admin/SokningarUtanTraffa
 import AndringsloggSektion from "../components/admin/AndringsloggSektion";
 import RevisionsloggSektion from "../components/admin/RevisionsloggSektion";
 import StartvyKonfigurationSektion from "../components/admin/StartvyKonfigurationSektion";
+import ChecklistStatistikSektion from "../components/admin/ChecklistStatistikSektion";
 import "./Admin.css";
 
 // Vilket område en icke-superadmin-redaktörsroll ansvarar för, för den områdesscopade statistiken
@@ -426,6 +427,8 @@ export default function Admin() {
       )}
 
       {arSuperadmin && <StartvyKonfigurationSektion />}
+
+      {arSuperadmin && <ChecklistStatistikSektion />}
 
       {arSuperadmin && (
         <ModulerSektion

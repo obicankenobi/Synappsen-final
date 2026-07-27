@@ -107,6 +107,7 @@ export default function Sektionssida({
     agare,
     akutlage,
     akutlageOrdning,
+    steg,
   }) {
     if (redigerar) {
       const nyaBilagor = nyaFiler.length ? await laddaUppRutinBilagor(omrade, redigerar.id, nyaFiler) : [];
@@ -121,6 +122,7 @@ export default function Sektionssida({
           relateradeRutiner: relaterade,
           bilagor: [...befintligaBilagor, ...nyaBilagor],
           agare,
+          steg,
           ...(farKureraAkutlage ? { akutlage, akutlageOrdning } : {}),
         },
         currentUser.uid
@@ -140,6 +142,7 @@ export default function Sektionssida({
         relateradeRutiner: relaterade,
         bilagor: nyaFiler.length ? await laddaUppRutinBilagor(omrade, ref.id, nyaFiler) : [],
         agare,
+        steg,
       });
     }
     setVisaFormular(false);

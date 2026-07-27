@@ -541,6 +541,74 @@ async function main() {
     )
   );
 
+  console.log("\nrutiner/{rutinId}.steg – Etapp 18a: PII-spärr och taklängd för checklistesteg");
+  await test("volA kan INTE skapa en rutin med ett personnummer inbäddat i ett stegs text", () =>
+    assertFails(
+      addDoc(collection(volA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "Checklista",
+        innehall: "x",
+        steg: [{ text: "Kontrollera patient 900101-0017 enligt rutin." }],
+      })
+    )
+  );
+  await test("volA KAN skapa en rutin med giltiga checklistesteg (ingen PII)", () =>
+    assertSucceeds(
+      addDoc(collection(volA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "Checklista",
+        innehall: "x",
+        steg: [{ text: "Kontrollera puls" }, { text: "Kontrollera andning" }],
+      })
+    )
+  );
+  await test("volA kan INTE spara en rutin med fler än 12 checklistesteg", () =>
+    assertFails(
+      addDoc(collection(volA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "För lång checklista",
+        innehall: "x",
+        steg: Array.from({ length: 13 }, (_, i) => ({ text: `Steg ${i + 1}` })),
+      })
+    )
+  );
+  await test("sektionsledareA kan INTE smyga in ett personnummer i ett stegs text vid en uppdatering", () =>
+    assertFails(
+      updateDoc(doc(sektionsledareA, "rutiner", "rutinKurateradA"), {
+        steg: [{ text: "Ring 900101-0017 vid komplikation." }],
+      })
+    )
+  );
+
+  console.log("\ncheckriktlistkorningar/{rutinId} – Etapp 18d: aggregerad statistik, organisationsisolerad");
+  await test("volA KAN räkna upp påbörjade körningar för en rutin i sin egen organisation", () =>
+    assertSucceeds(
+      setDoc(
+        doc(volA, "checklistkorningar", "rutinKurateradA"),
+        { organisationId: ORG_A, antalPaborjade: 1 },
+        { merge: true }
+      )
+    )
+  );
+  await test("superadminB (fel organisation) kan INTE läsa org A:s checklistastatistik", () =>
+    assertFails(getDoc(doc(superB, "checklistkorningar", "rutinKurateradA")))
+  );
+  await test("superadminB (fel organisation) kan INTE räkna upp org A:s checklistastatistik", () =>
+    assertFails(
+      setDoc(
+        doc(superB, "checklistkorningar", "rutinKurateradA"),
+        { organisationId: ORG_A, antalPaborjade: 99 },
+        { merge: true }
+      )
+    )
+  );
+
   console.log("\nharTroligtPersonnummer – måste fånga ett INBÄDDAT personnummer, inte bara ett exakt fält (Etapp 12e-fixen)");
   await test("volA kan INTE skapa en rutin där innehållet INNEHÅLLER ett personnummer mitt i en mening", () =>
     assertFails(

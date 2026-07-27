@@ -134,3 +134,18 @@ export function useRutiner(omrade) {
     hamtaVersioner,
   };
 }
+
+// Etapp 18c: en enskild rutin oavsett vilket område den tillhör – körvyn navigeras till via
+// /checklista/{rutinId}, som inte i sig vet vilket område rutinen ligger i.
+export function useRutin(id) {
+  const [rutin, setRutin] = useState(undefined);
+
+  useEffect(() => {
+    if (!id) return undefined;
+    return onSnapshot(doc(db, "rutiner", id), (snap) => {
+      setRutin(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+    });
+  }, [id]);
+
+  return { rutin, laddar: rutin === undefined };
+}

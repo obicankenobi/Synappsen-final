@@ -607,7 +607,7 @@ starkt ljus – är kvar och kräver fysisk närvaro i verksamheten.)
 
 ---
 
-# Etapp 18 – Checklistläge ("kör rutinen")
+# Etapp 18 – Checklistläge ("kör rutinen") ✅ KLAR
 
 **Varför:** Det här är skillnaden mellan en dokumentdatabas och ett arbetsverktyg – och det
 enskilt starkaste demomomentet. Det är också etappen med störst regulatorisk risk, så läs
@@ -615,50 +615,75 @@ beslutspunkten först.
 
 **Modul:** `checklistlage`.
 
-> **⚠ Beslutspunkt före byggstart – MDR.** En funktion som ger stegvisa instruktioner kan
-> börja glida mot medicinteknisk programvara, särskilt om den räknar ut doser eller föreslår
-> beslut. Håll första versionen strikt till att **återge organisationens eget, godkända
-> innehåll i en annan layout** – ingen beräkning, ingen rekommendation, inget som inte redan
-> står i den godkända rutinen. Dokumentera ställningstagandet i `SAKERHETSRAPPORT.md`.
-> Doseringsberäkning är en separat framtida fråga som kräver juridiskt underlag.
+> **⚠ Beslutspunkt före byggstart – MDR. TAGEN.** Godkänd av ägaren: håll första versionen
+> strikt till att återge organisationens eget, godkända innehåll i en annan layout – ingen
+> beräkning, ingen rekommendation. Ställningstagandet är dokumenterat i `SAKERHETSRAPPORT.md`
+> (tillägget daterat 2026-07-27). Konkret: `steg` är bara `{text, bild, varning,
+> timerSekunder}` – inget beräkningsfält finns. "Föreslå steg" (Gemini) delar bara upp en
+> REDAN godkänd text, skapar aldrig nytt kliniskt innehåll, och kräver alltid mänsklig
+> granskning innan sparning (samma godkännandeflöde som allt annat rutininnehåll).
 
-> **⚠ Beslutspunkt – journalföring.** En logg över "vem körde vilken checklista på vilken
-> patient" är journalföring och en helt annan regulatorisk värld. Första versionen loggar
-> **aggregerat och utan personkoppling**: antal körningar per rutin, andel slutförda,
-> genomsnittlig tid. Ingen patientidentifierare, inget fritextfält i körningen.
+> **⚠ Beslutspunkt – journalföring. TAGEN.** Användningsstatistiken (18d) är aggregerad och
+> personkopplingsfri: ett enda ackumulerande dokument per rutin (samma mönster som
+> `visningar`/Etapp 5, inte en rad per körning), ingen patientidentifierare, inget fritextfält
+> kopplat till en enskild körning.
 
-### 18a – Datamodell för steg
+### 18a – Datamodell för steg ✅ KLAR
 
-- Utöka `rutiner` med ett valfritt `steg`-fält: ordnad lista med `text`, valfri `bild`,
-  valfri `varning`, valfri `timerSekunder`.
-- Rutiner utan steg fungerar precis som idag. Bakåtkompatibelt, ingen migrering.
-- Ändringar i `steg` följer samma godkännandeflöde som rutinen i övrigt – ett kliniskt
-  stöd-steg får inte publiceras utan VÖL-godkännande.
+- `rutiner.steg`: en ordnad lista med `{text, bild, varning, timerSekunder}`, helt valfri.
+  Rutiner utan steg fungerar precis som innan – inget migrerat.
+- `firestore.rules` PII-kontrollerar varje stegs text (samma spärr som titel/innehåll/
+  referenser) och begränsar listan till max 12 steg (regelspråket saknar loopar, så
+  kontrollen är uppradad per index – ett högre tak hade riskerat att nå Firestores gräns för
+  antal utvärderade deluttryck per regelanrop, vilket faktiskt inträffade vid 20 och byggde
+  ned till 12 under utvecklingen).
+- Ändringar i `steg` följer samma godkännandeflöde som resten av rutinen (ingen egen
+  statusspärr utöver den som redan finns för `status`/`akutlage`/`akutlageOrdning`).
 
-### 18b – Redigerare
+### 18b – Redigerare ✅ KLAR
 
-- Steglista i rutinformuläret: lägg till, ta bort, dra för att sortera.
-- **"Föreslå steg" via AI:** dela upp befintlig rutintext i stegförslag. Går under befintlig
-  Gemini-budgetspärr, resultatet är alltid ett utkast som måste granskas, och posten behåller
-  `kalla: "gemini"`-hanteringen. Auto-publicera aldrig.
-- PII-kontroll på stegtexterna, både klient och regel.
+- Steglista i `RutinFormular.jsx` (bara synlig vid redigering av en befintlig rutin): lägg
+  till/ta bort/flytta upp/ned (upp/ned-knappar, inget drag-och-släpp-bibliotek).
+  "Föreslå steg" via en ny Cloud Function `foreslaChecklistSteg` – delar upp den redan
+  skrivna texten i steg, går under samma Gemini-budgetspärr och Intelligence-modulkrav som
+  övrig AI-tolkning (med i gating-matrisen, `tests/functions/gatingmatris.test.cjs`).
+  Resultatet fylls bara i formuläret, sparas aldrig direkt – vanlig granskning krävs.
+- PII-kontroll på stegtexterna både klientsidigt (`kontrolleraPatientuppgifter`) och i
+  `firestore.rules` (server-side, den faktiska spärren).
 
-### 18c – Körvy
+### 18c – Körvy ✅ KLAR
 
-- Ett steg i taget, stor text, "klart"-knapp, förloppsindikator, möjlighet att hoppa bakåt.
-- Timer på steg som har det, med hörbar och visuell signal.
-- **Fortsätt där du var** om appen stängs eller telefonen låses (lokalt, inte i molnet).
-- Fungerar offline för rutiner som redan är cachade.
+- Ny helskärmsvy `/checklista/{rutinId}` (`Korvy.jsx`): ett steg i taget, stor text,
+  "klart"-knapp, förloppsindikator, "föregående"-knapp för att hoppa bakåt.
+  Timer på steg som har `timerSekunder`, med hörbar signal (Web Audio-oscillator, inget
+  ljudfilsberoende) och en visuellt pulserande "tiden är ute"-indikator.
+- **Fortsätt där du var:** lokalt (`utils/checklistFramsteg.js`, localStorage per uid+rutin),
+  INTE synkat till molnet – rensas när körningen slutförs.
+- Fungerar offline: läser samma `useRutin`-hook som resten av appen, via Firestores redan
+  påslagna `persistentLocalCache` (Etapp 1) – ingen särskild cachning krävs utöver att
+  rutinen redan besökts en gång med nät.
+- Länk "▶️ Kör checklista" på varje godkänd rutin med steg (`RutinKort.jsx`).
 
-### 18d – Aggregerad användningsstatistik
+### 18d – Aggregerad användningsstatistik ✅ KLAR
 
-- Per rutin: antal påbörjade, antal slutförda, median-tid, vilket steg flest avbryter på.
-- Avbrottssteget är guld för kvalitetsarbetet – det pekar ut var rutinen är otydlig eller
-  fel. Lyft in det i ledningsrapporten (fas 30) och veckopulsen (etapp 16).
-- Firestore-regler: skrivning endast via Cloud Function, aggregerat, ingen `aktorUid` sparad.
+- Ett ackumulerande dokument per rutin i `checklistkorningar/{rutinId}` (samma mönster som
+  `visningar`/Etapp 5): antal påbörjade, antal slutförda, total tid (för ett GENOMSNITT – se
+  förenkling nedan), samt en per-steg avbrottsräknare (bästa-försök, fångar "Avsluta"-knappen
+  och avmontering av vyn, inte t.ex. att hela fliken/webbläsaren stängs).
+- **Förenkling mot planen:** genomsnittlig tid istället för mediantid. En sann median hade
+  krävt att spara varje enskild körnings varaktighet separat, vilket börjar likna en
+  händelselogg (tidsstämplar per tillfälle) – ett större integritetsavtryck för marginell
+  vinst över ett aggregerat medelvärde. Dokumenterat här som ett medvetet vägval, inte en
+  bugg.
+- Ny adminsektion `ChecklistStatistikSektion.jsx` (superadmin). Lyft in i ledningsrapporten
+  (fas 30) och veckopulsen (Etapp 16, ej byggd än) är kvar som en separat framtida uppgift.
+- Firestore-regler: samma öppna skrivmönster som `visningar` (vem som helst i organisationen
+  får räkna upp), organisationsisolerat vid läsning – ingen Cloud Function behövs eftersom
+  det bara är ackumulerande räknare, ingen fritext, ingen identitet.
 
-**Klart när:** en rutin kan köras från början till slut på en telefon utan nät, och
-ledningen kan se var körningar avbryts.
+**Klart när:** en rutin kan köras från början till slut på en telefon utan nät (verifierat
+via samma Firestore-cache-mekanism som Offline-center/akutläget – ingen separat
+nedladdningsknapp), och ledningen kan se var körningar avbryts i adminpanelen.
 
 ---
 

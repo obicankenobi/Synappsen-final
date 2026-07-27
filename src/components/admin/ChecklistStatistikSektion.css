@@ -1,0 +1,22 @@
+.checklist-statistik__tabell-wrapper {
+  overflow-x: auto;
+}
+
+.checklist-statistik__tabell {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.checklist-statistik__tabell th,
+.checklist-statistik__tabell td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--kant);
+  white-space: nowrap;
+}
+
+.checklist-statistik__tabell th {
+  font-weight: 600;
+  color: var(--text-svag);
+}

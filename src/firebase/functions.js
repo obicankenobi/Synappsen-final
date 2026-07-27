@@ -19,6 +19,12 @@ export function tolkaForradsbild(storagePath, forrad) {
   return fn({ storagePath, forrad });
 }
 
+// Etapp 18b – dela upp en redan godkänd rutins text i stegförslag (checklistläget)
+export function foreslaChecklistSteg(innehall) {
+  const fn = httpsCallable(functions, "foreslaChecklistSteg");
+  return fn({ innehall });
+}
+
 export function fragaKlinisktStod(fraga) {
   const fn = httpsCallable(functions, "fragaKlinisktStod");
   return fn({ fraga });

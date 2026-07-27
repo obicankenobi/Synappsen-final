@@ -163,3 +163,36 @@ en användare klickar på en specifikt sparad skadlig länk, eller direkt anrop 
 funktion, eller att anslagstavlan används felaktigt). Den kvarstående, mest relevanta punkten att
 ta ställning till är #1 ovan – den klientsidiga PII-kontrollens begränsning – eftersom den rör
 appens uttryckliga hårda krav om att aldrig lagra patientuppgifter.
+
+---
+
+## Tillägg (2026-07-27, version 5.33.0): Etapp 18 – checklistläge, regulatoriskt ställningstagande
+
+Innan checklistläget ("kör rutinen", ETAPPLAN3.md Etapp 18) byggdes togs två uttryckliga
+beslutspunkter upp med ägaren och godkändes enligt nedan.
+
+### 1. MDR-gränsdragning (medicinteknisk programvara)
+
+En funktion som ger stegvisa instruktioner kan börja glida mot att räknas som medicinteknisk
+programvara enligt EU:s MDR, särskilt om den räknar ut doser eller föreslår kliniska beslut.
+**Beslut:** första versionen håller sig strikt till att återge organisationens eget, redan
+godkända rutininnehåll i en annan layout (ett steg i taget) – ingen beräkning, ingen
+rekommendation, inget innehåll som inte redan står i den godkända rutinen.
+
+Konkret i implementationen:
+- Ett steg (`rutin.steg[i]`) är bara `{ text, bild, varning, timerSekunder }` – inget fält för
+  dos, beräkning eller ett AI-genererat rekommenderat nästa steg.
+- "Föreslå steg" (18b) låter Gemini dela upp en REDAN godkänd rutintext i stegförslag – aldrig
+  skriva nytt kliniskt innehåll. Resultatet är alltid ett utkast (`kalla: "gemini"`) som måste
+  granskas och godkännas av VÖL/superadmin precis som all annan AI-tolkning i appen (se Etapp 2).
+  Auto-publicering sker aldrig.
+- Doseringsberäkning är medvetet INTE byggt och är en separat framtida fråga som kräver
+  juridiskt underlag innan den ens övervägs.
+
+### 2. Journalföring
+
+En logg över "vem körde vilken checklista på vilken patient" vore journalföring – en helt
+annan regulatorisk värld (patientdatalagen, vårdgivaransvar). **Beslut:** användningsstatistiken
+(18d) är aggregerad och utan personkoppling: antal påbörjade/slutförda körningar per rutin,
+mediantid, vilket steg flest avbryter på. Ingen patientidentifierare, inget fritextfält kopplat
+till en enskild körning finns någonstans i datamodellen.
