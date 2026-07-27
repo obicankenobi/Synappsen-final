@@ -714,18 +714,27 @@ gör den till ett kompetensverktyg: från "har klickat läst" till "kan visa att
 - 2 nya functions-tester (automatisk tilldelning, ingen tilldelning utan matchande spår),
   8 nya rules-tester (91/91 totalt i organisationsisolering.test.mjs).
 
-### 19b – Mikrokviss efter läskvittering
+### 19b – Mikrokviss efter läskvittering ✅ KLAR
 
-- Valfritt per rutin: 2–4 flervalsfrågor som visas när användaren kvitterar.
-- Fel svar → visa rätt svar med hänvisning till stycket i rutinen, låt personen försöka igen.
-  Syftet är förståelse, inte betyg.
-- **Håll tonen rätt:** resultatet ska inte kunna användas som disciplinärt underlag. Spara
-  per användare "godkänd/ej godkänd ännu", inte varje felsvar. Berätta det för personalen –
-  annars sjunker användningen.
-- **"Föreslå frågor" via AI** på samma villkor som 18b: utkast, budgetspärr, alltid granskat
-  av en människa innan publicering.
-- Kvittering med kviss räknas först när kvissen är klarad – uppdatera kvitteringsrapporten
-  och exporten.
+- Valfritt per rutin (fält `kviss`, max 4 frågor): flervalsfrågor med `fraga`, `alternativ`
+  (2–4 st), `rattIndex`, `hanvisning` – redigeras i `RutinFormular.jsx`.
+- `KvissModal.jsx`: visas när personen kvitterar en rutin med `kviss`. Fel svar → visar rätt
+  svar + hänvisning, "Försök igen" nollställer bara den lokala UI-statusen (`useState`), inget
+  sparas per felsvar. Bara SISTA utfallet (godkänd) leder vidare.
+- **Ingen ny "godkänd"-status lagras** – kvitteringen (`kvitteraLast`, samma `lasteAv`-array
+  som redan finns) skrivs FÖRST när kvissen är klarad (`onKlar`-callbacken i `RutinKort.jsx`),
+  inte direkt vid klick. "Har kvitterat" = "har klarat kvissen", utan parallell datamodell.
+- **"Föreslå frågor" via AI** (`foreslaKvissfragor` i functions/index.js, samma mönster som
+  18b): kräver `intelligence`-modul + budget, verkar bara på redan godkänd text, resultatet är
+  alltid ett klientutkast som kräver mänsklig granskning/spara. Registrerad i
+  `tests/functions/gatingmatris.test.cjs`.
+- PII-spärr (tre lager) utökad till kviss-frågor/hänvisningar i `firestore.rules`
+  (`harTroligtPersonnummerIKviss`) och `RutinFormular.jsx`. Regelbudgeten (max 1000 deluttryck)
+  krävde att `.size()` cachas EN gång per fält (`harTroligtPersonnummerIStegN`/`...IKvissN`)
+  istället för att anropas i varje uppradat index – annars slog steg- och kviss-kontrollerna
+  tillsammans i taket och gav "evaluation error" istället för ett rent avslag/godkännande.
+- 5 nya rules-tester (96/96 totalt i organisationsisolering.test.mjs): PII i fråga, PII i
+  hänvisning, giltig kviss, för många frågor (>4), PII vid uppdatering.
 
 ### 19c – Kompetensmatris per roll
 

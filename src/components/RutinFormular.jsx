@@ -6,7 +6,7 @@ import { ROLES, ROLE_LABELS } from "../firebase/roles";
 import { useDialog } from "../hooks/useDialog";
 import { useFeatures } from "../hooks/useFeatures";
 import { FEATURE } from "../config/features";
-import { foreslaChecklistSteg } from "../firebase/functions";
+import { foreslaChecklistSteg, foreslaKvissfragor } from "../firebase/functions";
 import "./RutinFormular.css";
 
 export default function RutinFormular({
@@ -80,6 +80,69 @@ export default function RutinFormular({
     }
   }
 
+  const [kviss, setKviss] = useState(initialaVarden?.kviss ?? []);
+  const [foreslarKviss, setForeslarKviss] = useState(false);
+
+  function laggTillFraga() {
+    if (kviss.length >= 4) return;
+    setKviss((k) => [...k, { fraga: "", alternativ: ["", ""], rattIndex: 0, hanvisning: "" }]);
+  }
+
+  function taBortFraga(index) {
+    setKviss((k) => k.filter((_, i) => i !== index));
+  }
+
+  function uppdateraFraga(index, falt, varde) {
+    setKviss((k) => k.map((f, i) => (i === index ? { ...f, [falt]: varde } : f)));
+  }
+
+  function laggTillAlternativ(fragaIndex) {
+    setKviss((k) =>
+      k.map((f, i) => (i === fragaIndex && f.alternativ.length < 4 ? { ...f, alternativ: [...f.alternativ, ""] } : f))
+    );
+  }
+
+  function uppdateraAlternativ(fragaIndex, altIndex, varde) {
+    setKviss((k) =>
+      k.map((f, i) =>
+        i === fragaIndex ? { ...f, alternativ: f.alternativ.map((a, j) => (j === altIndex ? varde : a)) } : f
+      )
+    );
+  }
+
+  function taBortAlternativ(fragaIndex, altIndex) {
+    setKviss((k) =>
+      k.map((f, i) =>
+        i === fragaIndex && f.alternativ.length > 2
+          ? {
+              ...f,
+              alternativ: f.alternativ.filter((_, j) => j !== altIndex),
+              rattIndex: f.rattIndex === altIndex ? 0 : f.rattIndex > altIndex ? f.rattIndex - 1 : f.rattIndex,
+            }
+          : f
+      )
+    );
+  }
+
+  // Etapp 19b: skapar ALDRIG nytt kliniskt innehåll – prövar bara förståelse av den redan
+  // skrivna texten. Läggs bara i formuläret, granskas som ett vanligt utkast innan det sparas.
+  async function hanteraForeslaKviss() {
+    if (!innehall.trim()) {
+      visaMeddelande("Skriv eller klistra in innehållet först, så kan frågor tas fram.");
+      return;
+    }
+    if (kviss.length > 0 && !(await confirm("Ersätta den nuvarande kvissen med AI:ns förslag?"))) return;
+    setForeslarKviss(true);
+    try {
+      const { data } = await foreslaKvissfragor(innehall);
+      setKviss(data.fragor);
+    } catch (fel) {
+      visaMeddelande(fel.message ?? "Kunde inte ta fram frågeförslag.");
+    } finally {
+      setForeslarKviss(false);
+    }
+  }
+
   async function valjMall(namn) {
     const mall = RUTIN_MALLAR.find((m) => m.namn === namn);
     if (!mall) return;
@@ -137,7 +200,8 @@ export default function RutinFormular({
       return;
     }
     const kontroll = kontrolleraPatientuppgifter(
-      `${titel} ${innehall} ${referenser} ${steg.map((s) => s.text).join(" ")}`
+      `${titel} ${innehall} ${referenser} ${steg.map((s) => s.text).join(" ")} ` +
+        `${kviss.map((f) => `${f.fraga} ${f.hanvisning}`).join(" ")}`
     );
     if (kontroll.blockerad) {
       if (kontroll.meddelande) visaMeddelande(kontroll.meddelande);
@@ -175,6 +239,14 @@ export default function RutinFormular({
             bild: s.bild || null,
             varning: s.varning || null,
             timerSekunder: s.timerSekunder ? Number(s.timerSekunder) : null,
+          })),
+        kviss: kviss
+          .filter((f) => f.fraga.trim() && f.alternativ.filter((a) => a.trim()).length >= 2)
+          .map((f) => ({
+            fraga: f.fraga.trim(),
+            alternativ: f.alternativ.map((a) => a.trim()),
+            rattIndex: f.rattIndex,
+            hanvisning: f.hanvisning?.trim() || "",
           })),
       });
     } finally {
@@ -333,6 +405,79 @@ export default function RutinFormular({
         <button type="button" className="knapp knapp--liten" onClick={laggTillSteg}>
           + Lägg till steg
         </button>
+      </fieldset>
+
+      <fieldset className="rutin-formular__checklista">
+        <legend>Mikrokviss vid kvittering (valfritt, max 4 frågor)</legend>
+        <p className="rutin-formular__hjalptext">
+          Visas innan kvitteringen räknas. Fel svar visar bara rätt svar + hänvisning och
+          låter personen försöka igen – syftet är förståelse, inte betyg.
+        </p>
+        {hasFeature(FEATURE.AI_IMPORT) && (
+          <button type="button" className="knapp knapp--sekundar knapp--liten" disabled={foreslarKviss} onClick={hanteraForeslaKviss}>
+            {foreslarKviss ? "Föreslår..." : "✨ Föreslå frågor från innehållet"}
+          </button>
+        )}
+        {kviss.length > 0 && (
+          <ul className="rutin-formular__steglista">
+            {kviss.map((f, fi) => (
+              <li key={fi} className="rutin-formular__stegrad">
+                <span className="rutin-formular__stegnummer">{fi + 1}.</span>
+                <div className="rutin-formular__stegfalt">
+                  <textarea
+                    rows={2}
+                    placeholder="Fråga"
+                    value={f.fraga}
+                    onChange={(e) => uppdateraFraga(fi, "fraga", e.target.value)}
+                  />
+                  {f.alternativ.map((alt, ai) => (
+                    <div key={ai} className="rutin-formular__stegtimer">
+                      <input
+                        type="radio"
+                        name={`ratt-svar-${fi}`}
+                        checked={f.rattIndex === ai}
+                        onChange={() => uppdateraFraga(fi, "rattIndex", ai)}
+                        aria-label={`Alternativ ${ai + 1} är rätt svar`}
+                      />
+                      <input
+                        type="text"
+                        placeholder={`Alternativ ${ai + 1}`}
+                        value={alt}
+                        onChange={(e) => uppdateraAlternativ(fi, ai, e.target.value)}
+                      />
+                      {f.alternativ.length > 2 && (
+                        <button type="button" className="knapp--lank" onClick={() => taBortAlternativ(fi, ai)}>
+                          Ta bort
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {f.alternativ.length < 4 && (
+                    <button type="button" className="knapp knapp--liten knapp--sekundar" onClick={() => laggTillAlternativ(fi)}>
+                      + Lägg till alternativ
+                    </button>
+                  )}
+                  <input
+                    type="text"
+                    placeholder="Hänvisning till stycket (valfritt)"
+                    value={f.hanvisning ?? ""}
+                    onChange={(e) => uppdateraFraga(fi, "hanvisning", e.target.value)}
+                  />
+                </div>
+                <div className="rutin-formular__stegatgarder">
+                  <button type="button" className="knapp knapp--liten knapp--sekundar" onClick={() => taBortFraga(fi)}>
+                    Ta bort fråga
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {kviss.length < 4 && (
+          <button type="button" className="knapp knapp--liten" onClick={laggTillFraga}>
+            + Lägg till fråga
+          </button>
+        )}
       </fieldset>
 
       <label>

@@ -25,6 +25,12 @@ export function foreslaChecklistSteg(innehall) {
   return fn({ innehall });
 }
 
+// Etapp 19b – ta fram mikrokviss-frågor ur en redan godkänd rutins text
+export function foreslaKvissfragor(innehall) {
+  const fn = httpsCallable(functions, "foreslaKvissfragor");
+  return fn({ innehall });
+}
+
 export function fragaKlinisktStod(fraga) {
   const fn = httpsCallable(functions, "fragaKlinisktStod");
   return fn({ fraga });

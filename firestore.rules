@@ -163,18 +163,27 @@ service cloud.firestore {
     // litet tal – varje extra index kostar ytterligare deluttryck i Firestores regelbudget
     // per anrop, se arKortStegLista() nedan för samma tak).
     function harTroligtPersonnummerISteg(steg) {
-      return (steg.size() > 0 && harTroligtPersonnummer(steg[0].get('text', '')))
-          || (steg.size() > 1 && harTroligtPersonnummer(steg[1].get('text', '')))
-          || (steg.size() > 2 && harTroligtPersonnummer(steg[2].get('text', '')))
-          || (steg.size() > 3 && harTroligtPersonnummer(steg[3].get('text', '')))
-          || (steg.size() > 4 && harTroligtPersonnummer(steg[4].get('text', '')))
-          || (steg.size() > 5 && harTroligtPersonnummer(steg[5].get('text', '')))
-          || (steg.size() > 6 && harTroligtPersonnummer(steg[6].get('text', '')))
-          || (steg.size() > 7 && harTroligtPersonnummer(steg[7].get('text', '')))
-          || (steg.size() > 8 && harTroligtPersonnummer(steg[8].get('text', '')))
-          || (steg.size() > 9 && harTroligtPersonnummer(steg[9].get('text', '')))
-          || (steg.size() > 10 && harTroligtPersonnummer(steg[10].get('text', '')))
-          || (steg.size() > 11 && harTroligtPersonnummer(steg[11].get('text', '')));
+      return harTroligtPersonnummerIStegN(steg, steg.size());
+    }
+
+    // .size() räknas som ett deluttryck varje gång det anropas – att anropa det en gång per
+    // uppradat index (istället för en gång totalt) var precis vad som fick regelbudgeten
+    // (max 1000 deluttryck) att ta slut när kviss-kontrollen lades till bredvid denna. Genom
+    // att räkna ut storleken EN gång i harTroligtPersonnummerISteg ovan och skicka in den som
+    // parameter n, kostar varje index bara sin egen harTroligtPersonnummer()-jämförelse.
+    function harTroligtPersonnummerIStegN(steg, n) {
+      return (n > 0 && harTroligtPersonnummer(steg[0].get('text', '')))
+          || (n > 1 && harTroligtPersonnummer(steg[1].get('text', '')))
+          || (n > 2 && harTroligtPersonnummer(steg[2].get('text', '')))
+          || (n > 3 && harTroligtPersonnummer(steg[3].get('text', '')))
+          || (n > 4 && harTroligtPersonnummer(steg[4].get('text', '')))
+          || (n > 5 && harTroligtPersonnummer(steg[5].get('text', '')))
+          || (n > 6 && harTroligtPersonnummer(steg[6].get('text', '')))
+          || (n > 7 && harTroligtPersonnummer(steg[7].get('text', '')))
+          || (n > 8 && harTroligtPersonnummer(steg[8].get('text', '')))
+          || (n > 9 && harTroligtPersonnummer(steg[9].get('text', '')))
+          || (n > 10 && harTroligtPersonnummer(steg[10].get('text', '')))
+          || (n > 11 && harTroligtPersonnummer(steg[11].get('text', '')));
     }
 
     // Etapp 18a: checklistläget är till för att gå igenom UNDER STRESS – en checklista med
@@ -183,6 +192,25 @@ service cloud.firestore {
     // så ett striktare tak här förhindrar att ett 13:e steg smygs in helt okontrollerat.
     function arKortStegLista(steg) {
       return steg.size() <= 12;
+    }
+
+    // Etapp 19b: samma PII-spärr som steg, men för mikrokvissens frågor – både frågetexten
+    // och hänvisningen kan innehålla fritext. Taket på 4 frågor (arKortKvissLista nedan) är
+    // satt av planen själv, så den uppradade kontrollen behöver bara täcka 4 index.
+    function harTroligtPersonnummerIKviss(kviss) {
+      return harTroligtPersonnummerIKvissN(kviss, kviss.size());
+    }
+
+    // Samma .size()-cachning som harTroligtPersonnummerIStegN ovan, och av samma anledning.
+    function harTroligtPersonnummerIKvissN(kviss, n) {
+      return (n > 0 && (harTroligtPersonnummer(kviss[0].get('fraga', '')) || harTroligtPersonnummer(kviss[0].get('hanvisning', ''))))
+          || (n > 1 && (harTroligtPersonnummer(kviss[1].get('fraga', '')) || harTroligtPersonnummer(kviss[1].get('hanvisning', ''))))
+          || (n > 2 && (harTroligtPersonnummer(kviss[2].get('fraga', '')) || harTroligtPersonnummer(kviss[2].get('hanvisning', ''))))
+          || (n > 3 && (harTroligtPersonnummer(kviss[3].get('fraga', '')) || harTroligtPersonnummer(kviss[3].get('hanvisning', ''))));
+    }
+
+    function arKortKvissLista(kviss) {
+      return kviss.size() <= 4;
     }
 
     // Etapp 6a: leverantörsadmin-allowlist. Existens ÄR behörigheten (se arPlattformsadmin()
@@ -265,10 +293,12 @@ service cloud.firestore {
                      // någon annan än VÖL/superadmin (samma spärr som update ovan).
                      && (request.resource.data.get('akutlage', false) == false || farGodkannaKlinisktInnehall())
                      && arKortStegLista(request.resource.data.get('steg', []))
+                     && arKortKvissLista(request.resource.data.get('kviss', []))
                      && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('innehall', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('referenser', ''))
-                     && !harTroligtPersonnummerISteg(request.resource.data.get('steg', []));
+                     && !harTroligtPersonnummerISteg(request.resource.data.get('steg', []))
+                     && !harTroligtPersonnummerIKviss(request.resource.data.get('kviss', []));
 
       // Redaktörer får ändra allt enligt vanliga regler. Alla inloggade i SAMMA organisation
       // får kvittera läsning (lasteAv) utan att i övrigt ha redigeringsbehörighet för området.
@@ -290,10 +320,12 @@ service cloud.firestore {
                        )
                      )
                      && arKortStegLista(request.resource.data.get('steg', []))
+                     && arKortKvissLista(request.resource.data.get('kviss', []))
                      && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('innehall', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('referenser', ''))
-                     && !harTroligtPersonnummerISteg(request.resource.data.get('steg', [])))
+                     && !harTroligtPersonnummerISteg(request.resource.data.get('steg', []))
+                     && !harTroligtPersonnummerIKviss(request.resource.data.get('kviss', [])))
                      || (matcharMinOrg(resource.data.get('organisationId', 'default'))
                          && bararForandrarFalt(['lasteAv']));
 

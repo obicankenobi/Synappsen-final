@@ -565,6 +565,95 @@ exports.foreslaChecklistSteg = onCall(
   }
 );
 
+// Etapp 19b: "Föreslå frågor" – tar fram 2-4 flervalsfrågor ur en REDAN GODKÄND rutins
+// befintliga text, till mikrokvissen som visas vid kvittering. Samma princip som
+// foreslaChecklistSteg (Etapp 18b): frågorna får bara pröva förståelse av det som redan står
+// i texten, aldrig lägga till nytt kliniskt innehåll. Alltid ett utkast som måste granskas.
+const kvissForslagSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    fragor: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          fraga: { type: SchemaType.STRING },
+          alternativ: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+          rattIndex: { type: SchemaType.NUMBER },
+          hanvisning: { type: SchemaType.STRING },
+        },
+        required: ["fraga", "alternativ", "rattIndex", "hanvisning"],
+      },
+    },
+  },
+  required: ["fragor"],
+};
+
+async function foreslaKvissfragorMedGemini(innehall) {
+  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: kvissForslagSchema,
+    },
+  });
+
+  const prompt = `Du tar fram en kort mikrokviss (2-4 flervalsfrågor) för en REDAN GODKÄND
+rutintext från en akutmottagning, som visas när personal kvitterar att de läst och förstått.
+
+VIKTIGT: Frågorna får ENDAST pröva förståelse av det som redan står i texten nedan. Lägg
+ALDRIG till nya rekommendationer, doser, bedömningar eller information som inte redan finns
+i texten – det är kunskapskontroll, inte en klinisk bedömning.
+
+Rutintext:
+"""
+${innehall}
+"""
+
+Returnera 2-4 frågor. Varje fråga ska ha 3-4 svarsalternativ, ett rättIndex (0-baserat index
+i alternativ-listan för det rätta svaret), och en hänvisning – en kort text som pekar ut
+VILKET stycke/vilken del av rutinen svaret kommer från.`;
+
+  const result = await model.generateContent(prompt);
+  return JSON.parse(result.response.text()).fragor;
+}
+
+exports.foreslaKvissfragor = onCall(
+  { secrets: [GEMINI_API_KEY], region: "europe-west1", timeoutSeconds: 60 },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+    }
+    const innehall = (request.data?.innehall ?? "").trim();
+    if (!innehall) {
+      throw new HttpsError("invalid-argument", "innehall krävs.");
+    }
+    if (innehallerPersonnummer(innehall)) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Texten verkar innehålla ett personnummer. Patientuppgifter får inte sparas i Synappsen."
+      );
+    }
+
+    const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+    await kravModul(organisationId, "intelligence", "Föreslå frågor kräver Intelligence-modulen.");
+    await reserveraBudget(organisationId, request.auth.uid);
+
+    try {
+      const fragor = await foreslaKvissfragorMedGemini(innehall);
+      const rensadeFragor = fragor
+        .filter((f) => !innehallerPersonnummer(f.fraga) && !innehallerPersonnummer(f.hanvisning))
+        .slice(0, 4);
+      return { fragor: rensadeFragor };
+    } catch (fel) {
+      console.error("Kvissförslag misslyckades:", fel);
+      if (fel instanceof HttpsError) throw fel;
+      throw new HttpsError("internal", `Kvissförslag misslyckades: ${fel.message}`);
+    }
+  }
+);
+
 // Godkända källor för klinikstöd-frågor – samma domäner som är konfigurerade i den
 // programmerbara sökmotorn (se SOKMOTOR_CX nedan). Fungerar som ett extra skyddslager om
 // sökmotorns egen domänbegränsning någonsin skulle ändras av misstag.

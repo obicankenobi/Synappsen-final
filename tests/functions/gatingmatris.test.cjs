@@ -88,6 +88,15 @@ const MATRIS = [
         auth: { uid },
       }),
   },
+  {
+    namn: "foreslaKvissfragor",
+    modul: "intelligence",
+    anropa: (uid) =>
+      funcs.foreslaKvissfragor.run({
+        data: { innehall: "1. Kontrollera puls. 2. Kontrollera andning." },
+        auth: { uid },
+      }),
+  },
 ];
 
 // Statiskt check: hitta varje `exports.X = onCall(` i källkoden vars kropp innehåller ett

@@ -1,0 +1,70 @@
+.kviss-modal__bakgrund {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.kviss-modal {
+  background: var(--yta);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: var(--skugga-hover);
+}
+
+.kviss-modal__progress {
+  font-size: 0.85rem;
+  color: var(--text-svag);
+  margin: 0 0 4px;
+}
+
+.kviss-modal__alternativ {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.kviss-modal__alternativ-rad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.kviss-modal__facit {
+  padding: 12px;
+  border-radius: 8px;
+  margin: 12px 0;
+}
+
+.kviss-modal__facit--ratt {
+  background: var(--primar-ljus);
+  color: var(--success);
+}
+
+.kviss-modal__facit--fel {
+  background: var(--amber-ljus);
+  color: var(--amber-text);
+}
+
+.kviss-modal__hanvisning {
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
+.kviss-modal__knappar {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}

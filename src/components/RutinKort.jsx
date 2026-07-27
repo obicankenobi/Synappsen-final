@@ -11,6 +11,7 @@ import Kommentarer from "./Kommentarer";
 import VersionsHistorik from "./VersionsHistorik";
 import MarkdownInnehall from "./MarkdownInnehall";
 import PrivatAnteckning from "./PrivatAnteckning";
+import KvissModal from "./KvissModal";
 import "./RutinKort.css";
 
 const OMRADE_SOKVAG = {
@@ -52,6 +53,7 @@ export default function RutinKort({
   const [visaHistorik, setVisaHistorik] = useState(false);
   const [visaOlasta, setVisaOlasta] = useState(false);
   const [qrUrl, setQrUrl] = useState(null);
+  const [visaKviss, setVisaKviss] = useState(false);
   const arUtkast = rutin.status === RUTIN_STATUS.UTKAST;
   const flaggadForGranskning = farRedigera && borGranskas(rutin.granskadDatum);
   const utgangen = farRedigera && arUtgangen(rutin);
@@ -163,7 +165,13 @@ export default function RutinKort({
           type="button"
           className="knapp knapp--sekundar knapp--liten"
           disabled={jagHarLast}
-          onClick={() => kvitteraLast(rutin.id, currentUser.uid, currentUser.email)}
+          onClick={() => {
+            if ((rutin.kviss?.length ?? 0) > 0) {
+              setVisaKviss(true);
+            } else {
+              kvitteraLast(rutin.id, currentUser.uid, currentUser.email);
+            }
+          }}
         >
           {jagHarLast ? "✓ Du har läst detta" : "Jag har läst och förstått"}
         </button>
@@ -178,6 +186,17 @@ export default function RutinKort({
           </button>
         )}
       </div>
+
+      {visaKviss && (
+        <KvissModal
+          rutin={rutin}
+          onKlar={() => {
+            setVisaKviss(false);
+            kvitteraLast(rutin.id, currentUser.uid, currentUser.email);
+          }}
+          onAvbryt={() => setVisaKviss(false)}
+        />
+      )}
 
       {visaOlasta && (
         <ul className="rutin-kort__olasta-lista">

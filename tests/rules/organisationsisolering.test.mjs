@@ -590,6 +590,91 @@ async function main() {
     )
   );
 
+  console.log("\nrutiner/{rutinId}.kviss – Etapp 19b: PII-spärr och taklängd för mikrokvissens frågor");
+  await test("volA kan INTE skapa en rutin med ett personnummer inbäddat i en kviss-fråga", () =>
+    assertFails(
+      addDoc(collection(volA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "Checklista",
+        innehall: "x",
+        kviss: [
+          {
+            fraga: "Vad gäller för patient 900101-0017?",
+            alternativ: ["A", "B"],
+            rattIndex: 0,
+            hanvisning: "Se rutin",
+          },
+        ],
+      })
+    )
+  );
+  await test("volA kan INTE skapa en rutin med ett personnummer inbäddat i en kviss-hänvisning", () =>
+    assertFails(
+      addDoc(collection(volA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "Checklista",
+        innehall: "x",
+        kviss: [
+          {
+            fraga: "Vad gäller?",
+            alternativ: ["A", "B"],
+            rattIndex: 0,
+            hanvisning: "Ring 900101-0017 vid komplikation.",
+          },
+        ],
+      })
+    )
+  );
+  await test("volA KAN skapa en rutin med giltiga kviss-frågor (ingen PII)", () =>
+    assertSucceeds(
+      addDoc(collection(volA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "Checklista",
+        innehall: "x",
+        kviss: [
+          { fraga: "Vad kontrolleras först?", alternativ: ["Puls", "Andning"], rattIndex: 0, hanvisning: "Se steg 1" },
+        ],
+      })
+    )
+  );
+  await test("volA kan INTE spara en rutin med fler än 4 kviss-frågor", () =>
+    assertFails(
+      addDoc(collection(volA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "För lång kviss",
+        innehall: "x",
+        kviss: Array.from({ length: 5 }, (_, i) => ({
+          fraga: `Fråga ${i + 1}`,
+          alternativ: ["A", "B"],
+          rattIndex: 0,
+          hanvisning: "x",
+        })),
+      })
+    )
+  );
+  await test("sektionsledareA kan INTE smyga in ett personnummer i en kviss-fråga vid en uppdatering", () =>
+    assertFails(
+      updateDoc(doc(sektionsledareA, "rutiner", "rutinKurateradA"), {
+        kviss: [
+          {
+            fraga: "Ring 900101-0017 vid komplikation.",
+            alternativ: ["A", "B"],
+            rattIndex: 0,
+            hanvisning: "x",
+          },
+        ],
+      })
+    )
+  );
+
   console.log("\ncheckriktlistkorningar/{rutinId} – Etapp 18d: aggregerad statistik, organisationsisolerad");
   await test("volA KAN räkna upp påbörjade körningar för en rutin i sin egen organisation", () =>
     assertSucceeds(
