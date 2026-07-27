@@ -426,11 +426,21 @@ utan det skyddslagret på plats. Se beslutspunkt 6 nedan.
   det krävde tidigare en manuell Firebase-konsol-åtgärd, (3) ingen välkomstchecklista fanns.
 - Test: `tests/functions/etapp6.test.cjs` ("skapaOrganisation – Etapp 15a etableringsguide").
 
-### 15b – Guidad uppstart för kundens superadmin
+### 15b – Guidad uppstart för kundens superadmin ✅ KLAR
 
-- Checklista i appen: bjud in kollegor, sätt roller, importera första rutinerna (bulkimport
-  finns sedan fas 29), aktivera 2FA-policy, sätt Gemini-budget.
-- Progressindikator. Organisationen räknas som "i drift" när checklistan är klar.
+- Checklista i appen (`KomIgangChecklista.jsx`, ny hook `useValkomstchecklista.js`): bjud in
+  kollegor, sätt roller, importera första rutinerna (bulkimport, fas 29), ta ställning till
+  2FA-policy, sätt Gemini-budget. Varje steg länkar direkt till rätt sida (`/admin` eller
+  `/ladda-upp`) och bockas av manuellt av superadmin – skrivs direkt till samma
+  `installningar/valkomstchecklista`-dokument som 15a skapade, via klient-SDK:t (firestore.rules
+  tillät redan en superadmin i egen organisation att skriva dit, ingen ny Cloud Function
+  behövdes).
+- Progressindikator (stapel + "X av 5 steg"). Visas bara för superadmin på Hem, och bara om
+  dokumentet finns (organisationer etablerade före 15a saknar det och ser ingen checklista)
+  och inte redan är helt avklarat – "i drift" innebär här att komponenten försvinner, det
+  finns inget separat statusfält att sätta.
+- Nya rules-tester i `tests/rules/organisationsisolering.test.mjs`: en superadmin kan bocka av
+  sin egen organisations steg, men varken fel roll eller fel organisation kommer åt dokumentet.
 
 ### 15c – Användnings- och kostnadsmätning per organisation
 

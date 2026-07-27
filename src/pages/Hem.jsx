@@ -4,11 +4,12 @@ import SokFalt from "../components/SokFalt";
 import SektionsKort from "../components/SektionsKort";
 import Notisklocka from "../components/Notisklocka";
 import MinaUppgifter from "../components/MinaUppgifter";
+import KomIgangChecklista from "../components/KomIgangChecklista";
 import { useAuth } from "../hooks/useAuth";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
 import { usePopularaste } from "../hooks/useVisningar";
 import { useSnabblankar } from "../hooks/useSnabblankar";
-import { ROLE_LABELS } from "../firebase/roles";
+import { ROLE_LABELS, ROLES } from "../firebase/roles";
 import { lasSenastBesokta } from "../utils/senastBesokta";
 
 export default function Hem() {
@@ -69,6 +70,8 @@ export default function Hem() {
       <SokFalt />
 
       <MinaUppgifter />
+
+      {role === ROLES.SUPERADMIN && <KomIgangChecklista />}
 
       {favoritPoster.length > 0 && (
         <section className="hem__sektion">

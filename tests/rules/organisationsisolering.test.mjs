@@ -150,6 +150,10 @@ async function main() {
       kategori: "Övrigt",
       organisationId: ORG_A,
     });
+
+    await setDoc(doc(db, "organisationer", ORG_A, "installningar", "valkomstchecklista"), {
+      steg: { bjud_in_kollegor: false, satt_roller: false },
+    });
   });
 
   const superA = testEnv.authenticatedContext("superadminA").firestore();
@@ -169,6 +173,32 @@ async function main() {
   );
   await test("superadminA KAN ändra roll på sin egen organisations användare (volA)", () =>
     assertSucceeds(updateDoc(doc(superA, "users", "volA"), { role: "vol" }))
+  );
+
+  console.log("\norganisationer/{orgId}/installningar/valkomstchecklista – Etapp 15b");
+  await test("superadminA KAN bocka av ett eget checklistesteg", () =>
+    assertSucceeds(
+      updateDoc(doc(superA, "organisationer", ORG_A, "installningar", "valkomstchecklista"), {
+        "steg.bjud_in_kollegor": true,
+      })
+    )
+  );
+  await test("volA (fel roll, rätt organisation) kan INTE ändra checklistan", () =>
+    assertFails(
+      updateDoc(doc(volA, "organisationer", ORG_A, "installningar", "valkomstchecklista"), {
+        "steg.satt_roller": true,
+      })
+    )
+  );
+  await test("superadminB (rätt roll, fel organisation) kan INTE läsa org A:s checklista", () =>
+    assertFails(getDoc(doc(superB, "organisationer", ORG_A, "installningar", "valkomstchecklista")))
+  );
+  await test("superadminB (rätt roll, fel organisation) kan INTE ändra org A:s checklista", () =>
+    assertFails(
+      updateDoc(doc(superB, "organisationer", ORG_A, "installningar", "valkomstchecklista"), {
+        "steg.satt_roller": true,
+      })
+    )
   );
 
   console.log("\nrutiner/{rutinId} – organisationsisolering");
