@@ -175,6 +175,23 @@ async function main() {
     assertSucceeds(updateDoc(doc(superA, "users", "volA"), { role: "vol" }))
   );
 
+  console.log("\nusers/{uid}.senastBesokta – Etapp 17b (synkad mellan enheter)");
+  await test("volA KAN uppdatera sin egen senastBesokta-lista", () =>
+    assertSucceeds(
+      updateDoc(doc(volA, "users", "volA"), {
+        senastBesokta: [{ id: "rutinA", titel: "Rutin A", sokvag: "/kliniskt-stod#rutin-rutinA" }],
+      })
+    )
+  );
+  await test("volA kan INTE smyga med en rollhöjning i samma skrivning som senastBesokta", () =>
+    assertFails(
+      updateDoc(doc(volA, "users", "volA"), {
+        senastBesokta: [],
+        role: "superadmin",
+      })
+    )
+  );
+
   console.log("\norganisationer/{orgId}/installningar/valkomstchecklista – Etapp 15b");
   await test("superadminA KAN bocka av ett eget checklistesteg", () =>
     assertSucceeds(

@@ -1,0 +1,31 @@
+.startvy-konfiguration__rollval {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.startvy-konfiguration__lista {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 360px;
+}
+
+.startvy-konfiguration__rad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+}
+
+.startvy-konfiguration__knappar {
+  display: flex;
+  gap: 4px;
+}

@@ -211,13 +211,15 @@ service cloud.firestore {
       allow create: if false;
       // Superadmin får ändra allt (t.ex. roller) – men ENDAST för användare i sin egen
       // organisation. Ägaren själv får bara ändra sina favoriter, tidpunkten för senaste
-      // notisbesök och sina egna startsidesgenvägar (bararForandrarFalt utesluter redan
-      // organisationId från den listan, så en användare kan aldrig byta organisation själv).
+      // notisbesök, sina egna startsidesgenvägar och sin egen "senast besökta"-lista (Etapp
+      // 17b – synkad mellan enheter, se useSenastBesokta.js). bararForandrarFalt utesluter
+      // redan organisationId från den listan, så en användare kan aldrig byta organisation
+      // själv.
       allow update: if (arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation()
                         && mfaKravUppfylld())
                      || (request.auth.uid == userId
                          && bararForandrarFalt(['favoriter', 'senasteNotisBesok', 'snabblankar',
-                                                'senasteInloggning']));
+                                                'senasteInloggning', 'senastBesokta']));
       allow delete: if arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation();
     }
 

@@ -541,20 +541,30 @@ den är en förutsättning för att checklistläget (etapp 18) ska nås snabbt n
 
 **Modul:** ingår i grundfunktionen.
 
-### 17a – Rollbaserad startvy
+### 17a – Rollbaserad startvy ✅ KLAR
 
-- Startsidan visar innehåll utifrån användarens roll: sjuksköterska ser kliniskt stöd och
-  förråd överst, VEC ser administration och kvitteringsläge, förrådsansvarig ser
-  bristanmälningar.
-- Konfigurerbart per organisation av superadmin (vilka block som visas per roll), med
-  förnuftiga standardvärden så att ingen behöver konfigurera något för att komma igång.
-- Enkel implementation: en `startvyKonfiguration`-post per organisation + befintlig
-  rollkontroll. Undvik ett generellt widget-ramverk i första versionen.
+- Hem.jsx:s kort-grid visas nu i en ORDNING som beror på användarens roll (`src/config/
+  startvy.js`: `STARTVY_BLOCK` + `STARTVY_STANDARD`) – VEC och superadmin ser administration
+  överst (kvitteringsläget bor där idag), förrådsansvarig ser logistik (förrådet) överst.
+  Bristanmälningar (Etapp 20) finns inte än, så förrådsansvarigs default pekar mot logistik
+  istället, dokumenterat i koden.
+- Konfigurerbart per organisation: `organisationer/{orgId}/installningar/startvy` (samma
+  mönster som `installningar/geminiBudget`/`valkomstchecklista` – superadmin skriver direkt,
+  ingen Cloud Function). Ny `useStartvyKonfiguration.js`-hook + admin-sektion
+  `StartvyKonfigurationSektion.jsx` (flytta block upp/ned per roll, återställ till standard).
+- Enkel implementation som planerat: bara ORDNING på befintliga block, inget nytt
+  widget-ramverk. Alla block finns alltid kvar för alla roller.
 
-### 17b – Snabbåtkomst och senast använda
+### 17b – Snabbåtkomst och senast använda ✅ KLAR
 
-- "Senast öppnade" och "Fästa rutiner" per användare (lokalt + synkat).
-- Fästning är per användare, inte per roll – personalen vet själva vad de behöver.
+- "Fästa rutiner": redan löst av den befintliga favorit-funktionen (`useFavoriter.js`,
+  synkad per användare i Firestore) – samma egenskap, bara annan terminologi i planen.
+  Inget nytt byggt för det.
+- "Senast öppnade" var tidigare bara lokal (localStorage, `utils/senastBesokta.js`). Ny hook
+  `useSenastBesokta.js` skriver samma lista till `users/{uid}.senastBesokta` också, så den
+  följer med mellan enheter – localStorage-kopian behålls som omedelbar/offline-first källa,
+  Firestore-synken sker i bakgrunden. `firestore.rules` utökad så en användare får ändra sitt
+  eget `senastBesokta`-fält (samma vitlista som favoriter/snabblänkar).
 
 ### 17c – Akutläge
 

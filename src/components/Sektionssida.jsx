@@ -7,7 +7,7 @@ import RutinFormular from "./RutinFormular";
 import RutinKort from "./RutinKort";
 import { arUtgangen } from "../utils/rutinHjalp";
 import Skelett from "./Skelett";
-import { registreraBesok } from "../utils/senastBesokta";
+import { useSenastBesokta } from "../hooks/useSenastBesokta";
 import { useDialog } from "../hooks/useDialog";
 
 export default function Sektionssida({
@@ -21,6 +21,7 @@ export default function Sektionssida({
 }) {
   const { currentUser, role } = useAuth();
   const { confirm } = useDialog();
+  const { registrera: registreraBesok } = useSenastBesokta(currentUser?.uid);
   const { rutiner, laddar, skapaRutin, uppdateraRutin, godkannRutin, taBortRutin, markeraGranskad, hamtaVersioner } =
     useRutiner(omrade);
   const { anvandare } = useAnvandare();
@@ -60,7 +61,7 @@ export default function Sektionssida({
     kollaHash();
     window.addEventListener("hashchange", kollaHash);
     return () => window.removeEventListener("hashchange", kollaHash);
-  }, [synligaRutiner]);
+  }, [synligaRutiner, registreraBesok]);
 
   const allaTaggar = useMemo(() => {
     const set = new Set();

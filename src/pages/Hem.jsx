@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import SokFalt from "../components/SokFalt";
 import SektionsKort from "../components/SektionsKort";
@@ -9,17 +9,19 @@ import { useAuth } from "../hooks/useAuth";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
 import { usePopularaste } from "../hooks/useVisningar";
 import { useSnabblankar } from "../hooks/useSnabblankar";
+import { useSenastBesokta } from "../hooks/useSenastBesokta";
+import { useStartvyKonfiguration } from "../hooks/useStartvyKonfiguration";
+import { STARTVY_BLOCK } from "../config/startvy";
 import { ROLE_LABELS, ROLES } from "../firebase/roles";
-import { lasSenastBesokta } from "../utils/senastBesokta";
 
 export default function Hem() {
   const { currentUser, role, loggaUt } = useAuth();
   const favoritPoster = useMinaFavoritPoster();
   const populara = usePopularaste(5);
   const { synliga: snabblankar } = useSnabblankar(currentUser?.uid);
-  // Lazy useState-init (körs en gång vid montering) istället för useEffect+useState, eftersom
-  // localStorage inte ändras av något annat i appen medan Hem är monterad.
-  const [senastBesokta] = useState(() => lasSenastBesokta());
+  const { senastBesokta } = useSenastBesokta(currentUser?.uid);
+  const { blockordningForRoll } = useStartvyKonfiguration();
+  const blockordning = blockordningForRoll(role);
 
   // Tangentbordsgenväg: tryck "/" var som helst på sidan för att hoppa till sökfältet,
   // utom när man redan skriver i ett annat fält.
@@ -113,42 +115,9 @@ export default function Hem() {
       )}
 
       <div className="hem__kort-grid">
-        <SektionsKort
-          titel="Kliniskt stöd"
-          beskrivning="Handläggningsrutiner, triagering och kom-ihåg-saker"
-          ikon="🩺"
-          lank="/kliniskt-stod"
-        />
-        <SektionsKort
-          titel="Logistik"
-          beskrivning="Introduktionsguide och förvaringskarta"
-          ikon="📦"
-          lank="/logistik"
-        />
-        <SektionsKort
-          titel="Administration"
-          beskrivning="Policys, regelverk och anslag"
-          ikon="📋"
-          lank="/administration"
-        />
-        <SektionsKort
-          titel="Ladda upp dokument"
-          beskrivning="Fota en whiteboard eller ett papper – Gemini tolkar innehållet"
-          ikon="📷"
-          lank="/ladda-upp"
-        />
-        <SektionsKort
-          titel="Skiftrapport"
-          beskrivning="Praktisk drift-info mellan skift (ej patientinformation)"
-          ikon="🛠️"
-          lank="/skiftrapport"
-        />
-        <SektionsKort
-          titel="Offline-center"
-          beskrivning="Ladda ner godkända rutiner så de går att läsa utan internet"
-          ikon="📥"
-          lank="/offline-center"
-        />
+        {blockordning.map((nyckel) => (
+          <SektionsKort key={nyckel} {...STARTVY_BLOCK[nyckel]} />
+        ))}
       </div>
     </div>
   );

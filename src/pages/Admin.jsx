@@ -48,6 +48,7 @@ import FeedbackSektion from "../components/admin/FeedbackSektion";
 import SokningarUtanTraffarSektion from "../components/admin/SokningarUtanTraffarSektion";
 import AndringsloggSektion from "../components/admin/AndringsloggSektion";
 import RevisionsloggSektion from "../components/admin/RevisionsloggSektion";
+import StartvyKonfigurationSektion from "../components/admin/StartvyKonfigurationSektion";
 import "./Admin.css";
 
 // Vilket område en icke-superadmin-redaktörsroll ansvarar för, för den områdesscopade statistiken
@@ -423,6 +424,8 @@ export default function Admin() {
           feedback={feedback}
         />
       )}
+
+      {arSuperadmin && <StartvyKonfigurationSektion />}
 
       {arSuperadmin && (
         <ModulerSektion
