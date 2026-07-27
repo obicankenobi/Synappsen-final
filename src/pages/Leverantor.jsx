@@ -6,6 +6,7 @@ import {
   pausaOrganisation,
   exporteraOrganisation,
   satAvtalsstatus,
+  satProvperiod,
   blibForstaPlattformsadmin,
 } from "../firebase/functions";
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
@@ -44,6 +45,7 @@ export default function Leverantor() {
   const [atgard, setAtgard] = useState(null);
   const [bootstrapar, setBootstrapar] = useState(false);
   const [exportMeddelande, setExportMeddelande] = useState(null);
+  const [provperiodDraft, setProvperiodDraft] = useState({});
 
   function ladda() {
     setLaddar(true);
@@ -130,6 +132,18 @@ export default function Leverantor() {
     setAtgard(orgId);
     try {
       await satAvtalsstatus(orgId, avtalsstatus);
+      await ladda();
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setAtgard(null);
+    }
+  }
+
+  async function hanteraProvperiod(orgId, provperiodSlut) {
+    setAtgard(orgId);
+    try {
+      await satProvperiod(orgId, provperiodSlut || null);
       await ladda();
     } catch (e) {
       setFel(e);
@@ -270,6 +284,7 @@ export default function Leverantor() {
                   {org.senasteKostnad && (
                     <> · Senaste avslutade månad: {(org.senasteKostnad.anvantOre / 100).toFixed(2)} kr</>
                   )}
+                  {org.provperiodSlut && <> · Provperiod t.o.m. {org.provperiodSlut}</>}
                 </div>
               </div>
               <div className="admin-lista__atgarder">
@@ -287,6 +302,25 @@ export default function Leverantor() {
                     ))}
                   </select>
                 </label>
+                <label className="leverantor__avtalsstatus">
+                  Provperiod t.o.m.
+                  <input
+                    type="date"
+                    value={provperiodDraft[org.orgId] ?? org.provperiodSlut ?? ""}
+                    disabled={atgard === org.orgId}
+                    onChange={(e) =>
+                      setProvperiodDraft((d) => ({ ...d, [org.orgId]: e.target.value }))
+                    }
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="knapp knapp--liten"
+                  disabled={atgard === org.orgId}
+                  onClick={() => hanteraProvperiod(org.orgId, provperiodDraft[org.orgId] ?? org.provperiodSlut)}
+                >
+                  Spara provperiod
+                </button>
                 <button
                   type="button"
                   className="knapp knapp--liten"

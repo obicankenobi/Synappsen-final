@@ -10,6 +10,7 @@ import InaktivitetsVarning from "./components/InaktivitetsVarning";
 import OfflineIndikator from "./components/OfflineIndikator";
 import ErrorBoundary from "./components/ErrorBoundary";
 import MfaPolicyBanner from "./components/MfaPolicyBanner";
+import ProvperiodBanner from "./components/ProvperiodBanner";
 import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
@@ -104,6 +105,7 @@ export default function App() {
         </a>
         <SidTitelBevakning />
         <MfaPolicyBanner />
+        <ProvperiodBanner />
         <Routes>
           <Route
             path="/logga-in"

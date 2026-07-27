@@ -1609,6 +1609,7 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         // Saknas fältet helt (organisationer etablerade före Etapp 15a) antas de redan vara
         // en riktig, aktiv kund – annars skulle en befintlig kund plötsligt visas som "offert".
         avtalsstatus: data.avtalsstatus ?? "aktiv",
+        provperiodSlut: data.provperiodSlut ?? null,
       };
     })
   );
@@ -1654,6 +1655,81 @@ exports.satAvtalsstatus = onCall({ region: "europe-west1" }, async (request) => 
   });
   return { ok: true };
 });
+
+// Etapp 15e: sätter/ändrar en organisations provperiodSlut (ISO-datum "ÅÅÅÅ-MM-DD", eller
+// null för att ta bort en provperiod helt). Anropet PAUSAR ALDRIG något självt – bara
+// datumet ändras här, så en leverantörsadmin kan förlänga en provperiod utan att behöva
+// återaktivera organisationen manuellt efteråt om den redan hunnit pausas automatiskt.
+// Den faktiska pausningen sker i kontrolleraProvperioderSchemalagt() nedan.
+const ISO_DATUM_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+exports.satProvperiod = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId, provperiodSlut } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+  if (provperiodSlut !== null && !ISO_DATUM_REGEX.test(provperiodSlut ?? "")) {
+    throw new HttpsError(
+      "invalid-argument",
+      "provperiodSlut måste vara null eller ett datum på formen ÅÅÅÅ-MM-DD."
+    );
+  }
+  const orgRef = db.collection("organisationer").doc(orgId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists) {
+    throw new HttpsError("not-found", "Organisationen hittades inte.");
+  }
+  await orgRef.set({ provperiodSlut }, { merge: true });
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "organisation_provperiod_andrad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: provperiodSlut ? `Provperiod satt till ${provperiodSlut}` : "Provperiod borttagen",
+  });
+  return { ok: true };
+});
+
+// Etapp 15e: automatisk pausning när en organisations provperiod gått ut. Pausat läge =
+// läsbehörighet kvar, ingen ny skrivning (samma mekanism som pausaOrganisation/Etapp 6d,
+// se organisationenArAktiv() i firestore.rules) – raderar ALDRIG kunddata automatiskt.
+// Varningarna 14/7/1 dag innan är inget som skrivs härifrån – de beräknas direkt i klienten
+// (ProvperiodBanner.jsx) utifrån samma provperiodSlut-fält, som redan är läsbart för alla
+// organisationsmedlemmar. Körs dagligen, inte exakt vid midnatt UTC för provperiodSlut-dagen,
+// så en organisation kan vara pausad upp till ett dygn efter det formella slutdatumet.
+async function kontrolleraProvperioder() {
+  const idagIso = new Date().toISOString().slice(0, 10);
+  const orgSnap = await db.collection("organisationer").where("status", "==", "aktiv").get();
+  for (const orgDoc of orgSnap.docs) {
+    const provperiodSlut = orgDoc.data()?.provperiodSlut;
+    if (!provperiodSlut || provperiodSlut > idagIso) continue;
+    await orgDoc.ref.set({ status: "pausad" }, { merge: true });
+    await loggaRevision({
+      organisationId: orgDoc.id,
+      aktorUid: null,
+      aktorRoll: "system",
+      handelsetyp: "organisation_provperiod_utgangen",
+      objektTyp: "organisationer",
+      objektId: orgDoc.id,
+      sammanfattning: `Provperioden gick ut (${provperiodSlut}) – organisationen pausades automatiskt`,
+    });
+  }
+}
+// Exporterad enbart för tests/functions/etapp6.test.cjs (samma mönster som
+// backupaOrganisation/reserveraBudget – test:functions kör bara firestore+storage-
+// emulatorerna, inte en riktig scheduler, så kärnlogiken måste vara anropbar direkt).
+exports.kontrolleraProvperioder = kontrolleraProvperioder;
+
+exports.kontrolleraProvperioderSchemalagt = onSchedule(
+  { schedule: "every day 05:00", timeZone: "Europe/Stockholm", region: "europe-west1" },
+  kontrolleraProvperioder
+);
 
 // Etapp 15c: faktureringsunderlaget – en rad per organisation med den här månadens
 // användning så en prismodell kan sättas på riktiga siffror istället för en gissning.

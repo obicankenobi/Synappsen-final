@@ -6,6 +6,8 @@ const HANDELSETYP_ETIKETT = {
   organisation_atveraktiverad: "Organisation återaktiverad",
   organisation_exporterad: "Organisation exporterad",
   organisation_avtalsstatus_andrad: "Avtalsstatus ändrad",
+  organisation_provperiod_andrad: "Provperiod ändrad",
+  organisation_provperiod_utgangen: "Provperiod utgången (automatisk pausning)",
   anvandare_skapad: "Användare skapad",
   anvandare_utloggning_tvingad: "Tvingad utloggning",
   rutin_publicerad: "Rutin publicerad",

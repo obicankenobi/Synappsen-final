@@ -315,6 +315,77 @@ async function main() {
     vantaSig(rad.avtalsstatus === "aktiv", `förväntade fallback-avtalsstatus 'aktiv', fick ${rad.avtalsstatus}`);
   });
 
+  console.log("\nsatProvperiod / kontrolleraProvperioder – Etapp 15e provperiod och automatisk pausning");
+  await test("en icke-plattformsadmin kan INTE sätta en provperiod", () =>
+    forvantaFel("permission-denied", () =>
+      funcs.satProvperiod.run({
+        data: { orgId: nyOrgId, provperiodSlut: "2030-01-01" },
+        auth: { uid: "vanligPersonal" },
+      })
+    )
+  );
+  await test("ett ogiltigt datumformat nekas med invalid-argument", () =>
+    forvantaFel("invalid-argument", () =>
+      funcs.satProvperiod.run({
+        data: { orgId: nyOrgId, provperiodSlut: "imorgon" },
+        auth: { uid: "vanligSuperadmin" },
+      })
+    )
+  );
+  await test("en plattformsadmin KAN sätta en provperiod", async () => {
+    await funcs.satProvperiod.run({
+      data: { orgId: nyOrgId, provperiodSlut: "2030-01-01" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const orgSnap = await db.collection("organisationer").doc(nyOrgId).get();
+    vantaSig(orgSnap.data().provperiodSlut === "2030-01-01", "provperiodSlut uppdaterades inte");
+  });
+  await test("provperiodSlut kan tas bort igen genom att sätta null", async () => {
+    await funcs.satProvperiod.run({
+      data: { orgId: nyOrgId, provperiodSlut: null },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const orgSnap = await db.collection("organisationer").doc(nyOrgId).get();
+    vantaSig(orgSnap.data().provperiodSlut === null, "provperiodSlut togs inte bort");
+  });
+  await test("kontrolleraProvperioder pausar en aktiv organisation vars provperiod gått ut IGÅR", async () => {
+    const resultat = await funcs.skapaOrganisation.run({
+      data: { namn: "Utgången Provperiod AB" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const igar = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    await funcs.satProvperiod.run({
+      data: { orgId: resultat.orgId, provperiodSlut: igar },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    await funcs.kontrolleraProvperioder();
+    const orgSnap = await db.collection("organisationer").doc(resultat.orgId).get();
+    vantaSig(orgSnap.data().status === "pausad", "organisationen pausades inte trots utgången provperiod");
+  });
+  await test("kontrolleraProvperioder rör INTE en organisation vars provperiod gäller till IMORGON", async () => {
+    const resultat = await funcs.skapaOrganisation.run({
+      data: { namn: "Aktiv Provperiod AB" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const imorgon = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    await funcs.satProvperiod.run({
+      data: { orgId: resultat.orgId, provperiodSlut: imorgon },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    await funcs.kontrolleraProvperioder();
+    const orgSnap = await db.collection("organisationer").doc(resultat.orgId).get();
+    vantaSig(orgSnap.data().status === "aktiv", "organisationen pausades felaktigt trots gällande provperiod");
+  });
+  await test("kontrolleraProvperioder rör INTE en organisation UTAN provperiodSlut", async () => {
+    const resultat = await funcs.skapaOrganisation.run({
+      data: { namn: "Ingen Provperiod AB" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    await funcs.kontrolleraProvperioder();
+    const orgSnap = await db.collection("organisationer").doc(resultat.orgId).get();
+    vantaSig(orgSnap.data().status === "aktiv", "organisationen pausades felaktigt utan någon provperiod satt");
+  });
+
   console.log("\npausaOrganisation – Etapp 6d");
   await test("en icke-plattformsadmin kan INTE pausa en organisation", () =>
     forvantaFel("permission-denied", () =>

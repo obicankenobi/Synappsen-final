@@ -102,6 +102,12 @@ export function satAvtalsstatus(orgId, avtalsstatus) {
   return fn({ orgId, avtalsstatus });
 }
 
+// Etapp 15e – provperiod (ISO-datum "ÅÅÅÅ-MM-DD" eller null för att ta bort den)
+export function satProvperiod(orgId, provperiodSlut) {
+  const fn = httpsCallable(functions, "satProvperiod");
+  return fn({ orgId, provperiodSlut });
+}
+
 export function exporteraOrganisation(orgId) {
   const fn = httpsCallable(functions, "exporteraOrganisation");
   return fn({ orgId });

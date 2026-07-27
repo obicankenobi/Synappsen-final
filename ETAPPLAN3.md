@@ -469,11 +469,22 @@ utan det skyddslagret på plats. Se beslutspunkt 6 nedan.
 - Ny dropdown i leverantörsvyns organisationslista (`Leverantor.jsx`) för att ändra statusen.
 - 5 nya emulatortester i `tests/functions/etapp6.test.cjs`.
 
-### 15e – Provperiod och automatisk pausning
+### 15e – Provperiod och automatisk pausning ✅ KLAR
 
-- `provperiodSlut` per organisation, varning i appen 14/7/1 dag före, automatisk övergång
-  till pausat läge (befintlig pausfunktion från fas 25) via schemalagt jobb.
-- Pausat läge = läsbehörighet kvar, ingen ny skrivning. Radera aldrig kunddata automatiskt.
+- Ny Cloud Function `satProvperiod` (plattformsadmin) sätter/ändrar/tar bort en organisations
+  `provperiodSlut` (ISO-datum, fältet reserverades redan i Etapp 15a) – ändrar bara datumet,
+  pausar aldrig något självt.
+- Nytt dagligt schemalagt jobb `kontrolleraProvperioderSchemalagt` (05:00 Europe/Stockholm,
+  kärnlogiken i den fristående `kontrolleraProvperioder()` för testbarhet) pausar en aktiv
+  organisation vars provperiod gått ut – återanvänder samma `status: "pausad"`-mekanism som
+  `pausaOrganisation`/Etapp 6d, så läsbehörighet finns kvar och ingen kunddata raderas.
+- Varning i appen 14/7/1 dag före: ny `ProvperiodBanner.jsx` + `useProvperiod.js`, läser
+  samma `provperiodSlut`-fält client-side (redan läsbart för alla organisationsmedlemmar) –
+  ingen separat skrivning behövs för själva varningen.
+- Ny dropdown/datumfält i leverantörsvyn (`Leverantor.jsx`) för att sätta provperioden.
+- 7 nya emulatortester i `tests/functions/etapp6.test.cjs`.
+
+**Etapp 15 är därmed helt klar (15a–15e).**
 
 **Klart när:** ägaren kan etablera en ny kund från noll till inloggad superadmin utan att
 öppna Firebase-konsolen – och App Check-enforcement (12c-ii) är på plats innan detta
