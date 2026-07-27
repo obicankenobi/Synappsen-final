@@ -468,6 +468,32 @@ async function main() {
     vantaSig(userSnap.data().organisationId === "orgVanlig", "fel organisationId");
   });
 
+  console.log("\nlosInInbjudan – Etapp 19a: automatisk tilldelning av introduktionsspår");
+  await test("ett konto UTAN matchande introduktionsspår för sin roll får INGEN tilldelning", async () => {
+    const tilldelningSnap = await db.collection("introduktionstilldelningar").doc("nyttKontoRattEpost").get();
+    vantaSig(!tilldelningSnap.exists, "en tilldelning skapades trots att inget spår för rollen 'personal' fanns än");
+  });
+  await test("ett konto vars roll HAR ett introduktionsspår får en automatisk tilldelning", async () => {
+    await db.collection("introduktionsspar").doc("sparPersonalOrgVanlig").set({
+      namn: "Introduktion för personal",
+      malRoll: "personal",
+      organisationId: "orgVanlig",
+      etapper: [{ namn: "Dag 1", poster: [] }],
+    });
+    const { token: nyttToken } = await funcs.skapaInbjudan.run({
+      data: { epost: "spar-test@exempel.se", roll: "personal" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    await funcs.losInInbjudan.run({
+      data: { token: nyttToken, namn: "Spårtest Personsson" },
+      auth: { uid: "sparTestUid", token: { email: "spar-test@exempel.se" } },
+    });
+    const tilldelningSnap = await db.collection("introduktionstilldelningar").doc("sparTestUid").get();
+    vantaSig(tilldelningSnap.exists, "ingen automatisk tilldelning skapades trots matchande spår");
+    vantaSig(tilldelningSnap.data().sparId === "sparPersonalOrgVanlig", "fel sparId på tilldelningen");
+    vantaSig(tilldelningSnap.data().malRoll === "personal", "fel malRoll på tilldelningen");
+  });
+
   await test("samma token kan INTE lösas in en andra gång", () =>
     forvantaFel("failed-precondition", () =>
       funcs.losInInbjudan.run({

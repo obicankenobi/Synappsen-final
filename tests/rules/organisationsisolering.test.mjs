@@ -60,6 +60,8 @@ async function main() {
     await setDoc(doc(db, "users", "volA"), { role: "vol", organisationId: ORG_A });
     await setDoc(doc(db, "users", "vecB"), { role: "vec", organisationId: ORG_B });
     await setDoc(doc(db, "users", "sektionsledareA"), { role: "sektionsledare", organisationId: ORG_A });
+    await setDoc(doc(db, "users", "vecA"), { role: "vec", organisationId: ORG_A });
+    await setDoc(doc(db, "users", "personalA"), { role: "personal", organisationId: ORG_A });
 
     await setDoc(doc(db, "rutiner", "rutinKurateradA"), {
       omrade: "kliniskt-stod",
@@ -172,6 +174,8 @@ async function main() {
   const volA = testEnv.authenticatedContext("volA").firestore();
   const vecB = testEnv.authenticatedContext("vecB").firestore();
   const sektionsledareA = testEnv.authenticatedContext("sektionsledareA").firestore();
+  const vecA = testEnv.authenticatedContext("vecA").firestore();
+  const personalA = testEnv.authenticatedContext("personalA").firestore();
 
   console.log("\nusers/{uid} – organisationsisolering");
   await test("superadminA kan läsa sin egen organisations användare (volA)", () =>
@@ -607,6 +611,53 @@ async function main() {
         { merge: true }
       )
     )
+  );
+
+  console.log("\nintroduktionsspar/{sparId} – Etapp 19a: bara VEC/superadmin hanterar definitioner");
+  let sparTestId;
+  await test("personalA (ingen redaktörsroll) kan INTE skapa ett introduktionsspår", () =>
+    assertFails(
+      addDoc(collection(personalA, "introduktionsspar"), {
+        namn: "Test", malRoll: "personal", organisationId: ORG_A, etapper: [],
+      })
+    )
+  );
+  await test("vecA KAN skapa ett introduktionsspår i sin egen organisation", async () => {
+    const ref = await addDoc(collection(vecA, "introduktionsspar"), {
+      namn: "Introduktion för personal", malRoll: "personal", organisationId: ORG_A, etapper: [],
+    });
+    sparTestId = ref.id;
+  });
+  await test("personalA (alla i organisationen) KAN läsa spårets namn", () =>
+    assertSucceeds(getDoc(doc(personalA, "introduktionsspar", sparTestId)))
+  );
+  await test("superadminB (fel organisation) kan INTE läsa org A:s introduktionsspår", () =>
+    assertFails(getDoc(doc(superB, "introduktionsspar", sparTestId)))
+  );
+  await test("personalA kan INTE ta bort ett introduktionsspår", () =>
+    assertFails(deleteDoc(doc(personalA, "introduktionsspar", sparTestId)))
+  );
+
+  console.log("\nintroduktionstilldelningar/{uid} – Etapp 19a: egen läsning + VEC/superadmin-hantering");
+  await test("vecA KAN tilldela personalA ett introduktionsspår", () =>
+    assertSucceeds(
+      setDoc(doc(vecA, "introduktionstilldelningar", "personalA"), {
+        uid: "personalA", namn: "Personal A", organisationId: ORG_A,
+        sparId: sparTestId, sparNamn: "Introduktion för personal", malRoll: "personal",
+      })
+    )
+  );
+  await test("personalA KAN läsa sin EGEN tilldelning", () =>
+    assertSucceeds(getDoc(doc(personalA, "introduktionstilldelningar", "personalA")))
+  );
+  await test("sektionsledareA (annan person, ingen redaktörsroll för det här) kan INTE läsa personalA:s tilldelning", () =>
+    assertFails(getDoc(doc(sektionsledareA, "introduktionstilldelningar", "personalA")))
+  );
+  await test("superadminB (fel organisation) kan INTE läsa org A:s tilldelning", () =>
+    assertFails(getDoc(doc(superB, "introduktionstilldelningar", "personalA")))
+  );
+  await test("personalA kan INTE ta bort sin egen tilldelning", () =>
+    assertFails(deleteDoc(doc(personalA, "introduktionstilldelningar", "personalA")))
   );
 
   console.log("\nharTroligtPersonnummer – måste fånga ett INBÄDDAT personnummer, inte bara ett exakt fält (Etapp 12e-fixen)");

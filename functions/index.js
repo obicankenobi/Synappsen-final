@@ -2089,5 +2089,32 @@ exports.losInInbjudan = onCall({ region: "europe-west1" }, async (request) => {
     sammanfattning: `Nytt konto skapat via inbjudan, roll: ${inbjudanRoll}`,
   });
 
+  // Etapp 19a: automatisk tilldelning av introduktionsspår, om organisationen har definierat
+  // ett för den här rollen. Görs EFTER transaktionen (precis som loggaRevision ovan) – en
+  // fristående, icke-transaktionell skrivning, så ett saknat/dubbelt spår i värsta fall bara
+  // innebär att den automatiska tilldelningen uteblir, inte att hela inloggningen misslyckas.
+  try {
+    const sparSnap = await db
+      .collection("introduktionsspar")
+      .where("organisationId", "==", inbjudanOrganisationId)
+      .where("malRoll", "==", inbjudanRoll)
+      .limit(1)
+      .get();
+    if (!sparSnap.empty) {
+      const spar = sparSnap.docs[0];
+      await db.collection("introduktionstilldelningar").doc(request.auth.uid).set({
+        uid: request.auth.uid,
+        namn,
+        organisationId: inbjudanOrganisationId,
+        sparId: spar.id,
+        sparNamn: spar.data().namn,
+        malRoll: inbjudanRoll,
+        tilldelad: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+  } catch (fel) {
+    console.error("Automatisk tilldelning av introduktionsspår misslyckades:", fel);
+  }
+
   return { ok: true };
 });

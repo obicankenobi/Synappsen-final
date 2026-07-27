@@ -495,6 +495,28 @@ service cloud.firestore {
       allow update: if matcharMinOrg(resource.data.get('organisationId', 'default'));
     }
 
+    // introduktionsspar/{sparId} – Etapp 19a: definitionen av ett introduktionsspår (namn,
+    // målroll, etapper med rutin-/anslagsreferenser). Bara VEC/superadmin hanterar
+    // definitionerna – vanlig personal läser bara (för att t.ex. se namnet på sitt eget spår).
+    match /introduktionsspar/{sparId} {
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
+      allow create: if farHanteraAnslag() && request.resource.data.get('organisationId', 'default') == minOrganisation();
+      allow update, delete: if farHanteraAnslag() && matcharMinOrg(resource.data.get('organisationId', 'default'));
+    }
+
+    // introduktionstilldelningar/{uid} – Etapp 19a: VILKET spår en viss person är tilldelad.
+    // Dokument-id ÄR användarens uid (en aktiv tilldelning åt gången, samma mönster som
+    // organisationer/{orgId}). Ägaren själv får läsa sin egen (för "mina uppgifter"-vyn);
+    // VEC/superadmin får läsa alla (chefsvyn) och skapa/ändra/ta bort (manuell tilldelning –
+    // den automatiska tilldelningen vid inbjudan sker via Admin SDK i losInInbjudan och
+    // kringgår därmed dessa regler helt).
+    match /introduktionstilldelningar/{uid} {
+      allow read: if (arInloggad() && request.auth.uid == uid)
+                   || (farHanteraAnslag() && matcharMinOrg(resource.data.get('organisationId', 'default')));
+      allow create: if farHanteraAnslag() && request.resource.data.get('organisationId', 'default') == minOrganisation();
+      allow update, delete: if farHanteraAnslag() && matcharMinOrg(resource.data.get('organisationId', 'default'));
+    }
+
     // skiftrapporter/{postId} – praktisk drift-info mellan skift (INTE patientdata).
     // Alla inloggade i SAMMA organisation får skapa och markera som åtgärdat. Ägaren eller
     // en redaktörsroll (i samma organisation) får ta bort.

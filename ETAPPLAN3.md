@@ -697,15 +697,22 @@ gör den till ett kompetensverktyg: från "har klickat läst" till "kan visa att
 
 **Modul:** `kompetens`.
 
-### 19a – Introduktionsspår för nyanställda
+### 19a – Introduktionsspår för nyanställda ✅ KLAR
 
-- Nytt objekt `introduktionsspar`: namn, målroll, ordnad lista av rutiner/anslag, indelat i
-  etapper (dag 1 / vecka 1 / månad 1) med rekommenderad tidpunkt.
-- Tilldelas automatiskt när en användare skapas med en viss roll, eller manuellt av VEC.
-- Vy för den nyanställde: progress, nästa steg, uppskattad tid.
-- Vy för chefen: alla pågående introduktioner, vem som ligger efter.
-- Återanvänd befintlig kvitteringsmekanik (`useLaskvittering`) – bygg inte en parallell
-  "läst"-status.
+- Ny collection `introduktionsspar` (namn, målroll, etapper med rutin-/anslagsreferenser +
+  rekommenderad dag), hanterad av VEC/superadmin (`useIntroduktionsspar.js`,
+  `firestore.rules` – samma behörighet som anslagstavlan).
+- `introduktionstilldelningar/{uid}` (en aktiv tilldelning per person): tilldelas automatiskt
+  i `losInInbjudan` om organisationen har ett spår för den nya rollen (fristående,
+  icke-transaktionell skrivning efter användarskapandet – ett saknat spår stoppar aldrig
+  inloggningen), eller manuellt av VEC/superadmin i `Introduktion.jsx`.
+- Progress beräknas LIVE utifrån redan befintliga `lasteAv`-listor på rutiner/anslag
+  (`utils/introduktionProgress.js`) – ingen egen "klar"-status lagras, precis som planen
+  krävde. "Ligger efter" jämför rekommenderadDag mot dagar sedan tilldelning.
+- Ny sida `/introduktion`: progress + nästa steg för den nyanställde, och för VEC/superadmin
+  en chefsvy (alla pågående introduktioner, vem som ligger efter) + spårredigerare.
+- 2 nya functions-tester (automatisk tilldelning, ingen tilldelning utan matchande spår),
+  8 nya rules-tester (91/91 totalt i organisationsisolering.test.mjs).
 
 ### 19b – Mikrokviss efter läskvittering
 

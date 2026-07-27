@@ -1,0 +1,94 @@
+.introduktion__status {
+  font-size: 0.9rem;
+  color: var(--text-svag);
+  margin: 4px 0 8px;
+}
+
+.introduktion__stapel {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--kant);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.introduktion__stapel-fyllnad {
+  height: 100%;
+  background: var(--primar);
+  transition: width 0.2s ease;
+}
+
+.introduktion__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.introduktion__post {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.introduktion__post--klar a,
+.introduktion__post--klar span {
+  color: var(--text-svag);
+}
+
+.introduktion__post-etapp {
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  min-width: 70px;
+}
+
+.introduktion__efter-flagga {
+  color: var(--amber-text);
+  font-weight: 600;
+}
+
+.introduktion__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
+}
+
+.introduktion__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.introduktion__etapp {
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.introduktion__postrad {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.introduktion__postrad label {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  font-weight: 400;
+}
+
+.introduktion__formknappar {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
