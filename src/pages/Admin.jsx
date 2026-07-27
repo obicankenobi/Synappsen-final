@@ -9,6 +9,7 @@ import { useKostnadshistorik } from "../hooks/useKostnadshistorik";
 import { useFeedback } from "../hooks/useFeedback";
 import { useSokloggar } from "../hooks/useSokloggar";
 import { useAuditlogg } from "../hooks/useAuditlogg";
+import { useRevisionslogg } from "../hooks/useRevisionslogg";
 import { useRutiner } from "../hooks/useRutiner";
 import { useAnslag } from "../hooks/useAnslag";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
@@ -21,6 +22,8 @@ import {
   testaBeroenden,
   verifieraKlinikstod,
   migreraTillOrganisation,
+  verifieraRevisionslogg,
+  exporteraRevisionslogg,
 } from "../firebase/functions";
 import { Link } from "react-router-dom";
 import { ROLES } from "../firebase/roles";
@@ -44,6 +47,7 @@ import StatistikAllaOmradenSektion from "../components/admin/StatistikAllaOmrade
 import FeedbackSektion from "../components/admin/FeedbackSektion";
 import SokningarUtanTraffarSektion from "../components/admin/SokningarUtanTraffarSektion";
 import AndringsloggSektion from "../components/admin/AndringsloggSektion";
+import RevisionsloggSektion from "../components/admin/RevisionsloggSektion";
 import "./Admin.css";
 
 // Vilket område en icke-superadmin-redaktörsroll ansvarar för, för den områdesscopade statistiken
@@ -100,6 +104,7 @@ export default function Admin() {
   const { feedback: klinikfeedback, fragor: klinikfragor } = useKlinikfrageStatistik(arSuperadmin);
   const { statistik: sokstatistik } = useSokstatistik(arSuperadmin);
   const { auditlogg } = useAuditlogg(arSuperadmin);
+  const { revisionslogg } = useRevisionslogg(arSuperadmin);
   const { historik: halsokontrollhistorik } = useHalsokontrollhistorik(arSuperadmin);
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
@@ -140,6 +145,39 @@ export default function Admin() {
       setVerifierarKlinikstod(false);
     }
   }
+  const [revisionsloggVerifiering, setRevisionsloggVerifiering] = useState(null);
+  const [verifierarRevisionslogg, setVerifierarRevisionslogg] = useState(false);
+  const [exporterarRevisionslogg, setExporterarRevisionslogg] = useState(false);
+
+  async function hanteraVerifieraRevisionslogg() {
+    setVerifierarRevisionslogg(true);
+    setRevisionsloggVerifiering(null);
+    try {
+      const { data } = await verifieraRevisionslogg();
+      setRevisionsloggVerifiering(data);
+    } catch (fel) {
+      setRevisionsloggVerifiering({ giltig: false, fel: fel.message ?? "Verifieringen misslyckades." });
+    } finally {
+      setVerifierarRevisionslogg(false);
+    }
+  }
+
+  // Returnerar kedjeresultatet + begränsningstexten till exportknapparna i sektionen,
+  // så CSV/JSON alltid byggs med en färsk verifiering. Loggningen av exporttillfället
+  // (Etapp 14c/14d) sker server-side i exporteraRevisionslogg() själv.
+  async function hanteraExporteraRevisionslogg() {
+    setExporterarRevisionslogg(true);
+    try {
+      const { data } = await exporteraRevisionslogg();
+      return data;
+    } catch (fel) {
+      await visaMeddelande(`Export misslyckades: ${fel.message ?? "okänt fel"}`);
+      return null;
+    } finally {
+      setExporterarRevisionslogg(false);
+    }
+  }
+
   const [migreringResultat, setMigreringResultat] = useState(null);
   const [migrerar, setMigrerar] = useState(false);
 
@@ -515,6 +553,17 @@ export default function Admin() {
           setAuditTypFilter={setAuditTypFilter}
           auditTyper={auditTyper}
           filtreradAuditlogg={filtreradAuditlogg}
+        />
+      )}
+
+      {arSuperadmin && (
+        <RevisionsloggSektion
+          revisionslogg={revisionslogg}
+          hanteraVerifieraRevisionslogg={hanteraVerifieraRevisionslogg}
+          verifierarRevisionslogg={verifierarRevisionslogg}
+          revisionsloggVerifiering={revisionsloggVerifiering}
+          hanteraExporteraRevisionslogg={hanteraExporteraRevisionslogg}
+          exporterarRevisionslogg={exporterarRevisionslogg}
         />
       )}
     </div>

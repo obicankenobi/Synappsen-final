@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.26.0",
+    datum: "2026-07-27",
+    andringar: [
+      "Ny granskningsbar revisionslogg för superadmin i adminpanelen: filtrera på datum, aktör och händelsetyp, exportera som CSV eller JSON, och verifiera att inget i loggen har manipulerats",
+    ],
+  },
+  {
     version: "5.25.1",
     datum: "2026-07-26",
     andringar: [

@@ -362,13 +362,35 @@ export av revisionslogg.
   vilket även fixade att `tvingaUtloggning` nu kan testas alls (var otestad sedan tidigare,
   oberoende av detta delmål).
 
-### 14d – Export och verifiering
+### 14d – Export och verifiering ✅ KLAR
 
 - Adminvy: filtrera på datum, aktör, händelsetyp → export som CSV **och** JSON.
 - Exporten innehåller hashkedjan, en verifieringsinstruktion, **och begränsningstexten från
   rutan ovan** – en granskare ska förstå exakt vad kontrollen bevisar och inte bevisar.
 - Knapp "Verifiera kedjan" som kör kontrollen på servern och visar resultat.
 - Själva exporten loggas (se 14c).
+- **Resultat:**
+  - **Backend:** två nya callables i `functions/index.js` – `verifieraRevisionsloggAdmin`
+    (kör `verifieraRevisionskedja()` från 14b, returnerar resultat + en ny konstant
+    `REVISIONSLOGG_BEGRANSNINGSTEXT` som ordagrant följer begränsningsrutan i denna plans
+    Etapp 14) och `exporteraRevisionslogg` (samma sak, men loggar dessutom sig själv som
+    `revisionslogg_exporterad` via `loggaRevision()` – uppfyller kravet "själva exporten
+    loggas"). Behörighet: superadmin i egen organisation, eller leverantörsadmin med
+    valfri `organisationId`.
+  - **Frontend:** ny `src/hooks/useRevisionslogg.js` (direkt Firestore-läsning, samma
+    mönster som `useAuditlogg.js` – tillåtet eftersom superadmin redan har läsrätt enligt
+    `firestore.rules`, bara skrivning är stängd). Ny `RevisionsloggSektion.jsx` i
+    adminpanelen (synlig bara för superadmin): filter på datumintervall, aktör-uid och
+    händelsetyp, en "Verifiera kedjan"-knapp som visar resultatet OCH begränsningstexten
+    i klartext, samt två exportknappar (CSV/JSON) som hämtar ett färskt kedjeresultat +
+    begränsningstext från servern innan filen byggs klientsidan (så exportfilen alltid
+    baseras på verifiering vid exporttillfället, inte en gammal cachad status).
+  - **Test:** ny `tests/functions/revisionslogg-export.test.cjs`, 6 tester – behörighet
+    (superadmin/leverantörsadmin/nekad roll/ej inloggad), att kedjeresultatet och
+    begränsningstexten faktiskt kommer med, och att `exporteraRevisionslogg` skriver en
+    `revisionslogg_exporterad`-post.
+  - **Etapp 14 är därmed helt klar** (14a–14d), med tre medvetet kvarstående,
+    dokumenterade luckor från 14c (inloggningshändelser, rollbyte, modul-/budgetändringar).
 
 **Klart när:** en granskare kan få en fil, köra en dokumenterad kontroll och konstatera att
 inga poster ändrats eller tagits bort *inom ramen för vad kontrollen faktiskt täcker* –

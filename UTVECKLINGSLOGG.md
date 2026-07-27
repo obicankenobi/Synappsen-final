@@ -3007,3 +3007,73 @@ Etapp 14) nu faktiskt har testtäckning.
 Kvarstår i Etapp 14: 14d (export/verifieringsvy). Kvarstår, dokumenterat men medvetet
 inte byggt: inloggningshändelser (kräver Auth-blockerande funktioner), rollbyte,
 modulgating- och geminiBudget-ändringar (kräver nya aktörsfält vid klientskrivning).
+
+---
+
+## Fas 51 – Etapp 14d: export- och verifieringsvy – Etapp 14 helt klar
+
+Sista delmålet i Etapp 14. Knyter ihop 14a–14c med en faktisk adminvy.
+
+**Backend (`functions/index.js`):**
+- `REVISIONSLOGG_BEGRANSNINGSTEXT` – en konstant som ordagrant följer begränsningsrutan i
+  `ETAPPLAN3.md` Etapp 14 (vad hashkedjan bevisar/inte bevisar + en kort
+  verifieringsinstruktion). Definieras EN gång i koden istället för att riskera att
+  avvika från planens formulering över tid.
+- `kravLasningAvRevisionslogg(request, organisationIdFranData)` – delad behörighetskontroll:
+  en leverantörsadmin får ange valfri `organisationId`, en superadmin får bara sin egen
+  (hämtad från `hamtaAnvandarInfo`, inte tagen emot som klientdata).
+- `verifieraRevisionsloggAdmin` (onCall) – kör `verifieraRevisionskedja()` (från 14b) och
+  returnerar resultatet plus begränsningstexten. Ingen loggning av själva
+  verifieringen – bara läsning, ingen skrivande handling att spåra.
+- `exporteraRevisionslogg` (onCall) – samma kedjekontroll, MEN loggar sig själv som
+  `revisionslogg_exporterad` via `loggaRevision()` – uppfyller planens explicita krav
+  "själva exporten loggas". Klienten bygger själva CSV/JSON-filen lokalt utifrån den lista
+  den redan har läsrätt till direkt (samma firestore.rules-behörighet som gäller för att
+  bara TITTA på listan) – denna funktion levererar bara ett färskt kedjeresultat +
+  begränsningstext att baka in i filen, och loggposten.
+
+**Frontend:**
+- `src/hooks/useRevisionslogg.js` – direkt Firestore-läsning (`onSnapshot`), identiskt
+  mönster med `useAuditlogg.js`. Ingen Cloud Function behövs för att bara LISTA
+  collectionen, eftersom superadmin redan har läsrätt enligt reglerna från Etapp 14a –
+  bara skrivning är stängd för klienter.
+- `src/components/admin/RevisionsloggSektion.jsx` – ny sektion i adminpanelen, synlig
+  bara för superadmin (samma mönster som `KostnadsuppfoljningSektion`). Filter på
+  datumintervall, aktör-uid (textsök) och händelsetyp (dropdown, byggd dynamiskt från
+  laddad data – samma mönster som `AndringsloggSektion`s `auditTyper`). En
+  "Verifiera kedjan"-knapp visar resultatet OCH begränsningstexten i klartext direkt i
+  gränssnittet, inte bara i en nedladdad fil. Två exportknappar (CSV/JSON) återanvänder
+  `Blob`+`URL.createObjectURL`-mönstret från `KvitteringarMedDeadlineSektion.jsx`; båda
+  hämtar ett FÄRSKT kedjeresultat från `exporteraRevisionslogg()` innan filen byggs, så
+  en export aldrig baseras på en gammal, cachad verifieringsstatus.
+- `src/firebase/functions.js` – två nya tunna wrappers, `verifieraRevisionslogg()` och
+  `exporteraRevisionslogg()`, samma mönster som övriga callable-wrappers i filen.
+
+**Ny testfil `tests/functions/revisionslogg-export.test.cjs`, 6 tester:** behörighet
+(nekad för vanlig roll och ej inloggad, tillåten för superadmin i egen organisation och
+för en leverantörsadmin med explicit `organisationId`, nekad för leverantörsadmin UTAN
+`organisationId`), att kedjeresultat + begränsningstext faktiskt returneras, och att
+`exporteraRevisionslogg` skriver en `revisionslogg_exporterad`-post i loggen.
+
+**Inte gjort i denna fas:** ingen browserverifiering via Playwright mot en riktig
+inloggad session gjordes (skulle kräva emulatorer + inloggningsflöde i ett läge där
+sessionstiden redan var knapp) – täckningen vilar på de 6 nya + 11 tidigare
+Cloud Functions-testerna samt grönt lint/build/vitest. En snabb manuell klick-genomgång
+i en riktig browser rekommenderas innan produktion, i linje med sessionens vanliga
+praxis för UI-ändringar.
+
+**Verifiering:** `npm run test:functions` (samtliga tidigare test + de 6 nya, 91 tester
+totalt i kedjan, gröna), `npm run test:rules` (13, oförändrat), `npm run test:storage`
+(6, oförändrat), `npm run lint`, `npm run build`, `npx vitest run` (29/29) – samtliga
+gröna.
+
+**Versionsbump 5.25.1 → 5.26.0** (MINOR – en faktisk ny funktion, till skillnad från
+14a–14c som var interna mekanismer utan egen UI-yta). `src/version.js`,
+`src/data/andringslogg.js` uppdaterade.
+
+`ETAPPLAN3.md` 14d uppdaterad med samma resultat.
+
+**Etapp 14 (revisionslogg) är nu helt klar: 14a–14d.** Kvarstående, medvetet
+dokumenterade luckor från 14c: inloggningshändelser (kräver Auth-blockerande funktioner),
+rollbyte, modulgating- och geminiBudget-ändringar (kräver nya aktörsfält vid
+klientskrivning) loggas fortfarande inte – en framtida utökning, inte en bugg.

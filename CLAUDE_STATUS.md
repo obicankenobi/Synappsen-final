@@ -162,8 +162,24 @@ klientskrivning – inte gjort i detta delmål). Ny testfil
 `tests/functions/revisionslogg-handelser.test.cjs` (11 tester). Bifynd: `test:functions`
 körde inte Auth-emulatorn, vilket gjorde `tvingaUtloggning` otestbar/otestad – fixat
 (`--only firestore,storage,auth`). Allt grönt: `test:functions` (72 tester totalt),
-`test:rules` (13), `lint`, `build`, `vitest run` (29/29). Ingen versionsbump. Nästa steg:
-14d (export-/verifieringsvy i adminpanelen).
+`test:rules` (13), `lint`, `build`, `vitest run` (29/29). Ingen versionsbump.
+
+**14d klart – Etapp 14 (revisionslogg) helt färdig:** två nya callables
+(`verifieraRevisionsloggAdmin`, `exporteraRevisionslogg`) plus en ny adminpanel-sektion
+(`RevisionsloggSektion.jsx`, synlig bara för superadmin): filter på datum/aktör/
+händelsetyp, en "Verifiera kedjan"-knapp som visar resultat + begränsningstext i
+klartext, och CSV-/JSON-export som alltid bakar in ett färskt kedjeresultat.
+Exporttillfället loggar sig självt (`revisionslogg_exporterad`). Ny testfil
+`tests/functions/revisionslogg-export.test.cjs` (6 tester). **Ingen
+Playwright-browserverifiering gjord i denna fas** (sessionstiden knapp) – rekommenderas
+innan produktion. Version bumpad 5.25.1 → **5.26.0** (första faktiska UI-ytan i Etapp
+14). Allt grönt: `test:functions` (91 tester totalt), `test:rules` (13), `test:storage`
+(6), `lint`, `build`, `vitest run` (29/29).
+
+**Nästa steg:** Etapp 14 är klar. Kvarvarande öppna punkter i ETAPPLAN3.md: 13f
+(SSO/Entra ID, avvaktar ägarens instruktion), samt tre medvetet dokumenterade luckor i
+14c (inloggningshändelser, rollbyte, modul-/budgetändringar loggas inte). Därefter
+Etapp 15–21.
 
 ## Vad som återstår (se ETAPPLAN2.md för detaljer)
 

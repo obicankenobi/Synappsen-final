@@ -54,6 +54,16 @@ export function migreraTillOrganisation(dryRun = true) {
   return fn({ dryRun });
 }
 
+export function verifieraRevisionslogg() {
+  const fn = httpsCallable(functions, "verifieraRevisionsloggAdmin");
+  return fn();
+}
+
+export function exporteraRevisionslogg() {
+  const fn = httpsCallable(functions, "exporteraRevisionslogg");
+  return fn();
+}
+
 // Etapp 6a – leverantörsadmin
 export function blibForstaPlattformsadmin() {
   const fn = httpsCallable(functions, "blibForstaPlattformsadmin");
