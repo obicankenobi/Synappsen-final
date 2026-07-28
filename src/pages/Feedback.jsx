@@ -10,12 +10,8 @@ import {
 } from "../hooks/useFeedback";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import { useDialog } from "../hooks/useDialog";
+import { formateraDatum } from "../utils/datum";
 import "./Feedback.css";
-
-function formateraTid(tidpunkt) {
-  if (!tidpunkt?.toDate) return "";
-  return tidpunkt.toDate().toLocaleDateString("sv-SE", { dateStyle: "medium" });
-}
 
 export default function Feedback() {
   const { currentUser } = useAuth();
@@ -100,7 +96,7 @@ export default function Feedback() {
               <li key={f.id} className="feedback-mina__rad">
                 <div className="feedback-mina__meta">
                   <span>{FEEDBACK_TYP_LABELS[f.typ] ?? f.typ}</span>
-                  <span>{formateraTid(f.skapad)}</span>
+                  <span>{formateraDatum(f.skapad)}</span>
                   <span className={`feedback-mina__status feedback-mina__status--${f.status ?? "ny"}`}>
                     {FEEDBACK_STATUS_LABELS[f.status] ?? "Ny"}
                   </span>

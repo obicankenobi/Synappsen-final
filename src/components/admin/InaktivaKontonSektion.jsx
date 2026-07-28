@@ -1,3 +1,5 @@
+import { formateraDatum } from "../../utils/datum";
+
 export default function InaktivaKontonSektion({ inaktivaKonton }) {
   return (
     <section className="admin-sektion">
@@ -13,7 +15,7 @@ export default function InaktivaKontonSektion({ inaktivaKonton }) {
             {a.namn || a.email}{" "}
             <span>
               {a.senasteInloggning?.toDate
-                ? `senast ${a.senasteInloggning.toDate().toLocaleDateString("sv-SE")}`
+                ? `senast ${formateraDatum(a.senasteInloggning)}`
                 : "aldrig registrerad inloggning"}
             </span>
           </li>

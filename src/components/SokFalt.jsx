@@ -5,6 +5,8 @@ import { registreraVisning } from "../hooks/useVisningar";
 import { useSokloggar } from "../hooks/useSokloggar";
 import { loggaSokning, loggaTidTillKlick } from "../hooks/useSokstatistik";
 import { useAuth } from "../hooks/useAuth";
+import { DomanBadge } from "./Badge";
+import { domanNyckelForEtikett } from "../utils/badge";
 import "./SokFalt.css";
 
 // Egen liten wrapper runt Date.now(), definierad UTANFÖR komponenten – react-hooks/purity
@@ -117,7 +119,7 @@ export default function SokFalt() {
       <input
         ref={inputRef}
         type="search"
-        placeholder="Sök t.ex. 'Ryggsmärta' eller 'Kanyl'..."
+        placeholder="Sök rutin, diagnos eller nyckelord..."
         value={sokterm}
         onChange={(e) => hanteraSoktermAndring(e.target.value)}
         onKeyDown={hanteraFaltTangent}
@@ -155,7 +157,10 @@ export default function SokFalt() {
                 aria-selected="false"
               >
                 <span className="sok-falt__titel">{markeraTraff(post.titel, sokterm)}</span>
-                <span className="sok-falt__kategori">{post.plats ?? post.kategori}</span>
+                <span className="sok-falt__meta">
+                  <DomanBadge nyckel={domanNyckelForEtikett(post.kategori)} etikett={post.kategori} />
+                  {post.plats && <span className="sok-falt__plats">{post.plats}</span>}
+                </span>
               </button>
             </li>
           ))}

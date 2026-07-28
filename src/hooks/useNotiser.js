@@ -75,6 +75,7 @@ export function useNotiser() {
         text: `Ny rutin: ${r.titel}`,
         sokvag: `${OMRADE_SOKVAG[r.omrade] ?? "/"}#rutin-${r.id}`,
         tid: r.skapad,
+        omrade: r.omrade,
       }));
 
     const omnamndeposter = omnamnanden
@@ -112,6 +113,7 @@ export function useNotiser() {
         text: `Rutinen "${r.titel}" behöver granskas snart${r.agare ? " (du är ansvarig)" : ""}`,
         sokvag: `${OMRADE_SOKVAG[r.omrade] ?? "/"}#rutin-${r.id}`,
         tid: r.granskadDatum,
+        omrade: r.omrade,
       }));
 
     // Etapp 21c: samma ägar-filtrering som granskningsposter ovan – riktas till rutinens
@@ -132,6 +134,7 @@ export function useNotiser() {
             : `Källan till "${r.titel}" har uppdaterats sedan rutinen granskades`,
         sokvag: `${OMRADE_SOKVAG[r.omrade] ?? "/"}#rutin-${r.id}`,
         tid: r.kallVarningTidpunkt,
+        omrade: r.omrade,
       }));
 
     // Etapp 20b: notis till förrådsansvarig/superadmin om nya bristanmälningar, och kvittens
@@ -145,6 +148,7 @@ export function useNotiser() {
             text: `Bristanmälan: ${b.artikelNamn} (${b.forrad})${(b.antalAnmalningar ?? 1) > 1 ? ` – ${b.antalAnmalningar} anmälningar` : ""}`,
             sokvag: "/logistik",
             tid: b.senastAnmald ?? b.tidpunkt,
+            omrade: "logistik",
           }))
       : [];
 

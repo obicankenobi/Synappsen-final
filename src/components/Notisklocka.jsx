@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotiser } from "../hooks/useNotiser";
+import { DomanBadge } from "./Badge";
 import "./Notisklocka.css";
 
 export default function Notisklocka() {
@@ -53,6 +54,7 @@ export default function Notisklocka() {
             {notiser.map((n) => (
               <li key={n.id}>
                 <button role="menuitem" onClick={() => hanteraKlick(n.sokvag)}>
+                  {n.omrade && <DomanBadge nyckel={n.omrade} />}
                   {n.text}
                 </button>
               </li>

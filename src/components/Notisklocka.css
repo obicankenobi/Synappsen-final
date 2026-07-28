@@ -50,6 +50,9 @@
 }
 
 .notisklocka__panel li button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   background: none;
   border: none;
   text-align: left;

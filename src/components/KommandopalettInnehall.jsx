@@ -5,6 +5,8 @@ import { useAuth } from "../hooks/useAuth";
 import { useSenastBesokta } from "../hooks/useSenastBesokta";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
 import { usePopularaste, registreraVisning } from "../hooks/useVisningar";
+import { DomanBadge } from "./Badge";
+import { domanNyckelForEtikett } from "../utils/badge";
 import "./KommandopalettInnehall.css";
 
 // Etapp 23a-c: det tunga innehållet i kommandopaletten (Fuse.js-sökmotorn,
@@ -75,7 +77,7 @@ export default function KommandopalettInnehall({ onStang }) {
           ref={inputRef}
           type="search"
           className="kommandopalett__falt"
-          placeholder="Sök eller kör en åtgärd... (Esc för att stänga)"
+          placeholder="Sök rutin, diagnos eller nyckelord – eller kör en åtgärd..."
           value={sokterm}
           onChange={(e) => setSokterm(e.target.value)}
           onKeyDown={hanteraFaltTangent}
@@ -95,7 +97,10 @@ export default function KommandopalettInnehall({ onStang }) {
                   onKeyDown={(e) => hanteraResultatTangent(e, i, ".kommandopalett__resultat button")}
                 >
                   <span className="kommandopalett__titel">{post.titel}</span>
-                  <span className="kommandopalett__kategori">{post.plats ?? post.kategori}</span>
+                  <span className="kommandopalett__meta">
+                    <DomanBadge nyckel={domanNyckelForEtikett(post.kategori)} etikett={post.kategori} />
+                    {post.plats && <span className="kommandopalett__plats">{post.plats}</span>}
+                  </span>
                 </button>
               </li>
             ))}

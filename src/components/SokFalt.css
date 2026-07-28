@@ -65,7 +65,13 @@
   border-bottom: none;
 }
 
-.sok-falt__kategori {
+.sok-falt__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sok-falt__plats {
   color: var(--text-svag);
   font-size: 0.85rem;
 }

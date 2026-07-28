@@ -6,6 +6,7 @@ import { useAnvandare } from "../hooks/useAnvandare";
 import { useKlinikfrageStatistik } from "../hooks/useKlinikfrageStatistik";
 import { useSokstatistik } from "../hooks/useSokstatistik";
 import { borGranskas } from "../utils/rutinHjalp";
+import { formateraDatum } from "../utils/datum";
 import "./Admin.css";
 import "./Ledningsrapport.css";
 
@@ -82,7 +83,7 @@ export default function Ledningsrapport() {
       ? Math.round((sokstatistik.antalNollTraffar / sokstatistik.totaltAntalSokningar) * 100)
       : null;
 
-  const genereradDatum = new Date().toLocaleDateString("sv-SE", { dateStyle: "long" });
+  const genereradDatum = formateraDatum(new Date());
 
   return (
     <div className="sida ledningsrapport">

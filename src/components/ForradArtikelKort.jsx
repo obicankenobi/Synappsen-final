@@ -3,6 +3,7 @@ import { ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import { useDialog } from "../hooks/useDialog";
 import FavoritKnapp from "./FavoritKnapp";
+import { StatusBadge } from "./Badge";
 import "./ForradArtikelKort.css";
 
 export default function ForradArtikelKort({
@@ -45,7 +46,7 @@ export default function ForradArtikelKort({
         <header className="forrad-artikel-kort__header">
           <div className="forrad-artikel-kort__titelrad">
             <h3>{artikel.namn}</h3>
-            {arUtkast && <span className="forrad-artikel-kort__badge">Utkast</span>}
+            {arUtkast && <StatusBadge status="vantar" />}
           </div>
           <FavoritKnapp typ="artikel" id={artikel.id} />
         </header>

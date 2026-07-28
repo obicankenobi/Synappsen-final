@@ -2,12 +2,8 @@ import MarkdownInnehall from "./MarkdownInnehall";
 import { ANSLAG_PRIORITET } from "../hooks/useAnslag";
 import { kvitteraLastAnslag } from "../hooks/useLaskvittering";
 import { useAuth } from "../hooks/useAuth";
+import { formateraDatum } from "../utils/datum";
 import "./AnslagKort.css";
-
-function formateraTid(tidpunkt) {
-  if (!tidpunkt?.toDate) return "";
-  return tidpunkt.toDate().toLocaleDateString("sv-SE", { dateStyle: "medium" });
-}
 
 export default function AnslagKort({ anslag, farHantera, anvandare = [], onRedigera, onTaBort }) {
   const { currentUser, namn } = useAuth();
@@ -31,7 +27,7 @@ export default function AnslagKort({ anslag, farHantera, anvandare = [], onRedig
           {arViktigt && "⚠️ "}
           {anslag.titel}
         </h3>
-        <span className="anslag-kort__datum">{formateraTid(anslag.skapad)}</span>
+        <span className="anslag-kort__datum">{formateraDatum(anslag.skapad)}</span>
       </header>
       <MarkdownInnehall className="anslag-kort__innehall" text={anslag.innehall} />
       <div className="anslag-kort__meta">Av {anslag.skapadAvNamn}</div>

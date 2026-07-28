@@ -5,6 +5,7 @@ import { RUTIN_STATUS } from "../hooks/useRutiner";
 import { useAuth } from "../hooks/useAuth";
 import { kvitteraLast } from "../hooks/useLaskvittering";
 import { borGranskas, arUtgangen } from "../utils/rutinHjalp";
+import { formateraDatum } from "../utils/datum";
 import { ROLE_LABELS } from "../firebase/roles";
 import FavoritKnapp from "./FavoritKnapp";
 import Kommentarer from "./Kommentarer";
@@ -12,17 +13,13 @@ import VersionsHistorik from "./VersionsHistorik";
 import MarkdownInnehall from "./MarkdownInnehall";
 import PrivatAnteckning from "./PrivatAnteckning";
 import KvissModal from "./KvissModal";
+import { StatusBadge } from "./Badge";
 import "./RutinKort.css";
 
 const OMRADE_SOKVAG = {
   "kliniskt-stod": "/kliniskt-stod",
   administration: "/administration",
 };
-
-function formateraTid(tidpunkt) {
-  if (!tidpunkt?.toDate) return "";
-  return tidpunkt.toDate().toLocaleDateString("sv-SE", { dateStyle: "medium" });
-}
 
 function skrivUtRutin(rutinId) {
   document.querySelectorAll(".rutin-kort--utskrift").forEach((el) => el.classList.remove("rutin-kort--utskrift"));
@@ -80,7 +77,7 @@ export default function RutinKort({
       <header className="rutin-kort__header">
         <h3>{rutin.titel}</h3>
         <div className="rutin-kort__badgar">
-          {arUtkast && <span className="rutin-kort__badge">Utkast</span>}
+          {arUtkast && <StatusBadge status="vantar" />}
           {flaggadForGranskning && (
             <span className="rutin-kort__badge rutin-kort__badge--varning">Bör granskas</span>
           )}
@@ -97,13 +94,13 @@ export default function RutinKort({
           {rutin.godkandAvNamn && (
             <span>
               Godkänd av {rutin.godkandAvNamn}
-              {rutin.godkandDatum && ` · ${formateraTid(rutin.godkandDatum)}`}
+              {rutin.godkandDatum && ` · ${formateraDatum(rutin.godkandDatum)}`}
             </span>
           )}
           {rutin.granskadAvNamn && (
             <span>
               Senast granskad av {rutin.granskadAvNamn}
-              {rutin.granskadDatum && ` · ${formateraTid(rutin.granskadDatum)}`}
+              {rutin.granskadDatum && ` · ${formateraDatum(rutin.granskadDatum)}`}
             </span>
           )}
         </div>

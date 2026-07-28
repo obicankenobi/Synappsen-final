@@ -18,6 +18,22 @@
   --farlig-ljus: #fef2f2;
   /* #15803d (inte #16a34a) för att nå WCAG AA-kontrast mot --bg för normal text */
   --success: #15803d;
+  --success-ljus: #f0fdf4;
+  --success-text: #15803d;
+
+  /* UI-designjustering (2026-07): domänfärger (fast per område: Kliniskt stöd/Logistik/
+     Administration) hålls medvetet i en HELT ANNAN hue-familj (blå/lila/cyan) än
+     statusfärgerna ovan (amber/röd/grön), så en Logistik-badge aldrig kan förväxlas med en
+     "väntar på godkännande"-badge i samma vy. Fasta hexvärden, INTE kopplade till --primar
+     (som är den personliga, valbara accentfärgen, Etapp 22e – en domänfärg får aldrig ändras
+     av att en användare byter sin egen accent). Samtliga kombinationer nedan är
+     kontrastberäknade (WCAG AA, ≥4.5:1) för badge-text mot badge-bakgrund. */
+  --doman-klin-ljus: #eff6ff;
+  --doman-klin-text: #1d4ed8;
+  --doman-log-ljus: #f5f3ff;
+  --doman-log-text: #6d28d9;
+  --doman-adm-ljus: #ecfeff;
+  --doman-adm-text: #0e7490;
 
   --radius: 14px;
   --radius-liten: 10px;
@@ -51,6 +67,14 @@
   --farlig-mork: #fca5a5;
   --farlig-ljus: #450a0a;
   --success: #4ade80;
+  --success-ljus: #14532d;
+  --success-text: #86efac;
+  --doman-klin-ljus: #1e3a5f;
+  --doman-klin-text: #93c5fd;
+  --doman-log-ljus: #2e1065;
+  --doman-log-text: #c4b5fd;
+  --doman-adm-ljus: #083344;
+  --doman-adm-text: #67e8f9;
   --skugga: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
   --skugga-hover: 0 6px 16px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
 }
@@ -74,6 +98,14 @@
     --farlig-mork: #fca5a5;
     --farlig-ljus: #450a0a;
     --success: #4ade80;
+    --success-ljus: #14532d;
+    --success-text: #86efac;
+    --doman-klin-ljus: #1e3a5f;
+    --doman-klin-text: #93c5fd;
+    --doman-log-ljus: #2e1065;
+    --doman-log-text: #c4b5fd;
+    --doman-adm-ljus: #083344;
+    --doman-adm-text: #67e8f9;
     --skugga: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
     --skugga-hover: 0 6px 16px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
   }
@@ -504,4 +536,63 @@ h1 {
   font-size: 0.8rem;
   color: var(--text-svag);
   white-space: nowrap;
+}
+
+/* UI-designjustering (2026-07): delat badge-designsystem (src/components/Badge.jsx).
+   Domän- (område) och statusbadges (godkänd/väntar/avvisad) delar samma padding,
+   corner-radius, font-size och grundläggande font-weight i BÅDA teman – bara
+   fyllning/kontrast (pastell i ljust, mörk/solid i mörkt, se domän-/statusvariablerna
+   ovan) skiljer mellan temana. Statusbadgen är MEDVETET tyngre (font-weight 700 + en
+   inre kant) än domänbadgen (500), enligt kravet att statusbadgen aldrig får vara svagare
+   eller mindre framträdande än domänbadgen på samma rad. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.badge--neutral {
+  background: var(--kant);
+  color: var(--text-svag);
+}
+
+.badge--doman-kliniskt-stod {
+  background: var(--doman-klin-ljus);
+  color: var(--doman-klin-text);
+}
+
+.badge--doman-logistik {
+  background: var(--doman-log-ljus);
+  color: var(--doman-log-text);
+}
+
+.badge--doman-administration {
+  background: var(--doman-adm-ljus);
+  color: var(--doman-adm-text);
+}
+
+.badge--status {
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.badge--status-vantar {
+  background: var(--amber-ljus);
+  color: var(--amber-text);
+}
+
+.badge--status-godkand {
+  background: var(--success-ljus);
+  color: var(--success-text);
+}
+
+.badge--status-avvisad {
+  background: var(--farlig-ljus);
+  color: var(--farlig-mork);
 }

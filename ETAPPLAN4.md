@@ -432,6 +432,56 @@ för att gissa vad hon missat.
 
 ---
 
+# UI-designjustering: domän- vs. statusfärg ✅ KLAR (utanför etappnumreringen)
+
+**Varför:** Ett externt granskat mockup-förslag ("Nordic Clinical"/"Midnight Ward",
+2026-07-28) identifierade en verklig designrisk: om en fast områdesfärg (Kliniskt stöd/
+Logistik/Administration) och en dynamisk statusfärg (godkänd/väntar/avvisad) delar samma
+hue-familj (t.ex. orange för både "Logistik" och "väntar på godkännande") blir de omöjliga
+att skilja åt i samma vy. Genomfört direkt (mellan Etapp 25 och 26) på användarens begäran,
+innan resten av planen fortsatte.
+
+**Genomfört:**
+- Nya, FASTA CSS-tokens i `index.css` för domänfärger (`--doman-klin-*` blå,
+  `--doman-log-*` lila, `--doman-adm-*` cyan) – medvetet FRÅNKOPPLADE `--primar` (den
+  personliga, valbara accentfärgen från Etapp 22e), eftersom en domänfärg annars skulle
+  ändras av att en användare bytte sin egen accent. Statusfärger (amber/grön/röd) fanns
+  redan; kompletterade `--success` med `-ljus`/`-text`-varianter så alla tre statusar följer
+  samma "pastell i ljust, solid i mörkt"-mönster. Samtliga 12 kombinationer
+  kontrastberäknade (WCAG AA, ≥4.5:1) – lägsta uppmätta värde 4.79:1 (success/ljust).
+- Delat badge-designsystem: `src/components/Badge.jsx` (`DomanBadge`/`StatusBadge`) +
+  `src/utils/badge.js` (info-tabeller + `domanNyckelForEtikett`), applicerat på
+  `RutinKort.jsx` och `ForradArtikelKort.jsx` (status: "Väntar på godkännande" med ⏳-ikon,
+  ersatte den tidigare namnlösa "Utkast"-texten), `SokFalt.jsx`/`KommandopalettInnehall.jsx`
+  (domänbadge i sökresultatens kategori-rad – den plats där olika områden faktiskt blandas
+  i samma lista) och `Notisklocka.jsx` (`useNotiser.js` exponerar nu `omrade` per post).
+  Statusbadgen är medvetet tyngre (font-weight 700 + en inre kant) än domänbadgen (500) för
+  att aldrig vara svagare, enligt kravet på högst visuell prioritet för status.
+- **Premisskontroll (genomgående krav 8):** den konkreta kollisionen i mockupen (en
+  färgad "Logistik"-prick som återanvänder samma orange som "väntar") finns INTE i den
+  riktiga appen idag – det saknas helt färgade domänbadges för närvarande. Åtgärden är
+  alltså en förebyggande designregel inför framtida badges, inte en bugfix på en
+  redan existerande kollision.
+- Konsekvent datumformat: ny `src/utils/datum.js` (`formateraDatum`), ersatte tre
+  duplicerade lokala implementationer (`RutinKort.jsx`, `AnslagKort.jsx`, `Feedback.jsx`,
+  redan identiska: dag + förkortad månad + år, t.ex. "24 jul 2026") samt en genuint
+  avvikande ISO-liknande variant (`InaktivaKontonSektion.jsx`) som nu följer samma format.
+  Datum+klockslag i logg-/revisionsvyer (`adminHjalp.js` m.fl.) och chart-axel-etiketter
+  (`Admin.jsx`) rörda INTE – de är ett annat, avsiktligt behov, inte samma typ av visning.
+- Konsekvent sökplaceholder: `SokFalt.jsx` och `KommandopalettInnehall.jsx` delar nu samma
+  kärnfras ("Sök rutin, diagnos eller nyckelord...") – paletten behåller ett tillägg
+  ("– eller kör en åtgärd...") eftersom den faktiskt gör mer än att söka.
+- Versalkonsekvens: enda befintliga `text-transform: uppercase` (en sektionskicker i
+  `KommandopalettInnehall.css`) dokumenterad som ett medvetet, temaoberoende designtoken
+  istället för borttagen, i enlighet med granskningens egen öppning för det alternativet.
+- Verifierat visuellt (Playwright, ljust och mörkt läge) inklusive "stresstestet":
+  en Logistik-artikel märkt "Väntar på godkännande" i samma kort – domän- och statusbadge
+  är tydligt visuellt åtskilda i båda teman.
+- Nya tester: `src/utils/badge.test.js` (ingen delad CSS-klass mellan domän/status-listorna,
+  varje status har en ikon), `src/utils/datum.test.js`.
+
+---
+
 # Etapp 26 – Medarbetarens röst: föreslå en ändring
 
 **Varför:** I dag är innehållsflödet enkelriktat – redaktörer skriver, personal läser och

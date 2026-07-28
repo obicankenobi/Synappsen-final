@@ -42,15 +42,6 @@
   font-size: 1.05rem;
 }
 
-.forrad-artikel-kort__badge {
-  font-size: 0.75rem;
-  background: var(--amber-ljus);
-  color: var(--amber-text);
-  padding: 2px 8px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
 .forrad-artikel-kort__plats {
   color: var(--text);
   margin: 6px 0 0;
