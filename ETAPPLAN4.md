@@ -480,6 +480,15 @@ innan resten av planen fortsatte.
 - Nya tester: `src/utils/badge.test.js` (ingen delad CSS-klass mellan domän/status-listorna,
   varje status har en ikon), `src/utils/datum.test.js`.
 
+**Sidofynd vid deploy (fixat i samma release, v5.45.1):** `src/version.js` exporterade en
+egen, HÅRDKODAD `APP_VERSION`-sträng helt frikopplad från `package.json`s `"version"` – den
+hade inte uppdaterats sedan Etapp 14d (fastnade på "5.26.0") trots minst 19 efterföljande
+versionshöjningar i `package.json`, inklusive hela den här sessionens Etapp 22–25 och
+UI-justeringen ovan. Upptäcktes när användaren efter deploy fortfarande såg det gamla
+numret i `Nyheter.jsx`. Löst genom att `version.js` nu importerar `version` direkt från
+`package.json` (Vite/Rollup bearbetar JSON-importer vid bygget) istället för att underhålla
+två separata versionssträngar för hand – kan alltså inte drifta isär igen.
+
 ---
 
 # Etapp 26 – Medarbetarens röst: föreslå en ändring
