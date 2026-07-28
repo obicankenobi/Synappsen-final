@@ -275,6 +275,11 @@ export default function RutinFormular({
             bild: s.bild || null,
             varning: s.varning || null,
             timerSekunder: s.timerSekunder ? Number(s.timerSekunder) : null,
+            // Etapp 22c: en vald bildfil laddas ännu inte upp här – RutinFormular känner inte
+            // till rutinens Storage-sökväg (kräver ett rutinId, som inte finns för en ny
+            // rutin förrän skapaRutin körts). Sektionssida.jsx laddar upp filen och ersätter
+            // det här fältet med den riktiga URL:en innan något sparas i Firestore.
+            ...(s.nyBildFil ? { nyBildFil: s.nyBildFil } : {}),
           })),
         kviss: kviss
           .filter((f) => f.fraga.trim() && f.alternativ.filter((a) => a.trim()).length >= 2)
@@ -424,6 +429,39 @@ export default function RutinFormular({
                       onChange={(e) => uppdateraSteg(i, "timerSekunder", e.target.value)}
                     />
                   </label>
+                  <div className="rutin-formular__stegbild">
+                    {s.nyBildFil ? (
+                      <img
+                        className="rutin-formular__stegbild-forhandsvisning"
+                        src={URL.createObjectURL(s.nyBildFil)}
+                        alt=""
+                      />
+                    ) : (
+                      s.bild && (
+                        <img className="rutin-formular__stegbild-forhandsvisning" src={s.bild} alt="" />
+                      )
+                    )}
+                    <label className="rutin-formular__stegbild-valj">
+                      {s.bild || s.nyBildFil ? "Byt bild" : "Lägg till bild (valfritt)"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => uppdateraSteg(i, "nyBildFil", e.target.files?.[0] ?? null)}
+                      />
+                    </label>
+                    {(s.bild || s.nyBildFil) && (
+                      <button
+                        type="button"
+                        className="knapp--lank"
+                        onClick={() => {
+                          uppdateraSteg(i, "bild", "");
+                          uppdateraSteg(i, "nyBildFil", null);
+                        }}
+                      >
+                        Ta bort bild
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="rutin-formular__stegatgarder">
                   <button type="button" className="knapp knapp--liten" disabled={i === 0} onClick={() => flyttaSteg(i, -1)} aria-label={`Flytta steg ${i + 1} uppåt`}>

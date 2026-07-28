@@ -1,0 +1,27 @@
+.accent-valjare {
+  display: flex;
+  gap: 10px;
+}
+
+.accent-valjare__val {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--kant);
+  background: var(--accent-forhandsvisning);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.accent-valjare__val--vald {
+  border-color: var(--text);
+}
+
+.accent-valjare__val:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}

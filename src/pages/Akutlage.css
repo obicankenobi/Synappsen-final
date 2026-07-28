@@ -85,6 +85,12 @@
   font-weight: 700;
   color: #ff6b6b;
   white-space: nowrap;
+  text-decoration: none;
+}
+
+.akutlage__nummer:hover,
+.akutlage__nummer:focus-visible {
+  text-decoration: underline;
 }
 
 .akutlage__rutinlista {

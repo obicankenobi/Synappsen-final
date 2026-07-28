@@ -79,6 +79,64 @@
   }
 }
 
+/* Etapp 22e: personlig accentfärg (se useAccent.js) – bara --primar/-mork/-ljus byts, resten
+   av temat (bakgrund, text, farliga/framgångsfärger m.m.) rörs inte. "bla" är samma värden
+   som :root ovan och har därför ingen egen regel här. Varje accent behöver tre varianter
+   (ljust/mörkt-explicit/mörkt-via-systemet) av samma anledning som temat självt ovan. */
+:root[data-accent="gron"] {
+  --primar: #15803d;
+  --primar-mork: #166534;
+  --primar-ljus: #f0fdf4;
+}
+:root[data-tema="dark"][data-accent="gron"] {
+  --primar: #4ade80;
+  --primar-mork: #86efac;
+  --primar-ljus: #14532d;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="light"])[data-accent="gron"] {
+    --primar: #4ade80;
+    --primar-mork: #86efac;
+    --primar-ljus: #14532d;
+  }
+}
+
+:root[data-accent="lila"] {
+  --primar: #7c3aed;
+  --primar-mork: #6d28d9;
+  --primar-ljus: #f5f3ff;
+}
+:root[data-tema="dark"][data-accent="lila"] {
+  --primar: #a78bfa;
+  --primar-mork: #c4b5fd;
+  --primar-ljus: #2e1065;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="light"])[data-accent="lila"] {
+    --primar: #a78bfa;
+    --primar-mork: #c4b5fd;
+    --primar-ljus: #2e1065;
+  }
+}
+
+:root[data-accent="orange"] {
+  --primar: #c2410c;
+  --primar-mork: #9a3412;
+  --primar-ljus: #fff7ed;
+}
+:root[data-tema="dark"][data-accent="orange"] {
+  --primar: #fb923c;
+  --primar-mork: #fdba74;
+  --primar-ljus: #431407;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="light"])[data-accent="orange"] {
+    --primar: #fb923c;
+    --primar-mork: #fdba74;
+    --primar-ljus: #431407;
+  }
+}
+
 * {
   box-sizing: border-box;
 }

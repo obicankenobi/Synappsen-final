@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useAkutlageRutiner } from "../hooks/useAkutlageRutiner";
 import { useKontakter } from "../hooks/useKontakter";
 import MarkdownInnehall from "../components/MarkdownInnehall";
+import { telHref } from "../utils/telefon";
 import "./Akutlage.css";
 
 // Etapp 17c: helskärms, hög kontrast, medvetet FÅ val. Innehållet är kuraterat i förväg
@@ -39,7 +40,9 @@ export default function Akutlage() {
             {akutnummer.map((k) => (
               <li key={k.id} className="akutlage__nummerrad">
                 <span className="akutlage__nummer-namn">{k.namn}</span>
-                <span className="akutlage__nummer">{k.nummer}</span>
+                <a className="akutlage__nummer" href={telHref(k.nummer)}>
+                  📞 {k.nummer}
+                </a>
               </li>
             ))}
           </ul>

@@ -307,14 +307,17 @@ service cloud.firestore {
       // Superadmin får ändra allt (t.ex. roller) – men ENDAST för användare i sin egen
       // organisation. Ägaren själv får bara ändra sina favoriter, tidpunkten för senaste
       // notisbesök, sina egna startsidesgenvägar, sin egen "senast besökta"-lista (Etapp 17b
-      // – synkad mellan enheter, se useSenastBesokta.js) och sitt eget visningsnamn (Etapp
-      // 22a). bararForandrarFalt utesluter redan organisationId från den listan, så en
-      // användare kan aldrig byta organisation själv.
+      // – synkad mellan enheter, se useSenastBesokta.js), sitt eget visningsnamn (Etapp 22a)
+      // och sin egen profilbilds-URL (Etapp 22e, filen själv skyddas av storage.rules –
+      // fältet här pekar bara på en redan validerad, egen uppladdning). bararForandrarFalt
+      // utesluter redan organisationId från den listan, så en användare kan aldrig byta
+      // organisation själv.
       allow update: if (arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation()
                         && mfaKravUppfylld())
                      || (request.auth.uid == userId
                          && bararForandrarFalt(['favoriter', 'senasteNotisBesok', 'snabblankar',
-                                                'senasteInloggning', 'senastBesokta', 'namn'])
+                                                'senasteInloggning', 'senastBesokta', 'namn',
+                                                'profilbildUrl'])
                          && !harTroligtPersonnummer(request.resource.data.get('namn', '')));
       allow delete: if arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation();
     }

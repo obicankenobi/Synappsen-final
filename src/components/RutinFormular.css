@@ -125,6 +125,31 @@
   gap: 4px;
 }
 
+.rutin-formular__stegbild {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rutin-formular__stegbild-forhandsvisning {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--kant);
+}
+
+.rutin-formular__stegbild-valj {
+  font-weight: 400 !important;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.rutin-formular__stegbild-valj input {
+  display: none;
+}
+
 .rutin-formular__akutlage {
   display: flex;
   flex-direction: column;

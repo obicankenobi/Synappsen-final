@@ -222,6 +222,21 @@ async function main() {
     assertFails(updateDoc(doc(volA, "users", "sektionsledareA"), { namn: "Kapat namn" }))
   );
 
+  console.log("\nusers/{uid}.profilbildUrl – Etapp 22e: valfri egen profilbild");
+  await test("volA KAN sätta sin egen profilbilds-URL", () =>
+    assertSucceeds(
+      updateDoc(doc(volA, "users", "volA"), { profilbildUrl: "https://example.com/bild.jpg" })
+    )
+  );
+  await test("volA KAN ta bort sin egen profilbild (sätta null)", () =>
+    assertSucceeds(updateDoc(doc(volA, "users", "volA"), { profilbildUrl: null }))
+  );
+  await test("volA kan INTE ändra en ANNAN användares profilbild", () =>
+    assertFails(
+      updateDoc(doc(volA, "users", "sektionsledareA"), { profilbildUrl: "https://example.com/kapad.jpg" })
+    )
+  );
+
   console.log("\norganisationer/{orgId}/installningar/valkomstchecklista – Etapp 15b");
   await test("superadminA KAN bocka av ett eget checklistesteg", () =>
     assertSucceeds(

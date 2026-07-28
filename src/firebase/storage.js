@@ -25,6 +25,16 @@ export async function laddaUppRutinBilagor(omrade, rutinId, filer) {
   );
 }
 
+// Etapp 22e: valfri profilbild, en per användare (Storage-sökvägen tar samma slags
+// tidsstämplat filnamn som övriga uppladdningar för att undvika cache-krockar när bilden
+// byts ut).
+export async function laddaUppAvatar(uid, fil) {
+  const sokvag = `avatarer/${uid}/${Date.now()}-${fil.name}`;
+  const bildRef = ref(storage, sokvag);
+  await uploadBytes(bildRef, fil);
+  return getDownloadURL(bildRef);
+}
+
 export async function laddaUppForradsbild(forradSlug, artikelId, fil) {
   const sokvag = `forradsartiklar/${forradSlug}/${artikelId}/${Date.now()}-${fil.name}`;
   const bildRef = ref(storage, sokvag);

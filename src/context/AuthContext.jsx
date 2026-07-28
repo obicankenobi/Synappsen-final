@@ -18,6 +18,7 @@ export function AuthProvider({ children }) {
   const [organisationId, setOrganisationId] = useState(null);
   const [namn, setNamn] = useState(null);
   const [namnLaddat, setNamnLaddat] = useState(false);
+  const [profilbildUrl, setProfilbildUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Etapp 6c: registrering kräver numera alltid en giltig inbjudan – öppen självbetjänings-
@@ -65,6 +66,7 @@ export function AuthProvider({ children }) {
         setOrganisationId(null);
         setNamn(null);
         setNamnLaddat(false);
+        setProfilbildUrl(null);
       }
       setLoading(false);
     });
@@ -80,6 +82,7 @@ export function AuthProvider({ children }) {
     if (!currentUser?.uid) return undefined;
     const unsubscribe = onSnapshot(doc(db, "users", currentUser.uid), (snap) => {
       setNamn(snap.exists() ? (snap.data().namn ?? null) : null);
+      setProfilbildUrl(snap.exists() ? (snap.data().profilbildUrl ?? null) : null);
       setNamnLaddat(true);
     });
     return unsubscribe;
@@ -91,6 +94,7 @@ export function AuthProvider({ children }) {
     organisationId,
     namn,
     namnLaddat,
+    profilbildUrl,
     loading,
     registrera,
     loggaIn,

@@ -7,12 +7,14 @@ import {
 } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { laddaUppAvatar } from "../firebase/storage";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import { useDialog } from "../hooks/useDialog";
 import { useAuth } from "../hooks/useAuth";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
 import TvaFaktorSektion from "../components/TvaFaktorSektion";
 import TemaVaxlare from "../components/TemaVaxlare";
+import AccentValjare from "../components/AccentValjare";
 import { useSnabblankar, ALLA_SNABBLANKAR } from "../hooks/useSnabblankar";
 import { ROLE_LABELS } from "../firebase/roles";
 import "./Profil.css";
@@ -70,8 +72,57 @@ function NamnFormular({ uid, aktuelltNamn }) {
   );
 }
 
+// Etapp 22e: valfri profilbild, samma "vänta tills det verkliga värdet finns"-mönster som
+// NamnFormular ovan.
+function ProfilbildFormular({ uid, aktuellBildUrl }) {
+  const [bildUrl, setBildUrl] = useState(aktuellBildUrl);
+  const [laddarUpp, setLaddarUpp] = useState(false);
+
+  async function hanteraValjBild(e) {
+    const fil = e.target.files?.[0];
+    e.target.value = "";
+    if (!fil) return;
+    setLaddarUpp(true);
+    try {
+      const url = await laddaUppAvatar(uid, fil);
+      await updateDoc(doc(db, "users", uid), { profilbildUrl: url });
+      setBildUrl(url);
+    } finally {
+      setLaddarUpp(false);
+    }
+  }
+
+  async function hanteraTaBort() {
+    await updateDoc(doc(db, "users", uid), { profilbildUrl: null });
+    setBildUrl(null);
+  }
+
+  return (
+    <div className="profil-bild">
+      {bildUrl ? (
+        <img className="profil-bild__forhandsvisning" src={bildUrl} alt="" />
+      ) : (
+        <div className="profil-bild__platshallare" aria-hidden="true">
+          👤
+        </div>
+      )}
+      <div className="profil-bild__knappar">
+        <label className="knapp knapp--liten knapp--sekundar">
+          {laddarUpp ? "Laddar upp..." : bildUrl ? "Byt bild" : "Lägg till bild"}
+          <input type="file" accept="image/*" onChange={hanteraValjBild} disabled={laddarUpp} />
+        </label>
+        {bildUrl && (
+          <button type="button" className="knapp--lank" onClick={hanteraTaBort}>
+            Ta bort bild
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Profil() {
-  const { currentUser, role, namn, namnLaddat } = useAuth();
+  const { currentUser, role, namn, namnLaddat, profilbildUrl } = useAuth();
   const favoritPoster = useMinaFavoritPoster();
   const { synliga: snabblankar, satValda: satSnabblankar } = useSnabblankar(currentUser.uid);
 
@@ -121,9 +172,12 @@ export default function Profil() {
       </section>
 
       <section className="profil-sektion">
-        <h2>👤 Visningsnamn</h2>
+        <h2>👤 Namn och bild</h2>
         {namnLaddat ? (
-          <NamnFormular uid={currentUser.uid} aktuelltNamn={namn ?? ""} />
+          <>
+            <ProfilbildFormular uid={currentUser.uid} aktuellBildUrl={profilbildUrl} />
+            <NamnFormular uid={currentUser.uid} aktuelltNamn={namn ?? ""} />
+          </>
         ) : (
           <p className="sida__beskrivning">Laddar...</p>
         )}
@@ -167,6 +221,8 @@ export default function Profil() {
       <section className="profil-sektion">
         <h2>🎨 Utseende</h2>
         <TemaVaxlare />
+        <p className="profil-utseende__etikett">Accentfärg</p>
+        <AccentValjare />
       </section>
 
       <section className="profil-sektion">
@@ -188,7 +244,12 @@ export default function Profil() {
 
       <section className="profil-sektion">
         <h2>⭐ Mina favoriter</h2>
-        {favoritPoster.length === 0 && <p className="sida__beskrivning">Inga favoriter ännu.</p>}
+        {favoritPoster.length === 0 && (
+          <p className="sida__beskrivning">
+            Inga favoriter ännu – tryck på stjärnan ⭐ på en rutin eller en förrådsartikel för
+            att spara den här.
+          </p>
+        )}
         <ul className="hem__lista">
           {favoritPoster.map((p, i) => (
             <li key={i}>

@@ -64,6 +64,16 @@ service firebase.storage {
       allow write: if arInloggad() && request.auth.uid == uid;
     }
 
+    // avatarer/{uid}/{filnamn} – Etapp 22e: valfri profilbild. Bara ägaren själv får ladda
+    // upp/skriva över sin egen, men alla i SAMMA organisation får läsa den (den visas bredvid
+    // namnet, se Profil.jsx/Hem.jsx) – samma organisationsuppslag som dokumentOrganisation()
+    // ovan gör för rutiner/förrådsartiklar, fast mot users/{uid} istället för en samlings-id.
+    match /avatarer/{uid}/{filnamn} {
+      allow read: if arInloggad()
+                   && firestore.get(/databases/(default)/documents/users/$(uid)).data.get('organisationId', 'default') == minOrganisation();
+      allow write: if arInloggad() && request.auth.uid == uid;
+    }
+
     // backups/{orgId}/{filnamn} – veckovis Firestore-backup (Etapp 3b), skriven ENDAST av
     // den schemalagda Cloud Function-jobbet (Admin SDK, kringgår dessa regler helt). Ingen
     // klientåtkomst – skulle redan vara implicit nekad (ingen matchande regel annars), men

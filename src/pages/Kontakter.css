@@ -49,6 +49,13 @@
 .kontakter-rad__nummer {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  color: inherit;
+  text-decoration: none;
+}
+
+.kontakter-rad__nummer:hover,
+.kontakter-rad__nummer:focus-visible {
+  text-decoration: underline;
 }
 
 .kontakter-rad__atgarder {

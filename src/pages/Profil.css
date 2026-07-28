@@ -56,3 +56,46 @@
   align-items: center;
   gap: 8px;
 }
+
+.profil-bild {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.profil-bild__forhandsvisning {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--kant);
+}
+
+.profil-bild__platshallare {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--primar-ljus);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+}
+
+.profil-bild__knappar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.profil-bild__knappar input[type="file"] {
+  display: none;
+}
+
+.profil-utseende__etikett {
+  margin: 16px 0 8px;
+  font-size: 0.85rem;
+  color: var(--text-svag);
+}

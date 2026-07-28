@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useKontakter } from "../hooks/useKontakter";
 import { KAN_HANTERA_ANSLAG } from "../firebase/roles";
+import { telHref } from "../utils/telefon";
 import KontaktFormular from "../components/KontaktFormular";
 import Skelett from "../components/Skelett";
 import "./Kontakter.css";
@@ -47,7 +48,7 @@ export default function Kontakter() {
       <Link to="/">← Hem</Link>
       <h1>☎️ Kontaktlista</h1>
       <p className="sida__beskrivning">
-        Interna och externa telefonnummer. Numren visas som text – tryck och slå manuellt.
+        Interna och externa telefonnummer. Tryck på ett nummer för att ringa direkt.
       </p>
 
       <input
@@ -94,7 +95,9 @@ export default function Kontakter() {
                   {k.beskrivning && <div className="kontakter-rad__beskrivning">{k.beskrivning}</div>}
                 </div>
                 <div className="kontakter-rad__hoger">
-                  <span className="kontakter-rad__nummer">{k.nummer}</span>
+                  <a className="kontakter-rad__nummer" href={telHref(k.nummer)}>
+                    📞 {k.nummer}
+                  </a>
                   {farHantera && (
                     <div className="kontakter-rad__atgarder">
                       <button

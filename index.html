@@ -13,15 +13,20 @@
     <meta name="apple-mobile-web-app-title" content="Synappsen" />
     <title>Synappsen</title>
     <script>
-      // Sätter valt tema innan CSS/React laddar, så sidan inte blinkar till fel tema.
+      // Sätter valt tema och accentfärg innan CSS/React laddar, så sidan inte blinkar till
+      // fel utseende (samma mönster för båda, se useTema.js/useAccent.js – Etapp 22e).
       (function () {
         try {
           var tema = localStorage.getItem("synappsen-tema");
           if (tema === "light" || tema === "dark") {
             document.documentElement.dataset.tema = tema;
           }
+          var accent = localStorage.getItem("synappsen-accent");
+          if (accent) {
+            document.documentElement.dataset.accent = accent;
+          }
         } catch (e) {
-          // Privat läge/blockerad lagring – kör bara med systemets standardtema
+          // Privat läge/blockerad lagring – kör bara med standardutseendet
         }
       })();
     </script>

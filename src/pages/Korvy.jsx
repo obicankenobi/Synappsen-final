@@ -171,6 +171,7 @@ export default function Korvy() {
       <h1 className="korvy__titel">{rutin.titel}</h1>
 
       <div className="korvy__steg">
+        {aktivtSteg.bild && <img className="korvy__stegbild" src={aktivtSteg.bild} alt="" />}
         <p className="korvy__stegtext">{aktivtSteg.text}</p>
         {aktivtSteg.varning && <p className="korvy__varning">⚠️ {aktivtSteg.varning}</p>}
         {kvarSekunder !== null && (

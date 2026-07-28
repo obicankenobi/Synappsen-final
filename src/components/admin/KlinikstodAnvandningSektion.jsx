@@ -1,9 +1,20 @@
+import { useState } from "react";
+
 export default function KlinikstodAnvandningSektion({
   klinikHjalpsamAndel,
   klinikfeedback,
   klinikTrendPerVecka,
   klinikVanligaFragor,
 }) {
+  // Etapp 22d: kort, synlig bekräftelse istället för att kopieringen sker helt tyst.
+  const [kopieradFraga, setKopieradFraga] = useState(null);
+
+  function hanteraKopiera(fraga) {
+    navigator.clipboard?.writeText(fraga);
+    setKopieradFraga(fraga);
+    setTimeout(() => setKopieradFraga((f) => (f === fraga ? null : f)), 2000);
+  }
+
   return (
     <section className="admin-sektion">
       <h2>💬 Klinikstöd – hur används det?</h2>
@@ -43,10 +54,10 @@ export default function KlinikstodAnvandningSektion({
                 <button
                   type="button"
                   className="knapp--lank"
-                  onClick={() => navigator.clipboard?.writeText(f.fraga)}
+                  onClick={() => hanteraKopiera(f.fraga)}
                   title="Kopiera frågan, t.ex. för att använda som titel på en ny rutin"
                 >
-                  Kopiera
+                  {kopieradFraga === f.fraga ? "✓ Kopierad!" : "Kopiera"}
                 </button>
               </li>
             ))}

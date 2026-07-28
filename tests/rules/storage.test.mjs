@@ -92,6 +92,20 @@ async function main() {
     assertFails(getBytes(ref(volAStorage, "rutiner/kliniskt-stod/finns-inte/bild.jpg")))
   );
 
+  console.log("\navatarer/{uid}/{filnamn} – Etapp 22e: bara ägaren skriver, samma org läser");
+  await test("volA KAN ladda upp sin egen profilbild", () =>
+    assertSucceeds(uploadBytes(ref(volAStorage, "avatarer/volA/bild.jpg"), new Uint8Array([1, 2, 3])))
+  );
+  await test("volA KAN läsa sin egen profilbild", () =>
+    assertSucceeds(getBytes(ref(volAStorage, "avatarer/volA/bild.jpg")))
+  );
+  await test("volB (annan org) kan INTE läsa volAs profilbild", () =>
+    assertFails(getBytes(ref(volBStorage, "avatarer/volA/bild.jpg")))
+  );
+  await test("volB kan INTE ladda upp en profilbild i volAs namn", () =>
+    assertFails(uploadBytes(ref(volBStorage, "avatarer/volA/kapad.jpg"), new Uint8Array([9])))
+  );
+
   await testEnv.cleanup();
 
   console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);

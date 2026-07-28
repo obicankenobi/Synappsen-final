@@ -3,7 +3,7 @@ import { serverTimestamp } from "firebase/firestore";
 import { useAuth } from "../hooks/useAuth";
 import { useAnvandare } from "../hooks/useAnvandare";
 import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
-import { laddaUppRutinBilagor } from "../firebase/storage";
+import { laddaUppRutinBilagor, laddaUppRutinBild } from "../firebase/storage";
 import RutinFormular from "./RutinFormular";
 import RutinKort from "./RutinKort";
 import { arUtgangen } from "../utils/rutinHjalp";
@@ -99,6 +99,21 @@ export default function Sektionssida({
     await Promise.all(utkastRutiner.map((r) => taBortRutin(r.id, currentUser.uid)));
   }
 
+  // Etapp 22c: RutinFormular.jsx känner inte till rutinens Storage-sökväg (kräver ett
+  // rutinId, som inte finns för en ny rutin förrän skapaRutin körts) – laddar bara upp den
+  // valda filen HÄR, efter att id:t finns, och ersätter nyBildFil med den riktiga URL:en.
+  async function laddaUppStegBilder(rutinId, stegLista) {
+    return Promise.all(
+      (stegLista ?? []).map(async (s) => {
+        if (!s.nyBildFil) return s;
+        const bild = await laddaUppRutinBild(omrade, rutinId, s.nyBildFil);
+        const { nyBildFil, ...resten } = s;
+        void nyBildFil;
+        return { ...resten, bild };
+      })
+    );
+  }
+
   async function hanteraSpara({
     titel: titelVarde,
     innehall,
@@ -118,6 +133,7 @@ export default function Sektionssida({
   }) {
     if (redigerar) {
       const nyaBilagor = nyaFiler.length ? await laddaUppRutinBilagor(omrade, redigerar.id, nyaFiler) : [];
+      const stegMedBilder = await laddaUppStegBilder(redigerar.id, steg);
       await uppdateraRutin(
         redigerar.id,
         {
@@ -129,7 +145,7 @@ export default function Sektionssida({
           relateradeRutiner: relaterade,
           bilagor: [...befintligaBilagor, ...nyaBilagor],
           agare,
-          steg,
+          steg: stegMedBilder,
           kviss,
           externaKallor,
           ...(farKureraAkutlage ? { akutlage, akutlageOrdning } : {}),
@@ -155,7 +171,7 @@ export default function Sektionssida({
         relateradeRutiner: relaterade,
         bilagor: nyaFiler.length ? await laddaUppRutinBilagor(omrade, ref.id, nyaFiler) : [],
         agare,
-        steg,
+        steg: await laddaUppStegBilder(ref.id, steg),
         kviss,
         externaKallor,
       });

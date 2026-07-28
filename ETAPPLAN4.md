@@ -66,7 +66,7 @@ den här planen till skillnad från de tidigare rör saker personalen ser hela t
 
 ---
 
-# Etapp 22 – Det som syns direkt
+# Etapp 22 – Det som syns direkt ✅ KLAR
 
 **Varför:** Tre konkreta brister hittade vid genomgång av koden, som var och en tar timmar –
 inte dagar – och som varenda användare möter i vardagen. Det här är den billigaste
@@ -118,8 +118,18 @@ kvalitetshöjningen som finns kvar i produkten.
   ingen text som andra användare skriver om sig själva, inget flöde av andras profiländringar.
   Om det tillägget efterfrågas senare ska det tas upp som en egen, ny beslutspunkt – inte
   glida in som en utökning av den här punkten.
+- **Genomfört:** `useAccent.js` (device-lokal, samma mönster som `useTema.js` – inte synkad
+  mellan enheter/konto) med fyra fördefinierade, kontrastvaliderade accentfärger
+  (`AccentValjare.jsx`, i `Profil.jsx`). Profilbild: `users/{uid}.profilbildUrl`, uppladdad
+  till `avatarer/{uid}/...` i Storage (ny `storage.rules`-regel: bara ägaren skriver, alla i
+  samma organisation läser). `firestore.rules` tillåter självuppdatering av
+  `profilbildUrl` i samma lista som `namn` (Etapp 22a). Visas i dag i `Profil.jsx`; bredare
+  spridning till kvitteringslistor (som bara lagrar namn-strängar idag, inte uid+bild per
+  post) är en egen, större ändring och medvetet inte gjord i den här omgången. 3 nya
+  rules-tester för `profilbildUrl` + 4 nya storage-rules-tester för `avatarer/{uid}` (125/125
+  respektive 10/10 totalt).
 
-### 22b – Tryck för att ringa
+### 22b – Tryck för att ringa ✅ KLAR
 
 - **Premisskontroll (bekräftad i kod):** `Kontakter.jsx` skriver i dag ut i klartext
   *"Numren visas som text – tryck och slå manuellt."* Ingen kommentar i koden motiverar det,
@@ -129,8 +139,13 @@ kvalitetshöjningen som finns kvar i produkten.
 - **Arbete:** `tel:`-länk på numret, med `aria-label` som säger vad som händer. Akutnummer
   (`akutnummer`-flaggan finns sedan Etapp 17c) får en tydligare, större träffyta.
 - Samma sak för e-postadresser i kontaktlistan (`mailto:`).
+- **Genomfört:** ny delad `src/utils/telefon.js` (`telHref`) används i `Kontakter.jsx` OCH
+  `Akutlage.jsx` (den viktigaste platsen, eftersom det är larmnumren). 3 nya vitest-tester.
+  **Premisskontroll visade att `mailto:`-delen av planen inte stämde:** kontaktmodellen
+  (`useKontakter.js`) har inget e-postfält alls, bara `nummer` – ingenting att göra `mailto:`
+  av. Hoppades medvetet över istället för att uppfinna ett fält som inte efterfrågats.
 
-### 22c – Bild på ett checklistesteg
+### 22c – Bild på ett checklistesteg ✅ KLAR
 
 - **Premisskontroll (bekräftad i kod):** `steg`-objektet innehåller redan ett `bild`-fält
   (`laggTillSteg` i `RutinFormular.jsx` skapar `{ text, bild, varning, timerSekunder }`), men
@@ -143,14 +158,29 @@ kvalitetshöjningen som finns kvar i produkten.
 - **Inte nu, och varför:** korta videoklipp övervägdes och väljs bort i det här skedet –
   lagrings- och bandbreddskostnaden är en helt annan storleksordning än stillbilder, och det
   kräver en genomtänkt modereringsprocess. Tas upp igen om bildstödet visar sig användas.
+- **Genomfört:** `RutinFormular.jsx` har en filväljare + förhandsvisning per steg. Bilden
+  laddas dock upp av `Sektionssida.jsx` (inte formuläret) EFTER att rutinens id finns – en ny
+  rutin har inget Storage-sökväg-id förrän `skapaRutin` körts, precis som redan gäller för
+  rutinens övriga bilagor. `Korvy.jsx` visar bilden ovanför stegtexten. **Avgränsning mot
+  planen:** ingen motsvarande visning i den vanliga rutinvyn utanför körvyn – `RutinKort.jsx`
+  visar aldrig steglistan direkt (bara en länk till körvyn), så det fanns ingen plats att
+  visa den på.
 
-### 22d – Mikropolish
+### 22d – Mikropolish ✅ KLAR
 
 - Bekräftelser som syns: "Kopierad!", "Sparat", "Skickat" – i dag försvinner flera åtgärder
   tyst.
 - Tomma tillstånd med en väg vidare istället för bara "Inga poster ännu" (t.ex. "Inga
   favoriter ännu – tryck på stjärnan på en rutin för att spara den här").
 - Konsekventa laddningsskelett (`Skelett.jsx` finns men används inte överallt).
+- **Genomfört (avgränsat, inte en fullständig genomgång av varenda knapp i appen):**
+  "✓ Kopierad!"-feedback på kopieringsknappen i `KlinikstodAnvandningSektion.jsx`; förbättrad
+  tom-vy-text för favoriter i `Profil.jsx` (pekar konkret på stjärnan, med rätt platser
+  nämnda efter att ha kontrollerat var `FavoritKnapp` faktiskt finns – bara rutiner och
+  förrådsartiklar, inte anslag); `Skiftrapport.jsx` bytte en ren textrad ("Laddar...") mot
+  samma `<Skelett />` som övriga listsidor redan använder. Övriga listsidor
+  (`ForradVy`/`Kontakter`/`Lankbibliotek`/`Anslagstavla`/`Sektionssida`) använde redan
+  `Skelett` konsekvent vid kontroll.
 
 **Klart när:** en ny användare som öppnar appen möts av sitt eget namn, kan ringa
 akutnumret med ett tryck, och ser bilder i checklistan – utan att någon behövt förklara något.

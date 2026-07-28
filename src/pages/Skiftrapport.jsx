@@ -5,6 +5,7 @@ import { useSkiftrapport } from "../hooks/useSkiftrapport";
 import { arRedaktor } from "../firebase/roles";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import { useDialog } from "../hooks/useDialog";
+import Skelett from "../components/Skelett";
 import "./Skiftrapport.css";
 
 function formateraTid(tidpunkt) {
@@ -66,7 +67,7 @@ export default function Skiftrapport() {
         </button>
       </form>
 
-      {laddar && <p className="sida__beskrivning">Laddar...</p>}
+      {laddar && <Skelett />}
       {!laddar && aktiva.length === 0 && (
         <div className="platshallare">
           <p>Inga aktiva skiftrapporter just nu.</p>
