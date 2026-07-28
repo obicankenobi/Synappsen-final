@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { arRedaktor } from "../firebase/roles";
+import { oppnaKommandopalett } from "../hooks/useKommandopalett";
 import "./BottomNav.css";
 
 // Mobilanpassad navigering längst ned på skärmen
@@ -9,6 +10,12 @@ export default function BottomNav() {
 
   return (
     <nav className="bottom-nav">
+      {/* Etapp 23a: samma kommandopalett som Ctrl/Cmd+K på ett tangentbord – mobilen har
+          inget tangentbord, så den behöver en egen ingång. */}
+      <button type="button" className="bottom-nav__lank" onClick={oppnaKommandopalett}>
+        <span className="bottom-nav__ikon">🔎</span>
+        <span>Sök</span>
+      </button>
       <NavLink to="/" end className="bottom-nav__lank">
         <span className="bottom-nav__ikon">🏠</span>
         <span>Hem</span>

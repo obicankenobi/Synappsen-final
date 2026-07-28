@@ -1,12 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import Fuse from "fuse.js";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { sokposter } from "../data/sokindex";
-import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
-import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
-import { useKontakter } from "../hooks/useKontakter";
-import { useLankbibliotek } from "../hooks/useLankbibliotek";
-import { forradTillSlug } from "../firebase/forrad";
+import { useSokindex } from "../hooks/useSokindex";
 import { registreraVisning } from "../hooks/useVisningar";
 import { useSokloggar } from "../hooks/useSokloggar";
 import { loggaSokning, loggaTidTillKlick } from "../hooks/useSokstatistik";
@@ -19,23 +13,6 @@ import "./SokFalt.css";
 function nuTid() {
   return Date.now();
 }
-
-function platsBeskrivning(artikel) {
-  const delar = [artikel.forrad];
-  if (artikel.skap) delar.push(`Skåp ${artikel.skap}`);
-  if (artikel.hylla) delar.push(`Hylla ${artikel.hylla}`);
-  return delar.join(" · ");
-}
-
-const OMRADE_LABELS = {
-  "kliniskt-stod": "Kliniskt stöd",
-  administration: "Administration",
-};
-
-const OMRADE_SOKVAG = {
-  "kliniskt-stod": "/kliniskt-stod",
-  administration: "/administration",
-};
 
 // Fetmarkerar den del av texten som exakt matchar söktermen (versalokänsligt).
 // Fuse.js fuzzy-matchar även när texten inte innehåller söktermen ordagrant, i så
@@ -65,64 +42,9 @@ export default function SokFalt() {
   // tecknet efter ett tomt fält) – en ref, inte state, eftersom den aldrig ska trigga en
   // omrendering. Nollställs när fältet töms igen (sökningen avbröts utan klick).
   const sokStartTid = useRef(null);
-  const { artiklar } = useForradsartiklar();
-  const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
-  const { rutiner: adminRutiner } = useRutiner("administration");
-  const { kontakter } = useKontakter();
-  const { lankar } = useLankbibliotek();
+  const { fuse } = useSokindex();
   const { loggaNollTraff } = useSokloggar(false);
   const { currentUser, organisationId } = useAuth();
-
-  const alltSokbart = useMemo(() => {
-    const forradsposter = artiklar
-      .filter((a) => a.status === ARTIKEL_STATUS.GODKAND)
-      .map((a) => ({
-        titel: a.namn,
-        kategori: "Logistik",
-        sokvag: `/logistik/${forradTillSlug(a.forrad)}`,
-        nyckelord: [a.forrad, a.skap, a.hylla, ...(a.sokord ?? [])].filter(Boolean),
-        plats: platsBeskrivning(a),
-      }));
-
-    const rutinposter = [...klinisktRutiner, ...adminRutiner]
-      .filter((r) => r.status === RUTIN_STATUS.GODKAND)
-      .map((r) => ({
-        titel: r.titel,
-        kategori: OMRADE_LABELS[r.omrade] ?? r.omrade,
-        sokvag: `${OMRADE_SOKVAG[r.omrade] ?? "/"}#rutin-${r.id}`,
-        nyckelord: (r.innehall ?? "").split(/\s+/).slice(0, 60),
-      }));
-
-    const kontaktposter = kontakter.map((k) => ({
-      titel: k.namn,
-      kategori: "Kontakt",
-      sokvag: "/kontakter",
-      nyckelord: [k.kategori, k.beskrivning].filter(Boolean),
-    }));
-
-    const lankposter = lankar.map((l) => ({
-      titel: l.titel,
-      kategori: "Länk",
-      sokvag: "/lankbibliotek",
-      nyckelord: [l.kategori, l.beskrivning].filter(Boolean),
-    }));
-
-    return [...sokposter, ...forradsposter, ...rutinposter, ...kontaktposter, ...lankposter];
-  }, [artiklar, klinisktRutiner, adminRutiner, kontakter, lankar]);
-
-  const fuse = useMemo(
-    () =>
-      new Fuse(alltSokbart, {
-        keys: [
-          { name: "titel", weight: 0.5 },
-          { name: "nyckelord", weight: 0.4 },
-          { name: "kategori", weight: 0.1 },
-        ],
-        threshold: 0.4,
-        ignoreLocation: true,
-      }),
-    [alltSokbart]
-  );
 
   const allaTraffar = sokterm.trim() ? fuse.search(sokterm).map((r) => r.item) : [];
   const traffKategorier = [...new Set(allaTraffar.map((p) => p.kategori))];

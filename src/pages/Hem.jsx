@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import SokFalt from "../components/SokFalt";
 import SektionsKort from "../components/SektionsKort";
@@ -22,22 +21,6 @@ export default function Hem() {
   const { senastBesokta } = useSenastBesokta(currentUser?.uid);
   const { blockordningForRoll } = useStartvyKonfiguration();
   const blockordning = blockordningForRoll(role);
-
-  // Tangentbordsgenväg: tryck "/" var som helst på sidan för att hoppa till sökfältet,
-  // utom när man redan skriver i ett annat fält.
-  useEffect(() => {
-    function hanteraTangent(e) {
-      if (e.key !== "/") return;
-      const aktivt = document.activeElement;
-      const skriverRedan =
-        aktivt && (aktivt.tagName === "INPUT" || aktivt.tagName === "TEXTAREA" || aktivt.isContentEditable);
-      if (skriverRedan) return;
-      e.preventDefault();
-      document.querySelector(".sok-falt input")?.focus();
-    }
-    document.addEventListener("keydown", hanteraTangent);
-    return () => document.removeEventListener("keydown", hanteraTangent);
-  }, []);
 
   return (
     <div className="sida sida--hem">

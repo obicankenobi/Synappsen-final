@@ -15,6 +15,7 @@ import AkutlagePrefetch from "./components/AkutlagePrefetch";
 import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
+import KommandopalettLyssnare from "./components/KommandopalettLyssnare";
 import { REDAKTORSROLLER } from "./firebase/roles";
 
 // Kontrollerar var 5:e minut om sessionen fortfarande är giltig – om en superadmin har
@@ -78,6 +79,7 @@ function SkyddatLayout({ children }) {
         </ErrorBoundary>
       </main>
       <BottomNav />
+      <KommandopalettLyssnare />
     </SkyddadRoute>
   );
 }

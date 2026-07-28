@@ -1,0 +1,94 @@
+.kommandopalett__bakgrund {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10vh 16px 16px;
+  z-index: 1000;
+}
+
+.kommandopalett {
+  width: 100%;
+  max-width: 560px;
+  background: var(--yta);
+  border-radius: var(--radius);
+  box-shadow: var(--skugga-hover);
+  padding: 16px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kommandopalett__falt {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 1.1rem;
+  border: 1px solid var(--kant-stark);
+  border-radius: 10px;
+  box-sizing: border-box;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.kommandopalett__falt:focus {
+  outline: none;
+  border-color: var(--primar);
+  box-shadow: 0 0 0 3px var(--primar-ljus);
+}
+
+.kommandopalett__forslag {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kommandopalett__forslag h3 {
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.kommandopalett__resultat {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.kommandopalett__resultat li button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.kommandopalett__resultat li button:hover,
+.kommandopalett__resultat li button:focus-visible {
+  background: var(--primar-ljus);
+  outline: none;
+}
+
+.kommandopalett__kategori {
+  color: var(--text-svag);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.kommandopalett__tomt {
+  color: var(--text-svag);
+  padding: 12px;
+  margin: 0;
+}

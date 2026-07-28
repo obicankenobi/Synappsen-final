@@ -187,7 +187,7 @@ akutnumret med ett tryck, och ser bilder i checklistan – utan att någon behö
 
 ---
 
-# Etapp 23 – Kommandopalett: allt på två tangenttryck
+# Etapp 23 – Kommandopalett: allt på två tangenttryck ✅ KLAR (utom 23d, se beslutspunkt)
 
 **Varför:** Sökningen är redan produktens starkaste vardagsfunktion (fuzzy-sökning över
 rutiner, förråd, kontakter och länkar via Fuse.js), men den bor på startsidan. Genvägen `/`
@@ -196,25 +196,47 @@ rutin är den typen av detalj som får personal att beskriva ett verktyg som "sn
 
 **Modul:** ingen (Core).
 
-### 23a – Global palett
+### 23a – Global palett ✅ KLAR
 
 - Överlägg som öppnas med Ctrl/Cmd+K **eller** `/` från vilken sida som helst, och med en
   permanent knapp i `BottomNav.jsx` för mobil (där det inte finns något tangentbord).
 - Återanvänd `SokFalt.jsx`s befintliga index och träfflogik – bygg **inte** en parallell
   sökmotor. Sökstatistiken (`loggaSokning`, `loggaTidTillKlick`) ska fortsätta fungera
   oförändrad, annars tappar Etapp 10e sin mätning.
+- **Genomfört:** indexbygget/Fuse-instansen bröts ut ur `SokFalt.jsx` till en delad
+  `useSokindex.js` – både `SokFalt.jsx` (oförändrat beteende, oförändrad sökstatistik) och den
+  nya paletten läser från EN källa. Paletten själv är uppdelad i två filer:
+  `KommandopalettLyssnare.jsx` (liten, alltid monterad i `App.jsx`s `SkyddatLayout` – bara
+  tangentbordsgenvägen) som `lazy()`-laddar `KommandopalettInnehall.jsx` (Fuse.js +
+  sökhookarna) FÖRST när paletten faktiskt öppnas första gången. Motiverat av genomgående
+  krav 9: en första version utan den uppdelningen ökade huvudbundlen med ~39 kB; med
+  uppdelningen är den tillbaka på samma storlek som innan Etapp 23 (uppmätt med
+  `npm run build` före/efter). `Hem.jsx`s tidigare lokala `"/"`-genväg (bara på startsidan)
+  togs bort till förmån för den globala.
 
-### 23b – Åtgärder, inte bara träffar
+### 23b – Åtgärder, inte bara träffar ✅ KLAR
 
 - Paletten föreslår även *handlingar*: "Kör checklista: …", "Anmäl brist på …", "Öppna
   akutläget", "Ny skiftrapport", "Min kompetensstatus".
 - Det gör paletten till appens verkliga navigering och gör menyerna mindre viktiga.
+- **Genomfört:** en fast lista statiska åtgärder (`STATISKA_ATGARDER` i `useSokindex.js`) –
+  Akutläget, Ny skiftrapport, Min kompetensstatus, Introduktion, Kontakter – sökbara som en
+  egen kategori ("Åtgärd") i SAMMA index som allt annat. Dessutom genereras en egen
+  `"Kör checklista: {titel}"`-post per rutin som har `steg` (Etapp 18), som pekar direkt till
+  körvyn (`/checklista/{id}`) istället för rutinens vanliga sida.
+- **Avgränsning mot planen:** `"Anmäl brist på X"` som en egen, per-artikel sökbar handling
+  byggdes INTE – bristanmälan (Etapp 20) sker inline på förrådsartikelns eget kort, inte på en
+  egen sida, så en trovärdig djuplänkning dit hade krävt en ny mekanism (öppna kortets
+  formulär automatiskt via en query-parameter) som inte stod i proportion till nyttan här.
+  Logistik-sidan är redan en sökbar "Åtgärd" och ett klick bort.
 
-### 23c – Vettigt innehåll innan man skrivit något
+### 23c – Vettigt innehåll innan man skrivit något ✅ KLAR
 
 - Tom ruta visar: senast besökta (finns, `useSenastBesokta`), favoriter (finns,
   `useMinaFavoritPoster`), och de mest visade i organisationen (finns, `usePopularaste`).
 - All data finns alltså redan – det här är att sätta ihop den, inte att samla in ny.
+- **Genomfört:** exakt de tre källorna, ordnade Favoriter → Senast besökta → Populärast,
+  återanvända rakt av utan någon ny datainsamling.
 
 ### 23d – Röstsökning ⚠ kräver beslut
 
@@ -227,6 +249,9 @@ rutin är den typen av detalj som får personal att beskriva ett verktyg som "sn
 - **Min rekommendation:** bygg det inte i den här formen. Antingen väntar vi på tillräckligt
   bra igenkänning på enheten (`ondevice`-läget är på väg men ojämnt stött), eller så
   hoppar vi över funktionen. Tas upp som beslutspunkt 2 nedan snarare än som ett antagande.
+- **Status:** INTE byggt, i enlighet med rekommendationen ovan. Kommandopaletten (23a-c) är
+  fullt fungerande utan röstsökning. Kvarstår som en öppen beslutspunkt, inte en teknisk
+  uppgift i kö.
 
 **Klart när:** en van användare når vilken rutin som helst på under tre sekunder från vilken
 sida som helst, utan att röra musen.
