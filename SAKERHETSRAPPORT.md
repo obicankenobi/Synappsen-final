@@ -196,3 +196,27 @@ annan regulatorisk värld (patientdatalagen, vårdgivaransvar). **Beslut:** anv�
 (18d) är aggregerad och utan personkoppling: antal påbörjade/slutförda körningar per rutin,
 mediantid, vilket steg flest avbryter på. Ingen patientidentifierare, inget fritextfält kopplat
 till en enskild körning finns någonstans i datamodellen.
+
+---
+
+## Tillägg (2026-07-28, version 5.39.0): Etapp 21 – källbevakning, olöst frågetecken kring ToS
+
+Källbevakningsjobbet (Etapp 21b, `kontrolleraKallbevakning` i `functions/index.js`) hämtar en
+gång i veckan innehållet från de externa källor en rutin refererar (`rutiner.externaKallor`),
+begränsat till samma sju domäner som klinikstöd-sökningen redan använder
+(`GODKANDA_KALLDOMANER`). Implementationen respekterar `robots.txt` (enkel tolkning av
+`Disallow`-mönster för `User-agent: *`), skickar ett tydligt `User-Agent`, sprider anropen med
+en paus mellan varje hämtning, och cachar per URL över ALLA organisationer så samma sida aldrig
+hämtas mer än en gång per körning oavsett antal kunder.
+
+**Olöst, kräver ägarens ställningstagande innan modulen slås på för en riktig kund:** planen
+(ETAPPLAN3.md Etapp 21b) påpekar uttryckligen att `robots.txt` inte är hela det juridiska svaret
+– en sida kan tillåta hämtning enligt `robots.txt` men ändå förbjuda automatiserad skrapning i
+sina användarvillkor. Den här implementationen har INTE haft en juridisk genomgång av
+användarvillkoren för de sju källdomänerna (internetmedicin.se, 1177.se,
+nationelltklinisktkunskapsstod.se, fass.se, lakemedelsverket.se, vardhandboken.se,
+folkhalsomyndigheten.se). Modulen (`moduler.kallbevakning`) är avstängd som standard för alla
+organisationer och måste aktiveras manuellt per kund i adminpanelen – så ingen skarp hämtning
+sker förrän någon medvetet slår på den, men det ersätter inte en faktisk ToS-genomgång.
+**Rekommendation:** en människa läser igenom respektive källas användarvillkor innan modulen
+aktiveras för en betalande kund, och den genomgången dokumenteras här som ett eget tillägg.

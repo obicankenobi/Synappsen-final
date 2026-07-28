@@ -133,6 +133,18 @@
   margin-top: 12px;
 }
 
+.rutin-kort__atgarder--varning {
+  background: var(--amber-ljus);
+  padding: 10px 12px;
+  border-radius: 8px;
+  align-items: center;
+}
+
+.rutin-kort__atgarder--varning p {
+  flex-basis: 100%;
+  margin: 0 0 4px;
+}
+
 .rutin-kort__verktyg {
   display: flex;
   gap: 10px;

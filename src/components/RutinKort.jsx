@@ -47,6 +47,7 @@ export default function RutinKort({
   onTaBort,
   onMarkeraGranskad,
   onAterstallVersion,
+  onGranskaKalla,
   hamtaVersioner,
 }) {
   const { currentUser } = useAuth();
@@ -83,6 +84,9 @@ export default function RutinKort({
             <span className="rutin-kort__badge rutin-kort__badge--varning">Bör granskas</span>
           )}
           {utgangen && <span className="rutin-kort__badge rutin-kort__badge--varning">Utgången</span>}
+          {farRedigera && rutin.kallVarning && (
+            <span className="rutin-kort__badge rutin-kort__badge--varning">Källan har uppdaterats</span>
+          )}
         </div>
         <FavoritKnapp typ="rutin" id={rutin.id} />
       </header>
@@ -204,6 +208,21 @@ export default function RutinKort({
             <li key={a.id}>{a.namn || a.email}</li>
           ))}
         </ul>
+      )}
+
+      {farRedigera && rutin.kallVarning && (
+        <div className="rutin-kort__atgarder rutin-kort__atgarder--varning">
+          <p>
+            Källan <a href={rutin.kallVarningUrl} target="_blank" rel="noreferrer">{rutin.kallVarningUrl}</a> har
+            uppdaterats sedan rutinen granskades.
+          </p>
+          <button className="knapp knapp--sekundar" onClick={() => onGranskaKalla(rutin.id)}>
+            Granskad, ingen ändring behövs
+          </button>
+          <button className="knapp" onClick={() => onRedigera(rutin)}>
+            Öppna för redigering
+          </button>
+        </div>
       )}
 
       {(farRedigera || farGodkanna) && (

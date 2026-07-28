@@ -680,6 +680,174 @@ function domanGodkand(url) {
   }
 }
 
+// Etapp 21b: källbevakning – ett schemalagt jobb som hämtar varje externt refererad källa
+// (rutiner.externaKallor, se Etapp 21a) en gång i veckan och jämför en hash av innehållet mot
+// senast sparade. Cachas per URL över ALLA organisationer (kallbevakning/{urlHash}) – samma
+// källa refererad av flera kunder hämtas bara en gång, inte en gång per kund.
+const KALLBEVAKNING_USER_AGENT = "SynappsenKallbevakning/1.0 (+kontakt via leverantören)";
+// Snällt mot källorna: en liten paus mellan varje hämtning istället för att skjuta iväg alla
+// samtidigt. Källistan är i praktiken liten (ett fåtal unika URL:er över alla kunder), så det
+// här är inget verkligt kostnadstak – bara ett artigt tempo.
+const KALLBEVAKNING_PAUS_MS = 500;
+
+function extraheraText(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function hashaInnehall(html) {
+  return crypto.createHash("sha256").update(extraheraText(html)).digest("hex");
+}
+
+function hashaUrl(url) {
+  return crypto.createHash("sha256").update(url).digest("hex");
+}
+
+// Enkel (inte fullständigt RFC 9309-kompatibel) tolkning av robots.txt: hittar blocket för
+// "User-agent: *" och samlar dess Disallow-mönster. Källistan är ett litet, känt urval
+// medicinska referenssajter – målet är att respektera ett uttryckligt förbud, inte att bygga
+// en generell webbcrawler.
+async function hamtaDisallowMonster(host) {
+  try {
+    const svar = await fetch(`https://${host}/robots.txt`, {
+      signal: AbortSignal.timeout(5000),
+      headers: { "User-Agent": KALLBEVAKNING_USER_AGENT },
+    });
+    if (!svar.ok) return [];
+    const text = await svar.text();
+    const monster = [];
+    let iRelevantBlock = false;
+    for (const radRaw of text.split("\n")) {
+      const rad = radRaw.trim();
+      const kolonIndex = rad.indexOf(":");
+      if (kolonIndex === -1) continue;
+      const nyckel = rad.slice(0, kolonIndex).trim().toLowerCase();
+      const varde = rad.slice(kolonIndex + 1).trim();
+      if (nyckel === "user-agent") {
+        iRelevantBlock = varde === "*";
+      } else if (iRelevantBlock && nyckel === "disallow" && varde) {
+        monster.push(varde);
+      }
+    }
+    return monster;
+  } catch {
+    // Inget robots.txt, eller ett fel vid hämtning – tolkas som inget uttryckligt förbud
+    // (samma "fail open" som när sidan i övrigt inte svarar).
+    return [];
+  }
+}
+
+function tillatenAvRobots(pathname, disallowMonster) {
+  return !disallowMonster.some((monster) => pathname.startsWith(monster));
+}
+
+// Kärnlogiken, exporterad separat (samma mönster som kontrolleraProvperioder) så
+// tests/functions kan anropa den direkt utan en riktig schemaläggare.
+async function kontrolleraKallbevakning() {
+  const orgSnap = await db.collection("organisationer").get();
+  const bevakadeOrgar = new Set(
+    orgSnap.docs.filter((d) => d.data()?.moduler?.kallbevakning === true).map((d) => d.id)
+  );
+  if (bevakadeOrgar.size === 0) return;
+
+  const rutinSnap = await db.collection("rutiner").where("status", "==", "godkand").get();
+
+  const urlTillRutiner = new Map();
+  for (const rutinDoc of rutinSnap.docs) {
+    const data = rutinDoc.data();
+    if (!bevakadeOrgar.has(data.organisationId)) continue;
+    for (const url of data.externaKallor ?? []) {
+      // Extra skyddslager: samma domänkontroll som firestore.rules – en URL som av någon
+      // anledning skulle ha smugit sig igenom (t.ex. skriven direkt av Admin SDK) hämtas
+      // ändå aldrig.
+      if (!domanGodkand(url)) continue;
+      if (!urlTillRutiner.has(url)) urlTillRutiner.set(url, []);
+      urlTillRutiner.get(url).push({ id: rutinDoc.id, organisationId: data.organisationId });
+    }
+  }
+
+  const robotsCache = new Map();
+  for (const [url, rutiner] of urlTillRutiner) {
+    try {
+      const uppslagenUrl = new URL(url);
+      if (!robotsCache.has(uppslagenUrl.host)) {
+        robotsCache.set(uppslagenUrl.host, await hamtaDisallowMonster(uppslagenUrl.host));
+      }
+      if (!tillatenAvRobots(uppslagenUrl.pathname, robotsCache.get(uppslagenUrl.host))) {
+        console.log(`Källbevakning: hoppar över ${url} (nekad av robots.txt)`);
+        continue;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, KALLBEVAKNING_PAUS_MS));
+
+      const cacheRef = db.collection("kallbevakning").doc(hashaUrl(url));
+      const cacheSnap = await cacheRef.get();
+
+      const svar = await fetch(url, {
+        signal: AbortSignal.timeout(10000),
+        headers: { "User-Agent": KALLBEVAKNING_USER_AGENT },
+      });
+
+      if (!svar.ok) {
+        // Etapp 21d: en trasig länk (404 m.fl.) är i sig ett kvalitetsfynd, och rapporteras
+        // som en egen typ – inte samma sak som en faktisk innehållsändring.
+        if (svar.status === 404) {
+          await Promise.all(
+            rutiner.map((r) =>
+              db.collection("rutiner").doc(r.id).update({
+                kallVarning: true,
+                kallVarningTyp: "trasig_lank",
+                kallVarningUrl: url,
+                kallVarningTidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+              })
+            )
+          );
+        } else {
+          console.error(`Källbevakning: ${url} svarade ${svar.status}`);
+        }
+        continue;
+      }
+
+      const html = await svar.text();
+      const nyHash = hashaInnehall(html);
+      const tidigareHash = cacheSnap.exists ? cacheSnap.data().senasteHash : null;
+
+      await cacheRef.set(
+        { url, senasteHash: nyHash, senastKontrollerad: admin.firestore.FieldValue.serverTimestamp() },
+        { merge: true }
+      );
+
+      // Bara en verklig ändring (INTE den allra första kontrollen av en ny URL) flaggas –
+      // annars skulle varje nyligen tillagd källa omedelbart visas som "ändrad".
+      if (tidigareHash && tidigareHash !== nyHash) {
+        await Promise.all(
+          rutiner.map((r) =>
+            db.collection("rutiner").doc(r.id).update({
+              kallVarning: true,
+              kallVarningTyp: "andring",
+              kallVarningUrl: url,
+              kallVarningTidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+            })
+          )
+        );
+      }
+    } catch (fel) {
+      console.error(`Källbevakning misslyckades för ${url}:`, fel);
+    }
+  }
+}
+exports.kontrolleraKallbevakning = kontrolleraKallbevakning;
+
+exports.kallbevakningSchemalagt = onSchedule(
+  { schedule: "every monday 04:00", timeZone: "Europe/Stockholm", region: "europe-west1", timeoutSeconds: 300 },
+  kontrolleraKallbevakning
+);
+
 // Söker via Google Programmable Search Engine (Custom Search JSON API), konfigurerad att
 // bara söka inom de godkända domänerna (se GODKANDA_KALLDOMANER) – till skillnad från den
 // tidigare varianten som bad Gemini "lova" att bara söka med site:-operatorn (vilket den i

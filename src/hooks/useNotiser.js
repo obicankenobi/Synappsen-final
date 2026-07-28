@@ -114,6 +114,26 @@ export function useNotiser() {
         tid: r.granskadDatum,
       }));
 
+    // Etapp 21c: samma ägar-filtrering som granskningsposter ovan – riktas till rutinens
+    // ägare om satt, annars till alla redaktörer för området. Ett stående tillstånd (försvinner
+    // av sig själv när kallVarning rensas via "Granskad, ingen ändring behövs"/redigering).
+    const kallvarningposter = allaRutiner
+      .filter((r) => r.kallVarning === true)
+      .filter((r) => {
+        if (r.agare?.typ === "roll") return role === r.agare.roll;
+        if (r.agare?.typ === "person") return currentUser?.uid === r.agare.uid;
+        return r.omrade === "kliniskt-stod" ? farGranskaKlinisktStod : farGranskaAdministration;
+      })
+      .map((r) => ({
+        id: `kallvarning-${r.id}`,
+        text:
+          r.kallVarningTyp === "trasig_lank"
+            ? `Källan till "${r.titel}" svarar inte längre (trasig länk)`
+            : `Källan till "${r.titel}" har uppdaterats sedan rutinen granskades`,
+        sokvag: `${OMRADE_SOKVAG[r.omrade] ?? "/"}#rutin-${r.id}`,
+        tid: r.kallVarningTidpunkt,
+      }));
+
     // Etapp 20b: notis till förrådsansvarig/superadmin om nya bristanmälningar, och kvittens
     // till anmälaren när den egna anmälan hanteras – båda ett stående tillstånd (som
     // granskningsposter ovan), inte en engångshändelse styrd av senasteNotisBesok.
@@ -156,6 +176,7 @@ export function useNotiser() {
       ...rutinposter,
       ...omnamndeposter,
       ...granskningsposter,
+      ...kallvarningposter,
       ...bristposter,
       ...hanteradeBristposter,
       ...systemvarningsposter,

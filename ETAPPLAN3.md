@@ -818,48 +818,74 @@ artikelkortet.
 
 ---
 
-# Etapp 21 – Källbevakning
+# Etapp 21 – Källbevakning ✅ KLAR
 
 **Varför:** Angriper produktens djupaste löfte – "rutinerna är aktuella". Ligger sist för att
 den kräver mest omtanke kring driftkostnad och falsklarm, inte för att den är minst värd.
 
-**Modul:** `kallbevakning` (bygger på klinikstöd-modulen).
+**Modul:** `kallbevakning` (`FEATURE.SOURCE_MONITORING` i `src/config/features.js`, av/på per
+organisation i adminpanelens moduler-sektion – avstängd som standard).
 
-### 21a – Referenser som data
+### 21a – Referenser som data ✅ KLAR
 
-- Nytt fält på `rutiner`: `externaKallor` – lista av URL:er.
-- **Endast domäner ur `GODKANDA_KALLDOMANER`.** Validera i klient, i Cloud Function och i
-  Firestore-regeln, precis som klinikstöd-sökningens domänspärr (finns redan i
-  `functions/index.js`). Håll listorna synkade – samma krav som redan gäller i CLAUDE.md.
-- Migrering: hitta URL:er som redan står i befintlig rutintext och föreslå dem som
-  strukturerade referenser. Förslag, inte automatisk ändring.
+- Nytt fält på `rutiner`: `externaKallor` – lista av URL-strängar, max 4 (`MAX_KALLOR` i
+  `RutinFormular.jsx`).
+- **Endast domäner ur `GODKANDA_KALLDOMANER`,** validerat i tre lager: klienten
+  (`src/config/kalldomaner.js`, delad med den nya bevakningsfunktionen), `firestore.rules`
+  (`urlHarGodkandDoman`/`arGodkandaKallor`, samma domänlista skriven som en regex), och
+  källbevakningsjobbet självt (21b) vägrar hämta en URL utanför listan även om den skulle ha
+  smugit sig igenom (samma "extra skyddslager"-princip som klinikstöd-sökningens egen
+  domänkontroll).
+- Migrering: `hittaGodkandaUrlerIText` läser innehåll/referenser och föreslår redan skrivna
+  URL:er (till godkända domäner) som strukturerade referenser – ett klick för att lägga till,
+  aldrig automatiskt.
+- **Fix (samma regelbudgetproblem som 19b/19c):** att lägga till källkontrollen bredvid
+  steg-/kviss-kontrollerna i `rutiner`-uppdateringsregeln slog i Firestores tak på 1000
+  deluttryck EN GÅNG TILL. Den här gången räckte inte bara att cacha `.size()` – löstes genom
+  att även slå ihop `harTroligtPersonnummerISteg`/`IKviss` till EN regex-matchning över en
+  konkatenerad sträng istället för upp till 12/4 separata `harTroligtPersonnummer()`-anrop
+  (regex-matchningen är den dyra delen, inte `.get()`-anropen), plus att sänka källtaket till 4.
 
-### 21b – Bevakningsjobb
+### 21b – Bevakningsjobb ✅ KLAR
 
-- Schemalagt jobb (veckovis) hämtar varje refererad sida och jämför en hash av
-  huvudinnehållet mot senast sparade.
-- **Måste vara snällt mot källorna, och respektera mer än robots.txt:** respektera
-  `robots.txt`, sprid anropen över tid, sätt en tydlig User-Agent, cacha per URL över alla
-  organisationer så att samma sida inte hämtas en gång per kund. Kontrollera också källans
-  användarvillkor – en del sidor tillåter enligt robots.txt men förbjuder skrapning i sina
-  ToS; robots.txt är inte hela svaret juridiskt.
-- Skilj på verklig ändring och brus (datumstämplar, annonser, navigation) – annars blir
-  funktionen en falsklarmsmaskin och slås av. Börja med rubrik- och brödtextextraktion, mät
-  falsklarmsfrekvensen under några veckor innan notiser aktiveras för kund.
+- `kontrolleraKallbevakning` (schemalagt varje måndag 04:00, `functions/index.js`) hämtar varje
+  unik URL som refereras av en godkänd rutin i en organisation med modulen påslagen, och
+  jämför en sha256-hash av den extraherade brödtexten mot senast sparade
+  (`kallbevakning/{urlHash}`, en delad cache över ALLA organisationer – samma URL hämtas bara
+  en gång per körning oavsett antal kunder som refererar den).
+- Respekterar `robots.txt` (enkel tolkning av `Disallow` för `User-agent: *`), sätter ett
+  tydligt `User-Agent`, och pausar en halv sekund mellan varje hämtning.
+- **Olöst, kräver ägarens ställningstagande:** ingen juridisk genomgång av källornas
+  användarvillkor (ToS) har gjorts – dokumenterat som ett eget tillägg i
+  `SAKERHETSRAPPORT.md` (2026-07-28), med rekommendationen att göra den genomgången innan
+  modulen aktiveras för en betalande kund.
+- **Förenkling mot planen:** ingen mätning av falsklarmsfrekvens över tid är byggd – en
+  ändringsflagga innebär i dag alltid en notis, det finns ingen automatisk "vänta några veckor
+  innan notiser aktiveras"-mekanik. Dokumenterat som en känd begränsning snarare än
+  underbyggt med data, i linje med genomgående krav 8.
+- 4 nya functions-tester (`tests/functions/kallbevakning.test.cjs`, mockar `fetch`): ingen
+  hämtning för en organisation utan modulen, ingen flagga vid FÖRSTA kontrollen av en ny källa,
+  flagga vid en verklig ändring, trasig länk (404) flaggas som en egen typ.
 
-### 21c – Notis och åtgärd
+### 21c – Notis och åtgärd ✅ KLAR
 
-- Rutinens ägare (ägarskap finns sedan fas 16/17) får notis: "Källan X har uppdaterats sedan
-  rutinen granskades."
-- Vy som visar vad som ändrats, med två val: "granskad, ingen ändring behövs" (uppdaterar
-  granskningsdatum) eller "öppna för redigering".
-- Antal obesvarade källvarningar in i ledningsrapporten och veckopulsen.
+- Ny stående notis-post i `useNotiser.js` (samma ägar-filtrering som granskningspåminnelser):
+  riktas till rutinens ägare om satt, annars till redaktörerna för området.
+- `RutinKort.jsx` visar en varningsruta med källänken och två val: "Granskad, ingen ändring
+  behövs" (rensar `kallVarning`, sätter `kallVarningGranskadAv`/`Datum`) eller "Öppna för
+  redigering" (samma formulär som vanligt).
+- Obesvarade källvarningar in i `Ledningsrapport.jsx` (veckopulsen, Etapp 16, är inte byggd än
+  – samma premisskontroll-avvikelse som redan dokumenterad i Etapp 20c).
 
-### 21d – Kostnads- och driftkontroll
+### 21d – Kostnads- och driftkontroll ✅ KLAR (förenklad)
 
-- Tak för antal hämtningar per organisation och månad, i samma anda som Gemini-budgetspärren,
-  styrbart från adminpanelen.
-- Trasig länk (404) rapporteras som en egen typ – det är i sig ett kvalitetsfynd.
+- Trasig länk (404) rapporteras som en egen typ (`kallVarningTyp: "trasig_lank"`), skilt från
+  en faktisk innehållsändring (`"andring"`).
+- **Förenkling mot planen:** inget separat, adminpanel-styrbart tak för antal hämtningar per
+  organisation och månad är byggt. Den delade URL-cachen (21b) begränsar redan strukturellt
+  totalkostnaden till antalet UNIKA källor över alla kunder (inte per kund), vilket i praktiken
+  är en hård, förutsägbar övre gräns (max 4 källor × antal godkända rutiner) utan att behöva en
+  egen konfigurerbar kvot – dokumenterat här som en medveten förenkling, inte en glömd punkt.
 
 **Klart när:** en rutin vars källa ändrats syns som "behöver granskas" utan att någon
 människa upptäckt det manuellt, och falsklarmen är få nog att notiserna tas på allvar.
@@ -897,3 +923,7 @@ människa upptäckt det manuellt, och falsklarmen är få nog att notiserna tas 
 8. **Kvarvarande från Etapp 12:** `enforceAppCheck: true` (12c-ii) efter mätperioden, samt
    testet i 12c-iii. **Måste** vara på plats innan etapp 15 tar emot externa kunder i skarp
    drift (inte bara en rekommendation – se beroenderaden i Etapp 15).
+9. **Etapp 21b (ny):** juridisk genomgång av användarvillkoren för de sju källdomänerna
+   (`GODKANDA_KALLDOMANER`) innan `kallbevakning`-modulen aktiveras för en betalande kund –
+   `robots.txt` är hedrat i koden, men är inte hela det juridiska svaret. Se
+   `SAKERHETSRAPPORT.md` (tillägg 2026-07-28).

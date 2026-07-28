@@ -171,19 +171,26 @@ service cloud.firestore {
     // (max 1000 deluttryck) att ta slut när kviss-kontrollen lades till bredvid denna. Genom
     // att räkna ut storleken EN gång i harTroligtPersonnummerISteg ovan och skicka in den som
     // parameter n, kostar varje index bara sin egen harTroligtPersonnummer()-jämförelse.
+    // Etapp 21a: samma regelbudget tog slut IGEN när källdomän-kontrollen lades till bredvid
+    // den här – även upp till 12 separata harTroligtPersonnummer()-anrop (var och en en dyr
+    // regex-matchning) var för mycket. Slår nu ihop alla stegtexter till EN sträng och gör
+    // EN regex-matchning istället för upp till tolv – get()-anropen kvarstår (måste läsa varje
+    // index), men den dyra delen (regex) körs bara en gång.
     function harTroligtPersonnummerIStegN(steg, n) {
-      return (n > 0 && harTroligtPersonnummer(steg[0].get('text', '')))
-          || (n > 1 && harTroligtPersonnummer(steg[1].get('text', '')))
-          || (n > 2 && harTroligtPersonnummer(steg[2].get('text', '')))
-          || (n > 3 && harTroligtPersonnummer(steg[3].get('text', '')))
-          || (n > 4 && harTroligtPersonnummer(steg[4].get('text', '')))
-          || (n > 5 && harTroligtPersonnummer(steg[5].get('text', '')))
-          || (n > 6 && harTroligtPersonnummer(steg[6].get('text', '')))
-          || (n > 7 && harTroligtPersonnummer(steg[7].get('text', '')))
-          || (n > 8 && harTroligtPersonnummer(steg[8].get('text', '')))
-          || (n > 9 && harTroligtPersonnummer(steg[9].get('text', '')))
-          || (n > 10 && harTroligtPersonnummer(steg[10].get('text', '')))
-          || (n > 11 && harTroligtPersonnummer(steg[11].get('text', '')));
+      return harTroligtPersonnummer(
+        (n > 0 ? steg[0].get('text', '') : '') + ' ' +
+        (n > 1 ? steg[1].get('text', '') : '') + ' ' +
+        (n > 2 ? steg[2].get('text', '') : '') + ' ' +
+        (n > 3 ? steg[3].get('text', '') : '') + ' ' +
+        (n > 4 ? steg[4].get('text', '') : '') + ' ' +
+        (n > 5 ? steg[5].get('text', '') : '') + ' ' +
+        (n > 6 ? steg[6].get('text', '') : '') + ' ' +
+        (n > 7 ? steg[7].get('text', '') : '') + ' ' +
+        (n > 8 ? steg[8].get('text', '') : '') + ' ' +
+        (n > 9 ? steg[9].get('text', '') : '') + ' ' +
+        (n > 10 ? steg[10].get('text', '') : '') + ' ' +
+        (n > 11 ? steg[11].get('text', '') : '')
+      );
     }
 
     // Etapp 18a: checklistläget är till för att gå igenom UNDER STRESS – en checklista med
@@ -201,16 +208,48 @@ service cloud.firestore {
       return harTroligtPersonnummerIKvissN(kviss, kviss.size());
     }
 
-    // Samma .size()-cachning som harTroligtPersonnummerIStegN ovan, och av samma anledning.
+    // Samma .size()-cachning OCH samma en-regex-istället-för-flera-trick som
+    // harTroligtPersonnummerIStegN ovan.
     function harTroligtPersonnummerIKvissN(kviss, n) {
-      return (n > 0 && (harTroligtPersonnummer(kviss[0].get('fraga', '')) || harTroligtPersonnummer(kviss[0].get('hanvisning', ''))))
-          || (n > 1 && (harTroligtPersonnummer(kviss[1].get('fraga', '')) || harTroligtPersonnummer(kviss[1].get('hanvisning', ''))))
-          || (n > 2 && (harTroligtPersonnummer(kviss[2].get('fraga', '')) || harTroligtPersonnummer(kviss[2].get('hanvisning', ''))))
-          || (n > 3 && (harTroligtPersonnummer(kviss[3].get('fraga', '')) || harTroligtPersonnummer(kviss[3].get('hanvisning', ''))));
+      return harTroligtPersonnummer(
+        (n > 0 ? kviss[0].get('fraga', '') + ' ' + kviss[0].get('hanvisning', '') : '') + ' ' +
+        (n > 1 ? kviss[1].get('fraga', '') + ' ' + kviss[1].get('hanvisning', '') : '') + ' ' +
+        (n > 2 ? kviss[2].get('fraga', '') + ' ' + kviss[2].get('hanvisning', '') : '') + ' ' +
+        (n > 3 ? kviss[3].get('fraga', '') + ' ' + kviss[3].get('hanvisning', '') : '')
+      );
     }
 
     function arKortKvissLista(kviss) {
       return kviss.size() <= 4;
+    }
+
+    // Etapp 21a: samma godkända källdomäner som klinikstöd-sökningen (GODKANDA_KALLDOMANER i
+    // functions/index.js – håll listorna synkade, se CLAUDE.md-kravet om det). Regelspråket
+    // saknar URL-parsning, så domänen kontrolleras med ett regexp mot hela strängen istället.
+    function urlHarGodkandDoman(url) {
+      return url.matches(
+        '(?i)^https://([a-z0-9-]+[.])*(internetmedicin[.]se|1177[.]se|nationelltklinisktkunskapsstod[.]se'
+        + '|fass[.]se|lakemedelsverket[.]se|vardhandboken[.]se|folkhalsomyndigheten[.]se)([/].*)?$'
+      );
+    }
+
+    function arGodkandaKallor(kallor) {
+      return arGodkandaKallorN(kallor, kallor.size());
+    }
+
+    // Samma .size()-cachning som harTroligtPersonnummerIStegN/IKvissN ovan, och av samma
+    // anledning (Firestores tak på 1000 utvärderade deluttryck per regelanrop).
+    // Taket på 4 källor (arKortKallLista nedan) håller nere hur många deluttryck den här
+    // funktionen kostar per anrop – en rutin behöver sällan fler curerade referenser än så.
+    function arGodkandaKallorN(kallor, n) {
+      return (n <= 0 || urlHarGodkandDoman(kallor[0]))
+          && (n <= 1 || urlHarGodkandDoman(kallor[1]))
+          && (n <= 2 || urlHarGodkandDoman(kallor[2]))
+          && (n <= 3 || urlHarGodkandDoman(kallor[3]));
+    }
+
+    function arKortKallLista(kallor) {
+      return kallor.size() <= 4;
     }
 
     // Etapp 6a: leverantörsadmin-allowlist. Existens ÄR behörigheten (se arPlattformsadmin()
@@ -307,6 +346,8 @@ service cloud.firestore {
               )
               && arKortStegLista(nytt.get('steg', []))
               && arKortKvissLista(nytt.get('kviss', []))
+              && arKortKallLista(nytt.get('externaKallor', []))
+              && arGodkandaKallor(nytt.get('externaKallor', []))
               && !harTroligtPersonnummer(nytt.get('titel', ''))
               && !harTroligtPersonnummer(nytt.get('innehall', ''))
               && !harTroligtPersonnummer(nytt.get('referenser', ''))
@@ -330,6 +371,8 @@ service cloud.firestore {
                      && (request.resource.data.get('akutlage', false) == false || farGodkannaKlinisktInnehall())
                      && arKortStegLista(request.resource.data.get('steg', []))
                      && arKortKvissLista(request.resource.data.get('kviss', []))
+                     && arKortKallLista(request.resource.data.get('externaKallor', []))
+                     && arGodkandaKallor(request.resource.data.get('externaKallor', []))
                      && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('innehall', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('referenser', ''))

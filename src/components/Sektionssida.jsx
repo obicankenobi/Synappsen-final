@@ -111,6 +111,7 @@ export default function Sektionssida({
     steg,
     kviss,
     vasentligAndring,
+    externaKallor,
   }) {
     if (redigerar) {
       const nyaBilagor = nyaFiler.length ? await laddaUppRutinBilagor(omrade, redigerar.id, nyaFiler) : [];
@@ -127,6 +128,7 @@ export default function Sektionssida({
           agare,
           steg,
           kviss,
+          externaKallor,
           ...(farKureraAkutlage ? { akutlage, akutlageOrdning } : {}),
           // Etapp 19c: bara den som får godkänna kliniskt innehåll kan kryssa i "väsentlig
           // ändring" (samma roller som farKureraAkutlage, se firestore.rules) – annars kunde
@@ -152,6 +154,7 @@ export default function Sektionssida({
         agare,
         steg,
         kviss,
+        externaKallor,
       });
     }
     setVisaFormular(false);
@@ -348,6 +351,13 @@ export default function Sektionssida({
             onGodkann={(id) => godkannRutin(id, currentUser.uid, currentUser.email)}
             onTaBort={(id) => taBortRutin(id, currentUser.uid)}
             onMarkeraGranskad={(id) => markeraGranskad(id, currentUser.uid, currentUser.email)}
+            onGranskaKalla={(id) =>
+              uppdateraRutin(
+                id,
+                { kallVarning: false, kallVarningGranskadAv: currentUser.email, kallVarningGranskadDatum: serverTimestamp() },
+                currentUser.uid
+              )
+            }
             onAterstallVersion={(version) => hanteraAterstallVersion(rutin.id, version)}
             hamtaVersioner={hamtaVersioner}
           />

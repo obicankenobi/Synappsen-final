@@ -10,6 +10,7 @@ export const FEATURE = {
   AI_IMPORT: "aiImport",
   AI_ANALYTICS: "aiAnalytics",
   CLINICAL_SUPPORT: "clinicalSupport",
+  SOURCE_MONITORING: "sourceMonitoring",
 };
 
 // Modulnamnen matchar fälten i organisationer/{orgId}.moduler (se functions/index.js
@@ -24,6 +25,7 @@ export const PACKAGE_FEATURES = {
     FEATURE.KIOSK_MODE,
   ],
   intelligence: [FEATURE.AI_IMPORT, FEATURE.AI_ANALYTICS, FEATURE.CLINICAL_SUPPORT],
+  kallbevakning: [FEATURE.SOURCE_MONITORING],
 };
 
 // Härleder vilka FEATURE-nycklar en organisation har tillgång till utifrån dess

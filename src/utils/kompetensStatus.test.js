@@ -22,13 +22,14 @@ describe("senasteKvittens", () => {
   });
 
   it("väljer den senaste av flera kvitteringar från samma person", () => {
+    const senasteDatum = dagarSedan(10);
     const rutin = {
       lasteAv: [
         { uid: "u1", tidpunkt: tidsstampel(dagarSedan(100)) },
-        { uid: "u1", tidpunkt: tidsstampel(dagarSedan(10)) },
+        { uid: "u1", tidpunkt: tidsstampel(senasteDatum) },
       ],
     };
-    expect(senasteKvittens(rutin, "u1").tidpunkt.toDate()).toEqual(dagarSedan(10));
+    expect(senasteKvittens(rutin, "u1").tidpunkt.toDate()).toEqual(senasteDatum);
   });
 });
 

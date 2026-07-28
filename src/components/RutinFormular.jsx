@@ -7,7 +7,18 @@ import { useDialog } from "../hooks/useDialog";
 import { useFeatures } from "../hooks/useFeatures";
 import { FEATURE } from "../config/features";
 import { foreslaChecklistSteg, foreslaKvissfragor } from "../firebase/functions";
+import { GODKANDA_KALLDOMANER, domanGodkand } from "../config/kalldomaner";
 import "./RutinFormular.css";
+
+const MAX_KALLOR = 4;
+
+// Etapp 21a: "Migrering" enligt planen – hitta URL:er som redan står i den skrivna texten
+// och föreslå dem som strukturerade referenser, istället för att skanna alla rutiner i en
+// separat batchkörning. Föreslår bara godkända källdomäner, aldrig andra.
+function hittaGodkandaUrlerIText(text) {
+  const traffar = text.match(/https?:\/\/[^\s)]+/g) ?? [];
+  return [...new Set(traffar.filter(domanGodkand))];
+}
 
 export default function RutinFormular({
   initialaVarden,
@@ -83,6 +94,30 @@ export default function RutinFormular({
   const [kviss, setKviss] = useState(initialaVarden?.kviss ?? []);
   const [foreslarKviss, setForeslarKviss] = useState(false);
   const [vasentligAndring, setVasentligAndring] = useState(false);
+
+  const [externaKallor, setExternaKallor] = useState(initialaVarden?.externaKallor ?? []);
+  const [nyKalla, setNyKalla] = useState("");
+  const [kallaFel, setKallaFel] = useState("");
+
+  function laggTillKalla(url) {
+    const trimmad = url.trim();
+    if (!trimmad || externaKallor.length >= MAX_KALLOR || externaKallor.includes(trimmad)) return;
+    if (!domanGodkand(trimmad)) {
+      setKallaFel(`Bara länkar till godkända källor accepteras: ${GODKANDA_KALLDOMANER.join(", ")}.`);
+      return;
+    }
+    setKallaFel("");
+    setExternaKallor((k) => [...k, trimmad]);
+    setNyKalla("");
+  }
+
+  function taBortKalla(index) {
+    setExternaKallor((k) => k.filter((_, i) => i !== index));
+  }
+
+  const foreslagnaKallor = hittaGodkandaUrlerIText(`${innehall} ${referenser}`).filter(
+    (url) => !externaKallor.includes(url)
+  );
 
   function laggTillFraga() {
     if (kviss.length >= 4) return;
@@ -250,6 +285,7 @@ export default function RutinFormular({
             hanvisning: f.hanvisning?.trim() || "",
           })),
         vasentligAndring,
+        externaKallor,
       });
     } finally {
       setSparar(false);
@@ -481,6 +517,65 @@ export default function RutinFormular({
           </button>
         )}
       </fieldset>
+
+      {hasFeature(FEATURE.SOURCE_MONITORING) && (
+      <fieldset className="rutin-formular__checklista">
+        <legend>Källbevakade referenser (valfritt, max {MAX_KALLOR})</legend>
+        <p className="rutin-formular__hjalptext">
+          Bara länkar till godkända källdomäner ({GODKANDA_KALLDOMANER.join(", ")}) accepteras.
+          En schemalagd kontroll (Etapp 21b) bevakar sidan och flaggar rutinen för granskning om
+          källan ändras.
+        </p>
+        {externaKallor.length > 0 && (
+          <ul className="rutin-formular__steglista">
+            {externaKallor.map((url, i) => (
+              <li key={url} className="rutin-formular__stegrad">
+                <a href={url} target="_blank" rel="noreferrer">
+                  {url}
+                </a>
+                <div className="rutin-formular__stegatgarder">
+                  <button type="button" className="knapp knapp--liten knapp--sekundar" onClick={() => taBortKalla(i)}>
+                    Ta bort
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {foreslagnaKallor.length > 0 && externaKallor.length < MAX_KALLOR && (
+          <div>
+            <p className="rutin-formular__hjalptext">Hittade i texten ovan:</p>
+            <ul className="rutin-formular__steglista">
+              {foreslagnaKallor.map((url) => (
+                <li key={url} className="rutin-formular__stegrad">
+                  <span>{url}</span>
+                  <button type="button" className="knapp knapp--liten" onClick={() => laggTillKalla(url)}>
+                    + Lägg till som referens
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {externaKallor.length < MAX_KALLOR && (
+          <div className="rutin-formular__stegtimer">
+            <input
+              type="url"
+              placeholder="https://..."
+              value={nyKalla}
+              onChange={(e) => {
+                setNyKalla(e.target.value);
+                setKallaFel("");
+              }}
+            />
+            <button type="button" className="knapp knapp--liten" onClick={() => laggTillKalla(nyKalla)}>
+              + Lägg till källa
+            </button>
+          </div>
+        )}
+        {kallaFel && <p className="rutin-formular__hjalptext">{kallaFel}</p>}
+      </fieldset>
+      )}
 
       <label>
         Ansvarig (valfritt)

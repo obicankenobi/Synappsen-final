@@ -33,6 +33,17 @@ export default function ModulerSektion({ modulerLaddade, moduler, sparadModul, v
               </label>
               {sparadModul === "intelligence" && " ✓ Sparat"}
             </li>
+            <li>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={moduler.kallbevakning === true}
+                  onChange={(e) => vaxlaModul("kallbevakning", e.target.checked)}
+                />{" "}
+                Källbevakning (bevakar rutiners externa referenser efter ändringar)
+              </label>
+              {sparadModul === "kallbevakning" && " ✓ Sparat"}
+            </li>
           </ul>
         )}
       </div>

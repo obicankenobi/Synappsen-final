@@ -675,6 +675,57 @@ async function main() {
     )
   );
 
+  console.log("\nrutiner/{rutinId}.externaKallor – Etapp 21a: bara godkända källdomäner, taklängd 4");
+  await test("volA KAN skapa en rutin med en referens till en godkänd källdomän", () =>
+    assertSucceeds(
+      addDoc(collection(volA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "Med källa",
+        innehall: "x",
+        externaKallor: ["https://www.internetmedicin.se/artikel"],
+      })
+    )
+  );
+  await test("volA kan INTE skapa en rutin med en referens till en icke-godkänd domän", () =>
+    assertFails(
+      addDoc(collection(volA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "Med otillåten källa",
+        innehall: "x",
+        externaKallor: ["https://www.example.com/artikel"],
+      })
+    )
+  );
+  await test("volA kan INTE spara en rutin med fler än 4 källor", () =>
+    assertFails(
+      addDoc(collection(volA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "För många källor",
+        innehall: "x",
+        externaKallor: [
+          "https://www.1177.se/a",
+          "https://www.1177.se/b",
+          "https://www.1177.se/c",
+          "https://www.1177.se/d",
+          "https://www.1177.se/e",
+        ],
+      })
+    )
+  );
+  await test("sektionsledareA kan INTE smyga in en otillåten källdomän vid en uppdatering", () =>
+    assertFails(
+      updateDoc(doc(sektionsledareA, "rutiner", "rutinKurateradA"), {
+        externaKallor: ["https://evil.example.com"],
+      })
+    )
+  );
+
   console.log("\nrutiner/{rutinId}.senasteVasentligaAndring – Etapp 19c: bara VÖL/superadmin flaggar väsentlig ändring");
   await test("sektionsledareA (redigerar men godkänner inte) kan INTE sätta senasteVasentligaAndring", () =>
     assertFails(

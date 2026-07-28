@@ -56,6 +56,10 @@ export default function Ledningsrapport() {
     [klinisktRutiner, adminRutiner, antalAnvandare]
   );
 
+  // Etapp 21c: obesvarade källvarningar in i ledningsrapporten (veckopulsen, Etapp 16, är inte
+  // byggd än – se ETAPPLAN3.md Etapp 20c för samma premisskontroll-avvikelse).
+  const kallvarningar = [...klinisktRutiner, ...adminRutiner].filter((r) => r.kallVarning === true);
+
   const logistikUtkast = forradsartiklar.filter((a) => a.status === ARTIKEL_STATUS.UTKAST).length;
   const logistikGodkanda = forradsartiklar.filter((a) => a.status === ARTIKEL_STATUS.GODKAND).length;
 
@@ -122,6 +126,23 @@ export default function Ledningsrapport() {
           </tbody>
         </table>
       </section>
+
+      {kallvarningar.length > 0 && (
+        <section className="admin-sektion">
+          <h2>⚠️ Obesvarade källvarningar ({kallvarningar.length})</h2>
+          <p className="sida__beskrivning">
+            Rutiner vars externa referens har ändrats sedan senaste granskningen (Etapp 21).
+          </p>
+          <ul className="admin-lista">
+            {kallvarningar.map((r) => (
+              <li key={r.id} className="admin-lista__rad">
+                {r.titel}
+                <div className="admin-lista__email">{r.kallVarningUrl}</div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="admin-sektion">
         <h2>Rutiner som bör granskas</h2>
