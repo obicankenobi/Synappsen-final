@@ -5,6 +5,10 @@ import {
   reauthenticateWithCredential,
   updatePassword,
 } from "firebase/auth";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase/config";
+import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
+import { useDialog } from "../hooks/useDialog";
 import { useAuth } from "../hooks/useAuth";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
 import TvaFaktorSektion from "../components/TvaFaktorSektion";
@@ -13,8 +17,61 @@ import { useSnabblankar, ALLA_SNABBLANKAR } from "../hooks/useSnabblankar";
 import { ROLE_LABELS } from "../firebase/roles";
 import "./Profil.css";
 
+// Etapp 22a: eget litet formulär för visningsnamnet. Mountas av Profil.jsx FÖRST när
+// namnLaddat är sant (se nedan) – då finns `aktuelltNamn` redan när komponenten skapas, så
+// startvärdet kan sättas med en vanlig (lat) useState-initierare istället för en effekt som
+// synkar in det asynkront, samma mönster som RutinFormular.jsx redan använder för
+// initialaVarden.
+function NamnFormular({ uid, aktuelltNamn }) {
+  const { visaMeddelande } = useDialog();
+  const [nyttNamn, setNyttNamn] = useState(aktuelltNamn);
+  const [sparasNamn, setSparasNamn] = useState(false);
+  const [sparat, setSparat] = useState(false);
+
+  async function hanteraSparaNamn(e) {
+    e.preventDefault();
+    const kontroll = kontrolleraPatientuppgifter(nyttNamn);
+    if (kontroll.blockerad) {
+      if (kontroll.meddelande) visaMeddelande(kontroll.meddelande);
+      return;
+    }
+    setSparasNamn(true);
+    setSparat(false);
+    try {
+      await updateDoc(doc(db, "users", uid), { namn: nyttNamn.trim() });
+      setSparat(true);
+    } finally {
+      setSparasNamn(false);
+    }
+  }
+
+  return (
+    <form className="profil-namn-formular" onSubmit={hanteraSparaNamn}>
+      <label>
+        Visningsnamn
+        <input
+          type="text"
+          required
+          value={nyttNamn}
+          onChange={(e) => {
+            setNyttNamn(e.target.value);
+            setSparat(false);
+          }}
+        />
+      </label>
+      <p className="sida__beskrivning">
+        Visas istället för din e-postadress vid kvitteringar och godkännanden.
+      </p>
+      <button type="submit" className="knapp knapp--liten" disabled={sparasNamn}>
+        {sparasNamn ? "Sparar..." : "Spara namn"}
+      </button>
+      {sparat && <span className="profil-meddelande--ok"> ✓ Sparat</span>}
+    </form>
+  );
+}
+
 export default function Profil() {
-  const { currentUser, role } = useAuth();
+  const { currentUser, role, namn, namnLaddat } = useAuth();
   const favoritPoster = useMinaFavoritPoster();
   const { synliga: snabblankar, satValda: satSnabblankar } = useSnabblankar(currentUser.uid);
 
@@ -61,6 +118,15 @@ export default function Profil() {
         <p>
           <strong>Roll:</strong> {ROLE_LABELS[role] ?? role}
         </p>
+      </section>
+
+      <section className="profil-sektion">
+        <h2>👤 Visningsnamn</h2>
+        {namnLaddat ? (
+          <NamnFormular uid={currentUser.uid} aktuelltNamn={namn ?? ""} />
+        ) : (
+          <p className="sida__beskrivning">Laddar...</p>
+        )}
       </section>
 
       <section className="profil-sektion">

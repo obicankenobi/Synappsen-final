@@ -9,7 +9,8 @@ import AnslagKort from "../components/AnslagKort";
 import Skelett from "../components/Skelett";
 
 export default function Anslagstavla() {
-  const { currentUser, role } = useAuth();
+  const { currentUser, role, namn } = useAuth();
+  const mittNamn = namn || currentUser?.email;
   const { anslag, laddar, skapaAnslag, uppdateraAnslag, taBortAnslag } = useAnslag();
   const { anvandare } = useAnvandare();
   const [redigerar, setRedigerar] = useState(null);
@@ -21,7 +22,7 @@ export default function Anslagstavla() {
     if (redigerar) {
       await uppdateraAnslag(redigerar.id, varden, currentUser.uid);
     } else {
-      await skapaAnslag({ ...varden, skapadAv: currentUser.uid, skapadAvNamn: currentUser.email });
+      await skapaAnslag({ ...varden, skapadAv: currentUser.uid, skapadAvNamn: mittNamn });
     }
     setVisaFormular(false);
     setRedigerar(null);

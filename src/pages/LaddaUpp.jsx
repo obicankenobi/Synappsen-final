@@ -31,7 +31,8 @@ function genId() {
 }
 
 export default function LaddaUpp() {
-  const { currentUser } = useAuth();
+  const { currentUser, namn } = useAuth();
+  const mittNamn = namn || currentUser?.email;
   const { confirm } = useDialog();
   const { laddat: featuresLaddade, hasFeature } = useFeatures();
   const [omrade, setOmrade] = useState(OMRADEN[0].varde);
@@ -175,7 +176,7 @@ export default function LaddaUpp() {
   async function godkannPostRutin(post) {
     setHanterar(post.id);
     try {
-      await godkannRutin(post.resultat.rutinId, currentUser.uid, currentUser.email);
+      await godkannRutin(post.resultat.rutinId, currentUser.uid, mittNamn);
     } finally {
       setHanterar(null);
     }

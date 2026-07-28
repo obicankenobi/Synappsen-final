@@ -6,7 +6,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 import { STANDARD_ORG } from "../firebase/organisation";
 import { losInInbjudan } from "../firebase/functions";
@@ -16,6 +16,8 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [role, setRole] = useState(null);
   const [organisationId, setOrganisationId] = useState(null);
+  const [namn, setNamn] = useState(null);
+  const [namnLaddat, setNamnLaddat] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Etapp 6c: registrering kräver numera alltid en giltig inbjudan – öppen självbetjänings-
@@ -61,13 +63,39 @@ export function AuthProvider({ children }) {
       } else {
         setRole(null);
         setOrganisationId(null);
+        setNamn(null);
+        setNamnLaddat(false);
       }
       setLoading(false);
     });
     return unsubscribe;
   }, []);
 
-  const value = { currentUser, role, organisationId, loading, registrera, loggaIn, loggaUt };
+  // Etapp 22a: eget visningsnamn (Profil.jsx), lyssnat live (inte bara vid inloggning) så en
+  // ändring där syns direkt överallt annars i appen som visar "vem gjorde det här" – utan att
+  // röra ovanstående effekt, som redan styr `loading`-grinden och inte ska bli reaktiv.
+  // Nollställning vid utloggning sker i effekten ovan – här hanteras bara den inloggade
+  // prenumerationen, så effektkroppen aldrig anropar setState direkt (bara i callbacken).
+  useEffect(() => {
+    if (!currentUser?.uid) return undefined;
+    const unsubscribe = onSnapshot(doc(db, "users", currentUser.uid), (snap) => {
+      setNamn(snap.exists() ? (snap.data().namn ?? null) : null);
+      setNamnLaddat(true);
+    });
+    return unsubscribe;
+  }, [currentUser?.uid]);
+
+  const value = {
+    currentUser,
+    role,
+    organisationId,
+    namn,
+    namnLaddat,
+    loading,
+    registrera,
+    loggaIn,
+    loggaUt,
+  };
 
   return (
     <AuthContext.Provider value={value}>

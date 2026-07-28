@@ -15,7 +15,7 @@ import { STARTVY_BLOCK } from "../config/startvy";
 import { ROLE_LABELS, ROLES } from "../firebase/roles";
 
 export default function Hem() {
-  const { currentUser, role, loggaUt } = useAuth();
+  const { currentUser, role, namn, loggaUt } = useAuth();
   const favoritPoster = useMinaFavoritPoster();
   const populara = usePopularaste(5);
   const { synliga: snabblankar } = useSnabblankar(currentUser?.uid);
@@ -46,7 +46,7 @@ export default function Hem() {
           <h1>Synappsen</h1>
           {currentUser && (
             <p className="hem__valkommen">
-              Inloggad som {currentUser.email}
+              Inloggad som {namn || currentUser.email}
               {role && ` (${ROLE_LABELS[role] ?? role})`}
             </p>
           )}

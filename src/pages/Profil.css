@@ -12,21 +12,24 @@
   margin: 0 0 12px;
 }
 
-.profil-losenord-formular {
+.profil-losenord-formular,
+.profil-namn-formular {
   display: flex;
   flex-direction: column;
   gap: 12px;
   max-width: 320px;
 }
 
-.profil-losenord-formular label {
+.profil-losenord-formular label,
+.profil-namn-formular label {
   display: flex;
   flex-direction: column;
   gap: 6px;
   font-weight: 500;
 }
 
-.profil-losenord-formular input {
+.profil-losenord-formular input,
+.profil-namn-formular input {
   padding: 10px 12px;
   border: 1px solid var(--kant);
   box-shadow: var(--skugga);

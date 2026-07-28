@@ -1,13 +1,16 @@
-# ETAPPLAN4 – Etapp 22–30 (UTKAST)
+# ETAPPLAN4 – Etapp 22–30 ✅ ANTAGEN (2026-07-28)
 
 *Fortsättning på `ETAPPLAN.md` (Etapp 0–5), `ETAPPLAN2.md` (Etapp 6–12) och `ETAPPLAN3.md`
 (Etapp 13–21). Utgångsläge: v5.39.0, Etapp 13–21 byggda utom 13f (SSO) och 16 (veckopuls),
 som är pausade i väntan på ägarens beslut.*
 
-> **Detta är ett utkast, inte ett beslut.** Ingen etapp nedan är påbörjad. Ordningen och
-> innehållet är ett förslag från utvecklarsidan och ska stötas mot verksamheten innan något
-> byggs – särskilt Etapp 24 (push) och 26 (ändringsförslag), som båda ändrar hur personalen
-> upplever att bli störd respektive lyssnad på.
+> **Antagen som plan (2026-07-28), inklusive tillägget 22e** (lätt personifiering: valfri
+> profilbild och eget tema/accentval – se motivering och avgränsning där). Etapperna nedan är
+> fortfarande opåbörjade i tur och ordning **utom 22a**, som redan är byggd (se ✅ KLAR-
+> markeringen). Detaljerna inom varje etapp kan fortfarande omprövas mot verksamheten under
+> byggets gång, särskilt Etapp 24 (push) och 26 (ändringsförslag), som båda ändrar hur
+> personalen upplever att bli störd respektive lyssnad på – men själva ordningen och urvalet
+> är beslutat.
 
 ---
 
@@ -71,7 +74,7 @@ kvalitetshöjningen som finns kvar i produkten.
 
 **Modul:** ingen (Core – ska alltid vara på).
 
-### 22a – Namn istället för e-postadresser
+### 22a – Namn istället för e-postadresser ✅ KLAR
 
 - **Premisskontroll (bekräftad i kod):** `users.namn` sätts redan när ett konto skapas via
   inbjudan (`losInInbjudan` i `functions/index.js`), men gränssnittet skriver ändå ut
@@ -84,6 +87,37 @@ kvalitetshöjningen som finns kvar i produkten.
 - **Arbete:** hämta namnet via `useAnvandare()`/`useAuth()` och skicka det istället för
   e-posten. Behåll e-post som fallback för konton som saknar namn (skapade före Etapp 6c).
 - Låt användaren ändra sitt visningsnamn i `Profil.jsx`.
+- **Genomfört:** `AuthContext.jsx` lyssnar nu live (`onSnapshot`) på det egna `users`-
+  dokumentet och exponerar `namn`/`namnLaddat`, så en ändring syns direkt utan omladdning.
+  `Profil.jsx` fick ett eget litet namnformulär (PII-kontrollerat precis som andra
+  fritextfält). Alla ställen som skickade `currentUser.email` som "vem gjorde det här"
+  (`Hem.jsx`, `RutinKort.jsx`, `AnslagKort.jsx`, `Sektionssida.jsx`, `Skiftrapport.jsx`,
+  `Anslagstavla.jsx`, `Logistik.jsx`, `LaddaUpp.jsx`, `ForradVy.jsx`) använder nu
+  `namn || currentUser.email` – e-post kvarstår bara som en äkta e-postvisning i `Profil.jsx`
+  och vid lösenordsbyte/2FA (`EmailAuthProvider.credential`, som kräver den faktiska
+  e-posten). `firestore.rules` tillåter nu självuppdatering av `namn` (med samma
+  personnummerspärr som andra fritextfält) – 4 nya rules-tester (122/122 totalt).
+
+### 22e – Lätt personifiering (tillägg efter diskussion, INTE i ursprungsutkastet)
+
+- **Bakgrund:** frågan väcktes om en fullständig personlig profil (bio, status, foto) vore
+  bra för attraktiviteten. Bedömning: en FULL profilfunktion (bios, statusuppdateringar,
+  ett "flöde") drar appen mot en social-nätverkskänsla, väcker en extra samtyckes-/GDPR-fråga
+  kring personalfoton, och ligger nära samma resonemang som redan gjorde att gamification och
+  chatt valdes bort i tabellen nedan.
+- **Avgränsning som antogs istället:** bara en valfri profilbild/avatar samt ett personligt
+  tema-/accentval i `Profil.jsx`. Ingen bio, ingen status, inget socialt flöde.
+  - Profilbild: lagras precis som andra bilagor (`laddaUppRutinBilagor`-mönstret), visas i
+    `FavoritKnapp`/kvitteringslistor bredvid namnet (22a). Helt valfri – ingen påminnelse om
+    att ladda upp en.
+  - Personligt tema/accentval: bygger på det CSS-variabelsystem som redan finns
+    (`TemaVaxlare.jsx`, `--primar` m.fl.) – ett fåtal fördefinierade, kontrastvaliderade
+    accentfärger att välja mellan, inte ett fritt färgval (samma WCAG AA-gräns som gäller för
+    Etapp 28:s kundprofilering).
+- **Gränsdragning som gäller permanent, inte bara vid lansering:** inga statusuppdateringar,
+  ingen text som andra användare skriver om sig själva, inget flöde av andras profiländringar.
+  Om det tillägget efterfrågas senare ska det tas upp som en egen, ny beslutspunkt – inte
+  glida in som en utökning av den här punkten.
 
 ### 22b – Tryck för att ringa
 
@@ -431,6 +465,7 @@ utan att någon aktivt argumenterar emot skälen nedan:
 | Videoklipp i rutiner | Lagrings- och bandbreddskostnad i en annan storleksordning, plus modereringsbehov. Ompröva när bildstödet (22c) visat sig användas. |
 | Personlig AI-assistent i appen | Klinikstöd-sökningen är redan pausad en gång för att den citerade källor utanför den godkända listan (se `SAKERHETSRAPPORT.md`). Bygg inte fler AI-ytor mot personalen förrän den befintliga är stabil. |
 | Schema-/bemanningsintegration | Stort, kräver integration mot regionens system, och tillför inget om personalen inte redan älskar grundfunktionerna. |
+| Full personlig profil (bio, statusuppdatering, socialt flöde) | Övervägdes och avgränsades till 22e (bild + tema). En bio/status som andra kan läsa drar mot samma social-nätverkskänsla som gamification/chatt ovan, och personalfoton/bios väcker en egen samtyckesfråga som inte finns idag – se avgränsningen i 22e. |
 
 ---
 

@@ -18,7 +18,8 @@ const IKONER = {
 };
 
 export default function Logistik() {
-  const { currentUser, role } = useAuth();
+  const { currentUser, role, namn } = useAuth();
+  const mittNamn = namn || currentUser?.email;
   const farHantera = KAN_HANTERA_FORRAD.includes(role);
   const { bristanmalningar, hanteraBristanmalning, avvisaBristanmalning } = useBristanmalningar();
   // Etapp 20c: hela organisationens artiklar (utan forrad-filter), bara för att räkna fram
@@ -58,13 +59,13 @@ export default function Logistik() {
                 <div className="forrad-artikel-kort__atgarder">
                   <button
                     className="knapp knapp--liten"
-                    onClick={() => hanteraBristanmalning(b.id, currentUser.uid, currentUser.email)}
+                    onClick={() => hanteraBristanmalning(b.id, currentUser.uid, mittNamn)}
                   >
                     Markera hanterad
                   </button>
                   <button
                     className="knapp knapp--liten knapp--sekundar"
-                    onClick={() => avvisaBristanmalning(b.id, currentUser.uid, currentUser.email)}
+                    onClick={() => avvisaBristanmalning(b.id, currentUser.uid, mittNamn)}
                   >
                     Avvisa
                   </button>

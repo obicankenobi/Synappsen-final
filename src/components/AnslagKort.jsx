@@ -10,7 +10,8 @@ function formateraTid(tidpunkt) {
 }
 
 export default function AnslagKort({ anslag, farHantera, anvandare = [], onRedigera, onTaBort }) {
-  const { currentUser } = useAuth();
+  const { currentUser, namn } = useAuth();
+  const mittNamn = namn || currentUser?.email;
   const arViktigt = anslag.prioritet === ANSLAG_PRIORITET.VIKTIGT;
   const lasteAv = anslag.lasteAv ?? [];
   const jagHarLast = lasteAv.some((l) => l.uid === currentUser?.uid);
@@ -48,7 +49,7 @@ export default function AnslagKort({ anslag, farHantera, anvandare = [], onRedig
           type="button"
           className="knapp knapp--sekundar knapp--liten"
           disabled={jagHarLast}
-          onClick={() => kvitteraLastAnslag(anslag.id, currentUser.uid, currentUser.email)}
+          onClick={() => kvitteraLastAnslag(anslag.id, currentUser.uid, mittNamn)}
         >
           {jagHarLast ? "✓ Du har läst detta" : "Jag har läst"}
         </button>

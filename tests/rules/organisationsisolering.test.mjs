@@ -208,6 +208,20 @@ async function main() {
     )
   );
 
+  console.log("\nusers/{uid}.namn – Etapp 22a: eget visningsnamn istället för e-post");
+  await test("volA KAN sätta sitt eget visningsnamn", () =>
+    assertSucceeds(updateDoc(doc(volA, "users", "volA"), { namn: "Anna Svensson" }))
+  );
+  await test("volA kan INTE sätta ett personnummer som eget visningsnamn", () =>
+    assertFails(updateDoc(doc(volA, "users", "volA"), { namn: "900101-0017" }))
+  );
+  await test("volA kan INTE smyga med en rollhöjning i samma skrivning som namn", () =>
+    assertFails(updateDoc(doc(volA, "users", "volA"), { namn: "Anna", role: "superadmin" }))
+  );
+  await test("volA kan INTE ändra en ANNAN användares namn", () =>
+    assertFails(updateDoc(doc(volA, "users", "sektionsledareA"), { namn: "Kapat namn" }))
+  );
+
   console.log("\norganisationer/{orgId}/installningar/valkomstchecklista – Etapp 15b");
   await test("superadminA KAN bocka av ett eget checklistesteg", () =>
     assertSucceeds(

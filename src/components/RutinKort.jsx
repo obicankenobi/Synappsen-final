@@ -50,7 +50,8 @@ export default function RutinKort({
   onGranskaKalla,
   hamtaVersioner,
 }) {
-  const { currentUser } = useAuth();
+  const { currentUser, namn } = useAuth();
+  const mittNamn = namn || currentUser?.email;
   const [visaHistorik, setVisaHistorik] = useState(false);
   const [visaOlasta, setVisaOlasta] = useState(false);
   const [qrUrl, setQrUrl] = useState(null);
@@ -173,7 +174,7 @@ export default function RutinKort({
             if ((rutin.kviss?.length ?? 0) > 0) {
               setVisaKviss(true);
             } else {
-              kvitteraLast(rutin.id, currentUser.uid, currentUser.email);
+              kvitteraLast(rutin.id, currentUser.uid, mittNamn);
             }
           }}
         >
@@ -196,7 +197,7 @@ export default function RutinKort({
           rutin={rutin}
           onKlar={() => {
             setVisaKviss(false);
-            kvitteraLast(rutin.id, currentUser.uid, currentUser.email);
+            kvitteraLast(rutin.id, currentUser.uid, mittNamn);
           }}
           onAvbryt={() => setVisaKviss(false)}
         />

@@ -13,7 +13,8 @@ function formateraTid(tidpunkt) {
 }
 
 export default function Skiftrapport() {
-  const { currentUser, role } = useAuth();
+  const { currentUser, role, namn } = useAuth();
+  const mittNamn = namn || currentUser?.email;
   const { visaMeddelande } = useDialog();
   const { aktiva, atgardadeSenaste, laddar, skapaPost, markeraAtgardad, taBortPost } = useSkiftrapport();
   const [text, setText] = useState("");
@@ -32,7 +33,7 @@ export default function Skiftrapport() {
     }
     setSkickar(true);
     try {
-      await skapaPost({ text: text.trim(), skapadAv: currentUser.uid, skapadAvNamn: currentUser.email });
+      await skapaPost({ text: text.trim(), skapadAv: currentUser.uid, skapadAvNamn: mittNamn });
       setText("");
     } finally {
       setSkickar(false);

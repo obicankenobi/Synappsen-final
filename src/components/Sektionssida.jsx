@@ -21,7 +21,10 @@ export default function Sektionssida({
   godkannaRoller,
   extra,
 }) {
-  const { currentUser, role } = useAuth();
+  const { currentUser, role, namn } = useAuth();
+  // Etapp 22a: eget visningsnamn istället för e-post i kvitterings-/godkännandespår, med
+  // e-post som fallback för konton som saknar ett satt namn.
+  const mittNamn = namn || currentUser?.email;
   const { confirm } = useDialog();
   const { registrera: registreraBesok } = useSenastBesokta(currentUser?.uid);
   const { rutiner, laddar, skapaRutin, uppdateraRutin, godkannRutin, taBortRutin, markeraGranskad, hamtaVersioner } =
@@ -88,7 +91,7 @@ export default function Sektionssida({
   }, [laddar, rutiner]);
 
   async function godkannAllaUtkast() {
-    await Promise.all(utkastRutiner.map((r) => godkannRutin(r.id, currentUser.uid, currentUser.email)));
+    await Promise.all(utkastRutiner.map((r) => godkannRutin(r.id, currentUser.uid, mittNamn)));
   }
 
   async function nekaAllaUtkast() {
@@ -348,13 +351,13 @@ export default function Sektionssida({
             farRedigera={farRedigera}
             farGodkanna={farGodkanna}
             onRedigera={oppnaRedigering}
-            onGodkann={(id) => godkannRutin(id, currentUser.uid, currentUser.email)}
+            onGodkann={(id) => godkannRutin(id, currentUser.uid, mittNamn)}
             onTaBort={(id) => taBortRutin(id, currentUser.uid)}
-            onMarkeraGranskad={(id) => markeraGranskad(id, currentUser.uid, currentUser.email)}
+            onMarkeraGranskad={(id) => markeraGranskad(id, currentUser.uid, mittNamn)}
             onGranskaKalla={(id) =>
               uppdateraRutin(
                 id,
-                { kallVarning: false, kallVarningGranskadAv: currentUser.email, kallVarningGranskadDatum: serverTimestamp() },
+                { kallVarning: false, kallVarningGranskadAv: mittNamn, kallVarningGranskadDatum: serverTimestamp() },
                 currentUser.uid
               )
             }

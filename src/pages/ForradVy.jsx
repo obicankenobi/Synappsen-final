@@ -14,7 +14,8 @@ import { useDialog } from "../hooks/useDialog";
 export default function ForradVy() {
   const { forradSlug } = useParams();
   const forrad = FORRAD_SLUGS[forradSlug];
-  const { currentUser, role } = useAuth();
+  const { currentUser, role, namn } = useAuth();
+  const mittNamn = namn || currentUser?.email;
   const { confirm } = useDialog();
   const { artiklar, laddar, skapaArtikel, uppdateraArtikel, godkannArtikel, taBortArtikel } =
     useForradsartiklar(forrad);
@@ -82,7 +83,7 @@ export default function ForradVy() {
       forrad,
       kommentar,
       uid: currentUser.uid,
-      namn: currentUser.email,
+      namn: mittNamn,
     });
   }
 
