@@ -14,6 +14,25 @@ sig bygga på ett antagande som inte stämde.*
 
 ---
 
+## Status (2026-07-28)
+
+Etapp 13a–13e, 13g, 14, 15, 17–21 är byggda och klara (se ✅ KLAR-markeringar nedan; 17d är
+delvis klar, se den etappen). **Två delmål är medvetet PAUSADE och väntar på ägaren** – inte
+bortglömda, se markeringarna ⏳ FRAMTIDA vid respektive rubrik nedan:
+
+- **13f – SSO / Microsoft Entra ID.** Väntar på ett beslut: SAML eller OIDC som
+  förstahandsprioritet (se beslutspunkten i avsnittet). Störst enskilt delmål i Etapp 13 –
+  kod, inte bara dokument – och kan göras som en egen session.
+- **16 – Ledningens veckopuls (mail).** Väntar på ett beslut: val av e-postleverantör med
+  EU-drift och PUB-avtal (se beslutspunkten i avsnittet). Så länge den saknas visas
+  motsvarande data (bristanmälningar, utgående artiklar, källvarningar) direkt på respektive
+  sida istället för i ett veckomail – se Etapp 20c/21c.
+
+Båda ligger kvar i sin ordinarie plats i etappordningen nedan och tas upp igen så snart
+respektive beslut är taget – de är inte struken ur planen, bara avvaktade.
+
+---
+
 ## Ordningsprincip
 
 Etapperna är sorterade så att **det som blockerar en affär kommer före det som imponerar i
@@ -172,7 +191,10 @@ fråga IT och dataskyddsombudet" och dör där.
   validera mot. "14 dokumenterade utvecklingsfaser" i sidfoten uppdaterat till "40+"
   (var kraftigt inaktuellt, det finns nu 44 faser i UTVECKLINGSLOGG.md).
 
-### 13f – SSO / Microsoft Entra ID *(ny – saknades i tidigare utkast)*
+### 13f – SSO / Microsoft Entra ID ⏳ FRAMTIDA *(ny – saknades i tidigare utkast)*
+
+> **Pausad (2026-07-28):** avvaktar ägarens beslut om SAML vs. OIDC (se beslutspunkten
+> nedan) innan bygget påbörjas. Kvarstår i planen, inte struken.
 
 - **Detta delmål skiljer sig från övriga i etappen: det är kod, inte dokument, och är
   betydligt större.** Övervägt utbrutet till en egen session/etapp om ni vill hålla
@@ -492,7 +514,11 @@ används mot en riktig, extern kund.
 
 ---
 
-# Etapp 16 – Ledningens veckopuls (mail)
+# Etapp 16 – Ledningens veckopuls (mail) ⏳ FRAMTIDA
+
+> **Pausad (2026-07-28):** avvaktar ägarens beslut om e-postleverantör (se beslutspunkten i
+> 16a) innan bygget påbörjas. Kvarstår i planen, inte struken – motsvarande data (Etapp 20c/
+> 21c) visas tills vidare direkt på respektive sida istället för i ett veckomail.
 
 **Varför:** Chefer loggar inte in av sig själva. Ett kort mail varje vecka är det som gör
 att ledningsrapporten och kvitteringssiffrorna faktiskt används – och det som håller
