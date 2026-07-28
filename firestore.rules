@@ -384,6 +384,34 @@ service cloud.firestore {
                      && matcharMinOrg(resource.data.get('organisationId', 'default'));
     }
 
+    // bristanmalningar/{bristId} – Etapp 20a: "Slut/lågt saldo" på en förrådsartikel. Vem som
+    // helst inloggad i organisationen får ANMÄLA (två klick, se ForradArtikelKort.jsx), men
+    // bara förrådsansvarig/superadmin (farRedigeraOmrade('logistik')) hanterar (byter status).
+    // Etapp 20b: dubblettskydd (samma artikel anmäld inom 24 h slås ihop) görs klientsidan
+    // genom att uppdatera en redan öppen anmälan istället för att skapa en ny – därför måste
+    // ÄVEN en vanlig anmälare få höja antalAnmalningar på sin egen typ av post, men bara på
+    // fälten som hör till dubblettskyddet (aldrig status/hantering).
+    match /bristanmalningar/{bristId} {
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'))
+                   && (farRedigeraOmrade('logistik') || resource.data.anmaldAv == request.auth.uid);
+      allow create: if arInloggad()
+                     && request.resource.data.get('organisationId', 'default') == minOrganisation()
+                     && request.resource.data.anmaldAv == request.auth.uid
+                     && request.resource.data.status == 'ny'
+                     && request.resource.data.get('antalAnmalningar', 1) == 1
+                     && !harTroligtPersonnummer(request.resource.data.get('kommentar', ''));
+      allow update: if matcharMinOrg(resource.data.get('organisationId', 'default'))
+                     && (
+                       (farRedigeraOmrade('logistik')
+                        && bararForandrarFalt(['status', 'hanteradAv', 'hanteradAvNamn', 'hanteradDatum']))
+                       || (resource.data.status == 'ny'
+                           && bararForandrarFalt(['antalAnmalningar', 'senastAnmald'])
+                           && request.resource.data.antalAnmalningar == resource.data.get('antalAnmalningar', 1) + 1)
+                     );
+      allow delete: if farRedigeraOmrade('logistik')
+                     && matcharMinOrg(resource.data.get('organisationId', 'default'));
+    }
+
     // anslag/{anslagId} – anslagstavla, meddelanden från ledningen till all personal
     match /anslag/{anslagId} {
       allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
+import { useBristanmalningar } from "../hooks/useBristanmalningar";
 import { laddaUppForradsbild } from "../firebase/storage";
 import { FORRAD_SLUGS } from "../firebase/forrad";
 import { KAN_HANTERA_FORRAD } from "../firebase/roles";
@@ -17,6 +18,7 @@ export default function ForradVy() {
   const { confirm } = useDialog();
   const { artiklar, laddar, skapaArtikel, uppdateraArtikel, godkannArtikel, taBortArtikel } =
     useForradsartiklar(forrad);
+  const { skapaBristanmalning } = useBristanmalningar();
   const [redigerar, setRedigerar] = useState(null);
   const [visaFormular, setVisaFormular] = useState(false);
 
@@ -51,14 +53,14 @@ export default function ForradVy() {
     await Promise.all(utkast.map((a) => taBortArtikel(a.id, currentUser.uid)));
   }
 
-  async function hanteraSpara({ namn, skap, hylla, antal, bild }) {
+  async function hanteraSpara({ namn, skap, hylla, antal, utgangsdatum, bild }) {
     if (redigerar) {
       const bildUrl = bild
         ? await laddaUppForradsbild(forradSlug, redigerar.id, bild)
         : redigerar.bildUrl;
-      await uppdateraArtikel(redigerar.id, { namn, skap, hylla, antal, bildUrl });
+      await uppdateraArtikel(redigerar.id, { namn, skap, hylla, antal, utgangsdatum, bildUrl });
     } else {
-      const ref = await skapaArtikel({ namn, skap, hylla, antal, forrad, skapadAv: currentUser.uid });
+      const ref = await skapaArtikel({ namn, skap, hylla, antal, utgangsdatum, forrad, skapadAv: currentUser.uid });
       if (bild) {
         const bildUrl = await laddaUppForradsbild(forradSlug, ref.id, bild);
         await uppdateraArtikel(ref.id, { bildUrl });
@@ -71,6 +73,17 @@ export default function ForradVy() {
   function oppnaRedigering(artikel) {
     setRedigerar(artikel);
     setVisaFormular(true);
+  }
+
+  async function hanteraAnmalBrist(artikel, kommentar) {
+    await skapaBristanmalning({
+      artikelId: artikel.id,
+      artikelNamn: artikel.namn,
+      forrad,
+      kommentar,
+      uid: currentUser.uid,
+      namn: currentUser.email,
+    });
   }
 
   return (
@@ -124,6 +137,7 @@ export default function ForradVy() {
           onRedigera={oppnaRedigering}
           onGodkann={godkannArtikel}
           onTaBort={(id) => taBortArtikel(id, currentUser.uid)}
+          onAnmalBrist={hanteraAnmalBrist}
         />
       ))}
     </div>

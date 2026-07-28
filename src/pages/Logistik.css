@@ -1,0 +1,8 @@
+.logistik__antal-badge {
+  font-size: 0.8rem;
+  background: var(--amber-ljus);
+  color: var(--amber-text);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 6px;
+}

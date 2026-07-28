@@ -9,6 +9,7 @@ export default function ForradArtikelFormular({ initialaVarden, onSpara, onAvbry
   const [skap, setSkap] = useState(initialaVarden?.skap ?? "");
   const [hylla, setHylla] = useState(initialaVarden?.hylla ?? "");
   const [antal, setAntal] = useState(initialaVarden?.antal ?? "");
+  const [utgangsdatum, setUtgangsdatum] = useState(initialaVarden?.utgangsdatum ?? "");
   const [bild, setBild] = useState(null);
   const [sparar, setSparar] = useState(false);
 
@@ -21,7 +22,7 @@ export default function ForradArtikelFormular({ initialaVarden, onSpara, onAvbry
     }
     setSparar(true);
     try {
-      await onSpara({ namn, skap, hylla, antal, bild });
+      await onSpara({ namn, skap, hylla, antal, utgangsdatum: utgangsdatum || null, bild });
     } finally {
       setSparar(false);
     }
@@ -46,6 +47,14 @@ export default function ForradArtikelFormular({ initialaVarden, onSpara, onAvbry
       <label>
         Antal (valfritt)
         <input type="text" value={antal} onChange={(e) => setAntal(e.target.value)} />
+      </label>
+      <label>
+        Utgångsdatum (valfritt)
+        <input type="date" value={utgangsdatum} onChange={(e) => setUtgangsdatum(e.target.value)} />
+        <span className="forrad-artikel-formular__hjalptext">
+          Används av utgångsdatumbevakningen i Logistik – artiklar som går ut inom 30 dagar
+          listas där för förrådsansvarig.
+        </span>
       </label>
       <label>
         Bild (valfritt)

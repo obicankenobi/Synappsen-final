@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
+import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
+import { useDialog } from "../hooks/useDialog";
 import FavoritKnapp from "./FavoritKnapp";
 import "./ForradArtikelKort.css";
 
@@ -9,8 +12,29 @@ export default function ForradArtikelKort({
   onRedigera,
   onGodkann,
   onTaBort,
+  onAnmalBrist,
 }) {
+  const { visaMeddelande } = useDialog();
   const arUtkast = artikel.status === ARTIKEL_STATUS.UTKAST;
+  const [visaBristformular, setVisaBristformular] = useState(false);
+  const [bristKommentar, setBristKommentar] = useState("");
+  const [skickar, setSkickar] = useState(false);
+
+  async function hanteraSkickaBrist() {
+    const kontroll = kontrolleraPatientuppgifter(bristKommentar);
+    if (kontroll.blockerad) {
+      if (kontroll.meddelande) visaMeddelande(kontroll.meddelande);
+      return;
+    }
+    setSkickar(true);
+    try {
+      await onAnmalBrist(artikel, bristKommentar.trim());
+      setBristKommentar("");
+      setVisaBristformular(false);
+    } finally {
+      setSkickar(false);
+    }
+  }
 
   return (
     <article className="forrad-artikel-kort">
@@ -32,6 +56,44 @@ export default function ForradArtikelKort({
         </p>
         {artikel.antal && <p className="forrad-artikel-kort__antal">Antal: {artikel.antal}</p>}
       </div>
+
+      {onAnmalBrist && !arUtkast && (
+        <div className="forrad-artikel-kort__brist">
+          {!visaBristformular && (
+            <button
+              type="button"
+              className="knapp knapp--liten knapp--sekundar"
+              onClick={() => setVisaBristformular(true)}
+            >
+              ⚠️ Slut/lågt saldo
+            </button>
+          )}
+          {visaBristformular && (
+            <div className="forrad-artikel-kort__bristformular">
+              <input
+                type="text"
+                placeholder="Kommentar (valfritt)"
+                value={bristKommentar}
+                onChange={(e) => setBristKommentar(e.target.value)}
+              />
+              <button type="button" className="knapp knapp--liten" disabled={skickar} onClick={hanteraSkickaBrist}>
+                {skickar ? "Skickar..." : "Skicka"}
+              </button>
+              <button
+                type="button"
+                className="knapp knapp--liten knapp--sekundar"
+                onClick={() => {
+                  setVisaBristformular(false);
+                  setBristKommentar("");
+                }}
+              >
+                Avbryt
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {(farRedigera || farGodkanna) && (
         <div className="forrad-artikel-kort__atgarder">
           {farRedigera && (

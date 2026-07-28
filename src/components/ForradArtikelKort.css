@@ -67,3 +67,19 @@
   align-items: flex-start;
   flex-wrap: wrap;
 }
+
+.forrad-artikel-kort__brist {
+  flex-basis: 100%;
+}
+
+.forrad-artikel-kort__bristformular {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.forrad-artikel-kort__bristformular input {
+  flex: 1;
+  min-width: 160px;
+}

@@ -721,6 +721,62 @@ async function main() {
     assertSucceeds(deleteDoc(doc(vecA, "kompetenskrav", kravTestId)))
   );
 
+  console.log("\nbristanmalningar/{bristId} – Etapp 20a/b: anmäla, dubblettskydd, hantering");
+  let bristTestId;
+  await test("personalA (ingen redaktörsroll) KAN anmäla en brist på en artikel", async () => {
+    const ref = await addDoc(collection(personalA, "bristanmalningar"), {
+      artikelId: "artikelA", artikelNamn: "Kanyler", forrad: "Engångsförrådet",
+      status: "ny", antalAnmalningar: 1, kommentar: "", anmaldAv: "personalA",
+      organisationId: ORG_A,
+    });
+    bristTestId = ref.id;
+  });
+  await test("personalA kan INTE anmäla en brist i någon annans namn (anmaldAv måste vara den egna uiden)", () =>
+    assertFails(
+      addDoc(collection(personalA, "bristanmalningar"), {
+        artikelId: "artikelA", artikelNamn: "Kanyler", forrad: "Engångsförrådet",
+        status: "ny", antalAnmalningar: 1, kommentar: "", anmaldAv: "volA",
+        organisationId: ORG_A,
+      })
+    )
+  );
+  await test("personalA kan INTE anmäla en brist med ett personnummer i kommentaren", () =>
+    assertFails(
+      addDoc(collection(personalA, "bristanmalningar"), {
+        artikelId: "artikelA", artikelNamn: "Kanyler", forrad: "Engångsförrådet",
+        status: "ny", antalAnmalningar: 1, kommentar: "Gäller patient 900101-0017", anmaldAv: "personalA",
+        organisationId: ORG_A,
+      })
+    )
+  );
+  await test("volA (ingen förrådsroll, men rätt organisation) KAN höja antalAnmalningar på personalA:s öppna anmälan (dubblettskydd)", () =>
+    assertSucceeds(
+      updateDoc(doc(volA, "bristanmalningar", bristTestId), { antalAnmalningar: 2, senastAnmald: new Date() })
+    )
+  );
+  await test("volA kan INTE byta status på en anmälan (det kräver förrådsansvarig/superadmin)", () =>
+    assertFails(updateDoc(doc(volA, "bristanmalningar", bristTestId), { status: "hanterad" }))
+  );
+  await test("personalA (som anmälde den) KAN läsa sin egen anmälan", () =>
+    assertSucceeds(getDoc(doc(personalA, "bristanmalningar", bristTestId)))
+  );
+  await test("superadminB (fel organisation) kan INTE läsa org A:s bristanmälan", () =>
+    assertFails(getDoc(doc(superB, "bristanmalningar", bristTestId)))
+  );
+  await test("superadminA (får hantera logistik) KAN markera anmälan som hanterad", () =>
+    assertSucceeds(
+      updateDoc(doc(superA, "bristanmalningar", bristTestId), {
+        status: "hanterad", hanteradAv: "superadminA", hanteradAvNamn: "", hanteradDatum: new Date(),
+      })
+    )
+  );
+  await test("personalA kan INTE ta bort en bristanmälan", () =>
+    assertFails(deleteDoc(doc(personalA, "bristanmalningar", bristTestId)))
+  );
+  await test("superadminA KAN ta bort en bristanmälan i sin egen organisation", () =>
+    assertSucceeds(deleteDoc(doc(superA, "bristanmalningar", bristTestId)))
+  );
+
   console.log("\ncheckriktlistkorningar/{rutinId} – Etapp 18d: aggregerad statistik, organisationsisolerad");
   await test("volA KAN räkna upp påbörjade körningar för en rutin i sin egen organisation", () =>
     assertSucceeds(

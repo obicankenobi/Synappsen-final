@@ -766,32 +766,52 @@ saknar en obligatorisk rutin, och exportera det till APT.
 
 ---
 
-# Etapp 20 – Bristanmälan i två klick
+# Etapp 20 – Bristanmälan i två klick ✅ KLAR
 
 **Varför:** Minst arbete av allt i planen och omedelbart synlig nytta i vardagen. Kan
 tidigareläggas fritt om en pilot behöver ett snabbt tillskott.
 
 **Modul:** ingår i logistikmodulen.
 
-### 20a – Anmälningsflöde
+### 20a – Anmälningsflöde ✅ KLAR
 
-- Knapp direkt på förrådsartikelkortet: "Slut/lågt saldo" → valfri kommentar → skickat.
-- Ny collection `bristanmalningar`: `organisationId`, `artikelId`, `status`
-  (ny / hanterad / avvisad), `anmaldAv`, `tidpunkt`, `kommentar`.
-- Fritextkommentaren måste genom PII-filtret i tre lager (se genomgående krav 1).
+- Knapp direkt på förrådsartikelkortet (`ForradArtikelKort.jsx`): "⚠️ Slut/lågt saldo" → en
+  inline textruta för valfri kommentar → "Skicka". Synlig för ALLA inloggade i organisationen
+  (inte bara förrådsansvarig), eftersom vem som helst kan upptäcka en brist.
+- Ny collection `bristanmalningar`: `organisationId`, `artikelId`, `artikelNamn`, `forrad`,
+  `status` (ny/hanterad/avvisad), `anmaldAv`, `anmaldAvNamn`, `tidpunkt`, `kommentar`,
+  `antalAnmalningar`, `senastAnmald` (`useBristanmalningar.js`).
+- Fritextkommentaren kontrolleras klientsidan (`kontrolleraPatientuppgifter`) och i
+  `firestore.rules` (`harTroligtPersonnummer`) – samma tvålagersmönster som övriga
+  direktskrivna fritextfält (skiftrapporter, kommentarer).
 
-### 20b – Hantering
+### 20b – Hantering ✅ KLAR
 
-- Vy för förrådsansvarig: öppna anmälningar, sortering på antal anmälningar per artikel
-  (tre personer som anmäler samma sak = verklig brist).
-- Notis till förrådsansvarig vid ny anmälan, kvittens till anmälaren när den hanteras.
-- Dubblettskydd: samma artikel anmäld inom 24 h slås ihop istället för att skapa en ny post.
+- Ny sektion högst upp på `/logistik` (`Logistik.jsx`), synlig för förrådsansvarig/
+  superadmin: öppna anmälningar sorterade på `antalAnmalningar` (flest överst).
+  "Markera hanterad"/"Avvisa"-knappar.
+- Notis: `useNotiser.js` fick två nya, tillståndsbaserade poster (samma mönster som
+  granskningspåminnelser, inte en engångshändelse) – öppna anmälningar till förrådsansvarig/
+  superadmin, och en kvittens till anmälaren när den egna anmälan markeras hanterad.
+- Dubblettskydd: `useBristanmalningar.js`s `skapaBristanmalning` letar först efter en redan
+  öppen anmälan av SAMMA artikel inom 24 h och höjer då bara `antalAnmalningar` (regelnivån
+  tillåter en vanlig anmälare att göra just den uppräkningen, men aldrig ändra status).
 
-### 20c – Utgångsdatumbevakning
+### 20c – Utgångsdatumbevakning ✅ KLAR (justerad efter premisskontroll, genomgående krav 8)
 
-- AI:n läser redan ut utgångsdatum vid bildtolkning (fas 8). Använd det: schemalagd
-  kontroll som listar artiklar som går ut inom 30 dagar, och notis till förrådsansvarig.
-- Ta med öppna bristanmälningar och utgående artiklar i veckopulsen (etapp 16).
+- **Avvikelse funnen vid premisskontroll:** planen antog att AI-bildtolkningen redan läser
+  utgångsdatum för förrådsartiklar (analogt med rutiners `giltigtTill`). Så var INTE fallet –
+  `tolkaForradsbildMedGemini` extraherar bara namn/skåp/hylla/antal/sökord. Byggt om till att
+  `utgangsdatum` sätts manuellt (nytt datumfält i `ForradArtikelFormular.jsx`); AI-utläsning
+  från foto kvarstår som en möjlig senare utökning, inte grunden för den här leveransen.
+- Istället för ett schemalagt jobb + `systemvarningar` (superadmin-bara enligt befintlig
+  regel) beräknas "går ut inom 30 dagar" LIVE i `/logistik` (`utils/forradHjalp.js`,
+  `gerUtInom30Dagar`) – alltid uppdaterat, ingen extra collection eller körningskostnad.
+- Veckopuls (Etapp 16) är inte byggd ännu (bekräftat via genomgående krav 8) – bristanmälningar
+  och utgående artiklar visas därför direkt på `/logistik` tills vidare, redo att återanvändas
+  när Etapp 16 landar istället för att räkna om samma sak parallellt.
+- 3 nya vitest-tester för `forradHjalp.js`.
+- 8 nya rules-tester (114/114 totalt i organisationsisolering.test.mjs).
 
 **Klart när:** en sjuksköterska kan anmäla en brist på under fem sekunder utan att lämna
 artikelkortet.

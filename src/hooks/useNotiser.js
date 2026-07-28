@@ -9,9 +9,10 @@ import { useAnvandare } from "./useAnvandare";
 import { useAnslag } from "./useAnslag";
 import { useRutiner, RUTIN_STATUS } from "./useRutiner";
 import { narmarSigGranskning } from "../utils/rutinHjalp";
-import { ROLES } from "../firebase/roles";
+import { ROLES, KAN_HANTERA_FORRAD } from "../firebase/roles";
 import { useFeatures } from "./useFeatures";
 import { FEATURE } from "../config/features";
+import { useBristanmalningar, BRIST_STATUS } from "./useBristanmalningar";
 
 function efterSenasteBesok(tidpunkt, senasteBesok) {
   if (!tidpunkt?.toDate) return false;
@@ -31,6 +32,7 @@ export function useNotiser() {
   const { anslag } = useAnslag();
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
+  const { bristanmalningar } = useBristanmalningar();
   const [omnamnanden, setOmnamnanden] = useState([]);
   const [systemvarningar, setSystemvarningar] = useState([]);
 
@@ -112,6 +114,34 @@ export function useNotiser() {
         tid: r.granskadDatum,
       }));
 
+    // Etapp 20b: notis till förrådsansvarig/superadmin om nya bristanmälningar, och kvittens
+    // till anmälaren när den egna anmälan hanteras – båda ett stående tillstånd (som
+    // granskningsposter ovan), inte en engångshändelse styrd av senasteNotisBesok.
+    const bristposter = KAN_HANTERA_FORRAD.includes(role)
+      ? bristanmalningar
+          .filter((b) => b.status === BRIST_STATUS.NY)
+          .map((b) => ({
+            id: `brist-${b.id}`,
+            text: `Bristanmälan: ${b.artikelNamn} (${b.forrad})${(b.antalAnmalningar ?? 1) > 1 ? ` – ${b.antalAnmalningar} anmälningar` : ""}`,
+            sokvag: "/logistik",
+            tid: b.senastAnmald ?? b.tidpunkt,
+          }))
+      : [];
+
+    const hanteradeBristposter = bristanmalningar
+      .filter(
+        (b) =>
+          b.anmaldAv === currentUser?.uid &&
+          b.status === BRIST_STATUS.HANTERAD &&
+          efterSenasteBesok(b.hanteradDatum, senasteBesok)
+      )
+      .map((b) => ({
+        id: `brist-hanterad-${b.id}`,
+        text: `Din bristanmälan om "${b.artikelNamn}" har hanterats`,
+        sokvag: `/logistik`,
+        tid: b.hanteradDatum,
+      }));
+
     const systemvarningsposter = systemvarningar
       .filter((v) => efterSenasteBesok(v.tidpunkt, senasteBesok))
       .map((v) => ({
@@ -121,15 +151,22 @@ export function useNotiser() {
         tid: v.tidpunkt,
       }));
 
-    return [...anslagsposter, ...rutinposter, ...omnamndeposter, ...granskningsposter, ...systemvarningsposter].sort(
-      (a, b) => (b.tid?.toMillis?.() ?? 0) - (a.tid?.toMillis?.() ?? 0)
-    );
+    return [
+      ...anslagsposter,
+      ...rutinposter,
+      ...omnamndeposter,
+      ...granskningsposter,
+      ...bristposter,
+      ...hanteradeBristposter,
+      ...systemvarningsposter,
+    ].sort((a, b) => (b.tid?.toMillis?.() ?? 0) - (a.tid?.toMillis?.() ?? 0));
   }, [
     anslag,
     klinisktRutiner,
     adminRutiner,
     omnamnanden,
     systemvarningar,
+    bristanmalningar,
     senasteBesok,
     role,
     currentUser?.uid,

@@ -36,6 +36,12 @@
   flex: 1;
 }
 
+.forrad-artikel-formular__hjalptext {
+  font-weight: 400;
+  color: var(--text-svag);
+  font-size: 0.8rem;
+}
+
 .forrad-artikel-formular__knappar {
   display: flex;
   gap: 12px;
