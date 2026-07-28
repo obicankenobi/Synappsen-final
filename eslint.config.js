@@ -18,4 +18,12 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  // Etapp 24a: src/sw.js körs som en service worker, inte i webbläsarens dokumentkontext –
+  // den har `self`/`clients`/`registration` men inte `window`/`document`.
+  {
+    files: ['src/sw.js'],
+    languageOptions: {
+      globals: globals.serviceworker,
+    },
+  },
 ])

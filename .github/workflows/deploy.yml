@@ -24,6 +24,7 @@ jobs:
           VITE_FIREBASE_APP_ID=1:773838769422:web:2f9cdc586378cdc5145b5f
           VITE_SENTRY_DSN=https://c9f27406c8d174a27212d88dca1acaf9@o4511801594281984.ingest.de.sentry.io/4511801670107216
           VITE_RECAPTCHA_SITE_KEY=6LcGxmYtAAAAAO1Hangg-bTwTjNKWld2Uizq5ZE6
+          VITE_FIREBASE_VAPID_KEY=${{ secrets.FIREBASE_VAPID_KEY }}
           EOF
 
       - name: Installera frontend-beroenden

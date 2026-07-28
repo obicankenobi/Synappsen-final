@@ -237,6 +237,22 @@ async function main() {
     )
   );
 
+  console.log("\nusers/{uid}.pushTokens/.pushInstallningar – Etapp 24a/24c: push-notiser");
+  await test("volA KAN registrera en egen push-enhetstoken", () =>
+    assertSucceeds(updateDoc(doc(volA, "users", "volA"), { pushTokens: ["token-abc"] }))
+  );
+  await test("volA KAN sätta sina egna push-notisinställningar", () =>
+    assertSucceeds(
+      updateDoc(doc(volA, "users", "volA"), { pushInstallningar: { nyRutin: true } })
+    )
+  );
+  await test("volA kan INTE smyga med en rollhöjning i samma skrivning som pushTokens", () =>
+    assertFails(updateDoc(doc(volA, "users", "volA"), { pushTokens: ["token"], role: "superadmin" }))
+  );
+  await test("volA kan INTE registrera en push-token för en ANNAN användare", () =>
+    assertFails(updateDoc(doc(volA, "users", "sektionsledareA"), { pushTokens: ["kapad-token"] }))
+  );
+
   console.log("\norganisationer/{orgId}/installningar/valkomstchecklista – Etapp 15b");
   await test("superadminA KAN bocka av ett eget checklistesteg", () =>
     assertSucceeds(

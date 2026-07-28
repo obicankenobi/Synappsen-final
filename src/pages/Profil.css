@@ -99,3 +99,18 @@
   font-size: 0.85rem;
   color: var(--text-svag);
 }
+
+.profil-push__ios-guide {
+  background: var(--primar-ljus);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.profil-push__typer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}

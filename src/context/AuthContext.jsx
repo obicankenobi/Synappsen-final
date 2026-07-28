@@ -19,6 +19,8 @@ export function AuthProvider({ children }) {
   const [namn, setNamn] = useState(null);
   const [namnLaddat, setNamnLaddat] = useState(false);
   const [profilbildUrl, setProfilbildUrl] = useState(null);
+  const [pushTokens, setPushTokens] = useState([]);
+  const [pushInstallningar, setPushInstallningar] = useState({});
   const [loading, setLoading] = useState(true);
 
   // Etapp 6c: registrering kräver numera alltid en giltig inbjudan – öppen självbetjänings-
@@ -67,6 +69,8 @@ export function AuthProvider({ children }) {
         setNamn(null);
         setNamnLaddat(false);
         setProfilbildUrl(null);
+        setPushTokens([]);
+        setPushInstallningar({});
       }
       setLoading(false);
     });
@@ -83,6 +87,10 @@ export function AuthProvider({ children }) {
     const unsubscribe = onSnapshot(doc(db, "users", currentUser.uid), (snap) => {
       setNamn(snap.exists() ? (snap.data().namn ?? null) : null);
       setProfilbildUrl(snap.exists() ? (snap.data().profilbildUrl ?? null) : null);
+      // Etapp 24c: push-inställningar lyssnas live så en avstängning i Profil.jsx (t.ex. från
+      // en annan flik/enhet) syns direkt utan omladdning.
+      setPushTokens(snap.exists() ? (snap.data().pushTokens ?? []) : []);
+      setPushInstallningar(snap.exists() ? (snap.data().pushInstallningar ?? {}) : {});
       setNamnLaddat(true);
     });
     return unsubscribe;
@@ -95,6 +103,8 @@ export function AuthProvider({ children }) {
     namn,
     namnLaddat,
     profilbildUrl,
+    pushTokens,
+    pushInstallningar,
     loading,
     registrera,
     loggaIn,

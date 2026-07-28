@@ -8,7 +8,9 @@ import {
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { laddaUppAvatar } from "../firebase/storage";
+import { aktiveraPush, inaktiveraPush, pushStodsAvEnheten, arIos, korSomInstalleradApp } from "../firebase/messaging";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
+import { KAN_HANTERA_FORRAD } from "../firebase/roles";
 import { useDialog } from "../hooks/useDialog";
 import { useAuth } from "../hooks/useAuth";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
@@ -121,8 +123,103 @@ function ProfilbildFormular({ uid, aktuellBildUrl }) {
   );
 }
 
+// Etapp 24c/24d: aktivering + per-notistyp-inställningar. Förvalt läge är återhållsamt
+// (genomgående krav 10) – ingen ruta är förikryssad, och tillståndsdialogen triggas bara av
+// att användaren själv trycker på "Aktivera"-knappen här, aldrig automatiskt vid inloggning.
+const PUSH_TYPER = [
+  { nyckel: "nyRutin", etikett: "Ny eller ändrad rutin", forAlla: true },
+  { nyckel: "anslagsfrist", etikett: "Ett anslag väntar på kvittering", forAlla: true },
+  { nyckel: "kallVarning", etikett: "Källvarning på en rutin jag äger", forAlla: true },
+  { nyckel: "bristanmalan", etikett: "Ny bristanmälan i förrådet", forrad: true },
+];
+
+function PushNotisSektion({ uid, role, pushTokens, pushInstallningar }) {
+  const { visaMeddelande } = useDialog();
+  const [arbetar, setArbetar] = useState(false);
+  const aktiverad = (pushTokens?.length ?? 0) > 0;
+  const stods = pushStodsAvEnheten();
+  const behoverHemskarm = arIos() && !korSomInstalleradApp();
+
+  async function hanteraAktivera() {
+    setArbetar(true);
+    try {
+      const { status } = await aktiveraPush(uid);
+      if (status === "nekad") {
+        visaMeddelande("Du behöver tillåta notiser i webbläsaren för att kunna aktivera push.");
+      } else if (status === "ej-konfigurerad" || status === "ej-stodd" || status === "fel") {
+        visaMeddelande("Push-notiser kan inte aktiveras på den här enheten just nu.");
+      }
+    } finally {
+      setArbetar(false);
+    }
+  }
+
+  async function hanteraInaktivera() {
+    setArbetar(true);
+    try {
+      await inaktiveraPush(uid);
+    } finally {
+      setArbetar(false);
+    }
+  }
+
+  function vaxlaTyp(nyckel) {
+    const nya = { ...pushInstallningar, [nyckel]: !pushInstallningar?.[nyckel] };
+    updateDoc(doc(db, "users", uid), { pushInstallningar: nya });
+  }
+
+  return (
+    <section className="profil-sektion">
+      <h2>🔔 Push-notiser</h2>
+      <p className="sida__beskrivning">
+        Få en påminnelse på den här enheten även när appen inte är öppen. Innehåller aldrig
+        kliniskt innehåll eller fritext – bara en generisk rad som "Det finns en ny rutin att
+        läsa".
+      </p>
+
+      {behoverHemskarm && (
+        <p className="profil-push__ios-guide">
+          📱 På iPhone/iPad måste Synappsen först läggas till på hemskärmen för att push ska
+          fungera: tryck på Dela-ikonen i Safari, välj "Lägg till på hemskärmen", och öppna
+          appen därifrån istället för via webbläsaren.
+        </p>
+      )}
+
+      {!stods && !behoverHemskarm && (
+        <p className="sida__beskrivning">Push-notiser stöds inte av den här webbläsaren.</p>
+      )}
+
+      {stods && (
+        <button
+          type="button"
+          className="knapp knapp--liten"
+          onClick={aktiverad ? hanteraInaktivera : hanteraAktivera}
+          disabled={arbetar}
+        >
+          {arbetar ? "Arbetar..." : aktiverad ? "Stäng av på den här enheten" : "Aktivera på den här enheten"}
+        </button>
+      )}
+
+      {aktiverad && (
+        <div className="profil-push__typer">
+          {PUSH_TYPER.filter((t) => t.forAlla || (t.forrad && KAN_HANTERA_FORRAD.includes(role))).map((t) => (
+            <label key={t.nyckel} className="profil-snabblankar__rad">
+              <input
+                type="checkbox"
+                checked={Boolean(pushInstallningar?.[t.nyckel])}
+                onChange={() => vaxlaTyp(t.nyckel)}
+              />
+              {t.etikett}
+            </label>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function Profil() {
-  const { currentUser, role, namn, namnLaddat, profilbildUrl } = useAuth();
+  const { currentUser, role, namn, namnLaddat, profilbildUrl, pushTokens, pushInstallningar } = useAuth();
   const favoritPoster = useMinaFavoritPoster();
   const { synliga: snabblankar, satValda: satSnabblankar } = useSnabblankar(currentUser.uid);
 
@@ -217,6 +314,13 @@ export default function Profil() {
       </section>
 
       <TvaFaktorSektion currentUser={currentUser} />
+
+      <PushNotisSektion
+        uid={currentUser.uid}
+        role={role}
+        pushTokens={pushTokens}
+        pushInstallningar={pushInstallningar}
+      />
 
       <section className="profil-sektion">
         <h2>🎨 Utseende</h2>

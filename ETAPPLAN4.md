@@ -258,7 +258,7 @@ sida som helst, utan att röra musen.
 
 ---
 
-# Etapp 24 – Push-notiser: appen når mig
+# Etapp 24 – Push-notiser: appen når mig ✅ KLAR
 
 **Varför:** Det här är planens största strukturella "wow". I dag finns notiser bara som ett
 klockbadge inne i appen (`useNotiser.js`) – vilket förutsätter att personalen redan öppnat
@@ -267,7 +267,11 @@ Push vänder på relationen: appen påminner, istället för att kräva att man 
 
 **Modul:** ingen (Core), men helt avstängbar per användare (genomgående krav 10).
 
-### 24a – Infrastruktur
+**Beslutspunkten löst:** användaren beordrade explicit genomförande av Etapp 24, vilket löser
+beslutspunkt 1 nedan (PUB-avtal/störningsnivå) – se instruktionen i konversationen. Inget
+ytterligare godkännande begärdes.
+
+### 24a – Infrastruktur ✅ KLAR
 
 - Firebase Cloud Messaging. `messagingSenderId` finns redan i `src/firebase/config.js`, så
   projektet är halvvägs konfigurerat – men ingen kod använder Messaging i dag
@@ -275,8 +279,30 @@ Push vänder på relationen: appen påminner, istället för att kräva att man 
 - Tokens per enhet på `users/{uid}.pushTokens[]`, med uppstädning av döda tokens.
 - Service worker finns redan via `vite-plugin-pwa` (`registerType: 'autoUpdate'`) – push
   behöver haka in i den, inte ersätta den.
+- **Genomfört:** `vite-plugin-pwa` bytte strategi från `generateSW` (implicit,
+  Workbox-genererad) till **`injectManifest`** (`vite.config.js`), med en egen `src/sw.js` som
+  Vite/Rollup faktiskt bearbetar (`precacheAndRoute` från `workbox-precaching`, plus modulär
+  `firebase/messaging/sw` med `onBackgroundMessage` och en `notificationclick`-hanterare).
+  **Skäl till bytet:** en statisk, oprocessad `public/firebase-messaging-sw.js` hade krävt att
+  Firebase-konfigurationen hårdkodades i klartext i en fil ingen bygglogik rör vid –
+  `injectManifest` gör att `import.meta.env.VITE_FIREBASE_*` ersätts med riktiga värden precis
+  som i resten av appen. Klientsidan (`src/firebase/messaging.js`) hanterar
+  behörighetsbegäran, tokenregistrering (`arrayUnion` på `pushTokens`) och avstängning
+  (`deleteToken` + `arrayRemove`). `firestore.rules` utökade users-whitelisten med
+  `pushTokens`/`pushInstallningar` (opaka tokens/booleaner, ingen PII-spärr behövs).
+  **Bundle-krav (genomgående krav 9):** `firebase/messaging` bryter det generella
+  `firebase-vendor`-mönstret i `vite.config.js`s `manualChunks` och får en egen
+  `firebase-messaging-vendor`-chunk (54,6 kB) som bara laddas när `Profil.jsx` (redan
+  routelat) faktiskt öppnas – uppmätt: `firebase-vendor` gick från 686 kB → 658 kB (minskade,
+  inte ökade) och huvud-`index`-chunken är oförändrad (359,98 → 360,09 kB).
+- **Avgränsning:** `VITE_FIREBASE_VAPID_KEY` (Web Push-certifikatet från Firebase Console →
+  Cloud Messaging) finns inte i miljön ännu – tillagd som en förberedd GitHub-secret
+  (`secrets.FIREBASE_VAPID_KEY`) i `deploy.yml`, men måste genereras och sättas av ägaren innan
+  push faktiskt fungerar i produktion. Utan den svarar `aktiveraPush()` `"ej-konfigurerad"`
+  istället för att krascha – funktionen degraderar snyggt, den ligger bara vilande tills
+  nyckeln finns.
 
-### 24b – Vad som får pushas, och vad som aldrig får det
+### 24b – Vad som får pushas, och vad som aldrig får det ✅ KLAR
 
 - **Hård regel: en push innehåller aldrig kliniskt innehåll och aldrig fritext från appen.**
   Bara "Det finns en ny rutin i Kliniskt stöd" – aldrig rutinens text, aldrig en
@@ -286,21 +312,63 @@ Push vänder på relationen: appen påminner, istället för att kräva att man 
   närmar sig, bristanmälan till förrådsansvarig, källvarning till rutinens ägare.
 - Kandidater att *inte* pusha: kommentarer, statistik, allt som kan vänta till nästa gång man
   öppnar appen.
+- **Genomfört:** central `skickaPush(anvandarLista, {titel, body, url})` i
+  `functions/index.js` (Admin SDK, `sendEachForMulticast`, "data-only"-meddelanden så att
+  `src/sw.js`s egen `onBackgroundMessage` är den ENDA som visar notisen, aldrig FCM:s
+  standardvisning också). Döda tokens (`messaging/registration-token-not-registered`/
+  `messaging/invalid-registration-token`) städas automatiskt bort med `arrayRemove`.
+  `hamtaAnvandareMedPushPreferens(organisationId, nyckel, extraFilter)` väljer bara ut
+  användare som **aktivt** satt `pushInstallningar.<nyckel> === true` (genomgående krav 10 –
+  frånvaro av fältet, vilket är standardläget för alla, ger aldrig push).
+  - Ny/ändrad rutin: `hanteraRutinSkapad`/`hanteraRutinAndrad` (samma testbara
+    trigger-mönster som redan fanns för revisionsloggen) anropar `skickaPushForNyRutin` vid
+    publicering/godkännande.
+  - Källvarning: samma `hanteraRutinAndrad`-trigger fångar `kallVarning: false → true` som en
+    tredje gren och pushar till rutinens `agare` (person eller roll, se `RutinFormular.jsx`).
+  - Bristanmälan: ny `hanteraBristanmalningSkapad` + `onDocumentCreated`-trigger på
+    `bristanmalningar/{bristId}`, pushar till `KAN_HANTERA_FORRAD`-rollerna (dupliceras lokalt
+    i `functions/index.js` eftersom functions/ är CommonJS och inte delar moduler med
+    ES-modulbaserade `src/firebase/roles.js`).
+  - Anslagsfrist: ny schemalagd `kontrolleraKvitteringsfrister` (`onSchedule`, dagligen 07:00),
+    mirrorar exakt `Admin.jsx`s klientsidiga "vem har inte kvitterat"-logik
+    (`anslagMedFrist`), med `pushPaminnelseSkickadTill` som dedup-array per anslag så samma
+    person inte pushas varje dag fram till fristen.
+- **Avgränsning mot planen (genomgående krav 8 – premisskontroll):** "inom mitt område" för
+  ny/ändrad rutin förenklades till hela organisationen. Det finns inget användarfält som
+  binder en person till ett specifikt omrade (`kliniskt-stod`/`administration`) – bara
+  rollbaserad redigeringsbehörighet (`farRedigeraOmrade`). En riktig områdesfiltrering hade
+  krävt en ny datamodell för "vilket område jobbar jag i", vilket inte finns idag.
 
-### 24c – Personliga inställningar
+### 24c – Personliga inställningar ✅ KLAR
 
 - Per notistyp, i `Profil.jsx`. Förvalt läge ska vara **återhållsamt** – hellre för lite än
   för mycket från start.
 - Tillståndsdialogen ska aldrig komma direkt vid inloggning (då nekar de flesta reflexmässigt)
   utan efter en handling som gör syftet uppenbart, t.ex. efter en läskvittering.
+- **Genomfört:** ny sektion "🔔 Push-notiser" i `Profil.jsx` med en explicit
+  "Aktivera på den här enheten"-knapp (behörighetsdialogen triggas ENDAST av detta
+  knapptryck, aldrig automatiskt) och fyra individuella kryssrutor (ny/ändrad rutin,
+  anslagsfrist, källvarning, bristanmälan – den sista bara synlig för
+  förrådsansvarig/superadmin). Ingen ruta är förikryssad; `pushInstallningar` saknas helt för
+  en ny användare tills de själva aktiverar en typ.
+- **Avgränsning mot planen:** triggerpunkten "efter en läskvittering" (istället för i
+  profilen) byggdes INTE i den här omgången – att lägga behörighetsdialogen direkt i
+  profilinställningarna är fortfarande "inte vid inloggning" och alltså återhållsamt nog för
+  krav 10, men den mer sofistikerade kontextuella triggern är en möjlig framtida förbättring,
+  inte en spärr för att släppa funktionen nu.
 
-### 24d – iOS-verkligheten
+### 24d – iOS-verkligheten ✅ KLAR
 
 - Webbpush på iOS kräver att användaren lagt till appen på hemskärmen (iOS 16.4+). En stor
   del av vårdpersonalen har iPhone.
 - **Konsekvens som måste byggas, inte bara noteras:** en tydlig "lägg till på hemskärmen"-guide,
   och en ärlig text som säger *varför* den behövs. Utan det upplevs funktionen som trasig på
   halva enhetsparken.
+- **Genomfört:** `arIos()`/`korSomInstalleradApp()` i `src/firebase/messaging.js` (den senare
+  via `display-mode: standalone`/`navigator.standalone`, det enda tillförlitliga tecknet på en
+  hemskärms-installerad PWA på iOS) styr en förklarande guidetext i `Profil.jsx`s push-sektion
+  som visas just för iPhone/iPad-användare som INTE öppnat appen från hemskärmen, med konkreta
+  steg (Dela-ikonen → "Lägg till på hemskärmen").
 
 **Klart när:** en sjuksköterska får veta att en rutin ändrats innan nästa pass börjar, utan
 att ha öppnat appen – och kan stänga av det i profilen på tio sekunder om hon inte vill ha det.

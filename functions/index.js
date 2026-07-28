@@ -40,6 +40,11 @@ function onCall(optionerEllerHanterare, kanskeHanterare) {
 
 admin.initializeApp();
 const db = admin.firestore();
+
+// Etapp 24b: samma rollmängd som KAN_HANTERA_FORRAD i src/firebase/roles.js – dupliceras
+// lokalt eftersom functions/ är CommonJS och inte delar moduler med det ES-modulbaserade
+// src/-trädet (samma mönster som GILTIGA_ROLLER nedan).
+const KAN_HANTERA_FORRAD = ["superadmin", "forradesansvarig"];
 // Explicit bucket name: admin.storage().bucket() with no argument can resolve to the
 // legacy <project-id>.appspot.com bucket instead of the project's actual configured
 // bucket, causing "no such object" failures for files the client just uploaded.
@@ -1538,6 +1543,64 @@ async function hamtaRollForAktor(uid) {
   }
 }
 
+// Etapp 24b: central push-sändning. Notiserna är MEDVETET ordfattiga (bara titel + en
+// generisk rad, aldrig rutinens/anslagets/bristanmälans fritext) – en push syns på en låst
+// skärm som vem som helst i väntrummet kan se, se ETAPPLAN4.md Etapp 24b. Datat skickas som
+// "data-only" (inget "notification"-fält) så att src/sw.js:s onBackgroundMessage är den ENDA
+// som visar notisen – annars visar FCM en egen, odekorerad standardnotis UTÖVER vår egen.
+async function skickaPush(anvandarLista, { titel, body, url }) {
+  const tokenTillUid = new Map();
+  const tokens = [];
+  for (const a of anvandarLista) {
+    for (const token of a.pushTokens ?? []) {
+      tokenTillUid.set(token, a.id);
+      tokens.push(token);
+    }
+  }
+  if (tokens.length === 0) return;
+
+  const resp = await admin.messaging().sendEachForMulticast({
+    data: { title: titel, body: body ?? "", url: url ?? "/" },
+    tokens,
+  });
+
+  const dodaTokensPerUid = new Map();
+  resp.responses.forEach((r, i) => {
+    if (r.success) return;
+    const kod = r.error?.code;
+    if (kod !== "messaging/registration-token-not-registered" && kod !== "messaging/invalid-registration-token") {
+      return;
+    }
+    const uid = tokenTillUid.get(tokens[i]);
+    if (!dodaTokensPerUid.has(uid)) dodaTokensPerUid.set(uid, []);
+    dodaTokensPerUid.get(uid).push(tokens[i]);
+  });
+  await Promise.all(
+    Array.from(dodaTokensPerUid.entries()).map(([uid, dodaTokens]) =>
+      db
+        .collection("users")
+        .doc(uid)
+        .update({ pushTokens: admin.firestore.FieldValue.arrayRemove(...dodaTokens) })
+    )
+  );
+}
+exports.skickaPush = skickaPush;
+
+// Etapp 24c: förvalt läge är återhållsamt (genomgående krav 10) – `pushInstallningar` saknas
+// helt för de allra flesta användare tills de aktivt slår på en notistyp i Profil.jsx, så
+// frågan filtrerar på `== true` (inte "!= false") för att aldrig av misstag inkludera någon
+// som inte gjort ett aktivt val.
+async function hamtaAnvandareMedPushPreferens(organisationId, installningsNyckel, extraFilter) {
+  const snap = await db
+    .collection("users")
+    .where("organisationId", "==", organisationId)
+    .where(`pushInstallningar.${installningsNyckel}`, "==", true)
+    .get();
+  const anvandare = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return extraFilter ? anvandare.filter(extraFilter) : anvandare;
+}
+exports.hamtaAnvandareMedPushPreferens = hamtaAnvandareMedPushPreferens;
+
 // Kärnlogiken är en egen, direkt anropbar funktion (inte bara triggerns callback) av samma
 // skäl som backupaOrganisation/loggaRevision exporteras separat: `test:functions` kör bara
 // firestore+storage-emulatorerna, INTE functions-emulatorn, så en riktig
@@ -1557,6 +1620,46 @@ async function hanteraRutinSkapad(data, rutinId) {
     objektTyp: "rutiner",
     objektId: rutinId,
     sammanfattning: `Rutin publicerad direkt vid skapande: ${data.titel ?? "(namnlös)"}`,
+  });
+  await skickaPushForNyRutin(data.organisationId ?? "default", data.omrade, data.skapadAv);
+}
+
+// Etapp 24b: "ny/ändrad rutin inom mitt område" – premisskontroll (genomgående krav 8): det
+// finns inget användarfält som binder en person till ett specifikt omrade (`kliniskt-stod`/
+// `administration`), bara rollbaserad redigeringsbehörighet (se farRedigeraOmrade i
+// firestore.rules). En riktig områdesfiltrering hade därför krävt en ny datamodell för
+// "vilket område jobbar jag i", vilket inte finns idag. Förenklat till hela organisationen
+// istället – dokumenterat som en avsiktlig avgränsning i ETAPPLAN4.md.
+async function skickaPushForNyRutin(organisationId, omrade, skapadAv) {
+  const mottagare = await hamtaAnvandareMedPushPreferens(
+    organisationId,
+    "nyRutin",
+    (a) => a.id !== skapadAv
+  );
+  await skickaPush(mottagare, {
+    titel: omrade === "administration" ? "Ny rutin i Administration" : "Ny rutin i Kliniskt stöd",
+    body: "Det finns en ny eller ändrad rutin att läsa.",
+    url: omrade === "administration" ? "/administration" : "/kliniskt-stod",
+  });
+}
+
+// Etapp 24b: "källvarning till rutinens ägare" – agare är antingen { typ: "person", uid } eller
+// { typ: "roll", roll } (se RutinFormular.jsx). Ingen fritext (rutinens titel räcker som
+// generisk identifiering, samma nivå av detalj som redan syns i appens egen notisklocka).
+async function skickaPushForKallvarning(organisationId, agare, titel, rutinId) {
+  if (!agare) return;
+  let mottagare;
+  if (agare.typ === "person" && agare.uid) {
+    mottagare = await hamtaAnvandareMedPushPreferens(organisationId, "kallVarning", (a) => a.id === agare.uid);
+  } else if (agare.typ === "roll" && agare.roll) {
+    mottagare = await hamtaAnvandareMedPushPreferens(organisationId, "kallVarning", (a) => a.role === agare.roll);
+  } else {
+    return;
+  }
+  await skickaPush(mottagare, {
+    titel: "Källvarning på en rutin du äger",
+    body: `Källan till "${titel ?? "en rutin"}" verkar ha ändrats eller sluta fungera.`,
+    url: `/kliniskt-stod#rutin-${rutinId}`,
   });
 }
 
@@ -1584,6 +1687,14 @@ async function hanteraRutinAndrad(fore, efter, rutinId) {
       objektId: rutinId,
       sammanfattning: `Rutin godkänd: ${efter.titel ?? "(namnlös)"}`,
     });
+    await skickaPushForNyRutin(organisationId, efter.omrade, efter.godkandAv);
+  }
+
+  // Etapp 24b: källvarning (se kontrolleraKallbevakning/Sektionssida.jsx) sätts via update,
+  // inte en separat collection – fångas här som en tredje gren i samma update-trigger istället
+  // för en ny trigger.
+  if (!fore.kallVarning && efter.kallVarning === true) {
+    await skickaPushForKallvarning(organisationId, efter.agare, efter.titel, rutinId);
   }
 
   if (!fore.borttagen && efter.borttagen === true) {
@@ -1604,6 +1715,79 @@ exports.loggaRutinAndradTrigger = onDocumentUpdated(
   (event) => hanteraRutinAndrad(event.data.before.data(), event.data.after.data(), event.params.rutinId)
 );
 exports.hanteraRutinAndrad = hanteraRutinAndrad;
+
+// Etapp 24b: bristanmälan till förrådsansvarig. Ingen fritext skickas (kommentarfältet på
+// bristanmälan hoppas medvetet över, se ETAPPLAN4.md Etapp 24b) – bara artikelns namn, som
+// redan är strukturerad katalogdata, inte fritext skriven av en användare.
+async function hanteraBristanmalningSkapad(data, bristId) {
+  const organisationId = data.organisationId ?? "default";
+  const mottagare = await hamtaAnvandareMedPushPreferens(
+    organisationId,
+    "bristanmalan",
+    (a) => KAN_HANTERA_FORRAD.includes(a.role)
+  );
+  await skickaPush(mottagare, {
+    titel: "Ny bristanmälan",
+    body: `${data.artikelNamn ?? "En artikel"} har anmälts som slut eller lågt saldo.`,
+    url: "/logistik",
+  });
+  return bristId;
+}
+exports.hanteraBristanmalningSkapad = hanteraBristanmalningSkapad;
+
+exports.hanteraBristanmalningSkapadTrigger = onDocumentCreated(
+  { document: "bristanmalningar/{bristId}", region: "europe-west1" },
+  (event) => hanteraBristanmalningSkapad(event.data.data(), event.params.bristId)
+);
+
+// Etapp 24b: daglig påminnelse om anslag med en kvitteringsfrist som närmar sig, till var och
+// en som inte redan kvitterat – mirrorar exakt samma "vem har inte kvitterat"-logik som
+// Admin.jsx redan visar klientsidan (anslagMedFrist), se ETAPPLAN4.md Etapp 24b.
+// `pushPaminnelseSkickadTill` håller reda på vem som redan fått EN påminnelse per anslag, så
+// jobbet (som körs dagligen) inte skickar samma push varje dag fram till fristen.
+const KVITTERINGSPAMINNELSE_FONSTER_MS = 3 * 24 * 60 * 60 * 1000;
+
+async function kontrolleraKvitteringsfrister() {
+  const nu = Date.now();
+  // `borttagen` sätts bara VID radering (se useAnslag.js) – aldrig till `false` vid
+  // skapande – så ett Firestore-villkor `where("borttagen", "!=", true)` hade uteslutit ALLA
+  // icke-raderade anslag (inequality-filter matchar aldrig dokument som helt saknar fältet).
+  // Filtreras därför i JS istället, samma mönster som useAnslag.js redan använder.
+  const snap = await db.collection("anslag").get();
+  for (const anslagDoc of snap.docs) {
+    const data = anslagDoc.data();
+    if (data.borttagen) continue;
+    if (!data.kvitteringsfrist) continue;
+    const fristTid = new Date(data.kvitteringsfrist).getTime();
+    if (Number.isNaN(fristTid) || fristTid < nu || fristTid - nu > KVITTERINGSPAMINNELSE_FONSTER_MS) continue;
+
+    const lasteAv = new Set((data.lasteAv ?? []).map((l) => l.uid));
+    const redanPaminda = new Set(data.pushPaminnelseSkickadTill ?? []);
+    const organisationId = data.organisationId ?? "default";
+
+    const mottagare = await hamtaAnvandareMedPushPreferens(
+      organisationId,
+      "anslagsfrist",
+      (a) => !lasteAv.has(a.id) && !redanPaminda.has(a.id)
+    );
+    if (mottagare.length === 0) continue;
+
+    await skickaPush(mottagare, {
+      titel: "Ett anslag väntar på kvittering",
+      body: `"${data.titel ?? "Ett anslag"}" måste läsas och kvitteras innan fristen går ut.`,
+      url: "/anslag",
+    });
+    await anslagDoc.ref.update({
+      pushPaminnelseSkickadTill: admin.firestore.FieldValue.arrayUnion(...mottagare.map((a) => a.id)),
+    });
+  }
+}
+exports.kontrolleraKvitteringsfrister = kontrolleraKvitteringsfrister;
+
+exports.kvitteringsfristerSchemalagt = onSchedule(
+  { schedule: "every day 07:00", timeZone: "Europe/Stockholm", region: "europe-west1" },
+  kontrolleraKvitteringsfrister
+);
 
 // Etapp 14d: begränsningstext som MÅSTE följa med varje export/verifiering, i enlighet med
 // begränsningsrutan i ETAPPLAN3.md Etapp 14 – en granskare ska förstå exakt vad kontrollen
