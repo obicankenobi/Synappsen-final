@@ -736,16 +736,30 @@ gör den till ett kompetensverktyg: från "har klickat läst" till "kan visa att
 - 5 nya rules-tester (96/96 totalt i organisationsisolering.test.mjs): PII i fråga, PII i
   hänvisning, giltig kviss, för många frågor (>4), PII vid uppdatering.
 
-### 19c – Kompetensmatris per roll
+### 19c – Kompetensmatris per roll ✅ KLAR
 
-- Definiera per roll vilka rutiner som är **obligatoriska** och med vilken
-  omkvitteringsfrekvens (t.ex. årligen).
-- Matrisvy: roller × obligatoriska rutiner, med status per person (klar / förfaller snart /
-  förfallen / saknas).
-- Gap-lista och export till APT-underlag och ledningsrapporten.
-- Automatisk omkvittering: när en rutin uppdateras väsentligt eller frekvensen löper ut,
-  återställs status och personen får en notis. Skilj på redaktionell och väsentlig ändring –
-  annars drunknar personalen i notiser. Låt den som publicerar kryssa i "väsentlig ändring".
+- Ny collection `kompetenskrav` (roll, rutinreferens, omkvitteringsfrekvens i månader),
+  hanterad av VEC/superadmin (`useKompetenskrav.js`, `firestore.rules` – samma behörighet
+  som introduktionsspår/anslagstavlan). Alla i organisationen får LÄSA kraven.
+- Status beräknas LIVE utifrån redan befintliga `lasteAv`-listor (`utils/kompetensStatus.js`,
+  samma mönster som introduktionsspårets progress) – ingen egen "godkänd"-status lagras per
+  person och rutin. Fyra lägen: klar / förfaller snart (inom 30 dagar) / förfallen / saknas.
+- Ny sida `/kompetensmatris`: matrisvy (roller × obligatoriska rutiner, status per person),
+  gap-lista med CSV-export (samma Blob-mönster som kvitteringsexporten). VEC/superadmin/
+  sektionsledare ("chef") ser hela vyn; övrig personal ser bara sin egen status.
+- **Automatisk omkvittering:** ny fält `senasteVasentligaAndring` på `rutiner`, satt via en
+  kryssruta ("Väsentlig ändring") i `RutinFormular.jsx` – syns bara vid redigering av en redan
+  godkänd rutin, bara för VÖL/superadmin (samma roller som `farGodkannaKlinisktInnehall()`).
+  En kvittering gjord FÖRE den senaste väsentliga ändringen räknas som "saknas" i matrisen,
+  oavsett omkvitteringsfrekvens – utan att någon gammal kvittering behöver raderas.
+- **Fix (samma regelbudgetproblem som 19b):** att lägga till ännu ett skyddat fält i
+  `rutiner`-uppdateringsregeln tippade över Firestores tak på 1000 deluttryck igen. Löst genom
+  att bryta ut hela update-villkoret i en egen funktion (`farUppdateraRutin`) som använder
+  `let` för att beräkna `matcharMinOrg(...)` EN gång istället för en gång per OR-gren
+  (`allow`-satser kan inte innehålla `let` direkt, bara funktioner kan).
+- Fix (upptäckt under arbetet): `Sektionssida.jsx` sparade aldrig `kviss`-fältet från 19b –
+  formuläret hade fältet men `hanteraSpara` skickade det inte vidare till Firestore.
+- 8 nya rules-tester (104/104 totalt), 9 nya vitest-tester för `kompetensStatus.js`.
 
 **Klart när:** en chef kan öppna en vy och på tio sekunder se vilka i sin personalgrupp som
 saknar en obligatorisk rutin, och exportera det till APT.

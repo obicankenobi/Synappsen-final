@@ -82,6 +82,7 @@ export default function RutinFormular({
 
   const [kviss, setKviss] = useState(initialaVarden?.kviss ?? []);
   const [foreslarKviss, setForeslarKviss] = useState(false);
+  const [vasentligAndring, setVasentligAndring] = useState(false);
 
   function laggTillFraga() {
     if (kviss.length >= 4) return;
@@ -248,6 +249,7 @@ export default function RutinFormular({
             rattIndex: f.rattIndex,
             hanvisning: f.hanvisning?.trim() || "",
           })),
+        vasentligAndring,
       });
     } finally {
       setSparar(false);
@@ -520,6 +522,25 @@ export default function RutinFormular({
           automatiska påminnelser, bara som information.
         </span>
       </label>
+
+      {farKureraAkutlage && initialaVarden?.status === "godkand" && (
+        <label className="rutin-formular__akutlage">
+          <span className="rutin-formular__checkbox-rad">
+            <input
+              type="checkbox"
+              checked={vasentligAndring}
+              onChange={(e) => setVasentligAndring(e.target.checked)}
+            />
+            Väsentlig ändring (kräver omkvittering av alla)
+          </span>
+          <span className="rutin-formular__hjalptext">
+            Kryssa i om ändringen påverkar det som beskrivs, t.ex. ny dosering eller nytt
+            arbetssätt – då räknas alla tidigare läskvitteringar av rutinen som föråldrade i
+            kompetensmatrisen och behöver göras om. Lämna okryssad för redaktionella ändringar
+            (stavfel, formatering) – annars drunknar personalen i omkvitteringar.
+          </span>
+        </label>
+      )}
 
       {farKureraAkutlage && (
         <label className="rutin-formular__akutlage">

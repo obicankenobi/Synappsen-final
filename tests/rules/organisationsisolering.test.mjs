@@ -675,6 +675,52 @@ async function main() {
     )
   );
 
+  console.log("\nrutiner/{rutinId}.senasteVasentligaAndring – Etapp 19c: bara VÖL/superadmin flaggar väsentlig ändring");
+  await test("sektionsledareA (redigerar men godkänner inte) kan INTE sätta senasteVasentligaAndring", () =>
+    assertFails(
+      updateDoc(doc(sektionsledareA, "rutiner", "rutinKurateradA"), {
+        senasteVasentligaAndring: new Date(),
+      })
+    )
+  );
+  await test("volA (får godkänna kliniskt innehåll) KAN sätta senasteVasentligaAndring", () =>
+    assertSucceeds(
+      updateDoc(doc(volA, "rutiner", "rutinKurateradA"), {
+        senasteVasentligaAndring: new Date(),
+      })
+    )
+  );
+
+  console.log("\nkompetenskrav/{kravId} – Etapp 19c: bara VEC/superadmin definierar obligatoriska rutiner");
+  let kravTestId;
+  await test("personalA (ingen redaktörsroll) kan INTE skapa ett kompetenskrav", () =>
+    assertFails(
+      addDoc(collection(personalA, "kompetenskrav"), {
+        roll: "personal", rutinId: "rutinKurateradA", rutinTitel: "Test", omrade: "kliniskt-stod",
+        frekvensManader: 12, organisationId: ORG_A,
+      })
+    )
+  );
+  await test("vecA KAN skapa ett kompetenskrav i sin egen organisation", async () => {
+    const ref = await addDoc(collection(vecA, "kompetenskrav"), {
+      roll: "personal", rutinId: "rutinKurateradA", rutinTitel: "Test", omrade: "kliniskt-stod",
+      frekvensManader: 12, organisationId: ORG_A,
+    });
+    kravTestId = ref.id;
+  });
+  await test("personalA (alla i organisationen) KAN läsa ett kompetenskrav", () =>
+    assertSucceeds(getDoc(doc(personalA, "kompetenskrav", kravTestId)))
+  );
+  await test("superadminB (fel organisation) kan INTE läsa org A:s kompetenskrav", () =>
+    assertFails(getDoc(doc(superB, "kompetenskrav", kravTestId)))
+  );
+  await test("personalA kan INTE ta bort ett kompetenskrav", () =>
+    assertFails(deleteDoc(doc(personalA, "kompetenskrav", kravTestId)))
+  );
+  await test("vecA KAN ta bort ett kompetenskrav i sin egen organisation", () =>
+    assertSucceeds(deleteDoc(doc(vecA, "kompetenskrav", kravTestId)))
+  );
+
   console.log("\ncheckriktlistkorningar/{rutinId} – Etapp 18d: aggregerad statistik, organisationsisolerad");
   await test("volA KAN räkna upp påbörjade körningar för en rutin i sin egen organisation", () =>
     assertSucceeds(

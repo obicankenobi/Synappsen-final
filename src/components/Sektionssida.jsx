@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { serverTimestamp } from "firebase/firestore";
 import { useAuth } from "../hooks/useAuth";
 import { useAnvandare } from "../hooks/useAnvandare";
 import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
@@ -108,6 +109,8 @@ export default function Sektionssida({
     akutlage,
     akutlageOrdning,
     steg,
+    kviss,
+    vasentligAndring,
   }) {
     if (redigerar) {
       const nyaBilagor = nyaFiler.length ? await laddaUppRutinBilagor(omrade, redigerar.id, nyaFiler) : [];
@@ -123,7 +126,12 @@ export default function Sektionssida({
           bilagor: [...befintligaBilagor, ...nyaBilagor],
           agare,
           steg,
+          kviss,
           ...(farKureraAkutlage ? { akutlage, akutlageOrdning } : {}),
+          // Etapp 19c: bara den som får godkänna kliniskt innehåll kan kryssa i "väsentlig
+          // ändring" (samma roller som farKureraAkutlage, se firestore.rules) – annars kunde
+          // vem som helst med redigeringsrätt tvinga fram omkvittering för hela organisationen.
+          ...(farKureraAkutlage && vasentligAndring ? { senasteVasentligaAndring: serverTimestamp() } : {}),
         },
         currentUser.uid
       );
@@ -143,6 +151,7 @@ export default function Sektionssida({
         bilagor: nyaFiler.length ? await laddaUppRutinBilagor(omrade, ref.id, nyaFiler) : [],
         agare,
         steg,
+        kviss,
       });
     }
     setVisaFormular(false);

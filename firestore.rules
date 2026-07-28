@@ -279,6 +279,42 @@ service cloud.firestore {
       allow delete: if arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation();
     }
 
+    // Etapp 19c: samlar update-villkoret för rutiner/{rutinId} i en egen funktion så att
+    // matcharMinOrg(...) (som kedjar vidare till minOrganisation() OCH organisationenArAktiv(),
+    // vilken gör en egen get()) kan beräknas EN gång med `let` och återanvändas i båda
+    // OR-grenarna, istället för att anropas en gång per gren – `allow`-satser kan inte
+    // innehålla `let` direkt, bara funktioner kan.
+    function farUppdateraRutin(gammalt, nytt) {
+      let sammaOrg = matcharMinOrg(gammalt.get('organisationId', 'default'));
+      return (farRedigeraOmrade(gammalt.omrade)
+              && sammaOrg
+              && (
+                farGodkannaKlinisktInnehall()
+                || (
+                  // Endast VÖL/superadmin får ändra godkännandestatus för kliniskt stöd
+                  (gammalt.omrade != 'kliniskt-stod' || nytt.status == gammalt.status)
+                  // Etapp 17c: bara VÖL/superadmin kurerar akutläget, oavsett vilket område
+                  // rutinen tillhör – annars kan vem som helst med redigeringsrätt för ETT
+                  // område fylla akutläget med ocertifierat innehåll.
+                  && nytt.get('akutlage', false) == gammalt.get('akutlage', false)
+                  && nytt.get('akutlageOrdning', 0) == gammalt.get('akutlageOrdning', 0)
+                  // Etapp 19c: bara VÖL/superadmin (samma som farGodkannaKlinisktInnehall) får
+                  // flagga en ändring som "väsentlig" – det fältet tvingar fram omkvittering i
+                  // hela organisationens kompetensmatris (se utils/kompetensStatus.js), så det
+                  // får inte sättas av vem som helst med vanlig redigeringsrätt för området.
+                  && nytt.get('senasteVasentligaAndring', null) == gammalt.get('senasteVasentligaAndring', null)
+                )
+              )
+              && arKortStegLista(nytt.get('steg', []))
+              && arKortKvissLista(nytt.get('kviss', []))
+              && !harTroligtPersonnummer(nytt.get('titel', ''))
+              && !harTroligtPersonnummer(nytt.get('innehall', ''))
+              && !harTroligtPersonnummer(nytt.get('referenser', ''))
+              && !harTroligtPersonnummerISteg(nytt.get('steg', []))
+              && !harTroligtPersonnummerIKviss(nytt.get('kviss', [])))
+          || (sammaOrg && bararForandrarFalt(['lasteAv']));
+    }
+
     // rutiner/{rutinId} – innehåll för kliniskt stöd, logistik och administration
     // Fältet "omrade" styr vilken roll som får redigera, "status" styr godkännandeflödet
     match /rutiner/{rutinId} {
@@ -305,29 +341,12 @@ service cloud.firestore {
       // farGodkannaKlinisktInnehall() anropas bara EN gång (inte en gång per skyddat fält) –
       // annars riskerar den sammanlagda regelkomplexiteten (varje anrop kedjar vidare till
       // fler get()-uppslag) att nå Firestores tak på antal utvärderade deluttryck per regel.
-      allow update: if (farRedigeraOmrade(resource.data.omrade)
-                     && matcharMinOrg(resource.data.get('organisationId', 'default'))
-                     && (
-                       farGodkannaKlinisktInnehall()
-                       || (
-                         // Endast VÖL/superadmin får ändra godkännandestatus för kliniskt stöd
-                         (resource.data.omrade != 'kliniskt-stod' || request.resource.data.status == resource.data.status)
-                         // Etapp 17c: bara VÖL/superadmin kurerar akutläget, oavsett vilket
-                         // område rutinen tillhör – annars kan vem som helst med redigeringsrätt
-                         // för ETT område fylla akutläget med ocertifierat innehåll.
-                         && request.resource.data.get('akutlage', false) == resource.data.get('akutlage', false)
-                         && request.resource.data.get('akutlageOrdning', 0) == resource.data.get('akutlageOrdning', 0)
-                       )
-                     )
-                     && arKortStegLista(request.resource.data.get('steg', []))
-                     && arKortKvissLista(request.resource.data.get('kviss', []))
-                     && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
-                     && !harTroligtPersonnummer(request.resource.data.get('innehall', ''))
-                     && !harTroligtPersonnummer(request.resource.data.get('referenser', ''))
-                     && !harTroligtPersonnummerISteg(request.resource.data.get('steg', []))
-                     && !harTroligtPersonnummerIKviss(request.resource.data.get('kviss', [])))
-                     || (matcharMinOrg(resource.data.get('organisationId', 'default'))
-                         && bararForandrarFalt(['lasteAv']));
+      // Etapp 19c: matcharMinOrg(...) (som i sig kedjar vidare till minOrganisation() OCH
+      // organisationenArAktiv(), som gör en egen get()) förekom tidigare TVÅ gånger i den här
+      // regeln (en gång per OR-gren) – flyttat till en enda `let`-bindning (kräver att hela
+      // uttrycket ligger i en funktion, `allow`-satser stödjer inte `let` direkt) gav utrymme
+      // för det nya senasteVasentligaAndring-fältet utan att nå regelbudgeten igen.
+      allow update: if farUppdateraRutin(resource.data, request.resource.data);
 
       allow delete: if farRedigeraOmrade(resource.data.omrade)
                      && matcharMinOrg(resource.data.get('organisationId', 'default'));
@@ -545,6 +564,16 @@ service cloud.firestore {
     match /introduktionstilldelningar/{uid} {
       allow read: if (arInloggad() && request.auth.uid == uid)
                    || (farHanteraAnslag() && matcharMinOrg(resource.data.get('organisationId', 'default')));
+      allow create: if farHanteraAnslag() && request.resource.data.get('organisationId', 'default') == minOrganisation();
+      allow update, delete: if farHanteraAnslag() && matcharMinOrg(resource.data.get('organisationId', 'default'));
+    }
+
+    // kompetenskrav/{kravId} – Etapp 19c: vilka rutiner som är OBLIGATORISKA för en viss roll,
+    // och med vilken omkvitteringsfrekvens. Samma behörighet som introduktionsspår (VEC/
+    // superadmin definierar kraven), medan alla i organisationen får läsa dem (kompetensmatrisen
+    // behöver kunna visa varje persons egen status, oavsett roll).
+    match /kompetenskrav/{kravId} {
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
       allow create: if farHanteraAnslag() && request.resource.data.get('organisationId', 'default') == minOrganisation();
       allow update, delete: if farHanteraAnslag() && matcharMinOrg(resource.data.get('organisationId', 'default'));
     }

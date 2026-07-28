@@ -60,6 +60,7 @@ const Papperskorg = lazy(() => import("./pages/Papperskorg"));
 const OfflineCenter = lazy(() => import("./pages/OfflineCenter"));
 const Leverantor = lazy(() => import("./pages/Leverantor"));
 const Introduktion = lazy(() => import("./pages/Introduktion"));
+const Kompetensmatris = lazy(() => import("./pages/Kompetensmatris"));
 const Ledningsrapport = lazy(() => import("./pages/Ledningsrapport"));
 const Akutlage = lazy(() => import("./pages/Akutlage"));
 const Korvy = lazy(() => import("./pages/Korvy"));
@@ -241,6 +242,14 @@ export default function App() {
             element={
               <SkyddatLayout>
                 <Introduktion />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/kompetensmatris"
+            element={
+              <SkyddatLayout>
+                <Kompetensmatris />
               </SkyddatLayout>
             }
           />

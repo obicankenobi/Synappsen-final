@@ -13,6 +13,7 @@ export const ALLA_SNABBLANKAR = [
   { nyckel: "profil", ikon: "👤", namn: "Min profil", sokvag: "/profil" },
   { nyckel: "kontakter", ikon: "☎️", namn: "Kontakter", sokvag: "/kontakter" },
   { nyckel: "introduktion", ikon: "🎓", namn: "Introduktion", sokvag: "/introduktion" },
+  { nyckel: "kompetensmatris", ikon: "📋", namn: "Kompetensmatris", sokvag: "/kompetensmatris" },
   { nyckel: "lankbibliotek", ikon: "🔗", namn: "Länkbibliotek", sokvag: "/lankbibliotek" },
   { nyckel: "papperskorg", ikon: "🗑️", namn: "Papperskorg", sokvag: "/papperskorg" },
 ];
