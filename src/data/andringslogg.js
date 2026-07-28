@@ -3,6 +3,53 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.45.0",
+    datum: "2026-07-28",
+    andringar: [
+      "Tydligare färgsystem: områdesmärkningar (Kliniskt stöd/Logistik/Administration) och statusmärkningar (väntar på godkännande/godkänd/avvisad) har nu helt egna färger, så de aldrig kan förväxlas med varandra i sökresultat eller notiser",
+      "\"Väntar på godkännande\" visas nu tydligt med en timglasikon på rutiner och förrådsartiklar",
+      "Konsekvent datumformat och sökfältstext överallt i appen",
+    ],
+  },
+  {
+    version: "5.44.0",
+    datum: "2026-07-28",
+    andringar: [
+      "Ny startsida-widget och sida \"Sedan ditt förra pass\": se på ett ställe vad som hänt (nya anslag, rutiner och skiftrapporter) sedan du senast var inloggad, och kvittera läsning direkt i listan",
+    ],
+  },
+  {
+    version: "5.43.0",
+    datum: "2026-07-28",
+    andringar: [
+      "Push-notiser: få en påminnelse på din enhet om nya rutiner, ett anslag som väntar på kvittering, en bristanmälan eller en källvarning – helt valfritt och avstängt som standard, slås på i Profil",
+      "Vägledning för att lägga till appen på hemskärmen (krävs för push på iPhone/iPad)",
+    ],
+  },
+  {
+    version: "5.42.0",
+    datum: "2026-07-28",
+    andringar: [
+      "Ny kommandopalett (Ctrl/Cmd+K, eller \"/\", eller sök-knappen längst ner på mobil): sök eller kör en åtgärd direkt, från vilken sida som helst i appen",
+    ],
+  },
+  {
+    version: "5.41.0",
+    datum: "2026-07-28",
+    andringar: [
+      "Telefonnummer i kontakter och akutläget är nu klickbara och ringer upp direkt",
+      "Möjligt att lägga till en bild per steg i en checklista",
+      "Valfri profilbild och accentfärg i Profil",
+    ],
+  },
+  {
+    version: "5.40.0",
+    datum: "2026-07-28",
+    andringar: [
+      "Ditt eget namn visas nu istället för e-postadressen vid kvitteringar, godkännanden och i profilen",
+    ],
+  },
+  {
     version: "5.26.0",
     datum: "2026-07-27",
     andringar: [
