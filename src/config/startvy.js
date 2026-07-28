@@ -5,6 +5,16 @@
 import { ROLES } from "../firebase/roles";
 
 export const STARTVY_BLOCK = {
+  // Etapp 25b: enda blocket med DYNAMISKT innehåll (antal + de tre viktigaste posterna
+  // sedan förra passet) – Hem.jsx särskiljer den här nyckeln och renderar
+  // SedanForraPassetKort.jsx istället för den generiska SektionsKort. Titel/beskrivning/ikon
+  // här används ändå av StartvyKonfigurationSektion.jsx:s ordningslista i adminpanelen.
+  "sedan-forra-passet": {
+    titel: "Sedan ditt förra pass",
+    beskrivning: "Vad som hänt sedan din förra inloggning",
+    ikon: "🕑",
+    lank: "/sedan-forra-passet",
+  },
   "kliniskt-stod": {
     titel: "Kliniskt stöd",
     beskrivning: "Handläggningsrutiner, triagering och kom-ihåg-saker",
@@ -44,6 +54,7 @@ export const STARTVY_BLOCK = {
 };
 
 const STANDARDORDNING = [
+  "sedan-forra-passet",
   "kliniskt-stod",
   "logistik",
   "administration",

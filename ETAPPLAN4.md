@@ -375,7 +375,7 @@ att ha öppnat appen – och kan stänga av det i profilen på tio sekunder om h
 
 ---
 
-# Etapp 25 – "Sedan ditt förra pass"
+# Etapp 25 – "Sedan ditt förra pass" ✅ KLAR
 
 **Varför:** Vårdpersonal lever i pass, inte i dagar. "Vad har hänt sedan jag jobbade sist?"
 är den fråga alla ställer sig när de kommer in, och i dag måste man leta på fyra ställen
@@ -383,24 +383,49 @@ att ha öppnat appen – och kan stänga av det i profilen på tio sekunder om h
 
 **Modul:** ingen (Core).
 
-### 25a – Passbaserad, inte tidsbaserad
+### 25a – Passbaserad, inte tidsbaserad ✅ KLAR
 
 - Utgå från senaste inloggningen (`senasteInloggning` finns redan på `users`) istället för
   ett fast antal dagar – den som varit ledig i tre veckor ska se tre veckor.
 - Sammanställningen bygger uteslutande på data som redan finns: `useNotiser`s källor,
   `useAnslag`, `useRutiner`, `useSkiftrapport`.
+- **Genomfört:** ny `src/hooks/useSedanForraPasset.js`. Premisskontroll (genomgående krav 8)
+  visade att `senasteInloggning` INTE gick att läsa direkt – `AuthContext.jsx`s befintliga
+  effekt skriver över det fältet med den PÅGÅENDE sessionens tidpunkt vid varje inloggning,
+  innan något annat hinner läsa det gamla värdet. Löst genom att fånga föregående värde i ett
+  nytt `foregaendeInloggning`-state i `AuthContext.jsx`, satt EN gång per session precis
+  innan överskrivningen sker – det är detta, inte det (redan uppdaterade) fältet i Firestore,
+  som `useSedanForraPasset` faktiskt utgår från.
+- **Avgränsning:** skiftrapport-delen begränsas av `useSkiftrapport.js`s redan befintliga
+  48-timmarsgräns (skiftrapporter är designade som transient driftinfo, inte historik – ingen
+  ny fråga byggdes för att kringgå det). Anslag och rutiner har ingen sådan gräns och visar
+  alltså verkligen "tre veckor" om personen varit borta så länge.
 
-### 25b – Ett kort på startsidan + en egen sida
+### 25b – Ett kort på startsidan + en egen sida ✅ KLAR
 
 - Kortet visar antal och de tre viktigaste posterna; sidan visar allt, grupperat.
 - Passar in i `STARTVY_BLOCK`-systemet från Etapp 17a, alltså konfigurerbart per roll.
+- **Genomfört:** ny nyckel `"sedan-forra-passet"` i `config/startvy.js` (först i
+  `STANDARDORDNING`, redigerbar precis som övriga block i
+  `StartvyKonfigurationSektion.jsx`s ordningslista). Eftersom det är det enda blocket med
+  DYNAMISKT innehåll (antal + tre viktigaste posterna, inte en statisk titel/länk) särskiljer
+  `Hem.jsx` den nyckeln och renderar `SedanForraPassetKort.jsx` istället för den generiska
+  `SektionsKort`. Kortet döljer sig helt (`return null`) om listan är tom, så en organisation
+  utan färsk aktivitet inte får ett tomt kort. Egen sida `/sedan-forra-passet`
+  (`SedanForraPasset.jsx`), grupperad med ikon per posttyp (📌 anslag, 🩺 rutin,
+  🛠️ skiftrapport).
 
-### 25c – Kvittera direkt ur listan
+### 25c – Kvittera direkt ur listan ✅ KLAR
 
 - "Läst och förstått" ska gå att trycka på direkt i sammanställningen, utan att öppna varje
   rutin för sig. Mikrokvissen (Etapp 19b) ska fortfarande gälla när den finns.
 - Det här är också det som gör kompetensmatrisen (19c) grön i praktiken – funktionen betalar
   tillbaka till ledningsvärdet, inte bara till trivseln.
+- **Genomfört:** varje anslags-/rutinpost bär en `kvittera()`-funktion som återanvänder de
+  REDAN BEFINTLIGA `kvitteraLast`/`kvitteraLastAnslag` (`useLaskvittering.js`) rakt av – ingen
+  ny kvitteringsmekanism, bara en genväg till samma en. `SedanForraPasset.jsx` visar en
+  "Läst och förstått"-knapp per post som har `kanKvittera` (dvs. användaren inte redan finns i
+  `lasteAv`), som blir "✓ Kvitterat" direkt vid klick.
 
 **Klart när:** den som kommer tillbaka efter semestern kan komma ikapp på två minuter i stället
 för att gissa vad hon missat.

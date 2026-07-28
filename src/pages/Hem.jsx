@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import SokFalt from "../components/SokFalt";
 import SektionsKort from "../components/SektionsKort";
+import SedanForraPassetKort from "../components/SedanForraPassetKort";
 import Notisklocka from "../components/Notisklocka";
 import MinaUppgifter from "../components/MinaUppgifter";
 import KomIgangChecklista from "../components/KomIgangChecklista";
@@ -102,9 +103,13 @@ export default function Hem() {
       )}
 
       <div className="hem__kort-grid">
-        {blockordning.map((nyckel) => (
-          <SektionsKort key={nyckel} {...STARTVY_BLOCK[nyckel]} />
-        ))}
+        {blockordning.map((nyckel) =>
+          nyckel === "sedan-forra-passet" ? (
+            <SedanForraPassetKort key={nyckel} />
+          ) : (
+            <SektionsKort key={nyckel} {...STARTVY_BLOCK[nyckel]} />
+          )
+        )}
       </div>
     </div>
   );

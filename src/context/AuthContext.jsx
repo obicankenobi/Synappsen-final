@@ -21,6 +21,7 @@ export function AuthProvider({ children }) {
   const [profilbildUrl, setProfilbildUrl] = useState(null);
   const [pushTokens, setPushTokens] = useState([]);
   const [pushInstallningar, setPushInstallningar] = useState({});
+  const [foregaendeInloggning, setForegaendeInloggning] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Etapp 6c: registrering kräver numera alltid en giltig inbjudan – öppen självbetjänings-
@@ -56,6 +57,10 @@ export function AuthProvider({ children }) {
         // Fallback till STANDARD_ORG för konton skapade innan organisationId infördes
         // (Etapp 1) – matchar samma fallback som firestore.rules använder.
         setOrganisationId(snap.exists() ? snap.data().organisationId ?? STANDARD_ORG : null);
+        // Etapp 25a: fångar förra inloggningens tidpunkt INNAN den skrivs över nedan – det är
+        // den "sedan ditt förra pass"-sammanställningen (useSedanForraPasset.js) utgår från.
+        // Sparas en gång per session (skrivs aldrig om av notisbesök e.dyl. under sessionen).
+        setForegaendeInloggning(snap.exists() ? (snap.data().senasteInloggning ?? null) : null);
         // Spårar senaste inloggning så adminpanelen kan visa inaktiva konton.
         // Får inte blockera inloggningsflödet om skrivningen misslyckas.
         if (snap.exists()) {
@@ -71,6 +76,7 @@ export function AuthProvider({ children }) {
         setProfilbildUrl(null);
         setPushTokens([]);
         setPushInstallningar({});
+        setForegaendeInloggning(null);
       }
       setLoading(false);
     });
@@ -105,6 +111,7 @@ export function AuthProvider({ children }) {
     profilbildUrl,
     pushTokens,
     pushInstallningar,
+    foregaendeInloggning,
     loading,
     registrera,
     loggaIn,

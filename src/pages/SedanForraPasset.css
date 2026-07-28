@@ -1,0 +1,28 @@
+.sedan-forra-passet__lista {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sedan-forra-passet__rad {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+
+.sedan-forra-passet__ikon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.sedan-forra-passet__text {
+  flex: 1;
+  color: inherit;
+}

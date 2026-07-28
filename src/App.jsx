@@ -65,6 +65,7 @@ const Kompetensmatris = lazy(() => import("./pages/Kompetensmatris"));
 const Ledningsrapport = lazy(() => import("./pages/Ledningsrapport"));
 const Akutlage = lazy(() => import("./pages/Akutlage"));
 const Korvy = lazy(() => import("./pages/Korvy"));
+const SedanForraPasset = lazy(() => import("./pages/SedanForraPasset"));
 
 function SidLaddare() {
   return <div className="sida sida--laddar">Laddar...</div>;
@@ -327,6 +328,14 @@ export default function App() {
                   </Suspense>
                 </ErrorBoundary>
               </SkyddadRoute>
+            }
+          />
+          <Route
+            path="/sedan-forra-passet"
+            element={
+              <SkyddatLayout>
+                <SedanForraPasset />
+              </SkyddatLayout>
             }
           />
           <Route
