@@ -32,9 +32,14 @@ export default function BottomNav() {
         <span className="bottom-nav__ikon">📦</span>
         <span>Logistik</span>
       </NavLink>
+      {/* UI-designjustering (2026-07): "Administration" (policys/anslag/regelverk, alla
+          inloggade) och "/admin" (superadmin-panelen, roller/organisation) hette båda
+          "Admin" i bottennavigeringen – identiskt text på två olika sidor, precis den typen
+          av otydlighet granskningen bad om att åtgärda. Den här heter nu "Regler" (matchar
+          "regelverk" i sidans egen beskrivning), superadmin-panelen behåller "Admin". */}
       <NavLink to="/administration" className="bottom-nav__lank">
         <span className="bottom-nav__ikon">📋</span>
-        <span>Admin</span>
+        <span>Regler</span>
       </NavLink>
       {arRedaktor(role) && (
         <NavLink to="/admin" className="bottom-nav__lank">

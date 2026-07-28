@@ -489,6 +489,35 @@ numret i `Nyheter.jsx`. Löst genom att `version.js` nu importerar `version` dir
 `package.json` (Vite/Rollup bearbetar JSON-importer vid bygget) istället för att underhålla
 två separata versionssträngar för hand – kan alltså inte drifta isär igen.
 
+**Uppföljning (v5.45.3): temperatur + rubrikgenomgång.** Användaren skickade en ny bild av
+mockupen och bad specifikt om att den LJUSA temperaturen skulle hämtas från "Nordic Clinical"
+och den MÖRKA från "Midnight Ward" (basfärgerna – bakgrund/yta – inte badge-hue-separationen,
+som redan var klar). Pixelmätt med Python/PIL direkt i den uppladdade bilden istället för att
+gissa:
+- Ljust läge: `--bg` justerad #f8fafc → #f5f9fa (uppmätt Nordic Clinical-bakgrund, en subtil
+  skillnad – ytan/`--yta` var redan `#ffffff`, matchade exakt).
+- Mörkt läge: `--bg` #0f172a → #0a0e16 och `--yta` #1e293b → #131722 (uppmätt Midnight
+  Ward: bakgrund ~#080b12, ytor ~#12151c–#151a20 – betydligt djupare/svartare än tidigare).
+  `--kant`/`--kant-stark` samt `--primar-ljus` (hover-/fokusfärgen, alla fyra
+  accentvarianter: standard, grön, lila, orange) mörkades i motsvarande proportion så de
+  fortfarande läser som "en nyans över bakgrunden" mot det nya, mycket mörkare underlaget.
+  Alla text/bakgrund-kombinationer omkontrollerade (WCAG AA) efter ändringen – ingen gick
+  under 4.5:1, flera förbättrades eftersom en mörkare bakgrund ökar kontrasten mot ljus text.
+  Badgens egna domän-/statusfärger (fasta, opaka chip-fyllningar) rördes INTE – de behövde
+  ingen ombalansering eftersom de inte är beräknade relativt bakgrunden.
+- **Rubrikgenomgång:** hittade en genuin dubblett – bottennavigeringen hade två olika
+  destinationer (`/administration`, policys/anslag/regelverk, och `/admin`,
+  superadmin-panelen) som BÅDA visade texten "Admin". `/administration` heter nu "Regler"
+  (matchar ordet "regelverk" i sidans egen beskrivning); superadmin-panelen behåller "Admin".
+  Genomsökte även h1/h2 i hela `src/pages` och `src/components/admin` efter andra dubbletter
+  – inga fler äkta cross-sida-kollisioner hittades (upprepade rubriker som förekom var
+  samma villkorliga rubrik inom EN sida, inte två olika sidor med samma text).
+- **Sidofynd under samma genomgång:** `BottomNav.css` klippte redan tidigare (oberoende av
+  dagens namnbyte) bort den sista länken helt på smala skärmar (~320–360px) när alla 7 poster
+  visas (redaktörsroller) – verifierat med Playwright i flera bredder. Fixat med
+  `overflow-x: auto` + `flex-shrink: 0` på länkarna, så den blir nåbar via en sidledes
+  svep istället för helt oåtkomlig.
+
 ---
 
 # Etapp 26 – Medarbetarens röst: föreslå en ändring

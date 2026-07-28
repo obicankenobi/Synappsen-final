@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.45.3",
+    datum: "2026-07-28",
+    andringar: [
+      "Mörkt läge har fått en djupare, mer avslappnad mörk bakgrund, och ljust läge en aning svalare ton",
+      "Bytt namn på \"Admin\" i bottennavigeringen (den för policys/anslag/regelverk heter nu \"Regler\") så det inte längre finns två menyval med samma namn",
+    ],
+  },
+  {
     version: "5.45.0",
     datum: "2026-07-28",
     andringar: [

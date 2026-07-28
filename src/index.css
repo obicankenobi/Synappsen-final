@@ -9,7 +9,9 @@
   --text: #0f172a;
   /* #475569 (inte #64748b) för att nå WCAG AA-kontrast (≥4.5:1) mot --bg för normal text */
   --text-svag: #475569;
-  --bg: #f8fafc;
+  /* UI-designjustering (2026-07): kalibrerad mot "Nordic Clinical"-mockupens ljusa
+     färgtemperatur (uppmätt bakgrund #f5f9fa) – en aning svalare/blåare än tidigare #f8fafc. */
+  --bg: #f5f9fa;
   --yta: #ffffff;
   --kant: #e2e8f0;
   --kant-stark: #cbd5e1;
@@ -49,20 +51,26 @@
 
 /* Mörkt läge: aktiveras via data-tema="dark" (satt av useTema-hooken/TemaVaxlare) eller
    automatiskt via prefers-color-scheme om användaren inte gjort ett explicit val. */
+/* UI-designjustering (2026-07): kalibrerad mot "Midnight Ward"-mockupens mörka
+   färgtemperatur (uppmätta värden: bakgrund ~#080b12, ytor ~#12151c–#151a20) – betydligt
+   djupare/svartare än den tidigare skifferblå (#0f172a/#1e293b). --primar-ljus (hover-/
+   fokusfärgen, se KommandopalettInnehall.css m.fl.) mörkades i samma proportion så den
+   fortfarande läser som "en nyans över bakgrunden", inte som en ljus fläck mot ett nästan
+   svart underlag. */
 :root[data-tema="dark"] {
   --primar: #3b82f6;
   --primar-mork: #60a5fa;
-  --primar-ljus: #1e3a5f;
+  --primar-ljus: #14243a;
   --accent: #2dd4bf;
   --amber: #fbbf24;
   --amber-ljus: #451a03;
   --amber-text: #fcd34d;
   --text: #f1f5f9;
   --text-svag: #94a3b8;
-  --bg: #0f172a;
-  --yta: #1e293b;
-  --kant: #334155;
-  --kant-stark: #475569;
+  --bg: #0a0e16;
+  --yta: #131722;
+  --kant: #242a3a;
+  --kant-stark: #333c52;
   --farlig: #f87171;
   --farlig-mork: #fca5a5;
   --farlig-ljus: #450a0a;
@@ -83,17 +91,17 @@
   :root:not([data-tema="light"]) {
     --primar: #3b82f6;
     --primar-mork: #60a5fa;
-    --primar-ljus: #1e3a5f;
+    --primar-ljus: #14243a;
     --accent: #2dd4bf;
     --amber: #fbbf24;
     --amber-ljus: #451a03;
     --amber-text: #fcd34d;
     --text: #f1f5f9;
     --text-svag: #94a3b8;
-    --bg: #0f172a;
-    --yta: #1e293b;
-    --kant: #334155;
-    --kant-stark: #475569;
+    --bg: #0a0e16;
+    --yta: #131722;
+    --kant: #242a3a;
+    --kant-stark: #333c52;
     --farlig: #f87171;
     --farlig-mork: #fca5a5;
     --farlig-ljus: #450a0a;
@@ -123,13 +131,13 @@
 :root[data-tema="dark"][data-accent="gron"] {
   --primar: #4ade80;
   --primar-mork: #86efac;
-  --primar-ljus: #14532d;
+  --primar-ljus: #102919;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-tema="light"])[data-accent="gron"] {
     --primar: #4ade80;
     --primar-mork: #86efac;
-    --primar-ljus: #14532d;
+    --primar-ljus: #102919;
   }
 }
 
@@ -141,13 +149,13 @@
 :root[data-tema="dark"][data-accent="lila"] {
   --primar: #a78bfa;
   --primar-mork: #c4b5fd;
-  --primar-ljus: #2e1065;
+  --primar-ljus: #1f0a44;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-tema="light"])[data-accent="lila"] {
     --primar: #a78bfa;
     --primar-mork: #c4b5fd;
-    --primar-ljus: #2e1065;
+    --primar-ljus: #1f0a44;
   }
 }
 
@@ -159,13 +167,13 @@
 :root[data-tema="dark"][data-accent="orange"] {
   --primar: #fb923c;
   --primar-mork: #fdba74;
-  --primar-ljus: #431407;
+  --primar-ljus: #2c0d05;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-tema="light"])[data-accent="orange"] {
     --primar: #fb923c;
     --primar-mork: #fdba74;
-    --primar-ljus: #431407;
+    --primar-ljus: #2c0d05;
   }
 }
 
