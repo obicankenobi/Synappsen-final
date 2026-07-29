@@ -167,7 +167,14 @@ rödmarkerar CI, och `npm test` innehåller minst ett meningsfullt test per cent
 
 ---
 
-## Etapp 9 – Upphandlingsbarhet  ·  Storlek: L
+## Etapp 9 – Upphandlingsbarhet  ·  Storlek: L  ·  🔶 DELVIS GENOMFÖRD (se not)
+
+**Status (tillagd 2026-07-28):** ingen markering fanns tidigare på den här rubriken, vilket
+gav intrycket att inget hänt – i praktiken har tre av fem delmål genomförts, fast under
+`ETAPPLAN3.md` Etapp 13 istället för här. 9b (WCAG) delvis via 13g, 9c (GDPR-underlag) helt
+via 13a–13d, 9d (exporterbar granskningslogg) helt via Etapp 14 (revisionslogg). Endast 9a
+(SSO/Entra ID, spårat som 13f) och delar av 9e (driftdokumentation) kvarstår – 9a väntar på
+ett ägarbeslut, se `ETAPPLAN3.md`s beslutspunkter.
 
 **Mål:** ta bort de formella hindren som gör att en region eller kommun *inte får* köpa
 Synappsen, oavsett hur bra produkten är. Detta är den etapp som har störst effekt på

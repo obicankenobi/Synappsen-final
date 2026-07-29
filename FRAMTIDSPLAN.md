@@ -1,55 +1,51 @@
 # Synappsen – plan för fortsatt utveckling
 
-*Upprättad 2026-07-14 · utgår från version 5.7.0*
+*Senast uppdaterad 2026-07-28 · utgår från version 5.45.3.*
 
-## Närmast (nästa release, ~5.8.0) – pausade småpunkter från Fas 14
+> **Denna fil skrevs ursprungligen 2026-07-14 (utgångsläge v5.7.0) och blev sedan liggande
+> oanvänd i 38 versioner** medan `ETAPPLAN2.md`, `ETAPPLAN3.md` och `ETAPPLAN4.md` tog över
+> som de faktiska, löpande underhållna planeringsdokumenten. Nästan allt som stod här
+> (rutinägare, schemalagd backup, offline-center, 2FA-policy m.m.) är sedan länge byggt. Filen
+> är nu omskriven till en KORT pekare mot var den verkliga, aktuella planen finns, istället för
+> att duplicera innehåll som redan underhålls på ett ställe – se `CLAUDE.md` för hela
+> dokumentkartan.
 
-Redan specificerade, små och lågrisk:
+## Var den faktiska planen finns
 
-1. **"Var detta hjälpsamt?"-knapp** på klinikstöd-svar – mät funktionens faktiska nytta.
-2. **Beroende-statustest i adminpanelen** – knapp som pingar Gemini/sökmotorn/Storage och
-   visar grönt/rött, så en trasig nyckel upptäcks av admin och inte av personalen.
-3. **Markdown-förhandsvisning** i rutinredigeraren.
-4. **"Senast besökta rutiner"** på startsidan (lokalt lagrat, ingen backend-ändring).
-5. **Skelettladdning** istället för "Laddar..."-texter.
+**`ETAPPLAN4.md`** är den aktiva planen (Etapp 22–30). Etapp 22–25 samt en
+UI-designjustering (domän-/statusfärger, temaanpassning "Nordic Clinical"/"Midnight Ward",
+rubrikgenomgång) är klara och deployade (v5.45.3). Kvarstående, i den ordning de bör tas:
 
-## Kort sikt (1–2 releaser därefter)
+- **Etapp 26 – Medarbetarens röst (föreslå ändring i en rutin).**
+- **Etapp 27 – Skanna och hitta i förrådet** (QR/streckkod).
+- **Etapp 28 – Kundens egen profil** (logotyp + accentfärg per organisation).
+- **Etapp 29 – Offline på riktigt** (utöka offline-centret till kontakter/förrådsartiklar/
+  bilder, kö för åtgärder utan nät).
+- **Etapp 30 – Snabbhet och WCAG AA** (medvetet sist, men avgörande).
 
-6. **Ägare per rutin** – granskningspåminnelser riktas till en ansvarig person istället
-   för alla redaktörer i området.
-7. **Schemalagd Firestore-backup** – veckovis JSON-dump till Storage; skyddar mot
-   massfel som papperskorgen inte täcker.
-8. **Dödlänk-kontroll** – månadsvis HEAD-ping av länkbiblioteket, 404:or flaggas i admin.
-9. **Riktig offline-åtkomst** – "ladda ner hela kunskapsbasen"-knapp (IndexedDB) så ALLA
-   rutiner är läsbara vid totalt nätavbrott. *Högst verksamhetsvärde i denna grupp.*
+Se `ETAPPLAN4.md` för fullständiga delmål, klart-kriterier och de fem
+**beslutspunkter som kräver ägaren** (bl.a. prioritering mot 13f/SSO och Etapp 16/veckopuls
+från `ETAPPLAN3.md`, som båda väntar på ett ägarbeslut och inte är bortglömda).
 
-## Medellång sikt (kräver beslut/förarbete från verksamheten)
+## Stående underhåll (varje release, gäller oavsett vilken etapp som pågår)
 
-10. **Tvinga 2FA för redaktörsroller** – policybeslut behövs innan aktivering.
-11. **Export av kunskapsbasen som PDF-pärm** – fysisk reservrutin vid IT-avbrott
-    (nedprioriterad av beställaren tidigare, kvarstår som kandidat).
-12. **Kiosk-/snabbläge för delade surfplattor** (samma status som ovan).
-13. **Pilotutvärdering enligt PITCH.md** – mätning av tid-att-hitta, kvitteringsgrad och
-    upplevd nytta styr vilka av punkterna ovan som prioriteras upp.
+- Säkerhets-/beroendegenomgång vid större ändringar.
+- Håll `GODKANDA_KALLDOMANER` (klient) och sökmotorns domänlista synkade vid ändringar av
+  klinikstöd-källorna.
+- Bevaka Custom Search-kvoten och Gemini-budgeten i adminpanelen när användningen växer.
+- Bygg ut enhetstesterna i takt med att säkerhetskritisk logik tillkommer.
+- **Vid varje release:** bumpa `package.json`s `"version"` (INTE `src/version.js` – den läser
+  numera versionen direkt från `package.json`, se `CLAUDE.md`) och lägg till en post överst i
+  `src/data/andringslogg.js`. Två separata bakåtgående sessioner missade det senare i minst 19
+  respektive 6 releaser i rad innan det upptäcktes (2026-07-28) – se `ETAPPLAN4.md`s
+  sidofynd-anteckningar vid Etapp 24/25 för den fullständiga historien.
 
-## Stående underhåll (varje release)
-
-- Säkerhets-/beroendegenomgång vid större ändringar (mönster från Fas 11).
-- Håll `GODKANDA_KALLDOMANER` i kod och sökmotorns domänlista synkade vid ändringar.
-- Bevaka Custom Search-kvoten (100 gratis/dag) och Gemini-budgeten i adminpanelen när
-  användningen växer; höj tak eller utöka cachen vid behov.
-- Enhetstesterna byggs ut i takt med att säkerhetskritisk logik tillkommer.
-
-## Kända öppna punkter (dokumenterade, ej planerade)
+## Kända öppna punkter (dokumenterade, ej aktivt planerade)
 
 - Kvitteringsfrist finns bara på anslag, inte rutiner (medvetet – rutiner har eget
   granskningsdatum).
-- Regelbaserade personnummerfiltret saknar Luhn-validering (tekniskt omöjligt i
-  Firestore-regler; fullt filter finns i klient + Cloud Functions).
-- Klinikstöd-sökningen är ännu inte livetestad efter ombyggnaden till domänbegränsad
-  sökmotor – **första åtgärd efter nästa deploy: verifiera i skarp miljö.**
-- **ATT VERIFIERA (5.10.0):** den schemalagda funktionen `verifieraKlinikstodSchemalagt`
-  (Fas 17) kräver att Cloud Scheduler-API:et är aktiverat i Google Cloud-projektet – kolla
-  efter nästa deploy att det schemalagda jobbet faktiskt skapades och körs (Firebase Console
-  → Functions, eller Google Cloud Console → Cloud Scheduler). Om deployen felade på just den
-  funktionen, aktivera API:et manuellt och deploya om.
+- Regelbaserade personnummerfiltret i `firestore.rules` saknar Luhn-validering (tekniskt
+  omöjligt i Firestore-regler; det fulla, Luhn-validerade filtret finns i klient +
+  Cloud Functions).
+- Kioskläge (`FEATURE.KIOSK_MODE`) är reserverat som en feature-flagga men aldrig byggt –
+  enda kvarvarande punkten från det ursprungliga Operations-paketet, se `MODULPLAN.md`.

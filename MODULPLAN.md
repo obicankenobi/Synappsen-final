@@ -1,144 +1,103 @@
 # Synappsen – modul- och affärsplan (reviderad)
 
-*Uppdaterad utifrån faktisk kodstatus i v5.10.0. Ersätter det ursprungliga modulupplägget.*
+*Senast uppdaterad 2026-07-28, utifrån faktisk kodstatus i v5.45.3.*
 
-Grundstrukturen i ursprungsförslaget står fast: en obligatorisk **Core** plus två tillval,
-**Operations** och **Intelligence**, styrt tekniskt via organisationsnivå, feature flags och
-servervalidering. Sälj utfall, inte implementation. Det som ändrats mot ursprungsförslaget:
+> **Föregående version av detta dokument (uppdaterad t.o.m. v5.10.0) pekade ut
+> organisationsmodellen/multi-tenant-lagret och feature-registryt som den enskilt största
+> kvarvarande investeringen ("störst, gör först").** Båda är sedan länge helt genomförda
+> (`ETAPPLAN.md` Etapp 1 respektive Etapp 2) – ett tydligt exempel på exakt den typen av
+> "skriftligt dokument som inte hängt med" som gav upphov till den här omskrivningen. Se
+> `CLAUDE.md` för hela dokumentkartan och vilka filer som faktiskt hålls levande löpande
+> (`ETAPPLAN2.md`/`3.md`/`4.md`).
 
-1. **Klinikstöd är redan byggt enligt målarkitekturen** – inte en framtida funktion (se nedan).
-2. **Byggstatus är utmärkt per funktion** (✅ klart / 🔶 delvis / ⬜ ej påbörjat) så säljmaterial
-   inte lovar sådant som ännu inte finns.
-3. **Organisationsmodellen är upphöjd till det stora, första tekniska arbetet** – inte ett
-   snabbt förberedande steg. Det är den enskilt största och mest riskfyllda migreringen i hela
-   planen och blockerar allt annat modularbete.
+Grundstrukturen står fast: en obligatorisk **Core** plus tillval, styrt tekniskt via
+organisationsnivå (`organisationer/{orgId}.moduler`), feature flags (`src/config/features.js`)
+och servervalidering i tre lager (UI → klient → Cloud Functions/Firestore-regler). Sälj
+utfall, inte implementation.
 
 ---
 
-## Paketen (med faktisk byggstatus)
+## Paketen (med faktisk byggstatus, 2026-07-28)
 
 ### Core – obligatorisk kärna
 *"Ett gemensamt, kvalitetssäkrat ställe för avdelningens viktigaste information."*
 
-Feature-gatas inte – alltid tillgängligt.
+Feature-gatas inte – alltid tillgängligt, oavsett vilka moduler organisationen har.
 
-- ✅ Rutiner, sök, anslag, förråd, kontakter, länkar
-- ✅ Roller, versionshistorik, kvittering, godkännandeflöde
-- ✅ Rutinägare, QR-koder, favoriter, senast besökta, notiser
-- ✅ Grundadmin, audit-logg, papperskorg, mörkt läge
-- ✅ 2FA (frivillig), auto-utloggning, PII-spärr i formulär
+- ✅ Rutiner, sök (inkl. global kommandopalett, Ctrl/Cmd+K), anslag, förråd, kontakter, länkar
+- ✅ Roller, versionshistorik, kvittering (inkl. mikrokviss), godkännandeflöde, rutinägare
+- ✅ QR-koder, favoriter, senast besökta, in-app-notiser, "Sedan ditt förra pass"
+- ✅ Push-notiser (helt avstängbara per användare, förvalt av)
+- ✅ Grundadmin, revisionslogg (manipuleringsdetekterande hashkedja), papperskorg, mörkt läge,
+  eget visningsnamn/profilbild/accentfärg
+- ✅ 2FA (frivillig eller policy-tvingad per organisation), auto-utloggning, PII-spärr i
+  formulär (klient + regel + Cloud Function, tre lager)
+- ✅ Checklistläge ("kör rutinen"), kompetensmatris, introduktionsspår för nyanställda
+- ✅ Bristanmälan i två klick, källbevakning av externa referenser (larmar vid ändring/
+  trasig länk)
 
-Core är redan tillräckligt starkt för att en kund ska kunna stanna där. Det är det naturliga
-pilotpaketet och kräver ingen AI-diskussion.
+Core är ett mycket starkt, komplett pilotpaket – kräver ingen AI-diskussion för att sälja.
 
 ### Operations – kontinuitet, ansvar, kontroll
 *"Håll rutiner aktuella och tillgängliga när driften är som mest sårbar."*
 
-- ✅ Rutinägare → riktade granskningspåminnelser → "Mina uppgifter" (klart 5.9–5.10)
-- ✅ Beroende-/hälsokontroll i admin (grönt/gult/rött, 5.9)
-- ✅ CSV-export av kvitteringsläge (5.7)
+- ✅ Rutinägare → riktade granskningspåminnelser → "Mina uppgifter"
+- ✅ Beroende-/hälsokontroll i admin (grönt/gult/rött)
+- ✅ CSV-export av kvitteringsläge, ledningsrapport (PDF via utskrift)
 - ✅ Force-logout / återkalla session
-- 🔶 Export/backup – CSV-export finns, men **schemalagd Firestore-backup är ej byggd**
-- ⬜ Offline-center + synkstatus (IndexedDB) – ej påbörjat, hög prioritet
-- ⬜ Sparad historik för hälsokontroller – resultaten visas men persisteras inte
-- ⬜ 2FA-**policy** (tvinga för redaktörsroller) – 2FA finns, men kan inte krävas ännu
-- ⬜ Delad-enhet/kioskläge
+- ✅ **Schemalagd Firestore-backup** (veckovis)
+- ✅ **Offline-center** – godkända rutiners text cachas för läsning utan nät (bilder/bilagor
+  och övrigt innehåll, se `FEATURE.OFFLINE_CENTER` i `src/config/features.js`, är avsiktligt
+  begränsat idag – utökning till kontakter/förrådsartiklar/bilder är `ETAPPLAN4.md` Etapp 29)
+- ✅ **Sparad historik för hälsokontroller** (persisteras, inte bara senaste resultatet)
+- ✅ **2FA-policy** (tvinga för valda roller, per organisation)
+- ✅ Bulkimport av dokument (mappuppladdning + granskningskö), rutinmallar per
+  verksamhetstyp, "tid-att-hitta"-mätning
+- ⬜ **Delad-enhet/kioskläge** – enda genuint obyggda punkten i paketet. Flaggan
+  `FEATURE.KIOSK_MODE` finns reserverad i koden men inget gränssnitt kontrollerar den ännu.
 
-**Säljkonsekvens:** ~halva Operations är byggt idag. Var tydlig internt om vad som är klart vs.
-vad som krävs innan paketet håller vad det lovar. Offline är det tyngsta återstående arbetet.
+**Säljkonsekvens:** Operations är i praktiken helt byggt. Kioskläge är den enda återstående
+raden – lågt prioriterad tills en pilotkund efterfrågar delade surfplattor specifikt.
 
 ### Intelligence – kontrollerad AI
 *"Minska manuellt innehållsarbete med kontrollerad AI."*
 
-- ✅ AI-tolkning foto/PDF → rutinutkast, alltid mänsklig granskning före publicering (klart
-  sedan tidigt)
+- ✅ AI-tolkning foto/PDF → rutin-/förrådsartikelutkast, alltid mänsklig granskning före
+  publicering
 - ✅ PII-spärr i Cloud Function före Gemini-anrop
-- ✅ AI-budget + kvot per användare och globalt, styrt från admin
-- ✅ **Klinikstöd-sökning – byggd enligt målarkitekturen och i drift** (se nedan)
-- ✅ Klinikstöd-feedback + vanligaste frågor synliga i admin (5.10)
-- 🔶 Djupare AI-feedbackanalys – grunddata visas, mer avancerad analys återstår
+- ✅ AI-budget + kvot per organisation OCH per användare, styrt från admin
+- ✅ **Klinikstöd-sökning** – domänbegränsad Google Programmable Search Engine (endast
+  godkända källor: internetmedicin.se, 1177.se, Nationella kliniska kunskapsstödet, FASS,
+  Läkemedelsverket, Vårdhandboken, Folkhälsomyndigheten), Gemini sammanfattar ENBART de
+  faktiska träffarnas utdrag, källänkar redovisas, en efterhandskontroll blockerar allt
+  utanför godkänd domän. Manuell verifieringsknapp + daglig automatisk källkontroll i admin.
+- ✅ Klinikstöd-feedback, vanligaste frågor och en trendanalys över tid synliga i admin
+- ✅ Kostnadsuppföljning per organisation
 
-**Säljkonsekvens:** AI-dokumentimport är redo att säljas nu (inte bara "lågriskdel att börja
-med"). Klinikstöd är också byggt – se korrigeringen nedan.
+**Säljkonsekvens:** hela Intelligence-paketet, inklusive klinikstöd, är byggt, livetestat och
+i drift – inte längre "under skarp validering" (det var statusen vid en tidigare version av
+det här dokumentet).
 
----
+### Källbevakning – litet, fristående tillägg (nytt sedan förra versionen av detta dokument)
+*"Vet automatiskt när en extern källa en rutin hänvisar till har ändrats eller slutat
+fungera."*
 
-## Viktig korrigering: klinikstöd är redan byggt
+- ✅ Byggt som en egen, oberoende togglebar modul (`organisationer/{orgId}.moduler.kallbevakning`,
+  se `ModulerSektion.jsx`) – inte en del av Operations eller Intelligence.
+- ✅ Veckovis schemalagd kontroll av alla externa referenser, respekterar `robots.txt`,
+  larmar via in-app-notis till rutinens ägare vid ändring eller trasig länk.
 
-Ursprungsdokumentet beskriver den kontrollerade retrieval-arkitekturen som något som återstår.
-Den är byggd och i drift (v5.6.0, förstärkt i 5.9–5.10):
-
-1. ✅ En riktig domänbegränsad Google Programmable Search Engine söker endast mot de godkända
-   källorna (internetmedicin.se, 1177.se, Nationella kliniska kunskapsstödet, FASS,
-   Läkemedelsverket, Vårdhandboken, Folkhälsomyndigheten). Begränsningen sitter i sökmotorns
-   konfiguration – inte i en promptinstruktion som modellen kan ignorera.
-2. ✅ Servern hämtar de faktiska träffarna (titel + utdrag).
-3. ✅ Gemini får **enbart** dessa utdrag som kontext och sammanfattar – söker aldrig fritt själv.
-4. ✅ Svaret innehåller källänkar och redovisar vilken träff varje påstående kommer ifrån.
-5. ✅ Räcker inte underlaget avstår den, och en efterhandskontroll blockerar ändå allt som
-   mot förmodan skulle hamna utanför godkänd domän.
-
-Dessutom: manuell verifieringsknapp i admin (5.9) och en **daglig automatisk källkontroll**
-(5.10) som larmar superadmin om källbegränsningen driftar. Funktionen som pausades i 5.3.5 är
-alltså ombyggd och återaktiverad.
-
-**Kvarstår att göra:** livetesta i skarp miljö efter deploy (dokumenterat i FRAMTIDSPLAN.md).
-Innan dess: sälj klinikstöd som "byggt, under skarp validering", inte som en färdig referens.
-
----
-
-## Den stora tekniska investeringen: organisationsmodellen
-
-Detta är planens tyngsta arbete, inte ett snabbt förberedande steg. Idag är appen byggd för
-**en enda organisation** – ingenting är organisationsskopat:
-
-- Roller är **globala**: `users/{uid}.role` är en enda sträng, inte kopplad till någon
-  organisation.
-- **Ingen collection har ett `organisationId`** – rutiner, anslag, kontakter, kommentarer,
-  förråd m.m. ligger i en gemensam pool.
-- **Hela `firestore.rules` måste bli organisationsmedveten.** Varje hjälpfunktion
-  (`arSuperadmin()`, `farRedigeraOmrade()`, …) behöver kontrollera medlemskap i rätt
-  organisation. Det är en omskrivning av regelfilen, inte ett tillägg.
-- **AI-budgeten (`installningar/geminiBudget`) är en enda pool för hela appen.** För flera
-  betalande kunder måste den bli per-organisation, annars delar två kunder budget/kvot.
-- **Alla Cloud Functions** som rör budget, AI, feedback och verifiering antar en enda
-  organisation och måste ta emot/härleda `organisationId`.
-- Ett **engångs-migreringsskript** krävs för att sätta `organisationId` på all befintlig data.
-
-Detta måste vara klart innan feature-gating är meningsfull – annars är "vilken organisation
-äger den här budgeten / rutinen / det här beroendetestet" odefinierat.
-
-### Föreslagen datamodell
-
-```
-organisationer/{orgId}
-  namn: "Akutmottagning X"
-  status: "active"
-  plan: "core"
-  moduler: { operations: true, intelligence: false }
-  ai: { manadsbudgetSek: 2000, perAnvandareSek: 50 }
-
-organisationer/{orgId}/medlemmar/{uid}
-  roll: "sektionsledare"
-  omraden: ["kliniskt-stod"]
-  aktiv: true
-```
-
-Kör man tills vidare en enda installation kan man börja med **ett** organisationsdokument. Men
-**före kund nummer två** måste alla collections antingen bära `organisationId` eller ligga under
-`organisationer/{orgId}/…`, så kunddata aldrig kan blandas. Att skjuta upp detta till efter
-andra kunden är inte ett alternativ – då är risken för dataläckage mellan kunder reell.
+Litet nog att prissättas som ett billigt påslag snarare än ett eget paket – men tekniskt och
+i UI:t redan helt separat från de tre huvudpaketen.
 
 ---
 
 ## Feature-registry, `useFeatures()` och tre säkerhetslager
 
-(Oförändrat från ursprungsförslaget – väl avvägt och matchar hur appen redan är byggd.)
-
-Central definition i kod, inte spridda strängar:
+**Byggt (var tidigare planerat, är nu i drift).** Central definition i
+`src/config/features.js`:
 
 ```js
-// src/config/features.js
 export const FEATURE = {
   OFFLINE_CENTER: "offlineCenter",
   OWNER_REMINDERS: "ownerReminders",
@@ -148,43 +107,65 @@ export const FEATURE = {
   AI_IMPORT: "aiImport",
   AI_ANALYTICS: "aiAnalytics",
   CLINICAL_SUPPORT: "clinicalSupport",
+  SOURCE_MONITORING: "sourceMonitoring",
 };
 
 export const PACKAGE_FEATURES = {
-  core: [],
-  operations: [FEATURE.OFFLINE_CENTER, FEATURE.OWNER_REMINDERS, FEATURE.HEALTH_HISTORY, FEATURE.EXPORT_BACKUP, FEATURE.KIOSK_MODE],
+  operations: [FEATURE.OFFLINE_CENTER, FEATURE.OWNER_REMINDERS, FEATURE.HEALTH_HISTORY,
+               FEATURE.EXPORT_BACKUP, FEATURE.KIOSK_MODE],
   intelligence: [FEATURE.AI_IMPORT, FEATURE.AI_ANALYTICS, FEATURE.CLINICAL_SUPPORT],
+  kallbevakning: [FEATURE.SOURCE_MONITORING],
 };
 ```
 
-`useFeatures()` läser organisationens modulkonfiguration och ger `hasFeature(...)`. Används i
-navigation, routes, adminsektioner, knappar och tomlägen. En kund utan en modul ska mötas av en
-neutral förklaring ("AI-import kräver Intelligence"), inte en tyst dold knapp.
+`useFeatures()` läser organisationens `moduler`-fält och ger `hasFeature(...)`. Används i
+navigation, routes, adminsektioner, knappar och tomlägen.
 
-**Tre lager** (feature flags i UI är UX, inte säkerhet – samma princip appen redan följer för
-roller):
+**Tre lager, alla byggda:**
 
-| Lager | Ansvar |
-|---|---|
-| UI | Visa/dölj navigation, knappar, vyer |
-| Klient | Kontrollera modul före hook/anrop, undvik onödig datahämtning |
-| Server | Kontrollera organisation + medlemskap + roll + aktiv modul i Cloud Functions och Firestore-regler |
+| Lager | Ansvar | Status |
+|---|---|---|
+| UI | Visa/dölj navigation, knappar, vyer | ✅ |
+| Klient | Kontrollera modul före hook/anrop | ✅ |
+| Server | Kontrollera organisation + medlemskap + roll + aktiv modul i Cloud Functions och Firestore-regler | ✅ (verifierat med en egen gating-matris-testsvit, se `ETAPPLAN2.md` Etapp 7c) |
 
-AI-importen och klinikstöd ska kontrollera modul **igen** i Cloud Function innan något
-Gemini-/sökanrop görs, så en kund utan Intelligence inte kan dra på sig AI-kostnader via ett
-manipulerat direktanrop.
+AI-importen och klinikstödet kontrollerar modul **igen** i Cloud Function innan något
+Gemini-/sökanrop görs – ett manipulerat direktanrop utan Intelligence blockeras (verifierat
+med test).
+
+---
+
+## Organisationsmodellen (multi-tenant) – ✅ helt genomförd
+
+Tidigare den enskilt tyngsta och mest riskfyllda delen av planen. Nu i drift sedan
+`ETAPPLAN.md` Etapp 1:
+
+- `organisationer/{orgId}` med `moduler`, AI-budget (global OCH per användare), status
+  (aktiv/pausad).
+- Varje datacollection (rutiner, anslag, kontakter, förråd, kommentarer, m.fl.) bär
+  `organisationId`.
+- `firestore.rules` är fullt organisationsmedveten – varje hjälpfunktion kontrollerar
+  medlemskap i rätt organisation, bevisat med en egen rules-testsvit per collection.
+- Migreringsskript (`migreraTillOrganisation`) körde engångsflytten av all tidigare data.
+- Leverantörsadmin-roll, självbetjänings-organisationsetablering, inbjudningsflöde (ersatte
+  öppen registrering), pausning/avetablering av en organisation – allt byggt (`ETAPPLAN2.md`
+  Etapp 6, `ETAPPLAN3.md` Etapp 15).
+
+**Kvarstår inte längre som ett hinder.** Andra kunden kan onboardas idag utan risk för
+dataläckage mellan organisationer.
 
 ---
 
 ## Prissättning
 
-(Oförändrat – rätt modell för ett avdelningsgemensamt verktyg.)
+(Oförändrat sedan tidigare version – rätt modell för ett avdelningsgemensamt verktyg.)
 
 | Intäkt | Modell |
 |---|---|
 | Core | Fast årsavgift per avdelning |
 | Operations | Fast årsavgift per avdelning |
 | Intelligence | Fast årsavgift inkl. AI-pott |
+| Källbevakning | Litet tillägg (inte ett eget paket) |
 | Hög AI-användning | Extra förbrukningspott / tydligt kvotpaket |
 | Uppstart | Engångsavgift för konfiguration, migration/import, redaktörsutbildning |
 | Större organisation | Volympris per tillkommande enhet |
@@ -195,42 +176,18 @@ kostnadsgränser.
 
 ---
 
-## Reviderad genomförandeordning
+## Vad som faktiskt återstår
 
-Skillnaden mot ursprungsförslaget: organisationsmodellen är ett stort **eget block först**, och
-"bygg Operations klart" är utbrutet eftersom halva paketet återstår.
+Se `FRAMTIDSPLAN.md` (kort pekare) och `ETAPPLAN4.md` (den aktiva, detaljerade planen) för
+det löpande arbetet. Ur ett rent modul-/paketperspektiv är det enda kvarvarande:
 
-1. **Lås paketen** – Core, Operations, Intelligence. Inget fjärde paket första året.
-2. **Organisationsmodellen (stort block, gör först):**
-   a. Inför `organisationer/{orgId}` + `medlemmar`-subcollection, börja med egen enhet.
-   b. Sätt `organisationId` på alla befintliga collections (migreringsskript).
-   c. Skriv om `firestore.rules` att vara organisationsmedveten.
-   d. Gör AI-budgeten per-organisation.
-   e. Uppdatera alla Cloud Functions att härleda/kräva `organisationId`.
-3. **Feature-registry + `useFeatures()`** – allt påslaget för egen organisation initialt.
-4. **Gata en modul i taget**, börja med AI-import (tydlig kostnad, tydligt värde).
-5. **Bygg Operations klart** – det återstående: schemalagd backup, offline-center + synkstatus,
-   sparad hälsokontroll-historik, 2FA-policy, ev. kioskläge.
-6. **Serverskydd i varje Cloud Function** innan externa API:er eller känsliga dataflöden.
-7. **Pilot** – Core + Operations till pilotkund, mät användning, validera betalningsvilja.
-8. **Sälj Intelligence selektivt** – AI-dokumentimport (klart) först; klinikstöd så snart den
-   skarpa valideringen är gjord.
+1. **Kioskläge** (Operations) – lågt prioriterat, ingen efterfrågan ännu.
+2. **Upphandlingsbarhet** – SSO/Microsoft Entra ID (`ETAPPLAN3.md` 13f) väntar på ett
+   ägarbeslut (SAML eller OIDC). Övriga delar av upphandlingspaketet (WCAG, GDPR-underlag,
+   exporterbar granskningslogg) är redan byggda.
+3. **Intelligence 2.0** – uttryckligen villkorad (`ETAPPLAN2.md` Etapp 11): bör vänta tills
+   minst en kund faktiskt betalar för dagens Intelligence-modul.
 
----
-
-## Statusöversikt
-
-| Block | Status | Kommentar |
-|---|---|---|
-| Core | ✅ Byggt | Redo som pilotpaket |
-| Operations – ansvar/påminnelser/uppgifter | ✅ Byggt | 5.9–5.10 |
-| Operations – hälsokontroll (live) | ✅ Byggt | Historik ej sparad |
-| Operations – backup, offline, kiosk, 2FA-policy | ⬜ Kvar | Offline tyngst |
-| Intelligence – AI-import | ✅ Byggt | Säljbart nu |
-| Intelligence – klinikstöd | ✅ Byggt | Skarp validering kvar |
-| Organisationsmodell / multi-tenant | ⬜ Kvar | **Störst, gör först** |
-| Feature-registry + tre lager | ⬜ Kvar | Enkelt när org-modellen finns |
-
-Kort sagt: Core bevisar nyttan (redo nu), Operations bevisar driftsäkerheten (halvbyggt),
-Intelligence finansierar AI-kostnaden (kärnan byggd). Den avgörande investeringen innan detta
-blir en flerkundsprodukt är organisationsmodellen.
+Kort sagt: alla tre huvudpaket bevisar redan sin nytta i kod, inte bara i säljmaterial. Den
+tidigare "stora tekniska investeringen" (organisationsmodellen) är avklarad – återstående
+arbete är nu inkrementellt, inte grundläggande.

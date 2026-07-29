@@ -6,11 +6,21 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-07-26, version 5.25.0 (+ Etapp 12a/12b/12c-i/12e, ingen
-versionsbump) – **DEPLOYAT TILL PRODUKTION** (commit d7a3719, körning #46, "Deploy
-complete!" bekräftat i loggen, ny asset-hash `index-s-jPubo9.js` bekräftad live). Därefter
-skrevs `ETAPPLAN3.md` (Etapp 13–21, granskad och reviderad) och dess första delmål **13a
-(PUB/DPA-avtalsmall) är nu klart** – se UTVECKLINGSLOGG.md Fas 41.
+**Senast uppdaterad:** 2026-07-28, version **5.45.3** – **DEPLOYAT TILL PRODUKTION** (körning
+#52, commit `c7ed186`, verifierad grön). `ETAPPLAN3.md` (Etapp 13–21) är sedan dess helt
+genomförd utom två medvetet pausade delmål (13f SSO, Etapp 16 veckopuls – båda väntar på ett
+ägarbeslut, se `ETAPPLAN3.md`s statusblock). Ny plan `ETAPPLAN4.md` (Etapp 22–30) skrevs och
+Etapp 22–25 samt en fristående UI-designjustering är nu klara och live – se den nya sektionen
+längst ner i den här filen ("Uppföljning 2026-07-28") för fullständig sammanfattning av allt
+som hänt sedan förra gången den här filen uppdaterades (v5.25.0/Etapp 14). **Läs den sektionen
+FÖRST** om du undrar var arbetet står idag – resten av filen nedan är historisk, äldre
+kontext.
+
+> **OBS (2026-07-28):** punkt 1 nedan under "Så här jobbar vi" om `continue-on-error` i
+> `deploy.yml` är FEL/INAKTUELL – den flaggan togs bort i Etapp 8b (`ETAPPLAN2.md`), långt
+> innan denna fil senast skrevs om. Jobbets `conclusion`-fält ÄR pålitligt idag; ett riktigt
+> `firebase deploy`-fel ger `conclusion: "failure"` på riktigt (bekräftat två gånger i skarpt
+> läge 2026-07-28, se den nya sektionen längst ner). Läs ändå alltid loggtexten vid osäkerhet.
 
 ## Nuläge i ett stycke
 
@@ -181,18 +191,20 @@ innan produktion. Version bumpad 5.25.1 → **5.26.0** (första faktiska UI-ytan
 14c (inloggningshändelser, rollbyte, modul-/budgetändringar loggas inte). Därefter
 Etapp 15–21.
 
-## Vad som återstår (se ETAPPLAN2.md för detaljer)
+## Vad som återstår (uppdaterad 2026-07-28 – se `ETAPPLAN4.md` för den aktiva planen)
 
-- **Etapp 9 (upphandlingsbarhet)** – SSO/Entra ID, WCAG 2.1 AA, GDPR-underlag,
-  driftdokumentation. Inte påbörjad, inte efterfrågad ännu.
-- **Etapp 10a (demoläge/sandlåda)** – enda ej genomförda delmålet i Etapp 10.
-- **Etapp 11 (Intelligence 2.0)** – uttryckligen villkorad i planen: bör
-  vänta tills minst en kund faktiskt betalar för Intelligence-modulen.
+- **`ETAPPLAN4.md` Etapp 26–30** – medarbetarens röst (föreslå ändring), skanna i förrådet,
+  kundens egen profil, riktig offline, snabbhet/WCAG AA. Inte påbörjade.
+- **13f (SSO/Entra ID)** och **Etapp 16 (veckopuls)**, båda i `ETAPPLAN3.md` – medvetet
+  pausade, väntar på ett ägarbeslut vardera (se den filens statusblock).
+- **Etapp 10a (demoläge/sandlåda)** i `ETAPPLAN2.md` – enda ej genomförda delmålet i Etapp 10.
+- **Kioskläge** (`FEATURE.KIOSK_MODE`) – reserverad flagga, aldrig byggt UI bakom den.
+- **Etapp 11 (Intelligence 2.0)** – uttryckligen villkorad: bör vänta tills minst en kund
+  faktiskt betalar för Intelligence-modulen.
 - `void _id`-mönstret som en extern kodgranskning påpekade – bedömdes som en
   svag föreslagen lösning, inte åtgärdat, se UTVECKLINGSLOGG.md Fas 23.
-- Organisatoriska moment i Etapp 4/5 (faktisk pilotdrift, säljlansering) –
-  kan inte göras i kod, kräver beslut/aktivitet av användaren utanför denna
-  session.
+- Organisatoriska moment (faktisk pilotdrift, säljlansering) – kan inte göras i kod, kräver
+  beslut/aktivitet av användaren utanför denna session.
 
 ## Så här jobbar vi i det här projektet (etablerade mönster – följ dessa)
 
@@ -201,22 +213,28 @@ Etapp 15–21.
    `run_workflow`, `workflow_id: deploy.yml`, ref: den aktuella
    arbetsgrenen). Polla med `actions_list`/`list_workflow_jobs` tills job är
    `completed`.
-   **KRITISKT:** jobbets övergripande `conclusion`-fält är INTE pålitligt för
-   just deploy-steget, eftersom steget "Deploya till Firebase" i
-   `deploy.yml` har `continue-on-error: true`. Ett riktigt `firebase deploy`-
-   fel visas ändå som jobb-nivå "success". Läs ALLTID den faktiska
-   logg-texten via `mcp__github__get_job_logs` (`return_content: true`) och
-   leta efter `"Deploy complete!"` och avsaknad av `"##[error]"`-rader.
-   Bekräfta sedan att produktionen faktiskt uppdaterats:
+   **RÄTTAT 2026-07-28:** `continue-on-error` togs bort från "Deploya till
+   Firebase"-steget redan i Etapp 8b (`ETAPPLAN2.md`) – jobbets
+   `conclusion`-fält ÄR pålitligt, ett riktigt `firebase deploy`-fel ger
+   `conclusion: "failure"` på riktigt (bekräftat i skarpt läge två gånger
+   2026-07-28: en IAM-behörighetsfel och en Eventarc-propageringsfördröjning,
+   se sektionen längst ner i den här filen). Läs ändå gärna den faktiska
+   logg-texten via `mcp__github__get_job_logs` (`return_content: true`,
+   `failed_only: true`) vid ett fel, för att se VILKET steg/funktion som
+   faktiskt gick fel. Bekräfta produktionen med
    `curl -s https://synappsen-final-build.web.app/ | grep -o 'assets/index-[A-Za-z0-9_-]*\.js'`
-   och jämför asset-hashen mot den tidigare kända. Rapportera resultatet på
-   svenska till användaren.
+   om du vill dubbelkolla asset-hashen. Rapportera resultatet på svenska.
 2. **Verifiering före commit** (kör alltid hela svepet, alla ska vara gröna):
    `npm run lint`, `npm run build`, `npx vitest run`, `npm run test:rules`,
    `npm run test:functions`, `npm run test:storage`, `node -c functions/index.js`.
-3. **Versionsbump** vid varje leverans: uppdatera `src/version.js` OCH
-   `package.json`, samt lägg till en post överst i `src/data/andringslogg.js`
-   (svensk, kort, användarvänlig ändringslogg).
+3. **Versionsbump** vid varje leverans: uppdatera `package.json` (OCH
+   `package-lock.json`s två versionsfält). **`src/version.js` ska INTE
+   uppdateras separat längre** (rättat 2026-07-28) – filen importerar numera
+   `version` direkt från `package.json` (Vite/Rollup bearbetar JSON-importer
+   vid bygget), efter att den låg fast på "5.26.0" i minst 19 releaser innan
+   någon märkte det. Lägg också till en post överst i
+   `src/data/andringslogg.js` (svensk, kort, användarvänlig ändringslogg) –
+   samma glömska hände där också och krävde en separat fix.
 4. **Dokumentation:** varje större fas/etapp får en ny sektion i
    `UTVECKLINGSLOGG.md` (kronologisk historik, "Fas N – rubrik"). Läs den
    filen för fullständig teknisk historik om du behöver detaljer om en
@@ -237,20 +255,80 @@ Etapp 15–21.
 
 ## Nyckelfiler att känna till
 
-- `ETAPPLAN.md` – den etappindelade planen (Etapp 0–5), status per etapp.
-- `ETAPPLAN2.md` – uppföljande plan (Etapp 6–11), status per etapp.
-- `UTVECKLINGSLOGG.md` – fullständig kronologisk teknisk historik, "Fas 1–32".
+**Se `CLAUDE.md` för den fullständiga, underhållna dokumentkartan** (vilken fil är aktuell,
+vilken är historisk, vilken är auktoritativ för vad). Kort version:
+
+- `ETAPPLAN.md` (Etapp 0–5), `ETAPPLAN2.md` (Etapp 6–12), `ETAPPLAN3.md` (Etapp 13–21) –
+  historiska men KORREKTA, status per delmål underhållen inline. Alla tre klara utom
+  namngivna, medvetet pausade punkter (13f SSO, Etapp 16 veckopuls).
+- `ETAPPLAN4.md` – **den aktiva planen** (Etapp 22–30). Etapp 22–25 + UI-designjustering
+  klara, 26–30 kvarstår.
+- `FRAMTIDSPLAN.md` – kort pekare mot ETAPPLAN4.md (skrevs om 2026-07-28, var stale sedan
+  v5.7.0).
+- `MODULPLAN.md` – modul-/affärsplan (skrevs om 2026-07-28, var stale sedan v5.10.0 – påstod
+  bl.a. felaktigt att organisationsmodellen inte var byggd).
+- `UTVECKLINGSLOGG.md` – fullständig kronologisk teknisk historik, "Fas 1–41+".
 - `SAKERHETSRAPPORT.md` – säkerhetsgranskning av multi-tenant-lagret.
-- `src/data/andringslogg.js` – användarvänd ändringslogg (visas i appen).
+- `TILLGANGLIGHETSREDOGORELSE.md` – WCAG-status per punkt.
+- `src/data/andringslogg.js` – användarvänd ändringslogg (visas i appen, `/nyheter`).
+- `src/version.js` – läser version DIREKT från `package.json`, ska inte redigeras manuellt.
 - `firestore.rules` / `storage.rules` – multi-tenant-säkerhetsmodellen,
   organisationsisolering, 2FA-policy, dokumentorganisation-cross-lookup.
 - `functions/index.js` – Cloud Functions (AI-import, backup, migrering,
-  modul-gating, kostnadshistorik, schemalagda jobb).
+  modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
+
+## Uppföljning 2026-07-28: allt sedan v5.25.0/Etapp 14 (läs detta för aktuell status)
+
+**ETAPPLAN3.md (Etapp 13–21) färdigställdes helt** (utom 13f/16, se `ETAPPLAN3.md`s eget
+statusblock för exakt vilka beslut som väntar på ägaren) – rollbaserad startvy, akutläge,
+checklistläge, kompetenspaket, bristanmälan, källbevakning, m.m. Detaljer i
+`UTVECKLINGSLOGG.md`.
+
+**Ny plan `ETAPPLAN4.md` (Etapp 22–30) skrevs** efter en explicit förfrågan om funktioner med
+"wow-faktor" för personalen. Genomfört i den här sessionen, i tur och ordning, allt
+deployat och verifierat i produktion:
+
+- **Etapp 22 (a–e):** eget visningsnamn istället för e-post, tel:-länkar för telefonnummer,
+  bild per checklistesteg, mikropolish, valfri profilbild/accentfärg.
+- **Etapp 23 (a–c, 23d medvetet ej byggd):** global kommandopalett (Ctrl/Cmd+K, "/",
+  sök-knapp på mobil), återanvänder `SokFalt.jsx`s sökmotor via en ny delad `useSokindex.js`.
+  23d (röstsökning) avstyrkt – webbläsarens taligenkänning skickar ljud till tredje part,
+  risk för patientinformation i bakgrundsljud.
+- **Etapp 24:** push-notiser (FCM). `vite-plugin-pwa` bytte strategi till `injectManifest`
+  (egen `src/sw.js`) så Firebase-konfigurationen kan inlinas vid bygget. Förvalt avstängt per
+  notistyp (genomgående krav 10). **Krävde en engångs-IAM-behörighet på GCP-projektet**
+  (Eventarc/Pub-Sub-service-agenter) som ägaren fick sätta manuellt via Cloud Console – annars
+  misslyckas deploy av nya Firestore-triggers/schemalagda jobb med
+  "Permission denied while using the Eventarc Service Agent". Om det händer igen: samma fix,
+  se körning #47/#48 i Actions-historiken för de exakta `gcloud`-kommandona.
+- **Etapp 25:** "Sedan ditt förra pass" – passbaserad (inte dagbaserad) sammanställning sedan
+  `foregaendeInloggning` (ett nytt `AuthContext`-state som fångar förra inloggningens tidpunkt
+  INNAN den skrivs över av den pågående sessionen).
+- **UI-designjustering (utanför etappnumreringen), i två omgångar:** (1) separerade
+  domän-/statusfärger i ett nytt delat badge-system (`Badge.jsx`), så en Logistik-badge
+  aldrig kan förväxlas med en "väntar på godkännande"-status. (2) Efter en ny mockupbild:
+  kalibrerade om `--bg`/`--yta` mot en mätt "Nordic Clinical" (ljust)/"Midnight Ward" (mörkt)
+  färgtemperatur, döpte om bottennavigeringens dubblerade "Admin"-menyval ("Regler" för
+  `/administration`), och fixade en oberoende, redan existerande overflow-bugg i
+  `BottomNav.css` på smala skärmar.
+
+**Två genuina processfel hittades och fixades permanent, inte bara punktvis:**
+1. `src/version.js` var en hårdkodad sträng, frikopplad från `package.json` – låg fast på
+   "5.26.0" i minst 19 releaser (sedan Etapp 14d) innan användaren märkte att Nyheter-sidan
+   visade fel version efter en deploy. Fixat genom att importera versionen direkt från
+   `package.json` – kan inte drifta isär igen.
+2. `src/data/andringslogg.js` hade av samma skäl inte fått en ny post sedan v5.26.0 – sex
+   releaser (Etapp 22–25 + UI-justeringen) saknade ändringsloggposter. Fyllt i i efterhand.
+
+**Deploy-processen bekräftad fungera korrekt end-to-end** flera gånger i skarpt läge
+2026-07-28 (körning #46 t.o.m. #52), inklusive att felsöka och åtgärda ett skarpt
+IAM-behörighetsfel tillsammans med ägaren (se ovan).
 
 ## Om du är en ny Claude-session som läser detta
 
-Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat
-arbete. Om användaren säger något i stil med "fortsätt där vi var" utan att
-specificera: hänvisa till `ETAPPLAN.md`:s återstående punkter ovan och fråga
-vilken de vill prioritera, snarare än att gissa.
+Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete. Om
+användaren säger något i stil med "fortsätt där vi var" utan att specificera: hänvisa till
+`ETAPPLAN4.md`s Etapp 26–30 (den aktiva planens återstående punkter) och fråga vilken de vill
+prioritera, snarare än att gissa. Läs `CLAUDE.md` först om du är osäker på vilken fil som är
+auktoritativ för vad.
