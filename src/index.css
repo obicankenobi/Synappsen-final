@@ -354,6 +354,25 @@ h1 {
   margin-right: auto;
 }
 
+/* Etapp 27b/27c: banner efter att en hylletikett skannats – ?skap=&hylla= filtrerar listan */
+.forrad-vy__platsfilter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--primar-ljus);
+  color: var(--primar-mork);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.forrad-vy__platsfilter a {
+  color: var(--primar-mork);
+}
+
 .auth__undertext {
   color: var(--text-svag);
   margin-bottom: 24px;

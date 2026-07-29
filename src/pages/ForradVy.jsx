@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { useBristanmalningar } from "../hooks/useBristanmalningar";
@@ -8,6 +8,7 @@ import { FORRAD_SLUGS } from "../firebase/forrad";
 import { KAN_HANTERA_FORRAD } from "../firebase/roles";
 import ForradArtikelFormular from "../components/ForradArtikelFormular";
 import ForradArtikelKort from "../components/ForradArtikelKort";
+import HyllEtiketter from "../components/HyllEtiketter";
 import Skelett from "../components/Skelett";
 import { useDialog } from "../hooks/useDialog";
 
@@ -22,6 +23,19 @@ export default function ForradVy() {
   const { skapaBristanmalning } = useBristanmalningar();
   const [redigerar, setRedigerar] = useState(null);
   const [visaFormular, setVisaFormular] = useState(false);
+  const [visaEtiketter, setVisaEtiketter] = useState(false);
+  // Etapp 27b/27c: en hyll-etikett kodar ?skap=&hylla=, en direktlänk till en artikel (t.ex.
+  // en QR skannad direkt på hyllan i en framtida etapp) kodar #artikel-<id>. Båda tolkas här,
+  // inte i SkannaModal – den vet bara VAD som skannades, inte vad det betyder i förrådsvyn.
+  const [sokparametrar] = useSearchParams();
+  const skapFilter = sokparametrar.get("skap");
+  const hyllaFilter = sokparametrar.get("hylla");
+  const artikelHash = typeof window !== "undefined" ? window.location.hash.replace("#artikel-", "") : "";
+
+  useEffect(() => {
+    if (!artikelHash || laddar) return;
+    document.getElementById(`artikel-${artikelHash}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [artikelHash, laddar]);
 
   if (!forrad) {
     return (
@@ -44,6 +58,13 @@ export default function ForradVy() {
   });
 
   const utkast = sorterade.filter((a) => a.status === ARTIKEL_STATUS.UTKAST);
+
+  // 27b: en skannad hylletikett landar här med ?skap=&hylla= – visa bara vad som faktiskt
+  // hör hemma på den platsen istället för hela förrådets lista.
+  const ingenPlatsfiltrering = !skapFilter && !hyllaFilter;
+  const visade = ingenPlatsfiltrering
+    ? sorterade
+    : sorterade.filter((a) => (!skapFilter || a.skap === skapFilter) && (!hyllaFilter || a.hylla === hyllaFilter));
 
   async function godkannAllaUtkast() {
     await Promise.all(utkast.map((a) => godkannArtikel(a.id)));
@@ -92,10 +113,35 @@ export default function ForradVy() {
       <Link to="/logistik">← Logistik</Link>
       <h1>{forrad}</h1>
 
+      {!ingenPlatsfiltrering && (
+        <div className="forrad-vy__platsfilter">
+          <span>
+            Visar plats: {[skapFilter && `Skåp ${skapFilter}`, hyllaFilter && `Hylla ${hyllaFilter}`]
+              .filter(Boolean)
+              .join(" · ")}
+          </span>
+          <Link to={`/logistik/${forradSlug}`}>Visa alla artiklar</Link>
+        </div>
+      )}
+
       {farRedigera && !visaFormular && (
-        <button className="knapp" onClick={() => setVisaFormular(true)}>
-          Lägg till artikel
-        </button>
+        <div className="sektionssida__topatgarder">
+          <button className="knapp" onClick={() => setVisaFormular(true)}>
+            Lägg till artikel
+          </button>
+          <button className="knapp knapp--sekundar" onClick={() => setVisaEtiketter(true)}>
+            🖨️ Hylletiketter
+          </button>
+        </div>
+      )}
+
+      {visaEtiketter && (
+        <HyllEtiketter
+          forrad={forrad}
+          forradSlug={forradSlug}
+          artiklar={sorterade}
+          onStang={() => setVisaEtiketter(false)}
+        />
       )}
 
       {visaFormular && (
@@ -129,7 +175,13 @@ export default function ForradVy() {
         </div>
       )}
 
-      {sorterade.map((artikel) => (
+      {!laddar && sorterade.length > 0 && visade.length === 0 && (
+        <div className="platshallare">
+          <p>Inga artiklar registrerade på den här platsen.</p>
+        </div>
+      )}
+
+      {visade.map((artikel) => (
         <ForradArtikelKort
           key={artikel.id}
           artikel={artikel}
@@ -139,6 +191,7 @@ export default function ForradVy() {
           onGodkann={godkannArtikel}
           onTaBort={(id) => taBortArtikel(id, currentUser.uid)}
           onAnmalBrist={hanteraAnmalBrist}
+          markerad={artikel.id === artikelHash}
         />
       ))}
     </div>

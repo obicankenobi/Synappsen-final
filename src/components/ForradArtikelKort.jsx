@@ -14,6 +14,7 @@ export default function ForradArtikelKort({
   onGodkann,
   onTaBort,
   onAnmalBrist,
+  markerad = false,
 }) {
   const { visaMeddelande } = useDialog();
   const arUtkast = artikel.status === ARTIKEL_STATUS.UTKAST;
@@ -38,7 +39,10 @@ export default function ForradArtikelKort({
   }
 
   return (
-    <article className="forrad-artikel-kort">
+    <article
+      id={`artikel-${artikel.id}`}
+      className={`forrad-artikel-kort${markerad ? " forrad-artikel-kort--markerad" : ""}`}
+    >
       {artikel.bildUrl && (
         <img className="forrad-artikel-kort__bild" src={artikel.bildUrl} alt="" />
       )}
@@ -50,10 +54,12 @@ export default function ForradArtikelKort({
           </div>
           <FavoritKnapp typ="artikel" id={artikel.id} />
         </header>
+        {/* 27c: tydlig väg ("Förråd → Skåp → Hylla") istället för en textrad utan sammanhang */}
         <p className="forrad-artikel-kort__plats">
-          {artikel.skap ? `Skåp ${artikel.skap}` : "Skåp ej angivet"}
-          {" · "}
-          {artikel.hylla ? `Hylla ${artikel.hylla}` : "Hylla ej angiven"}
+          {artikel.forrad}
+          {artikel.skap && <> → Skåp {artikel.skap}</>}
+          {artikel.hylla && <> → Hylla {artikel.hylla}</>}
+          {!artikel.skap && !artikel.hylla && " → plats ej angiven"}
         </p>
         {artikel.antal && <p className="forrad-artikel-kort__antal">Antal: {artikel.antal}</p>}
       </div>

@@ -10,6 +10,13 @@
   flex-wrap: wrap;
 }
 
+/* 27c: kortet man landar på efter en skanning (hylla eller direktlänk till artikeln) ska
+   omedelbart gå att hitta med blicken i en lång lista, utan att behöva leta. */
+.forrad-artikel-kort--markerad {
+  border-color: var(--primar);
+  box-shadow: 0 0 0 3px var(--primar-ljus), var(--skugga-hover);
+}
+
 .forrad-artikel-kort__bild {
   width: 96px;
   height: 96px;

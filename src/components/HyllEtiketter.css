@@ -1,0 +1,76 @@
+.hyll-etiketter-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 700;
+  background: var(--bg);
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.hyll-etiketter__verktyg {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.hyll-etiketter__verktyg h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.hyll-etiketter__verktyg > div {
+  display: flex;
+  gap: 10px;
+}
+
+.hyll-etiketter__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.hyll-etiketter__etikett {
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  border-radius: var(--radius-liten);
+  box-shadow: var(--skugga);
+  padding: 12px;
+  text-align: center;
+  break-inside: avoid;
+}
+
+.hyll-etiketter__qr {
+  width: 100%;
+  max-width: 140px;
+}
+
+.hyll-etiketter__text {
+  margin: 8px 0 0;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+@media print {
+  body.utskrift-etiketter > *:not(.hyll-etiketter-overlay) {
+    display: none !important;
+  }
+
+  body.utskrift-etiketter .hyll-etiketter-overlay {
+    position: static;
+    overflow: visible;
+    background: #fff;
+  }
+
+  body.utskrift-etiketter .hyll-etiketter__verktyg {
+    display: none !important;
+  }
+
+  body.utskrift-etiketter .hyll-etiketter__etikett {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+}

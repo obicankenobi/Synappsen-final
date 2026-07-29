@@ -1,7 +1,7 @@
 {
   "name": "synappsen-final",
   "private": true,
-  "version": "5.46.0",
+  "version": "5.47.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,6 +22,7 @@
     "dompurify": "^3.4.11",
     "firebase": "^12.15.0",
     "fuse.js": "^7.4.2",
+    "jsqr": "^1.4.0",
     "marked": "^18.0.5",
     "qrcode": "^1.5.4",
     "react": "^19.2.6",

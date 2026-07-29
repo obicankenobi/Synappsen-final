@@ -618,7 +618,7 @@ kan införa den på ett klick – och båda ser att det hände.
 
 ---
 
-# Etapp 27 – Skanna och hitta i förrådet
+# Etapp 27 – Skanna och hitta i förrådet ✅ KLAR (2026-07-29)
 
 **Varför:** Förrådsdelen är den mest konkreta delen av appen, och den används stående framför
 ett skåp med en mobil i handen. QR-kod finns redan för rutiner (`RutinKort.jsx` genererar
@@ -626,25 +626,53 @@ dem) – men bara att *visa*, inte att *läsa*.
 
 **Modul:** logistik.
 
-### 27a – Skanna med kameran
+### 27a – Skanna med kameran ✅ KLAR
 
-- "Skanna"-knapp som öppnar kameran och läser QR/streckkod → direkt till artikeln eller
-  rutinen.
-- `BarcodeDetector` finns i Chrome/Android men saknas i Safari – **kräver en fallback**
-  (t.ex. `zxing`/`jsQR` som lazy-laddad chunk, aldrig i huvudpaketet, se genomgående krav 9).
+**Genomfört:** "📷 Skanna en hylla/QR-kod"-knapp på `Logistik.jsx`, öppnar `SkannaModal.jsx`
+(full-skärms kameravy). `window.BarcodeDetector` används när den finns (Chrome/Android);
+annars lazy-laddas `jsqr` (`await import("jsqr")`) som en egen chunk – bekräftat i
+produktionsbygget: `jsQR-*.js` (130 kB) hamnar som en helt separat, on-demand-laddad fil,
+huvudpaketet (`index-*.js`) är oförändrat i storlek jämfört med innan Etapp 27. En ren
+funktion, `tolkaSkannadLank` (`src/utils/skanna.js`), avgör om den skannade texten är en giltig
+länk INOM appens egen origin (`window.location.origin`) – text från en annan origin eller som
+inte alls är en URL avvisas innan navigering, annars hade en manipulerad/felaktig QR-kod kunnat
+bli en öppen redirect. 4 vitest-tester (`skanna.test.js`, `happy-dom`-miljö). Verifierat i
+Playwright mot lokala emulatorer: kameran nekas gracefully i en miljö utan riktig kamera
+(felmeddelande + modalen stänger sig själv, inga krascher) – **den faktiska
+QR-avläsningsloopen (BarcodeDetector/jsQR mot en riktig videoström) går inte att verifiera i
+den här sandboxen och behöver en manuell test med en riktig telefon/kamera innan lansering**,
+motsvarande öppna punkten för Etapp 17d/30b.
 
-### 27b – Etiketter att sätta på hyllan
+### 27b – Etiketter att sätta på hyllan ✅ KLAR
 
-- Generera utskrivbara QR-ark för skåp/hyllor: skanna hyllan → se vad som ska stå där.
-- Det gör appen till en fysisk del av förrådet, inte bara ett uppslagsverk om det.
+**Genomfört:** `HyllEtiketter.jsx`, öppnas via en "🖨️ Hylletiketter"-knapp i `ForradVy.jsx`
+(bara för `farRedigera`). Genererar EN QR-etikett per unikt skåp/hylla-par bland förrådets
+egna artiklar – **premisskontroll (krav 8):** ingen ny "plats"-datamodell skapades, platserna
+härleds direkt ur de befintliga fritextfälten `skap`/`hylla` på `forradsartiklar`, eftersom en
+egen collection bara för etiketter hade löst ett problem ingen bett om. Varje etikett kodar
+`{origin}/logistik/{forradSlug}?skap=X&hylla=Y` (samma `qrcode`-bibliotek som redan används i
+`RutinKort.jsx`). Utskrift återanvänder samma böjda mönster som rutinernas utskriftsvy
+(`body`-klass + `@media print`-regel som döljer allt annat), fast med en egen klass
+(`utskrift-etiketter`) eftersom det är en helt annan yta som skrivs ut. Verifierat i
+Playwright: 3 seedade artiklar med 2 unika skåp/hylla-kombinationer gav exakt 2 etiketter.
 
-### 27c – Tydligare väg till artikeln
+### 27c – Tydligare väg till artikeln ✅ KLAR
 
-- Visa "Engångsförrådet → Skåp B → Hylla 3" som en tydlig väg, inte som en textrad.
-- Koppla ihop med bristanmälan (Etapp 20): skanna → "slut" → klart, två tryck.
+**Genomfört:** `ForradArtikelKort.jsx` visar nu "{Förråd} → Skåp X → Hylla Y" istället för den
+tidigare "Skåp X · Hylla Y"-textraden (verifierat i Playwright: exakt
+"Sterilförrådet → Skåp B → Hylla 3"). Kortet har fått samma `id`-ankare som `RutinKort.jsx`
+(`id="artikel-{id}"`), och `ForradVy.jsx` tolkar både `?skap=&hylla=` (från en skannad
+hylletikett – filtrerar listan och visar en banner "Visar plats: ... / Visa alla artiklar",
+verifierat: filtrering till Skåp B/Hylla 3 gav exakt de 2 rätta artiklarna) och `#artikel-<id>`
+(scrollar dit och ger kortet en visuell markering, `forrad-artikel-kort--markerad`). Den
+befintliga bristanmälan-knappen ("⚠️ Slut/lågt saldo" → valfri kommentar → "Skicka") krävde
+INGEN ändring för "två tryck" – kommentarfältet var redan valfritt, så flödet är redan
+tryck+tryck utan att skriva något. Det etappen faktiskt löser är att HITTA rätt kort snabbt
+(filtrering/scroll/markering ovan) – innan dess var "två tryck" i praktiken "leta i en lång
+lista, sedan två tryck".
 
 **Klart när:** man kan gå fram till ett skåp, skanna, och se exakt vad som ska finnas där –
-och anmäla att det inte gör det.
+och anmäla att det inte gör det. ✅ (med reservationen om manuell kameraverifiering ovan)
 
 ---
 

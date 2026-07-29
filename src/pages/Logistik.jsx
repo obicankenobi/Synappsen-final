@@ -1,9 +1,14 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SektionsKort from "../components/SektionsKort";
+import SkannaModal from "../components/SkannaModal";
 import { FORRAD, forradTillSlug } from "../firebase/forrad";
 import { useAuth } from "../hooks/useAuth";
 import { useBristanmalningar, BRIST_STATUS } from "../hooks/useBristanmalningar";
 import { useForradsartiklar } from "../hooks/useForradsartiklar";
+import { useDialog } from "../hooks/useDialog";
 import { gerUtInom30Dagar } from "../utils/forradHjalp";
+import { tolkaSkannadLank } from "../utils/skanna";
 import { KAN_HANTERA_FORRAD } from "../firebase/roles";
 import "./Admin.css";
 import "./Logistik.css";
@@ -19,12 +24,28 @@ const IKONER = {
 
 export default function Logistik() {
   const { currentUser, role, namn } = useAuth();
+  const navigate = useNavigate();
+  const { visaMeddelande } = useDialog();
   const mittNamn = namn || currentUser?.email;
   const farHantera = KAN_HANTERA_FORRAD.includes(role);
   const { bristanmalningar, hanteraBristanmalning, avvisaBristanmalning } = useBristanmalningar();
   // Etapp 20c: hela organisationens artiklar (utan forrad-filter), bara för att räkna fram
   // vilka som går ut snart – kortet i sig visas fortfarande på respektive förråds egen sida.
   const { artiklar: allaArtiklar } = useForradsartiklar();
+  const [visaSkanna, setVisaSkanna] = useState(false);
+
+  // Etapp 27a: hanterar både hylletiketter (27b, ?skap=&hylla=) och rutin-QR (Etapp 22)
+  // eftersom båda bara är en länk inom appen – SkannaModal vet inte och behöver inte veta
+  // vilken sorts kod det var.
+  function hanteraSkanningsResultat(text) {
+    setVisaSkanna(false);
+    const sokvag = tolkaSkannadLank(text);
+    if (!sokvag) {
+      visaMeddelande("Koden kändes inte igen. Prova att skanna en QR-kod från appen.");
+      return;
+    }
+    navigate(sokvag);
+  }
 
   // Etapp 20b: flest anmälningar överst – tre personer som anmäler samma artikel är en
   // starkare signal om verklig brist än en enskild anmälan.
@@ -42,6 +63,14 @@ export default function Logistik() {
       <p className="sida__beskrivning">
         Välj ett förråd för att se vilka artiklar som finns och var de förvaras.
       </p>
+
+      <button type="button" className="knapp knapp--sekundar" onClick={() => setVisaSkanna(true)}>
+        📷 Skanna en hylla/QR-kod
+      </button>
+
+      {visaSkanna && (
+        <SkannaModal onResultat={hanteraSkanningsResultat} onAvbryt={() => setVisaSkanna(false)} />
+      )}
 
       {farHantera && oppna.length > 0 && (
         <section className="admin-sektion">

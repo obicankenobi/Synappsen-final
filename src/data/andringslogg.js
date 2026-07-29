@@ -3,6 +3,15 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.47.0",
+    datum: "2026-07-29",
+    andringar: [
+      "Nytt i Logistik: skanna en QR-kod med kameran för att komma direkt till rätt hylla eller artikel",
+      "Skriv ut QR-etiketter att sätta upp i skåp och på hyllor – skanna hyllan för att se vad som ska stå där",
+      "Förrådsartiklar visar nu en tydlig väg till platsen (Förråd → Skåp → Hylla) istället för en textrad",
+    ],
+  },
+  {
     version: "5.46.0",
     datum: "2026-07-29",
     andringar: [
