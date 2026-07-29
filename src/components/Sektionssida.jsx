@@ -10,7 +10,25 @@ import { arUtgangen } from "../utils/rutinHjalp";
 import Skelett from "./Skelett";
 import { useSenastBesokta } from "../hooks/useSenastBesokta";
 import { useDialog } from "../hooks/useDialog";
+import { useAndringsforslag, markeraInfort, avvisaForslag } from "../hooks/useAndringsforslag";
+import ForslagSektion from "./ForslagSektion";
 import { ROLES } from "../firebase/roles";
+
+// Etapp 26b: "Inför ska öppna rutinformuläret med förslaget förifyllt på rätt plats – inte
+// tvinga redaktören att klippa och klistra manuellt." Riktig platsigenkänning (hitta EXAKT var
+// i innehållet ändringen hör hemma) är inte byggbart tillförlitligt utan en riktig diff-motor
+// – istället infogas förslaget direkt EFTER det markerade stycket om det går att hitta
+// ordagrant i innehållet, annars läggs det till sist. Formaterat som ett citat ("Förslag att
+// bedöma") så redaktören tydligt ser att det INTE är befintligt, godkänt innehåll och måste
+// aktivt redigera bort markeringen innan sparning (26d – ingen automatik).
+function infogaForslagIInnehall(innehall, markeratStycke, forslag) {
+  const stycke = markeratStycke?.trim();
+  const tillagg = `\n\n> **Förslag att bedöma:** ${forslag}`;
+  if (stycke && innehall.includes(stycke)) {
+    return innehall.replace(stycke, `${stycke}${tillagg}`);
+  }
+  return `${innehall ?? ""}${tillagg}`;
+}
 
 export default function Sektionssida({
   omrade,
@@ -25,13 +43,20 @@ export default function Sektionssida({
   // Etapp 22a: eget visningsnamn istället för e-post i kvitterings-/godkännandespår, med
   // e-post som fallback för konton som saknar ett satt namn.
   const mittNamn = namn || currentUser?.email;
-  const { confirm } = useDialog();
+  const { confirm, visaMeddelande } = useDialog();
   const { registrera: registreraBesok } = useSenastBesokta(currentUser?.uid);
   const { rutiner, laddar, skapaRutin, uppdateraRutin, godkannRutin, taBortRutin, markeraGranskad, hamtaVersioner } =
     useRutiner(omrade);
   const { anvandare } = useAnvandare();
   const [redigerar, setRedigerar] = useState(null);
   const [visaFormular, setVisaFormular] = useState(false);
+  // Etapp 26b: förslaget som just nu redigeras via "Inför" – null när formuläret öppnats på
+  // vanligt sätt. Sätts bara till "infört" i Firestore EFTER en faktisk sparning (se
+  // hanteraSpara), aldrig bara av att öppna formuläret – annars skulle ett avbrutet
+  // redigeringsförsök felaktigt markera förslaget som hanterat.
+  const [hanterasForslag, setHanterasForslag] = useState(null);
+  const { forslag } = useAndringsforslag(omrade);
+  const oppnaForslag = forslag.filter((f) => f.status === "ny");
   const [aktivTagg, setAktivTagg] = useState(null);
   const [massval, setMassval] = useState(false);
   const [valda, setValda] = useState([]);
@@ -153,9 +178,23 @@ export default function Sektionssida({
           // ändring" (samma roller som farKureraAkutlage, se firestore.rules) – annars kunde
           // vem som helst med redigeringsrätt tvinga fram omkvittering för hela organisationen.
           ...(farKureraAkutlage && vasentligAndring ? { senasteVasentligaAndring: serverTimestamp() } : {}),
+          // Etapp 26c: attribution sätts bara om redigeringen faktiskt startades via "Inför"
+          // på ett förslag (se oppnaInforForslag nedan) – en vanlig redigering rör inte dessa
+          // fält alls.
+          ...(hanterasForslag
+            ? {
+                senastForslagAv: hanterasForslag.foreslagenAv,
+                senastForslagAvNamn: hanterasForslag.foreslagenAvNamn,
+                senastForslagSynligt: hanterasForslag.visaNamnOffentligt !== false,
+              }
+            : {}),
         },
         currentUser.uid
       );
+      if (hanterasForslag) {
+        await markeraInfort(hanterasForslag.id, currentUser.uid, mittNamn);
+        setHanterasForslag(null);
+      }
     } else {
       const ref = await skapaRutin({
         titel: titelVarde,
@@ -183,6 +222,24 @@ export default function Sektionssida({
   function oppnaRedigering(rutin) {
     setRedigerar(rutin);
     setVisaFormular(true);
+  }
+
+  // Etapp 26b: öppnar redigeraren med förslaget färdiginfogat i innehållet – redaktören
+  // granskar/justerar/städar bort markeringen som vilken annan redigering som helst, och
+  // förslaget markeras "infört" i Firestore FÖRST när den sparningen faktiskt går igenom
+  // (se hanteraSpara). Avbryts redigeringen istället förblir förslaget "ny".
+  function oppnaInforForslag(f) {
+    const rutin = rutiner.find((r) => r.id === f.rutinId);
+    if (!rutin) {
+      visaMeddelande("Rutinen förslaget gäller hittades inte (kan ha tagits bort).");
+      return;
+    }
+    setHanterasForslag(f);
+    oppnaRedigering({ ...rutin, innehall: infogaForslagIInnehall(rutin.innehall, f.markeratStycke, f.forslag) });
+  }
+
+  async function hanteraAvvisaForslag(f, motivering) {
+    await avvisaForslag(f.id, currentUser.uid, mittNamn, motivering);
   }
 
   function oppnaNyRutin() {
@@ -306,8 +363,13 @@ export default function Sektionssida({
           onAvbryt={() => {
             setVisaFormular(false);
             setRedigerar(null);
+            setHanterasForslag(null);
           }}
         />
+      )}
+
+      {farRedigera && oppnaForslag.length > 0 && (
+        <ForslagSektion forslag={oppnaForslag} onInfor={oppnaInforForslag} onAvvisa={hanteraAvvisaForslag} />
       )}
 
       {farGodkanna && utkastRutiner.length > 0 && (

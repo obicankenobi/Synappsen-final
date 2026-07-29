@@ -13,7 +13,9 @@ import VersionsHistorik from "./VersionsHistorik";
 import MarkdownInnehall from "./MarkdownInnehall";
 import PrivatAnteckning from "./PrivatAnteckning";
 import KvissModal from "./KvissModal";
+import ForeslaAndringModal from "./ForeslaAndringModal";
 import { StatusBadge } from "./Badge";
+import { skapaForslag } from "../hooks/useAndringsforslag";
 import "./RutinKort.css";
 
 const OMRADE_SOKVAG = {
@@ -47,12 +49,14 @@ export default function RutinKort({
   onGranskaKalla,
   hamtaVersioner,
 }) {
-  const { currentUser, namn } = useAuth();
+  const { currentUser, namn, organisationId } = useAuth();
   const mittNamn = namn || currentUser?.email;
   const [visaHistorik, setVisaHistorik] = useState(false);
   const [visaOlasta, setVisaOlasta] = useState(false);
   const [qrUrl, setQrUrl] = useState(null);
   const [visaKviss, setVisaKviss] = useState(false);
+  const [visaForeslaAndring, setVisaForeslaAndring] = useState(false);
+  const [forvaldMarkeratStycke, setForvaldMarkeratStycke] = useState("");
   const arUtkast = rutin.status === RUTIN_STATUS.UTKAST;
   const flaggadForGranskning = farRedigera && borGranskas(rutin.granskadDatum);
   const utgangen = farRedigera && arUtgangen(rutin);
@@ -112,6 +116,17 @@ export default function RutinKort({
             Ansvarig:{" "}
             {rutin.agare.typ === "roll" ? ROLE_LABELS[rutin.agare.roll] ?? rutin.agare.roll : rutin.agare.namn}
           </span>
+        </div>
+      )}
+
+      {/* Etapp 26c: frivillig, avstängningsbar synlighet – förslagsställaren kunde avmarkera
+          "visa mitt namn" och vara anonym (se ForeslaAndringModal.jsx). Visas här i signaturen
+          istället för i den tekniska versionshistoriken (VersionsHistorik.jsx), som är en
+          separat mekanism för att kunna återställa gamla innehållsversioner, inte en logg över
+          VARIFRÅN innehållet kom. */}
+      {rutin.senastForslagAvNamn && rutin.senastForslagSynligt !== false && (
+        <div className="rutin-kort__signatur">
+          <span>Innehåller ett infört förslag från {rutin.senastForslagAvNamn}</span>
         </div>
       )}
 
@@ -269,6 +284,23 @@ export default function RutinKort({
         <button type="button" className="knapp knapp--sekundar knapp--liten" onClick={hanteraVisaQr}>
           🔳 QR-kod
         </button>
+        {!arUtkast && (
+          <button
+            type="button"
+            className="knapp knapp--sekundar knapp--liten"
+            onClick={() => {
+              // Etapp 26a: fångar en eventuell textmarkering GJORD INNAN knapptrycket (t.ex.
+              // markering direkt i MarkdownInnehall). Fungerar bara på enheter med riktig
+              // textmarkering (desktop) – på mobil lämnas fältet tomt och kan fyllas i för
+              // hand i modalen istället.
+              const markering = window.getSelection?.().toString().trim();
+              setForvaldMarkeratStycke(markering || "");
+              setVisaForeslaAndring(true);
+            }}
+          >
+            ✏️ Föreslå ändring
+          </button>
+        )}
       </div>
 
       {qrUrl && (
@@ -276,6 +308,28 @@ export default function RutinKort({
           <img src={qrUrl} alt="QR-kod som länkar till rutinen" width={160} height={160} />
           <p className="rutin-kort__qr-hjalptext">Skanna för att öppna rutinen direkt.</p>
         </div>
+      )}
+
+      {visaForeslaAndring && (
+        <ForeslaAndringModal
+          forvaldMarkeratStycke={forvaldMarkeratStycke}
+          onAvbryt={() => setVisaForeslaAndring(false)}
+          onSkicka={async ({ markeratStycke, forslag, motivering, visaNamnOffentligt }) => {
+            await skapaForslag({
+              organisationId,
+              rutinId: rutin.id,
+              rutinTitel: rutin.titel,
+              omrade: rutin.omrade,
+              markeratStycke,
+              forslag,
+              motivering,
+              uid: currentUser.uid,
+              namn: mittNamn,
+              visaNamnOffentligt,
+            });
+            setVisaForeslaAndring(false);
+          }}
+        />
       )}
 
       <PrivatAnteckning rutinId={rutin.id} />

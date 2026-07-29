@@ -873,6 +873,76 @@ async function main() {
     assertSucceeds(deleteDoc(doc(superA, "bristanmalningar", bristTestId)))
   );
 
+  console.log("\nandringsforslag/{forslagId} – Etapp 26a/b: föreslå, granska, avvisa");
+  let forslagTestId;
+  await test("personalA (ingen redaktörsroll) KAN föreslå en ändring på en klinikstöd-rutin", async () => {
+    const ref = await addDoc(collection(personalA, "andringsforslag"), {
+      rutinId: "rutinX", rutinTitel: "Anafylaxi", omrade: "kliniskt-stod",
+      markeratStycke: "Ge adrenalin 0,5 mg", forslag: "Ge adrenalin 0,3-0,5 mg",
+      motivering: "Ny dosrekommendation", status: "ny",
+      foreslagenAv: "personalA", foreslagenAvNamn: "Anna", visaNamnOffentligt: true,
+      organisationId: ORG_A,
+    });
+    forslagTestId = ref.id;
+  });
+  await test("personalA kan INTE föreslå en ändring i någon annans namn", () =>
+    assertFails(
+      addDoc(collection(personalA, "andringsforslag"), {
+        rutinId: "rutinX", rutinTitel: "Anafylaxi", omrade: "kliniskt-stod",
+        markeratStycke: "x", forslag: "y", motivering: "", status: "ny",
+        foreslagenAv: "volA", foreslagenAvNamn: "Anna", visaNamnOffentligt: true,
+        organisationId: ORG_A,
+      })
+    )
+  );
+  await test("personalA kan INTE föreslå en ändring med ett personnummer i förslaget", () =>
+    assertFails(
+      addDoc(collection(personalA, "andringsforslag"), {
+        rutinId: "rutinX", rutinTitel: "Anafylaxi", omrade: "kliniskt-stod",
+        markeratStycke: "x", forslag: "Gäller patient 900101-0017", motivering: "", status: "ny",
+        foreslagenAv: "personalA", foreslagenAvNamn: "Anna", visaNamnOffentligt: true,
+        organisationId: ORG_A,
+      })
+    )
+  );
+  await test("personalA (som föreslog) KAN läsa sitt eget förslag", () =>
+    assertSucceeds(getDoc(doc(personalA, "andringsforslag", forslagTestId)))
+  );
+  await test("vecA (fel område – administration, inte kliniskt-stod) kan INTE läsa förslaget", () =>
+    assertFails(getDoc(doc(vecA, "andringsforslag", forslagTestId)))
+  );
+  await test("volA (rätt område, kliniskt-stod) KAN läsa förslaget", () =>
+    assertSucceeds(getDoc(doc(volA, "andringsforslag", forslagTestId)))
+  );
+  await test("superadminB (fel organisation) kan INTE läsa förslaget", () =>
+    assertFails(getDoc(doc(superB, "andringsforslag", forslagTestId)))
+  );
+  await test("personalA (föreslagsställaren, ingen redaktörsroll) kan INTE sätta status själv", () =>
+    assertFails(updateDoc(doc(personalA, "andringsforslag", forslagTestId), { status: "infort" }))
+  );
+  await test("vecA (fel område) kan INTE avvisa förslaget", () =>
+    assertFails(
+      updateDoc(doc(vecA, "andringsforslag", forslagTestId), {
+        status: "avvisat", hanteradAv: "vecA", hanteradAvNamn: "", hanteradDatum: new Date(),
+        avvisningsMotivering: "Fel område",
+      })
+    )
+  );
+  await test("volA (rätt område) KAN sätta förslaget som infört", () =>
+    assertSucceeds(
+      updateDoc(doc(volA, "andringsforslag", forslagTestId), {
+        status: "infort", hanteradAv: "volA", hanteradAvNamn: "", hanteradDatum: new Date(),
+      })
+    )
+  );
+  await test("volA kan INTE ändra ett redan hanterat förslag igen", () =>
+    assertFails(
+      updateDoc(doc(volA, "andringsforslag", forslagTestId), {
+        status: "avvisat", hanteradAv: "volA", hanteradAvNamn: "", hanteradDatum: new Date(),
+      })
+    )
+  );
+
   console.log("\ncheckriktlistkorningar/{rutinId} – Etapp 18d: aggregerad statistik, organisationsisolerad");
   await test("volA KAN räkna upp påbörjade körningar för en rutin i sin egen organisation", () =>
     assertSucceeds(

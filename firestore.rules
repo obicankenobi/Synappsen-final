@@ -460,6 +460,29 @@ service cloud.firestore {
                      && matcharMinOrg(resource.data.get('organisationId', 'default'));
     }
 
+    // andringsforslag/{forslagId} – Etapp 26: medarbetare föreslår en konkret ändring i en
+    // rutin. Skaparen sätter alltid status 'ny'; bara redaktören för rutinens område får
+    // sedan sätta 'infort'/'avvisat' (aldrig tvärtom, och aldrig av förslagsställaren själv).
+    // Tre fria textfält (markeratStycke/forslag/motivering) ⇒ PII-spärr på alla tre
+    // (genomgående krav 1).
+    match /andringsforslag/{forslagId} {
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'))
+                   && (farRedigeraOmrade(resource.data.omrade) || resource.data.foreslagenAv == request.auth.uid);
+      allow create: if arInloggad()
+                     && request.resource.data.get('organisationId', 'default') == minOrganisation()
+                     && request.resource.data.foreslagenAv == request.auth.uid
+                     && request.resource.data.status == 'ny'
+                     && !harTroligtPersonnummer(request.resource.data.get('markeratStycke', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('forslag', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('motivering', ''));
+      allow update: if matcharMinOrg(resource.data.get('organisationId', 'default'))
+                     && farRedigeraOmrade(resource.data.omrade)
+                     && resource.data.status == 'ny'
+                     && request.resource.data.status in ['infort', 'avvisat']
+                     && bararForandrarFalt(['status', 'hanteradAv', 'hanteradAvNamn', 'hanteradDatum', 'avvisningsMotivering'])
+                     && !harTroligtPersonnummer(request.resource.data.get('avvisningsMotivering', ''));
+    }
+
     // anslag/{anslagId} – anslagstavla, meddelanden från ledningen till all personal
     match /anslag/{anslagId} {
       allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));

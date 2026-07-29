@@ -520,7 +520,7 @@ gissa:
 
 ---
 
-# Etapp 26 – Medarbetarens röst: föreslå en ändring
+# Etapp 26 – Medarbetarens röst: föreslå en ändring ✅ KLAR
 
 **Varför:** I dag är innehållsflödet enkelriktat – redaktörer skriver, personal läser och
 kvitterar. Den som står vid sängen och ser att en rutin är fel har bara kommentarsfältet, som
@@ -530,15 +530,25 @@ syns i rutinen."*
 
 **Modul:** ingen (Core).
 
-### 26a – Föreslå ändring
+### 26a – Föreslå ändring ✅ KLAR
 
 - Knapp på rutinkortet: markera ett stycke → "Föreslå ändring" → skriv förslaget → skicka.
 - Ny collection `andringsforslag`: `organisationId`, `rutinId`, `markeratStycke`, `forslag`,
   `motivering`, `status` (ny/infört/avvisat), `foreslagenAv`, `tidpunkt`.
 - **Fritextfält ⇒ PII-spärr i tre lager** (genomgående krav 1) – klient, regel och, om AI
   används, Cloud Function.
+- **Genomfört:** `RutinKort.jsx` har en ny "✏️ Föreslå ändring"-knapp som fångar en eventuell
+  textmarkering via `window.getSelection()` gjord INNAN knapptrycket, och öppnar
+  `ForeslaAndringModal.jsx`. **Avgränsning (genomgående krav 8):** riktig, tillförlitlig
+  textmarkering över godtycklig renderad HTML är inte byggbart utan en betydligt tyngre
+  editor-komponent – på skrivbord fångas en markering automatiskt, på mobil (där
+  textmarkering över flera rader är opraktiskt) fylls fältet "Vilket stycke gäller det?" i för
+  hand istället. PII-spärren körs klientsidan (`kontrolleraPatientuppgifter`, samma mönster
+  som övriga formulär) OCH i `firestore.rules` (`harTroligtPersonnummer` på alla tre
+  textfälten) – ingen AI-analys är inblandad här, så det tredje lagret (Cloud Function)
+  behövdes inte.
 
-### 26b – Redaktörens vy: en knapp
+### 26b – Redaktörens vy: en knapp ✅ KLAR
 
 - Lista över öppna förslag för mitt område, med det markerade stycket och förslaget sida vid
   sida.
@@ -547,18 +557,61 @@ syns i rutinen."*
   precis som vanligt; ingenting publiceras automatiskt.
 - Avvisa kräver en kort motivering. Ett förslag som försvinner tyst är värre än inget flöde
   alls.
+- **Genomfört:** ny `ForslagSektion.jsx`, synlig i `Sektionssida.jsx` för alla med
+  redigeringsrätt för området, listar öppna (`status: "ny"`) förslag. "Inför" infogar
+  förslaget direkt EFTER det markerade stycket om det går att hitta ordagrant i innehållet
+  (annars läggs det till sist), formaterat som ett Markdown-citat ("**Förslag att
+  bedöma:** …") och öppnar det vanliga rutinformuläret – **premisskontrollerad
+  avgränsning:** riktig platsigenkänning (en äkta diff-motor) byggdes inte, den ordagranna
+  sök-och-infoga-lösningen är enklare och räcker för att uppfylla "inte tvinga redaktören att
+  klippa och klistra". Förslaget markeras `infört` i Firestore FÖRST efter en faktisk
+  sparning av formuläret (inte redan vid knapptrycket) – avbryts redigeringen istället
+  förblir förslaget `ny`. Avvisa är en inline-textruta per rad (samma mönster som
+  bristanmälans hanteringsflöde).
+- **Verifierat i en riktig browser mot lokala emulatorer (Playwright), inte bara testsviter:**
+  hela kedjan föreslå → redaktör ser förslaget → Inför → förifylld editor → spara → förslaget
+  försvinner ur listan → attribution syns på rutinkortet. Ett verkligt fel hittades och
+  fixades under den här verifieringen (se sidofyndet nedan) – exakt den typ av bugg
+  testsviterna inte kunde fånga.
 
-### 26c – Återkoppling till den som föreslog
+### 26c – Återkoppling till den som föreslog ✅ KLAR
 
 - Notis: "Ditt förslag på *Anafylaxi* är infört" respektive "…avvisades: [motivering]".
 - Frivillig, avstängningsbar synlighet: "Förslag från Anna Svensson" i rutinens historik. Vill
   man vara anonym ska det gå.
+- **Genomfört:** `useNotiser.js` fick två nya poster – en stående (till redaktörer, "Nytt
+  förslag på …") och en engångshändelse (till förslagsställaren, styrd av
+  `senasteNotisBesok` precis som bristanmälans motsvarighet). Attributionen ("Innehåller ett
+  infört förslag från X") visas i `RutinKort.jsx`s signaturblock – **premisskontrollerad
+  avgränsning:** INTE i den tekniska versionshistoriken (`VersionsHistorik.jsx`), som är en
+  fristående mekanism för att återställa gamla innehållsversioner och inte har något fält för
+  "varifrån kom det här innehållet". Lika synligt för en vanlig användare, men enklare att
+  koppla in. Respekterar `visaNamnOffentligt` (avmarkerad kryssruta i förslagsformuläret ⇒
+  anonym för alla utom redaktören som hanterar det, som alltid ser `foreslagenAv` för
+  notissyftet).
 
-### 26d – Gränsdragning mot MDR
+### 26d – Gränsdragning mot MDR ✅ KLAR
 
 - Samma ställningstagande som Etapp 18 (se `SAKERHETSRAPPORT.md`): ett förslag är **råmaterial
   till en människa**, aldrig något som publiceras utan redaktörens aktiva godkännande. Ingen
   automatik, ingen AI som inför ändringar självt.
+- **Genomfört:** "Inför" gör aldrig en tyst skrivning – den öppnar samma redigeringsformulär
+  som all annan rutinredigering, redaktören måste aktivt granska/justera/ta bort
+  "Förslag att bedöma"-markeringen och trycka Spara. Det vanliga godkännandeflödet
+  (utkast → godkänd) gäller oförändrat.
+
+**Sidofynd under Playwright-verifieringen (viktigt mönster att komma ihåg):** en `list`-fråga
+mot en collection vars läsregel refererar `resource.data.<fält>` (t.ex.
+`farRedigeraOmrade(resource.data.omrade)`) NEKAS HELT av Firestore om frågan inte SJÄLV
+filtrerar på det fältet (`where("omrade", "==", ...)`) – annars kan regelmotorn inte bevisa
+att villkoret håller för en generell listning, och hela lyssnaren felar tyst med
+`permission-denied` (upptäcktes bara genom att faktiskt öppna appen i en browser – testsviterna,
+som skapar/läser enskilda dokument med känd omrade, fångade inte detta). Samma begränsning
+gäller redan `rutiner/{rutinId}` (löst där sedan tidigare genom att `useRutiner(omrade)` alltid
+frågar per område). `useAndringsforslag(omrade)` byggdes om för att följa samma mönster, och
+skrivfunktionerna (`skapaForslag`/`markeraInfort`/`avvisaForslag`) bröts ut som fristående
+funktioner (samma struktur som `useLaskvittering.js`) så att komponenter som bara skriver
+(t.ex. `RutinKort.jsx`) inte behöver öppna en lyssnare de ändå inte visar något ifrån.
 
 **Klart när:** en sjuksköterska kan föreslå en rättelse på trettio sekunder, och redaktören
 kan införa den på ett klick – och båda ser att det hände.

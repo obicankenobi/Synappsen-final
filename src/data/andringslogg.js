@@ -3,6 +3,15 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.46.0",
+    datum: "2026-07-29",
+    andringar: [
+      "Nytt: föreslå en ändring direkt i en rutin – markera text eller skriv fritt, och skicka in ett konkret förslag till den som ansvarar för området",
+      "Redaktörer ser nu inkomna förslag i en egen lista och kan föra in dem i rutinen eller avvisa med en motivering",
+      "Den som föreslog en ändring får en notis när förslaget är hanterat, och rutinen visar en kort kredit när ett förslag har förts in",
+    ],
+  },
+  {
     version: "5.45.3",
     datum: "2026-07-28",
     andringar: [

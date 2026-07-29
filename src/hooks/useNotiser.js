@@ -13,6 +13,7 @@ import { ROLES, KAN_HANTERA_FORRAD } from "../firebase/roles";
 import { useFeatures } from "./useFeatures";
 import { FEATURE } from "../config/features";
 import { useBristanmalningar, BRIST_STATUS } from "./useBristanmalningar";
+import { useAndringsforslag, FORSLAG_STATUS } from "./useAndringsforslag";
 
 function efterSenasteBesok(tidpunkt, senasteBesok) {
   if (!tidpunkt?.toDate) return false;
@@ -33,6 +34,12 @@ export function useNotiser() {
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
   const { bristanmalningar } = useBristanmalningar();
+  // Etapp 26c: useAndringsforslag kräver ett omrade (se hookens egen kommentar – Firestores
+  // regelmotor kan annars inte bevisa farRedigeraOmrade(resource.data.omrade) för en
+  // list-fråga), så precis som rutiner ovan hämtas den en gång per område.
+  const { forslag: klinisktForslag } = useAndringsforslag("kliniskt-stod");
+  const { forslag: adminForslag } = useAndringsforslag("administration");
+  const forslag = useMemo(() => [...klinisktForslag, ...adminForslag], [klinisktForslag, adminForslag]);
   const [omnamnanden, setOmnamnanden] = useState([]);
   const [systemvarningar, setSystemvarningar] = useState([]);
 
@@ -166,6 +173,37 @@ export function useNotiser() {
         tid: b.hanteradDatum,
       }));
 
+    // Etapp 26c: notis till redaktörer om nya ändringsförslag för deras område (stående
+    // tillstånd, samma mönster som bristposter ovan), och kvittens till den som föreslog när
+    // förslaget hanterats (engångshändelse, styrd av senasteNotisBesok).
+    const forslagposter = forslag
+      .filter((f) => f.status === FORSLAG_STATUS.NY)
+      .filter((f) => (f.omrade === "kliniskt-stod" ? farGranskaKlinisktStod : farGranskaAdministration))
+      .map((f) => ({
+        id: `forslag-${f.id}`,
+        text: `Nytt förslag på "${f.rutinTitel}"`,
+        sokvag: `${OMRADE_SOKVAG[f.omrade] ?? "/"}`,
+        tid: f.tidpunkt,
+        omrade: f.omrade,
+      }));
+
+    const hanteradeForslagposter = forslag
+      .filter(
+        (f) =>
+          f.foreslagenAv === currentUser?.uid &&
+          f.status !== FORSLAG_STATUS.NY &&
+          efterSenasteBesok(f.hanteradDatum, senasteBesok)
+      )
+      .map((f) => ({
+        id: `forslag-hanterat-${f.id}`,
+        text:
+          f.status === FORSLAG_STATUS.INFORT
+            ? `Ditt förslag på "${f.rutinTitel}" är infört`
+            : `Ditt förslag på "${f.rutinTitel}" avvisades${f.avvisningsMotivering ? `: ${f.avvisningsMotivering}` : ""}`,
+        sokvag: `${OMRADE_SOKVAG[f.omrade] ?? "/"}`,
+        tid: f.hanteradDatum,
+      }));
+
     const systemvarningsposter = systemvarningar
       .filter((v) => efterSenasteBesok(v.tidpunkt, senasteBesok))
       .map((v) => ({
@@ -183,6 +221,8 @@ export function useNotiser() {
       ...kallvarningposter,
       ...bristposter,
       ...hanteradeBristposter,
+      ...forslagposter,
+      ...hanteradeForslagposter,
       ...systemvarningsposter,
     ].sort((a, b) => (b.tid?.toMillis?.() ?? 0) - (a.tid?.toMillis?.() ?? 0));
   }, [
@@ -192,6 +232,7 @@ export function useNotiser() {
     omnamnanden,
     systemvarningar,
     bristanmalningar,
+    forslag,
     senasteBesok,
     role,
     currentUser?.uid,

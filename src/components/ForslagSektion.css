@@ -1,0 +1,78 @@
+.forslag-sektion {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  border-radius: var(--radius);
+}
+
+.forslag-sektion h2 {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+}
+
+.forslag-sektion__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.forslag-sektion__rad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid var(--kant);
+  border-radius: var(--radius-liten);
+}
+
+.forslag-sektion__innehall {
+  flex: 1;
+  min-width: 200px;
+}
+
+.forslag-sektion__rutin {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.forslag-sektion__stycke,
+.forslag-sektion__text {
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+}
+
+.forslag-sektion__avsandare {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+}
+
+.forslag-sektion__knappar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.forslag-sektion__avvisa-formular {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.forslag-sektion__avvisa-formular textarea {
+  font: inherit;
+  padding: 8px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  resize: vertical;
+}
