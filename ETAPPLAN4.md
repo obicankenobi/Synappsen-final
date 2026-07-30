@@ -798,6 +798,55 @@ säga AA utan förbehåll.
 
 ---
 
+# Etapp 31 – Uppföljning på kodgranskningsrapporten (2026-07-30)
+
+**Varför:** En extern kodgranskning (`synappsen_code_review.pdf`) gick igenom Etapp 1–26 och
+lyfte fram tre konkreta, billiga förbättringar som redan bekräftats mot faktisk kod/status i
+den här sessionen – resten av rapportens punkter var antingen redan lösta (namngivna
+Firestore-hjälpfunktioner, cross-org-negativtester) eller för stora för att motivera nu (en
+full modulmappsomstrukturering av frontend). Se konversationen där rapporten diskuterades för
+den fullständiga bedömningen av samtliga punkter.
+
+**Modul:** ingen (Core/drift).
+
+### 31a – Automatiserad beroendegranskning i CI
+
+- Lägg till ett CI-steg som kör `npm audit` och sammanfattar kända CVE:er (allvarlighetsgrad,
+  paket, om en fix finns) i en maskinläsbar rapport, inte bara som en tyst varning i
+  build-loggen.
+- **Premiss redan bekräftad:** `npm audit` visar just nu minst en hög sårbarhet i
+  `react-router` (CSRF-relaterad) i produktionsberoenden, och betydligt fler (23 höga + 1
+  kritisk) räknat över hela `devDependencies`-trädet – inget av detta är åtgärdat idag.
+- Avgränsning: detta steg ska **rapportera**, inte blockera bygget automatiskt – en ny CVE i
+  en transitiv devDependency ska inte kunna stoppa en release utan att någon aktivt bedömt den.
+
+### 31b – Committad Playwright-regressionssvit för de känsligaste flödena
+
+- Idag verifieras varje etapps UI manuellt med engångs-Playwright-skript mot lokala
+  emulatorer (se `scratchpad/`) – de körs en gång och kastas, de skyddar inte mot regressioner.
+- Skriv en liten, committad svit (`tests/e2e/`) som täcker just de två flödesklasser där ett
+  fel är dyrast att missa: organisationsisolering (en användare i org A ska aldrig se org B:s
+  data i UI, inte bara i regel-lagret) och "list-provability"-buggklassen som upptäcktes i
+  Etapp 26 (en collection vars regel refererar `resource.data.<fält>` kräver ett matchande
+  `where()` i frågan, annars nekas HELA listningen – detta fångas inte av
+  rules-enhetstesterna, bara av en riktig `onSnapshot`-lyssnare i en riktig klient).
+- Körs mot Firebase-emulatorerna i CI, inte mot produktion.
+
+### 31c – Nedskrivet beslut om App Check-enforcement
+
+- Etapp 12c-i aktiverade App Check i mätläge (ingen enforcement) – se `ETAPPLAN2.md`. Det
+  saknas ett nedskrivet svar på: hur lång är mätfasen, vilket mätvärde avgör att riktig
+  trafik får giltiga tokens, vem beslutar att slå på `enforceAppCheck` på Cloud Functions, och
+  hur hanteras en gammal cachad PWA-version som saknar ett giltigt App Check-token.
+- Detta är i huvudsak ett dokumentationsarbete (ett kort beslutsunderlag, inte ny kod) –
+  motsvarande punkterna under "Beslutspunkter som kräver ägaren, inte kod" nedan.
+
+**Klart när:** CI flaggar kända beroendesårbarheter automatiskt, minst de två känsligaste
+flödesklasserna har en committad regressionstest, och App Check-enforcement har ett
+nedskrivet beslutsunderlag istället för att vara en tyst öppen punkt.
+
+---
+
 ## Sådant jag medvetet INTE föreslår
 
 Ett förslag är också ett urval. Följande övervägdes och valdes bort – de bör inte tas upp igen
@@ -847,6 +896,7 @@ utan att någon aktivt argumenterar emot skälen nedan:
 | 28 | Kundens egen profil | Låg | ⭐⭐ "Vår app", inte "ett system" |
 | 29 | Offline på riktigt | Medel | ⭐⭐ Fungerar i källaren |
 | 30 | Snabbhet och WCAG AA | Medel | – Osynlig, men bär allt annat |
+| 31 | Uppföljning på kodgranskning (CI-audit, e2e-svit, App Check-beslut) | Låg–medel | – Osynlig, drift/kvalitet |
 
 **Snabbaste vägen till synlig effekt:** Etapp 22 + 23 tillsammans. De kräver inga beslut, rör
 inga känsliga gränsdragningar, och skulle märkas av varenda användare första dagen efter
