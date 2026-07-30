@@ -13,6 +13,7 @@ import MfaPolicyBanner from "./components/MfaPolicyBanner";
 import ProvperiodBanner from "./components/ProvperiodBanner";
 import AkutlagePrefetch from "./components/AkutlagePrefetch";
 import OrganisationsBranding from "./components/OrganisationsBranding";
+import OfflineKoLyssnare from "./components/OfflineKoLyssnare";
 import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
@@ -107,6 +108,7 @@ export default function App() {
       <DialogProvider>
       <OfflineIndikator />
       <OrganisationsBranding />
+      <OfflineKoLyssnare />
       <InaktivitetsBevakning />
       <SessionKontroll />
       <BrowserRouter>

@@ -8,7 +8,7 @@ import { useAuth } from "./useAuth";
 import { useAnslag } from "./useAnslag";
 import { useRutiner, RUTIN_STATUS } from "./useRutiner";
 import { useSkiftrapport } from "./useSkiftrapport";
-import { kvitteraLast, kvitteraLastAnslag } from "./useLaskvittering";
+import { kvitteraLastMedKo, kvitteraLastAnslagMedKo } from "./useLaskvittering";
 
 const OMRADE_SOKVAG = {
   "kliniskt-stod": "/kliniskt-stod",
@@ -53,7 +53,7 @@ export function useSedanForraPasset() {
         sokvag: "/anslag",
         tid: a.skapad,
         kanKvittera: !harKvitterat(a.lasteAv, uid),
-        kvittera: () => kvitteraLastAnslag(a.id, uid, namn),
+        kvittera: () => kvitteraLastAnslagMedKo(a.id, uid, namn),
       }));
 
     const rutinposter = allaRutiner
@@ -65,7 +65,7 @@ export function useSedanForraPasset() {
         sokvag: `${OMRADE_SOKVAG[r.omrade] ?? "/"}#rutin-${r.id}`,
         tid: r.skapad,
         kanKvittera: !harKvitterat(r.lasteAv, uid),
-        kvittera: () => kvitteraLast(r.id, uid, namn),
+        kvittera: () => kvitteraLastMedKo(r.id, uid, namn),
       }));
 
     const skiftposter = skiftrapporter

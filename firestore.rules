@@ -439,9 +439,22 @@ service cloud.firestore {
     // genom att uppdatera en redan öppen anmälan istället för att skapa en ny – därför måste
     // ÄVEN en vanlig anmälare få höja antalAnmalningar på sin egen typ av post, men bara på
     // fälten som hör till dubblettskyddet (aldrig status/hantering).
+    // Etapp 29c (bugfynd): läsregeln var tidigare `farRedigeraOmrade('logistik') ||
+    // resource.data.anmaldAv == request.auth.uid` – men useBristanmalningar.js frågar ALLTID
+    // med bara where("organisationId","==",orgId), aldrig where("anmaldAv","==",uid). En
+    // list-fråga vars regel refererar ett resource.data-fält (anmaldAv) som frågan inte
+    // konstant kan bevisa för ALLA träffar nekas i sin HELHET av Firestore (samma constraint
+    // som andringsforslag/{forslagId} i Etapp 26) – i praktiken har VARJE icke-förrådsansvarig
+    // roll fått en tyst permission-denied på hela sin bristanmälan-lyssnare sedan Etapp 20,
+    // upptäckt när Etapp 29c:s offline-kö skulle vänta på att just den listan laddat klart.
+    // Dubblettskyddet (skapaBristanmalning) kräver dessutom att ALLA i organisationen kan se
+    // ANDRAS öppna anmälningar (annars går det inte att slå ihop en ny anmälan med en
+    // befintlig från en kollega) – "bara egna anmälningar" var alltså fel behörighetsmodell,
+    // inte bara obevisbar. Datan är inte känslig (ingen fritext utöver en PII-spärrad
+    // kommentar), så läsning öppnas för hela organisationen, i linje med hur forradsartiklar
+    // redan är läsbara org-brett.
     match /bristanmalningar/{bristId} {
-      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'))
-                   && (farRedigeraOmrade('logistik') || resource.data.anmaldAv == request.auth.uid);
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
       allow create: if arInloggad()
                      && request.resource.data.get('organisationId', 'default') == minOrganisation()
                      && request.resource.data.anmaldAv == request.auth.uid

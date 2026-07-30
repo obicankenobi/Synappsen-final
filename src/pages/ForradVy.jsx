@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { useBristanmalningar } from "../hooks/useBristanmalningar";
 import { laddaUppForradsbild } from "../firebase/storage";
+import { laggTillIKo } from "../utils/offlineKo";
 import { FORRAD_SLUGS } from "../firebase/forrad";
 import { KAN_HANTERA_FORRAD } from "../firebase/roles";
 import ForradArtikelFormular from "../components/ForradArtikelFormular";
@@ -97,15 +98,21 @@ export default function ForradVy() {
     setVisaFormular(true);
   }
 
+  // Etapp 29c: en bristanmälan gjord offline läggs i kön istället för att misslyckas tyst –
+  // useOfflineKo.js (monterad vid approten) skickar den så fort nätet är tillbaka, och väntar
+  // då på att den EGNA bristanmalningar-listan laddat klart innan den gör det (annars
+  // riskerar dubblettskyddet i skapaBristanmalning att missa en redan öppen anmälan).
   async function hanteraAnmalBrist(artikel, kommentar) {
-    await skapaBristanmalning({
-      artikelId: artikel.id,
-      artikelNamn: artikel.namn,
-      forrad,
-      kommentar,
-      uid: currentUser.uid,
-      namn: mittNamn,
-    });
+    const post = { artikelId: artikel.id, artikelNamn: artikel.namn, forrad, kommentar };
+    if (!navigator.onLine) {
+      laggTillIKo(currentUser.uid, "bristanmalning", post);
+      return;
+    }
+    try {
+      await skapaBristanmalning({ ...post, uid: currentUser.uid, namn: mittNamn });
+    } catch {
+      laggTillIKo(currentUser.uid, "bristanmalning", post);
+    }
   }
 
   return (

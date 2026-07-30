@@ -495,6 +495,18 @@ h1 {
   color: var(--primar-mork);
 }
 
+/* Etapp 30c (WCAG A→AA): en garanterat synlig, konsekvent fokusring för ALLA knappvarianter
+   i hela appen – en enda regel här täcker även de nya vyerna från Etapp 22–29, istället för
+   att lappa varje enskild komponents CSS. Bara :focus-visible (inte :focus), så en musklickad
+   knapp inte får en ring – bara tangentbordsnavigering gör. */
+.knapp:focus-visible,
+.knapp--sekundar:focus-visible,
+.knapp--farlig:focus-visible,
+.knapp--lank:focus-visible {
+  outline: 3px solid var(--primar-mork);
+  outline-offset: 2px;
+}
+
 .knapp--liten {
   padding: 6px 12px;
   font-size: 0.85rem;

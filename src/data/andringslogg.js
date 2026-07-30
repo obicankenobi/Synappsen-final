@@ -3,6 +3,16 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.49.0",
+    datum: "2026-07-30",
+    andringar: [
+      "Offline-centret laddar nu även ner kontakter och förrådsartiklar, inte bara rutiner – och bilder på rutiner går att ladda ner separat för den som vill",
+      "Ser tydligt vad som finns tillgängligt offline och hur gammalt det är när nätet försvinner",
+      "Läskvittering och bristanmälning gjorda utan internetanslutning skickas nu automatiskt så fort täckningen är tillbaka, med en tydlig \"väntar på att skickas\"-status",
+      "Snabbare start av appen och en tydligare fokusmarkering på alla knappar för dig som navigerar med tangentbord",
+    ],
+  },
+  {
     version: "5.48.0",
     datum: "2026-07-30",
     andringar: [

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import QRCode from "qrcode";
 import { RUTIN_STATUS } from "../hooks/useRutiner";
 import { useAuth } from "../hooks/useAuth";
-import { kvitteraLast } from "../hooks/useLaskvittering";
+import { kvitteraLastMedKo } from "../hooks/useLaskvittering";
 import { borGranskas, arUtgangen } from "../utils/rutinHjalp";
 import { formateraDatum } from "../utils/datum";
 import { ROLE_LABELS } from "../firebase/roles";
@@ -186,7 +186,7 @@ export default function RutinKort({
             if ((rutin.kviss?.length ?? 0) > 0) {
               setVisaKviss(true);
             } else {
-              kvitteraLast(rutin.id, currentUser.uid, mittNamn);
+              kvitteraLastMedKo(rutin.id, currentUser.uid, mittNamn);
             }
           }}
         >
@@ -209,7 +209,7 @@ export default function RutinKort({
           rutin={rutin}
           onKlar={() => {
             setVisaKviss(false);
-            kvitteraLast(rutin.id, currentUser.uid, mittNamn);
+            kvitteraLastMedKo(rutin.id, currentUser.uid, mittNamn);
           }}
           onAvbryt={() => setVisaKviss(false)}
         />

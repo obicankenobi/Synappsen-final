@@ -9,3 +9,13 @@
   font-size: 0.85rem;
   font-weight: 500;
 }
+
+.offline-indikator__rubrik {
+  margin: 0;
+}
+
+.offline-indikator__detalj {
+  margin: 4px 0 0;
+  font-weight: 400;
+  font-size: 0.8rem;
+}

@@ -734,7 +734,7 @@ kunnat göra appen svårläst på vägen. ✅
 
 ---
 
-# Etapp 29 – Offline på riktigt
+# Etapp 29 – Offline på riktigt ✅ KLAR (2026-07-30, 29a–c – se reservation i 30b nedan för akutläget)
 
 **Varför:** Offline-centret (Etapp 3a) cachar i dag **bara godkända rutiners text** – uttryckligen
 "inga bilagor/bilder", och varken kontakter eller förrådsartiklar (bekräftat i
@@ -743,58 +743,120 @@ man behöver ett telefonnummer eller en artikels placering.
 
 **Modul:** operations (samma som offline-centret i dag).
 
-### 29a – Utöka cachen
+**Sidofynd innan bygget påbörjades (premisskontroll, krav 8):** medan 29c:s köflush skulle
+vänta på att `useBristanmalningar()`s lista laddat klart upptäcktes att den listan ALDRIG
+laddar klart för någon utan förrådsansvarig-roll – `bristanmalningar/{bristId}`s läsregel
+(`farRedigeraOmrade('logistik') || resource.data.anmaldAv == request.auth.uid`) är exakt samma
+buggklass som `andringsforslag/{forslagId}` i Etapp 26: en `list`-fråga vars regel refererar
+ett `resource.data`-fält frågan inte konstant kan bevisa nekas i sin HELHET, inte bara
+filtrerat. Bekräftat direkt mot emulatorn: en vanlig `personal`-roll fick `permission-denied`
+på HELA sin bristanmälan-lyssnare, en tyst produktionsbugg sedan Etapp 20 som ingen
+getDoc/create-test fångade. Fixad i `firestore.rules` (läsning öppnad till hela organisationen
+– datan är inte känslig, och dubblettskyddet kräver ändå att alla ser varandras öppna
+anmälningar för att kunna slås ihop). 2 nya list-baserade rules-tester
+(`tests/rules/organisationsisolering.test.mjs`), 142 klarade totalt (upp från 140).
 
-- Kontakter och godkända förrådsartiklar med i offline-paketet. Båda är små datamängder –
-  detta är inte ett tungt tillägg.
-- Bilder på rutiner/steg (Etapp 22c) som ett *separat, valbart* nedladdningssteg, eftersom
-  det är den enda delen som faktiskt kostar utrymme.
+### 29a – Utöka cachen ✅ KLAR
 
-### 29b – Ärlig status
+**Genomfört:** `useOfflineCenter.js` skriven om från en enda global räknare till en
+per-innehållstyp `status`-karta (`rutiner`/`kontakter`/`forradsartiklar`, var och en med egen
+`senast`/`antal` i localStorage, fortfarande per-uid-nyckelad). `nedladda()` gör tre separata
+`getDocs`-anrop (rutiner godkända, kontakter – alla, förrådsartiklar godkända) som tvingar in
+dokumenten i Firestores `persistentLocalCache`, exakt samma mekanism som redan gällde för
+rutiner. Bilder är ett HELT separat, valbart steg (`laddaNerBilder()`) som hämtar
+`bildUrl`/`bilagor`-fälten från de redan nedladdade rutinerna och sparar själva bildfilerna i
+en namngiven Cache Storage-cache (`synappsen-offline-bilder`) – inte Firestores dokumentcache,
+som inte hanterar Cloud Storage-innehåll. `OfflineCenter.jsx` uppdaterad med tre statusrader +
+en separat "Ladda ner bilder också"-knapp (inaktiverad tills huvudnedladdningen körts minst en
+gång).
 
-- Visa per innehållstyp vad som finns offline och hur gammalt det är. `OfflineIndikator.jsx`
-  finns – bygg vidare på den istället för något nytt.
+### 29b – Ärlig status ✅ KLAR
 
-### 29c – Kö för åtgärder offline
+**Genomfört:** `OfflineIndikator.jsx` (den befintliga bannern, inget nytt byggt) läser nu
+`useOfflineCenter()`s status och visar en andra rad – "Tillgängligt offline: Rutiner (nyss) ·
+Kontakter (2 tim sedan) · Förråd (1 dygn sedan)" – med relativ ålder per innehållstyp.
+Verifierat i Playwright (riktig offline-simulering via Chromium DevTools Protocol): bannern
+visade exakt denna text efter en nedladdning.
 
-- Läskvittering och bristanmälan gjorda utan nät läggs i kö och skickas när nätet är tillbaka,
-  med tydlig "väntar på att skickas"-status.
-- **Gränsdragning:** bara idempotenta, ofarliga åtgärder köas. Ingenting som ändrar
-  publicerat innehåll får ske offline.
+### 29c – Kö för åtgärder offline ✅ KLAR
+
+**Genomfört:** `src/utils/offlineKo.js` – en ren, React-fri localStorage-kö (samma
+per-uid-mönster som offline-centret). Läskvittering (`kvitteraLastMedKo`/
+`kvitteraLastAnslagMedKo` i `useLaskvittering.js`) är idempotent (arrayUnion) och därför säker
+att köa direkt utan extra logik. Bristanmälan köas i `ForradVy.jsx`s `hanteraAnmalBrist` vid
+skrivfel/offline. `useOfflineKo.js` (monterad en gång vid approten via
+`OfflineKoLyssnare.jsx`) lyssnar på `window`s `online`-event och spelar upp kön – för
+bristanmälan-poster väntar den EXPLICIT på att `useBristanmalningar()`s egen lista laddat klart
+innan den skickar (annars hade dubblettskyddet i `skapaBristanmalning` kunnat missa en redan
+öppen anmälan och skapa en duplicerad post istället för att räkna upp den). `OfflineIndikator.jsx`
+visar "⏳ N åtgärder väntar på att skickas" så länge kön inte är tom, även efter att
+anslutningen kommit tillbaka (försvinner när kön faktiskt tömts). Verifierat end-to-end i
+Playwright: en läskvittering gjord i simulerat offline-läge hamnade i `localStorage`-kön,
+och tömdes automatiskt efter ett `online`-event.
+**Gränsdragning respekterad:** ENDAST läskvittering och bristanmälan köas – inget som ändrar
+publicerat innehåll (rutintext, godkännanden, etc.) går att göra offline, det finns ingen
+kod-väg för det.
 
 **Klart när:** en telefon i flygplansläge kan visa en rutin, ett telefonnummer och var en
-artikel ligger – och kvittera rutinen så fort täckningen är tillbaka.
+artikel ligger – och kvittera rutinen så fort täckningen är tillbaka. ✅
 
 ---
 
-# Etapp 30 – Snabbhet och tillgänglighet (inte "wow", men avgörande)
+# Etapp 30 – Snabbhet och tillgänglighet (inte "wow", men avgörande) — 30a/30c ✅ KLAR, 30b öppen (kräver verksamheten)
 
 **Varför:** Ingen av funktionerna ovan känns bra i en app som tar tid att öppna. Den här
 etappen är medvetet tråkig och ligger sist, men utan den urholkas allt det andra.
 
 **Modul:** ingen (Core).
 
-### 30a – Startladdningen
+### 30a – Startladdningen ✅ KLAR (delvis – se avgränsning)
 
-- `firebase-vendor`-chunken är 686 kB (202 kB gzip) och laddas för alla, alltid. Undersök
-  modulär import/lazy-laddning av Firestore och Auth-delarna.
-- Mät före/efter enligt genomgående krav 9. Sätt ett tak som senare etapper måste hålla sig
-  under.
+**Premisskontroll:** planens siffra ("686 kB") var något inaktuell – ett färskt bygge innan
+denna etapp visade `firebase-vendor` på 658,25 kB (194,03 kB gzip). En fullständig
+lazy-laddning av Firestore separat från Auth visade sig vara en STÖRRE arkitekturändring än
+motiverat just nu: `src/firebase/config.js` initierar båda i EN eager-laddad modul, och 48
+filer importerar `firebase/firestore` mot bara 5 för `firebase/auth` – att dela upp dem hade
+krävt att omstrukturera NÄR/HUR Firestore initieras för nästan hela appen, en risk som inte
+står i proportion till vinsten (firestore/auth behövs praktiskt taget direkt på varje sida,
+så lite skulle faktiskt undvikas att ladda i förväg).
 
-### 30b – Avsluta Etapp 17d
+**Genomfört istället, en verkligt lågriskvinst:** `firebase/app-check` gjordes om från ett
+statiskt top-level-import till ett dynamiskt `import()` inuti det redan existerande
+`if (VITE_RECAPTCHA_SITE_KEY...)`-villkoret – de allra flesta organisationer har ännu ingen
+reCAPTCHA-nyckel konfigurerad (App Check är fortfarande i mätfas, Etapp 12c-i), så det biblioteket
+behövde inte ligga i den redan tunga huvud-chunken för alla. Uppmätt: `firebase-vendor` gick
+från 658,25 kB → 649,42 kB (194,03 → 191,20 kB gzip). Litet men verkligt, och riskfritt.
+**Tak för framtida etapper:** `firebase-vendor` ska inte växa över nuvarande 650 kB utan en
+uttrycklig, mätt motivering – samma "mät före/efter"-krav gäller alla senare tillägg av
+Firebase-relaterade beroenden.
+
+### 30b – Avsluta Etapp 17d — INTE genomförd, kräver verksamheten
 
 - Det som saknas är inte kod utan **ett fysiskt test**: fungerar akutläget med handskar och i
   starkt ljus? Organisera testet med verksamheten, dokumentera resultatet, stäng etappen.
+- Detta går inte att slutföra som ett kodningsuppdrag – kvarstår som en öppen punkt som kräver
+  ett fysiskt möte med akutmottagningens personal, inte mer kod.
 
-### 30c – Från WCAG A till AA
+### 30c – Från WCAG A till AA ✅ KLAR (fokusindikator – se avgränsning)
 
-- Etapp 13g tog de kvarvarande A-bristerna. AA är det som faktiskt efterfrågas i offentlig
-  upphandling (DOS-lagen) och är dessutom rätt sak att göra.
-- Kontrast, fokusmarkeringar, konsekvent tangentbordsnavigering i de nya vyerna från Etapp
-  22–29.
+**Genomfört:** en enda delad `:focus-visible`-regel för samtliga knappvarianter
+(`.knapp`/`--sekundar`/`--farlig`/`--lank`) i `index.css` – en garanterad, konsekvent
+fokusring (3 px, `--primar-mork`) istället för att förlita sig på webbläsarens standardram,
+som varierar i kontrast mot appens egna färger. EN regel täcker alla knappar i HELA appen,
+inklusive samtliga nya vyer från Etapp 22–29, vilket är både grundligare och mindre kod än att
+lappa varje enskild komponents CSS individuellt.
+**Avgränsning (premisskontroll):** en snabb genomgång av CSS/JSX i de nyaste komponenterna
+(`ForeslaAndringModal`, `ForslagSektion`, `SkannaModal`, `HyllEtiketter`,
+`OrganisationBrandingSektion`) visade inga ytterligare akuta gap – alla interaktiva element är
+riktiga `<button>`, inga icke-semantiska klickbara `<div>`, och dialoger har redan
+`role="dialog"`/`aria-label`. En FULLSTÄNDIG WCAG AA-revision (kontrastmätning av varje
+färgkombination, tangentbordsfälla-test i varje modal) är utanför vad som rimligen ryms i den
+här etappen och kvarstår som en öppen, mindre punkt – tillgänglighetsredogörelsen kan inte
+ännu säga AA helt utan förbehåll, men den enskilt viktigaste, mest spridda bristen
+(fokusindikatorn) är nu åtgärdad överallt på en gång.
 
 **Klart när:** appen öppnas märkbart snabbare än i dag, och tillgänglighetsredogörelsen kan
-säga AA utan förbehåll.
+säga AA utan förbehåll. Delvis uppnått (30a/30c), 30b kvarstår som en verksamhetsfråga.
 
 ---
 

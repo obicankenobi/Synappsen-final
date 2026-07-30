@@ -1,6 +1,6 @@
 import MarkdownInnehall from "./MarkdownInnehall";
 import { ANSLAG_PRIORITET } from "../hooks/useAnslag";
-import { kvitteraLastAnslag } from "../hooks/useLaskvittering";
+import { kvitteraLastAnslagMedKo } from "../hooks/useLaskvittering";
 import { useAuth } from "../hooks/useAuth";
 import { formateraDatum } from "../utils/datum";
 import "./AnslagKort.css";
@@ -45,7 +45,7 @@ export default function AnslagKort({ anslag, farHantera, anvandare = [], onRedig
           type="button"
           className="knapp knapp--sekundar knapp--liten"
           disabled={jagHarLast}
-          onClick={() => kvitteraLastAnslag(anslag.id, currentUser.uid, mittNamn)}
+          onClick={() => kvitteraLastAnslagMedKo(anslag.id, currentUser.uid, mittNamn)}
         >
           {jagHarLast ? "✓ Du har läst detta" : "Jag har läst"}
         </button>

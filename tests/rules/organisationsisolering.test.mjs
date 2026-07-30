@@ -16,11 +16,14 @@ import { readFileSync } from "node:fs";
 import {
   doc,
   getDoc,
+  getDocs,
   setDoc,
   updateDoc,
   deleteDoc,
   collection,
   addDoc,
+  query,
+  where,
 } from "firebase/firestore";
 
 const ORG_A = "orgA";
@@ -858,6 +861,18 @@ async function main() {
   );
   await test("superadminB (fel organisation) kan INTE läsa org A:s bristanmälan", () =>
     assertFails(getDoc(doc(superB, "bristanmalningar", bristTestId)))
+  );
+  // Etapp 29c (bugfynd): den EXAKTA query-formen useBristanmalningar.js faktiskt använder
+  // (bara where("organisationId","==",orgId), ingen where på anmaldAv) – en list-fråga vars
+  // regel förut refererade resource.data.anmaldAv nekades i sin HELHET för alla utan
+  // förrådsansvarig-roll, trots att create/getDoc-testerna ovan aldrig fångade det (samma
+  // blinda fläck som andringsforslag/{forslagId} hade i Etapp 26).
+  await test("personalA (ingen förrådsroll) KAN lista organisationens bristanmälningar (samma query som useBristanmalningar.js)", async () => {
+    const snap = await getDocs(query(collection(personalA, "bristanmalningar"), where("organisationId", "==", ORG_A)));
+    if (snap.empty) throw new Error("förväntade minst en bristanmälan i organisation A");
+  });
+  await test("superadminB (fel organisation) kan INTE lista org A:s bristanmälningar (regeln är konstant falsk för hela frågan, hela listningen nekas – inte bara ett tomt resultat)", () =>
+    assertFails(getDocs(query(collection(superB, "bristanmalningar"), where("organisationId", "==", ORG_A))))
   );
   await test("superadminA (får hantera logistik) KAN markera anmälan som hanterad", () =>
     assertSucceeds(

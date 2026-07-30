@@ -1,6 +1,5 @@
 // Firebase-initiering för Synappsen
 import { initializeApp } from "firebase/app";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { getAuth } from "firebase/auth";
 import {
   initializeFirestore,
@@ -27,10 +26,15 @@ export const app = initializeApp(firebaseConfig);
 // (`enforceAppCheck` på Cloud Functions är 12c-ii, ett separat steg EFTER en mätperiod som
 // visar att riktig trafik faktiskt får giltiga tokens – annars riskerar man att stänga ute
 // riktiga användare, t.ex. med en gammal cachad PWA-version). Se ETAPPLAN2.md Etapp 12c.
+// Etapp 30a: dynamisk import istället för ett statiskt top-level-import – de flesta
+// organisationer har (ännu) ingen reCAPTCHA-nyckel konfigurerad, så firebase/app-check ska
+// inte behöva laddas ner av alla i den redan tunga firebase-vendor-chunken.
 if (import.meta.env.VITE_RECAPTCHA_SITE_KEY && import.meta.env.VITE_USE_EMULATOR !== "true") {
-  initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY),
-    isTokenAutoRefreshEnabled: true,
+  import("firebase/app-check").then(({ initializeAppCheck, ReCaptchaV3Provider }) => {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY),
+      isTokenAutoRefreshEnabled: true,
+    });
   });
 }
 
