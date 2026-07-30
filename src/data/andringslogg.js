@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.48.0",
+    datum: "2026-07-30",
+    andringar: [
+      "Superadmin kan nu lägga in sin verksamhets egen logotyp, en accentfärg och en kort välkomsttext under Admin → Vår profil",
+      "Accentfärgen kontrolleras automatiskt för tillräcklig kontrast innan den sparas, så appen alltid går att läsa – akutläget behåller alltid sin egen färgsättning",
+    ],
+  },
+  {
     version: "5.47.0",
     datum: "2026-07-29",
     andringar: [

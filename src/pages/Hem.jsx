@@ -11,6 +11,7 @@ import { usePopularaste } from "../hooks/useVisningar";
 import { useSnabblankar } from "../hooks/useSnabblankar";
 import { useSenastBesokta } from "../hooks/useSenastBesokta";
 import { useStartvyKonfiguration } from "../hooks/useStartvyKonfiguration";
+import { useOrganisationBranding } from "../hooks/useOrganisationBranding";
 import { STARTVY_BLOCK } from "../config/startvy";
 import { ROLE_LABELS, ROLES } from "../firebase/roles";
 
@@ -22,12 +23,17 @@ export default function Hem() {
   const { senastBesokta } = useSenastBesokta(currentUser?.uid);
   const { blockordningForRoll } = useStartvyKonfiguration();
   const blockordning = blockordningForRoll(role);
+  const { branding } = useOrganisationBranding();
 
   return (
     <div className="sida sida--hem">
       <header className="hem__header">
         <div>
+          {branding?.logotypUrl && (
+            <img src={branding.logotypUrl} alt="" className="hem__logotyp" />
+          )}
           <h1>Synappsen</h1>
+          {branding?.valkomsttext && <p className="hem__egen-valkomsttext">{branding.valkomsttext}</p>}
           {currentUser && (
             <p className="hem__valkommen">
               Inloggad som {namn || currentUser.email}

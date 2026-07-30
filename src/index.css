@@ -238,6 +238,21 @@ h1 {
   margin: 0;
 }
 
+/* Etapp 28a/28b: organisationens egen logotyp + valfri välkomsttext på startsidan */
+.hem__logotyp {
+  max-height: 40px;
+  max-width: 160px;
+  object-fit: contain;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.hem__egen-valkomsttext {
+  color: var(--text);
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+
 /* Etapp 17c: medvetet visuellt avvikande (röd, stor) och placerad högst upp – ska gå att
    hitta och trycka på utan att behöva leta eller söka, även under stress. Minst 48px hög
    tryckyta (Etapp 17d). */

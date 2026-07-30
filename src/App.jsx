@@ -12,6 +12,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import MfaPolicyBanner from "./components/MfaPolicyBanner";
 import ProvperiodBanner from "./components/ProvperiodBanner";
 import AkutlagePrefetch from "./components/AkutlagePrefetch";
+import OrganisationsBranding from "./components/OrganisationsBranding";
 import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
@@ -105,6 +106,7 @@ export default function App() {
     <AuthProvider>
       <DialogProvider>
       <OfflineIndikator />
+      <OrganisationsBranding />
       <InaktivitetsBevakning />
       <SessionKontroll />
       <BrowserRouter>

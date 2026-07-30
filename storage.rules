@@ -74,6 +74,15 @@ service firebase.storage {
       allow write: if arInloggad() && request.auth.uid == uid;
     }
 
+    // organisationer/{orgId}/logotyp/{filnamn} – Etapp 28a: organisationens egen logotyp.
+    // Alla i organisationen får läsa (visas app-brett på Hem.jsx), men bara superadmin i DEN
+    // EGNA organisationen får ladda upp/ersätta den – samma rollkrav som skrivning till
+    // organisationer/{orgId} själv i firestore.rules.
+    match /organisationer/{orgId}/logotyp/{filnamn} {
+      allow read: if arInloggad() && orgId == minOrganisation();
+      allow write: if arInloggad() && minRoll() == 'superadmin' && orgId == minOrganisation();
+    }
+
     // backups/{orgId}/{filnamn} – veckovis Firestore-backup (Etapp 3b), skriven ENDAST av
     // den schemalagda Cloud Function-jobbet (Admin SDK, kringgår dessa regler helt). Ingen
     // klientåtkomst – skulle redan vara implicit nekad (ingen matchande regel annars), men

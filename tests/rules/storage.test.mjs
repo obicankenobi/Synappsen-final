@@ -49,6 +49,7 @@ async function main() {
     const db = context.firestore();
     await setDoc(doc(db, "users", "volA"), { role: "vol", organisationId: "orgA" });
     await setDoc(doc(db, "users", "volB"), { role: "vol", organisationId: "orgB" });
+    await setDoc(doc(db, "users", "superA"), { role: "superadmin", organisationId: "orgA" });
     await setDoc(doc(db, "rutiner", "rutinA"), { omrade: "kliniskt-stod", organisationId: "orgA" });
     await setDoc(doc(db, "forradsartiklar", "artikelA"), { forrad: "Engångsförrådet", organisationId: "orgA" });
 
@@ -65,6 +66,7 @@ async function main() {
 
   const volAStorage = testEnv.authenticatedContext("volA").storage();
   const volBStorage = testEnv.authenticatedContext("volB").storage();
+  const superAStorage = testEnv.authenticatedContext("superA").storage();
 
   console.log("\nrutiner/{omrade}/{rutinId}/{filnamn} – organisationsisolering");
   await test("volA (samma org som rutinen) kan läsa bilden", () =>
@@ -104,6 +106,23 @@ async function main() {
   );
   await test("volB kan INTE ladda upp en profilbild i volAs namn", () =>
     assertFails(uploadBytes(ref(volBStorage, "avatarer/volA/kapad.jpg"), new Uint8Array([9])))
+  );
+
+  console.log("\norganisationer/{orgId}/logotyp/{filnamn} – Etapp 28a: bara superadmin i egen org skriver");
+  await test("superA (superadmin, orgA) KAN ladda upp orgA:s logotyp", () =>
+    assertSucceeds(uploadBytes(ref(superAStorage, "organisationer/orgA/logotyp/bild.jpg"), new Uint8Array([1, 2, 3])))
+  );
+  await test("volA (samma org, men inte superadmin) kan INTE ladda upp logotypen", () =>
+    assertFails(uploadBytes(ref(volAStorage, "organisationer/orgA/logotyp/bild.jpg"), new Uint8Array([9])))
+  );
+  await test("volA (samma org) KAN läsa logotypen", () =>
+    assertSucceeds(getBytes(ref(volAStorage, "organisationer/orgA/logotyp/bild.jpg")))
+  );
+  await test("volB (annan org) kan INTE läsa orgA:s logotyp", () =>
+    assertFails(getBytes(ref(volBStorage, "organisationer/orgA/logotyp/bild.jpg")))
+  );
+  await test("superA (superadmin i orgA) kan INTE ladda upp åt orgB", () =>
+    assertFails(uploadBytes(ref(superAStorage, "organisationer/orgB/logotyp/bild.jpg"), new Uint8Array([9])))
   );
 
   await testEnv.cleanup();

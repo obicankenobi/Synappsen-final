@@ -49,6 +49,7 @@ import SokningarUtanTraffarSektion from "../components/admin/SokningarUtanTraffa
 import AndringsloggSektion from "../components/admin/AndringsloggSektion";
 import RevisionsloggSektion from "../components/admin/RevisionsloggSektion";
 import StartvyKonfigurationSektion from "../components/admin/StartvyKonfigurationSektion";
+import OrganisationBrandingSektion from "../components/admin/OrganisationBrandingSektion";
 import ChecklistStatistikSektion from "../components/admin/ChecklistStatistikSektion";
 import "./Admin.css";
 
@@ -425,6 +426,8 @@ export default function Admin() {
           feedback={feedback}
         />
       )}
+
+      {arSuperadmin && <OrganisationBrandingSektion />}
 
       {arSuperadmin && <StartvyKonfigurationSektion />}
 

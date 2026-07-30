@@ -1,0 +1,33 @@
+.org-branding {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.org-branding__falt {
+  display: block;
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+.org-branding__logotyp {
+  max-height: 48px;
+  max-width: 160px;
+  object-fit: contain;
+  display: block;
+  margin: 6px 0;
+}
+
+.org-branding__accentrad {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.org-branding__hexinput {
+  max-width: 120px;
+}
+
+.org-branding__sparaknapp {
+  margin-top: 12px;
+}

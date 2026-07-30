@@ -35,6 +35,15 @@ export async function laddaUppAvatar(uid, fil) {
   return getDownloadURL(bildRef);
 }
 
+// Etapp 28a: organisationens logotyp, en per organisation (samma tidsstämplade filnamnsmönster
+// som övriga uppladdningar, för att undvika cache-krockar när logotypen byts ut).
+export async function laddaUppLogotyp(orgId, fil) {
+  const sokvag = `organisationer/${orgId}/logotyp/${Date.now()}-${fil.name}`;
+  const bildRef = ref(storage, sokvag);
+  await uploadBytes(bildRef, fil);
+  return getDownloadURL(bildRef);
+}
+
 export async function laddaUppForradsbild(forradSlug, artikelId, fil) {
   const sokvag = `forradsartiklar/${forradSlug}/${artikelId}/${Date.now()}-${fil.name}`;
   const bildRef = ref(storage, sokvag);

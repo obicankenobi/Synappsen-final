@@ -676,33 +676,61 @@ och anmäla att det inte gör det. ✅ (med reservationen om manuell kameraverif
 
 ---
 
-# Etapp 28 – Kundens egen profil
+# Etapp 28 – Kundens egen profil ✅ KLAR (2026-07-30)
 
 **Varför:** Billigaste sättet att få ett verktyg att kännas som "vårt" istället för "ett system
 någon köpt in". Syns för alla användare, varje gång.
 
 **Modul:** ingen (Core).
 
-### 28a – Logotyp och accentfärg per organisation
+### 28a – Logotyp och accentfärg per organisation ✅ KLAR
 
-- Nytt på `organisationer/{orgId}`: `logotypUrl`, `accentfarg`. Redigeras i adminpanelen.
-- CSS-variabelsystemet finns redan (`--primar`, `--yta`, `--amber-ljus` m.m.) och gör det här
-  litet – det är i praktiken att sätta en variabel.
+**Genomfört:** ett namnrymdat `branding`-fält på `organisationer/{orgId}` (`logotypUrl`,
+`accentfarg`, `valkomsttext`) – samma mönster som `sakerhet.kravMfaForRoller`, ingen ny
+collection. `useOrganisationBranding.js` (läser + `sparaBranding()`), redigeras i en ny
+adminsektion `OrganisationBrandingSektion.jsx` ("🏷️ Vår profil", bredvid `ModulerSektion`).
+Logotyp laddas upp via `laddaUppLogotyp()` (`src/firebase/storage.js`, samma mönster som
+`laddaUppAvatar`) till `organisationer/{orgId}/logotyp/{filnamn}` – ny `storage.rules`-regel:
+läs = samma organisation, skriv = bara superadmin i den EGNA organisationen (5 nya
+rules-tester). Ingen ändring av `firestore.rules` behövdes – toppnivå-skrivregeln för
+`organisationer/{orgId}` (superadmin i egen org) täcker redan de nya `branding.*`-fälten.
 
-### 28b – Egen välkomsttext
+**Premisskontroll (krav 8) – hur accentfärgen faktiskt tillämpas:** den befintliga PERSONLIGA
+accenten (Etapp 22e, `useAccent.js`) är ett fast urval av 4 färger sparat per enhet i
+localStorage, applicerat via `data-accent`-attributet. En kunds FRIA hexfärg kunde inte
+återanvända samma attribut utan att skapa oklar prioritetsordning. Löst utan någon JS-jämförelse
+alls: `OrganisationsBranding.jsx` injicerar en OSKOPAD `:root { --primar: ... }`-regel i en egen
+`<style>`-tagg. Den har LÄGRE CSS-specificitet än index.css:s `:root[data-accent="gron"]` m.fl.,
+så en användares eget val vinner alltid automatiskt via vanlig cascade – ingen kod behöver
+avgöra "vems val gäller", CSS gör det åt oss.
 
-- Kort rubrik/text på startsidan, satt av kundens superadmin.
+### 28b – Egen välkomsttext ✅ KLAR
 
-### 28c – Gränser som inte får överskridas
+**Genomfört:** `branding.valkomsttext`, visas under rubriken på `Hem.jsx` tillsammans med
+logotypen (`.hem__logotyp`/`.hem__egen-valkomsttext` i `index.css`).
 
-- **Kunden får inte kunna försämra tillgängligheten.** Vald accentfärg ska kontrastvalideras
-  mot både ljust och mörkt tema, och avvisas om den underskrider WCAG AA. Annars raserar Etapp
-  28 det Etapp 13g byggde.
-- Akutläget behåller sin egen färgsättning oavsett kundens val – det är säkerhetskritiskt att
-  det ser likadant ut överallt.
+### 28c – Gränser som inte får överskridas ✅ KLAR
+
+**Genomfört:** `src/utils/kontrast.js` – WCAG 2.1-kontrastberäkning (relativ luminans) från
+grunden (inget sådant fanns i kodbasen sedan tidigare). `valideraAccentfarg()` körs INNAN
+`sparaBranding()` skriver till Firestore, och avvisar en färg som underskrider 4.5:1 mot vit
+knapptext i ljust läge ELLER mot den mörka ytfärgen i mörkt läge (en automatiskt ljusgjord
+variant av samma färg, samma princip som de fördefinierade accenternas hand-valda
+ljus/mörk-par). **Premisskontroll:** kontrasten valideras ENDAST klientsidan – Firestores
+regelspråk saknar potensfunktion och kan inte räkna WCAG-luminans, så ingen server-side spärr
+finns bortom det vanliga superadmin-i-egen-organisation-kravet. Dokumenterat här som en
+medveten avgränsning, inte en lucka som missats. 9 nya vitest-tester för kontrastmatematiken.
+Akutläget (`Akutlage.css`) använder redan uteslutande hårdkodade hexfärger, inga CSS-variabler
+alls – kontrollerat, ingen ändring behövdes för att garantera att det ser likadant ut oavsett
+kundens val.
+
+Verifierat i Playwright mot lokala emulatorer: satte accentfärg `#c2410c` + välkomsttext →
+`getComputedStyle(document.documentElement).--primar` gav exakt `#c2410c` på Hem.jsx, samtidigt
+som Akutläge-knappen förblev röd. Försök att spara `#fef9c3` (för ljus) gav ett tydligt
+avvisningsmeddelande ("För svag kontrast... 1.1:1, kräver minst 4.5:1") och sparades inte.
 
 **Klart när:** personalen ser sin egen verksamhets logotyp när de loggar in, utan att någon
-kunnat göra appen svårläst på vägen.
+kunnat göra appen svårläst på vägen. ✅
 
 ---
 
