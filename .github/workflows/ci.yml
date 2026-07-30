@@ -43,3 +43,7 @@ jobs:
 
       - name: Kontrollera Cloud Functions-syntax
         run: node -c functions/index.js
+
+      - name: Beroendegranskning (npm audit, rapporterar men blockerar inte)
+        if: always()
+        run: node scripts/npm-audit-rapport.mjs

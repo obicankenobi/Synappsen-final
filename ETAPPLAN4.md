@@ -809,7 +809,7 @@ den fullständiga bedömningen av samtliga punkter.
 
 **Modul:** ingen (Core/drift).
 
-### 31a – Automatiserad beroendegranskning i CI
+### 31a – Automatiserad beroendegranskning i CI ✅ KLAR (2026-07-30)
 
 - Lägg till ett CI-steg som kör `npm audit` och sammanfattar kända CVE:er (allvarlighetsgrad,
   paket, om en fix finns) i en maskinläsbar rapport, inte bara som en tyst varning i
@@ -819,6 +819,25 @@ den fullständiga bedömningen av samtliga punkter.
   kritisk) räknat över hela `devDependencies`-trädet – inget av detta är åtgärdat idag.
 - Avgränsning: detta steg ska **rapportera**, inte blockera bygget automatiskt – en ny CVE i
   en transitiv devDependency ska inte kunna stoppa en release utan att någon aktivt bedömt den.
+
+**Genomfört:** `scripts/npm-audit-rapport.mjs` – kör `npm audit --json` i både roten och
+`functions/` (två separata `package.json`, två separata beroendeträd), filtrerar fram
+hög/kritiska fynd, och skriver en Markdown-tabell (paket, allvarlighetsgrad, om en fix finns,
+kända sårbarhetsnamn) till `$GITHUB_STEP_SUMMARY` i CI (syns direkt i Actions-körningens
+sammanfattningsflik, inte begravt i en loggrad). Nytt steg i `.github/workflows/ci.yml`, kört
+med `if: always()` (så rapporten skrivs även om ett tidigare steg misslyckats) och
+`process.exit(0)` alltid i skriptet – bekräftat lokalt: 24 sårbarheter i roten (23 höga + 1
+kritisk, exakt samma tal som SessionStart-hooken visat hela sessionen) skrev en fullständig
+rapport och avslutades med kod 0, inget i functions/.
+
+**Avgränsning (medveten, inte en glömd del):** ingen version bumpad, ingen ändring i
+`andringslogg.js`, och ingen deploy triggad för det här delsteget – det är en ren
+CI-/driftändring utan någon skillnad i det som faktiskt deployas (frontend/Cloud
+Functions/regler är oförändrade), så en Firebase-deploy hade bara varit ett resultatlöst
+körande av samma befintliga artefakter. Samma bedömning gjordes tidigare för Etapp 8a/8b
+(Node 22, `continue-on-error`-borttagning) – ingen egen changelog-post, bakades in i nästa
+substantiella releases versionsbump istället för att ge en tom `andringslogg.js`-post om ett
+CI-internt jobb.
 
 ### 31b – Committad Playwright-regressionssvit för de känsligaste flödena
 

@@ -16,6 +16,10 @@ dist-ssr
 .env
 .env.local
 
+# Etapp 31a: lokal fallback när scripts/npm-audit-rapport.mjs körs utanför CI
+# (utan $GITHUB_STEP_SUMMARY) – i CI skrivs rapporten till jobbsammanfattningen istället.
+npm-audit-rapport.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
