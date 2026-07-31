@@ -168,21 +168,43 @@ rutin är ett åtagande man missar i skarpt läge.
 
 **Modul:** ingen (Core/drift). Detta är i huvudsak dokument, inte kod.
 
-### 34a – Incidentrunbook
+### 34a – Policy och operativ checklista ✅ KLAR (2026-07-31)
 
-Ett nytt dokument, `avtal/INCIDENTRUTIN.md` (eller i repo-roten), som besvarar:
+**Genomfört:** två dokument, med medvetet olika målgrupp och strikthet.
 
-- Vem larmas, och hur når man dem utanför kontorstid?
-- Hur avgörs snabbt **vilka organisationer som berörts**? (Utan Etapp 32 går det inte alls.)
-- Hur stoppas ett pågående intrång? Force-logout finns som funktion – men det finns ingen
-  dokumenterad procedur för när och hur den används, eller hur man pausar en organisation.
-- Hur bevaras bevis innan något städas bort?
-- När börjar 72-timmarsklockan, och vem beslutar att den gjort det?
+- **`avtal/INCIDENTRESPONSPLAN.md`** (policy, extern – delas med kund och vid upphandling):
+  klassificering P1/P2/P3 med exempel ur den här appen, roller, faser, tidskrav,
+  kommunikationsordning (kunden anmäler till IMY, inte leverantören), bevarande av bevis,
+  efterhandsgenomgång.
+- **`INCIDENT-CHECKLISTA.md`** (internt, delas aldrig externt): steg-för-steg skriven för att
+  följas ensam och under press, med exakta sökvägar till varje kontroll i UI:t.
 
-### 34b – Färdiga underrättelsemallar
+Två saker är värda att lyfta ur dem:
 
-- Ett utkast till kundunderrättelse enligt PUB-avtalets p.8-krav, och ett underlag för
-  IMY-anmälan. Att formulera detta under tidspress är hur man missar en frist.
+1. **Patientsäkerhetsprincipen** (policyns avsnitt 7) är formaliserad som en styrande regel:
+   *en begränsningsåtgärd får aldrig med hög sannolikhet orsaka större skada än den incident
+   den avser att begränsa.* Därav: ingen automatisk utestängning av vårdpersonal, bred
+   avstängning som sista utväg, men full automatisering tillåten för leverantörens egna konton.
+2. **Dokumenten redovisar öppet vad som INTE finns.** Checklistan har en statustabell där
+   varje saknad förmåga (larm, `permission-denied`-rapportering, rollbytesloggning,
+   återställning) står som ⬜ med hänvisning till vilken etapp som bygger den. Policyns
+   avsnitt 11 anger att externt incidentstöd saknas. Det är avsiktligt: en plan som beskriver
+   en beredskap som inte finns är sämre än ingen plan.
+
+**Underhållsregeln finns i `CLAUDE.md`** och är händelsestyrd (uppdatera i samma commit som
+förmågan ändras), inte minnesstyrd – eftersom minnesstyrning bevisligen misslyckats i det här
+projektet förut.
+
+### 34b – Färdiga underrättelsemallar ✅ KLAR (2026-07-31)
+
+**Genomfört:** mall för kundunderrättelse enligt PUB-avtalets p. 8-krav finns i checklistans
+steg 7, med de fält GDPR art. 33.3 kräver och en uttrycklig instruktion om vad man aldrig
+skriver (gissningar, bagatellisering, skuld på enskild användare).
+
+**Kvarstår:** kontakttabellen i checklistans snabbreferens är tom. Att fylla i den tar tio
+minuter och är den enskilt mest värdefulla förberedelsen i hela etappen – men kräver uppgifter
+bara ägaren har.
+
 
 ### 34c – Öva en gång, på papper
 
@@ -195,6 +217,38 @@ Ett nytt dokument, `avtal/INCIDENTRUTIN.md` (eller i repo-roten), som besvarar:
 - `avtal/DPIA-UNDERLAG.md` rad 137 anger i dag Sentry som skydd mot sen upptäckt av incidenter.
   Efter Etapp 32 blir det påståendet sant – men det ska stå vad som faktiskt gäller, inte vad
   vi hoppas. Uppdatera bedömningen när, och bara när, åtgärderna finns på plats.
+
+### 34e – Halvautomatisk, styrd respons
+
+**Varför:** verksamheten drivs av en person, som inte kan förväntas göra korrekt
+incidentanalys klockan tre på natten. Slutsatsen efter genomgången är att **autonom respons är
+fel modell** (patientsäkerhetsprincipen), men att **autonom *analys*** är både säkert och det
+som hjälper mest.
+
+Byggstenarna finns redan: `tvingaUtloggning` (som anropar `revokeRefreshTokens`),
+`pausaOrganisation` och `exporteraOrganisation`. Koden gör dessutom redan automatiska
+tillståndsändringar med revisionsloggning – en organisation pausas automatiskt när
+provperioden går ut. Mönstret är etablerat; det som saknas är kopplingen till en larmsignal.
+
+Målbild:
+
+```
+Larm (32b) → automatisk omfattningsanalys + bevissäkring
+           → notis till ägaren
+           → tre val: [Logga ut användaren] [Pausa organisationen] [Falsklarm]
+           → förifyllt underrättelseutkast enligt 34b
+```
+
+- **Automatisk omfattningsanalys:** "vilka organisationer rörde det här kontot senaste 24 h,
+  vilka datatyper, under vilken period" – rena databasfrågor, fullt automatiserbara, och den
+  långsammaste delen av verklig incidenthantering.
+- **Automatisk bevissäkring:** frys relevanta revisionsloggposter i en oföränderlig
+  incidentpost när larmet går, innan något hinner rulla ur eller ändras.
+- **Strypning i stället för blockering:** vid onormal läsvolym, sakta ner – lås inte.
+- **Full automatisering endast för leverantörens egna plattformsadminsessioner.**
+
+**Gränsdragning:** systemet föreslår och förbereder. Människan trycker på knappen. Beslutet
+"är detta en personuppgiftsincident" är juridiskt och automatiseras aldrig.
 
 **Klart när:** en person som väcks mitt i natten kan följa ett dokument istället för att
 improvisera.

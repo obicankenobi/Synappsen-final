@@ -65,6 +65,17 @@ Håll dessa två KORTA. Om du märker att du skriver in samma delmålsbeskrivnin
 finns i en `ETAPPLANx.md`, skriv en pekare istället för att kopiera – det var exakt dupliceringen
 (fast åt andra hållet: gammalt innehåll som aldrig synkades) som gjorde dem stale förra gången.
 
+### Incidentdokument (LEVANDE – se den obligatoriska underhållsregeln nedan)
+
+| Fil | Innehåll | Målgrupp |
+|---|---|---|
+| `avtal/INCIDENTRESPONSPLAN.md` | Policy: klassificering, roller, faser, tidskrav, patientsäkerhetsprincipen, kommunikation | **Extern** – delas med kund och vid upphandling |
+| `INCIDENT-CHECKLISTA.md` | Operativ steg-för-steg-hantering, skriven för att följas under press | **Internt** – delas ALDRIG externt |
+
+Dessa två är de enda dokumenten i projektet vars felaktighet kan få juridiska följder
+(72-timmarsfristen i `avtal/PUB-AVTAL-MALL.md` p. 8). De hanteras därför strängare än
+övrig dokumentation – se "Obligatorisk underhållsregel" under arbetsmönstren nedan.
+
 ### Referens-/regeldokument (ändras sällan, uppdatera bara vid en faktisk sakförändring)
 
 | Fil | Innehåll |
@@ -89,3 +100,40 @@ finns i en `ETAPPLANx.md`, skriv en pekare istället för att kopiera – det va
 - **Genomgående krav 8 (premisskontroll):** verifiera en etapps antaganden mot FAKTISK kod
   innan bygget påbörjas – flera tidigare etapper visade sig bygga på antaganden som inte
   stämde. Se `ETAPPLAN3.md`/`ETAPPLAN4.md` för konkreta exempel.
+
+### Obligatorisk underhållsregel: incidentdokumenten
+
+`avtal/INCIDENTRESPONSPLAN.md` och `INCIDENT-CHECKLISTA.md` beskriver vilken
+**detektions-, begränsnings- och återställningsförmåga som faktiskt finns**. Ett sådant
+dokument som beskriver kapacitet som inte existerar är farligare än inget dokument alls: det
+får en ensam operatör att i skarpt läge leta efter ett larm som aldrig kommer, eller lita på
+en återställning som inte går att göra.
+
+**Regeln är händelsestyrd, inte minnesstyrd.** "Kom ihåg att uppdatera" har bevisligen
+misslyckats i det här projektet – `SAKERHETSRAPPORT.md` låg 46 releaser efter verkligheten,
+`FRAMTIDSPLAN.md` 38 versioner. Uppdatera därför alltid **i samma commit** som ändringen, när
+något av följande inträffar:
+
+| Om du bygger/ändrar … | Uppdatera |
+|---|---|
+| Ny eller ändrad **detektion** (larm, felrapportering, loggning av en ny händelsetyp) | Checklistans tabell "Vad som ännu inte finns" + steg 1/4; policyns avsnitt 5.1 |
+| Ny eller ändrad **begränsningsåtgärd** (utloggning, pausning, rolländring, strypning) | Checklistans steg 3-tabell (inkl. patientsäkerhetskolumnen); policyns avsnitt 5.2 |
+| **Återställning/backup** (funktion, retention, uppmätt återställningstid) | Checklistans steg 8; policyns avsnitt 5.5; `avtal/IT-FAKTABLAD.md` |
+| Ny **collection eller nytt fält med personuppgifter** | Checklistans steg 5 (rutan om vilka personuppgifter som finns); policyns avsnitt 2 |
+| Ändrad **behörighetsmodell** (`firestore.rules`, roller, plattformsadmin) | Checklistans steg 4; policyns avsnitt 4 om kompenserande kontroller påverkas |
+| Flyttad/ändrad **adminkontroll i UI** | Checklistans snabbreferens "Var saker finns" – annars leder den fel under press |
+| Nytt **underbiträde eller extern integration** | Policyns avsnitt 1-tabell; `avtal/UNDERBITRADEN.md` |
+| En **etapp i `ETAPPLAN5.md` blir klar** | Bocka av motsvarande rad i checklistans statustabell och policyns avsnitt 11 |
+
+Ytterligare krav:
+
+- **Bocka aldrig av en rad som ⬜ → ✅ utan att ha verifierat förmågan mot faktisk kod**
+  (genomgående krav 8 gäller även här). Ett felaktigt ✅ är det värsta möjliga felet i de
+  här två filerna.
+- **Höj policyns versionsnummer och fyll i versionshistoriken** vid varje sakändring i
+  `avtal/INCIDENTRESPONSPLAN.md`. Checklistan har ingen versionering men har en rad
+  "Senast uppdaterad / Motsvarar kodläge" som ska stämma.
+- **Lägg aldrig in driftdetaljer, sökvägar eller interna kontaktuppgifter i policyn** – den
+  delas externt. Sådant hör hemma i checklistan.
+- Om en ändring gör att en förmåga FÖRSVINNER eller försämras: uppdatera dokumenten i samma
+  commit, även om det ser sämre ut. Ärlighet om lucka är hela poängen.
