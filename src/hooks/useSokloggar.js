@@ -5,10 +5,12 @@ import { collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTim
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { STANDARD_ORG } from "../firebase/organisation";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export function useSokloggar(laddaLista) {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [sokloggar, setSokloggar] = useState([]);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!laddaLista || !organisationId) return undefined;
@@ -18,11 +20,19 @@ export function useSokloggar(laddaLista) {
       orderBy("tidpunkt", "desc"),
       limit(50)
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setSokloggar(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setSokloggar(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setFel(null);
+      },
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "sokloggar", roll: role, organisationId, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [laddaLista, organisationId]);
+  }, [laddaLista, organisationId, role]);
 
   async function loggaNollTraff(term, uid) {
     return addDoc(collection(db, "sokloggar"), {
@@ -33,5 +43,5 @@ export function useSokloggar(laddaLista) {
     });
   }
 
-  return { sokloggar, loggaNollTraff };
+  return { sokloggar, fel, loggaNollTraff };
 }

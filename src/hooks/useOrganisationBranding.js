@@ -6,17 +6,27 @@ import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { valideraAccentfarg } from "../utils/kontrast";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export function useOrganisationBranding() {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [branding, setBranding] = useState(undefined);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!organisationId) return undefined;
-    return onSnapshot(doc(db, "organisationer", organisationId), (snap) => {
-      setBranding(snap.data()?.branding ?? {});
-    });
-  }, [organisationId]);
+    return onSnapshot(
+      doc(db, "organisationer", organisationId),
+      (snap) => {
+        setBranding(snap.data()?.branding ?? {});
+        setFel(null);
+      },
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "organisationer", roll: role, organisationId, fel: error });
+      },
+    );
+  }, [organisationId, role]);
 
   // 28c: accentfärgen kontrastvalideras HÄR, innan den ens skickas till Firestore – en
   // regelmotor kan inte räkna WCAG-luminans (ingen exponent-/potensfunktion i regelspråket),
@@ -37,5 +47,5 @@ export function useOrganisationBranding() {
     return { sparad: true };
   }
 
-  return { branding, laddat: branding !== undefined, sparaBranding };
+  return { branding, laddat: branding !== undefined, fel, sparaBranding };
 }

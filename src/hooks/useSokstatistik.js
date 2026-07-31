@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { doc, setDoc, increment, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export async function loggaSokning(organisationId, gavTraff) {
   if (!organisationId) return;
@@ -35,15 +36,24 @@ export async function loggaTidTillKlick(organisationId, tidMs) {
 }
 
 export function useSokstatistik(laddaLista) {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [statistik, setStatistik] = useState(null);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!laddaLista || !organisationId) return undefined;
-    return onSnapshot(doc(db, "soksstatistik", organisationId), (snap) => {
-      setStatistik(snap.data() ?? null);
-    });
-  }, [laddaLista, organisationId]);
+    return onSnapshot(
+      doc(db, "soksstatistik", organisationId),
+      (snap) => {
+        setStatistik(snap.data() ?? null);
+        setFel(null);
+      },
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "soksstatistik", roll: role, organisationId, fel: error });
+      },
+    );
+  }, [laddaLista, organisationId, role]);
 
-  return { statistik };
+  return { statistik, fel };
 }

@@ -18,13 +18,15 @@ import { db } from "../firebase/config";
 import { loggaHandelse } from "./useAuditlogg";
 import { useAuth } from "./useAuth";
 import { STANDARD_ORG } from "../firebase/organisation";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 const VISNINGSGRANS_TIMMAR = 48;
 
 export function useSkiftrapport() {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [poster, setPoster] = useState([]);
   const [laddar, setLaddar] = useState(true);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!organisationId) return undefined;
@@ -33,12 +35,21 @@ export function useSkiftrapport() {
       where("organisationId", "==", organisationId),
       orderBy("skapad", "desc")
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setPoster(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      setLaddar(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setPoster(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setLaddar(false);
+        setFel(null);
+      },
+      (error) => {
+        setLaddar(false);
+        setFel(error);
+        rapporteraNekadListning({ collection: "skiftrapporter", roll: role, organisationId, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [organisationId]);
+  }, [organisationId, role]);
 
   async function skapaPost({ text, skapadAv, skapadAvNamn }) {
     const ref = await addDoc(collection(db, "skiftrapporter"), {
@@ -76,5 +87,5 @@ export function useSkiftrapport() {
   const aktiva = poster.filter((p) => !p.atgardad && (!p.skapad?.toDate || p.skapad.toDate() >= grans));
   const atgardadeSenaste = poster.filter((p) => p.atgardad && (!p.skapad?.toDate || p.skapad.toDate() >= grans));
 
-  return { aktiva, atgardadeSenaste, laddar, skapaPost, markeraAtgardad, taBortPost };
+  return { aktiva, atgardadeSenaste, laddar, fel, skapaPost, markeraAtgardad, taBortPost };
 }

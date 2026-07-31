@@ -6,10 +6,12 @@ import { collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTim
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { STANDARD_ORG } from "../firebase/organisation";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export function useAuditlogg(laddaLista) {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [auditlogg, setAuditlogg] = useState([]);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!laddaLista || !organisationId) return undefined;
@@ -19,13 +21,21 @@ export function useAuditlogg(laddaLista) {
       orderBy("tidpunkt", "desc"),
       limit(100)
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setAuditlogg(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setAuditlogg(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setFel(null);
+      },
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "auditlogg", roll: role, organisationId, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [laddaLista, organisationId]);
+  }, [laddaLista, organisationId, role]);
 
-  return { auditlogg };
+  return { auditlogg, fel };
 }
 
 // Fristående funktion (ingen hook) så att den kan anropas från vilken CRUD-funktion som helst.

@@ -15,6 +15,7 @@ import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { STANDARD_ORG } from "../firebase/organisation";
 import { KAN_HANTERA_FORRAD } from "../firebase/roles";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export const ARTIKEL_STATUS = {
   UTKAST: "utkast",
@@ -26,6 +27,7 @@ export function useForradsartiklar(forrad) {
   const { organisationId, role } = useAuth();
   const [artiklar, setArtiklar] = useState([]);
   const [laddar, setLaddar] = useState(true);
+  const [fel, setFel] = useState(null);
   // Etapp 31b (bugfynd, se firebase/roles.js farRedigeraOmrade): läsregeln kräver
   // status=='godkand' OM INTE den inloggade får hantera förrådet – utan ett matchande where()
   // i frågan kan Firestore inte bevisa det och nekar HELA listningen (samma buggklass som
@@ -41,13 +43,22 @@ export function useForradsartiklar(forrad) {
       orderBy("skapad", "desc"),
     ];
     const q = query(collection(db, "forradsartiklar"), ...villkor);
-    const unsubscribe = onSnapshot(q, (snap) => {
-      // Mjukraderade artiklar (papperskorg) filtreras bort ur den vanliga listan
-      setArtiklar(snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((a) => !a.borttagen));
-      setLaddar(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        // Mjukraderade artiklar (papperskorg) filtreras bort ur den vanliga listan
+        setArtiklar(snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((a) => !a.borttagen));
+        setLaddar(false);
+        setFel(null);
+      },
+      (error) => {
+        setLaddar(false);
+        setFel(error);
+        rapporteraNekadListning({ collection: "forradsartiklar", roll: role, organisationId, sokvag: forrad, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [forrad, organisationId, redaktor]);
+  }, [forrad, organisationId, redaktor, role]);
 
   async function skapaArtikel({
     namn,
@@ -94,5 +105,5 @@ export function useForradsartiklar(forrad) {
     });
   }
 
-  return { artiklar, laddar, skapaArtikel, uppdateraArtikel, godkannArtikel, taBortArtikel };
+  return { artiklar, laddar, fel, skapaArtikel, uppdateraArtikel, godkannArtikel, taBortArtikel };
 }

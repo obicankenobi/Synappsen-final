@@ -65,7 +65,7 @@ detektion är allt annat i den här planen reaktivt i efterhand.
 
 **Modul:** ingen (Core/drift).
 
-### 32a – Nekade dataanrop ska rapporteras, inte bara loggas i konsolen
+### 32a – Nekade dataanrop ska rapporteras, inte bara loggas i konsolen ✅ KLAR (2026-07-31)
 
 - `permission-denied` från en `onSnapshot`-lyssnare ska skapa en Sentry-händelse med
   collection, roll, organisation och sökväg – **aldrig dokumentinnehåll** (krav 13).
@@ -73,6 +73,17 @@ detektion är allt annat i den här planen reaktivt i efterhand.
   `useRutiner.js`, `useForradsartiklar.js`, `useKontakter.js` m.fl.). Signaturen behöver
   utökas till `{ data, laddar, fel }` – utöka mönstret, byt inte arkitektur.
 - Detta är samma åtgärd som `ETAPPLAN5-ALT-B.md` Etapp 32a; den hör hemma här.
+- **Genomfört:** ny `src/firebase/felrapportering.js` med `rapporteraNekadListning({ collection,
+  roll, organisationId, sokvag, fel })` – no-opar tyst för alla felkoder utom
+  `permission-denied`, skickar Sentry ett `captureMessage` med collection/roll/organisation/
+  sökväg som taggar/extra, aldrig `snap.data()` eller annat dokumentinnehåll. Wire:ad in i
+  samtliga 40 hooks i `src/hooks/` som har en `onSnapshot`-lyssnare (37+ enskilda
+  onSnapshot-anrop), med error-callbacket som andra argument till `onSnapshot`. De flesta hooks
+  fick även ett nytt `fel`-fält i sitt returnerade objekt (ingen befintlig anropare bryts av
+  det – bara ett nytt, tillagt fält). `useRutin(id)` (enskild dokumentlyssnare utan roll/org i
+  scope) fick medvetet ingen rapportering – inget meningsfullt att skicka. Verifierat med
+  fullständigt testsvep (lint, vitest, build, rules, functions, storage, e2e) – e2e-svepet
+  bekräftar dessutom att `personal`-rollens tidigare fix (Etapp 31b) fortfarande håller.
 
 ### 32b – Larm på avvikelsemönster
 

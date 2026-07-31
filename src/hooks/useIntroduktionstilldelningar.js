@@ -6,38 +6,58 @@ import { useEffect, useState } from "react";
 import { collection, query, where, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export function useMinIntroduktionstilldelning() {
-  const { currentUser } = useAuth();
+  const { currentUser, role, organisationId } = useAuth();
   const [tilldelning, setTilldelning] = useState(undefined);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!currentUser?.uid) return undefined;
-    return onSnapshot(doc(db, "introduktionstilldelningar", currentUser.uid), (snap) => {
-      setTilldelning(snap.exists() ? { id: snap.id, ...snap.data() } : null);
-    });
-  }, [currentUser?.uid]);
+    return onSnapshot(
+      doc(db, "introduktionstilldelningar", currentUser.uid),
+      (snap) => {
+        setTilldelning(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+        setFel(null);
+      },
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "introduktionstilldelningar", roll: role, organisationId, fel: error });
+      },
+    );
+  }, [currentUser?.uid, role, organisationId]);
 
-  return { tilldelning, laddar: tilldelning === undefined };
+  return { tilldelning, laddar: tilldelning === undefined, fel };
 }
 
 // Chefsvyn – alla pågående tilldelningar i organisationen.
 export function useAllaIntroduktionstilldelningar() {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [tilldelningar, setTilldelningar] = useState([]);
   const [laddar, setLaddar] = useState(true);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!organisationId) return undefined;
     const q = query(collection(db, "introduktionstilldelningar"), where("organisationId", "==", organisationId));
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setTilldelningar(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      setLaddar(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setTilldelningar(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setLaddar(false);
+        setFel(null);
+      },
+      (error) => {
+        setLaddar(false);
+        setFel(error);
+        rapporteraNekadListning({ collection: "introduktionstilldelningar", roll: role, organisationId, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [organisationId]);
+  }, [organisationId, role]);
 
-  return { tilldelningar, laddar };
+  return { tilldelningar, laddar, fel };
 }
 
 // Manuell tilldelning av VEC/superadmin (utöver den automatiska vid inbjudan, se

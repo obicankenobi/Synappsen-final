@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 // organisationId ingår i nyckeln – annars skulle två organisationers räknare för en likadant
 // namngiven rutin/sökväg kunna kollidera och räknas ihop.
@@ -38,7 +39,7 @@ export async function registreraVisning(titel, sokvag, organisationId) {
 }
 
 export function usePopularaste(antalPost = 5) {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [populara, setPopulara] = useState([]);
 
   useEffect(() => {
@@ -49,11 +50,17 @@ export function usePopularaste(antalPost = 5) {
       orderBy("antal", "desc"),
       limit(antalPost)
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setPopulara(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setPopulara(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      },
+      (error) => {
+        rapporteraNekadListning({ collection: "visningar", roll: role, organisationId, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [antalPost, organisationId]);
+  }, [antalPost, organisationId, role]);
 
   return populara;
 }

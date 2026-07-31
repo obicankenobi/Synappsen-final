@@ -4,10 +4,12 @@ import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc } from "f
 import { db } from "../firebase/config";
 import { skapaKommentar as skapaKommentarAnrop } from "../firebase/functions";
 import { useAuth } from "./useAuth";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export function useKommentarer(rutinId) {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [kommentarer, setKommentarer] = useState([]);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!rutinId || !organisationId) return undefined;
@@ -20,11 +22,19 @@ export function useKommentarer(rutinId) {
       where("rutinId", "==", rutinId),
       orderBy("skapad", "asc")
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setKommentarer(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setKommentarer(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setFel(null);
+      },
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "kommentarer", roll: role, organisationId, sokvag: rutinId, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [rutinId, organisationId]);
+  }, [rutinId, organisationId, role]);
 
   // Skapas via en Cloud Function (inte en direkt Firestore-skrivning) så att personnummer-
   // spärren och hastighetsbegränsningen körs server-side. @omnämnanden räknas ut av
@@ -37,5 +47,5 @@ export function useKommentarer(rutinId) {
     return deleteDoc(doc(db, "kommentarer", id));
   }
 
-  return { kommentarer, skapaKommentar, taBortKommentar };
+  return { kommentarer, fel, skapaKommentar, taBortKommentar };
 }

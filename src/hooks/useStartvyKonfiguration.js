@@ -7,18 +7,28 @@ import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { blockordningForRoll } from "../config/startvy";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export function useStartvyKonfiguration() {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [blockOrdning, setBlockOrdning] = useState(undefined);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!organisationId) return undefined;
     const ref = doc(db, "organisationer", organisationId, "installningar", "startvy");
-    return onSnapshot(ref, (snap) => {
-      setBlockOrdning(snap.exists() ? snap.data().blockOrdning ?? {} : {});
-    });
-  }, [organisationId]);
+    return onSnapshot(
+      ref,
+      (snap) => {
+        setBlockOrdning(snap.exists() ? snap.data().blockOrdning ?? {} : {});
+        setFel(null);
+      },
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "organisationer", roll: role, organisationId, sokvag: "startvy", fel: error });
+      },
+    );
+  }, [organisationId, role]);
 
   async function satBlockOrdningForRoll(roll, ordning) {
     if (!organisationId) return;
@@ -30,5 +40,6 @@ export function useStartvyKonfiguration() {
     laddat: blockOrdning !== undefined,
     blockordningForRoll: (roll) => blockordningForRoll(roll, blockOrdning),
     satBlockOrdningForRoll,
+    fel,
   };
 }

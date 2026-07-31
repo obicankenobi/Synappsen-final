@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export const ALLA_SNABBLANKAR = [
   { nyckel: "anslag", ikon: "📢", namn: "Anslagstavla", sokvag: "/anslag" },
@@ -20,12 +21,21 @@ export const ALLA_SNABBLANKAR = [
 
 export function useSnabblankar(uid) {
   const [valda, setValda] = useState(null);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!uid) return;
-    const unsubscribe = onSnapshot(doc(db, "users", uid), (snap) => {
-      setValda(snap.data()?.snabblankar ?? null);
-    });
+    const unsubscribe = onSnapshot(
+      doc(db, "users", uid),
+      (snap) => {
+        setValda(snap.data()?.snabblankar ?? null);
+        setFel(null);
+      },
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "users", organisationId: undefined, fel: error });
+      },
+    );
     return unsubscribe;
   }, [uid]);
 
@@ -36,5 +46,5 @@ export function useSnabblankar(uid) {
   // null = inget val gjort ännu → visa alla (bakåtkompatibelt)
   const synliga = valda === null ? ALLA_SNABBLANKAR : ALLA_SNABBLANKAR.filter((s) => valda.includes(s.nyckel));
 
-  return { valda, synliga, satValda };
+  return { valda, synliga, satValda, fel };
 }

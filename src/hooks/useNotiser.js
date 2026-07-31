@@ -14,6 +14,7 @@ import { useFeatures } from "./useFeatures";
 import { FEATURE } from "../config/features";
 import { useBristanmalningar, BRIST_STATUS } from "./useBristanmalningar";
 import { useAndringsforslag, FORSLAG_STATUS } from "./useAndringsforslag";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 function efterSenasteBesok(tidpunkt, senasteBesok) {
   if (!tidpunkt?.toDate) return false;
@@ -42,6 +43,8 @@ export function useNotiser() {
   const forslag = useMemo(() => [...klinisktForslag, ...adminForslag], [klinisktForslag, adminForslag]);
   const [omnamnanden, setOmnamnanden] = useState([]);
   const [systemvarningar, setSystemvarningar] = useState([]);
+  const [felOmnamnanden, setFelOmnamnanden] = useState(null);
+  const [felSystemvarningar, setFelSystemvarningar] = useState(null);
 
   useEffect(() => {
     if (!currentUser?.uid || !organisationId) return undefined;
@@ -50,21 +53,37 @@ export function useNotiser() {
       where("organisationId", "==", organisationId),
       where("omnamnda", "array-contains", currentUser.uid)
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setOmnamnanden(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setOmnamnanden(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setFelOmnamnanden(null);
+      },
+      (error) => {
+        setFelOmnamnanden(error);
+        rapporteraNekadListning({ collection: "kommentarer", roll: role, organisationId, sokvag: "notiser", fel: error });
+      },
+    );
     return unsubscribe;
-  }, [currentUser?.uid, organisationId]);
+  }, [currentUser?.uid, organisationId, role]);
 
   // Larm från schemalagda kontrollfunktioner (t.ex. klinikstöd-källdrift) – bara superadmin
   // har läsbehörighet enligt firestore.rules, så frågan görs bara för den rollen.
   useEffect(() => {
     if (role !== ROLES.SUPERADMIN) return undefined;
-    const unsubscribe = onSnapshot(collection(db, "systemvarningar"), (snap) => {
-      setSystemvarningar(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    const unsubscribe = onSnapshot(
+      collection(db, "systemvarningar"),
+      (snap) => {
+        setSystemvarningar(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setFelSystemvarningar(null);
+      },
+      (error) => {
+        setFelSystemvarningar(error);
+        rapporteraNekadListning({ collection: "systemvarningar", roll: role, organisationId, sokvag: "notiser", fel: error });
+      },
+    );
     return unsubscribe;
-  }, [role]);
+  }, [role, organisationId]);
 
   const senasteBesok = anvandare.find((a) => a.id === currentUser?.uid)?.senasteNotisBesok;
 
@@ -244,5 +263,5 @@ export function useNotiser() {
     await updateDoc(doc(db, "users", currentUser.uid), { senasteNotisBesok: serverTimestamp() });
   }
 
-  return { notiser, markeraSomLast };
+  return { notiser, markeraSomLast, felOmnamnanden, felSystemvarningar };
 }

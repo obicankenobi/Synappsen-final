@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { collection, doc, onSnapshot, setDoc, increment, query, where } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export async function registreraChecklistaPaborjad(rutinId, organisationId) {
   await setDoc(
@@ -35,16 +36,22 @@ export async function registreraChecklistaAvbruten(rutinId, organisationId, steg
 }
 
 export function useChecklistStatistik() {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [statistik, setStatistik] = useState([]);
 
   useEffect(() => {
     if (!organisationId) return undefined;
     const q = query(collection(db, "checklistkorningar"), where("organisationId", "==", organisationId));
-    return onSnapshot(q, (snap) => {
-      setStatistik(snap.docs.map((d) => ({ rutinId: d.id, ...d.data() })));
-    });
-  }, [organisationId]);
+    return onSnapshot(
+      q,
+      (snap) => {
+        setStatistik(snap.docs.map((d) => ({ rutinId: d.id, ...d.data() })));
+      },
+      (error) => {
+        rapporteraNekadListning({ collection: "checklistkorningar", roll: role, organisationId, fel: error });
+      },
+    );
+  }, [organisationId, role]);
 
   return statistik;
 }

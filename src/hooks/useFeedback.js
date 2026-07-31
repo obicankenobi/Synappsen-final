@@ -15,6 +15,7 @@ import {
 import { db } from "../firebase/config";
 import { skickaFeedback as skickaFeedbackAnrop } from "../firebase/functions";
 import { useAuth } from "./useAuth";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export const FEEDBACK_TYPER = {
   FORSLAG: "forslag",
@@ -44,9 +45,10 @@ export const FEEDBACK_STATUS_LABELS = {
 
 // laddaLista=true hämtar hela listan (endast superadmin har läsbehörighet i Firestore-reglerna)
 export function useFeedback(laddaLista) {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [feedback, setFeedback] = useState([]);
   const [laddar, setLaddar] = useState(Boolean(laddaLista));
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!laddaLista || !organisationId) return undefined;
@@ -55,12 +57,21 @@ export function useFeedback(laddaLista) {
       where("organisationId", "==", organisationId),
       orderBy("skapad", "desc")
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setFeedback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      setLaddar(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setFeedback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setLaddar(false);
+        setFel(null);
+      },
+      (error) => {
+        setLaddar(false);
+        setFel(error);
+        rapporteraNekadListning({ collection: "feedback", roll: role, organisationId, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [laddaLista, organisationId]);
+  }, [laddaLista, organisationId, role]);
 
   // Skickas via en Cloud Function (inte en direkt Firestore-skrivning) så att personnummer-
   // spärren och hastighetsbegränsningen körs server-side.
@@ -84,12 +95,12 @@ export function useFeedback(laddaLista) {
     });
   }
 
-  return { feedback, laddar, skickaFeedback, taBortFeedback, uppdateraFeedbackStatus, svaraPaFeedback };
+  return { feedback, laddar, fel, skickaFeedback, taBortFeedback, uppdateraFeedbackStatus, svaraPaFeedback };
 }
 
 // Egna tidigare inskick, för att se status/svar på det man skickat in själv
 export function useMinaFeedback(uid) {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [feedback, setFeedback] = useState([]);
 
   useEffect(() => {
@@ -100,11 +111,17 @@ export function useMinaFeedback(uid) {
       where("skapadAv", "==", uid),
       orderBy("skapad", "desc")
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setFeedback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setFeedback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      },
+      (error) => {
+        rapporteraNekadListning({ collection: "feedback", roll: role, organisationId, sokvag: "mina-feedback", fel: error });
+      },
+    );
     return unsubscribe;
-  }, [uid, organisationId]);
+  }, [uid, organisationId, role]);
 
   return feedback;
 }

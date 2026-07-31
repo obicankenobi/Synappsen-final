@@ -17,6 +17,7 @@ import { loggaHandelse } from "./useAuditlogg";
 import { useAuth } from "./useAuth";
 import { STANDARD_ORG } from "../firebase/organisation";
 import { farRedigeraOmrade } from "../firebase/roles";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export const RUTIN_STATUS = {
   UTKAST: "utkast",
@@ -27,6 +28,7 @@ export function useRutiner(omrade) {
   const { organisationId, role } = useAuth();
   const [rutiner, setRutiner] = useState([]);
   const [laddar, setLaddar] = useState(true);
+  const [fel, setFel] = useState(null);
   // Etapp 31b (bugfynd, se firebase/roles.js farRedigeraOmrade): för den som INTE får
   // redigera området måste frågan själv filtrera på status=='godkand', annars kan Firestores
   // regelmotor inte bevisa villkoret och nekar HELA listningen.
@@ -41,13 +43,22 @@ export function useRutiner(omrade) {
       orderBy("skapad", "desc"),
     ];
     const q = query(collection(db, "rutiner"), ...villkor);
-    const unsubscribe = onSnapshot(q, (snap) => {
-      // Mjukraderade rutiner (papperskorg) filtreras bort ur den vanliga listan
-      setRutiner(snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => !r.borttagen));
-      setLaddar(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        // Mjukraderade rutiner (papperskorg) filtreras bort ur den vanliga listan
+        setRutiner(snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => !r.borttagen));
+        setLaddar(false);
+        setFel(null);
+      },
+      (error) => {
+        setLaddar(false);
+        setFel(error);
+        rapporteraNekadListning({ collection: "rutiner", roll: role, organisationId, sokvag: omrade, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [omrade, organisationId, redaktor]);
+  }, [omrade, organisationId, redaktor, role]);
 
   async function skapaRutin({
     titel,
@@ -132,6 +143,7 @@ export function useRutiner(omrade) {
   return {
     rutiner,
     laddar,
+    fel,
     skapaRutin,
     uppdateraRutin,
     godkannRutin,

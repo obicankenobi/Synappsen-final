@@ -3,7 +3,7 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-07-31 · **Motsvarar kodläge:** v5.50.0
+**Senast uppdaterad:** 2026-07-31 · **Motsvarar kodläge:** v5.51.0
 
 > Den här filen är skriven för att läsas när du är ensam, trött och stressad. Följ den uppifrån
 > och ned. Hoppa inte över steg 1–3 även om du tror att du vet vad som hänt.
@@ -56,11 +56,13 @@ HH:MM  vad jag gjorde / vad jag såg
 - Firebase-konsolen → Authentication (nya eller okända konton, senaste inloggning)
 - Sentry (krascher – men **obs**, se rutan nedan)
 
-> ⚠️ **Vad Sentry INTE fångar (viktigt, gäller t.o.m. Etapp 32 är byggd):**
-> Sentry fångar bara React-krascher via `ErrorBoundary`. Ett nekat dataanrop
-> (`permission-denied`) kraschar inte – det renderar en tom lista, tyst. Massläsning,
-> misslyckade inloggningar och behörighetshöjningar syns inte heller.
-> **Frånvaro av Sentry-händelser betyder alltså INTE att inget hänt.**
+> ⚠️ **Vad Sentry INTE fångar:**
+> Sentry fångar React-krascher via `ErrorBoundary` OCH (sedan Etapp 32a) nekade
+> Firestore-listningar (`permission-denied` från en `onSnapshot`-lyssnare) – dessa syns nu som
+> en egen Sentry-händelse (tagg `typ: permission-denied-listning`) med collection, roll,
+> organisation och sökväg, aldrig dokumentinnehåll. Massläsning, misslyckade inloggningar och
+> behörighetshöjningar syns DÄREMOT fortfarande inte (Etapp 32b, ej byggd än).
+> **Frånvaro av Sentry-händelser betyder alltså fortfarande INTE att inget hänt.**
 
 ---
 
@@ -250,7 +252,7 @@ användare. Sakligt, kort, verifierat.
 | Förmåga | Status | Kommer i |
 |---|---|---|
 | Larm vid avvikande beteende | ⬜ Finns inte | Etapp 32b |
-| `permission-denied` rapporteras | ⬜ Finns inte | Etapp 32a |
+| `permission-denied` rapporteras | ✅ Klart (2026-07-31) | Etapp 32a |
 | Rollbyte loggas i revisionsloggen | ⬜ **Loggas inte alls i dag** | Etapp 32c |
 | Plattformsadmins åtkomst loggas | ⬜ Finns inte | Etapp 32c |
 | Automatisk omfattningsanalys | ⬜ Finns inte | Etapp 32b |

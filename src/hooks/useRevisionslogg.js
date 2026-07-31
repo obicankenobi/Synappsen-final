@@ -6,10 +6,12 @@ import { useEffect, useState } from "react";
 import { collection, query, where, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export function useRevisionslogg(laddaLista) {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [revisionslogg, setRevisionslogg] = useState([]);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!laddaLista || !organisationId) return undefined;
@@ -19,11 +21,19 @@ export function useRevisionslogg(laddaLista) {
       orderBy("tidpunkt", "desc"),
       limit(500)
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setRevisionslogg(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setRevisionslogg(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setFel(null);
+      },
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "revisionslogg", roll: role, organisationId, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [laddaLista, organisationId]);
+  }, [laddaLista, organisationId, role]);
 
-  return { revisionslogg };
+  return { revisionslogg, fel };
 }

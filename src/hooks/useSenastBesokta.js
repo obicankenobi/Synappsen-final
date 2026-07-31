@@ -6,15 +6,25 @@ import { useCallback, useEffect, useState } from "react";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { lasSenastBesokta, registreraBesok as registreraLokalt } from "../utils/senastBesokta";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export function useSenastBesokta(uid) {
   const [synkat, setSynkat] = useState(null);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!uid) return undefined;
-    return onSnapshot(doc(db, "users", uid), (snap) => {
-      setSynkat(snap.data()?.senastBesokta ?? null);
-    });
+    return onSnapshot(
+      doc(db, "users", uid),
+      (snap) => {
+        setSynkat(snap.data()?.senastBesokta ?? null);
+        setFel(null);
+      },
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "users", organisationId: undefined, fel: error });
+      },
+    );
   }, [uid]);
 
   // useCallback med [uid] som enda beroende ger en stabil referens så länge användaren är
@@ -38,5 +48,5 @@ export function useSenastBesokta(uid) {
   // konto), annars den lokala – t.ex. innan Firestore hunnit svara, eller utan inloggning.
   const senastBesokta = synkat ?? lasSenastBesokta();
 
-  return { senastBesokta, registrera };
+  return { senastBesokta, registrera, fel };
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export const BRIST_STATUS = {
   NY: "ny",
@@ -17,19 +18,29 @@ export const BRIST_STATUS = {
 const DUBBLETT_FONSTER_MS = 24 * 60 * 60 * 1000;
 
 export function useBristanmalningar() {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [bristanmalningar, setBristanmalningar] = useState([]);
   const [laddar, setLaddar] = useState(true);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!organisationId) return undefined;
     const q = query(collection(db, "bristanmalningar"), where("organisationId", "==", organisationId));
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setBristanmalningar(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      setLaddar(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setBristanmalningar(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setLaddar(false);
+        setFel(null);
+      },
+      (error) => {
+        setLaddar(false);
+        setFel(error);
+        rapporteraNekadListning({ collection: "bristanmalningar", roll: role, organisationId, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [organisationId]);
+  }, [organisationId, role]);
 
   async function skapaBristanmalning({ artikelId, artikelNamn, forrad, kommentar, uid, namn }) {
     const nu = Date.now();
@@ -78,5 +89,5 @@ export function useBristanmalningar() {
     });
   }
 
-  return { bristanmalningar, laddar, skapaBristanmalning, hanteraBristanmalning, avvisaBristanmalning };
+  return { bristanmalningar, laddar, fel, skapaBristanmalning, hanteraBristanmalning, avvisaBristanmalning };
 }

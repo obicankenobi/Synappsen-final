@@ -15,6 +15,7 @@ import { db } from "../firebase/config";
 import { loggaHandelse } from "./useAuditlogg";
 import { useAuth } from "./useAuth";
 import { STANDARD_ORG } from "../firebase/organisation";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export const ANSLAG_PRIORITET = {
   VIKTIGT: "viktigt",
@@ -22,9 +23,10 @@ export const ANSLAG_PRIORITET = {
 };
 
 export function useAnslag() {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [anslag, setAnslag] = useState([]);
   const [laddar, setLaddar] = useState(true);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!organisationId) return undefined;
@@ -33,12 +35,21 @@ export function useAnslag() {
       where("organisationId", "==", organisationId),
       orderBy("skapad", "desc")
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setAnslag(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      setLaddar(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setAnslag(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setLaddar(false);
+        setFel(null);
+      },
+      (error) => {
+        setLaddar(false);
+        setFel(error);
+        rapporteraNekadListning({ collection: "anslag", roll: role, organisationId, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [organisationId]);
+  }, [organisationId, role]);
 
   async function skapaAnslag({
     titel,
@@ -98,5 +109,5 @@ export function useAnslag() {
       return (bViktigt ? 1 : 0) - (aViktigt ? 1 : 0);
     });
 
-  return { anslag: synligaAnslag, laddar, skapaAnslag, uppdateraAnslag, taBortAnslag };
+  return { anslag: synligaAnslag, laddar, fel, skapaAnslag, uppdateraAnslag, taBortAnslag };
 }

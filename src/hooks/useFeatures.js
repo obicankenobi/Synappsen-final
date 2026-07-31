@@ -6,20 +6,31 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { aktivaFeatures } from "../config/features";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export function useFeatures() {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [moduler, setModuler] = useState(null);
   const [laddat, setLaddat] = useState(false);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!organisationId) return;
-    const unsubscribe = onSnapshot(doc(db, "organisationer", organisationId), (snap) => {
-      setModuler(snap.data()?.moduler ?? {});
-      setLaddat(true);
-    });
+    const unsubscribe = onSnapshot(
+      doc(db, "organisationer", organisationId),
+      (snap) => {
+        setModuler(snap.data()?.moduler ?? {});
+        setLaddat(true);
+        setFel(null);
+      },
+      (error) => {
+        setLaddat(true);
+        setFel(error);
+        rapporteraNekadListning({ collection: "organisationer", roll: role, organisationId, sokvag: "features", fel: error });
+      },
+    );
     return unsubscribe;
-  }, [organisationId]);
+  }, [organisationId, role]);
 
   const features = aktivaFeatures(moduler);
 
@@ -27,5 +38,6 @@ export function useFeatures() {
     laddat,
     moduler: moduler ?? {},
     hasFeature: (feature) => features.has(feature),
+    fel,
   };
 }

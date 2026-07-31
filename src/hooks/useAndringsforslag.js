@@ -7,6 +7,7 @@ import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, serverTim
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { farRedigeraOmrade } from "../firebase/roles";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export const FORSLAG_STATUS = {
   NY: "ny",
@@ -69,6 +70,7 @@ export function useAndringsforslag(omrade) {
   const { organisationId, currentUser, role } = useAuth();
   const [forslag, setForslag] = useState([]);
   const [laddar, setLaddar] = useState(true);
+  const [fel, setFel] = useState(null);
   const redaktor = farRedigeraOmrade(role, omrade);
 
   useEffect(() => {
@@ -80,12 +82,21 @@ export function useAndringsforslag(omrade) {
       ...(redaktor ? [] : [where("foreslagenAv", "==", currentUser.uid)]),
     ];
     const q = query(collection(db, "andringsforslag"), ...villkor);
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setForslag(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      setLaddar(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setForslag(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setLaddar(false);
+        setFel(null);
+      },
+      (error) => {
+        setLaddar(false);
+        setFel(error);
+        rapporteraNekadListning({ collection: "andringsforslag", roll: role, organisationId, sokvag: omrade, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [organisationId, omrade, redaktor, currentUser?.uid]);
+  }, [organisationId, omrade, redaktor, currentUser?.uid, role]);
 
-  return { forslag, laddar };
+  return { forslag, laddar, fel };
 }

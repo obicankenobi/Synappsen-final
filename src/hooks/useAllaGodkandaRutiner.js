@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export function useAllaGodkandaRutiner() {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [rutiner, setRutiner] = useState([]);
   const [laddar, setLaddar] = useState(true);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!organisationId) return undefined;
@@ -23,13 +25,22 @@ export function useAllaGodkandaRutiner() {
       where("organisationId", "==", organisationId),
       where("status", "==", "godkand")
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      const alla = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => !r.borttagen);
-      setRutiner(alla);
-      setLaddar(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        const alla = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => !r.borttagen);
+        setRutiner(alla);
+        setLaddar(false);
+        setFel(null);
+      },
+      (error) => {
+        setLaddar(false);
+        setFel(error);
+        rapporteraNekadListning({ collection: "rutiner", roll: role, organisationId, sokvag: "alla-godkanda", fel: error });
+      },
+    );
     return unsubscribe;
-  }, [organisationId]);
+  }, [organisationId, role]);
 
-  return { rutiner, laddar };
+  return { rutiner, laddar, fel };
 }

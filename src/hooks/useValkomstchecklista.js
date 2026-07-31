@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 // Nycklarna måste matcha VALKOMSTCHECKLISTA_STEG i functions/index.js (skapaOrganisation).
 export const CHECKLISTA_STEG = [
@@ -44,16 +45,25 @@ export const CHECKLISTA_STEG = [
 // undefined = laddar, null = ingen checklista finns (organisationen etablerades före Etapp
 // 15a, eller alla steg redan avbockade och komponenten ska inte visas), annars stegobjektet.
 export function useValkomstchecklista() {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [steg, setSteg] = useState(undefined);
+  const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!organisationId) return undefined;
     const ref = doc(db, "organisationer", organisationId, "installningar", "valkomstchecklista");
-    return onSnapshot(ref, (snap) => {
-      setSteg(snap.exists() ? snap.data().steg ?? {} : null);
-    });
-  }, [organisationId]);
+    return onSnapshot(
+      ref,
+      (snap) => {
+        setSteg(snap.exists() ? snap.data().steg ?? {} : null);
+        setFel(null);
+      },
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "organisationer", roll: role, organisationId, sokvag: "valkomstchecklista", fel: error });
+      },
+    );
+  }, [organisationId, role]);
 
   async function markeraSteg(nyckel, klar) {
     if (!organisationId) return;
@@ -64,5 +74,5 @@ export function useValkomstchecklista() {
   const antalKlara = steg ? CHECKLISTA_STEG.filter((s) => steg[s.nyckel]).length : 0;
   const alltKlart = steg != null && antalKlara === CHECKLISTA_STEG.length;
 
-  return { steg, markeraSteg, antalKlara, totalt: CHECKLISTA_STEG.length, alltKlart };
+  return { steg, markeraSteg, antalKlara, totalt: CHECKLISTA_STEG.length, alltKlart, fel };
 }

@@ -6,11 +6,14 @@ import { useEffect, useState } from "react";
 import { collection, query, where, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
+import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export function useKlinikfrageStatistik(laddaLista) {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [feedback, setFeedback] = useState([]);
   const [fragor, setFragor] = useState([]);
+  const [felFeedback, setFelFeedback] = useState(null);
+  const [felFragor, setFelFragor] = useState(null);
 
   useEffect(() => {
     if (!laddaLista || !organisationId) return undefined;
@@ -20,11 +23,19 @@ export function useKlinikfrageStatistik(laddaLista) {
       orderBy("tidpunkt", "desc"),
       limit(200)
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setFeedback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setFeedback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setFelFeedback(null);
+      },
+      (error) => {
+        setFelFeedback(error);
+        rapporteraNekadListning({ collection: "klinikfragefeedback", roll: role, organisationId, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [laddaLista, organisationId]);
+  }, [laddaLista, organisationId, role]);
 
   useEffect(() => {
     if (!laddaLista || !organisationId) return undefined;
@@ -34,11 +45,19 @@ export function useKlinikfrageStatistik(laddaLista) {
       orderBy("tidpunkt", "desc"),
       limit(200)
     );
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setFragor(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setFragor(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setFelFragor(null);
+      },
+      (error) => {
+        setFelFragor(error);
+        rapporteraNekadListning({ collection: "klinikfrageloggar", roll: role, organisationId, fel: error });
+      },
+    );
     return unsubscribe;
-  }, [laddaLista, organisationId]);
+  }, [laddaLista, organisationId, role]);
 
-  return { feedback, fragor };
+  return { feedback, fragor, felFeedback, felFragor };
 }
