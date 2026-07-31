@@ -275,14 +275,22 @@ service cloud.firestore {
     // leverantörsadmins skrivningar (skapaOrganisation/pausaOrganisation) går via Admin SDK.
     match /organisationer/{orgId} {
       allow read: if (arInloggad() && orgId == minOrganisation()) || arPlattformsadmin();
-      allow write: if arSuperadmin() && orgId == minOrganisation() && mfaKravUppfylld();
+      // Etapp 32c: moduler på/av och 2FA-policy (sakerhet.*) skrivs numera ENDAST via
+      // uppdateraModuler/uppdateraMfaPolicy (Cloud Functions, Admin SDK, kringgår denna
+      // regel) så att ändringen loggas i revisionsloggen – tidigare var det en direkt,
+      // ospårad klient-skrivning. Övriga fält (t.ex. branding.*, se
+      // OrganisationsBranding.jsx) skrivs fortfarande direkt av klienten.
+      allow write: if arSuperadmin() && orgId == minOrganisation() && mfaKravUppfylld()
+                    && !(resource != null && request.resource != null
+                         && request.resource.data.diff(resource.data).affectedKeys().hasAny(['moduler', 'sakerhet']));
 
       // organisationer/{orgId}/installningar/geminiBudget|utloggning – budgettak och
-      // auto-utloggningstid, per organisation. Skrivs normalt av Cloud Function (Admin SDK,
-      // kringgår dessa regler); superadmin kan justera manuellt i adminpanelen.
+      // auto-utloggningstid, per organisation. geminiBudget skrivs numera ENDAST via
+      // uppdateraGeminiBudgetTak (Etapp 32c, samma skäl som ovan); utloggning skrivs
+      // fortfarande direkt av superadmin i adminpanelen.
       match /installningar/{dokId} {
         allow read: if arInloggad() && orgId == minOrganisation();
-        allow write: if arSuperadmin() && orgId == minOrganisation();
+        allow write: if arSuperadmin() && orgId == minOrganisation() && dokId != 'geminiBudget';
       }
 
       // organisationer/{orgId}/kostnadshistorik/{manad} – Etapp 5: arkiverad AI-kostnad per
@@ -304,17 +312,23 @@ service cloud.firestore {
       // (Admin SDK, kringgår denna regel) via en giltig, e-postbunden inbjudan från en
       // superadmin (skapaInbjudan). Se functions/index.js.
       allow create: if false;
-      // Superadmin får ändra allt (t.ex. roller) – men ENDAST för användare i sin egen
-      // organisation. Ägaren själv får bara ändra sina favoriter, tidpunkten för senaste
-      // notisbesök, sina egna startsidesgenvägar, sin egen "senast besökta"-lista (Etapp 17b
-      // – synkad mellan enheter, se useSenastBesokta.js), sitt eget visningsnamn (Etapp 22a),
-      // sin egen profilbilds-URL (Etapp 22e, filen själv skyddas av storage.rules – fältet
-      // här pekar bara på en redan validerad, egen uppladdning), sina egna push-enhetstokens
-      // och push-notisinställningar (Etapp 24a/24c – opaka tokens och booleaner, inte fritext,
+      // Superadmin får ändra allt (t.ex. namn) – men ENDAST för användare i sin egen
+      // organisation, och ALDRIG rollen direkt (Etapp 32c: en rolländring är sannolikt den
+      // enskilt allvarligaste händelsen i hela systemet – "vem gjordes till superadmin, och
+      // när" fick tidigare inga spår alls. Den enda vägen att ändra role är nu
+      // uppdateraAnvandarRoll, en Cloud Function som loggar ändringen i revisionsloggen och
+      // skriver med Admin SDK, vilket kringgår denna regel på ett kontrollerat sätt).
+      // Ägaren själv får bara ändra sina favoriter, tidpunkten för senaste notisbesök, sina
+      // egna startsidesgenvägar, sin egen "senast besökta"-lista (Etapp 17b – synkad mellan
+      // enheter, se useSenastBesokta.js), sitt eget visningsnamn (Etapp 22a), sin egen
+      // profilbilds-URL (Etapp 22e, filen själv skyddas av storage.rules – fältet här pekar
+      // bara på en redan validerad, egen uppladdning), sina egna push-enhetstokens och
+      // push-notisinställningar (Etapp 24a/24c – opaka tokens och booleaner, inte fritext,
       // kräver ingen PII-spärr). bararForandrarFalt utesluter redan organisationId från den
       // listan, så en användare kan aldrig byta organisation själv.
       allow update: if (arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation()
-                        && mfaKravUppfylld())
+                        && mfaKravUppfylld()
+                        && resource.data.get('role', null) == request.resource.data.get('role', null))
                      || (request.auth.uid == userId
                          && bararForandrarFalt(['favoriter', 'senasteNotisBesok', 'snabblankar',
                                                 'senasteInloggning', 'senastBesokta', 'namn',

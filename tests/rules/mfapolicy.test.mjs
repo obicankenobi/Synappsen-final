@@ -56,27 +56,47 @@ async function main() {
     .firestore();
 
   console.log("\norganisationer/{orgId} – 2FA-policy på superadmin-skrivningar");
+  // Etapp 32c: moduler/sakerhet skrivs numera ENDAST via Cloud Functions (uppdateraModuler/
+  // uppdateraMfaPolicy), oavsett 2FA – testerna nedan använder därför "namn" för att isolera
+  // just MFA-gatets beteende från den nya fältrestriktionen (täckt separat nedan).
   await test("superadmin UTAN andra faktor kan INTE ändra organisationsinställningar när policyn kräver det för rollen", () =>
     assertFails(
       updateDoc(doc(superUtanAndrafaktor, "organisationer", "orgKravMfa"), {
-        "moduler.intelligence": false,
+        namn: "Nytt namn utan 2FA",
       })
     )
   );
   await test("superadmin MED andra faktor (simulerad) KAN ändra organisationsinställningar", () =>
     assertSucceeds(
       updateDoc(doc(superMedAndrafaktor, "organisationer", "orgKravMfa"), {
+        namn: "Nytt namn med 2FA",
+      })
+    )
+  );
+  await test("superadmin kan INTE ändra moduler direkt, inte ens MED andra faktor (Etapp 32c – endast uppdateraModuler)", () =>
+    assertFails(
+      updateDoc(doc(superMedAndrafaktor, "organisationer", "orgKravMfa"), {
         "moduler.intelligence": false,
       })
     )
   );
-
-  console.log("\nusers/{userId} – 2FA-policy på rolländringar");
-  await test("superadmin UTAN andra faktor kan INTE ändra en annan användares roll", () =>
-    assertFails(updateDoc(doc(superUtanAndrafaktor, "users", "volUtanMfa"), { role: "sektionsledare" }))
+  await test("superadmin kan INTE ändra 2FA-policyn direkt, inte ens MED andra faktor (Etapp 32c – endast uppdateraMfaPolicy)", () =>
+    assertFails(
+      updateDoc(doc(superMedAndrafaktor, "organisationer", "orgKravMfa"), {
+        "sakerhet.kravMfaForRoller": [],
+      })
+    )
   );
-  await test("superadmin MED andra faktor (simulerad) KAN ändra en annan användares roll", () =>
-    assertSucceeds(updateDoc(doc(superMedAndrafaktor, "users", "volUtanMfa"), { role: "sektionsledare" }))
+
+  console.log("\nusers/{userId} – 2FA-policy på övriga fält, roll är alltid stängd för klienten");
+  await test("superadmin UTAN andra faktor kan INTE ändra en annan användares namn", () =>
+    assertFails(updateDoc(doc(superUtanAndrafaktor, "users", "volUtanMfa"), { namn: "Nytt Namn" }))
+  );
+  await test("superadmin MED andra faktor (simulerad) KAN ändra en annan användares namn", () =>
+    assertSucceeds(updateDoc(doc(superMedAndrafaktor, "users", "volUtanMfa"), { namn: "Nytt Namn" }))
+  );
+  await test("superadmin kan INTE ändra en annan användares roll direkt, inte ens MED andra faktor (Etapp 32c – endast uppdateraAnvandarRoll)", () =>
+    assertFails(updateDoc(doc(superMedAndrafaktor, "users", "volUtanMfa"), { role: "sektionsledare" }))
   );
 
   console.log("\nOrganisationer UTAN policyn är opåverkade (bakåtkompatibilitet)");
@@ -87,9 +107,7 @@ async function main() {
   });
   const superUtanKrav = testEnv.authenticatedContext("superUtanKrav").firestore();
   await test("superadmin utan någon 2FA-policy alls kan skriva som vanligt", () =>
-    assertSucceeds(
-      updateDoc(doc(superUtanKrav, "organisationer", "orgUtanKrav"), { "moduler.operations": true })
-    )
+    assertSucceeds(updateDoc(doc(superUtanKrav, "organisationer", "orgUtanKrav"), { namn: "Nytt namn" }))
   );
 
   await testEnv.cleanup();

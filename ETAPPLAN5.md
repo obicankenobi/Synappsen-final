@@ -99,7 +99,7 @@ Ett schemalagt jobb som larmar (in-app till plattformsadmin + Sentry) vid:
 **Gränsdragning:** detta är avvikelselarm, inte ett SIEM. Målet är att någon får veta samma
 dygn, inte att bygga en säkerhetsoperationsavdelning.
 
-### 32c – Täpp till hålen i revisionsloggen
+### 32c – Täpp till hålen i revisionsloggen ✅ KLAR (2026-07-31)
 
 Genomgången visade att den tamper-evidenta revisionsloggen saknar flera av de mest
 säkerhetskänsliga händelserna:
@@ -116,11 +116,40 @@ säkerhetskänsliga händelserna:
 
 Alla ska gå genom befintlig `loggaRevision()` – ingen ny mekanism.
 
-### 32d – Loggen ska titta på sig själv
+**Genomfört:** fyra nya Cloud Functions ersätter naknade klient-skrivningar –
+`uppdateraAnvandarRoll`, `uppdateraModuler`, `uppdateraMfaPolicy`, `uppdateraGeminiBudgetTak`
+– var och en superadmin-only inom egen organisation, och loggar via `loggaRevision()`.
+`firestore.rules` stänger nu de direkta klientvägarna (role-fältet är immutabelt i
+superadmin-grenen av `users/{userId}`s update-regel; `moduler`/`sakerhet` är immutabla i
+`organisationer/{orgId}`s write-regel; `installningar/geminiBudget` är helt stängd för
+klienten) – detta är den enda kvarvarande vägen in, oavsett 2FA-status.
+**Premisskontroll (krav 8) på "plattformsadmins åtkomst":** en genomgång av
+`firestore.rules` visade att `arPlattformsadmin()` INTE ger läsrätt till kundinnehåll
+(rutiner/kontakter/forradsartiklar/anslag – `matcharMinOrg()` saknar den bypassen), bara till
+organisationsmetadata. De faktiska skrivande plattformsadmin-anropen
+(`pausaOrganisation`, `satAvtalsstatus`, `satProvperiod`, `exporteraOrganisation`,
+`skapaOrganisation`) loggades redan sedan tidigare. Den verkliga, tidigare ospårade luckan var
+de TVÅ läsande översiktsanropen (`listaOrganisationer`, `manadsrapportOrganisationer`) som
+visar metadata för ALLA kundorganisationer i ett svep – dessa loggar nu
+`plattform_organisationer_listade`/`plattform_manadsrapport_hamtad` mot en pseudo-organisation
+(`"_plattform"`, ingen riktig kund har det namnet) eftersom händelsen spänner över alla
+organisationer samtidigt, inte en specifik.
+12 nya functions-tester (`tests/functions/etapp32c.test.cjs`) + 5 nya/omskrivna rules-tester
+(role/moduler/sakerhet-immutabilitet, även med 2FA uppfylld).
+
+### 32d – Loggen ska titta på sig själv ✅ KLAR (2026-07-31)
 
 - Hashkedjans integritetskontroll (Etapp 14) körs i dag på begäran. Gör den schemalagd, med
   larm vid brott. En manipuleringsdetekterande logg som ingen kontrollerar detekterar inget
   (krav 11).
+
+**Genomfört:** ny schemalagd funktion `verifieraRevisionskedjorSchemalagt` (varje natt 04:00)
+kör `verifieraRevisionskedja()` för ALLA organisationer (inte bara en, på begäran som
+tidigare). Vid en trasig kedja: en Sentry-händelse (`captureMessage`, nivå "error", bara
+organisations-ID + den redan maskinella orsakstexten – aldrig dokumentinnehåll) OCH en post i
+`systemvarningar` (samma mönster som `verifieraKlinikstodSchemalagt`, redan synlig i
+adminpanelen via `useNotiser`). Inget larmar vid ett normalt resultat. 3 nya functions-tester
+(`tests/functions/etapp32d.test.cjs`).
 
 **Klart när:** ett nekat anrop, en rollhöjning eller ett avvikande läsmönster i produktion når
 oss samma dygn, utan att någon behövt öppna en rapport.

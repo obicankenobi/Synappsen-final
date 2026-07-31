@@ -114,6 +114,28 @@ export function satAvtalsstatus(orgId, avtalsstatus) {
   return fn({ orgId, avtalsstatus });
 }
 
+// Etapp 32c – rolländring, moduler, 2FA-policy och budgettak går nu via Cloud Functions
+// istället för direkta klient-skrivningar, så varje ändring loggas i revisionsloggen.
+export function uppdateraAnvandarRoll(userId, roll) {
+  const fn = httpsCallable(functions, "uppdateraAnvandarRoll");
+  return fn({ userId, roll });
+}
+
+export function uppdateraModuler(modul, paslagen) {
+  const fn = httpsCallable(functions, "uppdateraModuler");
+  return fn({ modul, paslagen });
+}
+
+export function uppdateraMfaPolicy(kravMfaForRoller) {
+  const fn = httpsCallable(functions, "uppdateraMfaPolicy");
+  return fn({ kravMfaForRoller });
+}
+
+export function uppdateraGeminiBudgetTak(taketOre) {
+  const fn = httpsCallable(functions, "uppdateraGeminiBudgetTak");
+  return fn({ taketOre });
+}
+
 // Etapp 15e – provperiod (ISO-datum "ÅÅÅÅ-MM-DD" eller null för att ta bort den)
 export function satProvperiod(orgId, provperiodSlut) {
   const fn = httpsCallable(functions, "satProvperiod");

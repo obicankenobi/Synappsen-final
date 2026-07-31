@@ -1,9 +1,10 @@
 // Hämtning och rolladministration av användare – endast för superadmin
 import { useEffect, useState } from "react";
-import { collection, query, where, onSnapshot, doc, updateDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { rapporteraNekadListning } from "../firebase/felrapportering";
+import { uppdateraAnvandarRoll } from "../firebase/functions";
 
 export function useAnvandare() {
   const { organisationId, role } = useAuth();
@@ -32,8 +33,11 @@ export function useAnvandare() {
     return unsubscribe;
   }, [organisationId, role]);
 
+  // Etapp 32c: går numera via en Cloud Function (uppdateraAnvandarRoll) istället för en
+  // direkt klient-skrivning, så att rolländringen loggas i revisionsloggen – tidigare
+  // lämnade en ändring av t.ex. "vem som är superadmin" inga spår alls.
   async function uppdateraRoll(userId, roll) {
-    return updateDoc(doc(db, "users", userId), { role: roll });
+    return uppdateraAnvandarRoll(userId, roll);
   }
 
   return { anvandare, laddar, fel, uppdateraRoll };

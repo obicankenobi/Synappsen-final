@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAnvandare } from "../hooks/useAnvandare";
 import { useAuth } from "../hooks/useAuth";
@@ -24,6 +24,8 @@ import {
   migreraTillOrganisation,
   verifieraRevisionslogg,
   exporteraRevisionslogg,
+  uppdateraModuler,
+  uppdateraMfaPolicy,
 } from "../firebase/functions";
 import { Link } from "react-router-dom";
 import { ROLES } from "../firebase/roles";
@@ -72,7 +74,7 @@ export default function Admin() {
 
   async function vaxlaModul(modul, paslagen) {
     if (!organisationId) return;
-    await updateDoc(doc(db, "organisationer", organisationId), { [`moduler.${modul}`]: paslagen });
+    await uppdateraModuler(modul, paslagen);
     setSparadModul(modul);
     setTimeout(() => setSparadModul(null), 2000);
   }
@@ -93,9 +95,7 @@ export default function Admin() {
     const nyLista = kravs
       ? [...new Set([...kravMfaForRoller, roll])]
       : kravMfaForRoller.filter((r) => r !== roll);
-    await updateDoc(doc(db, "organisationer", organisationId), {
-      "sakerhet.kravMfaForRoller": nyLista,
-    });
+    await uppdateraMfaPolicy(nyLista);
     setSakerhetSparad(true);
     setTimeout(() => setSakerhetSparad(false), 2000);
   }

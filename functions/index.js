@@ -65,6 +65,9 @@ async function hamtaAnvandarInfo(uid) {
   return { roll: data.role, organisationId: data.organisationId ?? STANDARD_ORG };
 }
 
+// Delad av skapaInbjudan, losInInbjudan och uppdateraAnvandarRoll (Etapp 32c).
+const GILTIGA_ROLLER = ["superadmin", "vol", "sektionsledare", "vec", "forradesansvarig", "personal"];
+
 // Etapp 2 (feature-gating): serverkontroll av att organisationens Intelligence-modul är
 // påslagen. Måste köras INNAN budgetreservation/Gemini-anrop – detta är den verkliga
 // spärren (UI-gating i src/hooks/useFeatures.js är bara UX). Standardorganisationens
@@ -1075,6 +1078,137 @@ exports.tvingaUtloggning = onCall({ region: "europe-west1" }, async (request) =>
   return { ok: true };
 });
 
+// Etapp 32c: rolländring är sannolikt den enskilt allvarligaste luckan i revisionsloggen –
+// den gamla klientkoden (en naken updateDoc, se firestore.rules) lämnade INGA spår när någon
+// gjordes till superadmin. Flyttat hit så att varje rolländring går genom loggaRevision().
+// firestore.rules stänger nu den direkta klientvägen (role-fältet är immutabelt för
+// superadmin-grenen av users/{userId}s update-regel) – detta är den enda återstående vägen.
+exports.uppdateraAnvandarRoll = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan ändra roller.");
+  }
+  const { userId, roll } = request.data ?? {};
+  if (!userId || !GILTIGA_ROLLER.includes(roll)) {
+    throw new HttpsError("invalid-argument", "userId och en giltig roll krävs.");
+  }
+  const mal = await hamtaAnvandarInfo(userId);
+  if (mal.organisationId !== uppringare.organisationId) {
+    throw new HttpsError("permission-denied", "Användaren tillhör inte din organisation.");
+  }
+  const gammalRoll = mal.roll;
+  await db.collection("users").doc(userId).update({ role: roll });
+  await loggaRevision({
+    organisationId: uppringare.organisationId,
+    aktorUid: request.auth.uid,
+    aktorRoll: uppringare.roll,
+    handelsetyp: "anvandare_roll_andrad",
+    objektTyp: "users",
+    objektId: userId,
+    sammanfattning: `Roll ändrad: ${gammalRoll ?? "okänd"} → ${roll}`,
+  });
+  return { ok: true };
+});
+
+// Etapp 32c: moduler på/av flyttat från en naken klient-updateDoc (Admin.jsx) hit, så
+// på/av-slag loggas. Samma behörighet som tidigare (superadmin, egen organisation) –
+// firestore.rules stänger nu den direkta klientvägen för moduler-fältet.
+const GILTIGA_MODULER = ["operations", "intelligence", "kallbevakning"];
+
+exports.uppdateraModuler = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan ändra moduler.");
+  }
+  const { modul, paslagen } = request.data ?? {};
+  if (!GILTIGA_MODULER.includes(modul) || typeof paslagen !== "boolean") {
+    throw new HttpsError("invalid-argument", "En giltig modul och paslagen (boolean) krävs.");
+  }
+  await db.collection("organisationer").doc(uppringare.organisationId).set(
+    { moduler: { [modul]: paslagen } },
+    { merge: true }
+  );
+  await loggaRevision({
+    organisationId: uppringare.organisationId,
+    aktorUid: request.auth.uid,
+    aktorRoll: uppringare.roll,
+    handelsetyp: "organisation_modul_andrad",
+    objektTyp: "organisationer",
+    objektId: uppringare.organisationId,
+    sammanfattning: `Modulen "${modul}" ${paslagen ? "aktiverad" : "avaktiverad"}`,
+  });
+  return { ok: true };
+});
+
+// Etapp 32c: 2FA-policyn (vilka roller som kräver en andra faktor) flyttat från en naken
+// klient-updateDoc (Admin.jsx) hit. En organisation som sänker sina egna säkerhetskrav är
+// exakt den typen av händelse som ska synas i revisionsloggen.
+exports.uppdateraMfaPolicy = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan ändra 2FA-policyn.");
+  }
+  const { kravMfaForRoller } = request.data ?? {};
+  if (!Array.isArray(kravMfaForRoller) || !kravMfaForRoller.every((r) => GILTIGA_ROLLER.includes(r))) {
+    throw new HttpsError("invalid-argument", "kravMfaForRoller måste vara en lista av giltiga roller.");
+  }
+  await db.collection("organisationer").doc(uppringare.organisationId).set(
+    { sakerhet: { kravMfaForRoller } },
+    { merge: true }
+  );
+  await loggaRevision({
+    organisationId: uppringare.organisationId,
+    aktorUid: request.auth.uid,
+    aktorRoll: uppringare.roll,
+    handelsetyp: "organisation_mfapolicy_andrad",
+    objektTyp: "organisationer",
+    objektId: uppringare.organisationId,
+    sammanfattning: `2FA krävs nu för: ${kravMfaForRoller.length ? kravMfaForRoller.join(", ") : "ingen roll"}`,
+  });
+  return { ok: true };
+});
+
+// Etapp 32c: budgettaket (Gemini Vision) flyttat från en naken klient-setDoc (useGeminiBudget.js)
+// hit. anvantOre (den faktiska förbrukningen) rörs aldrig här – bara det superadmin-satta taket.
+exports.uppdateraGeminiBudgetTak = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan ändra budgettaket.");
+  }
+  const { taketOre } = request.data ?? {};
+  if (!Number.isInteger(taketOre) || taketOre < 0) {
+    throw new HttpsError("invalid-argument", "taketOre måste vara ett heltal ≥ 0.");
+  }
+  await db
+    .collection("organisationer")
+    .doc(uppringare.organisationId)
+    .collection("installningar")
+    .doc("geminiBudget")
+    .set({ taketOre }, { merge: true });
+  await loggaRevision({
+    organisationId: uppringare.organisationId,
+    aktorUid: request.auth.uid,
+    aktorRoll: uppringare.roll,
+    handelsetyp: "organisation_budgettak_andrad",
+    objektTyp: "organisationer",
+    objektId: uppringare.organisationId,
+    sammanfattning: `Budgettak ändrat till ${(taketOre / 100).toFixed(2)} kr`,
+  });
+  return { ok: true };
+});
+
 const MAX_KOMMENTARER_PER_TIMME = 30;
 const MAX_FEEDBACK_PER_TIMME = 10;
 
@@ -1526,6 +1660,49 @@ async function verifieraRevisionskedja(organisationId) {
 // verifieraRevisionskedja() nås via en admin-vy).
 exports.loggaRevision = loggaRevision;
 exports.verifieraRevisionskedja = verifieraRevisionskedja;
+
+// Etapp 32d: "en manipuleringsdetekterande logg som ingen kontrollerar detekterar inget"
+// (ETAPPLAN5.md krav 11). Kedjekontrollen (Etapp 14) kördes tidigare bara på begäran, från
+// adminpanelen – en manipulerad kedja hade kunnat stå oupptäckt på obestämd tid om ingen
+// råkade klicka på "Verifiera". Kör samma kontroll automatiskt varje natt, för ALLA
+// organisationer, och larma (Sentry + systemvarningar, samma mönster som
+// verifieraKlinikstodSchemalagt ovan) bara vid en faktisk avvikelse.
+async function verifieraRevisionskedjor() {
+  const orgSnap = await db.collection("organisationer").get();
+  const avvikelser = [];
+  for (const orgDoc of orgSnap.docs) {
+    const resultat = await verifieraRevisionskedja(orgDoc.id);
+    if (!resultat.giltig) {
+      avvikelser.push({ orgId: orgDoc.id, ...resultat });
+    }
+  }
+  if (avvikelser.length === 0) return avvikelser;
+
+  // Aldrig dokumentinnehåll i larmet – bara organisation, dokument-ID och den redan
+  // maskinella orsakstexten (t.ex. "kedjan bruten"), som inte innehåller PII.
+  Sentry.captureMessage("Revisionsloggens hashkedja är bruten", {
+    level: "error",
+    tags: { typ: "revisionslogg-integritetsbrott" },
+    extra: { avvikelser },
+  });
+  await db.collection("systemvarningar").add({
+    typ: "revisionslogg_integritet",
+    meddelande: `Hashkedjan är bruten för ${avvikelser.length} organisation(er): ${avvikelser
+      .map((a) => `${a.orgId} (${a.orsak})`)
+      .join(" | ")}`,
+    tidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  return avvikelser;
+}
+// Exporterad enbart för tests/functions/etapp32d.test.cjs (samma mönster som
+// kontrolleraProvperioder/backupaOrganisation – test:functions kör bara firestore+storage-
+// emulatorerna, inte en riktig scheduler).
+exports.verifieraRevisionskedjor = verifieraRevisionskedjor;
+
+exports.verifieraRevisionskedjorSchemalagt = onSchedule(
+  { schedule: "every day 04:00", timeZone: "Europe/Stockholm", region: "europe-west1" },
+  verifieraRevisionskedjor
+);
 
 // Etapp 14c: kopplar loggaRevision() till händelser som redan sker idag. De flesta av
 // dessa (rutinens godkännande och mjuka radering) skrivs DIREKT av klienten till
@@ -2141,6 +2318,18 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
       };
     })
   );
+  // Etapp 32c: plattformsadmins tvärorganisatoriska åtkomst loggades tidigare inte alls.
+  // "_plattform" är inget riktigt organisationId (det finns aldrig en kund vid namn det) –
+  // en egen hashkedja för händelser som spänner över ALLA organisationer, inte en specifik.
+  await loggaRevision({
+    organisationId: "_plattform",
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "plattform_organisationer_listade",
+    objektTyp: null,
+    objektId: null,
+    sammanfattning: `Listade ${organisationer.length} organisationer`,
+  });
   return { organisationer };
 });
 
@@ -2330,6 +2519,16 @@ exports.manadsrapportOrganisationer = onCall({ region: "europe-west1", timeoutSe
       };
     })
   );
+  // Etapp 32c: se listaOrganisationer ovan – samma motivering, "_plattform" som pseudo-org.
+  await loggaRevision({
+    organisationId: "_plattform",
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "plattform_manadsrapport_hamtad",
+    objektTyp: null,
+    objektId: null,
+    sammanfattning: `Månadsrapport hämtad för ${organisationer.length} organisationer`,
+  });
   return { organisationer };
 });
 
@@ -2388,7 +2587,6 @@ exports.exporteraOrganisation = onCall({ region: "europe-west1", timeoutSeconds:
 // kan numera ALDRIG skapa sitt eget users/{uid}-dokument direkt (se firestore.rules – create
 // är stängt helt) – den enda vägen in är att lösa in en giltig inbjudan här, som körs med
 // Admin SDK och därför kan kringgå den regeln på ett kontrollerat sätt.
-const GILTIGA_ROLLER = ["superadmin", "vol", "sektionsledare", "vec", "forradesansvarig", "personal"];
 const INBJUDAN_GILTIGHETSTID_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Delad av skapaInbjudan (superadmin bjuder in till sin egen organisation) och skapaOrganisation

@@ -190,8 +190,11 @@ async function main() {
   await test("superadminB kan INTE ändra roll på org A:s användare (volA)", () =>
     assertFails(updateDoc(doc(superB, "users", "volA"), { role: "superadmin" }))
   );
-  await test("superadminA KAN ändra roll på sin egen organisations användare (volA)", () =>
-    assertSucceeds(updateDoc(doc(superA, "users", "volA"), { role: "vol" }))
+  await test("superadminA KAN ändra andra fält på sin egen organisations användare (volA)", () =>
+    assertSucceeds(updateDoc(doc(superA, "users", "volA"), { namn: "Anna Andersson" }))
+  );
+  await test("superadminA kan INTE ändra roll direkt längre, inte ens i sin egen organisation (Etapp 32c – endast uppdateraAnvandarRoll)", () =>
+    assertFails(updateDoc(doc(superA, "users", "volA"), { role: "sektionsledare" }))
   );
 
   console.log("\nusers/{uid}.senastBesokta – Etapp 17b (synkad mellan enheter)");

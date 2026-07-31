@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.52.0",
+    datum: "2026-07-31",
+    andringar: [
+      "Bättre spårbarhet i administrationen: ändringar av roller, moduler och säkerhetsinställningar registreras nu alltid",
+      "En automatisk kontroll varje natt kontrollerar att revisionsloggen inte har manipulerats",
+    ],
+  },
+  {
     version: "5.51.0",
     datum: "2026-07-31",
     andringar: [

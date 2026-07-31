@@ -3,7 +3,7 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-07-31 · **Motsvarar kodläge:** v5.51.0
+**Senast uppdaterad:** 2026-07-31 · **Motsvarar kodläge:** v5.52.0
 
 > Den här filen är skriven för att läsas när du är ensam, trött och stressad. Följ den uppifrån
 > och ned. Hoppa inte över steg 1–3 även om du tror att du vet vad som hänt.
@@ -60,8 +60,12 @@ HH:MM  vad jag gjorde / vad jag såg
 > Sentry fångar React-krascher via `ErrorBoundary` OCH (sedan Etapp 32a) nekade
 > Firestore-listningar (`permission-denied` från en `onSnapshot`-lyssnare) – dessa syns nu som
 > en egen Sentry-händelse (tagg `typ: permission-denied-listning`) med collection, roll,
-> organisation och sökväg, aldrig dokumentinnehåll. Massläsning, misslyckade inloggningar och
-> behörighetshöjningar syns DÄREMOT fortfarande inte (Etapp 32b, ej byggd än).
+> organisation och sökväg, aldrig dokumentinnehåll. Sedan Etapp 32c LOGGAS även rollbyte och
+> plattformsadmins tvärorganisatoriska översiktsanrop i revisionsloggen (se `/admin` →
+> Revisionsloggen) – men ingen av dessa skapar ett realtidslarm ännu. Massläsning av
+> kundinnehåll och misslyckade inloggningsförsök loggas fortfarande INTE alls, och inget av
+> ovanstående skickar ett aktivt larm till dig – du måste själv gå in och titta
+> (realtidslarm = Etapp 32b, ej byggt än).
 > **Frånvaro av Sentry-händelser betyder alltså fortfarande INTE att inget hänt.**
 
 ---
@@ -111,7 +115,9 @@ Besvara i denna ordning och skriv ned svaren:
 **Så tar du reda på det idag** (⏳ automatiseras i Etapp 32b):
 
 - Revisionsloggen filtrerad på aktörens uid ger händelser (publicering, godkännande,
-  borttagning, organisationsändringar).
+  borttagning, organisationsändringar, rollbyten – sedan Etapp 32c – och, om det är en
+  plattformsadmin, även när denne listat alla kundorganisationer eller hämtat
+  månadsrapporten).
 - Ändringsloggen ger bredare aktivitet.
 - **Begränsning att känna till:** *läsningar* loggas inte. Du kan se vad någon ändrat, inte
   vad de sett. Vid misstänkt datauttag måste du därför anta det bredare scenariot: allt som
@@ -253,8 +259,9 @@ användare. Sakligt, kort, verifierat.
 |---|---|---|
 | Larm vid avvikande beteende | ⬜ Finns inte | Etapp 32b |
 | `permission-denied` rapporteras | ✅ Klart (2026-07-31) | Etapp 32a |
-| Rollbyte loggas i revisionsloggen | ⬜ **Loggas inte alls i dag** | Etapp 32c |
-| Plattformsadmins åtkomst loggas | ⬜ Finns inte | Etapp 32c |
+| Rollbyte loggas i revisionsloggen | ✅ Klart (2026-07-31) | Etapp 32c |
+| Plattformsadmins tvärorg. läsning loggas | ✅ Klart (2026-07-31) | Etapp 32c |
+| Hashkedjan kontrolleras automatiskt | ✅ Klart (2026-07-31, varje natt 04:00) | Etapp 32d |
 | Automatisk omfattningsanalys | ⬜ Finns inte | Etapp 32b |
 | Återställning från backup | ⬜ **Ingen funktion finns** | Etapp 33a |
 | Extern incidentkompetens | ⬜ Ej upphandlad | Policyns avsnitt 11 |
