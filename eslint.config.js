@@ -26,4 +26,12 @@ export default defineConfig([
       globals: globals.serviceworker,
     },
   },
+  // Etapp 31b: konfiguration/setup som körs i Node (via `firebase emulators:exec`/Playwright),
+  // inte i webbläsaren – behöver process/global, inte window/document.
+  {
+    files: ['playwright.config.js', 'tests/e2e/**/*.{js,mjs}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ])

@@ -13,11 +13,18 @@ export function useAllaGodkandaRutiner() {
 
   useEffect(() => {
     if (!organisationId) return undefined;
-    const q = query(collection(db, "rutiner"), where("organisationId", "==", organisationId));
+    // Etapp 31b (bugfynd): samma constraint som useAkutlageRutiner.js – en fråga över ALLA
+    // områden kan inte förlita sig på klientsidig statusfiltrering, regeln kräver ett
+    // matchande where("status","==","godkand") för att listningen inte ska nekas helt för
+    // den som inte är redaktör i något av områdena. Namnet lovade redan "alla GODKÄNDA" –
+    // nu håller frågan själv det löftet, inte bara klientfiltret.
+    const q = query(
+      collection(db, "rutiner"),
+      where("organisationId", "==", organisationId),
+      where("status", "==", "godkand")
+    );
     const unsubscribe = onSnapshot(q, (snap) => {
-      const alla = snap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .filter((r) => r.status === "godkand" && !r.borttagen);
+      const alla = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => !r.borttagen);
       setRutiner(alla);
       setLaddar(false);
     });

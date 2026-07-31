@@ -14,15 +14,23 @@ export function useAkutlageRutiner() {
 
   useEffect(() => {
     if (!organisationId) return undefined;
+    // Etapp 31b (bugfynd): frågan saknade ett status-filter och förlitade sig på klientsidig
+    // filtrering – men rutiner/{rutinId}s läsregel kräver status=='godkand' ELLER redaktör
+    // FÖR DET SPECIFIKA OMRÅDET, och en akutläges-fråga spänner över ALLA områden i samma
+    // svep (ingen enskild roll är redaktör för alla samtidigt). Utan ett matchande where()
+    // kan Firestore inte bevisa villkoret och nekade HELA listningen – appens mest
+    // säkerhetskritiska funktion (akutläget, ska alltid fungera oavsett vem som är inloggad)
+    // var därför osynlig för alla utom VÖL/superadmin. where("status","==","godkand") här är
+    // dessutom rätt beteende i sak, inte bara en bevisbarhetsfix: den här frågan är ett
+    // publicerat, kuraterat säkerhetsnät, aldrig en granskningsvy för utkast.
     const q = query(
       collection(db, "rutiner"),
       where("organisationId", "==", organisationId),
-      where("akutlage", "==", true)
+      where("akutlage", "==", true),
+      where("status", "==", "godkand")
     );
     const unsubscribe = onSnapshot(q, (snap) => {
-      const alla = snap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .filter((r) => r.status === "godkand" && !r.borttagen);
+      const alla = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => !r.borttagen);
       alla.sort((a, b) => (a.akutlageOrdning ?? 0) - (b.akutlageOrdning ?? 0));
       setRutiner(alla);
       setLaddar(false);

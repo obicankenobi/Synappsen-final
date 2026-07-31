@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.50.0",
+    datum: "2026-07-31",
+    andringar: [
+      "Viktig rättning: personal-rollen kunde av ett tekniskt fel inte se rutiner, förrådsartiklar eller akutläget – nu synligt igen som väntat",
+      "Automatiska tester som varnar oss om samma typ av fel skulle uppstå igen i framtiden",
+    ],
+  },
+  {
     version: "5.49.0",
     datum: "2026-07-30",
     andringar: [

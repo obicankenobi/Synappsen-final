@@ -16,6 +16,7 @@ import { db } from "../firebase/config";
 import { loggaHandelse } from "./useAuditlogg";
 import { useAuth } from "./useAuth";
 import { STANDARD_ORG } from "../firebase/organisation";
+import { farRedigeraOmrade } from "../firebase/roles";
 
 export const RUTIN_STATUS = {
   UTKAST: "utkast",
@@ -23,25 +24,30 @@ export const RUTIN_STATUS = {
 };
 
 export function useRutiner(omrade) {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [rutiner, setRutiner] = useState([]);
   const [laddar, setLaddar] = useState(true);
+  // Etapp 31b (bugfynd, se firebase/roles.js farRedigeraOmrade): för den som INTE får
+  // redigera området måste frågan själv filtrera på status=='godkand', annars kan Firestores
+  // regelmotor inte bevisa villkoret och nekar HELA listningen.
+  const redaktor = farRedigeraOmrade(role, omrade);
 
   useEffect(() => {
     if (!organisationId) return undefined;
-    const q = query(
-      collection(db, "rutiner"),
+    const villkor = [
       where("organisationId", "==", organisationId),
       where("omrade", "==", omrade),
-      orderBy("skapad", "desc")
-    );
+      ...(redaktor ? [] : [where("status", "==", RUTIN_STATUS.GODKAND)]),
+      orderBy("skapad", "desc"),
+    ];
+    const q = query(collection(db, "rutiner"), ...villkor);
     const unsubscribe = onSnapshot(q, (snap) => {
       // Mjukraderade rutiner (papperskorg) filtreras bort ur den vanliga listan
       setRutiner(snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => !r.borttagen));
       setLaddar(false);
     });
     return unsubscribe;
-  }, [omrade, organisationId]);
+  }, [omrade, organisationId, redaktor]);
 
   async function skapaRutin({
     titel,

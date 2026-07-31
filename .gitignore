@@ -20,6 +20,11 @@ dist-ssr
 # (utan $GITHUB_STEP_SUMMARY) – i CI skrivs rapporten till jobbsammanfattningen istället.
 npm-audit-rapport.md
 
+# Etapp 31b: Playwright e2e-artefakter (skärmdumpar/spår vid fel, HTML-rapport)
+test-results
+playwright-report
+blob-report
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

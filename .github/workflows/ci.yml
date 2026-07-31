@@ -38,6 +38,12 @@ jobs:
       - name: Storage-regeltester (Firestore- + Storage-emulator)
         run: npm run test:storage
 
+      - name: Installera Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E-tester (organisationsisolering + list-provability, Firestore-/Auth-/Storage-emulator)
+        run: npm run test:e2e
+
       - name: Bygg
         run: npm run build
 

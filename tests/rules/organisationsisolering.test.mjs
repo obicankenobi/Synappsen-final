@@ -318,6 +318,31 @@ async function main() {
     )
   );
 
+  // Etapp 31b (bugfynd): rutinlistan (useRutiner.js) frågar utan status-filter, och regeln
+  // `resource.data.status == 'godkand' || farRedigeraOmrade(resource.data.omrade)` kan då inte
+  // bevisas för en icke-redaktör av området – HELA listningen nekades, oavsett hur många
+  // godkända rutiner det faktiskt fanns. Detta var appens KÄRNINNEHÅLL, osynligt sedan
+  // starten för standardrollen "personal" (och för alla roll/område-kombinationer utan
+  // redaktörsbehörighet, t.ex. vec som tittar på kliniskt-stod). Fixat genom att klienten
+  // (useRutiner.js) själv lägger till where("status","==","godkand") när den inloggade INTE
+  // får redigera området – exakt den frågeformen testas här.
+  await test("personalA (ingen redaktörsroll) KAN lista godkända kliniskt-stod-rutiner (samma frågeform som useRutiner.js efter fixen)", async () => {
+    const snap = await getDocs(
+      query(
+        collection(personalA, "rutiner"),
+        where("organisationId", "==", ORG_A),
+        where("omrade", "==", "kliniskt-stod"),
+        where("status", "==", "godkand")
+      )
+    );
+    if (snap.empty) throw new Error("förväntade minst en godkänd rutin i organisation A");
+  });
+  await test("personalA (ingen redaktörsroll) kan INTE lista rutiner UTAN status-filtret (den gamla, trasiga frågeformen)", () =>
+    assertFails(
+      getDocs(query(collection(personalA, "rutiner"), where("organisationId", "==", ORG_A), where("omrade", "==", "kliniskt-stod")))
+    )
+  );
+
   console.log("\nanslag/{anslagId} – organisationsisolering");
   await test("superadminB kan INTE läsa org A:s anslag", () =>
     assertFails(getDoc(doc(superB, "anslag", "anslagA")))
@@ -337,6 +362,18 @@ async function main() {
   console.log("\nforradsartiklar/{artikelId} – organisationsisolering");
   await test("superadminB kan INTE läsa org A:s förrådsartikel", () =>
     assertFails(getDoc(doc(superB, "forradsartiklar", "artikelA")))
+  );
+
+  // Etapp 31b (bugfynd) – samma buggklass som rutiner ovan, samma fix (useForradsartiklar.js
+  // lägger till where("status","==","godkand") för den som inte får hantera förrådet).
+  await test("personalA (ingen förrådsroll) KAN lista godkända förrådsartiklar (samma frågeform som useForradsartiklar.js efter fixen)", async () => {
+    const snap = await getDocs(
+      query(collection(personalA, "forradsartiklar"), where("organisationId", "==", ORG_A), where("status", "==", "godkand"))
+    );
+    if (snap.empty) throw new Error("förväntade minst en godkänd förrådsartikel i organisation A");
+  });
+  await test("personalA (ingen förrådsroll) kan INTE lista förrådsartiklar UTAN status-filtret (den gamla, trasiga frågeformen)", () =>
+    assertFails(getDocs(query(collection(personalA, "forradsartiklar"), where("organisationId", "==", ORG_A))))
   );
 
   console.log("\nforradsartiklar/{artikelId} – personnummerspärr på regelnivå (Etapp 12e)");
@@ -923,6 +960,34 @@ async function main() {
   await test("personalA (som föreslog) KAN läsa sitt eget förslag", () =>
     assertSucceeds(getDoc(doc(personalA, "andringsforslag", forslagTestId)))
   );
+
+  // Etapp 31b (bugfynd): useAndringsforslag(omrade) filtrerade bara på omrade – provbart för
+  // REDAKTÖRER (farRedigeraOmrade blir konstant), men för alla andra reduceras regeln till
+  // foreslagenAv==uid, som frågan inte bevisade. useNotiser.js:s "har MITT förslag hanterats"-
+  // koll fick permission-denied för varje icke-redaktör. Fixat genom att en icke-redaktör
+  // bara frågar efter sina EGNA förslag.
+  await test("personalA (ingen redaktörsroll) KAN lista SINA EGNA förslag för området (samma frågeform som useAndringsforslag.js efter fixen)", async () => {
+    const snap = await getDocs(
+      query(
+        collection(personalA, "andringsforslag"),
+        where("organisationId", "==", ORG_A),
+        where("omrade", "==", "kliniskt-stod"),
+        where("foreslagenAv", "==", "personalA")
+      )
+    );
+    if (snap.empty) throw new Error("förväntade minst ett eget förslag");
+  });
+  await test("personalA kan INTE lista ALLA förslag för området utan foreslagenAv-filtret (den gamla, trasiga frågeformen)", () =>
+    assertFails(
+      getDocs(query(collection(personalA, "andringsforslag"), where("organisationId", "==", ORG_A), where("omrade", "==", "kliniskt-stod")))
+    )
+  );
+  await test("volA (redaktör för kliniskt-stod) KAN lista ALLA förslag för området utan foreslagenAv-filtret", async () => {
+    const snap = await getDocs(
+      query(collection(volA, "andringsforslag"), where("organisationId", "==", ORG_A), where("omrade", "==", "kliniskt-stod"))
+    );
+    if (snap.empty) throw new Error("förväntade minst ett förslag synligt för redaktören");
+  });
   await test("vecA (fel område – administration, inte kliniskt-stod) kan INTE läsa förslaget", () =>
     assertFails(getDoc(doc(vecA, "andringsforslag", forslagTestId)))
   );

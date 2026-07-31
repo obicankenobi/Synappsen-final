@@ -14,6 +14,7 @@ import {
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { STANDARD_ORG } from "../firebase/organisation";
+import { KAN_HANTERA_FORRAD } from "../firebase/roles";
 
 export const ARTIKEL_STATUS = {
   UTKAST: "utkast",
@@ -22,15 +23,23 @@ export const ARTIKEL_STATUS = {
 
 // Om forrad anges filtreras listan till det förrådet, annars hämtas alla (används av sökmotorn)
 export function useForradsartiklar(forrad) {
-  const { organisationId } = useAuth();
+  const { organisationId, role } = useAuth();
   const [artiklar, setArtiklar] = useState([]);
   const [laddar, setLaddar] = useState(true);
+  // Etapp 31b (bugfynd, se firebase/roles.js farRedigeraOmrade): läsregeln kräver
+  // status=='godkand' OM INTE den inloggade får hantera förrådet – utan ett matchande where()
+  // i frågan kan Firestore inte bevisa det och nekar HELA listningen (samma buggklass som
+  // rutiner/andringsforslag/bristanmalningar).
+  const redaktor = KAN_HANTERA_FORRAD.includes(role);
 
   useEffect(() => {
     if (!organisationId) return undefined;
-    const villkor = forrad
-      ? [where("organisationId", "==", organisationId), where("forrad", "==", forrad), orderBy("skapad", "desc")]
-      : [where("organisationId", "==", organisationId), orderBy("skapad", "desc")];
+    const villkor = [
+      where("organisationId", "==", organisationId),
+      ...(forrad ? [where("forrad", "==", forrad)] : []),
+      ...(redaktor ? [] : [where("status", "==", ARTIKEL_STATUS.GODKAND)]),
+      orderBy("skapad", "desc"),
+    ];
     const q = query(collection(db, "forradsartiklar"), ...villkor);
     const unsubscribe = onSnapshot(q, (snap) => {
       // Mjukraderade artiklar (papperskorg) filtreras bort ur den vanliga listan
@@ -38,7 +47,7 @@ export function useForradsartiklar(forrad) {
       setLaddar(false);
     });
     return unsubscribe;
-  }, [forrad, organisationId]);
+  }, [forrad, organisationId, redaktor]);
 
   async function skapaArtikel({
     namn,

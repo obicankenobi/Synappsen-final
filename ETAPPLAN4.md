@@ -901,17 +901,77 @@ körande av samma befintliga artefakter. Samma bedömning gjordes tidigare för 
 substantiella releases versionsbump istället för att ge en tom `andringslogg.js`-post om ett
 CI-internt jobb.
 
-### 31b – Committad Playwright-regressionssvit för de känsligaste flödena
+### 31b – Committad Playwright-regressionssvit för de känsligaste flödena ✅ KLAR (2026-07-31)
 
-- Idag verifieras varje etapps UI manuellt med engångs-Playwright-skript mot lokala
-  emulatorer (se `scratchpad/`) – de körs en gång och kastas, de skyddar inte mot regressioner.
-- Skriv en liten, committad svit (`tests/e2e/`) som täcker just de två flödesklasser där ett
-  fel är dyrast att missa: organisationsisolering (en användare i org A ska aldrig se org B:s
-  data i UI, inte bara i regel-lagret) och "list-provability"-buggklassen som upptäcktes i
-  Etapp 26 (en collection vars regel refererar `resource.data.<fält>` kräver ett matchande
-  `where()` i frågan, annars nekas HELA listningen – detta fångas inte av
-  rules-enhetstesterna, bara av en riktig `onSnapshot`-lyssnare i en riktig klient).
-- Körs mot Firebase-emulatorerna i CI, inte mot produktion.
+**Genomfört:** `tests/e2e/` (Playwright Test, `playwright.config.js`), körs via
+`npm run test:e2e` (`firebase emulators:exec ... "playwright test"`, samma mönster som
+test:rules/test:functions/test:storage) och nytt CI-steg i `.github/workflows/ci.yml`
+(`npx playwright install --with-deps chromium` följt av `npm run test:e2e`).
+`tests/e2e/global-setup.mjs` seedar egna, isolerade `e2e-*`-konton/data (skiljt från
+`tests/rules/*.test.mjs`s seed) innan Playwright startar vite-dev-servern mot emulatorerna.
+
+- `organisationsisolering.spec.js`: en användare i org B ser aldrig org A:s rutininnehåll i
+  det RIKTIGA UI:t (inte bara i regel-lagret), varken via normal navigering eller en direkt
+  `#rutin-<id>`-länk.
+- `list-provability.spec.js`: en vanlig roll (ingen redaktörsroll alls) ska inte få NÅGRA
+  `permission-denied`-fel i webbläsarkonsolen vid normal navigering.
+
+**Detta test hittade omedelbart tre allvarliga, tidigare okända buggar av exakt den
+buggklass Etapp 26 upptäckte (`resource.data.<fält>` i en läsregel utan ett matchande
+`where()` i frågan ⇒ HELA listningen nekas, inte bara enskilda dokument) – betydligt
+allvarligare än Etapp 26/29:s fynd, eftersom de träffade appens KÄRNINNEHÅLL för
+**standardrollen `personal`** (`DEFAULT_ROLE`, den roll varje nyinbjuden medarbetare får om
+inget annat anges):**
+
+1. **`rutiner/{rutinId}`** – `useRutiner(omrade)` frågade utan statusfilter. Regeln
+   (`resource.data.status == 'godkand' || farRedigeraOmrade(resource.data.omrade)`) kunde
+   inte bevisas för någon som inte är redaktör för just det området → HELA rutinlistan var
+   osynlig. Detta gällde INTE bara "personal" – även t.ex. `vec` som tittar på
+   kliniskt-stod-rutiner, eller `forradesansvarig` som tittar på någon rutin alls, drabbades.
+2. **`forradsartiklar/{artikelId}`** – samma mönster, `useForradsartiklar()`.
+3. **`rutiner/{rutinId}` (akutläget!)** – `useAkutlageRutiner.js` (hämtas globalt av
+   `AkutlagePrefetch` för ALLA inloggade, oavsett roll) frågade `akutlage==true` utan
+   statusfilter, och förlitade sig på klientsidig filtrering. Eftersom en akutlägesfråga
+   spänner över ALLA områden samtidigt kan ingen enskild roll vara redaktör för alla, så
+   frågan misslyckades konsekvent för alla utom superadmin/VÖL. **Appens mest
+   säkerhetskritiska funktion – som uttryckligen ska fungera för VEM SOM HELST som loggar in
+   – har varit osynlig för standardrollen sedan den byggdes.**
+4. **`andringsforslag/{forslagId}`** (samma sökning, en fjärde instans): `useAndringsforslag(omrade)`
+   användes av `useNotiser.js` för ALLA roller (för att kolla om ens EGET förslag hanterats),
+   men frågade bara på `omrade`, inte `foreslagenAv` – nekades helt för icke-redaktörer.
+
+**Varför detta aldrig upptäcktes tidigare:** samtliga manuella Playwright-verifieringar under
+Etapp 1–30 den här sessionen använde uteslutande `vol`/`superadmin`/redaktörs-konton (t.ex.
+`volA@orga.test`) – ALDRIG rollen `personal`, som är den enda som faktiskt saknar
+redaktörsbehörighet överallt. `farRedigeraOmrade(...)` blev därför alltid sant i testerna och
+maskerade buggen fullständigt. Detta är den konkreta motiveringen bakom hela 31b – och exakt
+den typen av fynd en committad, role-medveten regressionssvit är till för.
+
+**Fixat:**
+- Ny klienthjälpfunktion `farRedigeraOmrade(role, omrade)` i `src/firebase/roles.js`, en
+  exakt spegling av `firestore.rules`s serverfunktion (måste hållas i synk manuellt – ingen
+  delad källa mellan klient och regler finns i det här projektet).
+- `useRutiner.js`/`useForradsartiklar.js`: lägger till `where("status","==","godkand")` i
+  frågan när den inloggade INTE är redaktör för området/förrådet – bevarar att utkast bara är
+  synliga för redaktörer (ingen säkerhetsförsämring, bara att frågan nu själv håller det
+  löfte regeln redan krävde).
+- `useAkutlageRutiner.js`/`useAllaGodkandaRutiner.js`: lägger ALLTID till
+  `where("status","==","godkand")` (dessa frågar över alla områden, ingen enskild
+  redaktörskoll är meningsfull) – rätt beteende i sak, inte bara en bevisbarhetsfix.
+- `useAndringsforslag.js`: den som inte är redaktör frågar bara efter SINA EGNA förslag
+  (`where("foreslagenAv","==",uid)`) – exakt vad notiskvittensen ändå bara behöver.
+- 7 nya list-baserade rules-tester (`tests/rules/organisationsisolering.test.mjs`), 149
+  klarade totalt (upp från 142 vid Etapp 29/30).
+- **Medvetet INTE fixat:** `usePapperskorg.js` har samma latenta mönster (frågar
+  `borttagen==true` utan statusfilter), men sidan (`Papperskorg.jsx`) är redan gated bakom
+  `arRedaktor(role)` – en `personal`-användare som manuellt navigerar dit ser "åtkomst
+  nekad" och träffas aldrig av den trasiga listan i praktiken. Lägre prioritet, kvarstår som
+  en känd, dokumenterad, lågriskrisk för en framtida etapp.
+
+**Verifierat:** samtliga tre e2e-tester gröna, samt en fristående Playwright-körning mot
+emulatorerna som seedade en akutlägesmarkerad rutin och bekräftade att `/kliniskt-stod` och
+`/akutlage` båda renderar innehållet korrekt för `personal`-rollen, utan ett enda
+`permission-denied` i konsolen.
 
 ### 31c – Nedskrivet beslut om App Check-enforcement
 

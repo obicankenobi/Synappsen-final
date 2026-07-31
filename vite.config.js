@@ -28,10 +28,11 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: false,
-    // tests/rules/** och tests/functions/** körs separat mot Firestore-emulatorn
-    // (npm run test:rules / npm run test:functions) – inte vitest-testsviter, kräver en
-    // körande emulator och är inte skrivna med vitests API.
-    exclude: ["**/node_modules/**", "**/dist/**", "tests/rules/**", "tests/functions/**"],
+    // tests/rules/**, tests/functions/** och tests/e2e/** körs separat (npm run test:rules /
+    // test:functions / test:e2e) – inte vitest-testsviter. tests/e2e/** är skrivna med
+    // Playwright Test (@playwright/test), som har en egen "test"/"expect"-export vitest inte
+    // känner till.
+    exclude: ["**/node_modules/**", "**/dist/**", "tests/rules/**", "tests/functions/**", "tests/e2e/**"],
   },
   plugins: [
     react(),

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
+import { farRedigeraOmrade } from "../firebase/roles";
 
 export const FORSLAG_STATUS = {
   NY: "ny",
@@ -57,24 +58,34 @@ export async function avvisaForslag(forslagId, uid, namn, avvisningsMotivering) 
 // regelmotor bevisa att farRedigeraOmrade(resource.data.omrade) håller för en `list`-fråga
 // (samma constraint som redan gäller för rutiner/{rutinId}), och HELA listningen nekas
 // istället för att bara filtrera bort icke-matchande dokument.
+// Etapp 31b (bugfynd): omrade-filtret räckte bara för REDAKTÖRER (regelns första OR-led,
+// farRedigeraOmrade(resource.data.omrade), blir då en konstant sant/falskt per fråga). För
+// alla andra reduceras regeln till `resource.data.foreslagenAv == request.auth.uid` – ett
+// villkor frågan INTE bevisade, så useNotiser.js:s anrop (kollar om MITT förslag hanterats,
+// oavsett roll) fick permission-denied för alla utom redaktörer. Fixat genom att den som
+// INTE är redaktör för området bara frågar efter SINA EGNA förslag – exakt vad
+// notiskvittensen ändå bara bryr sig om.
 export function useAndringsforslag(omrade) {
-  const { organisationId } = useAuth();
+  const { organisationId, currentUser, role } = useAuth();
   const [forslag, setForslag] = useState([]);
   const [laddar, setLaddar] = useState(true);
+  const redaktor = farRedigeraOmrade(role, omrade);
 
   useEffect(() => {
     if (!organisationId || !omrade) return undefined;
-    const q = query(
-      collection(db, "andringsforslag"),
+    if (!redaktor && !currentUser?.uid) return undefined;
+    const villkor = [
       where("organisationId", "==", organisationId),
-      where("omrade", "==", omrade)
-    );
+      where("omrade", "==", omrade),
+      ...(redaktor ? [] : [where("foreslagenAv", "==", currentUser.uid)]),
+    ];
+    const q = query(collection(db, "andringsforslag"), ...villkor);
     const unsubscribe = onSnapshot(q, (snap) => {
       setForslag(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setLaddar(false);
     });
     return unsubscribe;
-  }, [organisationId, omrade]);
+  }, [organisationId, omrade, redaktor, currentUser?.uid]);
 
   return { forslag, laddar };
 }
