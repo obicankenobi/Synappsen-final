@@ -1597,6 +1597,96 @@ exports.veckovisBackupSchemalagt = onSchedule(
 // Exporterad enbart för tests/functions/backup.test.cjs.
 exports.backupaOrganisation = backupaOrganisation;
 
+// Etapp 33a: motstycket till backupaOrganisation() – fanns inte alls tidigare (verifierat).
+// En backup som aldrig kan läsas tillbaka är en förhoppning, inte ett skydd.
+//
+// JSON.stringify skriver en Firestore Timestamp som { _seconds, _nanoseconds } (dess enda
+// egna, uppräkningsbara fält – inget eget toJSON). Utan att bygga om det till en riktig
+// Timestamp här skulle en återställd rutins "skapad"-fält bli en vanlig map, inte ett
+// tidsstämpelfält frågor som orderBy("skapad") kan sortera på.
+function ateruppbyggTidsstamplar(varde) {
+  if (Array.isArray(varde)) return varde.map(ateruppbyggTidsstamplar);
+  if (varde && typeof varde === "object") {
+    const nycklar = Object.keys(varde);
+    if (
+      nycklar.length === 2 &&
+      typeof varde._seconds === "number" &&
+      typeof varde._nanoseconds === "number"
+    ) {
+      return new admin.firestore.Timestamp(varde._seconds, varde._nanoseconds);
+    }
+    const resultat = {};
+    for (const [nyckel, delvarde] of Object.entries(varde)) {
+      resultat[nyckel] = ateruppbyggTidsstamplar(delvarde);
+    }
+    return resultat;
+  }
+  return varde;
+}
+
+// Läser en tidigare skriven backupfil och skriver tillbaka innehållet till Firestore för EN
+// organisation. Hård gränsdragning (se ETAPPLAN5.md Etapp 33a): enbart plattformsadmin, path
+// måste peka på en backup under EXAKT den angivna organisationens egen mapp, och varje
+// dokument som skulle höra till en ANNAN organisation hoppas över – en felriktad eller
+// manipulerad backupfil kan alltså aldrig skriva över en annan kunds data, oavsett vad filen
+// påstår sig innehålla.
+async function aterstallOrganisation(orgId, sokvag) {
+  if (!sokvag.startsWith(`backups/${orgId}/`)) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Sökvägen måste peka på en backup under den angivna organisationens egen mapp."
+    );
+  }
+  const [buffer] = await bucket.file(sokvag).download();
+  const data = JSON.parse(buffer.toString("utf8"));
+  if (data.orgId !== orgId) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Backupfilens orgId matchar inte den angivna organisationen."
+    );
+  }
+
+  let antalAterstallda = 0;
+  for (const [samlingsNamn, dokument] of Object.entries(data.samlingar ?? {})) {
+    const BATCHSTORLEK = 400; // Firestores gräns är 500 skrivningar per batch
+    for (let i = 0; i < dokument.length; i += BATCHSTORLEK) {
+      const batch = db.batch();
+      for (const dok of dokument.slice(i, i + BATCHSTORLEK)) {
+        const { id, ...falt } = dok;
+        if (falt.organisationId && falt.organisationId !== orgId) continue;
+        batch.set(db.collection(samlingsNamn).doc(id), ateruppbyggTidsstamplar(falt));
+        antalAterstallda += 1;
+      }
+      await batch.commit();
+    }
+  }
+  return antalAterstallda;
+}
+// Exporterad enbart för tests/functions/aterstallning.test.cjs.
+exports.aterstallOrganisation = aterstallOrganisation;
+
+exports.aterstallOrganisationCallable = onCall({ region: "europe-west1", timeoutSeconds: 300 }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId, sokvag } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string" || !sokvag || typeof sokvag !== "string") {
+    throw new HttpsError("invalid-argument", "orgId och sokvag krävs.");
+  }
+  const antalAterstallda = await aterstallOrganisation(orgId, sokvag);
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "organisation_aterstalld",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: `Återställd från backup (${sokvag}), ${antalAterstallda} dokument`,
+  });
+  return { antalAterstallda };
+});
+
 // Etapp 14b: hashkedjan för revisionslogg (se firestore.rules – collectionen är helt
 // stängd för klienter, bara denna funktion skriver dit). Varje post länkas till den
 // föregående via foregaendeHash, så en manipulerad eller borttagen post gör att kedjan

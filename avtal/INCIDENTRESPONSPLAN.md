@@ -2,7 +2,7 @@
 
 **Dokumenttyp:** Policy (extern – får delas med kund, kundens IT-säkerhetsfunktion och vid
 upphandling)
-**Version:** 1.0
+**Version:** 1.1
 **Fastställd:** 2026-07-31
 **Gäller från:** 2026-07-31
 **Nästa översyn:** vid varje större release, dock minst var sjätte månad (se avsnitt 12)
@@ -268,3 +268,4 @@ ingen plan alls.
 | Version | Datum | Ändring |
 |---|---|---|
 | 1.0 | 2026-07-31 | Första fastställda versionen. Upprättad som del av Etapplan 5 (säkerhet, upptäckt och incidentberedskap). |
+| 1.1 | 2026-07-31 | Avsnitt 5.5 (Återställ): återställningsfunktionen som avsnittet beskrev existerade inte tidigare – den finns nu, är testad och loggar till revisionsloggen (Etapp 33a/33b). Gallring av gamla backuper väntar fortfarande på ett retentionsbeslut (Etapp 33c). |

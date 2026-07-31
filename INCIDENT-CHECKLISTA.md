@@ -3,7 +3,7 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-07-31 · **Motsvarar kodläge:** v5.53.0
+**Senast uppdaterad:** 2026-07-31 · **Motsvarar kodläge:** v5.54.0
 
 > Den här filen är skriven för att läsas när du är ensam, trött och stressad. Följ den uppifrån
 > och ned. Hoppa inte över steg 1–3 även om du tror att du vet vad som hänt.
@@ -204,10 +204,19 @@ användare. Sakligt, kort, verifierat.
 ## Steg 8 · Återställ
 
 - [ ] Är normalt läge återställt?
-- [ ] Om data gått förlorad: återställ från backup
-      (⏳ **återställningsfunktion finns inte ännu – byggs i Etapp 33a.** Fram till dess:
-      backupfilerna ligger i Storage under `backups/{orgId}/`, men återställning måste göras
-      manuellt via Admin SDK. Räkna med att det tar tid och testa i emulator först.)
+- [ ] Om data gått förlorad: återställ från backup (Etapp 33a, klart 2026-07-31) –
+      `aterstallOrganisationCallable` (Cloud Function, endast plattformsadmin). Ingen
+      självbetjänings-knapp finns i UI:t (medvetet – en återställning är för farlig för att
+      ligga bakom ett vanligt klick). Anropa den via Firebase-konsolen → Functions →
+      `aterstallOrganisationCallable` → "Testa funktionen", med payloaden
+      `{ "orgId": "<orgId>", "sokvag": "backups/<orgId>/<datum>.json" }` (backupfilernas
+      sökvägar listas i Storage-konsolen under `backups/{orgId}/`). Funktionen vägrar en
+      sökväg som inte ligger under exakt den angivna organisationens egen mapp, och hoppar
+      över varje dokument vars `organisationId` inte matchar – en felriktad fil kan alltså
+      aldrig skriva över en annan kunds data. Återställningstiden för en normalstor
+      organisation är uppmätt till se `avtal/IT-FAKTABLAD.md` (Etapp 33d).
+      **Gallring saknas ännu** (Etapp 33c, väntar på ett retentionsbeslut) – gamla
+      backupfiler tas inte bort automatiskt idag.
 - [ ] Har pausad organisation återaktiverats?
 - [ ] Är roterade nycklar deployade och verifierade?
 - [ ] Har du meddelat kunden att läget är återställt?
@@ -264,7 +273,8 @@ användare. Sakligt, kort, verifierat.
 | Plattformsadmins tvärorg. läsning loggas | ✅ Klart (2026-07-31) | Etapp 32c |
 | Hashkedjan kontrolleras automatiskt | ✅ Klart (2026-07-31, varje natt 04:00) | Etapp 32d |
 | Automatisk omfattningsanalys | ⬜ Finns inte | Etapp 32b |
-| Återställning från backup | ⬜ **Ingen funktion finns** | Etapp 33a |
+| Återställning från backup | ✅ Klart (2026-07-31, se steg 8) | Etapp 33a |
+| Gallring av gamla backuper | ⬜ **Väntar på ägarens retentionsbeslut** | Etapp 33c |
 | Extern incidentkompetens | ⬜ Ej upphandlad | Policyns avsnitt 11 |
 
 **Så länge kolumnen ovan innehåller ⬜ är din faktiska detektionsförmåga begränsad till att

@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.54.0",
+    datum: "2026-07-31",
+    andringar: [
+      "Backuper kan nu återställas vid dataförlust, inte bara tas – testat och verifierat end-to-end",
+    ],
+  },
+  {
     version: "5.53.0",
     datum: "2026-07-31",
     andringar: [

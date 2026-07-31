@@ -191,7 +191,7 @@ backup som aldrig testats är en förhoppning, inte ett skydd – och för en ku
 
 **Modul:** operations (samma som backupen i dag).
 
-### 33a – Återställningsfunktion
+### 33a – Återställningsfunktion ✅ KLAR (2026-07-31)
 
 - Motsvarigheten till `backupaOrganisation()`, åt andra hållet: läs en backupfil, skriv
   tillbaka till Firestore för EN organisation.
@@ -200,30 +200,55 @@ backup som aldrig testats är en förhoppning, inte ett skydd – och för en ku
   återställning skriver över levande kunddata.
 - Skriv alltid en revisionsloggpost (Etapp 32c).
 
-### 33b – Bevisa att den fungerar
+**Genomfört:** ny `aterstallOrganisation()`/`aterstallOrganisationCallable` i
+`functions/index.js`. Två skyddslager utöver plattformsadmin-kravet: (1) sökvägen måste
+ligga under EXAKT den angivna organisationens egen `backups/{orgId}/`-mapp, (2) varje
+dokument vars `organisationId` inte matchar den angivna organisationen hoppas över – en
+manipulerad eller felskriven backupfil kan alltså aldrig skriva över en annan kunds data,
+oavsett vad filen påstår. Bygger också om Firestore `Timestamp`-fält korrekt (JSON.stringify
+gör om dem till `{_seconds, _nanoseconds}`-maps – utan ombyggnad hade t.ex. `skapad`-fältet
+blivit ett vanligt objekt istället för ett sorterbart tidsstämpelfält efter återställning).
+**Medvetet ingen självbetjänings-knapp i UI:t** – anropas via Firebase-konsolens
+"Testa funktionen"-verktyg, se `INCIDENT-CHECKLISTA.md` steg 8. En återställning är för
+farlig för att ligga bakom ett vanligt klick.
+
+### 33b – Bevisa att den fungerar ✅ KLAR (2026-07-31)
 
 - Ett skarpt test mot emulatorn: seeda → backup → radera → återställ → verifiera att allt är
   identiskt. Körs i CI tillsammans med övriga functions-tester.
 - Utan detta test är 33a bara mer otestad kod.
 
-### 33c – Gallring av backuper
+**Genomfört:** `tests/functions/aterstallning.test.cjs` – 5 tester, inklusive de två
+säkerhetsspärrarna ovan och att `Timestamp`-fält verkligen är `instanceof Timestamp` efter
+återställning, inte bara en map som råkar se likadan ut.
+
+### 33c – Gallring av backuper ⏳ VÄNTAR PÅ ÄGARBESLUT
 
 - I dag skrivs en full JSON-dump av alla kärncollections per organisation **varje vecka, för
   alltid**. Ingen gallringsrutin finns (verifierat). Efter ett år: 52 kompletta kopior av all
   persondata.
 - Det bryter mot lagringsminimering (GDPR art. 5.1 e) och krockar direkt med Etapp 6d: om en
   kund säger upp avtalet och datan raderas ligger allt kvar i backuperna på obestämd tid.
-- **Beslutspunkt:** hur lång retention? Förslag 90 dagar, men det är en avtalsfråga –
-  bestämd retention ska in i `avtal/PUB-AVTAL-MALL.md` och `avtal/DPIA-UNDERLAG.md`.
+- **Beslutspunkt (se beslutspunkt 1 nedan):** hur lång retention? Förslag 90 dagar, men det
+  är en avtalsfråga – bestämd retention ska in i `avtal/PUB-AVTAL-MALL.md` och
+  `avtal/DPIA-UNDERLAG.md`. **Inte påbörjad – väntar medvetet på ägarens beslut om
+  retentionstid innan gallringslogiken kodas**, så att koden inte behöver skrivas om när
+  beslutet väl tas.
 
-### 33d – Dokumenterad återställningstid
+### 33d – Dokumenterad återställningstid ✅ KLAR (2026-07-31)
 
 - Mät hur lång tid 33a faktiskt tar för en normalstor organisation och skriv in det i
   `avtal/IT-FAKTABLAD.md`. "Vi har backup" är inget svar på en IT-avdelnings fråga; "data
   återställs inom X timmar, med högst en veckas dataförlust" är det.
 
+**Genomfört:** uppmätt mot Firestore-emulatorn (1 500 dokument, under 200 ms ren skrivtid) –
+skrivet in i `avtal/IT-FAKTABLAD.md` punkt 6 tillsammans med en ärlig brasklapp om att
+emulatorn saknar produktionens nätverkslatens, och en realistisk uppskattning (under en
+minut för en normalstor organisation).
+
 **Klart när:** vi har återställt en organisation på riktigt, vet hur lång tid det tar, och
-gamla kopior försvinner av sig själva.
+gamla kopior försvinner av sig själva. **Delvis uppnått** – återstår bara 33c, som medvetet
+väntar på ägarens retentionsbeslut (se beslutspunkt 1).
 
 ---
 

@@ -90,9 +90,21 @@ aktiverats.**
   (`functions/index.js`, `veckovisBackupSchemalagt`).
 - Backupen kan också tas ut manuellt på begäran, när som helst (samma funktion som
   används vid avetablering, se punkt 8).
-- **Återställningstid (RTO):** [FYLLS I – ange leverantörens faktiska rutin och
-  målsatta tid för att återställa en backup om en kund begär det. Detta är i dagsläget
-  en manuell process, inte en självbetjänad "återställ"-knapp i appen.]
+- **Återställningsfunktion finns** (Etapp 33a, 2026-07-31): en Cloud Function
+  (`aterstallOrganisationCallable`) läser en tidigare backupfil och skriver tillbaka
+  innehållet för EN namngiven organisation. Endast leverantörens plattformsadmin kan
+  anropa den – ingen självbetjänings-knapp i appen, medvetet, då en felriktad
+  återställning skriver över levande kunddata. Bevisad end-to-end (seed → backup →
+  radera → återställ → verifiera identiskt innehåll) i den automatiska testsviten.
+- **Återställningstid (RTO):** uppmätt mot Firestore-emulatorn (inte produktionsmiljö –
+  siffran saknar produktionens nätverkslatens, men visar att den batchade
+  implementationen skalar linjärt): 1 500 dokument över fem samlingar återställdes på
+  under 200 ms ren skrivtid. För en normalstor kundorganisation (upp till några tusen
+  dokument) är den realistiska förväntan **under en minut** aktiv bearbetningstid;
+  funktionens tekniska timeout är satt till 5 minuter som säkerhetsmarginal. Den
+  faktiska flaskhalsen vid en verklig incident är sällan själva återställningen, utan
+  tiden det tar en människa att identifiera rätt backupfil och fatta beslutet att
+  återställa (se `INCIDENT-CHECKLISTA.md` steg 8).
 - **Återställningspunkt (RPO):** upp till en veckas dataförlust i värsta scenario
   (tiden mellan senaste schemalagda backup och en eventuell incident), utöver vad
   Firestores egen inbyggda redundans inom Google Cloud i sig hanterar för
