@@ -21,8 +21,9 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 1. **`CLAUDE_STATUS.md`** – läs FÖRST. Kort "var slutade vi, vad gör jag nu"-sammanfattning,
    uppdateras löpande. Pekar vidare till detaljer i planfilerna nedan.
-2. **`ETAPPLAN4.md`** – den AKTIVA utvecklingsplanen (Etapp 22–30). Om användaren ber om
-   fortsatt arbete utan att specificera vad: det är här nästa punkt finns.
+2. **`ETAPPLAN5.md`** – den AKTIVA utvecklingsplanen (Etapp 32–36: säkerhet, upptäckt,
+   incidentberedskap). Om användaren ber om fortsatt arbete utan att specificera vad: det är
+   här nästa punkt finns.
 3. Övriga dokument nedan, efter behov.
 
 ## Dokumentkarta
@@ -31,7 +32,8 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 | Fil | Innehåll | Status |
 |---|---|---|
-| `ETAPPLAN4.md` | Etapp 22–30 (aktuell plan) | **Aktiv.** 22–25 + en UI-designjustering klara, 26–30 kvar. |
+| `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv.** Inget påbörjat ännu. |
+| `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast för vad som kommer EFTER säkerhetsbasen (sälj det byggda / förtjäna förtroendet) | **Utkast, ej antagna.** Ett av dem väljs när `ETAPPLAN5.md` är klar. |
 | `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv**, uppdatera varje session. |
 | `src/data/andringslogg.js` | Användarvänd ändringslogg, visas i appen (`/nyheter`) | **Aktiv** – lägg till en post vid VARJE release. |
 | `UTVECKLINGSLOGG.md` | Fullständig kronologisk teknisk historik ("Fas 1–41+") | **Aktiv**, växer varje fas. |
@@ -43,12 +45,13 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 | `ETAPPLAN.md` | Etapp 0–5: organisationsmodell (multi-tenant), grundfunktioner. Allt klart. |
 | `ETAPPLAN2.md` | Etapp 6–12: leverantörsadmin, feature-gating, driftskulder, säkerhetshärdning. Klart utom uttryckligen villkorade/ej efterfrågade delar (se filens egna markeringar). |
 | `ETAPPLAN3.md` | Etapp 13–21: upphandlingspaket, revisionslogg, onboarding, rollbaserad startvy, checklistläge, kompetenspaket, bristanmälan, källbevakning. Klart utom 13f (SSO) och Etapp 16 (veckopuls) – båda medvetet pausade, väntar på ägarbeslut. |
+| `ETAPPLAN4.md` | Etapp 22–31: medarbetarnära funktioner (namn/bilder, kommandopalett, push, "sedan ditt förra pass", ändringsförslag, skanning i förrådet, kundprofil, offline, snabbhet/WCAG) + uppföljning på en extern kodgranskning. Klart utom 30b (fysiskt akutlägestest) och 31c/12c-ii (App Check-enforcement) – båda väntar på ägaren. |
 | `ETAPP1-ARBETSUPPGIFTER.md` | Detaljerad uppgiftslista för allra första etappen. Rent historiskt. |
 
 **Varför inte slå ihop dessa till en fil?** Varje fil representerar en avslutad fas av
 planeringsarbete – att slå ihop dem skulle förlora den kronologiska bilden av hur planen
 utvecklats och göra det svårare att se VILKEN etapp som hörde till VILKEN release. Håll dem
-separata; skriv en ny `ETAPPLANx.md` när `ETAPPLAN4.md` är klar, istället för att skriva om
+separata; skriv en ny `ETAPPLANx.md` när den aktiva planen är klar, istället för att skriva om
 en gammal.
 
 ### Sammanfattande/pekande dokument (kort, ska ALDRIG duplicera detaljer från planerna ovan)
