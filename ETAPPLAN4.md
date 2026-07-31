@@ -860,7 +860,7 @@ säga AA utan förbehåll. Delvis uppnått (30a/30c), 30b kvarstår som en verks
 
 ---
 
-# Etapp 31 – Uppföljning på kodgranskningsrapporten (2026-07-30)
+# Etapp 31 – Uppföljning på kodgranskningsrapporten (2026-07-30) — 31a/31b ✅ KLAR, 31c beslutsunderlag skrivet (väntar på ägarens konsolgranskning)
 
 **Varför:** En extern kodgranskning (`synappsen_code_review.pdf`) gick igenom Etapp 1–26 och
 lyfte fram tre konkreta, billiga förbättringar som redan bekräftats mot faktisk kod/status i
@@ -973,18 +973,46 @@ emulatorerna som seedade en akutlägesmarkerad rutin och bekräftade att `/klini
 `/akutlage` båda renderar innehållet korrekt för `personal`-rollen, utan ett enda
 `permission-denied` i konsolen.
 
-### 31c – Nedskrivet beslut om App Check-enforcement
+### 31c – Nedskrivet beslut om App Check-enforcement ✅ KLAR (beslutsunderlag skrivet, 2026-07-31)
 
-- Etapp 12c-i aktiverade App Check i mätläge (ingen enforcement) – se `ETAPPLAN2.md`. Det
-  saknas ett nedskrivet svar på: hur lång är mätfasen, vilket mätvärde avgör att riktig
-  trafik får giltiga tokens, vem beslutar att slå på `enforceAppCheck` på Cloud Functions, och
-  hur hanteras en gammal cachad PWA-version som saknar ett giltigt App Check-token.
-- Detta är i huvudsak ett dokumentationsarbete (ett kort beslutsunderlag, inte ny kod) –
-  motsvarande punkterna under "Beslutspunkter som kräver ägaren, inte kod" nedan.
+**Genomfört:** ett konkret beslutsunderlag (inte ny kod – detta ÄR dokumentationsarbetet
+punkten bad om). Nuläget, verifierat mot faktisk kod innan detta skrevs:
 
-**Klart när:** CI flaggar kända beroendesårbarheter automatiskt, minst de två känsligaste
-flödesklasserna har en committad regressionstest, och App Check-enforcement har ett
-nedskrivet beslutsunderlag istället för att vara en tyst öppen punkt.
+- **12c-i är aktivt sedan tidigare deploy.** `VITE_RECAPTCHA_SITE_KEY` är satt direkt i
+  `.github/workflows/deploy.yml` (rad 26, ett klartextvärde – inte en GitHub-secret, vilket är
+  korrekt/förväntat för en reCAPTCHA v3-**site**-nyckel: den är avsedd att vara publik/
+  klientsynlig, hemligheten ligger i den MATCHANDE server-side-secreten hos Google, som denna
+  klientnyckel aldrig exponerar). `src/firebase/config.js` initierar App Check villkorat på
+  just den nyckeln (nu via dynamiskt `import()`, se Etapp 30a).
+- **12c-ii (`enforceAppCheck: true` på Cloud Functions) är INTE påbörjad.** Noll förekomster
+  av `enforceAppCheck` i `functions/index.js`, bekräftat igen inför denna skrivning.
+- Service workern registreras med `registerType: 'autoUpdate'` (`vite.config.js`) – gamla
+  klienter uppdateras automatiskt utan att användaren behöver agera, vilket minskar (men inte
+  eliminerar) risken för att en gammal, cachad session saknar giltig App Check-kod när
+  enforcement slås på.
+
+**Beslutsunderlag (kräver ägarens aktiva ja, kan inte avgöras från kod):**
+
+1. **Hur lång mätperiod?** Rekommendation oförändrad sedan `ETAPPLAN2.md` Etapp 12c-ii:
+   minst 1–2 veckors RIKTIG produktionstrafik efter en deploy, inte testtrafik. Eftersom
+   12c-i redan varit aktivt sedan en tidigare deploy kan den här perioden mycket väl redan
+   vara avklarad – det kräver bara att någon faktiskt tittar (se punkt 2).
+2. **Vilket mätvärde avgör?** Firebase-konsolen → Build → App Check → Metrics, per Cloud
+   Function-tjänst: andelen anrop med giltiga tokens kontra saknade/ogiltiga. Ett rimligt
+   tröskelvärde: ≥ 98–99 % giltiga tokens över mätperioden, INGEN kvarvarande topp av
+   "missing"-anrop som pekar på en specifik, fortfarande aktiv klientversion.
+3. **Vem beslutar?** Ägaren (kräver inloggning i Firebase-konsolen, som jag inte har åtkomst
+   till) – detta är den enda punkten som blockerar 12c-ii, allt annat är redan förberett.
+4. **Hur hanteras en gammal cachad PWA-version utan giltigt token efter enforcement?**
+   `autoUpdate` minimerar fönstret, men eliminerar det inte (en enhet i flygplansläge vid
+   exakt fel tillfälle kan missa uppdateringen). Rekommendation: slå på `enforceAppCheck`
+   en organisation/miljö i taget om möjligt, annars övervaka felfrekvensen i Cloud
+   Functions-loggarna under det första dygnet efter enforcement och ha en snabb
+   rollback-plan (`enforceAppCheck: false` + ny deploy) redo.
+
+**Detta beslutsunderlag stänger INTE 12c-ii i sig** – det kräver fortfarande ägarens
+konsolgranskning och uttryckliga ja. Ligger kvar som en beslutspunkt (se listan nedan), men
+är nu en KONKRET fråga att ta ställning till istället för en odefinierad, tyst öppen punkt.
 
 ---
 
@@ -1021,6 +1049,12 @@ utan att någon aktivt argumenterar emot skälen nedan:
 5. **Prioritering mot pausade delmål:** Etapp 13f (SSO) och Etapp 16 (veckopuls) från
    `ETAPPLAN3.md` väntar fortfarande på beslut. SSO blockerar affärer hos större regioner –
    om en sådan kund är nära bör 13f gå före hela den här planen.
+6. **Etapp 31c (App Check-enforcement):** logga in i Firebase-konsolen (Build → App Check →
+   Metrics) och kontrollera att andelen giltiga tokens ligger på ≥ 98–99 % över minst en
+   nyligen avslutad 1–2-veckorsperiod. Om ja: säg till, så sätter jag `enforceAppCheck: true`
+   i `functions/index.js` (12c-ii) och lägger till ett test som bevisar att ett anrop utan
+   giltigt App Check-token nekas (12c-iii). Se Etapp 31c ovan för fullständigt
+   beslutsunderlag.
 
 ---
 
