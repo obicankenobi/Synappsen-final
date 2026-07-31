@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.53.0",
+    datum: "2026-07-31",
+    andringar: [
+      "Vi upptäcker nu automatiskt om en organisations AI-budget snabbt håller på att ta slut, istället för att bara stoppa tolkningen tyst när taket är nått",
+    ],
+  },
+  {
     version: "5.52.0",
     datum: "2026-07-31",
     andringar: [

@@ -85,7 +85,7 @@ detektion är allt annat i den här planen reaktivt i efterhand.
   fullständigt testsvep (lint, vitest, build, rules, functions, storage, e2e) – e2e-svepet
   bekräftar dessutom att `personal`-rollens tidigare fix (Etapp 31b) fortfarande håller.
 
-### 32b – Larm på avvikelsemönster
+### 32b – Larm på avvikelsemönster ⚠️ DELVIS KLAR (2026-07-31) – se ärlig statusgenomgång nedan
 
 Ett schemalagt jobb som larmar (in-app till plattformsadmin + Sentry) vid:
 
@@ -94,7 +94,34 @@ Ett schemalagt jobb som larmar (in-app till plattformsadmin + Sentry) vid:
   det närmaste vi kommer exfiltreringsdetektion utan att bygga något tungt).
 - Misslyckade inloggningsförsök i serie mot samma konto.
 - Plötslig kostnadsspik i Gemini-/sökmotorbudgeten (budgetspärren finns – men den *stoppar*
-  tyst, den *larmar* inte).
+  tyst, den *larmar* inte). ✅ **Genomfört:** `reserveraBudget()` sätter nu en
+  `budgetvarningSkickad`-flagga (nollställs vid månadsskifte) och skickar EN
+  `Sentry.captureMessage` per månad när förbrukningen passerar 80% av taket – inte vid varje
+  anrop därefter. Skickas medvetet ENDAST till Sentry, inte till den delade
+  `systemvarningar`-collectionen (den läses av VILKEN superadmin som helst, oavsett
+  organisation – att lägga en organisations budgetförbrukning där hade läckt den siffran till
+  alla andra kunders admins). 4 nya functions-tester (`tests/functions/etapp32b.test.cjs`).
+
+**Ärlig statusgenomgång på de tre återstående punkterna – varför de INTE är byggda:**
+alla tre kräver infrastruktur utanför appens egen kod, som den här sessionen inte har
+tillgång till att sätta upp:
+
+- **Upprepade `permission-denied`:** dessa syns bara i Sentry (klientsidan, sedan Etapp 32a) –
+  en Cloud Function kan inte fråga Sentrys egen händelsedatabas utan ett separat Sentry
+  API-token (inte samma sak som DSN:en som används för att SKICKA händelser). Kräver ett
+  ägarbeslut om att skapa och lagra ett sådant token som en GitHub/Firebase-secret.
+- **Ovanligt läsmönster:** Firestores per-användare läsvolym exponeras inte till Cloud
+  Functions utan att antingen (a) instrumentera varenda läsanrop i klienten själv (stor
+  arkitekturändring, hög risk för den här sessionen att göra utan avstämning), eller (b)
+  aktivera GCP:s faktureringsexport till BigQuery och fråga den – ett projektval i
+  Google Cloud Console, inte en kodändring.
+  - **Misslyckade inloggningsförsök i serie:** Firebase Auth exponerar inte detta till Cloud
+  Functions som standard – kräver Identity Platform-granskningsloggar exporterade till Cloud
+  Logging/BigQuery, återigen en konsolkonfiguration, inte kod.
+
+**Slutsats:** budgetlarmet är den enda av de fyra punkterna som var byggbar med data appen
+redan har. De tre andra kräver ett ägarbeslut (och i två fall en betald GCP-tjänst) innan de
+kan påbörjas – se beslutspunkterna längst ned i den här planen.
 
 **Gränsdragning:** detta är avvikelselarm, inte ett SIEM. Målet är att någon får veta samma
 dygn, inte att bygga en säkerhetsoperationsavdelning.
@@ -406,6 +433,10 @@ gör att den fortsätter göra det.
 4. **Etapp 36c:** extern penetrationstest – ja eller nej, och i så fall när?
 5. **Kvarstående sedan tidigare:** ToS-genomgång för källbevakningens sju domäner
    (`SAKERHETSRAPPORT.md`, tillägg 2026-07-28) samt Etapp 30b (fysiskt akutlägestest).
+6. **Etapp 32b (resterande tre larmtyper):** vill ägaren skapa och betala för ett Sentry
+   API-token (för att fråga permission-denied-historik) och/eller aktivera GCP:s
+   faktureringsexport till BigQuery (för läsvolym och misslyckade inloggningar)? Utan dessa
+   beslut kan de tre punkterna inte påbörjas – det är inte en kodfråga.
 
 ---
 

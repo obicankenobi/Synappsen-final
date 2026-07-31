@@ -175,10 +175,18 @@ async function kontrolleraOchOkaHastighet(uid, typ, maxPerFonster) {
 // Exporterad enbart för tests/functions/klinikstodratelimit.test.cjs.
 exports.kontrolleraOchOkaHastighet = kontrolleraOchOkaHastighet;
 
+// Etapp 32b: en plötslig kostnadsspik "tystnar" idag – budgetspärren STOPPAR anropet vid
+// taket, men larmar aldrig innan dess, så en organisation kan gå från 10% till 100% använd
+// budget mellan två adminpanelsbesök utan att någon blir varskodd. Larmar EN gång per månad
+// (flaggan nollställs vid månadsskiftet ovan) när förbrukningen passerar tröskeln, inte vid
+// varje anrop därefter – annars drunknar en riktig spik i upprepade larm.
+const BUDGETVARNING_TROSKEL = 0.8;
+
 // Kontrollerar och reserverar budget innan ett dyrt Gemini-anrop görs.
 // Kastar fel om månadens tak är nått, så att vi aldrig betalar för anrop vi inte har råd med.
 async function reserveraBudget(orgId, uid) {
   const budgetRef = budgetDok(orgId);
+  let larmAttSkicka = null;
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(budgetRef);
     const data = snap.exists ? snap.data() : {};
@@ -187,6 +195,7 @@ async function reserveraBudget(orgId, uid) {
     let anvantOre = data.anvantOre ?? 0;
     let aktuellManad = data.aktuellManad ?? manad;
     let anvantPerUid = data.anvantPerUid ?? {};
+    let budgetvarningSkickad = data.budgetvarningSkickad ?? false;
     const taketOre = data.taketOre ?? STANDARD_TAK_ORE;
 
     if (aktuellManad !== manad) {
@@ -204,6 +213,7 @@ async function reserveraBudget(orgId, uid) {
       anvantOre = 0;
       anvantPerUid = {};
       aktuellManad = manad;
+      budgetvarningSkickad = false;
     }
 
     if (anvantOre >= taketOre) {
@@ -222,13 +232,31 @@ async function reserveraBudget(orgId, uid) {
     }
 
     anvantPerUid = { ...anvantPerUid, [uid]: anvantAvDennaAnvandare + UPPSKATTAD_KOSTNAD_ORE };
+    const nyttAnvantOre = anvantOre + UPPSKATTAD_KOSTNAD_ORE;
+
+    if (!budgetvarningSkickad && taketOre > 0 && nyttAnvantOre / taketOre >= BUDGETVARNING_TROSKEL) {
+      budgetvarningSkickad = true;
+      larmAttSkicka = { orgId, anvantOre: nyttAnvantOre, taketOre };
+    }
 
     tx.set(
       budgetRef,
-      { anvantOre: anvantOre + UPPSKATTAD_KOSTNAD_ORE, aktuellManad, taketOre, anvantPerUid },
+      { anvantOre: nyttAnvantOre, aktuellManad, taketOre, anvantPerUid, budgetvarningSkickad },
       { merge: true }
     );
   });
+
+  // Skickas EFTER transaktionen (samma mönster som losInInbjudan/loggaRevision) – Sentry, INTE
+  // systemvarningar: den collectionen är delad, orgs-oberoende infrastruktur (superadmin i
+  // VILKEN organisation som helst kan läsa den, se firestore.rules) och skulle här läcka
+  // en annan kunds AI-förbrukning till alla andra kunders superadmins.
+  if (larmAttSkicka) {
+    Sentry.captureMessage("AI-budget närmar sig taket", {
+      level: "warning",
+      tags: { typ: "budgetvarning" },
+      extra: larmAttSkicka,
+    });
+  }
 }
 // Exporterad enbart för tests/functions/kostnadshistorik.test.cjs.
 exports.reserveraBudget = reserveraBudget;

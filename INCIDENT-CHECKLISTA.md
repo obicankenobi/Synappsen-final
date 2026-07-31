@@ -3,7 +3,7 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-07-31 · **Motsvarar kodläge:** v5.52.0
+**Senast uppdaterad:** 2026-07-31 · **Motsvarar kodläge:** v5.53.0
 
 > Den här filen är skriven för att läsas när du är ensam, trött och stressad. Följ den uppifrån
 > och ned. Hoppa inte över steg 1–3 även om du tror att du vet vad som hänt.
@@ -257,8 +257,9 @@ användare. Sakligt, kort, verifierat.
 
 | Förmåga | Status | Kommer i |
 |---|---|---|
-| Larm vid avvikande beteende | ⬜ Finns inte | Etapp 32b |
-| `permission-denied` rapporteras | ✅ Klart (2026-07-31) | Etapp 32a |
+| Larm vid AI-budgetspik (80% av taket) | ✅ Klart (2026-07-31) | Etapp 32b |
+| Larm på upprepade `permission-denied`, ovanlig läsvolym, misslyckade inloggningar | ⬜ **Kräver ägarbeslut + betald tjänst** (Sentry API-token / GCP-faktureringsexport, ej en kodfråga) | Etapp 32b, se beslutspunkt 6 |
+| `permission-denied` rapporteras (till Sentry, ej realtidslarm) | ✅ Klart (2026-07-31) | Etapp 32a |
 | Rollbyte loggas i revisionsloggen | ✅ Klart (2026-07-31) | Etapp 32c |
 | Plattformsadmins tvärorg. läsning loggas | ✅ Klart (2026-07-31) | Etapp 32c |
 | Hashkedjan kontrolleras automatiskt | ✅ Klart (2026-07-31, varje natt 04:00) | Etapp 32d |
