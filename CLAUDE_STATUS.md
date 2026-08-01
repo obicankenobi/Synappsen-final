@@ -6,13 +6,15 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-01, version **5.56.0** – **DEPLOYAT TILL PRODUKTION** (körning
-#63, commit `382562b`, verifierad grön). **Den aktiva planen är sedan 2026-08-01
-`ETAPPLAN6.md` (Etapp 37–41, innehållets kvalitet och bevisad nytta) – inget av den är
-påbörjat.** `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd.
-**Läs de TVÅ NYA sektionerna längst ner i den här filen först** ("Uppföljning 2026-08-01" och
-"Uppföljning 2026-08-01 (senare samma dag)") om du undrar var arbetet står idag – allt mellan
-denna rad och dem (inklusive "Uppföljning 2026-07-28") är historisk, äldre kontext.
+**Senast uppdaterad:** 2026-08-01, version **5.57.0**. `ETAPPLAN6.md` (Etapp 37–41,
+innehållets kvalitet och bevisad nytta) är den aktiva planen – **Etapp 37a (innehållshälso-
+panelen) är nu klar**, byggd, testad och UI-verifierad, men **INTE ännu deployad till
+produktion** (senaste produktionsdeploy är fortfarande körning #63/`382562b`, v5.56.0).
+`ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs de TRE
+NYA sektionerna längst ner i den här filen först** ("Uppföljning 2026-08-01", "Uppföljning
+2026-08-01 (senare samma dag)" och "Uppföljning 2026-08-01 (Etapp 37a)") om du undrar var
+arbetet står idag – allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är
+historisk, äldre kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -420,6 +422,33 @@ en genomgång, inte rakt av):
 2. **"Kund nummer tre" fanns inte som fil.** Utkastet refererade till det som ett av tre
    skrivna alternativ; bara ALT-A och ALT-B existerar. Nu ärligt noterat på båda ställena –
    det måste skrivas ut som en riktig planfil innan det kan antas.
+
+## Uppföljning 2026-08-01 (Etapp 37a): innehållshälsopanelen byggd, INTE ÄNNU deployad
+
+**Etapp 37a klar.** Ny ren funktion `sammanstallHalsa()`/`berakningHalsa()` i
+`src/utils/innehallshalsa.js` (13 vitest-tester) + ny adminsektion
+`InnehallshalsaSektion.jsx` – visar per godkänd rutin om den bör granskas, saknar ägare,
+aldrig kvitterats, har en obesvarad källvarning eller är utgången, plus en sammanvägd
+hälsosiffra som **aldrig visas utan sin nedbrytning** (krav infört när `ETAPPLAN6.md`
+antogs). Superadmin ser alla tre områden, VÖL/sektionsledare/VEC/förrådsansvarig ser bara sitt
+eget. Ingen ny collection eller nytt Firestore-fält.
+
+**Premisskontroll (krav 8) hittade två fel i planutkastet innan bygget, båda löstes genom att
+INTE bygga det felaktiga kriteriet:** "aldrig visad" hade byggt på `visningar`-collectionen,
+som bara skrivs vid sökträffar/kommandopalett – inte vid vanlig bläddring – och hade flaggat
+nästan alla rutiner som aldrig lästa oavsett verklighet. "Saknade steg trots att
+checklistläget är påslaget för organisationen" beskrev en organisationsväxel som inte finns;
+checklistläge är en egenskap per rutin. Detaljerna står i `ETAPPLAN6.md` Etapp 37a.
+
+**Verifierat i en riktig webbläsare** (Playwright mot Firestore-/Auth-emulatorerna, inte bara
+vitest): en frisk rutin, en rutin med fyra flaggor, och ett utkast som korrekt hoppas över
+helt. Hälsosiffran (50%) visades tillsammans med sin fulla nedbrytning. Fullt testsvep grönt
+(lint, build, vitest 86/86, test:rules 13, test:functions, test:storage 21). Version 5.56.0 →
+**5.57.0**, ändringslogg uppdaterad.
+
+**INTE gjort ännu:** deploy till produktion (senaste produktionskörning är fortfarande #63,
+v5.56.0 – 37a ligger bara pushad till branchen). Etapp 37b–d (granskningsrundor, dubbletter,
+arkiverad status) är opåbörjade.
 
 ## Om du är en ny Claude-session som läser detta
 

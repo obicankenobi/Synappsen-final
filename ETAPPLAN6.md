@@ -126,11 +126,11 @@ kunskapsbanken?" men inte på "hur aktuell är den?".
 **Modul:** Core (panelen) / Operations (kampanjerna – de bygger på rutinägare och påminnelser
 som redan finns där).
 
-### 37a – Innehållshälsopanel
+### 37a – Innehållshälsopanel ✅ KLAR (2026-08-01)
 
 - En vy (superadmin, samt VÖL/VEC för sitt eget område) som per godkänd rutin visar: ålder,
-  passerat granskningsdatum, saknad ägare, aldrig visad, aldrig kvitterad av någon, obesvarad
-  källvarning, saknade steg trots att checklistläget är påslaget för organisationen.
+  passerat granskningsdatum, saknad ägare, aldrig kvitterad av någon, obesvarad
+  källvarning, utgångsdatum passerat.
 - En sammanvägd hälsosiffra per område och för organisationen, **med synlig uträkning** – aldrig
   ett svart-låda-betyg som ingen kan ifrågasätta.
 - **Siffran får aldrig visas utan sin nedbrytning i samma vy** (skärpning tillagd vid
@@ -140,11 +140,32 @@ som redan finns där).
   rutiner drar ner det här?" snarare än "hur höjer vi talet?". Av samma skäl: **exportera inte
   hälsosiffran som ett ensamt nyckeltal till ledningsrapporten** utan att de tre största
   bidragande orsakerna följer med.
-- **Premisskontroll före byggstart (krav 8):** `borGranskas()` i `utils/rutinHjalp.js`,
-  `useVisningar`, `useLaskvittering`, rutinägarfältet och källbevakningens varningar finns
-  redan (verifierat 2026-08-01, se premisskontrolltabellen överst). Det här är sannolikt i
-  huvudsak en sammanställning av befintlig data, inte ny insamling. Verifiera omfattningen per
-  fält innan den sätts.
+
+**Premisskontroll vid byggstart (krav 8) hittade TVÅ fel i utkastet, båda åtgärdade genom att
+ta bort respektive kriterium i stället för att bygga något som ger fel svar:**
+
+1. **"Aldrig visad" gick INTE att bygga på `visningar`-collectionen.** Den skrivs bara när en
+   rutin öppnas via sökresultat eller kommandopaletten (`SokFalt.jsx`/
+   `KommandopalettInnehall.jsx`) – inte vid vanlig bläddring i en sektion, vilket är hur de
+   flesta faktiskt läser en rutin. Kriteriet hade flaggat nästan alla rutiner som "aldrig
+   visade" oavsett hur ofta de faktiskt lästs. En felaktig signal är värre än ingen (samma
+   princip som redan gäller incidentdokumenten) – kriteriet är därför medvetet inte byggt.
+2. **"Saknade steg trots att checklistläget är påslaget för organisationen" beskrev en växel
+   som inte finns.** Checklistläge är en egenskap per rutin (om `steg` är ifyllt), inte ett
+   organisationsomfattande moduläge. Kriteriet är därför omöjligt att implementera som
+   beskrivet och är utelämnat.
+
+**Genomfört:** ren beräkningsfunktion `sammanstallHalsa()`/`berakningHalsa()` i
+`src/utils/innehallshalsa.js` (13 vitest-tester, inklusive att en tom organisation ger `null`
+i stället för 0, och att utkast aldrig räknas med). Ny sektion
+`InnehallshalsaSektion.jsx` i adminpanelen – visas hela för superadmin (alla tre områden:
+kliniskt-stod, logistik, administration) och begränsad till eget område för VÖL/sektions-
+ledare/VEC/förrådsansvarig (`endastOmrade`-prop). Ingen ny collection, inget nytt Firestore-
+fält – ren sammanställning av `granskadDatum`, `agare`, `lasteAv`, `kallVarning`,
+`utgangsdatum`, precis som premisskontrollen förutsåg. Verifierat i en riktig webbläsare mot
+Firestore-/Auth-emulatorerna (Playwright, inte bara vitest): en frisk rutin utan flaggor, en
+rutin med fyra flaggor, och ett utkast som korrekt utelämnas helt – hälsosiffran (50%) visades
+tillsammans med sin fullständiga nedbrytning, aldrig ensam. Version 5.56.0 → **5.57.0**.
 
 ### 37b – Riktade granskningsrundor
 

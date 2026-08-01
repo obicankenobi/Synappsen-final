@@ -53,6 +53,7 @@ import RevisionsloggSektion from "../components/admin/RevisionsloggSektion";
 import StartvyKonfigurationSektion from "../components/admin/StartvyKonfigurationSektion";
 import OrganisationBrandingSektion from "../components/admin/OrganisationBrandingSektion";
 import ChecklistStatistikSektion from "../components/admin/ChecklistStatistikSektion";
+import InnehallshalsaSektion from "../components/admin/InnehallshalsaSektion";
 import "./Admin.css";
 
 // Vilket område en icke-superadmin-redaktörsroll ansvarar för, för den områdesscopade statistiken
@@ -487,6 +488,9 @@ export default function Admin() {
           kvitteradeIMittOmrade={kvitteradeIMittOmrade}
         />
       )}
+
+      {arSuperadmin && <InnehallshalsaSektion />}
+      {mittOmrade && !arSuperadmin && <InnehallshalsaSektion endastOmrade={mittOmrade} />}
 
       {arSuperadmin && (
         <BudgetSektion budget={budget} nyttTak={nyttTak} setNyttTak={setNyttTak} hanteraNyttTak={hanteraNyttTak} />

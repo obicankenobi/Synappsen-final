@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.57.0",
+    datum: "2026-08-01",
+    andringar: [
+      "Ny innehållshälsopanel i administrationen: se på en gång vilka rutiner som är gamla, saknar ägare eller aldrig kvitterats av någon",
+    ],
+  },
+  {
     version: "5.56.0",
     datum: "2026-08-01",
     andringar: [
