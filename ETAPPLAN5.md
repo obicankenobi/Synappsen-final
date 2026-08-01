@@ -463,10 +463,33 @@ version publicerad ännu** (det åtgärdande intervallet `>=8.3.0` existerar int
 utgivna är 7.18.2, ingen v8 publicerad). Ingen kodändring är möjlig just nu; Dependabot
 kommer föreslå en uppdatering automatiskt den dag en riktig patch släpps.
 
-### 35e – App Check-enforcement (avsluta 12c-ii) ⏳ VÄNTAR PÅ ÄGARBESLUT
+### 35e – App Check-enforcement (avsluta 12c-ii) ⏳ VÄNTAR – konsolen granskad, ännu inte redo
 
 - Redan förberett och dokumenterat i `ETAPPLAN4.md` Etapp 31c. Kräver bara ägarens
   konsolgranskning – se beslutspunkterna nedan.
+
+**Uppmätt (2026-08-01), Firebase-konsolen → App Check → Metrics:**
+
+| API | Period | Verified | Underlag |
+|---|---|---|---|
+| Cloud Firestore | Senaste 24h | 100% | 194/194 |
+| Cloud Firestore | Senaste 30 dagar | 89% (+3% outdated client) | ~5 000 |
+| Storage | Senaste 30 dagar | 0% ("unknown origin") | 10 |
+| Authentication (Preview) | Senaste 30 dagar | 65% | 66 |
+
+**Rekommendation: slå INTE på `enforceAppCheck` ännu.** Firestore (den API:n som bär i
+princip all riktig trafik) ligger på 89% över 30 dagar – bra, men under den ~98%-marginal
+som är rimlig innan man slår på ett switch som avvisar allt annat. Storage-siffran (0/10)
+är för litet underlag för att agera på direkt, men värd att utreda: appens
+Storage-*läsningar* går nästan alltid via `getDownloadURL()`-länkar som hämtas direkt av
+webbläsaren – den vägen går aldrig via Storage-SDK:t och syns aldrig i App Check alls. De 10
+requests som väl syns är sannolikt riktiga uppladdningar (foton/loggor/avatarer), och INGEN
+av dem verifierades – det bör förstås innan enforcement slås på för Storage, inte ignoreras.
+Authentication (preview, 66 requests) har för lite underlag för att spela roll för beslutet
+och skyddar inget den här appen faktiskt använder (bara e-post/lösenord, ingen telefon-auth).
+**Nästa steg:** låt mätningen fortsätta några veckor till, kontrollera sedan Firestore mot
+~98%+ och utred varför Storage-uppladdningar inte verifierar innan Storage enforcement
+övervägs.
 
 ### 35f – Rutin för nyckelrotation ✅ KLAR (2026-08-01, reaktiv rutin – proaktivt intervall är ett ägarbeslut)
 
