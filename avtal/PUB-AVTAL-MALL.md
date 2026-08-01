@@ -78,12 +78,9 @@ underbiträden, och ge Kunden möjlighet att invända, i enlighet med art. 28.2 
   radering** av en avetablerad organisations data i produktionsdatabasen. Radering sker
   manuellt av Biträdet på skriftlig begäran från Kunden, inom [FYLLS I: avtalad tidsfrist,
   t.ex. 30 dagar].
-- **Backupretention (ägarbeslut 2026-08-01, se `ETAPPLAN5.md` Etapp 33c):** schemalagda
-  veckobackuper (`backups/{orgId}/...` i Firebase Storage) sparas i **90 dagar**. **Känd
-  begränsning:** denna retentionstid är beslutad men den automatiska gallringslogiken
-  (Storage lifecycle-regel eller schemalagd städfunktion) är ännu inte byggd i koden – fram
-  till dess måste äldre backuper raderas manuellt vid en sådan begäran, på samma sätt som
-  produktionsdatan ovan.
+- **Backupretention (ägarbeslut och genomfört 2026-08-01, se `ETAPPLAN5.md` Etapp 33c):**
+  schemalagda veckobackuper (`backups/{orgId}/...` i Firebase Storage) raderas automatiskt
+  efter **90 dagar** av en schemalagd funktion som körs varje vecka.
 
 ## 7. Säkerhetsåtgärder
 

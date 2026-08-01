@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.56.0",
+    datum: "2026-08-01",
+    andringar: [
+      "Gamla säkerhetskopior rensas nu bort automatiskt efter 90 dagar, i stället för att sparas för alltid",
+    ],
+  },
+  {
     version: "5.55.0",
     datum: "2026-08-01",
     andringar: [

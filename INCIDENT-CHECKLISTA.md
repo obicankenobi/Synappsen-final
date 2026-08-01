@@ -3,13 +3,13 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-01 · **Motsvarar kodläge:** v5.55.0
+**Senast uppdaterad:** 2026-08-01 · **Motsvarar kodläge:** v5.56.0
 
 > **Ägarbeslut 2026-08-01:** jourkontakt utanför kontorstid ifylld (se tabellen nedan).
-> Beslutad backup-retention: 90 dagar (kodning kvarstår, se `ETAPPLAN5.md` Etapp 33c).
-> Beslutad nyckelrotation: proaktivt en gång per år utöver den reaktiva rutinen (se
-> "Nyckelrotation" nedan). Extern penetrationstest: nej, inte just nu (se `ETAPPLAN5.md`
-> beslutspunkt 4).
+> Backup-retention 90 dagar, gallringslogiken byggd och testad (se `ETAPPLAN5.md` Etapp 33c).
+> Nyckelrotation: proaktivt en gång per år utöver den reaktiva rutinen, med en automatisk
+> årlig påminnelse (se "Nyckelrotation" nedan). Extern penetrationstest: nej, inte just nu
+> (se `ETAPPLAN5.md` beslutspunkt 4).
 
 > Den här filen är skriven för att läsas när du är ensam, trött och stressad. Följ den uppifrån
 > och ned. Hoppa inte över steg 1–3 även om du tror att du vet vad som hänt.
@@ -230,8 +230,8 @@ användare. Sakligt, kort, verifierat.
       över varje dokument vars `organisationId` inte matchar – en felriktad fil kan alltså
       aldrig skriva över en annan kunds data. Återställningstiden för en normalstor
       organisation är uppmätt till se `avtal/IT-FAKTABLAD.md` (Etapp 33d).
-      **Gallring saknas ännu** (Etapp 33c, väntar på ett retentionsbeslut) – gamla
-      backupfiler tas inte bort automatiskt idag.
+      **Gallring är byggd** (Etapp 33c) – backupfiler äldre än 90 dagar tas nu bort
+      automatiskt varje måndag 03:30.
 - [ ] Har pausad organisation återaktiverats?
 - [ ] Är roterade nycklar deployade och verifierade?
 - [ ] Har du meddelat kunden att läget är återställt?
@@ -290,7 +290,7 @@ användare. Sakligt, kort, verifierat.
 | Hashkedjan kontrolleras automatiskt | ✅ Klart (2026-07-31, varje natt 04:00) | Etapp 32d |
 | Automatisk omfattningsanalys | ⬜ Finns inte | Etapp 32b |
 | Återställning från backup | ✅ Klart (2026-07-31, se steg 8) | Etapp 33a |
-| Gallring av gamla backuper | ⬜ **Väntar på ägarens retentionsbeslut** | Etapp 33c |
+| Gallring av gamla backuper | ✅ Klart (2026-08-01, 90 dagars retention) | Etapp 33c |
 | Extern incidentkompetens | ⬜ Ej upphandlad | Policyns avsnitt 11 |
 
 **Så länge kolumnen ovan innehåller ⬜ är din faktiska detektionsförmåga begränsad till att

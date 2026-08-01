@@ -222,17 +222,24 @@ farlig för att ligga bakom ett vanligt klick.
 säkerhetsspärrarna ovan och att `Timestamp`-fält verkligen är `instanceof Timestamp` efter
 återställning, inte bara en map som råkar se likadan ut.
 
-### 33c – Gallring av backuper ⏳ BESLUT TAGET (90 dagar, 2026-08-01) – KODNING KVARSTÅR
+### 33c – Gallring av backuper ✅ KLAR (2026-08-01)
 
 - I dag skrivs en full JSON-dump av alla kärncollections per organisation **varje vecka, för
-  alltid**. Ingen gallringsrutin finns (verifierat). Efter ett år: 52 kompletta kopior av all
-  persondata.
+  alltid**. Ingen gallringsrutin fanns (verifierat, före denna etapp). Efter ett år: 52
+  kompletta kopior av all persondata.
 - Det bryter mot lagringsminimering (GDPR art. 5.1 e) och krockar direkt med Etapp 6d: om en
   kund säger upp avtalet och datan raderas ligger allt kvar i backuperna på obestämd tid.
 - **Ägarbeslut (2026-08-01, se beslutspunkt 1 nedan): retention 90 dagar.** Inskrivet i
-  `avtal/PUB-AVTAL-MALL.md` p. 6. **Gallringslogiken (Storage lifecycle-regel eller
-  schemalagd städfunktion) är ännu INTE byggd** – det är nu en ren kodningsuppgift, inte
-  längre blockerad av ett ägarbeslut.
+  `avtal/PUB-AVTAL-MALL.md` p. 6.
+
+**Genomfört:** ny funktion `gallraGamlaBackuper()` i `functions/index.js` – listar alla filer
+under `backups/`-prefixet, tolkar datumet direkt ur filnamnet
+(`backups/{orgId}/{ÅÅÅÅ-MM-DD}.json`, samma format `backupaOrganisation()` redan skriver) och
+raderar filer äldre än `BACKUP_RETENTION_DAGAR = 90`. Ny schemalagd funktion
+`backupGallringSchemalagt` kör varje måndag 03:30 (30 minuter efter veckobackupen). Ny
+testfil `tests/functions/backup-gallring.test.cjs` (6 tester: raderar rätt fil, rör inte en
+nyare backup, rör inte en backup exakt på gränsen (89 dagar), rör inte en icke-backupfil,
+en andra körning raderar inget nytt). Version bumpad 5.55.0 → **5.56.0**.
 
 ### 33d – Dokumenterad återställningstid ✅ KLAR (2026-07-31)
 
@@ -246,8 +253,7 @@ emulatorn saknar produktionens nätverkslatens, och en realistisk uppskattning (
 minut för en normalstor organisation).
 
 **Klart när:** vi har återställt en organisation på riktigt, vet hur lång tid det tar, och
-gamla kopior försvinner av sig själva. **Delvis uppnått** – återstår bara 33c, som medvetet
-väntar på ägarens retentionsbeslut (se beslutspunkt 1).
+gamla kopior försvinner av sig själva. **Uppnått** – 33c klar, se ovan.
 
 ---
 
@@ -501,7 +507,10 @@ hemligheter som finns och var de lever, plus en steg-för-steg-rutin för att ro
 en (inklusive den känsligaste, `FIREBASE_SERVICE_ACCOUNT`, och en särskild anmärkning om att
 `FIREBASE_VAPID_KEY`-rotation tillfälligt stör befintliga push-prenumerationer).
 **Ägarbeslut (2026-08-01, se beslutspunkt 7 nedan): proaktiv rotation en gång per år**,
-utöver den reaktiva rutinen. Manuell rutin tills vidare – ingen automatisk påminnelse byggd.
+utöver den reaktiva rutinen. Rutinen är fortsatt manuell (ingen kod kör själva rotationen),
+men en årlig automatisk påminnelse (Claude Code Remote-Routine, `trig_01Mmw6BMfv6NePa9mLuNjE7Z`,
+nästa körning 2027-08-01) skickar nu en påminnelse till operatören så att det faktiskt sker
+i stället för att glömmas bort.
 
 **Klart när:** de verifierade luckorna är stängda och kända sårbarheter åtgärdas löpande i
 stället för att bara rapporteras. **Uppnått, förutom 35e** (väntar på ägarens
@@ -564,9 +573,9 @@ kodarbete väntar på det.
 
 ## Beslutspunkter som kräver ägaren
 
-1. ✅ **Etapp 33c (beslutat 2026-08-01):** retention på backuper = **90 dagar**. Inskrivet i
-   `avtal/PUB-AVTAL-MALL.md` p. 6. Gallringslogiken (Storage lifecycle-regel eller
-   schemalagd städfunktion) är nu en ren kodningsuppgift, se Etapp 33c ovan.
+1. ✅ **Etapp 33c (beslutat OCH byggt 2026-08-01):** retention på backuper = **90 dagar**.
+   Inskrivet i `avtal/PUB-AVTAL-MALL.md` p. 6. Gallringslogiken är byggd och testad
+   (`gallraGamlaBackuper()` + `backupGallringSchemalagt`, se Etapp 33c ovan) – helt klar.
 2. **Etapp 35e / 12c-ii:** granska App Check-metriken i Firebase-konsolen (Build → App Check →
    Metrics) och avgör om `enforceAppCheck` kan slås på. Fullständigt underlag finns i
    `ETAPPLAN4.md` Etapp 31c.
@@ -587,9 +596,11 @@ kodarbete väntar på det.
    API-token (för att fråga permission-denied-historik) och/eller aktivera GCP:s
    faktureringsexport till BigQuery (för läsvolym och misslyckade inloggningar)? Utan dessa
    beslut kan de tre punkterna inte påbörjas – det är inte en kodfråga.
-7. ✅ **Etapp 35f (beslutat 2026-08-01):** nycklar (Gemini/sökmotor/tjänstekonto/VAPID) roteras
-   proaktivt **en gång per år**, utöver den reaktiva rutinen som redan finns i
-   `INCIDENT-CHECKLISTA.md`. Manuell rutin tills vidare – ingen automatisk påminnelse byggd.
+7. ✅ **Etapp 35f (beslutat OCH bevakat 2026-08-01):** nycklar (Gemini/sökmotor/
+   tjänstekonto/VAPID) roteras proaktivt **en gång per år**, utöver den reaktiva rutinen som
+   redan finns i `INCIDENT-CHECKLISTA.md`. Själva rotationen är fortsatt manuell, men en
+   årlig automatisk påminnelse (Routine, nästa körning 2027-08-01) ser till att den faktiskt
+   utförs.
 
 ---
 

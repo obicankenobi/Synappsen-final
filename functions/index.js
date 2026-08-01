@@ -1597,6 +1597,43 @@ exports.veckovisBackupSchemalagt = onSchedule(
 // Exporterad enbart för tests/functions/backup.test.cjs.
 exports.backupaOrganisation = backupaOrganisation;
 
+// Etapp 33c: gallring av backuper äldre än retentionstiden. Ägarbeslut 2026-08-01 (se
+// ETAPPLAN5.md Etapp 33c, avtal/PUB-AVTAL-MALL.md p. 6): 90 dagar. Filnamnet självt bär
+// datumet (backups/{orgId}/{ÅÅÅÅ-MM-DD}.json, satt av backupaOrganisation ovan) – vi litar
+// på det snarare än filens skapelsemetadata, eftersom en återställd/kopierad fil ändå ska
+// räknas efter sitt ANGIVNA backup-datum, inte efter när den råkade hamna i bucketen.
+const BACKUP_RETENTION_DAGAR = 90;
+
+async function gallraGamlaBackuper() {
+  const [filer] = await bucket.getFiles({ prefix: "backups/" });
+  const grans = Date.now() - BACKUP_RETENTION_DAGAR * 24 * 60 * 60 * 1000;
+  let antalRaderade = 0;
+  for (const fil of filer) {
+    // Sökvägsformen är backups/{orgId}/{ÅÅÅÅ-MM-DD}.json.
+    const matchning = fil.name.match(/^backups\/[^/]+\/(\d{4}-\d{2}-\d{2})\.json$/);
+    if (!matchning) continue;
+    const filDatum = new Date(`${matchning[1]}T00:00:00Z`).getTime();
+    if (Number.isNaN(filDatum) || filDatum >= grans) continue;
+    await fil.delete();
+    antalRaderade++;
+  }
+  return antalRaderade;
+}
+// Exporterad enbart för tests/functions/backup-gallring.test.cjs.
+exports.gallraGamlaBackuper = gallraGamlaBackuper;
+
+exports.backupGallringSchemalagt = onSchedule(
+  { schedule: "every monday 03:30", timeZone: "Europe/Stockholm", region: "europe-west1", timeoutSeconds: 300 },
+  async () => {
+    try {
+      const antal = await gallraGamlaBackuper();
+      if (antal > 0) console.log(`Backupgallring: raderade ${antal} backup(er) äldre än ${BACKUP_RETENTION_DAGAR} dagar.`);
+    } catch (fel) {
+      console.error("Backupgallring misslyckades:", fel);
+    }
+  }
+);
+
 // Etapp 33a: motstycket till backupaOrganisation() – fanns inte alls tidigare (verifierat).
 // En backup som aldrig kan läsas tillbaka är en förhoppning, inte ett skydd.
 //
