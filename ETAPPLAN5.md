@@ -222,18 +222,17 @@ farlig för att ligga bakom ett vanligt klick.
 säkerhetsspärrarna ovan och att `Timestamp`-fält verkligen är `instanceof Timestamp` efter
 återställning, inte bara en map som råkar se likadan ut.
 
-### 33c – Gallring av backuper ⏳ VÄNTAR PÅ ÄGARBESLUT
+### 33c – Gallring av backuper ⏳ BESLUT TAGET (90 dagar, 2026-08-01) – KODNING KVARSTÅR
 
 - I dag skrivs en full JSON-dump av alla kärncollections per organisation **varje vecka, för
   alltid**. Ingen gallringsrutin finns (verifierat). Efter ett år: 52 kompletta kopior av all
   persondata.
 - Det bryter mot lagringsminimering (GDPR art. 5.1 e) och krockar direkt med Etapp 6d: om en
   kund säger upp avtalet och datan raderas ligger allt kvar i backuperna på obestämd tid.
-- **Beslutspunkt (se beslutspunkt 1 nedan):** hur lång retention? Förslag 90 dagar, men det
-  är en avtalsfråga – bestämd retention ska in i `avtal/PUB-AVTAL-MALL.md` och
-  `avtal/DPIA-UNDERLAG.md`. **Inte påbörjad – väntar medvetet på ägarens beslut om
-  retentionstid innan gallringslogiken kodas**, så att koden inte behöver skrivas om när
-  beslutet väl tas.
+- **Ägarbeslut (2026-08-01, se beslutspunkt 1 nedan): retention 90 dagar.** Inskrivet i
+  `avtal/PUB-AVTAL-MALL.md` p. 6. **Gallringslogiken (Storage lifecycle-regel eller
+  schemalagd städfunktion) är ännu INTE byggd** – det är nu en ren kodningsuppgift, inte
+  längre blockerad av ett ägarbeslut.
 
 ### 33d – Dokumenterad återställningstid ✅ KLAR (2026-07-31)
 
@@ -491,7 +490,7 @@ och skyddar inget den här appen faktiskt använder (bara e-post/lösenord, inge
 ~98%+ och utred varför Storage-uppladdningar inte verifierar innan Storage enforcement
 övervägs.
 
-### 35f – Rutin för nyckelrotation ✅ KLAR (2026-08-01, reaktiv rutin – proaktivt intervall är ett ägarbeslut)
+### 35f – Rutin för nyckelrotation ✅ KLAR (2026-08-01, reaktiv OCH proaktiv rutin – intervall beslutat)
 
 - Gemini- och sökmotornycklarna sätts i Secret Manager via `deploy.yml`; tjänstekontot ligger
   som GitHub-secret. Det finns ingen dokumenterad rotationsrutin och inget beslut om
@@ -500,8 +499,9 @@ och skyddar inget den här appen faktiskt använder (bara e-post/lösenord, inge
 **Genomfört:** ny sektion "Nyckelrotation" i `INCIDENT-CHECKLISTA.md` – en tabell över vilka
 hemligheter som finns och var de lever, plus en steg-för-steg-rutin för att rotera var och
 en (inklusive den känsligaste, `FIREBASE_SERVICE_ACCOUNT`, och en särskild anmärkning om att
-`FIREBASE_VAPID_KEY`-rotation tillfälligt stör befintliga push-prenumerationer). **Ett
-proaktivt rotationsintervall är medvetet INTE beslutat** – se beslutspunkt 7 nedan.
+`FIREBASE_VAPID_KEY`-rotation tillfälligt stör befintliga push-prenumerationer).
+**Ägarbeslut (2026-08-01, se beslutspunkt 7 nedan): proaktiv rotation en gång per år**,
+utöver den reaktiva rutinen. Manuell rutin tills vidare – ingen automatisk påminnelse byggd.
 
 **Klart när:** de verifierade luckorna är stängda och kända sårbarheter åtgärdas löpande i
 stället för att bara rapporteras. **Uppnått, förutom 35e** (väntar på ägarens
@@ -548,11 +548,13 @@ och en uttrycklig instruktion att skriva resultatet som ett `## Tillägg`-block 
 `SAKERHETSRAPPORT.md` – samma händelsestyrda mönster (inte minnesstyrt) som redan gäller för
 incidentdokumenten, med samma motivering (rapporten låg själv 51 releaser efter verkligheten).
 
-### 36c – Beslutspunkt: extern granskning ⏳ VÄNTAR PÅ ÄGARBESLUT (se beslutspunkt 4)
+### 36c – Beslutspunkt: extern granskning ✅ BESLUT TAGET (nej, inte just nu – 2026-08-01)
 
 - Innan en första större regionkund: bör en extern penetrationstestare granska
   multi-tenant-isoleringen? Vår egen testsvit är stark men skriven av samma part som byggde
   systemet. En oberoende granskning är ofta ett upphandlingskrav ändå.
+- **Ägarbeslut (2026-08-01, se beslutspunkt 4 nedan): nej, inte just nu.** Ompröva när
+  produkten har fler kunder eller inför en upphandling som kräver det.
 
 **Klart när:** säkerhetsdokumentationen speglar verkligheten, och det finns en mekanism som
 gör att den fortsätter göra det. **Uppnått** – 36c kvarstår som ett rent ägarbeslut, inget
@@ -562,28 +564,32 @@ kodarbete väntar på det.
 
 ## Beslutspunkter som kräver ägaren
 
-1. **Etapp 33c:** hur lång retention på backuper? (Förslag: 90 dagar.) Måste in i avtalen.
+1. ✅ **Etapp 33c (beslutat 2026-08-01):** retention på backuper = **90 dagar**. Inskrivet i
+   `avtal/PUB-AVTAL-MALL.md` p. 6. Gallringslogiken (Storage lifecycle-regel eller
+   schemalagd städfunktion) är nu en ren kodningsuppgift, se Etapp 33c ovan.
 2. **Etapp 35e / 12c-ii:** granska App Check-metriken i Firebase-konsolen (Build → App Check →
    Metrics) och avgör om `enforceAppCheck` kan slås på. Fullständigt underlag finns i
    `ETAPPLAN4.md` Etapp 31c.
-   **⏳ Uppföljning inbokad (2026-08-01):** Firestore låg på 89% verifierat över 30 dagar –
-   under den rimliga ~98%-marginalen. **Kolla igen om några veckor** när mer data samlats in,
-   och samtidigt: utred varför Storage-uppladdningar visade 0% verifierat (litet underlag,
-   10 requests – se mätningen ovan i Etapp 35e). Fråga att ställa nästa gång: "har Firestore
-   klättrat mot 98%, och vet vi nu varför Storage inte verifierar?"
-3. **Etapp 34a:** vem är faktiskt kontaktbar utanför kontorstid? Utan ett namn är runbooken
-   fiktion.
-4. **Etapp 36c:** extern penetrationstest – ja eller nej, och i så fall när?
+   **⏳ Uppföljning inbokad (2026-08-01), beslut bekräftat: fortsätt vänta.** Firestore låg på
+   89% verifierat över 30 dagar – under den rimliga ~98%-marginalen. **Kolla igen om några
+   veckor** när mer data samlats in, och samtidigt: utred varför Storage-uppladdningar visade
+   0% verifierat (litet underlag, 10 requests – se mätningen ovan i Etapp 35e). Fråga att
+   ställa nästa gång: "har Firestore klättrat mot 98%, och vet vi nu varför Storage inte
+   verifierar?"
+3. ✅ **Etapp 34a (beslutat 2026-08-01):** jourkontakt utanför kontorstid = Kasper Lindqvist,
+   073-6797538. Inskrivet i `INCIDENT-CHECKLISTA.md`s kontakttabell (internt dokument, delas
+   aldrig externt).
+4. ✅ **Etapp 36c (beslutat 2026-08-01):** extern penetrationstest – **nej, inte just nu.**
+   Ompröva när produkten har fler kunder eller inför en upphandling som kräver det.
 5. **Kvarstående sedan tidigare:** ToS-genomgång för källbevakningens sju domäner
    (`SAKERHETSRAPPORT.md`, tillägg 2026-07-28) samt Etapp 30b (fysiskt akutlägestest).
 6. **Etapp 32b (resterande tre larmtyper):** vill ägaren skapa och betala för ett Sentry
    API-token (för att fråga permission-denied-historik) och/eller aktivera GCP:s
    faktureringsexport till BigQuery (för läsvolym och misslyckade inloggningar)? Utan dessa
    beslut kan de tre punkterna inte påbörjas – det är inte en kodfråga.
-7. **Etapp 35f:** ska nycklar (Gemini/sökmotor/tjänstekonto/VAPID) roteras proaktivt med ett
-   fast intervall (t.ex. var 6:e eller 12:e månad), utöver den reaktiva rutinen som redan
-   finns i `INCIDENT-CHECKLISTA.md`? Om ja – vilket intervall, och vem äger att det faktiskt
-   sker.
+7. ✅ **Etapp 35f (beslutat 2026-08-01):** nycklar (Gemini/sökmotor/tjänstekonto/VAPID) roteras
+   proaktivt **en gång per år**, utöver den reaktiva rutinen som redan finns i
+   `INCIDENT-CHECKLISTA.md`. Manuell rutin tills vidare – ingen automatisk påminnelse byggd.
 
 ---
 

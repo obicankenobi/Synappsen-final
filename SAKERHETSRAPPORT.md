@@ -282,8 +282,10 @@ garanterat matchade det som testats. Sammanfattning per delområde:
   bevisas fungera i CI (seed → backup → radera → återställ → verifiera identiskt, inklusive
   att Firestore-tidsstämplar återställs korrekt). Återställningstid uppmätt och skriven in i
   `avtal/IT-FAKTABLAD.md`.
-- **Kvarstår:** gallring av gamla backuper (Etapp 33c) väntar medvetet på ägarens beslut om
-  retentionstid.
+- **Ägarbeslut 2026-08-01:** retention på backuper = 90 dagar (se `ETAPPLAN5.md` Etapp 33c,
+  `avtal/PUB-AVTAL-MALL.md` p. 6). **Kvarstår:** själva gallringslogiken (Storage
+  lifecycle-regel eller schemalagd städfunktion) – nu en ren kodningsuppgift, inte längre
+  blockerad av ett beslut.
 
 ### Reagera (Etapp 34)
 
@@ -309,7 +311,8 @@ garanterat matchade det som testats. Sammanfattning per delområde:
 - Dependabot (`.github/dependabot.yml`) skickar nu veckovisa uppdaterings-PR:er istället för
   att bara rapportera samma sårbarhet varje vecka utan att någon agerar.
 - En dokumenterad nyckelrotationsrutin finns i `INCIDENT-CHECKLISTA.md` för samtliga
-  hemligheter (Gemini/sökmotor/tjänstekonto/VAPID).
+  hemligheter (Gemini/sökmotor/tjänstekonto/VAPID). **Ägarbeslut 2026-08-01:** proaktiv
+  rotation en gång per år, utöver den reaktiva rutinen.
 - **Kvarstår:** App Check-enforcement (Etapp 35e) – konsolen granskad 2026-08-01, Firestore
   låg på 89% verifierat (mål ~98%), Storage-siffran (0/10) för litet underlag för att agera
   på. Se `ETAPPLAN5.md` Etapp 35e för de fullständiga mätvärdena och beslutspunkt 2 för

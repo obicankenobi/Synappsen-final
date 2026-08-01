@@ -5,6 +5,12 @@ Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller pol
 
 **Senast uppdaterad:** 2026-08-01 · **Motsvarar kodläge:** v5.55.0
 
+> **Ägarbeslut 2026-08-01:** jourkontakt utanför kontorstid ifylld (se tabellen nedan).
+> Beslutad backup-retention: 90 dagar (kodning kvarstår, se `ETAPPLAN5.md` Etapp 33c).
+> Beslutad nyckelrotation: proaktivt en gång per år utöver den reaktiva rutinen (se
+> "Nyckelrotation" nedan). Extern penetrationstest: nej, inte just nu (se `ETAPPLAN5.md`
+> beslutspunkt 4).
+
 > Den här filen är skriven för att läsas när du är ensam, trött och stressad. Följ den uppifrån
 > och ned. Hoppa inte över steg 1–3 även om du tror att du vet vad som hänt.
 
@@ -263,6 +269,7 @@ användare. Sakligt, kort, verifierat.
 
 | Vem | Kontakt | Status |
 |---|---|---|
+| Jourkontakt / incidentansvarig utanför kontorstid | Kasper Lindqvist, 073-6797538 | ✅ Ifyllt (2026-08-01) |
 | Kundens tekniska kontakt / CISO | _______________ | ⬜ Ej ifyllt |
 | Extern incidentkompetens (försäkring/konsult) | _______________ | ⬜ Finns inte ännu – se policyns avsnitt 11 |
 | Juridiskt stöd (GDPR) | _______________ | ⬜ Ej ifyllt |
@@ -321,7 +328,7 @@ först i etapplanen.
 7. Logga bytet i din incidentanteckning (steg 0), oavsett om det var en läcka eller en
    rutinmässig rotation.
 
-**Beslutspunkt (se beslutspunkt 7 i `ETAPPLAN5.md`): finns idag ingen bestämd
-rotationskadens** – rutinen ovan är skriven för det REAKTIVA fallet (en misstänkt läcka).
-Om ett proaktivt rotationsintervall (t.ex. var 6:e eller 12:e månad) ska införas är det
-ägarens beslut, inte en kodfråga.
+**Ägarbeslut (2026-08-01, se beslutspunkt 7 i `ETAPPLAN5.md`): proaktiv rotation en gång
+per år**, utöver rutinen ovan som fortsatt gäller reaktivt vid en misstänkt läcka. Rotera
+samtliga fem hemligheter i tabellen ovan i samma omgång, en gång var 12:e månad – ingen
+kalenderpåminnelse är byggd för detta än, det är en manuell rutin tills vidare.
