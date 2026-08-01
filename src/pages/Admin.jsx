@@ -55,6 +55,7 @@ import OrganisationBrandingSektion from "../components/admin/OrganisationBrandin
 import ChecklistStatistikSektion from "../components/admin/ChecklistStatistikSektion";
 import InnehallshalsaSektion from "../components/admin/InnehallshalsaSektion";
 import GranskningsrundorSektion from "../components/admin/GranskningsrundorSektion";
+import DubbletterSektion from "../components/admin/DubbletterSektion";
 import "./Admin.css";
 
 // Vilket område en icke-superadmin-redaktörsroll ansvarar för, för den områdesscopade statistiken
@@ -493,6 +494,7 @@ export default function Admin() {
       {arSuperadmin && <InnehallshalsaSektion />}
       {mittOmrade && !arSuperadmin && <InnehallshalsaSektion endastOmrade={mittOmrade} />}
       {arSuperadmin && <GranskningsrundorSektion />}
+      {(arSuperadmin || mittOmrade === "kliniskt-stod") && <DubbletterSektion />}
 
       {arSuperadmin && (
         <BudgetSektion budget={budget} nyttTak={nyttTak} setNyttTak={setNyttTak} hanteraNyttTak={hanteraNyttTak} />

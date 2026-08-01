@@ -204,7 +204,7 @@ UI→Firestore→beräkning fungerar utan någon ny mekanism för själva gransk
 grönt (lint, build, vitest 91/91, test:rules, test:functions, test:storage). Version 5.57.0 →
 **5.58.0**.
 
-### 37c – Dubbletter och motsägelser
+### 37c – Dubbletter och motsägelser ⏳ BYGGD (2026-08-01), VÄNTAR PÅ PILOTUTVÄRDERING
 
 - Mekanisk likhetsjämförelse mellan godkända rutiner (Fuse.js finns redan) som flaggar par som
   liknar varandra misstänkt mycket.
@@ -218,6 +218,40 @@ grönt (lint, build, vitest 91/91, test:rules, test:functions, test:storage). Ve
   37c specifikt:** på det piloterade området ska minst hälften av de flaggade paren bedömas
   som rimliga att titta på av en redaktör. Nås inte det, justera tröskeln eller lägg ner
   delmålet – hellre ingen dubblettdetektion än en som lär redaktörerna att ignorera flaggor.
+
+**Genomfört – premisskontroll (krav 8):** Fuse.js är redan en dependency (`package.json`),
+bekräftat innan bygget. **Viktigt tekniskt fynd under byggandet:** en naiv implementation som
+matar in TITEL+INNEHÅLL ihopklistrat som Fuse-sökfråga gav en missvisande hög poäng (~0.64)
+även för en rutin jämförd med sig SJÄLV, eftersom Fuse:s fuzzy-algoritm (Bitap) är byggd för
+korta sökfrågor mot ett fält, inte för att jämföra hela dokument mot varandra. Löst genom att
+söka på bara TITELN som fråga (innehållet vägs ändå in som ett indexerat `keys`-fält) – gav
+en poängseparation på ~0.15 för en verklig nästan-dubblett mot ~0.6 för besläktat men olika
+innehåll, en tydlig marginal att lägga en tröskel i.
+
+Ny ren funktion `hittaMisstankaDubbletter()` i `src/utils/dubblettdetektion.js` (7
+vitest-tester) returnerar par sorterade efter likhet, med DET LÄGSTA av de två asymmetriska
+Fuse-poängen (sökning A→B ger inte samma poäng som B→A). Ny collection
+`dubblettdismissningar/{dismissId}` (organisationId, omrade, `parNyckel`, `dismissadAv`) så en
+redaktör kan avfärda ett par som INTE är en dubblett utan att det flaggas igen – 8 nya
+regeltester (skapande/radering kräver redigeringsbehörighet för området, ingen uppdatering
+tillåten alls). Ny `DubbletterSektion.jsx`, **hårdkodad till Kliniskt stöd som pilotområde**
+(inte en valbar dropdown – en medveten begränsning tills klart-kriteriet utvärderats), med ett
+justerbart känslighetsreglage (förval 0.3, kalibrerat mot ett verklighetsnära exempel under
+utvecklingen: en rutin med identiskt innehåll men ett titelsuffix som "(uppdaterad)" gav
+poäng ~0.27). Varje par visas med länkar till båda rutinerna och en "Inte samma sak –
+avfärda"-knapp – **ingen sammanslagningsfunktion byggd, ingen kan finnas** (krav 15).
+
+Verifierat i en riktig webbläsare mot emulatorerna: ett verkligt nästan-dubblettpar upptäcktes
+korrekt (poäng 0.27, under förvalet 0.3), och efter avfärdande försvann paret permanent (ny
+Firestore-dokument skrivet, filtrerat bort vid nästa rendering). Fullt testsvep grönt (lint,
+build, vitest 98/98, test:rules, test:storage). Version 5.58.0 → **5.59.0**.
+
+**Varför INTE "✅ KLAR":** klart-kriteriet ("minst hälften av flaggade par bedöms rimliga")
+kräver en människas bedömning mot verkligt innehåll över tid – något den här sessionen inte
+kan avgöra åt ägaren. Koden är byggd, testad och verifierad att fungera tekniskt korrekt;
+återstår är att en redaktör faktiskt använder funktionen på riktiga rutiner och avgör om
+träffkvaliteten håller måttet, eller om tröskeln/reglaget behöver justeras eller delmålet
+läggas ner.
 
 ### 37d – Arkiverad status
 

@@ -6,16 +6,17 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-01, version **5.58.0**. `ETAPPLAN6.md` (Etapp 37–41,
+**Senast uppdaterad:** 2026-08-01, version **5.59.0**. `ETAPPLAN6.md` (Etapp 37–41,
 innehållets kvalitet och bevisad nytta) är den aktiva planen – **Etapp 37a (innehållshälso-
-panelen) och 37b (riktade granskningsrundor) är nu klara**, byggda, testade och
-UI-verifierade, men **INTE ännu deployade till produktion** (senaste produktionsdeploy är
-fortfarande körning #63/`382562b`, v5.56.0). `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det
-närmaste klar men inte stängd. **Läs de FYRA NYA sektionerna längst ner i den här filen
-först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning
-2026-08-01 (Etapp 37a)" och "Uppföljning 2026-08-01 (Etapp 37b)") om du undrar var arbetet
-står idag – allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är historisk,
-äldre kontext.
+panelen) och 37b (riktade granskningsrundor) är klara. Etapp 37c (dubbletter) är BYGGD men
+väntar på en pilotutvärdering av en riktig redaktör** – se den egna sektionen nedan för
+varför den inte är markerad helt klar. Allt tre ligger **INTE ännu deployat till produktion**
+(senaste produktionsdeploy är fortfarande körning #63/`382562b`, v5.56.0). `ETAPPLAN5.md`
+(Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs de FEM NYA sektionerna
+längst ner i den här filen först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare
+samma dag)", "Uppföljning 2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)" och
+"Uppföljning 2026-08-01 (Etapp 37c)") om du undrar var arbetet står idag – allt mellan denna
+rad och dem (inklusive "Uppföljning 2026-07-28") är historisk, äldre kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -482,6 +483,41 @@ test:storage). Version 5.57.0 → **5.58.0**, ändringslogg uppdaterad.
 **INTE gjort ännu:** deploy till produktion (fortfarande körning #63, v5.56.0 – både 37a och
 37b ligger bara pushade till branchen). Etapp 37c–d (dubbletter/motsägelser, arkiverad status)
 är opåbörjade.
+
+## Uppföljning 2026-08-01 (Etapp 37c): dubblettdetektion byggd, väntar på PILOTUTVÄRDERING
+
+**Etapp 37c byggd, men medvetet INTE markerad ✅ KLAR** – till skillnad från 37a/37b kräver
+denna etapps eget klart-kriterium (se `ETAPPLAN6.md`: "minst hälften av flaggade par ska
+bedömas rimliga av en redaktör") en människas bedömning mot verkligt innehåll över tid. Det
+kan den här sessionen inte göra åt ägaren. **Nästa steg för en superadmin/redaktör:** öppna
+adminpanelen, titta på "🔍 Möjliga dubbletter (pilot: Kliniskt stöd)"-sektionen mot RIKTIGA
+rutiner, och avgöra om träffkvaliteten håller. Om inte: justera känslighetsreglaget, eller
+avskriv delmålet helt (planen själv säger "hellre ingen dubblettdetektion än en som lär
+redaktörerna att ignorera flaggor").
+
+**Genomfört:** ny ren funktion `hittaMisstankaDubbletter()` (`src/utils/dubblettdetektion.js`,
+7 tester) som via Fuse.js flaggar par av godkända rutiner som liknar varandra. **Ett genuint
+tekniskt fynd under byggandet:** att söka med titel+innehåll ihopklistrat som Fuse-fråga gav
+en missvisande hög poäng (~0.64) även för en rutin jämförd med SIG SJÄLV – Fuse:s
+fuzzy-algoritm är byggd för korta sökfrågor, inte dokument-mot-dokument-jämförelse. Löst genom
+att bara söka på titeln (innehållet vägs ändå in som ett Fuse `keys`-fält), vilket gav en
+tydlig poängseparation (~0.15 för en verklig nästan-dubblett mot ~0.6 för besläktat men olika
+innehåll). Ny collection `dubblettdismissningar` låter en redaktör avfärda ett par permanent
+utan att någonting i rutininnehållet ändras (8 nya regeltester). **Hårdkodad till Kliniskt
+stöd som enda pilotområde** – en dropdown för fler områden byggdes medvetet inte förrän
+klart-kriteriet är utvärderat.
+
+**Verifierat i en riktig webbläsare:** ett verkligt nästan-dubblettpar (samma innehåll, titel
+med suffixet "(uppdaterad)") upptäcktes korrekt vid förvalt känslighetsläge (poäng 0.27 av
+0.30), och avfärdande gjorde att paret försvann permanent. Ett förstahandsförsök med
+standardtröskeln 0.25 missade paret med en hårsmån (0.27 > 0.25) – förvalet höjdes till 0.30
+efter den här kalibreringen, dokumenterat i koden. Fullt testsvep grönt (lint, build, vitest
+98/98, test:rules, test:storage). Version 5.58.0 → **5.59.0**.
+
+**Etapp 37 (innehållets hälsa) är därmed i praktiken byggd i sin helhet** (37a, 37b klara,
+37c byggd och väntar på utvärdering, 37d ej påbörjad). Nästa i ordning enligt planens egen
+ordningsprincip är Etapp 38 (redaktörens vardag) – men kom ihåg beslutspunkt 1: frågan om
+vem som äger granskningskön ska ställas till ägaren NU, inte när 38 ska börja byggas.
 
 ## Om du är en ny Claude-session som läser detta
 

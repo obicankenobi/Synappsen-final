@@ -528,6 +528,21 @@ service cloud.firestore {
       allow delete: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));
     }
 
+    // dubblettdismissningar/{dismissId} – Etapp 37c: en redaktör har tittat på ett
+    // misstänkt dubblettpar (mekanisk likhetsjämförelse, körs bara klientsidan) och avfärdat
+    // det som INTE en dubblett, så det inte flaggas igen vid varje besök. Ingen automatisk
+    // sammanslagning sker någonstans (krav 15) – det här är bara en "sluta fråga mig om just
+    // det här paret"-markering, inte ett beslut om rutininnehållet.
+    match /dubblettdismissningar/{dismissId} {
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
+      allow create: if farRedigeraOmrade(request.resource.data.omrade)
+                     && request.resource.data.get('organisationId', 'default') == minOrganisation()
+                     && request.resource.data.dismissadAv == request.auth.uid;
+      allow update: if false;
+      allow delete: if farRedigeraOmrade(resource.data.omrade)
+                     && matcharMinOrg(resource.data.get('organisationId', 'default'));
+    }
+
     // anslag/{anslagId} – anslagstavla, meddelanden från ledningen till all personal
     match /anslag/{anslagId} {
       allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));

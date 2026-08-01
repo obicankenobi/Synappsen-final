@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.59.0",
+    datum: "2026-08-01",
+    andringar: [
+      "Pilot i Kliniskt stöd: appen kan nu flagga rutiner som verkar likna varandra misstänkt mycket, som en fråga till redaktören – inget slås ihop automatiskt",
+    ],
+  },
+  {
     version: "5.58.0",
     datum: "2026-08-01",
     andringar: [
