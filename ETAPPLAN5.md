@@ -298,19 +298,57 @@ minuter och är den enskilt mest värdefulla förberedelsen i hela etappen – m
 bara ägaren har.
 
 
-### 34c – Öva en gång, på papper
+### 34c – Öva en gång, på papper ✅ KLAR (2026-07-31)
 
 - En genomgång (tabletop) av ett realistiskt scenario: "en superadmins konto är kapat och har
   läst 400 rutiner i en annan avdelning". Följ runbooken och notera var den tar slut.
 - **Detta är det billigaste sättet att upptäcka att en rutin inte fungerar.**
 
-### 34d – Uppdatera DPIA:n mot verkligheten
+**Genomfört:** genomgången kördes mot `INCIDENT-CHECKLISTA.md` steg för steg, med exakt det
+scenario som efterfrågas. **Det viktigaste fyndet:** scenariot beskriver en superadmin som
+läser innehåll denne redan HAR legitim behörighet till (en annan avdelning inom SAMMA
+organisation, inte en annan kund) – det är alltså aldrig ett `permission-denied` och lämnar
+**noll spår, varken i Sentry (Etapp 32a) eller i revisionsloggen** (läsningar loggas aldrig,
+bara skrivningar/ändringar). Runbooken tar slut redan vid Steg 1: det finns i dag **inget sätt
+att självständigt upptäcka den här specifika incidenttypen** – hela kedjan är beroende av att
+kunden själv märker och rapporterar det, eller en extern anmälan. Steg 3 (begränsa, via
+`tvingaUtloggning`) och steg 4:s befintliga varning ("läsningar loggas inte, anta det bredare
+scenariot") höll däremot precis som avsett. Ett sekundärt fynd: eftersom rutininnehåll normalt
+inte är personuppgifter (det är kliniska protokoll, inte uppgifter OM en person) hamnar
+scenariot sannolikt i steg 5:s NEJ-gren – checklistans beslutsträd behövde inget tillägg för
+det, bara bekräftelse på att det redan hanterar fallet.
+
+**Åtgärd:** `INCIDENT-CHECKLISTA.md` steg 1 fick en ny, konkret varningsruta om exakt den här
+blinda fläcken (se nedan) – tydligare formulerad än den tidigare generiska Sentry-rutan,
+eftersom övningen visade att den generiska formuleringen inte räckte för att en person i
+skarpt läge omedelbart skulle förstå att just DEN HÄR typen av missbruk (legitim behörighet,
+missbrukad) är osynlig. Detta är exakt den lucka Etapp 32b:s läsvolymlarm (väntar på
+ägarbeslut om GCP-faktureringsexport, se beslutspunkt 6) skulle stänga.
+
+### 34d – Uppdatera DPIA:n mot verkligheten ✅ KLAR (2026-07-31)
 
 - `avtal/DPIA-UNDERLAG.md` rad 137 anger i dag Sentry som skydd mot sen upptäckt av incidenter.
   Efter Etapp 32 blir det påståendet sant – men det ska stå vad som faktiskt gäller, inte vad
   vi hoppas. Uppdatera bedömningen när, och bara när, åtgärderna finns på plats.
 
-### 34e – Halvautomatisk, styrd respons
+**Genomfört:** punkt 10:s riskbedömning omskriven mot faktiskt kodläge. Två rader ändrade:
+"Manipulerad/raderad logg" sänkt från Medel till Låg (hashkedjan finns OCH kontrolleras
+automatiskt varje natt sedan Etapp 32d – var tidigare felaktigt beskriven som "planerad men
+inte byggd", trots att Etapp 14 byggde den för länge sedan). "Personuppgiftsincident upptäcks
+sent" uppdaterad till att räkna upp VAD som faktiskt fångas nu (32a/32c/32b delvis) OCH den
+kvarstående luckan som 34c:s skrivbordsövning bekräftade (missbruk av redan legitim
+behörighet syns inte, väntar på ägarbeslut). Ärlighet om båda riktningarna – både det som
+blivit bättre och det som fortfarande saknas.
+
+### 34e – Halvautomatisk, styrd respons ⏳ BLOCKERAD (väntar på samma ägarbeslut som 32b)
+
+**Premisskontroll (2026-07-31):** målbildens första steg är "Larm (32b) → automatisk
+omfattningsanalys...". Det larmet är, förutom AI-budgetspiken, precis det som väntar på
+ägarens beslut om ett Sentry API-token/GCP-faktureringsexport (beslutspunkt 6). Utan ett
+verkligt anomalilarm att koppla omfattningsanalysen till skulle 34e bli en funktion som körs
+på begäran istället för automatiskt vid ett larm – vilket inte är vad avsnittet beskriver.
+**Bedömning:** vänta med byggstart tills 32b:s beslut är taget, så att 34e byggs mot en
+verklig larmsignal från början istället för att behöva skrivas om.
 
 **Varför:** verksamheten drivs av en person, som inte kan förväntas göra korrekt
 incidentanalys klockan tre på natten. Slutsatsen efter genomgången är att **autonom respons är

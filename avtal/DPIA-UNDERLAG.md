@@ -7,6 +7,8 @@ sig en fullständig DPIA (som ska göras av Kunden som personuppgiftsansvarig), 
 faktaunderlaget en sådan bedömning behöver om Synappsen som behandling.
 
 **Upprättat:** 2026-07-26, som en del av Etapp 13c (`ETAPPLAN3.md`).
+**Senast uppdaterat:** 2026-07-31 – punkt 10 (Sammanfattande riskbedömning) omskriven mot
+faktiskt kodläge efter Etapp 32/33 (se `ETAPPLAN5.md` Etapp 34d).
 
 ---
 
@@ -133,8 +135,8 @@ den information Kunden behöver för sin egen anmälan till Integritetsskyddsmyn
 | Patientuppgifter hamnar av misstag i systemet | Låg–medel, aktivt begränsad | Tre oberoende tekniska lager (punkt 2), men inte en absolut garanti – personalutbildning krävs som komplement. |
 | Obehörig åtkomst till en annan organisations data | Låg | Databasnivåspärr, inte bara gränssnitt; verifierat med automatiserade tester varje release. |
 | Obehörig åtkomst inom den egna organisationen (fel roll) | Låg | Rollmodell enforcerad i databasreglerna, inte bara gränssnittet. |
-| Manipulerad/raderad logg utan att upptäckas | Medel, känd och dokumenterad begränsning | Dagens ändringslogg saknar manipuleringsskydd; en hashkedjelösning är planerad (Etapp 14) men inte byggd. |
-| Personuppgiftsincident upptäcks sent | Låg–medel | Felrapportering (Sentry) fångar oväntade tekniska fel skyndsamt; ingen automatiserad detektion av dataintrång i sig. |
+| Manipulerad/raderad logg utan att upptäckas | Låg | Revisionsloggen är hashkedjad (Etapp 14) och kedjan kontrolleras automatiskt varje natt för samtliga organisationer, med larm vid ett faktiskt brott (Etapp 32d, 2026-07-31). Skyddar mot en icke-privilegierad klient – inte mot någon med Admin SDK-/konsolåtkomst, som i princip kan skriva om hela kedjan. |
+| Personuppgiftsincident upptäcks sent | Låg–medel, delvis åtgärdad | Nekade dataanrop (`permission-denied`) rapporteras till Sentry (Etapp 32a), rollbyten och plattformsadmins tvärorganisatoriska åtkomst loggas (Etapp 32c), och en plötslig AI-kostnadsspik larmar (Etapp 32b, delvis). **Känd kvarstående lucka, bekräftad genom en skrivbordsövning (Etapp 34c):** ett konto som missbrukar behörighet det REDAN legitimt har (t.ex. läser ovanligt mycket inom sin egen organisation) lämnar inget spår i något av ovanstående – upptäckt förutsätter i dag att kunden själv märker det eller en extern anmälan. Att stänga den luckan helt kräver en extern tjänst (GCP-faktureringsexport eller ett Sentry API-token) och väntar på ett ägarbeslut. |
 
 **Slutsats för Kundens egen bedömning:** behandlingen är begränsad till personaldata för ett
 internt arbetsverktyg, med flera tekniska lager som aktivt förhindrar att den känsligaste

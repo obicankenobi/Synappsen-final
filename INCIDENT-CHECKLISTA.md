@@ -56,7 +56,16 @@ HH:MM  vad jag gjorde / vad jag såg
 - Firebase-konsolen → Authentication (nya eller okända konton, senaste inloggning)
 - Sentry (krascher – men **obs**, se rutan nedan)
 
-> ⚠️ **Vad Sentry INTE fångar:**
+> 🔍 **Blind fläck, bekräftad genom en skrivbordsövning (Etapp 34c, 2026-07-31):** ett konto
+> som missbrukar behörighet det REDAN HAR (t.ex. en superadmin som läser 400 rutiner i en
+> annan avdelning inom SAMMA organisation) lämnar **noll spår** – det är aldrig ett
+> `permission-denied` (så Sentry ser inget) och en läsning loggas aldrig i revisionsloggen
+> (bara skrivningar/ändringar gör det). **Den här specifika incidenttypen upptäcker vi INTE
+> själva idag.** Den kräver att kunden själv märker och rapporterar det, eller en extern
+> anmälan. Se Etapp 32b i `ETAPPLAN5.md` för vad som skulle stänga luckan (väntar på ett
+> ägarbeslut, inte en kodfråga).
+>
+> ⚠️ **Vad Sentry INTE fångar (i övrigt):**
 > Sentry fångar React-krascher via `ErrorBoundary` OCH (sedan Etapp 32a) nekade
 > Firestore-listningar (`permission-denied` från en `onSnapshot`-lyssnare) – dessa syns nu som
 > en egen Sentry-händelse (tagg `typ: permission-denied-listning`) med collection, roll,
