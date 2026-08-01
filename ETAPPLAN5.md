@@ -523,28 +523,40 @@ inte ännu en engångsinsats.
 
 **Modul:** ingen.
 
-### 36a – Skriv om säkerhetsrapporten mot v5.50.0
+### 36a – Skriv om säkerhetsrapporten mot v5.50.0 ✅ KLAR (2026-08-01, mot v5.55.0)
 
 - Faktiskt läge, inklusive det som blivit BÄTTRE sedan v5.4.1 (regelnivå-PII, gating-matris,
   revisionslogg, e2e-svit).
 - Ta med de kvarvarande, medvetet accepterade begränsningarna – en ärlig lista är ett
   förtroendeargument, inte en svaghet.
 
-### 36b – Återkommande granskning som en fast punkt
+**Genomfört:** rättade två faktafel som stod kvar sedan 2026-07-14 (klinikstöd-sökningen
+felaktigt beskriven som pausad – den är i drift sedan länge; PII-filtret felaktigt beskrivet
+som enbart klientsidigt – regelnivåspärren från Etapp 12e fanns redan). Lade till en helt ny
+"Del 3" som sammanfattar hela Etapp 32–35-säkerhetsarbetet (upptäcka/överleva/reagera/härda)
+med en ärlig sammanfattande bedömning av vad som kvarstår.
+
+### 36b – Återkommande granskning som en fast punkt ✅ KLAR (2026-08-01)
 
 - En kort säkerhetsgenomgång vid varje större release (inte varje patch), med en fast
   checklista: nya collections har regeltester, nya uppladdningsvägar har begränsningar, nya
   loggpunkter läcker inte personuppgifter, `npm audit`-rapporten är genomläst.
 - In i `CLAUDE.md`s arbetsmönster, så nästa session ser den.
 
-### 36c – Beslutspunkt: extern granskning
+**Genomfört:** ny punkt i `CLAUDE.md`s "Etablerade arbetsmönster" med den fasta checklistan
+och en uttrycklig instruktion att skriva resultatet som ett `## Tillägg`-block i
+`SAKERHETSRAPPORT.md` – samma händelsestyrda mönster (inte minnesstyrt) som redan gäller för
+incidentdokumenten, med samma motivering (rapporten låg själv 51 releaser efter verkligheten).
+
+### 36c – Beslutspunkt: extern granskning ⏳ VÄNTAR PÅ ÄGARBESLUT (se beslutspunkt 4)
 
 - Innan en första större regionkund: bör en extern penetrationstestare granska
   multi-tenant-isoleringen? Vår egen testsvit är stark men skriven av samma part som byggde
   systemet. En oberoende granskning är ofta ett upphandlingskrav ändå.
 
 **Klart när:** säkerhetsdokumentationen speglar verkligheten, och det finns en mekanism som
-gör att den fortsätter göra det.
+gör att den fortsätter göra det. **Uppnått** – 36c kvarstår som ett rent ägarbeslut, inget
+kodarbete väntar på det.
 
 ---
 

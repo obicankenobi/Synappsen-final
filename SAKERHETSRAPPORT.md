@@ -1,9 +1,17 @@
 # Synappsen – Rapport: funktionsöversikt och säkerhetsgenomgång
 
-**Datum:** 2026-07-14
-**Version vid rapporttillfället:** 5.4.1
+**Datum:** 2026-07-14 (ursprunglig genomgång), **omskriven mot verkligheten 2026-08-01**
+**Version vid ursprunglig genomgång:** 5.4.1 · **Version vid omskrivning:** 5.55.0
 **Omfattning:** Hela kodbasen (Firestore-regler, Storage-regler, Cloud Functions, samtliga
 React-sidor/komponenter/hooks).
+
+> **Läsanvisning (2026-08-01):** den här rapporten låg 51 releaser efter faktisk kodstatus när
+> den skrevs om – exakt det mönster `CLAUDE.md` varnar för (samma sak hände `FRAMTIDSPLAN.md`
+> och `MODULPLAN.md`). Del 1 och Del 2 nedan är i huvudsak oförändrade från originalgenomgången
+> (2026-07-14) förutom två faktafel som rättats där de stod (klinikstöd-sökningens status,
+> PII-filtrets omfattning). **Del 3 är helt ny** och sammanfattar säkerhetsarbetet i Etapp 32–35
+> (`ETAPPLAN5.md`), som är den del av kodbasen som förändrats mest sedan originalgenomgången.
+> Se `ETAPPLAN5.md` för fullständiga tekniska detaljer per delmål.
 
 Denna rapport har två delar:
 
@@ -32,9 +40,13 @@ rollstyrd behörighet och flera lager av kvalitets- och säkerhetskontroller.
   en redaktör innan de publiceras. En budget (kronor/månad, både globalt och per användare)
   begränsar kostnaden.
 - **Klinikstöd-sökning:** en fråga om t.ex. ett sjukdomstillstånd besvaras med källhänvisning
-  från fem godkända medicinska källor (internetmedicin.se, 1177.se, Nationella kliniska
-  kunskapsstödet, FASS vårdpersonal, Läkemedelsverket). **Denna funktion är för närvarande
-  pausad** i användargränssnittet (se avsnitt "Pausad funktion" nedan).
+  från godkända medicinska källor (internetmedicin.se, 1177.se, Nationella kliniska
+  kunskapsstödet, FASS vårdpersonal, Läkemedelsverket m.fl.). **Rättelse (2026-08-01): denna
+  funktion är INTE längre pausad** – texten nedan om pausningen (2026-07-14) är historiskt
+  korrekt för sin tid men gällde inte längre redan då rapporten skrevs om. Funktionen är i
+  drift, med en daglig automatisk verifiering (se `verifieraKlinikstodSchemalagt` i
+  `functions/index.js`) som larmar om en källa skulle börja svara utanför den godkända listan
+  igen – exakt den typen av regression den ursprungliga pausningen inte hade skydd mot.
 - **Rollstyrd behörighet:** superadmin, vol, sektionsledare, VEC, förrådsansvarig, personal –
   varje roll har ett tydligt avgränsat redigeringsområde, kontrollerat både i gränssnittet och
   (avgörande) i Firestore-reglerna.
@@ -134,15 +146,19 @@ functions/index.js`.
 Dessa är kända och bedöms, men är arkitekturbeslut som bör tas av verksamheten – de har därför
 **inte** ändrats i denna genomgång:
 
-1. **PII-filtret för direkta Firestore-skrivningar är enbart klientsidigt.** Den juridiskt
-   bindande spärren mot personnummer (validerad med datumkontroll + Luhn-checksumma) finns bara
-   på serversidan för text som passerar en Cloud Function (AI-tolkning, klinikstöd-frågan). För
-   rutiner, kommentarer, skiftrapport, anteckningar, feedback och anslag körs kontrollen bara i
-   webbläsaren innan sparning – en teoretisk angripare med giltig inloggning som pratar direkt
-   med Firestore-API:et kan kringgå den. Att stänga luckan helt kräver antingen en förenklad
-   (mer trubbig, fler falska positiva) regex-spärr i `firestore.rules`, eller att flytta alla
-   skrivningar via en Cloud Function. **Rekommendation:** ta ett medvetet beslut om detta är
-   värt avvägningen, snarare än att anta att klientkontrollen räcker som juridiskt skydd.
+1. **PII-filtret för direkta Firestore-skrivningar – DELVIS ÅTGÄRDAT sedan originalgenomgången
+   (Etapp 12e, rättat här 2026-08-01).** Ursprungligen (2026-07-14) var kontrollen enbart
+   klientsidig för rutiner/kommentarer/skiftrapport/anteckningar/feedback/anslag. Sedan Etapp
+   12e finns en regelnivåspärr (`harTroligtPersonnummer()`, 45 förekomster i
+   `firestore.rules`) som blockerar text som ser ut som ett giltigt personnummer/
+   samordningsnummer på de flesta skrivvägar – det här är alltså inte längre bara en
+   klientkontroll en inloggad angripare kunde kringgå genom att prata direkt med
+   Firestore-API:et. **Kvarvarande, mindre begränsning:** regelspråket kan inte replikera den
+   fulla Luhn-checksumman (ingen sträng→tal-konvertering per tecken i Firestore-regler) – den
+   fångar text som ser ut som ett giltigt datum + 4 siffror, inte en fullständig
+   checksumkontroll. En text som råkar se ut som ett personnummer men inte är ett skulle alltså
+   kunna nekas i onödan (falskt positivt), snarare än att ett riktigt personnummer slinker
+   igenom.
 2. Rå, ej AI-tolkad bild i `inkommande/{uid}/` kan läsas av vem som helst med en icke-
    "personal"-roll, inte bara den som laddade upp den – avsiktlig design för
    granskningsarbetsflödet, men innebär att PII-skanningen (som bara körs på extraherad text,
@@ -150,9 +166,11 @@ Dessa är kända och bedöms, men är arkitekturbeslut som bör tas av verksamhe
 3. `omnamnda`-fältet på en kommentar kan i teorin sättas till godtyckliga användar-ID:n av
    skaparen, utan validering mot texten – ger i värsta fall en missvisande @omnämnande-notis,
    exponerar ingen data.
-4. `ForradArtikelFormular.jsx` saknar samma patientuppgiftskontroll som övriga formulär, men
-   fälten (artikelnamn, skåp, hylla, antal) är korta strukturerade logistikuppgifter där
-   patientinformation osannolikt hamnar av misstag.
+4. **Rättat (2026-08-01):** `ForradArtikelFormular.jsx` saknade tidigare klientsidig
+   patientuppgiftskontroll, men `firestore.rules` skyddar numera fälten `namn`/`skap`/`hylla`
+   på regelnivå (`harTroligtPersonnummer()`) vid både `create` och `update` av
+   `forradsartiklar/{artikelId}` – samma serverbekräftelse som punkt 1 ovan. Kvarstår som en
+   ren UX-fråga (ingen felmarkering direkt i formuläret), inte längre en säkerhetslucka.
 
 ### Sammanfattande bedömning
 
@@ -220,3 +238,87 @@ organisationer och måste aktiveras manuellt per kund i adminpanelen – så ing
 sker förrän någon medvetet slår på den, men det ersätter inte en faktisk ToS-genomgång.
 **Rekommendation:** en människa läser igenom respektive källas användarvillkor innan modulen
 aktiveras för en betalande kund, och den genomgången dokumenteras här som ett eget tillägg.
+**Fortfarande olöst 2026-08-01** – ingen ToS-genomgång har skett, se `ETAPPLAN5.md`
+beslutspunkt 5.
+
+---
+
+## Del 3 – Säkerhetsarbetet i Etapp 32–35 (tillägg 2026-08-01, version 5.55.0)
+
+Det här är den mest väsentliga förändringen sedan originalgenomgången: en hel etapplan
+(`ETAPPLAN5.md`) byggd kring tre konkreta, verifierade fynd – ingen automatiserad detektion av
+missbruk, ingen fungerande återställning från backup, och ett produktionsbygge som inte
+garanterat matchade det som testats. Sammanfattning per delområde:
+
+### Upptäcka (Etapp 32)
+
+- **Nekade dataanrop rapporteras.** Ett `permission-denied` från en Firestore-lyssnare
+  krascher inte React och syntes tidigare bara som en tyst konsolrad. Sedan Etapp 32a skapar
+  det en Sentry-händelse (collection, roll, organisation, sökväg – aldrig dokumentinnehåll),
+  kopplat in i samtliga 40 hooks med en `onSnapshot`-lyssnare.
+- **Revisionsloggens allvarligaste lucka är täppt.** Rolländringar var tidigare en naken
+  klient-skrivning utan spår – att göra någon till superadmin lämnade inga spår alls. Sedan
+  Etapp 32c går rolländring, moduler på/av, 2FA-policy och AI-budgettak via egna Cloud
+  Functions som loggar varje ändring, med `firestore.rules` stängd för de gamla, direkta
+  klientvägarna (även med 2FA uppfyllt). Plattformsadmins tvärorganisatoriska
+  översiktsanrop loggas likaså.
+- **Hashkedjan kontrolleras utan att någon behöver komma ihåg det.** Sedan Etapp 32d körs
+  integritetskontrollen (Etapp 14) automatiskt varje natt för ALLA organisationer, med larm
+  vid en faktisk avvikelse – tidigare bara på begäran.
+- **AI-budgetspikar larmar.** Sedan Etapp 32b (delvis) skickas en Sentry-händelse när en
+  organisations budgetförbrukning passerar 80% av taket samma månad – tidigare stoppade
+  budgetspärren bara tyst vid 100%, utan förvarning.
+- **Känd, kvarstående lucka (bekräftad genom en skrivbordsövning, Etapp 34c):** ett konto som
+  missbrukar behörighet det REDAN legitimt har (t.ex. läser ovanligt mycket inom sin egen
+  organisation) lämnar fortfarande inga spår. Att stänga det helt kräver ett Sentry API-token
+  och/eller GCP:s faktureringsexport till BigQuery – ett ägarbeslut, inte en kodfråga (se
+  `ETAPPLAN5.md` beslutspunkt 6).
+
+### Överleva (Etapp 33)
+
+- **En återställningsfunktion finns nu, testad end-to-end.** `backupaOrganisation()` var
+  tidigare enkelriktad – ingen väg tillbaka existerade. `aterstallOrganisationCallable`
+  (plattformsadmin-only, med två oberoende skyddslager mot att skriva fel organisations data)
+  bevisas fungera i CI (seed → backup → radera → återställ → verifiera identiskt, inklusive
+  att Firestore-tidsstämplar återställs korrekt). Återställningstid uppmätt och skriven in i
+  `avtal/IT-FAKTABLAD.md`.
+- **Kvarstår:** gallring av gamla backuper (Etapp 33c) väntar medvetet på ägarens beslut om
+  retentionstid.
+
+### Reagera (Etapp 34)
+
+- Ett externt policydokument (`avtal/INCIDENTRESPONSPLAN.md`) och en internt-only operativ
+  checklista (`INCIDENT-CHECKLISTA.md`) finns nu, med en formaliserad
+  patientsäkerhetsprincip (en begränsningsåtgärd får aldrig med hög sannolikhet orsaka större
+  skada än incidenten den avser att begränsa).
+- En skrivbordsövning (Etapp 34c) mot ett realistiskt scenario avslöjade den kvarstående
+  luckan som nämns ovan under "Upptäcka", och `avtal/DPIA-UNDERLAG.md` skrevs om mot samma
+  verklighet.
+
+### Härda (Etapp 35)
+
+- `deploy.yml` kör numera `npm ci` (var `npm install`) – produktionsbygget är nu garanterat
+  detsamma som CI faktiskt testade.
+- `firebase.json` har säkerhetsheaders (`X-Content-Type-Options`, `X-Frame-Options: DENY`,
+  `Referrer-Policy`, en `Permissions-Policy` som bara tillåter kamera) och en CSP i
+  rapporterande läge (`Content-Security-Policy-Report-Only`) – inte verkställande än,
+  medvetet, tills en verifieringsperiod passerat.
+- `storage.rules` begränsar nu filstorlek och innehållstyp per uppladdningsväg – tidigare
+  fanns noll sådana begränsningar (en SVG/HTML-uppladdning hade varit den klassiska vägen
+  till lagrad XSS från lagringsdomänen).
+- Dependabot (`.github/dependabot.yml`) skickar nu veckovisa uppdaterings-PR:er istället för
+  att bara rapportera samma sårbarhet varje vecka utan att någon agerar.
+- En dokumenterad nyckelrotationsrutin finns i `INCIDENT-CHECKLISTA.md` för samtliga
+  hemligheter (Gemini/sökmotor/tjänstekonto/VAPID).
+- **Kvarstår:** App Check-enforcement (Etapp 35e) – konsolen granskad 2026-08-01, Firestore
+  låg på 89% verifierat (mål ~98%), Storage-siffran (0/10) för litet underlag för att agera
+  på. Se `ETAPPLAN5.md` Etapp 35e för de fullständiga mätvärdena och beslutspunkt 2 för
+  uppföljningsplanen.
+
+### Sammanfattande bedömning (Del 3)
+
+Ingen av de tre ursprungliga fynden (ingen detektion, ingen fungerande återställning, otestat
+produktionsbygge) kvarstår obehandlad. Den mest väsentliga öppna punkten är densamma som
+skrivbordsövningen bekräftade: missbruk av redan legitim behörighet syns fortfarande inte
+någonstans i systemet, och att stänga den luckan helt är ett ägarbeslut om extern
+infrastruktur, inte ett kvarstående kodproblem.

@@ -94,12 +94,22 @@ Dessa två är de enda dokumenten i projektet vars felaktighet kan få juridiska
   versionsfält) och en ny post överst i `src/data/andringslogg.js`. `src/version.js` ska
   INTE röras separat – den läser versionen direkt från `package.json`.
 - **Fullt testsvep före commit:** `npm run lint`, `npm run build`, `npx vitest run`,
-  `npm run test:rules`, `npm run test:functions`, `npm run test:storage`.
+  `npm run test:rules`, `npm run test:functions`, `npm run test:storage`, `npm run test:e2e`
+  (kräver `PLAYWRIGHT_CHROMIUM_PATH` lokalt i den här sandboxen, se `playwright.config.js`).
 - **Git-gren:** allt arbete sker på `claude/compassionate-euler-rho0q5`. Skapa inte en PR om
   inte användaren explicit ber om det.
 - **Genomgående krav 8 (premisskontroll):** verifiera en etapps antaganden mot FAKTISK kod
   innan bygget påbörjas – flera tidigare etapper visade sig bygga på antaganden som inte
   stämde. Se `ETAPPLAN3.md`/`ETAPPLAN4.md` för konkreta exempel.
+- **Återkommande säkerhetsgenomgång vid varje STÖRRE release** (Etapp 36b, inte varje patch):
+  en kort, fast checklista – (1) har en ny collection fått regeltester i
+  `tests/rules/`? (2) har en ny uppladdningsväg storlek/innehållstypsbegränsningar i
+  `storage.rules`? (3) läcker en ny loggpunkt personuppgifter eller dokumentinnehåll? (4) är
+  `npm-audit-rapport.md`/Dependabot-PR:arna genomlästa, inte bara ihopmergade blint? Skriv in
+  resultatet som ett `## Tillägg (datum, version): …`-block i `SAKERHETSRAPPORT.md` – samma
+  händelsestyrda princip som underhållsregeln för incidentdokumenten nedan. Motiveringen är
+  identisk: `SAKERHETSRAPPORT.md` låg själv 51 releaser efter verkligheten innan den skrevs om
+  2026-08-01 (se filens egen läsanvisning högst upp).
 
 ### Obligatorisk underhållsregel: incidentdokumenten
 
