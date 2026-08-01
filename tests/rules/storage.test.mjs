@@ -56,11 +56,13 @@ async function main() {
     const storageAdmin = context.storage();
     await uploadBytes(
       ref(storageAdmin, "rutiner/kliniskt-stod/rutinA/bild.jpg"),
-      new Uint8Array([1, 2, 3])
+      new Uint8Array([1, 2, 3]),
+      { contentType: "image/jpeg" }
     );
     await uploadBytes(
       ref(storageAdmin, "forradsartiklar/Engångsförrådet/artikelA/bild.jpg"),
-      new Uint8Array([1, 2, 3])
+      new Uint8Array([1, 2, 3]),
+      { contentType: "image/jpeg" }
     );
   });
 
@@ -77,7 +79,7 @@ async function main() {
   );
   await test("volB (annan org, fel roll för kliniskt-stod också) kan INTE skriva över bilden", () =>
     assertFails(
-      uploadBytes(ref(volBStorage, "rutiner/kliniskt-stod/rutinA/bild.jpg"), new Uint8Array([9]))
+      uploadBytes(ref(volBStorage, "rutiner/kliniskt-stod/rutinA/bild.jpg"), new Uint8Array([9]), { contentType: "image/jpeg" })
     )
   );
 
@@ -96,7 +98,7 @@ async function main() {
 
   console.log("\navatarer/{uid}/{filnamn} – Etapp 22e: bara ägaren skriver, samma org läser");
   await test("volA KAN ladda upp sin egen profilbild", () =>
-    assertSucceeds(uploadBytes(ref(volAStorage, "avatarer/volA/bild.jpg"), new Uint8Array([1, 2, 3])))
+    assertSucceeds(uploadBytes(ref(volAStorage, "avatarer/volA/bild.jpg"), new Uint8Array([1, 2, 3]), { contentType: "image/jpeg" }))
   );
   await test("volA KAN läsa sin egen profilbild", () =>
     assertSucceeds(getBytes(ref(volAStorage, "avatarer/volA/bild.jpg")))
@@ -105,15 +107,15 @@ async function main() {
     assertFails(getBytes(ref(volBStorage, "avatarer/volA/bild.jpg")))
   );
   await test("volB kan INTE ladda upp en profilbild i volAs namn", () =>
-    assertFails(uploadBytes(ref(volBStorage, "avatarer/volA/kapad.jpg"), new Uint8Array([9])))
+    assertFails(uploadBytes(ref(volBStorage, "avatarer/volA/kapad.jpg"), new Uint8Array([9]), { contentType: "image/jpeg" }))
   );
 
   console.log("\norganisationer/{orgId}/logotyp/{filnamn} – Etapp 28a: bara superadmin i egen org skriver");
   await test("superA (superadmin, orgA) KAN ladda upp orgA:s logotyp", () =>
-    assertSucceeds(uploadBytes(ref(superAStorage, "organisationer/orgA/logotyp/bild.jpg"), new Uint8Array([1, 2, 3])))
+    assertSucceeds(uploadBytes(ref(superAStorage, "organisationer/orgA/logotyp/bild.jpg"), new Uint8Array([1, 2, 3]), { contentType: "image/jpeg" }))
   );
   await test("volA (samma org, men inte superadmin) kan INTE ladda upp logotypen", () =>
-    assertFails(uploadBytes(ref(volAStorage, "organisationer/orgA/logotyp/bild.jpg"), new Uint8Array([9])))
+    assertFails(uploadBytes(ref(volAStorage, "organisationer/orgA/logotyp/bild.jpg"), new Uint8Array([9]), { contentType: "image/jpeg" }))
   );
   await test("volA (samma org) KAN läsa logotypen", () =>
     assertSucceeds(getBytes(ref(volAStorage, "organisationer/orgA/logotyp/bild.jpg")))
@@ -122,7 +124,63 @@ async function main() {
     assertFails(getBytes(ref(volBStorage, "organisationer/orgA/logotyp/bild.jpg")))
   );
   await test("superA (superadmin i orgA) kan INTE ladda upp åt orgB", () =>
-    assertFails(uploadBytes(ref(superAStorage, "organisationer/orgB/logotyp/bild.jpg"), new Uint8Array([9])))
+    assertFails(uploadBytes(ref(superAStorage, "organisationer/orgB/logotyp/bild.jpg"), new Uint8Array([9]), { contentType: "image/jpeg" }))
+  );
+
+  console.log("\nEtapp 35c: innehållstyp och filstorlek begränsas nu server-side");
+  await test("volA kan INTE ladda upp en SVG som en förrådsbild (fel contentType)", () =>
+    assertFails(
+      uploadBytes(
+        ref(volAStorage, "forradsartiklar/Engångsförrådet/artikelA/bild.svg"),
+        new Uint8Array([1, 2, 3]),
+        { contentType: "image/svg+xml" }
+      )
+    )
+  );
+  await test("volA kan INTE ladda upp en HTML-fil som en rutinbilaga (fel contentType)", () =>
+    assertFails(
+      uploadBytes(
+        ref(volAStorage, "rutiner/kliniskt-stod/rutinA/sida.html"),
+        new Uint8Array([1, 2, 3]),
+        { contentType: "text/html" }
+      )
+    )
+  );
+  await test("volA KAN ladda upp en PDF som en rutinbilaga (tillåten typ för just rutiner)", () =>
+    assertSucceeds(
+      uploadBytes(
+        ref(volAStorage, "rutiner/kliniskt-stod/rutinA/bilaga.pdf"),
+        new Uint8Array([1, 2, 3]),
+        { contentType: "application/pdf" }
+      )
+    )
+  );
+  await test("volA kan INTE ladda upp en PDF som en förrådsbild (bara bilder tillåtna där)", () =>
+    assertFails(
+      uploadBytes(
+        ref(volAStorage, "forradsartiklar/Engångsförrådet/artikelA/dokument.pdf"),
+        new Uint8Array([1, 2, 3]),
+        { contentType: "application/pdf" }
+      )
+    )
+  );
+  await test("volA kan INTE ladda upp en förrådsbild som är för stor (>10 MB)", () =>
+    assertFails(
+      uploadBytes(
+        ref(volAStorage, "forradsartiklar/Engångsförrådet/artikelA/stor.jpg"),
+        new Uint8Array(11 * 1024 * 1024),
+        { contentType: "image/jpeg" }
+      )
+    )
+  );
+  await test("volA kan INTE ladda upp en profilbild som är för stor (>5 MB)", () =>
+    assertFails(
+      uploadBytes(
+        ref(volAStorage, "avatarer/volA/stor.jpg"),
+        new Uint8Array(6 * 1024 * 1024),
+        { contentType: "image/jpeg" }
+      )
+    )
   );
 
   await testEnv.cleanup();

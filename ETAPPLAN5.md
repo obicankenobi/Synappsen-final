@@ -392,14 +392,18 @@ den lågt hängande frukten. Flera är minutersarbete.
 
 **Modul:** ingen (Core).
 
-### 35a – Produktionsbygget ska respektera låsfilen
+### 35a – Produktionsbygget ska respektera låsfilen ✅ KLAR (2026-08-01)
 
 - `.github/workflows/deploy.yml` kör `npm install` (rad 31 och 43). CI kör `npm ci`. **Det som
   deployas är alltså inte garanterat det som testades** – en transitiv uppdatering kan slinka
   in i produktionsbygget utan att ha passerat CI.
 - Ändra till `npm ci`. Detta är den enskilt billigaste åtgärden i hela planen.
 
-### 35b – Säkerhetsheaders och CSP
+**Genomfört:** båda förekomsterna (frontend + `functions/`) ändrade till `npm ci`. Verifierat
+med `npm ci --dry-run` i båda katalogerna innan ändringen – båda låsfilerna är redan i synk
+med respektive `package.json`, så bytet är riskfritt.
+
+### 35b – Säkerhetsheaders och CSP ✅ KLAR (2026-08-01, CSP i rapporterande läge)
 
 - `firebase.json` saknar **helt** en `headers`-sektion (verifierat). Ingen
   `Content-Security-Policy`, ingen `X-Frame-Options` (klickkapning), ingen
@@ -410,7 +414,20 @@ den lågt hängande frukten. Flera är minutersarbete.
 - **Kräver omsorg:** en för snäv CSP bryter Firebase, Sentry och reCAPTCHA. Börja i
   rapporterande läge (`Content-Security-Policy-Report-Only`), verifiera, skärp sedan.
 
-### 35c – Begränsa uppladdningar i storage.rules
+**Genomfört:** `firebase.json`s hosting-sektion har nu en `headers`-sektion. Direkt
+verkställda (ingen risk, ingen kompatibilitetsavvägning): `X-Content-Type-Options: nosniff`,
+`X-Frame-Options: DENY` (appen ska aldrig ligga i en iframe), `Referrer-Policy:
+strict-origin-when-cross-origin`, `Permissions-Policy` som explicit tillåter kamera (krävs
+av Etapp 27:s QR-skanning) men blockerar mikrofon/geolocation/betalning/usb (används inte).
+CSP satt som `Content-Security-Policy-Report-Only` (inte verkställande än, per planens egen
+rekommendation) – byggd genom att faktiskt läsa av vilka domäner appen anropar (Firebase/
+Google-API:er, Sentry-ingest, reCAPTCHA för App Check) istället för att gissa.
+**Kvarstår innan skärpning till verkställande läge:** en verifieringsperiod i produktion (så
+inga legitima anrop blockeras), och en översyn av `script-src 'unsafe-inline'` (behövs idag
+för temaskriptet i `index.html` och `OrganisationsBranding.jsx`s dynamiska `<style>`-tagg –
+en hash-baserad lösning vore strängare men är inte gjord här).
+
+### 35c – Begränsa uppladdningar i storage.rules ✅ KLAR (2026-08-01)
 
 - `storage.rules` har **inga** begränsningar på filstorlek eller innehållstyp (verifierat –
   noll förekomster av `resource.size`/`contentType`).
@@ -420,7 +437,13 @@ den lågt hängande frukten. Flera är minutersarbete.
 - Lägg till maxstorlek per sökväg och en `contentType`-allowlist (bild/PDF där det är
   meningen).
 
-### 35d – Sårbara beroenden
+**Genomfört:** matchar exakt vad klientens egna `<input accept>` redan begränsar till (läst
+av i `RutinFormular.jsx`/`storage.js`, inte gissat) – `rutiner/*` tillåter bild ELLER PDF
+(max 20 MB), `forradsartiklar/*`/`inkommande/*` tillåter bara bild (max 10 MB), `avatarer/*`
+och organisationslogotypen tillåter bara bild (max 5 MB). 6 nya storage-regeltester
+(`tests/rules/storage.test.mjs`), inklusive att en SVG/HTML medvetet nekas.
+
+### 35d – Sårbara beroenden ✅ KLAR (2026-08-01, se ärlig anmärkning om react-router)
 
 - **Nyansering först, så siffran inte skrämmer i onödan:** `npm audit` visar 24 sårbarheter
   (23 höga + 1 kritisk), men **23 av dem finns bara i devDependencies** (`firebase-tools`,
@@ -430,19 +453,36 @@ den lågt hängande frukten. Flera är minutersarbete.
   Renovate) – annars fortsätter rapporten att rapportera samma sak varje vecka utan att någon
   agerar (krav 11).
 
-### 35e – App Check-enforcement (avsluta 12c-ii)
+**Genomfört:** `.github/dependabot.yml` – veckovisa uppdaterings-PR:er för både frontend,
+`functions/` och GitHub Actions, med minor/patch grupperade till en enda PR för mindre brus.
+**react-router, ärligt läge:** sårbarheten (GHSA-qwww-vcr4-c8h2) gäller uttryckligen "RSC
+Mode" (React Server Components/framework-läget) – den här appen är en ren klient-SPA som
+använder `<BrowserRouter>`/`<Routes>`/`<Route>` (verifierat i `App.jsx`), aldrig RSC-läget,
+så sårbarheten är sannolikt inte tillämpbar i praktiken. Dessutom finns **ingen patchad
+version publicerad ännu** (det åtgärdande intervallet `>=8.3.0` existerar inte – senaste
+utgivna är 7.18.2, ingen v8 publicerad). Ingen kodändring är möjlig just nu; Dependabot
+kommer föreslå en uppdatering automatiskt den dag en riktig patch släpps.
+
+### 35e – App Check-enforcement (avsluta 12c-ii) ⏳ VÄNTAR PÅ ÄGARBESLUT
 
 - Redan förberett och dokumenterat i `ETAPPLAN4.md` Etapp 31c. Kräver bara ägarens
   konsolgranskning – se beslutspunkterna nedan.
 
-### 35f – Rutin för nyckelrotation
+### 35f – Rutin för nyckelrotation ✅ KLAR (2026-08-01, reaktiv rutin – proaktivt intervall är ett ägarbeslut)
 
 - Gemini- och sökmotornycklarna sätts i Secret Manager via `deploy.yml`; tjänstekontot ligger
   som GitHub-secret. Det finns ingen dokumenterad rotationsrutin och inget beslut om
   rotationsintervall. Skriv ned det – inklusive vad man gör om en nyckel läcker.
 
+**Genomfört:** ny sektion "Nyckelrotation" i `INCIDENT-CHECKLISTA.md` – en tabell över vilka
+hemligheter som finns och var de lever, plus en steg-för-steg-rutin för att rotera var och
+en (inklusive den känsligaste, `FIREBASE_SERVICE_ACCOUNT`, och en särskild anmärkning om att
+`FIREBASE_VAPID_KEY`-rotation tillfälligt stör befintliga push-prenumerationer). **Ett
+proaktivt rotationsintervall är medvetet INTE beslutat** – se beslutspunkt 7 nedan.
+
 **Klart när:** de verifierade luckorna är stängda och kända sårbarheter åtgärdas löpande i
-stället för att bara rapporteras.
+stället för att bara rapporteras. **Uppnått, förutom 35e** (väntar på ägarens
+konsolgranskning, se beslutspunkt 2).
 
 ---
 
@@ -500,6 +540,10 @@ gör att den fortsätter göra det.
    API-token (för att fråga permission-denied-historik) och/eller aktivera GCP:s
    faktureringsexport till BigQuery (för läsvolym och misslyckade inloggningar)? Utan dessa
    beslut kan de tre punkterna inte påbörjas – det är inte en kodfråga.
+7. **Etapp 35f:** ska nycklar (Gemini/sökmotor/tjänstekonto/VAPID) roteras proaktivt med ett
+   fast intervall (t.ex. var 6:e eller 12:e månad), utöver den reaktiva rutinen som redan
+   finns i `INCIDENT-CHECKLISTA.md`? Om ja – vilket intervall, och vem äger att det faktiskt
+   sker.
 
 ---
 

@@ -39,16 +39,35 @@ service firebase.storage {
       return firestore.exists(path) ? firestore.get(path).data.get('organisationId', 'default') : 'ingen-sadan-organisation';
     }
 
+    // Etapp 35c: innan detta fanns INGA begränsningar på filstorlek eller innehållstyp
+    // (verifierat – noll förekomster av request.resource.size/contentType). Konsekvenser:
+    // en godtyckligt stor fil (kostnad/utrymme) och en godtycklig filtyp – SVG/HTML är den
+    // klassiska vägen till lagrad XSS från en lagringsdomän. Gränserna nedan matchar vad
+    // klientens egna <input accept> redan begränsar till (se RutinFormular.jsx/LaddaUpp.jsx/
+    // storage.js) – det här är bara serverbekräftelsen av samma regel, inte en ny.
+    function arBildEllerPdf() {
+      return request.resource.contentType.matches('image/.*') || request.resource.contentType == 'application/pdf';
+    }
+    function arBild() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
     match /rutiner/{omrade}/{rutinId}/{filnamn} {
       allow read: if arInloggad() && dokumentOrganisation('rutiner', rutinId) == minOrganisation();
+      // Bilagor till rutiner tillåts vara bilder ELLER PDF (se RutinFormular.jsx), därav den
+      // bredare kontrollen och den något högre gränsen jämfört med rena bilduppladdningar.
       allow write: if arInloggad() && farRedigeraOmrade(omrade)
-                    && dokumentOrganisation('rutiner', rutinId) == minOrganisation();
+                    && dokumentOrganisation('rutiner', rutinId) == minOrganisation()
+                    && request.resource.size < 20 * 1024 * 1024
+                    && arBildEllerPdf();
     }
 
     match /forradsartiklar/{forradSlug}/{artikelId}/{filnamn} {
       allow read: if arInloggad() && dokumentOrganisation('forradsartiklar', artikelId) == minOrganisation();
       allow write: if arInloggad() && farRedigeraOmrade('logistik')
-                    && dokumentOrganisation('forradsartiklar', artikelId) == minOrganisation();
+                    && dokumentOrganisation('forradsartiklar', artikelId) == minOrganisation()
+                    && request.resource.size < 10 * 1024 * 1024
+                    && arBild();
     }
 
     // inkommande/{uid}/{filnamn} – råfoton från personal innan Gemini-tolkning.
@@ -61,7 +80,9 @@ service firebase.storage {
     // server-side hook för raka klient->Storage-läsningar).
     match /inkommande/{uid}/{filnamn} {
       allow read: if arInloggad() && request.auth.uid == uid;
-      allow write: if arInloggad() && request.auth.uid == uid;
+      allow write: if arInloggad() && request.auth.uid == uid
+                    && request.resource.size < 10 * 1024 * 1024
+                    && arBild();
     }
 
     // avatarer/{uid}/{filnamn} – Etapp 22e: valfri profilbild. Bara ägaren själv får ladda
@@ -71,7 +92,9 @@ service firebase.storage {
     match /avatarer/{uid}/{filnamn} {
       allow read: if arInloggad()
                    && firestore.get(/databases/(default)/documents/users/$(uid)).data.get('organisationId', 'default') == minOrganisation();
-      allow write: if arInloggad() && request.auth.uid == uid;
+      allow write: if arInloggad() && request.auth.uid == uid
+                    && request.resource.size < 5 * 1024 * 1024
+                    && arBild();
     }
 
     // organisationer/{orgId}/logotyp/{filnamn} – Etapp 28a: organisationens egen logotyp.
@@ -80,7 +103,9 @@ service firebase.storage {
     // organisationer/{orgId} själv i firestore.rules.
     match /organisationer/{orgId}/logotyp/{filnamn} {
       allow read: if arInloggad() && orgId == minOrganisation();
-      allow write: if arInloggad() && minRoll() == 'superadmin' && orgId == minOrganisation();
+      allow write: if arInloggad() && minRoll() == 'superadmin' && orgId == minOrganisation()
+                    && request.resource.size < 5 * 1024 * 1024
+                    && arBild();
     }
 
     // backups/{orgId}/{filnamn} – veckovis Firestore-backup (Etapp 3b), skriven ENDAST av

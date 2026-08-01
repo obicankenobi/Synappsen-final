@@ -3,7 +3,7 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-07-31 · **Motsvarar kodläge:** v5.54.0
+**Senast uppdaterad:** 2026-08-01 · **Motsvarar kodläge:** v5.55.0
 
 > Den här filen är skriven för att läsas när du är ensam, trött och stressad. Följ den uppifrån
 > och ned. Hoppa inte över steg 1–3 även om du tror att du vet vad som hänt.
@@ -289,3 +289,39 @@ användare. Sakligt, kort, verifierat.
 **Så länge kolumnen ovan innehåller ⬜ är din faktiska detektionsförmåga begränsad till att
 någon annan säger till dig.** Det är den ärliga bilden, och skälet till att Etapp 32 ligger
 först i etapplanen.
+
+### Nyckelrotation (Etapp 35f, 2026-08-01)
+
+**Vilka nycklar/hemligheter finns:**
+
+| Hemlighet | Var den lever idag | Vad den styr |
+|---|---|---|
+| `GEMINI_API_KEY` | GitHub Secret → satt i Secret Manager vid varje deploy | AI-bildtolkning/klinikstöd |
+| `SOKMOTOR_API_KEY` | GitHub Secret → Secret Manager | Google Custom Search (källbevakning, klinikstöd) |
+| `FIREBASE_SERVICE_ACCOUNT` | GitHub Secret (hela JSON-nyckeln) | `deploy.yml`s autentisering mot Google Cloud – den känsligaste av alla, ger i praktiken full projektåtkomst |
+| `FIREBASE_VAPID_KEY` | GitHub Secret | Web push-notiser |
+| `VITE_RECAPTCHA_SITE_KEY` | Hårdkodad i `deploy.yml` | App Check – en SITE-nyckel, inte hemlig i sig (publik per design), men bytbar om missbrukad |
+
+**Rutin vid en misstänkt läckt nyckel (P2, se policyns klassificering):**
+
+1. Generera en NY nyckel hos leverantören (Google Cloud Console / Google Programmable
+   Search / Firebase Console → Cloud Messaging → Web Push-certifikat, beroende på vilken).
+2. Uppdatera GitHub-secreten (Settings → Secrets and variables → Actions) med det nya värdet.
+3. Trigga `deploy.yml` manuellt – det skriver om Secret Manager-värdet
+   (`firebase functions:secrets:set ... --force`) och deployar om funktionerna, som då
+   plockar upp den nya nyckeln.
+4. **Återkalla/radera den GAMLA nyckeln hos leverantören** – steg 2–3 gör bara att den nya
+   nyckeln böjar användas, den gamla slutar inte fungera av sig själv.
+5. För `FIREBASE_SERVICE_ACCOUNT` specifikt: skapa en ny nyckel för samma (eller ett nytt)
+   tjänstekonto i IAM & Admin → Service Accounts → Keys, uppdatera secreten, verifiera att
+   en deploy fungerar, radera sedan den gamla nyckeln i konsolen.
+6. För `FIREBASE_VAPID_KEY` specifikt: ett nytt VAPID-nyckelpar gör att BEFINTLIGA
+   push-prenumerationer slutar fungera tills användarens webbläsare tyst förnyar sin
+   prenumeration (sker automatiskt över tid, men innebär en period utan push för vissa).
+7. Logga bytet i din incidentanteckning (steg 0), oavsett om det var en läcka eller en
+   rutinmässig rotation.
+
+**Beslutspunkt (se beslutspunkt 7 i `ETAPPLAN5.md`): finns idag ingen bestämd
+rotationskadens** – rutinen ovan är skriven för det REAKTIVA fallet (en misstänkt läcka).
+Om ett proaktivt rotationsintervall (t.ex. var 6:e eller 12:e månad) ska införas är det
+ägarens beslut, inte en kodfråga.

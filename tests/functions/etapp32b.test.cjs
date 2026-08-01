@@ -39,6 +39,12 @@ function vantaSig(villkor, meddelande) {
   }
 }
 
+// Samma format som functions/index.js:s aktuellManadNyckel() (inte exporterad för test) –
+// måste beräknas dynamiskt, inte hårdkodas, annars går testet sönder varje månadsskifte
+// (vilket hände: skrivet i juli 2026, klockan har sedan gått in i augusti).
+const nu = new Date();
+const AKTUELL_MANAD = `${nu.getFullYear()}-${String(nu.getMonth() + 1).padStart(2, "0")}`;
+
 async function budget(orgId) {
   const snap = await db.collection("organisationer").doc(orgId).collection("installningar").doc("geminiBudget").get();
   return snap.data();
@@ -49,7 +55,7 @@ async function main() {
   const ORG = "org32bTroskel";
   await db.collection("organisationer").doc(ORG).collection("installningar").doc("geminiBudget").set({
     anvantOre: 0,
-    aktuellManad: "2026-07",
+    aktuellManad: AKTUELL_MANAD,
     taketOre: 100,
     anvantPerUid: {},
   });
@@ -67,7 +73,7 @@ async function main() {
   const ORG2 = "org32bRedanNara";
   await db.collection("organisationer").doc(ORG2).collection("installningar").doc("geminiBudget").set({
     anvantOre: 850,
-    aktuellManad: "2026-07",
+    aktuellManad: AKTUELL_MANAD,
     taketOre: 1000,
     anvantPerUid: {},
     budgetvarningSkickad: false,

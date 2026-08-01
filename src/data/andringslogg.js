@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.55.0",
+    datum: "2026-08-01",
+    andringar: [
+      "Stärkt säkerhet under huven: striktare gränser för filuppladdningar och extra skyddande webbläsarinställningar",
+    ],
+  },
+  {
     version: "5.54.0",
     datum: "2026-07-31",
     andringar: [

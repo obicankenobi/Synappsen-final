@@ -1,0 +1,27 @@
+version: 2
+updates:
+  # Etapp 35d: kompletterar Etapp 31a:s npm-audit-rapport (som bara RAPPORTERAR samma sak
+  # varje vecka utan att någon agerar, krav 11 i ETAPPLAN5.md) med faktiska uppdaterings-PR:er.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      # Mindre brus: en samlad PR för patch/minor-uppdateringar istället för en per paket.
+      minor-och-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "npm"
+    directory: "/functions"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      minor-och-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
