@@ -554,6 +554,11 @@ gör att den fortsätter göra det.
 2. **Etapp 35e / 12c-ii:** granska App Check-metriken i Firebase-konsolen (Build → App Check →
    Metrics) och avgör om `enforceAppCheck` kan slås på. Fullständigt underlag finns i
    `ETAPPLAN4.md` Etapp 31c.
+   **⏳ Uppföljning inbokad (2026-08-01):** Firestore låg på 89% verifierat över 30 dagar –
+   under den rimliga ~98%-marginalen. **Kolla igen om några veckor** när mer data samlats in,
+   och samtidigt: utred varför Storage-uppladdningar visade 0% verifierat (litet underlag,
+   10 requests – se mätningen ovan i Etapp 35e). Fråga att ställa nästa gång: "har Firestore
+   klättrat mot 98%, och vet vi nu varför Storage inte verifierar?"
 3. **Etapp 34a:** vem är faktiskt kontaktbar utanför kontorstid? Utan ett namn är runbooken
    fiktion.
 4. **Etapp 36c:** extern penetrationstest – ja eller nej, och i så fall när?
