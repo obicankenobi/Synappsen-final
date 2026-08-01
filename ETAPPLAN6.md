@@ -167,16 +167,42 @@ Firestore-/Auth-emulatorerna (Playwright, inte bara vitest): en frisk rutin utan
 rutin med fyra flaggor, och ett utkast som korrekt utelämnas helt – hälsosiffran (50%) visades
 tillsammans med sin fullständiga nedbrytning, aldrig ensam. Version 5.56.0 → **5.57.0**.
 
-### 37b – Riktade granskningsrundor
+### 37b – Riktade granskningsrundor ✅ KLAR (2026-08-01)
 
 - Superadmin startar en runda: ett urval (t.ex. allt över 18 månader i Kliniskt stöd), en
   deadline, och en påminnelse till varje rutins ägare via befintliga notiser + push (Etapp 24).
-- Följs upp i ledningsrapporten: hur många granskade, av vem, vad återstår.
+- Följs upp i ledningsrapporten: hur många granskade, av vem (rundans SKAPARE, inte per
+  redaktör), vad återstår.
 - **Ingen ny notiskanal** – genomgående krav 10 gäller, och push är redan avstängbart per typ.
 - **"Vad återstår" redovisas per rutin och område, inte som en rankning per person**
   (förtydligande tillagt vid antagandet, krav 14). Skillnaden är liten i kod och avgörande i
   praktiken: en lista över eftersläpande rutiner är ett arbetsverktyg, en lista över
   eftersläpande kollegor är ett övervakningsverktyg.
+
+**Genomfört:** ny collection `granskningsrundor/{rundaId}` (`organisationId`, `omrade`,
+`trosallDagar`, `deadline`, `rutinIds` – en OFÖRÄNDERLIG ögonblicksbild tagen vid skapandet,
+`skapadAv`/`skapadAvNamn`, `skapad`). `firestore.rules`: läsning/skrivning bara för superadmin
+i egen organisation, `rutinIds` kan aldrig uppdateras i efterhand (`allow update: if false`) –
+11 nya regeltester (`tests/rules/granskningsrundor.test.mjs`). Ny Cloud Function-trigger
+`hanteraGranskningsrundaSkapad` slår ihop flera rutiner med SAMMA ägare till EN push (inte en
+per rutin) – 6 nya funktionstester. Klientsidan: `useGranskningsrundor()`-hook,
+`GranskningsrundorSektion.jsx` (superadmin-only: väljer område + tröskel i dagar + deadline,
+listar aktiva rundor med framsteg och en "Vad återstår"-lista av rutinnamn), ny push-typ
+`granskningsrunda` i `Profil.jsx` (förvalt avstängd, krav 10), och en ny sektion i
+`Ledningsrapport.jsx`. **Återanvänder helt den befintliga "Markera som granskad"-knappen**
+(fanns redan i `Sektionssida.jsx`/`RutinKort.jsx` sedan tidigare) – en rutin räknas som klar
+i en runda när dess `granskadDatum` är nyare än rundans starttid, ingen ny
+"klar"-mekanism byggd.
+
+Ren beräkningsfunktion `berakningRundaFramsteg()` i `src/utils/granskningsrunda.js` (5
+vitest-tester) håller `kvarstar`-listan fri från allt annat än `{id, titel, omrade, granskad}`
+– verifierat direkt i ett test att inga personfält kan smyga sig in (krav 14). Verifierat i en
+riktig webbläsare mot emulatorerna (Playwright): en runda skapad med rätt urval (100-dagars
+tröskel matchade 1 av 2 rutiner korrekt), framsteg visade "0 av 1" direkt efter start och "1 av
+1" efter att den befintliga "Markera som granskad"-knappen klickats – hela kedjan
+UI→Firestore→beräkning fungerar utan någon ny mekanism för själva granskningen. Fullt testsvep
+grönt (lint, build, vitest 91/91, test:rules, test:functions, test:storage). Version 5.57.0 →
+**5.58.0**.
 
 ### 37c – Dubbletter och motsägelser
 

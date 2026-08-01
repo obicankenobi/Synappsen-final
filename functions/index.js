@@ -2072,6 +2072,59 @@ exports.hanteraBristanmalningSkapadTrigger = onDocumentCreated(
   (event) => hanteraBristanmalningSkapad(event.data.data(), event.params.bristId)
 );
 
+// Etapp 37b: när en superadmin startar en riktad granskningsrunda, meddela varje berörd
+// rutins ägare EN gång (inte en push per rutin) om hur många av deras rutiner ingår i rundan
+// och till när. `rutinIds` är redan en tagen ögonblicksbild (se firestore.rules) – funktionen
+// läser bara upp respektive rutins nuvarande ägare för att veta vem som ska meddelas.
+async function hanteraGranskningsrundaSkapad(data, rundaId) {
+  const organisationId = data.organisationId ?? "default";
+  const rutinIds = data.rutinIds ?? [];
+  if (rutinIds.length === 0) return rundaId;
+
+  const rutinDocs = await Promise.all(rutinIds.map((id) => db.collection("rutiner").doc(id).get()));
+  const perAgare = new Map();
+  for (const snap of rutinDocs) {
+    if (!snap.exists) continue;
+    const agare = snap.data().agare;
+    const nyckel =
+      agare?.typ === "person" && agare.uid
+        ? `person:${agare.uid}`
+        : agare?.typ === "roll" && agare.roll
+          ? `roll:${agare.roll}`
+          : null;
+    if (!nyckel) continue;
+    if (!perAgare.has(nyckel)) perAgare.set(nyckel, { agare, antal: 0 });
+    perAgare.get(nyckel).antal += 1;
+  }
+
+  const omradeUrl =
+    data.omrade === "administration" ? "/administration" : data.omrade === "logistik" ? "/logistik" : "/kliniskt-stod";
+
+  await Promise.all(
+    Array.from(perAgare.values()).map(async ({ agare, antal }) => {
+      const mottagare =
+        agare.typ === "person"
+          ? await hamtaAnvandareMedPushPreferens(organisationId, "granskningsrunda", (a) => a.id === agare.uid)
+          : await hamtaAnvandareMedPushPreferens(organisationId, "granskningsrunda", (a) => a.role === agare.roll);
+      await skickaPush(mottagare, {
+        titel: "En granskningsrunda har startat",
+        body:
+          antal === 1
+            ? `En rutin du äger ska granskas senast ${data.deadline ?? "snart"}.`
+            : `${antal} rutiner du äger ska granskas senast ${data.deadline ?? "snart"}.`,
+        url: omradeUrl,
+      });
+    })
+  );
+  return rundaId;
+}
+exports.hanteraGranskningsrundaSkapad = hanteraGranskningsrundaSkapad;
+
+exports.hanteraGranskningsrundaSkapadTrigger = onDocumentCreated(
+  { document: "granskningsrundor/{rundaId}", region: "europe-west1" },
+  (event) => hanteraGranskningsrundaSkapad(event.data.data(), event.params.rundaId)
+);
+
 // Etapp 24b: daglig påminnelse om anslag med en kvitteringsfrist som närmar sig, till var och
 // en som inte redan kvitterat – mirrorar exakt samma "vem har inte kvitterat"-logik som
 // Admin.jsx redan visar klientsidan (anslagMedFrist), se ETAPPLAN4.md Etapp 24b.

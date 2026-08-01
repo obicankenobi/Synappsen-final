@@ -5,8 +5,11 @@ import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar"
 import { useAnvandare } from "../hooks/useAnvandare";
 import { useKlinikfrageStatistik } from "../hooks/useKlinikfrageStatistik";
 import { useSokstatistik } from "../hooks/useSokstatistik";
+import { useGranskningsrundor } from "../hooks/useGranskningsrundor";
 import { borGranskas } from "../utils/rutinHjalp";
+import { berakningRundaFramsteg } from "../utils/granskningsrunda";
 import { formateraDatum } from "../utils/datum";
+import { OMRADE_NAMN } from "../components/admin/adminHjalp";
 import "./Admin.css";
 import "./Ledningsrapport.css";
 
@@ -33,9 +36,16 @@ export default function Ledningsrapport() {
   const { anvandare } = useAnvandare();
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
+  const { rutiner: logistikRutiner } = useRutiner("logistik");
   const { artiklar: forradsartiklar } = useForradsartiklar();
   const { feedback: klinikfeedback, fragor: klinikfragor } = useKlinikfrageStatistik(true);
   const { statistik: sokstatistik } = useSokstatistik(true);
+  const { rundor: granskningsrundor } = useGranskningsrundor();
+  const rutinerPerOmrade = {
+    "kliniskt-stod": klinisktRutiner,
+    logistik: logistikRutiner,
+    administration: adminRutiner,
+  };
 
   const antalAnvandare = anvandare.length;
 
@@ -169,6 +179,38 @@ export default function Ledningsrapport() {
           )
         )}
       </section>
+
+      {granskningsrundor.length > 0 && (
+        <section className="admin-sektion">
+          <h2>Riktade granskningsrundor</h2>
+          <p className="sida__beskrivning">
+            Framsteg redovisas per rutin och område, inte per person (se ETAPPLAN6.md krav 14).
+          </p>
+          <table className="ledningsrapport__tabell">
+            <thead>
+              <tr>
+                <th>Område</th>
+                <th>Startad av</th>
+                <th>Deadline</th>
+                <th>Granskade</th>
+              </tr>
+            </thead>
+            <tbody>
+              {granskningsrundor.map((runda) => {
+                const { total, granskade } = berakningRundaFramsteg(runda, rutinerPerOmrade[runda.omrade] ?? []);
+                return (
+                  <tr key={runda.id}>
+                    <td>{OMRADE_NAMN[runda.omrade] ?? runda.omrade}</td>
+                    <td>{runda.skapadAvNamn || "-"}</td>
+                    <td>{runda.deadline}</td>
+                    <td>{granskade} av {total}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </section>
+      )}
 
       <section className="admin-sektion">
         <h2>Klinikstöd-sökningen</h2>

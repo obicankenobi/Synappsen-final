@@ -6,15 +6,16 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-01, version **5.57.0**. `ETAPPLAN6.md` (Etapp 37–41,
+**Senast uppdaterad:** 2026-08-01, version **5.58.0**. `ETAPPLAN6.md` (Etapp 37–41,
 innehållets kvalitet och bevisad nytta) är den aktiva planen – **Etapp 37a (innehållshälso-
-panelen) är nu klar**, byggd, testad och UI-verifierad, men **INTE ännu deployad till
-produktion** (senaste produktionsdeploy är fortfarande körning #63/`382562b`, v5.56.0).
-`ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs de TRE
-NYA sektionerna längst ner i den här filen först** ("Uppföljning 2026-08-01", "Uppföljning
-2026-08-01 (senare samma dag)" och "Uppföljning 2026-08-01 (Etapp 37a)") om du undrar var
-arbetet står idag – allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är
-historisk, äldre kontext.
+panelen) och 37b (riktade granskningsrundor) är nu klara**, byggda, testade och
+UI-verifierade, men **INTE ännu deployade till produktion** (senaste produktionsdeploy är
+fortfarande körning #63/`382562b`, v5.56.0). `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det
+närmaste klar men inte stängd. **Läs de FYRA NYA sektionerna längst ner i den här filen
+först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning
+2026-08-01 (Etapp 37a)" och "Uppföljning 2026-08-01 (Etapp 37b)") om du undrar var arbetet
+står idag – allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är historisk,
+äldre kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -449,6 +450,38 @@ helt. Hälsosiffran (50%) visades tillsammans med sin fulla nedbrytning. Fullt t
 **INTE gjort ännu:** deploy till produktion (senaste produktionskörning är fortfarande #63,
 v5.56.0 – 37a ligger bara pushad till branchen). Etapp 37b–d (granskningsrundor, dubbletter,
 arkiverad status) är opåbörjade.
+
+## Uppföljning 2026-08-01 (Etapp 37b): riktade granskningsrundor, INTE ÄNNU deployade
+
+**Etapp 37b klar.** Ny collection `granskningsrundor/{rundaId}` (superadmin startar en runda:
+ett urval äldre rutiner i ett område, en gemensam deadline). `rutinIds` är en OFÖRÄNDERLIG
+ögonblicksbild tagen vid skapandet – firestore.rules tillåter aldrig en klientuppdatering av
+en runda (`allow update: if false`), bara läsning/skapande/radering, allt begränsat till
+superadmin i egen organisation (11 nya regeltester). Ny Cloud Function-trigger
+`hanteraGranskningsrundaSkapad` meddelar varje berörd rutins ägare EN gång (slår ihop flera
+rutiner med samma ägare, skickar inte en push per rutin) via en ny push-typ
+`granskningsrunda` (förvalt avstängd, krav 10) – 6 nya funktionstester. Ny
+`GranskningsrundorSektion.jsx` i adminpanelen + en sammanfattning i `Ledningsrapport.jsx`.
+
+**Viktigt designval: ingen ny "markera som klar"-mekanism byggdes.** En rutin räknas som
+granskad inom en runda när dess redan existerande `granskadDatum` (satt av den redan
+existerande "Markera som granskad"-knappen i `RutinKort.jsx`, byggd långt före den här etappen)
+är nyare än rundans starttid. Ren beräkningsfunktion `berakningRundaFramsteg()`
+(`src/utils/granskningsrunda.js`, 5 tester) håller "vad återstår"-listan till bara
+`{id, titel, omrade, granskad}` – **aldrig per person** (krav 14 i `ETAPPLAN6.md`, verifierat
+med ett eget test).
+
+**Verifierat i en riktig webbläsare** (Playwright mot emulatorerna): en runda med en
+100-dagars tröskel matchade korrekt 1 av 2 seedade rutiner (inte den nyare), visade "0 av 1"
+direkt efter start, och "1 av 1" efter att den befintliga knappen klickats på RÄTT rutin –
+en första körning klickade fel kort (rutiner listas nyast-först) och avslöjade att detta var
+ett testskriptfel, inte en produktbugg, innan den korrekta verifieringen bekräftade hela
+kedjan. Fullt testsvep grönt (lint, build, vitest 91/91, test:rules, test:functions,
+test:storage). Version 5.57.0 → **5.58.0**, ändringslogg uppdaterad.
+
+**INTE gjort ännu:** deploy till produktion (fortfarande körning #63, v5.56.0 – både 37a och
+37b ligger bara pushade till branchen). Etapp 37c–d (dubbletter/motsägelser, arkiverad status)
+är opåbörjade.
 
 ## Om du är en ny Claude-session som läser detta
 

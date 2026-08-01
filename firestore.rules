@@ -510,6 +510,24 @@ service cloud.firestore {
                      && !harTroligtPersonnummer(request.resource.data.get('avvisningsMotivering', ''));
     }
 
+    // granskningsrundor/{rundaId} – Etapp 37b: superadmin startar en riktad granskningsrunda
+    // (ett urval rutiner med en gemensam deadline). rutinIds är en oföränderlig ögonblicksbild
+    // tagen vid skapandet, så en klient aldrig kan ändra vilka rutiner rundan omfattar i
+    // efterhand. Läsning begränsad till superadmin – detta är ett arbetsverktyg för ledningen
+    // (framsteg per rutin/område), inte en rankning per person (krav 14 i ETAPPLAN6.md), och
+    // ska därför inte spridas bredare än nödvändigt.
+    match /granskningsrundor/{rundaId} {
+      allow read: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));
+      allow create: if arSuperadmin()
+                     && request.resource.data.get('organisationId', 'default') == minOrganisation()
+                     && request.resource.data.omrade in ['kliniskt-stod', 'administration', 'logistik']
+                     && request.resource.data.rutinIds is list
+                     && request.resource.data.rutinIds.size() > 0
+                     && request.resource.data.skapadAv == request.auth.uid;
+      allow update: if false;
+      allow delete: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));
+    }
+
     // anslag/{anslagId} – anslagstavla, meddelanden från ledningen till all personal
     match /anslag/{anslagId} {
       allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
