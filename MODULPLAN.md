@@ -178,8 +178,9 @@ kostnadsgränser.
 
 ## Vad som faktiskt återstår
 
-Se `FRAMTIDSPLAN.md` (kort pekare) och `ETAPPLAN4.md` (den aktiva, detaljerade planen) för
-det löpande arbetet. Ur ett rent modul-/paketperspektiv är det enda kvarvarande:
+Se `CLAUDE.md`s dokumentkarta för vilken plan som är aktiv just nu (sedan 2026-08-01:
+`ETAPPLAN6.md`) och `FRAMTIDSPLAN.md` för de alternativ som valdes bort. Ur ett rent
+modul-/paketperspektiv är det enda kvarvarande:
 
 1. **Kioskläge** (Operations) – lågt prioriterat, ingen efterfrågan ännu.
 2. **Upphandlingsbarhet** – SSO/Microsoft Entra ID (`ETAPPLAN3.md` 13f) väntar på ett

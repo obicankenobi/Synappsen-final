@@ -21,10 +21,13 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 1. **`CLAUDE_STATUS.md`** – läs FÖRST. Kort "var slutade vi, vad gör jag nu"-sammanfattning,
    uppdateras löpande. Pekar vidare till detaljer i planfilerna nedan.
-2. **`ETAPPLAN5.md`** – den AKTIVA utvecklingsplanen (Etapp 32–36: säkerhet, upptäckt,
-   incidentberedskap). Om användaren ber om fortsatt arbete utan att specificera vad: det är
-   här nästa punkt finns.
-3. Övriga dokument nedan, efter behov.
+2. **`ETAPPLAN6.md`** – den AKTIVA utvecklingsplanen (Etapp 37–41: innehållets kvalitet och
+   bevisad nytta). Om användaren ber om fortsatt arbete utan att specificera vad: det är här
+   nästa punkt finns.
+3. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter (Etapp 32b, ToS-genomgången,
+   Etapp 30b, uppföljningen av 35e) är blockerade av ägarbeslut eller extern tid, inte av
+   kapacitet. Ta dem när respektive blockering lossnar.
+4. Övriga dokument nedan, efter behov.
 
 ## Dokumentkarta
 
@@ -32,8 +35,9 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 | Fil | Innehåll | Status |
 |---|---|---|
-| `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv.** Inget påbörjat ännu. |
-| `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast för vad som kommer EFTER säkerhetsbasen (sälj det byggda / förtjäna förtroendet) | **Utkast, ej antagna.** Ett av dem väljs när `ETAPPLAN5.md` är klar. |
+| `ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag, bevisad effekt, import, synlighet | **AKTIV** (antagen 2026-08-01). Inget påbörjat ännu. |
+| `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv men ej stängd.** I det närmaste klar – kvarvarande punkter (32b, ToS-genomgång, 30b, uppföljning av 35e) är blockerade av ägarbeslut/extern tid, inte av kapacitet. |
+| `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast som INTE antogs när `ETAPPLAN6.md` valdes | **Utkast, ej antagna.** Arkiverade – se `FRAMTIDSPLAN.md` för omprövningsvillkor per alternativ. |
 | `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv, LEVANDE** – händelsestyrd underhållsregel, se "Obligatorisk underhållsregel: CLAUDE_STATUS.md" under arbetsmönstren nedan. |
 | `src/data/andringslogg.js` | Användarvänd ändringslogg, visas i appen (`/nyheter`) | **Aktiv** – lägg till en post vid VARJE release. |
 | `UTVECKLINGSLOGG.md` | Fullständig kronologisk teknisk historik ("Fas 1–41+") | **Aktiv**, växer varje fas. |
@@ -58,12 +62,21 @@ en gammal.
 
 | Fil | Innehåll | Senast omskriven |
 |---|---|---|
-| `FRAMTIDSPLAN.md` | Kort pekare mot vad som faktiskt är näst i tur (Etapp 26–30 + kända öppna punkter) | 2026-07-28 |
+| `FRAMTIDSPLAN.md` | **Arkiv över ej antagna planer** (de tre alternativ som valdes bort när `ETAPPLAN6.md` antogs) + kända öppna punkter | 2026-08-01 |
 | `MODULPLAN.md` | Modul-/affärsplan: Core/Operations/Intelligence/Källbevakning, byggstatus, prissättning | 2026-07-28 |
 
 Håll dessa två KORTA. Om du märker att du skriver in samma delmålsbeskrivning här som redan
 finns i en `ETAPPLANx.md`, skriv en pekare istället för att kopiera – det var exakt dupliceringen
 (fast åt andra hållet: gammalt innehåll som aldrig synkades) som gjorde dem stale förra gången.
+
+> **`FRAMTIDSPLAN.md` bytte roll 2026-08-01, och skälet är värt att förstå innan någon skriver
+> om den igen.** Den hade då blivit stale två gånger av samma orsak: den var en *pekare mot den
+> aktiva planen*, och ingenting tvingar fram en uppdatering av en sådan pekare när planen byts
+> (den pekade på `ETAPPLAN4.md` i elva releaser efter att `ETAPPLAN5.md` tagit över). Den är nu
+> ett **arkiv över ej antagna alternativ** i stället – en roll som inte kan drifta isär från
+> verkligheten på samma sätt. **Skriv aldrig tillbaka "här är den aktiva planen" i den filen.**
+> Var den aktiva planen finns står i den här filens dokumentkarta ovan och i `CLAUDE_STATUS.md`
+> – båda har händelsestyrda underhållsregler.
 
 ### Incidentdokument (LEVANDE – se den obligatoriska underhållsregeln nedan)
 
@@ -133,7 +146,7 @@ något av följande inträffar:
 | Ändrad **behörighetsmodell** (`firestore.rules`, roller, plattformsadmin) | Checklistans steg 4; policyns avsnitt 4 om kompenserande kontroller påverkas |
 | Flyttad/ändrad **adminkontroll i UI** | Checklistans snabbreferens "Var saker finns" – annars leder den fel under press |
 | Nytt **underbiträde eller extern integration** | Policyns avsnitt 1-tabell; `avtal/UNDERBITRADEN.md` |
-| En **etapp i `ETAPPLAN5.md` blir klar** | Bocka av motsvarande rad i checklistans statustabell och policyns avsnitt 11 |
+| En **etapp i den aktiva planen blir klar** (`ETAPPLAN6.md`, eller en kvarvarande punkt i `ETAPPLAN5.md`) | Bocka av motsvarande rad i checklistans statustabell och policyns avsnitt 11 |
 
 Ytterligare krav:
 

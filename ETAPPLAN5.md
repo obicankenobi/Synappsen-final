@@ -2,12 +2,18 @@
 
 *Skriven 2026-07-31, utgångsläge v5.50.0, efter att Etapp 22–31 avslutats.*
 
-**Detta är den AKTIVA planen.** Den ersätter `ETAPPLAN4.md` som styrande dokument (den senare
-är nu historisk men fortfarande korrekt – se `CLAUDE.md`s dokumentkarta).
+**STATUS (uppdaterad 2026-08-01): den här planen är i det närmaste genomförd, men INTE
+stängd – och den är inte längre den plan nytt arbete utgår från.** `ETAPPLAN6.md` (Etapp
+37–41) antogs 2026-08-01 som aktiv plan. Kvarvarande punkter här – **Etapp 32b** (tre
+larmtyper), **ToS-genomgången** för källbevakningens domäner, **Etapp 30b** (fysiskt
+akutlägestest) och **uppföljningen av 35e** (App Check-enforcement) – spåras fortsatt i den
+här filen. De är blockerade av ägarbeslut eller extern tid, inte av kapacitet: ta dem så
+snart respektive blockering lossnar.
 
 De två utkasten `ETAPPLAN5-ALT-A.md` (sälj det som byggts) och `ETAPPLAN5-ALT-B.md` (förtjäna
-förtroendet) är **inte** förkastade – de utgör menyn för vad som kommer EFTER den här planens
-säkerhetsbas. Se avsnittet "Vad som kommer efter" längst ned.
+förtroendet) antogs **inte** när valet gjordes, men är inte heller förkastade – de är
+arkiverade med var sitt omprövningsvillkor i `FRAMTIDSPLAN.md`. Se avsnittet "Vad som kommer
+efter" längst ned.
 
 ---
 
@@ -639,14 +645,20 @@ skrivas parallellt med 32/33 av någon annan än den som kodar, eftersom den är
 
 ## Vad som kommer efter
 
-Den här planen är medvetet avgränsad till säkerhet, upptäckt och beredskap. När den är
-avklarad står valet mellan de två utkast som redan är skrivna:
+Den här planen är medvetet avgränsad till säkerhet, upptäckt och beredskap.
+
+**AVGJORT 2026-08-01:** valet föll på en tredje väg – **`ETAPPLAN6.md` (Etapp 37–41,
+"Innehållet som håller")** är nu den aktiva planen för nytt arbete. De två utkasten nedan
+antogs alltså INTE, och är arkiverade i `FRAMTIDSPLAN.md` med var sitt omprövningsvillkor:
 
 - **`ETAPPLAN5-ALT-A.md` – "Från byggd produkt till såld produkt":** SSO/Entra ID (13f),
-  veckopuls (Etapp 16), kioskläge, onboarding utan konsult. Kräver 2–3 ägarbeslut innan
-  byggstart.
+  veckopuls (Etapp 16), kioskläge, onboarding utan konsult. **Ompröva omedelbart om en
+  regionkund blir aktuell** – SSO blockerar den affären oavsett resten.
 - **`ETAPPLAN5-ALT-B.md` – "Förtjäna förtroendet":** rollmatris som testsvit, tomläge kontra
   felläge, WCAG AA utan förbehåll, akutläget under verkliga förhållanden.
+
+**Den här filen är inte stängd.** Etapp 32b, ToS-genomgången, Etapp 30b och uppföljningen av
+35e spåras fortsatt här – de är blockerade av ägarbeslut eller extern tid, inte av kapacitet.
 
 **Överlappning värd att notera:** ALT-B:s Etapp 32a (felmedvetna hooks) är samma arbete som
 den här planens Etapp 32a. Görs det här, är ALT-B redan påbörjad. Det talar för ALT-B som

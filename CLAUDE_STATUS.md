@@ -7,12 +7,12 @@
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
 **Senast uppdaterad:** 2026-08-01, version **5.56.0** – **DEPLOYAT TILL PRODUKTION** (körning
-#63, commit `382562b`, verifierad grön). `ETAPPLAN5.md` (Etapp 32–36: säkerhet, upptäckt,
-incidentberedskap) är i det närmaste klar – se den NYA sektionen längst ner i den här filen
-("Uppföljning 2026-08-01") för vad som hände senast: fem ägarbeslut togs och dokumenterades,
-och två av dem (Etapp 33c, 35f) byggdes/verkställdes samma session. **Läs den sektionen
-FÖRST** om du undrar var arbetet står idag – allt mellan denna rad och den sektionen
-(inklusive "Uppföljning 2026-07-28") är historisk, äldre kontext.
+#63, commit `382562b`, verifierad grön). **Den aktiva planen är sedan 2026-08-01
+`ETAPPLAN6.md` (Etapp 37–41, innehållets kvalitet och bevisad nytta) – inget av den är
+påbörjat.** `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd.
+**Läs de TVÅ NYA sektionerna längst ner i den här filen först** ("Uppföljning 2026-08-01" och
+"Uppföljning 2026-08-01 (senare samma dag)") om du undrar var arbetet står idag – allt mellan
+denna rad och dem (inklusive "Uppföljning 2026-07-28") är historisk, äldre kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -194,7 +194,7 @@ innan produktion. Version bumpad 5.25.1 → **5.26.0** (första faktiska UI-ytan
 14c (inloggningshändelser, rollbyte, modul-/budgetändringar loggas inte). Därefter
 Etapp 15–21.
 
-## Vad som återstår (uppdaterad 2026-07-28 – se `ETAPPLAN4.md` för den aktiva planen)
+## HISTORISKT: vad som återstod per 2026-07-28 (`ETAPPLAN4.md` var aktiv plan då – den är den INTE nu)
 
 - **`ETAPPLAN4.md` Etapp 26–30** – medarbetarens röst (föreslå ändring), skanna i förrådet,
   kundens egen profil, riktig offline, snabbhet/WCAG AA. Inte påbörjade.
@@ -264,10 +264,11 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
 - `ETAPPLAN.md` (Etapp 0–5), `ETAPPLAN2.md` (Etapp 6–12), `ETAPPLAN3.md` (Etapp 13–21) –
   historiska men KORREKTA, status per delmål underhållen inline. Alla tre klara utom
   namngivna, medvetet pausade punkter (13f SSO, Etapp 16 veckopuls).
-- `ETAPPLAN4.md` – **den aktiva planen** (Etapp 22–30). Etapp 22–25 + UI-designjustering
-  klara, 26–30 kvarstår.
-- `FRAMTIDSPLAN.md` – kort pekare mot ETAPPLAN4.md (skrevs om 2026-07-28, var stale sedan
-  v5.7.0).
+- `ETAPPLAN4.md` – Etapp 22–31. **Var den aktiva planen när det här stycket skrevs; är det
+  inte längre** (`ETAPPLAN5.md` tog över, och sedan 2026-08-01 är `ETAPPLAN6.md` aktiv).
+  Historisk men korrekt.
+- `FRAMTIDSPLAN.md` – **arkiv över ej antagna planer** sedan 2026-08-01 (var dessförinnan en
+  pekare mot den aktiva planen, och blev stale i den rollen två gånger).
 - `MODULPLAN.md` – modul-/affärsplan (skrevs om 2026-07-28, var stale sedan v5.10.0 – påstod
   bl.a. felaktigt att organisationsmodellen inte var byggd).
 - `UTVECKLINGSLOGG.md` – fullständig kronologisk teknisk historik, "Fas 1–41+".
@@ -377,11 +378,55 @@ en gång orsakat att `SAKERHETSRAPPORT.md`/`FRAMTIDSPLAN.md`/`MODULPLAN.md` blev
 genom att skriva just den här sektionen, OCH genom att lägga till en ny obligatorisk,
 händelsestyrd underhållsregel i `CLAUDE.md` ("Regel: CLAUDE_STATUS.md") – se den filen.
 
+## Uppföljning 2026-08-01 (senare samma dag): ETAPPLAN6.md antagen som ny aktiv plan
+
+**Ny aktiv plan:** `ETAPPLAN6.md` (Etapp 37–41, "Innehållet som håller: redaktionell kvalitet
+och bevisad nytta"). Utgångsläge v5.56.0. Tesen är samma som `ETAPPLAN5.md`s, applicerad på
+innehåll i stället för säkerhet: produkten är byggd för att innehåll ska skapas och godkännas
+korrekt, men saknar förmågan att upptäcka när det som redan ligger där blivit gammalt eller
+motsägelsefullt. Detaljerna hör hemma i planfilen – läs den, inte den här sammanfattningen.
+
+**`ETAPPLAN5.md` är INTE stängd.** Etapp 32b, ToS-genomgången, Etapp 30b och uppföljningen av
+35e (App Check) spåras fortsatt där, blockerade av ägarbeslut eller extern tid.
+
+**Justeringar gjorda i planen innan den lades in** (den kom som ett utkast och antogs efter
+en genomgång, inte rakt av):
+
+- **Premisskontrolltabell tillagd överst** – planens åtta kodpåståenden (`borGranskas()`,
+  `useVisningar`, `useLaskvittering`, ägarfältet, källbevakningen, versionsdiffen, kvissbanken,
+  checklistestatistiken) stickprovskontrollerade mot faktisk kod. Alla höll.
+- **Krav 14 konkretiserat med en minsta-n-spärr (5 svarande).** "Aggregerat" skyddar inte
+  anonymiteten i en verksamhet med fem till tio nyckelpersoner – tre svar av fem kan peka ut
+  en person. Påverkar särskilt 39c men även nedbrytningar per område i 37a/39a.
+- **37a:** hälsosiffran får aldrig visas eller exporteras utan sin nedbrytning (Goodhart-risk).
+- **37c:** byggs sist inom Etapp 37, piloteras på ett område, med ett uttalat klart-kriterium
+  om falska positiver – annars läggs delmålet ner hellre än att lära redaktörerna ignorera
+  flaggor.
+- **Etapp 40 villkorad:** bygger uteslutande för en NY kunds inflyttning och ska inte byggas
+  förrän en sådan kund är konkret. 40b uppgraderad Medel → Medel–Hög med krav på en tidsboxad
+  spik mot tio verkliga kunddokument först.
+- **Beslutspunkt 1 (moderering av granskningskön) flyttad fram i tiden** – ska ställas när
+  Etapp 37 PÅBÖRJAS, inte när 38 ska byggas, eftersom 37 gör kön längre innan 38 gör den
+  snabbare.
+
+**Två premissfel i utkastet hittades och åtgärdades:**
+
+1. **`FRAMTIDSPLAN.md` var inte det "arkiv för ej antagna planer" utkastet påstod.** Den
+   pekade fortfarande på `ETAPPLAN4.md` som aktiv plan – elva releaser efter att `ETAPPLAN5.md`
+   tagit över. Femte gången samma stale-mönster i det här projektet. **Fixad genom att ge filen
+   en roll som inte KAN bli stale på samma sätt:** den är nu ett arkiv över bortvalda alternativ
+   med omprövningsvillkor per alternativ, inte en pekare mot den aktiva planen. `CLAUDE.md` har
+   fått en uttrycklig varning om att aldrig skriva tillbaka "här är den aktiva planen" där.
+2. **"Kund nummer tre" fanns inte som fil.** Utkastet refererade till det som ett av tre
+   skrivna alternativ; bara ALT-A och ALT-B existerar. Nu ärligt noterat på båda ställena –
+   det måste skrivas ut som en riktig planfil innan det kan antas.
+
 ## Om du är en ny Claude-session som läser detta
 
 Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete. Om
-användaren säger något i stil med "fortsätt där vi var" utan att specificera: hänvisa till de
-kvarvarande öppna punkterna i `ETAPPLAN5.md` (se "Uppföljning 2026-08-01" ovan) och fråga
-vilken de vill prioritera, snarare än att gissa. Läs `CLAUDE.md` först om du är osäker på
-vilken fil som är auktoritativ för vad – och notera dess nya underhållsregel för DEN HÄR
-filen innan du avslutar sessionen.
+användaren säger något i stil med "fortsätt där vi var" utan att specificera: **den aktiva
+planen är `ETAPPLAN6.md` (Etapp 37–41), och inget av den är påbörjat** – börja där, med Etapp
+37 enligt planens egen ordningsprincip (undantag: 39a:s insamlingsdel kan och bör byggas
+parallellt, se planen). `ETAPPLAN5.md`s kvarvarande punkter är blockerade av ägarbeslut/extern
+tid, inte av kapacitet. Läs `CLAUDE.md` först om du är osäker på vilken fil som är auktoritativ
+för vad – och notera dess underhållsregel för DEN HÄR filen innan du avslutar sessionen.
