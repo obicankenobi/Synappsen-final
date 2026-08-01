@@ -77,6 +77,14 @@ describe("sammanstallHalsa", () => {
     expect(resultat.halsosiffra).toBeNull();
   });
 
+  it("ignorerar arkiverade rutiner helt, oavsett hur många flaggor de skulle haft (Etapp 37d)", () => {
+    const resultat = sammanstallHalsa([
+      godkandRutin({ id: "arkiverad1", arkiverad: true, agare: null, kallVarning: true, lasteAv: [] }),
+    ]);
+    expect(resultat.total).toBe(0);
+    expect(resultat.halsosiffra).toBeNull();
+  });
+
   it("räknar 100% när alla rutiner är friska", () => {
     const resultat = sammanstallHalsa([godkandRutin({ id: "a" }), godkandRutin({ id: "b" })]);
     expect(resultat.halsosiffra).toBe(100);

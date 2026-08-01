@@ -134,6 +134,25 @@ export function useRutiner(omrade) {
     loggaHandelse({ beskrivning: "Rutin markerad som granskad", entitetTyp: "rutin", entitetId: id, uid, organisationId });
   }
 
+  // Etapp 37d: "gäller inte längre", skilt från papperskorgen (taBortRutin). En arkiverad
+  // rutin raderas inte och lämnar inte listan för redaktörer – bara markeras och slutar
+  // räknas i kvittering/hälsopanel/granskningsrundor/dubblettdetektion. Samma funktion
+  // togglar båda vägarna (arkivera/återaktivera) beroende på `arkivera`.
+  async function arkiveraRutin(id, uid, arkivera) {
+    await updateDoc(doc(db, "rutiner", id), {
+      arkiverad: arkivera,
+      arkiveradAv: arkivera ? (uid ?? null) : null,
+      arkiveradDatum: arkivera ? serverTimestamp() : null,
+    });
+    loggaHandelse({
+      beskrivning: arkivera ? "Rutin arkiverad" : "Rutin återaktiverad från arkivet",
+      entitetTyp: "rutin",
+      entitetId: id,
+      uid,
+      organisationId,
+    });
+  }
+
   async function hamtaVersioner(id) {
     const q = query(collection(db, "rutiner", id, "versioner"), orderBy("sparadVersionTidpunkt", "desc"));
     const snap = await getDocs(q);
@@ -149,6 +168,7 @@ export function useRutiner(omrade) {
     godkannRutin,
     taBortRutin,
     markeraGranskad,
+    arkiveraRutin,
     hamtaVersioner,
   };
 }

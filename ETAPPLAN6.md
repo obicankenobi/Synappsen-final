@@ -253,7 +253,7 @@ kan avgöra åt ägaren. Koden är byggd, testad och verifierad att fungera tekn
 träffkvaliteten håller måttet, eller om tröskeln/reglaget behöver justeras eller delmålet
 läggas ner.
 
-### 37d – Arkiverad status
+### 37d – Arkiverad status ✅ KLAR (2026-08-01)
 
 - "Gäller inte längre" som ett eget tillstånd, skilt från papperskorgen: rutinen finns kvar och
   är sökbar för den som letar historik, men är tydligt märkt och utlöser inget kvitteringskrav.
@@ -263,6 +263,47 @@ läggas ner.
   och akutläget** (tillagt vid antagandet). Ett nytt tillstånd som bara implementeras i
   listvyn men inte i de tre cachande/filtrerande ytorna är precis den sortens halva
   införande som orsakade 31b-buggen.
+
+**Premisskontroll (krav 8) bekräftade att detta ÄR ett utökat fält, inte en ny mekanism:**
+papperskorgen (`borttagen`) filtreras redan bort klientsidan i flera hookar (`useRutiner.js`,
+`useAkutlageRutiner.js`), ett mönster den nya `arkiverad`-flaggan kunde återanvända rakt av.
+`firestore.rules`s `farUppdateraRutin()` tillåter redan att en redaktör för området ändrar
+godtyckliga fält (bara `status`/`akutlage`/`senasteVasentligaAndring` är extra spärrade till
+VÖL/superadmin) – **ingen regeländring behövdes** för att låta en redaktör toggla arkiverad.
+
+**Designval:** samma synlighetsmönster som redan finns för `arUtgangen()` (utgångna rutiner) –
+dold i listan för vanlig personal, men fullt synlig (med en "Arkiverad"-badge) för redaktörer,
+som kan återaktivera med samma knapp. Sökindexet (`useSokindex.js`) filtrerar varken på
+utgången eller arkiverad sedan tidigare, så arkiverat innehåll förblir sökbart för ALLA utan
+extra kod – bara märkt med "(arkiverad)" i kategorin.
+
+**Genomfört, i alla tre ytor krav 8-kontrollen pekade ut (plus fyra till som hittades under
+byggandet):**
+- `arArkiverad()` i `utils/rutinHjalp.js` + `arkiveraRutin()`-togglefunktion i `useRutiner.js`.
+- `RutinKort.jsx`: "Arkiverad"-badge, kvitteringsblocket ersätts med en informationstext,
+  "Arkivera"/"Återaktivera"-knapp för redaktörer.
+- `Sektionssida.jsx`: dold för icke-redaktörer (`synligaRutiner`), synlig för redaktörer.
+- **Akutläget** (`useAkutlageRutiner.js`): explicit uteslutning, ÄVEN om `akutlage: true`
+  fortfarande står kvar på en arkiverad rutin – patientsäkerhet går före datakonsistens.
+- **Sökindexet** (`useSokindex.js`): ingen filtrering (medvetet), bara märkt "(arkiverad)".
+- **Offline-centret** (`useOfflineCenter.js`): uteslutet ur nedladdningsräkningen och
+  bildnedladdningen (klientsidig filtrering, inte i frågan – ett `where("arkiverad","==",
+  false)` hade tyst uteslutit alla äldre rutiner som saknar fältet helt).
+- Innehållshälsan (37a), granskningsrundor (37b) och dubblettdetektionen (37c): alla tre
+  utesluter nu arkiverade rutiner konsekvent, plus `Ledningsrapport.jsx`s kvitteringsgrad/
+  "bör granskas"-listor/källvarningar och `MinaUppgifter.jsx`/`useNotiser.js`s
+  granskningspåminnelser.
+
+Verifierat i en riktig webbläsare mot emulatorerna, sex separata kontroller: (1) personal ser
+INTE en arkiverad rutin i listan, (2) den syns INTE i akutläget trots `akutlage: true`,
+(3) superadmin ser den med badge, ingen kvitteringsknapp, en Återaktivera-knapp, (4) att
+arkivera en aktiv rutin ger badgen direkt, (5) att återaktivera tar bort badgen igen,
+(6) sökning hittar den arkiverade rutinen märkt "(arkiverad)" även för en icke-redaktör.
+Fullt testsvep grönt (lint, build, vitest 104/104, test:rules, test:functions, test:storage).
+Version 5.59.0 → **5.60.0**.
+
+**Etapp 37 (innehållets hälsa) är därmed helt avslutad** utom 37c:s pilotutvärdering
+(väntar på en redaktörs bedömning, se den etappens egen status).
 
 **Klart när:** en superadmin kan svara på "hur aktuell är vår kunskapsbank?" med en siffra hon
 litar på, och en granskningsrunda kan startas och följas upp utan ett kalkylark vid sidan om.

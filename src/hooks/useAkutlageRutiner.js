@@ -34,7 +34,10 @@ export function useAkutlageRutiner() {
     const unsubscribe = onSnapshot(
       q,
       (snap) => {
-        const alla = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => !r.borttagen);
+        // Etapp 37d: en arkiverad rutin ("gäller inte längre") ska ALDRIG synas i akutläget,
+        // oavsett akutlage-flaggan – felaktigt/inaktuellt innehåll i ett akutförlopp är en
+        // patientsäkerhetsrisk, inte bara ett kvalitetsproblem.
+        const alla = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => !r.borttagen && !r.arkiverad);
         alla.sort((a, b) => (a.akutlageOrdning ?? 0) - (b.akutlageOrdning ?? 0));
         setRutiner(alla);
         setLaddar(false);

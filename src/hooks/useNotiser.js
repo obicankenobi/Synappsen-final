@@ -128,7 +128,7 @@ export function useNotiser() {
     const granskningsposter = !hasFeature(FEATURE.OWNER_REMINDERS)
       ? []
       : allaRutiner
-      .filter((r) => r.status === RUTIN_STATUS.GODKAND && narmarSigGranskning(r.granskadDatum))
+      .filter((r) => r.status === RUTIN_STATUS.GODKAND && r.arkiverad !== true && narmarSigGranskning(r.granskadDatum))
       .filter((r) => {
         if (r.agare?.typ === "roll") return role === r.agare.roll;
         if (r.agare?.typ === "person") return currentUser?.uid === r.agare.uid;

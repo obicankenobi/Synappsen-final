@@ -60,9 +60,11 @@ export function useSokindex() {
       (r) => r.status === RUTIN_STATUS.GODKAND
     );
 
+    // Etapp 37d: en arkiverad rutin ("gäller inte längre") utesluts MEDVETET inte här – den
+    // ska förbli sökbar för den som letar historik, bara tydligt märkt i sökresultatet.
     const rutinposter = godkandaRutiner.map((r) => ({
       titel: r.titel,
-      kategori: OMRADE_LABELS[r.omrade] ?? r.omrade,
+      kategori: r.arkiverad === true ? `${OMRADE_LABELS[r.omrade] ?? r.omrade} (arkiverad)` : OMRADE_LABELS[r.omrade] ?? r.omrade,
       sokvag: `${OMRADE_SOKVAG[r.omrade] ?? "/"}#rutin-${r.id}`,
       nyckelord: (r.innehall ?? "").split(/\s+/).slice(0, 60),
     }));

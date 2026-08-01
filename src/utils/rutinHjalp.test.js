@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { borGranskas, narmarSigGranskning, arUtgangen } from "./rutinHjalp";
+import { borGranskas, narmarSigGranskning, arUtgangen, arArkiverad } from "./rutinHjalp";
 
 function tidsstampel(datum) {
   return { toDate: () => datum };
@@ -60,5 +60,24 @@ describe("arUtgangen", () => {
 
   it("är sant för ett utgångsdatum i det förflutna", () => {
     expect(arUtgangen({ utgangsdatum: "2020-01-01" })).toBe(true);
+  });
+});
+
+describe("arArkiverad", () => {
+  it("är falskt utan arkiverad-fält alls", () => {
+    expect(arArkiverad({})).toBe(false);
+  });
+
+  it("är falskt när arkiverad uttryckligen är false", () => {
+    expect(arArkiverad({ arkiverad: false })).toBe(false);
+  });
+
+  it("är sant när arkiverad är true", () => {
+    expect(arArkiverad({ arkiverad: true })).toBe(true);
+  });
+
+  it("hanterar ett odefinierat/null-rutin utan att kasta", () => {
+    expect(arArkiverad(null)).toBe(false);
+    expect(arArkiverad(undefined)).toBe(false);
   });
 });

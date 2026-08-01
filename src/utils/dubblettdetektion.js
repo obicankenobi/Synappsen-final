@@ -11,7 +11,9 @@ const STANDARD_MAX_POANG = 0.25;
 // själv INTE filtrerar bort några kandidater – all filtrering sker explicit nedan mot
 // maxPoang, så anroparen kan justera tröskeln utan att bygga om Fuse-instansen.
 export function hittaMisstankaDubbletter(rutiner, maxPoang = STANDARD_MAX_POANG) {
-  const godkanda = rutiner.filter((r) => r.status === "godkand");
+  // Etapp 37d: en arkiverad rutin ("gäller inte längre") jämförs inte – ett dubblettpar där
+  // ena halvan redan är avskriven är inte en fråga någon behöver ta ställning till.
+  const godkanda = rutiner.filter((r) => r.status === "godkand" && r.arkiverad !== true);
   if (godkanda.length < 2) return [];
 
   const fuse = new Fuse(godkanda, {

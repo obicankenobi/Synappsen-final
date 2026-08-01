@@ -47,6 +47,14 @@ describe("hittaMisstankaDubbletter", () => {
     expect(hittaMisstankaDubbletter(rutiner, 0.3)).toEqual([]);
   });
 
+  it("utesluter arkiverade rutiner helt (Etapp 37d)", () => {
+    const rutiner = [
+      rutin({ id: "a", titel: "Samma titel", innehall: "Samma text", status: "godkand" }),
+      rutin({ id: "b", titel: "Samma titel", innehall: "Samma text", status: "godkand", arkiverad: true }),
+    ];
+    expect(hittaMisstankaDubbletter(rutiner, 0.3)).toEqual([]);
+  });
+
   it("en högre maxPoang flaggar fler, mindre säkra par", () => {
     const rutiner = [
       rutin({ id: "a", titel: "Provtagning venöst blodprov", innehall: "Sticka i armvecket, fyll rören." }),

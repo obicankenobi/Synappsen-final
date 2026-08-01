@@ -24,3 +24,12 @@ export function narmarSigGranskning(granskadDatum) {
 export function arUtgangen(rutin) {
   return Boolean(rutin.utgangsdatum) && new Date(rutin.utgangsdatum) < new Date();
 }
+
+// Etapp 37d: "gäller inte längre" som ett eget, manuellt satt tillstånd – skilt från
+// papperskorgen (borttagen). En arkiverad rutin finns kvar, är sökbar för den som letar
+// historik (redaktörer ser den fortfarande i listan, tydligt märkt), men utlöser inget
+// kvitteringskrav och räknas inte in i innehållshälsan, granskningsrundor eller
+// dubblettdetektionen.
+export function arArkiverad(rutin) {
+  return rutin?.arkiverad === true;
+}

@@ -4,7 +4,7 @@ import QRCode from "qrcode";
 import { RUTIN_STATUS } from "../hooks/useRutiner";
 import { useAuth } from "../hooks/useAuth";
 import { kvitteraLastMedKo } from "../hooks/useLaskvittering";
-import { borGranskas, arUtgangen } from "../utils/rutinHjalp";
+import { borGranskas, arUtgangen, arArkiverad } from "../utils/rutinHjalp";
 import { formateraDatum } from "../utils/datum";
 import { ROLE_LABELS } from "../firebase/roles";
 import FavoritKnapp from "./FavoritKnapp";
@@ -45,6 +45,7 @@ export default function RutinKort({
   onGodkann,
   onTaBort,
   onMarkeraGranskad,
+  onArkivera,
   onAterstallVersion,
   onGranskaKalla,
   hamtaVersioner,
@@ -60,6 +61,7 @@ export default function RutinKort({
   const arUtkast = rutin.status === RUTIN_STATUS.UTKAST;
   const flaggadForGranskning = farRedigera && borGranskas(rutin.granskadDatum);
   const utgangen = farRedigera && arUtgangen(rutin);
+  const arkiverad = arArkiverad(rutin);
   const lasteAv = rutin.lasteAv ?? [];
   const jagHarLast = lasteAv.some((l) => l.uid === currentUser?.uid);
   const relaterade = (rutin.relateradeRutiner ?? [])
@@ -86,6 +88,11 @@ export default function RutinKort({
             <span className="rutin-kort__badge rutin-kort__badge--varning">Bör granskas</span>
           )}
           {utgangen && <span className="rutin-kort__badge rutin-kort__badge--varning">Utgången</span>}
+          {arkiverad && (
+            <span className="rutin-kort__badge" title="Gäller inte längre – arkiverad, utlöser inget kvitteringskrav">
+              Arkiverad
+            </span>
+          )}
           {farRedigera && rutin.kallVarning && (
             <span className="rutin-kort__badge rutin-kort__badge--varning">Källan har uppdaterats</span>
           )}
@@ -177,32 +184,36 @@ export default function RutinKort({
         </div>
       )}
 
-      <div className="rutin-kort__laskvittering">
-        <button
-          type="button"
-          className="knapp knapp--sekundar knapp--liten"
-          disabled={jagHarLast}
-          onClick={() => {
-            if ((rutin.kviss?.length ?? 0) > 0) {
-              setVisaKviss(true);
-            } else {
-              kvitteraLastMedKo(rutin.id, currentUser.uid, mittNamn);
-            }
-          }}
-        >
-          {jagHarLast ? "✓ Du har läst detta" : "Jag har läst och förstått"}
-        </button>
-        {farRedigera && lasteAv.length > 0 && (
-          <span className="rutin-kort__last-antal" title={lasteAv.map((l) => l.namn).join(", ")}>
-            {lasteAv.length} har kvitterat
-          </span>
-        )}
-        {farRedigera && oläste.length > 0 && (
-          <button type="button" className="knapp--lank" onClick={() => setVisaOlasta((v) => !v)}>
-            {oläste.length} har inte kvitterat
+      {arkiverad ? (
+        <p className="rutin-kort__signatur">Arkiverad – gäller inte längre, ingen kvittering krävs.</p>
+      ) : (
+        <div className="rutin-kort__laskvittering">
+          <button
+            type="button"
+            className="knapp knapp--sekundar knapp--liten"
+            disabled={jagHarLast}
+            onClick={() => {
+              if ((rutin.kviss?.length ?? 0) > 0) {
+                setVisaKviss(true);
+              } else {
+                kvitteraLastMedKo(rutin.id, currentUser.uid, mittNamn);
+              }
+            }}
+          >
+            {jagHarLast ? "✓ Du har läst detta" : "Jag har läst och förstått"}
           </button>
-        )}
-      </div>
+          {farRedigera && lasteAv.length > 0 && (
+            <span className="rutin-kort__last-antal" title={lasteAv.map((l) => l.namn).join(", ")}>
+              {lasteAv.length} har kvitterat
+            </span>
+          )}
+          {farRedigera && oläste.length > 0 && (
+            <button type="button" className="knapp--lank" onClick={() => setVisaOlasta((v) => !v)}>
+              {oläste.length} har inte kvitterat
+            </button>
+          )}
+        </div>
+      )}
 
       {visaKviss && (
         <KvissModal
@@ -255,9 +266,14 @@ export default function RutinKort({
               Ta bort
             </button>
           )}
-          {farRedigera && (
+          {farRedigera && !arkiverad && (
             <button className="knapp knapp--sekundar" onClick={() => onMarkeraGranskad(rutin.id)}>
               Markera som granskad
+            </button>
+          )}
+          {farRedigera && (
+            <button className="knapp knapp--sekundar" onClick={() => onArkivera(rutin.id, arkiverad)}>
+              {arkiverad ? "Återaktivera" : "Arkivera – gäller inte längre"}
             </button>
           )}
           {farRedigera && (

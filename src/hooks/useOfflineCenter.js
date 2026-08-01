@@ -84,7 +84,11 @@ export function useOfflineCenter() {
           where("status", "==", RUTIN_STATUS.GODKAND)
         )
       );
-      uppdateraStatus("rutiner", rutinSnap.size);
+      // Etapp 37d: en arkiverad rutin ("gäller inte längre") laddas inte ner för offline-
+      // bruk – filtrerat klientsidan (inte i frågan) eftersom äldre rutiner saknar fältet
+      // helt, och ett where("arkiverad","==",false) hade tyst uteslutit dem.
+      const antalArkiverade = rutinSnap.docs.filter((d) => d.data().arkiverad === true).length;
+      uppdateraStatus("rutiner", rutinSnap.size - antalArkiverade);
 
       const kontaktSnap = await getDocs(query(collection(db, "kontakter"), where("organisationId", "==", organisationId)));
       uppdateraStatus("kontakter", kontaktSnap.size);
@@ -123,6 +127,7 @@ export function useOfflineCenter() {
       const bildUrler = [];
       rutinSnap.docs.forEach((d) => {
         const data = d.data();
+        if (data.arkiverad === true) return;
         if (data.bildUrl) bildUrler.push(data.bildUrl);
         (data.bilagor ?? []).forEach((b) => {
           if (b.typ === "bild" && b.url) bildUrler.push(b.url);

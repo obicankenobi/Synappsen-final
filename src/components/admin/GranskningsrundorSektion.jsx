@@ -36,8 +36,13 @@ export default function GranskningsrundorSektion() {
   const [skapar, setSkapar] = useState(false);
   const [meddelande, setMeddelande] = useState(null);
 
+  // Etapp 37d: en arkiverad rutin ("gäller inte längre") tas aldrig med i en granskningsrunda
+  // – att be någon granska innehåll som redan är avskrivet vore bortkastad tid.
   const kandidater = (rutinerPerOmrade[omrade] ?? []).filter(
-    (r) => r.status === "godkand" && (antalDagarSedan(r.granskadDatum) ?? Infinity) >= Number(trosallDagar)
+    (r) =>
+      r.status === "godkand" &&
+      r.arkiverad !== true &&
+      (antalDagarSedan(r.granskadDatum) ?? Infinity) >= Number(trosallDagar)
   );
 
   async function hanteraSkapa(e) {

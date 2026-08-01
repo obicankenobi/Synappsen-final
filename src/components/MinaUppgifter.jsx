@@ -42,11 +42,12 @@ export default function MinaUppgifter() {
     uppgifter.push({ text: `${utkastForrad} förrådsartiklar väntar på granskning`, sokvag: "/logistik" });
   }
 
+  // Etapp 37d: en arkiverad rutin ("gäller inte längre") ska inte nagga om granskning.
   const flaggadeKlin = farRedigeraKlin
-    ? klinisktRutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND && borGranskas(r.granskadDatum)).length
+    ? klinisktRutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND && r.arkiverad !== true && borGranskas(r.granskadDatum)).length
     : 0;
   const flaggadeAdmin = farHanteraAdmin
-    ? adminRutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND && borGranskas(r.granskadDatum)).length
+    ? adminRutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND && r.arkiverad !== true && borGranskas(r.granskadDatum)).length
     : 0;
 
   if (flaggadeKlin > 0) {
@@ -60,7 +61,7 @@ export default function MinaUppgifter() {
   // behöver granskas – oberoende av vanlig redigeringsbehörighet, eftersom en specifik person
   // kan tilldelas ansvar utan att ha en roll med redigeringsrätt för området.
   const minaAnsvarsrutiner = [...klinisktRutiner, ...adminRutiner].filter((r) => {
-    if (r.status !== RUTIN_STATUS.GODKAND || !narmarSigGranskning(r.granskadDatum)) return false;
+    if (r.status !== RUTIN_STATUS.GODKAND || r.arkiverad === true || !narmarSigGranskning(r.granskadDatum)) return false;
     if (r.agare?.typ === "roll") return role === r.agare.roll;
     if (r.agare?.typ === "person") return currentUser?.uid === r.agare.uid;
     return false;

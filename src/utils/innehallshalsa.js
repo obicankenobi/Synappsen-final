@@ -55,7 +55,10 @@ export function rutinHalsopost(rutin) {
 // i huvudet och därmed svårare att misstro. Siffran ska ALDRIG visas utan nedbrytningen
 // (se `sammanstallHalsa`s `nedbrytning`) – kravet står i ETAPPLAN6.md Etapp 37a.
 export function sammanstallHalsa(rutiner) {
-  const godkanda = rutiner.filter((r) => r.status === "godkand");
+  // Etapp 37d: en arkiverad rutin ("gäller inte längre") räknas inte in här – den utlöser
+  // inget kvitteringskrav och ska inte dra ner hälsosiffran för innehåll som faktiskt är
+  // aktuellt.
+  const godkanda = rutiner.filter((r) => r.status === "godkand" && r.arkiverad !== true);
   const poster = godkanda.map(rutinHalsopost);
   const total = poster.length;
   const utanFlaggor = poster.filter((p) => p.antalFlaggor === 0).length;

@@ -6,7 +6,7 @@ import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
 import { laddaUppRutinBilagor, laddaUppRutinBild } from "../firebase/storage";
 import RutinFormular from "./RutinFormular";
 import RutinKort from "./RutinKort";
-import { arUtgangen } from "../utils/rutinHjalp";
+import { arUtgangen, arArkiverad } from "../utils/rutinHjalp";
 import Skelett from "./Skelett";
 import { useSenastBesokta } from "../hooks/useSenastBesokta";
 import { useDialog } from "../hooks/useDialog";
@@ -45,8 +45,17 @@ export default function Sektionssida({
   const mittNamn = namn || currentUser?.email;
   const { confirm, visaMeddelande } = useDialog();
   const { registrera: registreraBesok } = useSenastBesokta(currentUser?.uid);
-  const { rutiner, laddar, skapaRutin, uppdateraRutin, godkannRutin, taBortRutin, markeraGranskad, hamtaVersioner } =
-    useRutiner(omrade);
+  const {
+    rutiner,
+    laddar,
+    skapaRutin,
+    uppdateraRutin,
+    godkannRutin,
+    taBortRutin,
+    markeraGranskad,
+    arkiveraRutin,
+    hamtaVersioner,
+  } = useRutiner(omrade);
   const { anvandare } = useAnvandare();
   const [redigerar, setRedigerar] = useState(null);
   const [visaFormular, setVisaFormular] = useState(false);
@@ -72,7 +81,7 @@ export default function Sektionssida({
   const kraverGodkannande = redigeraRoller.some((r) => !godkannaRoller.includes(r));
   const synligaRutiner = farRedigera
     ? rutiner
-    : rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND && !arUtgangen(r));
+    : rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND && !arUtgangen(r) && !arArkiverad(r));
 
   const utkastRutiner = synligaRutiner.filter((r) => r.status === RUTIN_STATUS.UTKAST);
 
@@ -432,6 +441,7 @@ export default function Sektionssida({
             onGodkann={(id) => godkannRutin(id, currentUser.uid, mittNamn)}
             onTaBort={(id) => taBortRutin(id, currentUser.uid)}
             onMarkeraGranskad={(id) => markeraGranskad(id, currentUser.uid, mittNamn)}
+            onArkivera={(id, redanArkiverad) => arkiveraRutin(id, currentUser.uid, !redanArkiverad)}
             onGranskaKalla={(id) =>
               uppdateraRutin(
                 id,

@@ -6,17 +6,19 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-01, version **5.59.0**. `ETAPPLAN6.md` (Etapp 37–41,
-innehållets kvalitet och bevisad nytta) är den aktiva planen – **Etapp 37a (innehållshälso-
-panelen) och 37b (riktade granskningsrundor) är klara. Etapp 37c (dubbletter) är BYGGD men
-väntar på en pilotutvärdering av en riktig redaktör** – se den egna sektionen nedan för
-varför den inte är markerad helt klar. Allt tre ligger **INTE ännu deployat till produktion**
-(senaste produktionsdeploy är fortfarande körning #63/`382562b`, v5.56.0). `ETAPPLAN5.md`
-(Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs de FEM NYA sektionerna
-längst ner i den här filen först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare
-samma dag)", "Uppföljning 2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)" och
-"Uppföljning 2026-08-01 (Etapp 37c)") om du undrar var arbetet står idag – allt mellan denna
-rad och dem (inklusive "Uppföljning 2026-07-28") är historisk, äldre kontext.
+**Senast uppdaterad:** 2026-08-01, version **5.60.0**. `ETAPPLAN6.md` (Etapp 37–41,
+innehållets kvalitet och bevisad nytta) är den aktiva planen. **Etapp 37 är i praktiken
+helt klar:** 37a (innehållshälsopanelen), 37b (riktade granskningsrundor) och 37d (arkiverad
+status) är ✅ KLARA. 37c (dubbletter) är BYGGD men väntar på en pilotutvärdering av en riktig
+redaktör – se den egna sektionen nedan för varför den inte är markerad helt klar. **Allt
+detta ligger INTE ännu deployat till produktion** (senaste produktionsdeploy är fortfarande
+körning #63/`382562b`, v5.56.0). `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste
+klar men inte stängd. **Läs de SEX NYA sektionerna längst ner i den här filen först**
+("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning
+2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning 2026-08-01
+(Etapp 37c)" och "Uppföljning 2026-08-01 (Etapp 37d)") om du undrar var arbetet står idag –
+allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är historisk, äldre
+kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -518,6 +520,40 @@ efter den här kalibreringen, dokumenterat i koden. Fullt testsvep grönt (lint,
 37c byggd och väntar på utvärdering, 37d ej påbörjad). Nästa i ordning enligt planens egen
 ordningsprincip är Etapp 38 (redaktörens vardag) – men kom ihåg beslutspunkt 1: frågan om
 vem som äger granskningskön ska ställas till ägaren NU, inte när 38 ska börja byggas.
+
+## Uppföljning 2026-08-01 (Etapp 37d): arkiverad status, Etapp 37 i praktiken avslutad
+
+**Etapp 37d klar.** Ny flagga `arkiverad` (+ `arkiveradAv`/`arkiveradDatum`) på rutin-
+dokument – "gäller inte längre", skilt från papperskorgen (mjuk radering). **Premisskontroll
+(krav 8) bekräftade att detta var ett utökat fält, inte en ny mekanism:** samma klientsidiga
+filtreringsmönster som redan fanns för `borttagen` återanvändes, och `firestore.rules`s
+`farUppdateraRutin()` tillät redan att en redaktör ändrar fältet utan någon regeländring alls.
+
+**Designvalet mirrorar en redan existerande lösning:** samma synlighetsmönster som
+`arUtgangen()` (utgångna rutiner) – dold för vanlig personal, synlig med en badge för
+redaktörer, som kan återaktivera. Sökindexet filtrerar inte bort arkiverat innehåll (bara
+märker det "(arkiverad)"), så det förblir sökbart för alla utan extra kod.
+
+**Det här var den mest omfattande enskilda ändringen av alla fyra 37-delmålen** – planens
+egen varning om ett halvt införande (31b-mönstret: en ny status som bara syns i listvyn men
+inte i cachande/filtrerande ytor) visade sig träffa rätt. Utöver de tre ytor planen
+uttryckligen pekade ut (offline-center, sökindex, akutläge) hittades under byggandet FYRA
+till som också behövde uteslutning: innehållshälsan (37a), granskningsrundor (37b),
+dubblettdetektionen (37c), samt `Ledningsrapport.jsx`/`MinaUppgifter.jsx`/`useNotiser.js`s
+kvitteringsgrad/granskningspåminnelser. Ett särskilt viktigt fynd: akutläget exkluderar nu en
+arkiverad rutin ÄVEN om `akutlage: true` fortfarande råkar stå kvar på den – patientsäkerhet
+går före att lita på att data alltid är konsekvent uppdaterad.
+
+**Verifierat i en riktig webbläsare**, sex separata kontroller (dold för personal, exkluderad
+ur akutläget trots akutlage-flaggan, synlig med badge för superadmin utan kvitteringsknapp,
+arkivera-togglen fungerar båda vägarna, och sökning hittar arkiverat innehåll märkt för en
+icke-redaktör). Fullt testsvep grönt (lint, build, vitest 104/104, test:rules,
+test:functions, test:storage). Version 5.59.0 → **5.60.0**.
+
+**Etapp 37 (innehållets hälsa) är därmed i praktiken helt avslutad** – enda kvarvarande
+punkten är 37c:s pilotutvärdering (kräver en redaktörs bedömning, inte kod). Nästa i ordning
+enligt planens egen ordningsprincip är Etapp 38 (redaktörens vardag) – men beslutspunkt 1
+(vem äger granskningskön) bör ställas till ägaren NU, inte när 38 ska byggas.
 
 ## Om du är en ny Claude-session som läser detta
 

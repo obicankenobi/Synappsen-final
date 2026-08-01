@@ -13,8 +13,10 @@ import { OMRADE_NAMN } from "../components/admin/adminHjalp";
 import "./Admin.css";
 import "./Ledningsrapport.css";
 
+// Etapp 37d: en arkiverad rutin ("gäller inte längre") utlöser inget kvitteringskrav och
+// ska varken dra ner kvitteringsgraden eller dyka upp bland rutiner som bör granskas.
 function kvitteringsgradForOmrade(rutiner, antalAnvandare) {
-  const godkanda = rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND);
+  const godkanda = rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND && r.arkiverad !== true);
   if (godkanda.length === 0 || antalAnvandare === 0) return null;
   const summaAndelar = godkanda.reduce((sum, r) => sum + (r.lasteAv ?? []).length / antalAnvandare, 0);
   return Math.round((summaAndelar / godkanda.length) * 100);
@@ -22,7 +24,7 @@ function kvitteringsgradForOmrade(rutiner, antalAnvandare) {
 
 function borGranskasLista(rutiner) {
   return rutiner
-    .filter((r) => r.status === RUTIN_STATUS.GODKAND && borGranskas(r.granskadDatum))
+    .filter((r) => r.status === RUTIN_STATUS.GODKAND && r.arkiverad !== true && borGranskas(r.granskadDatum))
     .map((r) => ({ id: r.id, titel: r.titel, granskadDatum: r.granskadDatum }));
 }
 
@@ -69,7 +71,9 @@ export default function Ledningsrapport() {
 
   // Etapp 21c: obesvarade källvarningar in i ledningsrapporten (veckopulsen, Etapp 16, är inte
   // byggd än – se ETAPPLAN3.md Etapp 20c för samma premisskontroll-avvikelse).
-  const kallvarningar = [...klinisktRutiner, ...adminRutiner].filter((r) => r.kallVarning === true);
+  const kallvarningar = [...klinisktRutiner, ...adminRutiner].filter(
+    (r) => r.kallVarning === true && r.arkiverad !== true
+  );
 
   const logistikUtkast = forradsartiklar.filter((a) => a.status === ARTIKEL_STATUS.UTKAST).length;
   const logistikGodkanda = forradsartiklar.filter((a) => a.status === ARTIKEL_STATUS.GODKAND).length;

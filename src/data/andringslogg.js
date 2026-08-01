@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.60.0",
+    datum: "2026-08-01",
+    andringar: [
+      "Rutiner kan nu markeras \"gäller inte längre\" (arkiverad) istället för att bara tas bort – syns fortfarande i sökningen men kräver ingen kvittering",
+    ],
+  },
+  {
     version: "5.59.0",
     datum: "2026-08-01",
     andringar: [
