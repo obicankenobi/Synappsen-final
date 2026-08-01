@@ -6,15 +6,18 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-07-28, version **5.45.3** – **DEPLOYAT TILL PRODUKTION** (körning
-#52, commit `c7ed186`, verifierad grön). `ETAPPLAN3.md` (Etapp 13–21) är sedan dess helt
-genomförd utom två medvetet pausade delmål (13f SSO, Etapp 16 veckopuls – båda väntar på ett
-ägarbeslut, se `ETAPPLAN3.md`s statusblock). Ny plan `ETAPPLAN4.md` (Etapp 22–30) skrevs och
-Etapp 22–25 samt en fristående UI-designjustering är nu klara och live – se den nya sektionen
-längst ner i den här filen ("Uppföljning 2026-07-28") för fullständig sammanfattning av allt
-som hänt sedan förra gången den här filen uppdaterades (v5.25.0/Etapp 14). **Läs den sektionen
-FÖRST** om du undrar var arbetet står idag – resten av filen nedan är historisk, äldre
-kontext.
+**Senast uppdaterad:** 2026-08-01, version **5.56.0** – **DEPLOYAT TILL PRODUKTION** (körning
+#63, commit `382562b`, verifierad grön). `ETAPPLAN5.md` (Etapp 32–36: säkerhet, upptäckt,
+incidentberedskap) är i det närmaste klar – se den NYA sektionen längst ner i den här filen
+("Uppföljning 2026-08-01") för vad som hände senast: fem ägarbeslut togs och dokumenterades,
+och två av dem (Etapp 33c, 35f) byggdes/verkställdes samma session. **Läs den sektionen
+FÖRST** om du undrar var arbetet står idag – allt mellan denna rad och den sektionen
+(inklusive "Uppföljning 2026-07-28") är historisk, äldre kontext.
+
+> **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
+> eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
+> CLAUDE_STATUS.md"). Regeln finns för att "kom ihåg att uppdatera" bevisligen har
+> misslyckats i det här projektet flera gånger tidigare (se bakgrundsstycket i `CLAUDE.md`).
 
 > **OBS (2026-07-28):** punkt 1 nedan under "Så här jobbar vi" om `continue-on-error` i
 > `deploy.yml` är FEL/INAKTUELL – den flaggan togs bort i Etapp 8b (`ETAPPLAN2.md`), långt
@@ -325,10 +328,60 @@ deployat och verifierat i produktion:
 2026-07-28 (körning #46 t.o.m. #52), inklusive att felsöka och åtgärda ett skarpt
 IAM-behörighetsfel tillsammans med ägaren (se ovan).
 
+## Uppföljning 2026-08-01: fem ägarbeslut i ETAPPLAN5.md + Etapp 33c byggd och deployad
+
+**Kontext:** `ETAPPLAN5.md` (Etapp 32–36) hade sju öppna "beslutspunkter som kräver ägaren"
+kvar. Användaren tog ställning till fem av dem i den här sessionen:
+
+- **Etapp 33c (backup-retention):** 90 dagar. Inskrivet i `avtal/PUB-AVTAL-MALL.md` p. 6.
+- **Etapp 34a (jourkontakt):** namn + telefonnummer ifyllt i `INCIDENT-CHECKLISTA.md`s
+  kontakttabell (internt dokument, delas aldrig externt).
+- **Etapp 35e (App Check-enforcement):** beslut bekräftat att FORTSÄTTA VÄNTA – Firestore låg
+  på 89% verifierat (under ~98%-marginalen), Storage-siffran (0/10) för litet underlag. Ingen
+  ändring, samma uppföljningsplan som redan stod i planen.
+- **Etapp 36c (extern penetrationstest):** nej, inte just nu. Ompröva vid fler kunder eller en
+  upphandling som kräver det.
+- **Etapp 35f (nyckelrotation):** proaktiv rotation en gång per år, utöver den redan
+  dokumenterade reaktiva rutinen.
+
+**Två av besluten byggdes/verkställdes samma session, inte bara dokumenterades:**
+
+- **Etapp 33c – gallring av backuper, helt klar:** ny funktion `gallraGamlaBackuper()` +
+  schemalagd `backupGallringSchemalagt` (`functions/index.js`, kör varje måndag 03:30) som
+  raderar backuper äldre än 90 dagar, baserat på datumet i filnamnet
+  (`backups/{orgId}/{ÅÅÅÅ-MM-DD}.json`). Ny testfil `tests/functions/backup-gallring.test.cjs`
+  (6 tester: rätt fil raderas, en nyare backup rörs inte, en backup exakt på 89-dagarsgränsen
+  rörs inte, en icke-backupfil rörs inte, en andra körning är no-op). Helt testsvep grönt
+  (lint, build, vitest 73/73, test:rules 13, test:functions inkl. de 6 nya, test:storage 21).
+  Version 5.55.0 → **5.56.0**, ändringslogg uppdaterad. **Deployat till produktion** (körning
+  #63, commit `382562b`, asset-hash `index-eOqzJeKB.js` bekräftad via `curl`).
+- **Etapp 35f – årlig påminnelse:** en Claude Code Remote-Routine (`trig_01Mmw6BMfv6NePa9mLuNjE7Z`,
+  nästa körning 2027-08-01) skapad så att den beslutade årliga nyckelrotationen (Gemini/
+  sökmotor/tjänstekonto/VAPID) faktiskt bevakas, inte bara står som text i ett dokument.
+  Rotationen är fortsatt manuell (ingen kod utför den), bara påminnelsen är automatiserad.
+
+**Dokument uppdaterade i två commits** (`7108d50` beslut, `382562b` Etapp 33c-bygget):
+`ETAPPLAN5.md` (statusmarkeringar + beslutspunktslistan), `INCIDENT-CHECKLISTA.md`
+(kontakttabell, nyckelrotationssektion, "Vad som ännu inte finns"-tabellen),
+`SAKERHETSRAPPORT.md` (Del 3-sammanfattningen), `avtal/PUB-AVTAL-MALL.md` (p. 6).
+
+**Kvarstår i ETAPPLAN5.md:** Etapp 32b (tre larmtyper, väntar på om ägaren vill betala för
+Sentry API-token/GCP-faktureringsexport), ToS-genomgång för källbevakningens sju domäner,
+Etapp 30b (fysiskt akutlägestest), och 35e:s uppföljning om några veckor (se ovan). När dessa
+är avklarade väljs en av `ETAPPLAN5-ALT-A.md`/`-ALT-B.md` som nästa plan.
+
+**Processfel hittat och åtgärdat i samma veva:** den här filen (`CLAUDE_STATUS.md`) hade
+själv inte uppdaterats sedan 2026-07-29, trots att `CLAUDE.md` uttryckligen instruerar att den
+ska hållas löpande – exakt samma minnesstyrda-istället-för-händelsestyrda mönster som redan
+en gång orsakat att `SAKERHETSRAPPORT.md`/`FRAMTIDSPLAN.md`/`MODULPLAN.md` blev stale. Fixat
+genom att skriva just den här sektionen, OCH genom att lägga till en ny obligatorisk,
+händelsestyrd underhållsregel i `CLAUDE.md` ("Regel: CLAUDE_STATUS.md") – se den filen.
+
 ## Om du är en ny Claude-session som läser detta
 
 Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete. Om
-användaren säger något i stil med "fortsätt där vi var" utan att specificera: hänvisa till
-`ETAPPLAN4.md`s Etapp 26–30 (den aktiva planens återstående punkter) och fråga vilken de vill
-prioritera, snarare än att gissa. Läs `CLAUDE.md` först om du är osäker på vilken fil som är
-auktoritativ för vad.
+användaren säger något i stil med "fortsätt där vi var" utan att specificera: hänvisa till de
+kvarvarande öppna punkterna i `ETAPPLAN5.md` (se "Uppföljning 2026-08-01" ovan) och fråga
+vilken de vill prioritera, snarare än att gissa. Läs `CLAUDE.md` först om du är osäker på
+vilken fil som är auktoritativ för vad – och notera dess nya underhållsregel för DEN HÄR
+filen innan du avslutar sessionen.

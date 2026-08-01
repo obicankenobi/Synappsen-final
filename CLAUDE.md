@@ -34,7 +34,7 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 |---|---|---|
 | `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv.** Inget påbörjat ännu. |
 | `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast för vad som kommer EFTER säkerhetsbasen (sälj det byggda / förtjäna förtroendet) | **Utkast, ej antagna.** Ett av dem väljs när `ETAPPLAN5.md` är klar. |
-| `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv**, uppdatera varje session. |
+| `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv, LEVANDE** – händelsestyrd underhållsregel, se "Obligatorisk underhållsregel: CLAUDE_STATUS.md" under arbetsmönstren nedan. |
 | `src/data/andringslogg.js` | Användarvänd ändringslogg, visas i appen (`/nyheter`) | **Aktiv** – lägg till en post vid VARJE release. |
 | `UTVECKLINGSLOGG.md` | Fullständig kronologisk teknisk historik ("Fas 1–41+") | **Aktiv**, växer varje fas. |
 
@@ -147,3 +147,37 @@ Ytterligare krav:
   delas externt. Sådant hör hemma i checklistan.
 - Om en ändring gör att en förmåga FÖRSVINNER eller försämras: uppdatera dokumenten i samma
   commit, även om det ser sämre ut. Ärlighet om lucka är hela poängen.
+
+### Obligatorisk underhållsregel: CLAUDE_STATUS.md
+
+`CLAUDE_STATUS.md` sa redan "uppdateras varje session" innan denna regel skrevs (2026-08-01)
+– men det är exakt den sortens minnesstyrda instruktion som redan bevisligen misslyckats i
+det här projektet flera gånger (`SAKERHETSRAPPORT.md` 46–51 releaser efter verkligheten,
+`FRAMTIDSPLAN.md`/`MODULPLAN.md` 38–43 releaser, `src/version.js` 19 releaser,
+`src/data/andringslogg.js` sex releaser) – filen låg själv ouppdaterad i tre dagar/två
+releaser (v5.55.0 → v5.56.0) trots två pushade commits innan någon märkte det. Samma mönster,
+samma fix: gör regeln händelsestyrd, inte minnesstyrd.
+
+**Uppdatera `CLAUDE_STATUS.md` – i samma commit som ändringen, eller innan sessionen
+avslutas om det blir flera commits – när något av följande inträffar:**
+
+| Om du … | Uppdatera |
+|---|---|
+| Committar och pushar kod (oavsett storlek) | En rad om vad som hände, under rätt "Uppföljning"-sektion (eller en ny om ingen passande finns) |
+| Tar ett ägarbeslut tillsammans med användaren | Vilket beslut, och om det låste upp något kodningsarbete (se mönstret i "Uppföljning 2026-08-01") |
+| Avslutar en etapp i en `ETAPPLANx.md` | En kort notering + pekare till planfilen (inte detaljerna – de hör hemma där) |
+| Deployar till produktion | Körningsnummer, commit-hash, version – samma format som redan används i filens toppstycke |
+| Upptäcker att filen SJÄLV ligger efter (som denna gång) | Skriv in det ärligt, precis som för de andra filerna – dölj det inte |
+
+Ytterligare krav:
+
+- **Uppdatera alltid "Senast uppdaterad"-raden överst** i samma veva – det är den rad en ny
+  session litar mest på för att avgöra om resten av filen är färsk.
+- **Skriv en ny `## Uppföljning ÅÅÅÅ-MM-DD`-sektion snarare än att redigera in ändringar
+  huller om buller i den historiska texten** – exakt samma varför-inte-slå-ihop-resonemang
+  som gäller `ETAPPLANx.md`-filerna: det ska gå att se KRONOLOGISKT vad som hände när.
+- **Håll den nya sektionen kort** – den ska peka mot detaljerna i `ETAPPLANx.md`/
+  `UTVECKLINGSLOGG.md`/incidentdokumenten, inte duplicera dem (samma regel som för
+  `FRAMTIDSPLAN.md`/`MODULPLAN.md` ovan).
+- Om en session avslutas UTAN att ha committat något (bara diskussion/analys): ingen
+  uppdatering krävs – regeln triggas av faktisk förändring, inte av tidsåtgång.
