@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { APP_VERSION } from "../version";
 import { ANDRINGSLOGG } from "../data/andringslogg";
+import NiSaViGjorde from "../components/NiSaViGjorde";
 import "./Nyheter.css";
 
 export default function Nyheter() {
@@ -12,6 +13,8 @@ export default function Nyheter() {
         Aktuell version: <strong>{APP_VERSION}</strong>. Här listas vad som ändrats i varje
         uppdatering av Synappsen.
       </p>
+
+      <NiSaViGjorde />
 
       {ANDRINGSLOGG.map((post) => (
         <article key={post.version} className="nyheter-post">

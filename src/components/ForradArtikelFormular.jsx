@@ -11,6 +11,7 @@ export default function ForradArtikelFormular({ initialaVarden, onSpara, onAvbry
   const [antal, setAntal] = useState(initialaVarden?.antal ?? "");
   const [utgangsdatum, setUtgangsdatum] = useState(initialaVarden?.utgangsdatum ?? "");
   const [bild, setBild] = useState(null);
+  const [hyllfoto, setHyllfoto] = useState(null);
   const [sparar, setSparar] = useState(false);
 
   async function hanteraSubmit(e) {
@@ -22,7 +23,7 @@ export default function ForradArtikelFormular({ initialaVarden, onSpara, onAvbry
     }
     setSparar(true);
     try {
-      await onSpara({ namn, skap, hylla, antal, utgangsdatum: utgangsdatum || null, bild });
+      await onSpara({ namn, skap, hylla, antal, utgangsdatum: utgangsdatum || null, bild, hyllfoto });
     } finally {
       setSparar(false);
     }
@@ -59,6 +60,14 @@ export default function ForradArtikelFormular({ initialaVarden, onSpara, onAvbry
       <label>
         Bild (valfritt)
         <input type="file" accept="image/*" onChange={(e) => setBild(e.target.files[0] ?? null)} />
+      </label>
+      <label>
+        Foto på hyllplatsen (valfritt)
+        <input type="file" accept="image/*" onChange={(e) => setHyllfoto(e.target.files[0] ?? null)} />
+        <span className="forrad-artikel-formular__hjalptext">
+          Ett foto av hyllan/skåpet artikeln står i – gör det snabbare för en vikarie att hitta
+          rätt, utan att behöva läsa platstexten.
+        </span>
       </label>
       <div className="forrad-artikel-formular__knappar">
         <button type="button" className="knapp knapp--sekundar" onClick={onAvbryt}>

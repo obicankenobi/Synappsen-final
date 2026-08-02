@@ -3,7 +3,7 @@ import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { useBristanmalningar } from "../hooks/useBristanmalningar";
-import { laddaUppForradsbild } from "../firebase/storage";
+import { laddaUppForradsbild, laddaUppForradHyllfoto } from "../firebase/storage";
 import { laggTillIKo } from "../utils/offlineKo";
 import { FORRAD_SLUGS } from "../firebase/forrad";
 import { KAN_HANTERA_FORRAD } from "../firebase/roles";
@@ -76,17 +76,24 @@ export default function ForradVy() {
     await Promise.all(utkast.map((a) => taBortArtikel(a.id, currentUser.uid)));
   }
 
-  async function hanteraSpara({ namn, skap, hylla, antal, utgangsdatum, bild }) {
+  async function hanteraSpara({ namn, skap, hylla, antal, utgangsdatum, bild, hyllfoto }) {
     if (redigerar) {
       const bildUrl = bild
         ? await laddaUppForradsbild(forradSlug, redigerar.id, bild)
         : redigerar.bildUrl;
-      await uppdateraArtikel(redigerar.id, { namn, skap, hylla, antal, utgangsdatum, bildUrl });
+      const hyllfotoUrl = hyllfoto
+        ? await laddaUppForradHyllfoto(forradSlug, redigerar.id, hyllfoto)
+        : redigerar.hyllfotoUrl;
+      await uppdateraArtikel(redigerar.id, { namn, skap, hylla, antal, utgangsdatum, bildUrl, hyllfotoUrl });
     } else {
       const ref = await skapaArtikel({ namn, skap, hylla, antal, utgangsdatum, forrad, skapadAv: currentUser.uid });
       if (bild) {
         const bildUrl = await laddaUppForradsbild(forradSlug, ref.id, bild);
         await uppdateraArtikel(ref.id, { bildUrl });
+      }
+      if (hyllfoto) {
+        const hyllfotoUrl = await laddaUppForradHyllfoto(forradSlug, ref.id, hyllfoto);
+        await uppdateraArtikel(ref.id, { hyllfotoUrl });
       }
     }
     setVisaFormular(false);

@@ -1,6 +1,15 @@
 {
   "indexes": [
     {
+      "collectionGroup": "andringsforslag",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organisationId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "hanteradDatum", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "rutiner",
       "queryScope": "COLLECTION",
       "fields": [

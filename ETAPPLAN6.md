@@ -528,7 +528,7 @@ stället för en vecka.
 
 ---
 
-# Etapp 41 – Innehåll som märks i vardagen
+# Etapp 41 – Innehåll som märks i vardagen ✅ KLAR (2026-08-02, alla tre delmål)
 
 **Varför:** Liten, fristående förädling som gör innehållsarbetet i 37–38 synligt för dem det
 är till för. Kan lyftas fram när som helst om en pilot behöver ett snabbt synligt tillskott.
@@ -546,6 +546,53 @@ stället för en vecka.
   redan. "Hitta på fem sekunder" blir bokstavligt för en vikarie.
 
 **Klart när:** en medarbetare ser att det hon påpekade faktiskt ledde någonstans.
+
+**Premisskontroll (krav 8) vid byggstart hittade en verklig, redan tagen produktbeslut som
+41a:s formulering inte kände till:** "Namnge aldrig förslagsställaren utan att ha frågat" är
+redan löst – Etapp 26c (`skapaForslag()`, `visaNamnOffentligt`-fältet) frågar redan
+förslagsställaren VID INLÄMNINGEN, och fältet visas redan idag i `RutinKort.jsx`s signatur.
+41a återanvänder exakt samma fält/princip istället för att uppfinna en ny standardinställning
+– det fanns inget att lösa på nytt.
+
+**Genomfört (41a):** `useNiSaViGjorde()` (`src/hooks/useAndringsforslag.js`) läser
+`andringsforslag` där `status=="infort"`, en ny sektion `NiSaViGjorde.jsx` på `/nyheter`,
+synlig för ALLA roller (inte bara redaktörer). Krävde en regeländring i `firestore.rules` –
+ett infört förslag är inte längre känsligt utkastmaterial och görs läsbart för hela
+organisationen (frågan filtrerar på `status=="infort"`, annars hade Firestore inte kunnat
+bevisa villkoret och nekat hela listningen för icke-redaktörer, samma "list-provability"-
+mönster som redan gäller `useAndringsforslag(omrade)`). Ny sammansatt index i
+`firestore.indexes.json`. 3 nya regeltester.
+
+**Genomfört (41b):** ren klientfunktion `src/utils/veckansRepetition.js` väljer en godkänd,
+icke-arkiverad rutin med minst en kvissfråga som användaren själv kvitterat för mer än 90
+dagar sedan, stabilt för hela kalenderveckan (inte slumpmässigt varje sidladdning). Ny
+komponent `VeckansRepetition.jsx` på Hem – visar sig inte alls om inget kvalificerar.
+**Inget svar, rätt eller fel, skrivs någonsin till Firestore** (krav 14) – exakt samma princip
+som redan gäller `KvissModal.jsx`. "Redan besvarad denna vecka" är en lokal `localStorage`-
+flagga per uid, inte synkad mellan enheter (medvetet, för en frivillig lågprioriterad
+funktion). 10 nya vitest-tester.
+
+**Genomfört (41c):** nytt fält `hyllfotoUrl` på `forradsartiklar` (skilt från `bildUrl`, som
+visar artikeln själv, inte platsen). Ny uppladdningsfunktion
+`laddaUppForradHyllfoto()` (`src/firebase/storage.js`) delar Storage-sökväg och behörighet
+med den redan existerande `laddaUppForradsbild()` (ingen ändring av `storage.rules` behövdes –
+samma mapp, bara ett annat filnamnsprefix). Nytt fält i `ForradArtikelFormular.jsx`, visas i
+`ForradArtikelKort.jsx`.
+
+**Browserverifiering – 41a och 41b helt verifierade end-to-end i en riktig webbläsare mot
+emulatorerna** (41a: sektionen syns för en vanlig `personal`-roll utan redaktörsbehörighet med
+korrekt innehåll; 41b: frågan visas, ett fel svar ger rätt facit, kortet försvinner efter
+omladdning samma vecka). **41c kunde INTE verifieras end-to-end i den här sessionen** – av
+samma dokumenterade skäl som Cloud Functions-anropen i Etapp 39c/39d (se den sektionens
+"Browserverifiering"-stycke): en riktig filuppladdning via Storage-klient-SDK:t hänger utan
+fel i den här sandboxade miljön. Bekräftat att det INTE är en regression av 41c specifikt –
+den REDAN BEFINTLIGA `bildUrl`-uppladdningen (`laddaUppForradsbild`, oförändrad av den här
+etappen) uppvisar exakt samma symptom i samma testkörning. Regellogiken är istället verifierad
+direkt mot Storage-regelmotorn via `test:storage` (21/21 gröna, inklusive samma sökvägsmönster
+`forradsartiklar/{forradSlug}/{artikelId}/{filnamn}`).
+
+Fullt testsvep grönt (lint, build, 118 vitest-tester, test:rules, test:functions,
+test:storage). Version 5.63.0 → 5.64.0.
 
 ---
 

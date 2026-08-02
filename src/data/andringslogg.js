@@ -3,6 +3,15 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.64.0",
+    datum: "2026-08-02",
+    andringar: [
+      "Nyhetssidan visar nu \"Ni sa, vi gjorde\" – en lista över ändringsförslag från personalen som faktiskt införts",
+      "Ny frivillig \"Veckans repetition\" på startsidan – en kort fråga om en rutin du kvitterade för länge sedan, inget svar sparas",
+      "Förrådsartiklar kan nu ha ett foto på hyllplatsen, inte bara på artikeln själv",
+    ],
+  },
+  {
     version: "5.63.0",
     datum: "2026-08-02",
     andringar: [

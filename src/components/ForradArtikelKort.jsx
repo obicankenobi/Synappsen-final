@@ -61,6 +61,15 @@ export default function ForradArtikelKort({
           {artikel.hylla && <> → Hylla {artikel.hylla}</>}
           {!artikel.skap && !artikel.hylla && " → plats ej angiven"}
         </p>
+        {/* Etapp 41c: foto på hyllplatsen (skilt från artikel.bildUrl, som visar artikeln
+            själv) – "hitta på fem sekunder" blir bokstavligt för en vikarie. */}
+        {artikel.hyllfotoUrl && (
+          <img
+            className="forrad-artikel-kort__hyllfoto"
+            src={artikel.hyllfotoUrl}
+            alt="Foto på hyllplatsen"
+          />
+        )}
         {artikel.antal && <p className="forrad-artikel-kort__antal">Antal: {artikel.antal}</p>}
       </div>
 

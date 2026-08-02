@@ -51,6 +51,17 @@ export async function laddaUppForradsbild(forradSlug, artikelId, fil) {
   return getDownloadURL(bildRef);
 }
 
+// Etapp 41c: foto på hyllplatsen (INTE artikeln själv, se bildUrl ovan) – "hitta på fem
+// sekunder" blir bokstavligt för en vikarie. Delar samma Storage-sökväg/behörighet som
+// laddaUppForradsbild (storage.rules matchar {filnamn} som ETT segment, inte en undermapp),
+// bara med ett eget filnamnsprefix så de två bildtyperna aldrig krockar.
+export async function laddaUppForradHyllfoto(forradSlug, artikelId, fil) {
+  const sokvag = `forradsartiklar/${forradSlug}/${artikelId}/hylla-${Date.now()}-${fil.name}`;
+  const bildRef = ref(storage, sokvag);
+  await uploadBytes(bildRef, fil);
+  return getDownloadURL(bildRef);
+}
+
 // Laddar upp ett råfoto som ska tolkas av Gemini Vision och returnerar dess sökväg i Storage
 export async function laddaUppInkommandeFoto(uid, fil) {
   const sokvag = `inkommande/${uid}/${Date.now()}-${fil.name}`;

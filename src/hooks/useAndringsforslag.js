@@ -3,7 +3,18 @@
 // ALDRIG mer än råmaterial till en människa (26d/MDR-gränsdragning, se SAKERHETSRAPPORT.md) –
 // "infört" sätts bara av redaktören själv, aldrig automatiskt.
 import { useEffect, useState } from "react";
-import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  limit,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  doc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { farRedigeraOmrade } from "../firebase/roles";
@@ -99,4 +110,36 @@ export function useAndringsforslag(omrade) {
   }, [organisationId, omrade, redaktor, currentUser?.uid, role]);
 
   return { forslag, laddar, fel };
+}
+
+// Etapp 41a: "Ni sa, vi gjorde" – en publik lista (alla roller, inte bara redaktörer) över
+// redan införda förslag, tänkt att visas bredvid ändringsloggen på /nyheter. Frågan MÅSTE
+// filtrera på where("status","==","infort") – se firestore.rules-kommentaren för samma
+// list-provability-skäl som gäller useAndringsforslag(omrade) ovan. Namnger ALDRIG
+// förslagsställaren om `visaNamnOffentligt` är false – samma fält och samma princip som redan
+// styr signaturen på RutinKort.jsx (Etapp 26c), inte ett nytt beslut.
+export function useNiSaViGjorde(laddaLista) {
+  const { organisationId, role } = useAuth();
+  const [forslag, setForslag] = useState([]);
+
+  useEffect(() => {
+    if (!laddaLista || !organisationId) return undefined;
+    const q = query(
+      collection(db, "andringsforslag"),
+      where("organisationId", "==", organisationId),
+      where("status", "==", FORSLAG_STATUS.INFORT),
+      orderBy("hanteradDatum", "desc"),
+      limit(10)
+    );
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => setForslag(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (error) => {
+        rapporteraNekadListning({ collection: "andringsforslag", roll: role, organisationId, sokvag: "ni-sa-vi-gjorde", fel: error });
+      },
+    );
+    return unsubscribe;
+  }, [laddaLista, organisationId, role]);
+
+  return { forslag };
 }

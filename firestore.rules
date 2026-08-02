@@ -526,8 +526,16 @@ service cloud.firestore {
     // Tre fria textfält (markeratStycke/forslag/motivering) ⇒ PII-spärr på alla tre
     // (genomgående krav 1).
     match /andringsforslag/{forslagId} {
+      // Etapp 41a: "Ni sa, vi gjorde" – ett redan infört förslag (granskat och genomfört av en
+      // redaktör) är inte längre känsligt utkastmaterial, och görs synligt för HELA
+      // organisationen, inte bara redaktörer/förslagsställaren själv. En fråga som utnyttjar
+      // detta MÅSTE filtrera på where("status","==","infort") – annars kan Firestore inte
+      // bevisa villkoret för alla möjliga träffar och nekar HELA listningen för icke-redaktörer
+      // (samma "list-provability"-mönster som redan dokumenterat ovanför useAndringsforslag()).
       allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'))
-                   && (farRedigeraOmrade(resource.data.omrade) || resource.data.foreslagenAv == request.auth.uid);
+                   && (farRedigeraOmrade(resource.data.omrade)
+                       || resource.data.foreslagenAv == request.auth.uid
+                       || resource.data.status == 'infort');
       allow create: if arInloggad()
                      && request.resource.data.get('organisationId', 'default') == minOrganisation()
                      && request.resource.data.foreslagenAv == request.auth.uid

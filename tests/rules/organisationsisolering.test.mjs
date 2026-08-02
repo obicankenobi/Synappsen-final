@@ -1143,6 +1143,24 @@ async function main() {
     )
   );
 
+  console.log("\nandringsforslag/{forslagId} – Etapp 41a: infört förslag blir publikt läsbart");
+  await test("vecA (fel område, INTE redaktör för kliniskt-stod) KAN nu läsa förslaget eftersom det är infört", () =>
+    assertSucceeds(getDoc(doc(vecA, "andringsforslag", forslagTestId)))
+  );
+  await test("en fråga som filtrerar på status==infort KAN listas av en icke-redaktör (samma frågeform som useNiSaViGjorde)", async () => {
+    const snap = await getDocs(
+      query(
+        collection(vecA, "andringsforslag"),
+        where("organisationId", "==", ORG_A),
+        where("status", "==", "infort")
+      )
+    );
+    if (snap.empty) throw new Error("förväntade minst ett infört förslag synligt");
+  });
+  await test("superadminB (fel organisation) kan INTE läsa org A:s införda förslag trots att det är publikt inom org A", () =>
+    assertFails(getDoc(doc(superB, "andringsforslag", forslagTestId)))
+  );
+
   console.log("\ncheckriktlistkorningar/{rutinId} – Etapp 18d: aggregerad statistik, organisationsisolerad");
   await test("volA KAN räkna upp påbörjade körningar för en rutin i sin egen organisation", () =>
     assertSucceeds(

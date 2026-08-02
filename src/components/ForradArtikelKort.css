@@ -54,6 +54,14 @@
   margin: 6px 0 0;
 }
 
+.forrad-artikel-kort__hyllfoto {
+  width: 100%;
+  max-width: 220px;
+  border-radius: 8px;
+  margin-top: 8px;
+  display: block;
+}
+
 .forrad-artikel-kort__antal {
   color: var(--text-svag);
   margin: 4px 0 0;

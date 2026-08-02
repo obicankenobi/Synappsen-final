@@ -6,20 +6,21 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-02, version **5.63.0**. **`ETAPPLAN7.md` (Etapp 42:
-gränssnittsförnyelse) är nu den AKTIVA planen**, antagen samma dag – inget av den är
-påbörjat än. `ETAPPLAN6.md` (Etapp 37–41) är inte stängd men inte längre den aktiva planen:
-**Etapp 37, 38 och 39 är alla klara** (37a/37b/37d/38/39 helt, 37c byggd men väntar på en
-pilotutvärdering av en riktig redaktör), Etapp 40 (villkorad) och 41 kvarstår, inte blockerade
-av kapacitet. En deploy av v5.63.0 triggades via `deploy.yml` samma session – se separat
-notering nedan/i en senare uppföljning för utfallet, det var inte bekräftat klart när den här
-sektionen skrevs. `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte
-stängd. **Läs de ELVA NYA sektionerna längst ner i den här filen först** ("Uppföljning
-2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning 2026-08-01 (Etapp
-37a)", "Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning 2026-08-01 (Etapp 37c)",
-"Uppföljning 2026-08-01 (Etapp 37d)", "Uppföljning 2026-08-01 (senare samma dag igen)",
-"Uppföljning 2026-08-01 (Etapp 38)", "Uppföljning 2026-08-02 (Etapp 39a/39b)", "Uppföljning
-2026-08-02 (Etapp 39c/39d)" och "Uppföljning 2026-08-02 (ETAPPLAN7 antagen)") om du undrar var
+**Senast uppdaterad:** 2026-08-02, version **5.64.0**. `ETAPPLAN7.md` (Etapp 42:
+gränssnittsförnyelse) är den AKTIVA planen, antagen samma dag – inget av den är påbörjat än.
+`ETAPPLAN6.md` (Etapp 37–41) är nu STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund) –
+**37, 38, 39 och 41 är alla klara** (37c byggd men väntar fortfarande på en pilotutvärdering
+av en riktig redaktör, räknas ändå som klar i planens mening). En deploy av v5.63.0 triggades
+via `deploy.yml` tidigare samma session – utfallet var INTE bekräftat när den här sektionen
+skrevs (kontrollera `mcp__github__actions_list`/`actions_get` för senaste körning på
+branchen om du undrar). v5.64.0 (Etapp 41) är INTE ännu deployad. `ETAPPLAN5.md` (Etapp
+32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs de TOLV NYA sektionerna längst
+ner i den här filen först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare samma
+dag)", "Uppföljning 2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)",
+"Uppföljning 2026-08-01 (Etapp 37c)", "Uppföljning 2026-08-01 (Etapp 37d)", "Uppföljning
+2026-08-01 (senare samma dag igen)", "Uppföljning 2026-08-01 (Etapp 38)", "Uppföljning
+2026-08-02 (Etapp 39a/39b)", "Uppföljning 2026-08-02 (Etapp 39c/39d)", "Uppföljning
+2026-08-02 (ETAPPLAN7 antagen)" och "Uppföljning 2026-08-02 (Etapp 41)") om du undrar var
 arbetet står idag – allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är
 historisk, äldre kontext.
 
@@ -691,19 +692,52 @@ persistent Akut-knapp INTE finns idag (bara på `Hem.jsx`).
 ändrad i samma veva). `ETAPPLAN6.md` är inte stängd men inte längre aktiv – dess kvarvarande
 punkter (40, 41) väntar inte på ägarbeslut, bara på tur. Inget i `ETAPPLAN7.md` är påbörjat.
 
+## Uppföljning 2026-08-02 (Etapp 41): "Innehåll som märks i vardagen" klar, ETAPPLAN6 stängd
+## förutom Etapp 40
+
+Byggde alla tre delmål av Etapp 41 på begäran ("Gör punkt 41 i etapplanen"), efter en
+premisskontroll (krav 8) som visade att 41a:s "namnge aldrig utan att fråga"-krav redan var
+löst av Etapp 26c (`visaNamnOffentligt`-fältet) – ingen ny standardinställning behövdes,
+bara återanvändning.
+
+**Genomfört:**
+- **41a – "Ni sa, vi gjorde":** publik lista på `/nyheter` över införda ändringsförslag,
+  synlig för alla roller. Krävde en regeländring (`firestore.rules`): ett infört förslag är
+  inte längre bara läsbart för redaktörer/förslagsställaren, utan för hela organisationen.
+- **41b – Veckans repetition:** en ren klientfunktion (`src/utils/veckansRepetition.js`)
+  väljer en kvissfråga från en rutin användaren kvitterade för länge sedan, stabilt en vecka i
+  taget. Inget svar sparas NÅGONSIN (krav 14) – samma princip som `KvissModal.jsx`.
+- **41c – Förrådet visuellt:** nytt `hyllfotoUrl`-fält på förrådsartiklar, återanvänder
+  befintlig Storage-sökväg/behörighet (ingen regeländring behövdes).
+
+15 rader nya tester (3 rules, 10 vitest för veckansRepetition, plus befintliga svep). Fullt
+testsvep grönt.
+
+**Browserverifiering:** 41a och 41b helt verifierade end-to-end i en riktig webbläsare.
+**41c INTE verifierad end-to-end** – filuppladdning via Storage-klient-SDK:t hänger utan fel i
+den här sandboxade miljön (samma klass av begränsning som Cloud Functions-anropen i Etapp
+39c/39d). Bekräftat att det inte är en regression: den REDAN BEFINTLIGA `bildUrl`-
+uppladdningen (oförändrad av denna etapp) uppvisar exakt samma symptom i samma testkörning.
+Regellogiken är istället verifierad direkt via `test:storage` (21/21 gröna). Detaljer i
+`ETAPPLAN6.md`s Etapp 41-sektion. Version 5.63.0 → **5.64.0**.
+
+**INTE gjort ännu:** deploy av v5.64.0 till produktion.
+
 ## Om du är en ny Claude-session som läser detta
 
 Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete. Om
 användaren säger något i stil med "fortsätt där vi var" utan att specificera: **den aktiva
-planen är nu `ETAPPLAN7.md` (Etapp 42, gränssnittsförnyelse)** – börja med 42e
+planen är `ETAPPLAN7.md` (Etapp 42, gränssnittsförnyelse)** – börja med 42e
 (design-tokenrevisionen), som planen själv pekar ut som blockerande för resten. `ETAPPLAN6.md`
-(Etapp 40 villkorad, Etapp 41) och `ETAPPLAN5.md`s kvarvarande punkter kan tas närhelst de
-passar/blockeringen lossnar – ingen av dem konkurrerar om samma kapacitet som `ETAPPLAN7.md`
-egentligen behöver, men fråga användaren om prioritetsordning om det är oklart. Läs
-`CLAUDE.md` först om du är osäker på vilken fil som är auktoritativ för vad – och notera dess
-underhållsregel för DEN HÄR filen innan du avslutar sessionen. Om du ska verifiera en Cloud
-Function i en webbläsare mot emulatorerna i den här miljön: testa FÖRST med en redan
-fungerande funktion (t.ex. `skickaFeedback`) innan du felsöker din egen kod. Om du ska rendera
-en `.dc.html`-mockup eller något annat som laddar skript från `unpkg.com`: samma
-CDN-blockering gäller där också – installera paketen lokalt och fånga anropen med Playwrights
-`page.route()`, se ovan för exakt recept.
+har bara Etapp 40 kvar (villkorad av en konkret ny kund) och `ETAPPLAN5.md`s kvarvarande
+punkter kan tas närhelst de passar/blockeringen lossnar – ingen av dem konkurrerar om samma
+kapacitet som `ETAPPLAN7.md` egentligen behöver, men fråga användaren om prioritetsordning om
+det är oklart. Läs `CLAUDE.md` först om du är osäker på vilken fil som är auktoritativ för
+vad – och notera dess underhållsregel för DEN HÄR filen innan du avslutar sessionen. Om du ska
+verifiera en Cloud Function ELLER en Storage-filuppladdning i en webbläsare mot emulatorerna i
+den här miljön: testa FÖRST med en redan fungerande funktion (t.ex. `skickaFeedback`, eller
+den befintliga `bildUrl`-uppladdningen för förrådsartiklar) innan du felsöker din egen kod –
+båda har en känd, dokumenterad begränsning i den här specifika sandboxen som inte är kodens
+fel. Om du ska rendera en `.dc.html`-mockup eller något annat som laddar skript från
+`unpkg.com`: samma CDN-blockering gäller där också – installera paketen lokalt och fånga
+anropen med Playwrights `page.route()`, se ovan för exakt recept.
