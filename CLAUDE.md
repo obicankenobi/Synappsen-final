@@ -21,13 +21,15 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 1. **`CLAUDE_STATUS.md`** – läs FÖRST. Kort "var slutade vi, vad gör jag nu"-sammanfattning,
    uppdateras löpande. Pekar vidare till detaljer i planfilerna nedan.
-2. **`ETAPPLAN6.md`** – den AKTIVA utvecklingsplanen (Etapp 37–41: innehållets kvalitet och
-   bevisad nytta). Om användaren ber om fortsatt arbete utan att specificera vad: det är här
-   nästa punkt finns.
-3. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter (Etapp 32b, ToS-genomgången,
+2. **`ETAPPLAN7.md`** – den AKTIVA utvecklingsplanen (Etapp 42: gränssnittsförnyelse). Om
+   användaren ber om fortsatt arbete utan att specificera vad: det är här nästa punkt finns.
+3. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkter (Etapp 40, villkorad av en
+   konkret ny kund, och Etapp 41) är inte blockerade av kapacitet, bara av att `ETAPPLAN7.md`
+   kom i vägen kronologiskt. Ta dem när som helst.
+4. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter (Etapp 32b, ToS-genomgången,
    Etapp 30b, uppföljningen av 35e) är blockerade av ägarbeslut eller extern tid, inte av
    kapacitet. Ta dem när respektive blockering lossnar.
-4. Övriga dokument nedan, efter behov.
+5. Övriga dokument nedan, efter behov.
 
 ## Dokumentkarta
 
@@ -35,7 +37,8 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 | Fil | Innehåll | Status |
 |---|---|---|
-| `ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag, bevisad effekt, import, synlighet | **AKTIV** (antagen 2026-08-01). Inget påbörjat ännu. |
+| `ETAPPLAN7.md` | Etapp 42: gränssnittsförnyelse (konsolidering av två UI-designutkast) | **AKTIV** (antagen 2026-08-02). Inget påbörjat ännu. |
+| `ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag, bevisad effekt, import, synlighet | **Aktiv men ej stängd.** Etapp 37–39 klara. Kvarvarande punkter (Etapp 40, villkorad; Etapp 41) väntar inte på ägarbeslut, bara på att komma i tur. |
 | `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv men ej stängd.** I det närmaste klar – kvarvarande punkter (32b, ToS-genomgång, 30b, uppföljning av 35e) är blockerade av ägarbeslut/extern tid, inte av kapacitet. |
 | `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast som INTE antogs när `ETAPPLAN6.md` valdes | **Utkast, ej antagna.** Arkiverade – se `FRAMTIDSPLAN.md` för omprövningsvillkor per alternativ. |
 | `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv, LEVANDE** – händelsestyrd underhållsregel, se "Obligatorisk underhållsregel: CLAUDE_STATUS.md" under arbetsmönstren nedan. |
@@ -146,7 +149,7 @@ något av följande inträffar:
 | Ändrad **behörighetsmodell** (`firestore.rules`, roller, plattformsadmin) | Checklistans steg 4; policyns avsnitt 4 om kompenserande kontroller påverkas |
 | Flyttad/ändrad **adminkontroll i UI** | Checklistans snabbreferens "Var saker finns" – annars leder den fel under press |
 | Nytt **underbiträde eller extern integration** | Policyns avsnitt 1-tabell; `avtal/UNDERBITRADEN.md` |
-| En **etapp i den aktiva planen blir klar** (`ETAPPLAN6.md`, eller en kvarvarande punkt i `ETAPPLAN5.md`) | Bocka av motsvarande rad i checklistans statustabell och policyns avsnitt 11 |
+| En **etapp i den aktiva planen blir klar** (`ETAPPLAN7.md`, eller en kvarvarande punkt i `ETAPPLAN6.md`/`ETAPPLAN5.md`) | Bocka av motsvarande rad i checklistans statustabell och policyns avsnitt 11 |
 
 Ytterligare krav:
 

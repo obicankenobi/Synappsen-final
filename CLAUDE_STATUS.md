@@ -6,19 +6,22 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-02, version **5.63.0**. `ETAPPLAN6.md` (Etapp 37–41,
-innehållets kvalitet och bevisad nytta) är den aktiva planen. **Etapp 37, 38 och 39 är alla
-klara** (37a/37b/37d/38/39 helt, 37c byggd men väntar på en pilotutvärdering av en riktig
-redaktör). **Allt detta ligger INTE ännu deployat till produktion** (senaste produktions-
-deploy är fortfarande körning #63/`382562b`, v5.56.0). `ETAPPLAN5.md` (Etapp 32–36: säkerhet)
-är i det närmaste klar men inte stängd. **Läs de TIO NYA sektionerna längst ner i den här
-filen först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)",
-"Uppföljning 2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning
-2026-08-01 (Etapp 37c)", "Uppföljning 2026-08-01 (Etapp 37d)", "Uppföljning 2026-08-01
-(senare samma dag igen)", "Uppföljning 2026-08-01 (Etapp 38)", "Uppföljning 2026-08-02 (Etapp
-39a/39b)" och "Uppföljning 2026-08-02 (Etapp 39c/39d)") om du undrar var arbetet står idag –
-allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är historisk, äldre
-kontext.
+**Senast uppdaterad:** 2026-08-02, version **5.63.0**. **`ETAPPLAN7.md` (Etapp 42:
+gränssnittsförnyelse) är nu den AKTIVA planen**, antagen samma dag – inget av den är
+påbörjat än. `ETAPPLAN6.md` (Etapp 37–41) är inte stängd men inte längre den aktiva planen:
+**Etapp 37, 38 och 39 är alla klara** (37a/37b/37d/38/39 helt, 37c byggd men väntar på en
+pilotutvärdering av en riktig redaktör), Etapp 40 (villkorad) och 41 kvarstår, inte blockerade
+av kapacitet. En deploy av v5.63.0 triggades via `deploy.yml` samma session – se separat
+notering nedan/i en senare uppföljning för utfallet, det var inte bekräftat klart när den här
+sektionen skrevs. `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte
+stängd. **Läs de ELVA NYA sektionerna längst ner i den här filen först** ("Uppföljning
+2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning 2026-08-01 (Etapp
+37a)", "Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning 2026-08-01 (Etapp 37c)",
+"Uppföljning 2026-08-01 (Etapp 37d)", "Uppföljning 2026-08-01 (senare samma dag igen)",
+"Uppföljning 2026-08-01 (Etapp 38)", "Uppföljning 2026-08-02 (Etapp 39a/39b)", "Uppföljning
+2026-08-02 (Etapp 39c/39d)" och "Uppföljning 2026-08-02 (ETAPPLAN7 antagen)") om du undrar var
+arbetet står idag – allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är
+historisk, äldre kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -658,18 +661,49 @@ nätverksproxy). Anropslogikens korrekthet täcks istället av de 9 nya funktion
 anropar funktionerna direkt och kringgår HTTP-lagret. Detaljer i `ETAPPLAN6.md`s sektion
 "39c/39d – Personalpuls + Referensunderlag". Version 5.62.0 → **5.63.0**.
 
-**INTE gjort ännu:** deploy till produktion (37a/37b/37d/38/39 ligger alla bara pushade till
-branchen). Etapp 37c väntar fortfarande på pilotutvärdering.
+**INTE gjort ännu (vid det tillfället):** deploy till produktion. Se nästa sektion – en deploy
+triggades senare samma session.
+
+## Uppföljning 2026-08-02 (ETAPPLAN7 antagen): ny aktiv plan, gränssnittsförnyelse
+
+Användaren delade två fristående, AI-genererade UI-designutkast för Synappsen ("Nordic
+Clinical" och "Synappsen Redesign" + en mobilmockup) som `.dc.html`-exportfiler (zip). De
+kunde inte läsas via de vanliga `claude.ai/design`-länkarna (403, kräver inloggning) eller ens
+via `WebFetch` mot `claude.ai/code/artifact/...`-länkar (renderas av JS i klienten, går inte
+att läsa som text) – löstes genom att rendera dem i den sandboxade Playwright-webbläsaren:
+`support.js` laddar React/ReactDOM/Babel från `unpkg.com`, som är blockerat i den här miljöns
+nätverkspolicy (`ERR_CONNECTION_RESET`, både direkt och via `HTTPS_PROXY`) – arbetat runt
+genom att installera samma paketversioner lokalt via `npm install` (registry.npmjs.org är
+undantaget proxyn) och låta Playwright fånga och ersätta unpkg-anropen med de lokala filerna.
+Filerna behövde också serveras över `http://` (en lokal `python3 -m http.server`), inte
+`file://`, eftersom runtimen gör ett same-origin-`fetch()` av sin egen HTML som CORS-blockeras
+under `file://`.
+
+Efter granskning (skärmdumpar av båda genom flera vyer) sammanställdes en skriftlig
+rekommendation, som användaren godkände som en ny etapplan: **`ETAPPLAN7.md`, Etapp 42 –
+Gränssnittsförnyelse.** Premisskontroll (krav 8) vid antagandet visade att INGEN av
+mockupernas centrala påståenden om att vara "lyfta direkt" från befintlig kod stämmer fullt
+ut (se planens egen premisskontroll-tabell) – särskilt att en samlad, domänöverskridande
+godkännandekö INTE finns idag (godkännande sker per sektion i `Sektionssida.jsx`), och att en
+persistent Akut-knapp INTE finns idag (bara på `Hem.jsx`).
+
+**`ETAPPLAN7.md` är nu den aktiva planen** (se `CLAUDE.md`s uppdaterade läsordning/dokumentkarta,
+ändrad i samma veva). `ETAPPLAN6.md` är inte stängd men inte längre aktiv – dess kvarvarande
+punkter (40, 41) väntar inte på ägarbeslut, bara på tur. Inget i `ETAPPLAN7.md` är påbörjat.
 
 ## Om du är en ny Claude-session som läser detta
 
 Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete. Om
 användaren säger något i stil med "fortsätt där vi var" utan att specificera: **den aktiva
-planen är `ETAPPLAN6.md` (Etapp 37–41)** – Etapp 37, 38 och 39 är alla klara (37c väntar dock
-fortfarande på en pilotutvärdering, se ovan). Nästa i planens egen ordningsprincip är Etapp
-40 (villkorad – kräver en konkret ny kund, se beslutspunkt 5). `ETAPPLAN5.md`s kvarvarande
-punkter är blockerade av ägarbeslut/extern tid, inte av kapacitet. Läs `CLAUDE.md` först om
-du är osäker på vilken fil som är auktoritativ för vad – och notera dess underhållsregel för
-DEN HÄR filen innan du avslutar sessionen. Om du ska verifiera en Cloud Function i en
-webbläsare mot emulatorerna i den här miljön: testa FÖRST med en redan fungerande funktion
-(t.ex. `skickaFeedback`) innan du felsöker din egen kod – se begränsningen ovan.
+planen är nu `ETAPPLAN7.md` (Etapp 42, gränssnittsförnyelse)** – börja med 42e
+(design-tokenrevisionen), som planen själv pekar ut som blockerande för resten. `ETAPPLAN6.md`
+(Etapp 40 villkorad, Etapp 41) och `ETAPPLAN5.md`s kvarvarande punkter kan tas närhelst de
+passar/blockeringen lossnar – ingen av dem konkurrerar om samma kapacitet som `ETAPPLAN7.md`
+egentligen behöver, men fråga användaren om prioritetsordning om det är oklart. Läs
+`CLAUDE.md` först om du är osäker på vilken fil som är auktoritativ för vad – och notera dess
+underhållsregel för DEN HÄR filen innan du avslutar sessionen. Om du ska verifiera en Cloud
+Function i en webbläsare mot emulatorerna i den här miljön: testa FÖRST med en redan
+fungerande funktion (t.ex. `skickaFeedback`) innan du felsöker din egen kod. Om du ska rendera
+en `.dc.html`-mockup eller något annat som laddar skript från `unpkg.com`: samma
+CDN-blockering gäller där också – installera paketen lokalt och fånga anropen med Playwrights
+`page.route()`, se ovan för exakt recept.
