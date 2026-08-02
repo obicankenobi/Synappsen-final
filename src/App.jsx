@@ -12,6 +12,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import MfaPolicyBanner from "./components/MfaPolicyBanner";
 import ProvperiodBanner from "./components/ProvperiodBanner";
 import AkutlagePrefetch from "./components/AkutlagePrefetch";
+import AkutKnappFloating from "./components/AkutKnappFloating";
 import OrganisationsBranding from "./components/OrganisationsBranding";
 import OfflineKoLyssnare from "./components/OfflineKoLyssnare";
 import SkyddadRoute from "./components/SkyddadRoute";
@@ -65,6 +66,7 @@ const Leverantor = lazy(() => import("./pages/Leverantor"));
 const Introduktion = lazy(() => import("./pages/Introduktion"));
 const Kompetensmatris = lazy(() => import("./pages/Kompetensmatris"));
 const Ledningsrapport = lazy(() => import("./pages/Ledningsrapport"));
+const Godkannanden = lazy(() => import("./pages/Godkannanden"));
 const Akutlage = lazy(() => import("./pages/Akutlage"));
 const Korvy = lazy(() => import("./pages/Korvy"));
 const SedanForraPasset = lazy(() => import("./pages/SedanForraPasset"));
@@ -119,6 +121,7 @@ export default function App() {
         <MfaPolicyBanner />
         <ProvperiodBanner />
         <AkutlagePrefetch />
+        <AkutKnappFloating />
         <Routes>
           <Route
             path="/logga-in"
@@ -300,6 +303,21 @@ export default function App() {
                   <ErrorBoundary>
                     <Suspense fallback={<SidLaddare />}>
                       <Admin />
+                    </Suspense>
+                  </ErrorBoundary>
+                </main>
+                <BottomNav />
+              </RollSkyddadRoute>
+            }
+          />
+          <Route
+            path="/godkannanden"
+            element={
+              <RollSkyddadRoute tillatnaRoller={REDAKTORSROLLER}>
+                <main id="huvudinnehall" className="app-innehall" tabIndex={-1}>
+                  <ErrorBoundary>
+                    <Suspense fallback={<SidLaddare />}>
+                      <Godkannanden />
                     </Suspense>
                   </ErrorBoundary>
                 </main>

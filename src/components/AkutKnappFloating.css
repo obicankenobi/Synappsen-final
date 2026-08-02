@@ -1,0 +1,28 @@
+.akut-knapp-floating {
+  position: fixed;
+  right: 16px;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 18px;
+  min-height: 48px;
+  background: var(--farlig);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 999px;
+  box-shadow: var(--skugga);
+}
+
+.akut-knapp-floating:hover {
+  filter: brightness(1.05);
+}
+
+@media print {
+  .akut-knapp-floating {
+    display: none !important;
+  }
+}

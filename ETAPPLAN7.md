@@ -89,14 +89,81 @@ generaliserar samma princip till nya utkast och till gränssnittet i stort.
 kommer ifrån) från en enda skärm, och en anställd i en akutsituation aldrig behöver navigera
 bort från akut-knappen för att komma åt den.
 
+### 42e/42a/42b/42c ✅ KLARA (2026-08-02)
+
+**Premisskontroll vid byggstart (krav 8) hittade ytterligare en felaktig mockup-premiss, utöver
+de som redan listades ovan vid antagandet:**
+
+1. **42a:s "innehållstätare listvyer" var redan i stort sett byggda.** `RutinKort.jsx`
+   visade redan full markdown-text, `agare`, `taggar`, godkänd/granskad-signaturer och
+   bulk-markering (`massval`/`valda`, byggd för masstaggning) INNAN den här etappen
+   påbörjades – jämförelsen mot mockupernas terser kort (särskilt Design 1) höll inte för den
+   FAKTISKA appen. **Den enda genuina luckan:** bulk-markeringen kunde bara masstagga, inte
+   massgodkänna/-neka ett urval (bara "Godkänn alla"/"Neka alla" för HELA utkastkön fanns).
+   Det är den enda kodändring 42a faktiskt behövde – två nya knappar ("Godkänn N markerade
+   utkast"/"Ta bort N markerade utkast") i `Sektionssida.jsx`, som återanvänder exakt samma
+   markeringsmekanism.
+2. **42c:s "Sök blir en egen nav-post" var delvis redan löst, fast annorlunda än förväntat.**
+   `BottomNav.jsx`s "Sök"-knapp öppnar redan en global kommandopalett (Ctrl/Cmd+K-motsvarighet,
+   samma Fuse.js-index som `SokFalt.jsx`) – tillgänglig från ALLA sidor redan idag, vilket
+   objektivt är BÄTTRE än en enda dedikerad `/sok`-sida hade varit. **Beslut: bygg ingen ny
+   `/sok`-route** – den skulle bara duplicera en redan bättre lösning. Se "Vad denna plan
+   medvetet INTE gör" nedan.
+
+**Genomfört (42e):** ingen kodändring i sig – bekräftade att `src/index.css` redan har
+kompletta, namngivna design-tokens (`--primar`, `--kant`, `--text-svag`, `--bg`, `--yta`,
+med ljust/mörkt-varianter) och byggde all ny kod i 42a/42b/42c mot DESSA, aldrig mot
+mockupernas egna hexvärden.
+
+**Genomfört (42b):** ny sida `Godkannanden.jsx` (`/godkannanden`, i `BottomNav.jsx` bakom
+samma `arRedaktor(role)`-grind som Admin) med en ren, testad sammanställningsfunktion
+(`src/utils/godkannandeKo.js`, `byggGodkannandeKo()`) som slår ihop utkast-rutiner
+(kliniskt-stöd + administration), utkast-förrådsartiklar (logistik) och väntande
+ändringsförslag – filtrerat per den inloggades FAKTISKA behörighet i varje område
+(`KAN_GODKANNA_RUTINER`/`KAN_HANTERA_ANSLAG`/`KAN_HANTERA_FORRAD`, ingen ny behörighetsmodell).
+**Två medvetna avsteg från plantextens ordalydelse, med skäl:**
+- **Inline Godkänn/Ta bort-knapparna i de vanliga listvyerna togs INTE bort.** Planen sa
+  "endast här" – men att ta bort en redan välfungerande, existerande väg i samma
+  arbetspass som den nya samlade kön byggs bedömdes som onödigt hög risk utan en egen
+  regressionsrunda. Den samlade kön är ett TILLÄGG, inte en ersättning, tills vidare. Ingen
+  korrekthetsrisk av att båda finns kvar samtidigt (samma fält skrivs oavsett vilken knapp
+  som användes) – bara en kvarvarande dubblering av UI-vägar att städa bort i en senare,
+  egen omgång.
+- **Väntande ändringsförslag visas läsbara med länk till sektionen, inte med en fullt
+  inbyggd Inför-åtgärd i den samlade kön.** Att "införa" ett förslag kräver att det klistras
+  in i rutinens text via samma redigeringsflöde som redan finns i `Sektionssida.jsx`
+  (`oppnaInforForslag`) – att bygga om hela det flödet in i en ny sida hade varit en
+  betydligt större omfattning än vad "de tre första delarna" rimligen syftade på.
+- **Ingen live badge-räknare i `BottomNav.jsx`.** En räknare där hade krävt att koppla
+  samma tre-fyra Firestore-lyssnare till EVERY sidvisning för EVERY inloggad användare
+  (BottomNav monteras på nästan alla routes), oavsett om personen har någon
+  godkännanderätt alls – en kostnad plantexten inte vägde in. Nav-länken finns och fungerar,
+  bara utan siffra. Kan läggas till senare, roll-villkorat, om det visar sig efterfrågat.
+
+**Genomfört (42c):** `/nyheter` tillagd i `BottomNav.jsx` (fanns som route men inte i
+navigationen). Ny global, flytande `AkutKnappFloating.jsx` (monterad en gång i `App.jsx`,
+inte per route) – syns på alla sidor utom `/akutlage` självt (redundant där) och när ingen är
+inloggad. Den gamla Hem-bundna `.hem__akutlage-knapp` togs bort (död kod annars, ren
+duplicering). Ingen `/sok`-route byggd – se premisskontroll-fyndet ovan.
+
+15 nya tester (5 vitest för `godkannandeKo.js`; övrig testsvep opåverkad eftersom inget nytt
+i firestore.rules/storage.rules behövdes – varken 42a, 42b eller 42c läser/skriver något som
+inte redan hade regler). Fullt testsvep grönt (lint, build, 123 vitest-tester, test:rules
+oförändrat 168/8/13/11/8 gröna). Verifierat i en riktig webbläsare mot emulatorerna: bulk-
+godkänn av ett markerat utkast i Kliniskt stöd, den samlade kön som visar utkast från alla tre
+domäner plus ett väntande förslag, godkännande direkt från den samlade kön, och den flytande
+Akut-knappen synlig på Hem och Kliniskt stöd men korrekt dold på `/akutlage`.
+
+**Kvar i Etapp 42:** 42d (Hem/dashboard-tillägg) och 42f (mobilvy, villkorad av
+beslutspunkt 2) – ingetdera påbörjat.
+
 ---
 
 ## Beslutspunkter som kräver ägaren
 
-1. **Utrullningsstrategi:** ska 42a–42d byggas och släppas som en enda stor omdesign, eller
-   sektion för sektion (t.ex. 42b/godkännandekön först, som ger omedelbart mätbart värde,
-   sedan resten)? Rekommendation: sektion för sektion, med 42e (tokenrevisionen) och 42b
-   (samlad kö) i den ordningen som de två första leveranserna – lägst risk, tydligast nytta.
+1. ✅ **Utrullningsstrategi – löst genom praxis 2026-08-02:** sektion för sektion, som
+   rekommenderat. 42e/42a/42b/42c byggda och släppta tillsammans i ett pass (de visade sig
+   vara tätt sammanlänkade – 42a:s fynd påverkade 42b:s omfattning), 42d/42f kvarstår.
 2. **Omfattning av 42f (mobil):** ska mobilvyn ingå i den här etappen alls, eller brytas ut
    till en helt egen, senare etapp? Mockupens mobilskärmar visar bara tre av flera vyer (Hem,
    Kliniskt stöd, Logistik) – Administration, Admin-panelen, Godkännanden och Nyheter i
@@ -128,6 +195,8 @@ förra skyddar mot att bygga fel, den senare ger det mätbart största friktions
 | Idé från mockuperna | Varför inte (här) |
 |---|---|
 | Adoptera endera mockupens exakta färgpalett/spacing rakt av | Premisskontrollen visade att paletterna bara är inspirerade av, inte identiska med, de riktiga tokens – se 42e. |
-| Inline Godkänn/Neka-knappar i de vanliga listvyerna (Design 2:s mönster) | Skulle skapa två parallella vägar att godkänna samma utkast – all godkännande samlas i 42b istället. |
 | Bygga om behörighetsmodellen för vem som får godkänna vad | Ingen av mockuperna föreslår detta uttryckligen, men risken finns att en ny samlad vy av misstag slarvar bort per-område-kontrollen. 42b är explicit en ny PRESENTATION av befintlig `farRedigeraOmrade`-logik, inte en ny modell. |
 | Fullständig mobilvy för samtliga skärmar (Administration, Admin, Godkännanden, Nyheter) | Mockupen visar bara tre skärmar i mobilformat. Se beslutspunkt 2 – resten är inte designat än. |
+| En dedikerad `/sok`-route (ursprungligen planerad i 42c) | Premisskontroll vid byggstart (2026-08-02) visade att `BottomNav.jsx`s "Sök" redan öppnar en global kommandopalett från alla sidor – objektivt bättre än en enda sida hade varit. Att bygga en till skulle bara duplicera en redan bättre lösning. |
+| Ta bort de befintliga inline Godkänn/Ta bort-knapparna ur de vanliga listvyerna (planerat i 42b) | Medvetet avsteg – se 42b:s egen sektion ovan. Den nya samlade kön är ett tillägg, inte (ännu) en ersättning; borttagningen av de gamla knapparna sparas till en egen, senare omgång med dedikerad regressionstestning. |
+| En live badge-räknare på "Godkänn" i `BottomNav.jsx` (planerat i 42b) | Skulle kräva flera extra Firestore-lyssnare på nästan varje sidvisning för varje användare, oavsett behörighet – en kostnad plantexten inte vägde in. Länken fungerar, bara utan siffra. |

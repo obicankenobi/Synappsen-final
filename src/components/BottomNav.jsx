@@ -41,6 +41,20 @@ export default function BottomNav() {
         <span className="bottom-nav__ikon">📋</span>
         <span>Regler</span>
       </NavLink>
+      {/* Etapp 42c: /nyheter-routen fanns redan (ändringsloggen + "Ni sa, vi gjorde", Etapp
+          41a) men saknades i navigeringen – nåddes tidigare bara via andra länkar. */}
+      <NavLink to="/nyheter" className="bottom-nav__lank">
+        <span className="bottom-nav__ikon">📰</span>
+        <span>Nyheter</span>
+      </NavLink>
+      {/* Etapp 42b: den samlade, domänöverskridande godkännandekön – samma redaktörsgrind som
+          Admin, eftersom sidan i sig döljer varje delsektion man saknar rätt för. */}
+      {arRedaktor(role) && (
+        <NavLink to="/godkannanden" className="bottom-nav__lank">
+          <span className="bottom-nav__ikon">✅</span>
+          <span>Godkänn</span>
+        </NavLink>
+      )}
       {arRedaktor(role) && (
         <NavLink to="/admin" className="bottom-nav__lank">
           <span className="bottom-nav__ikon">⚙️</span>

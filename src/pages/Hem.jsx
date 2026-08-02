@@ -54,9 +54,8 @@ export default function Hem() {
         </div>
       </header>
 
-      <Link to="/akutlage" className="hem__akutlage-knapp">
-        🚨 Akutläge
-      </Link>
+      {/* Etapp 42c: den här knappen fanns tidigare bara på Hem – ersatt av en global,
+          flytande knapp (AkutKnappFloating.jsx, monterad i App.jsx) som syns på alla sidor. */}
 
       <nav className="hem__snabblankar">
         {snabblankar.map((s) => (

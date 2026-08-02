@@ -304,6 +304,24 @@ export default function Sektionssida({
     setMassval(false);
   }
 
+  // Etapp 42a: kompletterar den redan befintliga "Godkänn alla"/"Neka alla" (som gäller HELA
+  // utkastkön) med möjligheten att godkänna/neka bara ett URVAL, via samma markeringsmekanism
+  // som redan finns för masstaggning – ingen ny selektionsmodell, bara en till åtgärd på den.
+  const valdaUtkast = valda.filter((id) => utkastRutiner.some((r) => r.id === id));
+
+  async function hanteraGodkannValda() {
+    await Promise.all(valdaUtkast.map((id) => godkannRutin(id, currentUser.uid, mittNamn)));
+    setValda([]);
+    setMassval(false);
+  }
+
+  async function hanteraNekaValda() {
+    if (!(await confirm(`Ta bort ${valdaUtkast.length} markerade utkast? Detta går inte att ångra.`))) return;
+    await Promise.all(valdaUtkast.map((id) => taBortRutin(id, currentUser.uid)));
+    setValda([]);
+    setMassval(false);
+  }
+
   async function hanteraAterstallVersion(rutinId, version) {
     const { titel: vTitel, innehall, referenser, taggar, utgangsdatum, relateradeRutiner, bilagor } = version;
     await uppdateraRutin(
@@ -373,6 +391,16 @@ export default function Sektionssida({
           >
             Ta bort tagg från markerade
           </button>
+          {farGodkanna && valdaUtkast.length > 0 && (
+            <>
+              <button className="knapp knapp--liten" onClick={hanteraGodkannValda}>
+                Godkänn {valdaUtkast.length} markerade utkast
+              </button>
+              <button className="knapp knapp--liten knapp--farlig" onClick={hanteraNekaValda}>
+                Ta bort {valdaUtkast.length} markerade utkast
+              </button>
+            </>
+          )}
         </div>
       )}
 

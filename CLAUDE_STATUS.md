@@ -6,23 +6,23 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-02, version **5.64.0**. `ETAPPLAN7.md` (Etapp 42:
-gränssnittsförnyelse) är den AKTIVA planen, antagen samma dag – inget av den är påbörjat än.
-`ETAPPLAN6.md` (Etapp 37–41) är nu STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund) –
-**37, 38, 39 och 41 är alla klara** (37c byggd men väntar fortfarande på en pilotutvärdering
-av en riktig redaktör, räknas ändå som klar i planens mening). En deploy av v5.63.0 triggades
-via `deploy.yml` tidigare samma session – utfallet var INTE bekräftat när den här sektionen
-skrevs (kontrollera `mcp__github__actions_list`/`actions_get` för senaste körning på
-branchen om du undrar). v5.64.0 (Etapp 41) är INTE ännu deployad. `ETAPPLAN5.md` (Etapp
-32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs de TOLV NYA sektionerna längst
-ner i den här filen först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare samma
-dag)", "Uppföljning 2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)",
+**Senast uppdaterad:** 2026-08-02, version **5.65.0**. `ETAPPLAN7.md` (Etapp 42:
+gränssnittsförnyelse) är den AKTIVA planen. **42e/42a/42b/42c är klara** (design-tokenrevision,
+selektiv bulk-godkänn, den nya samlade "Godkännanden"-sidan, Nyheter i navigeringen, persistent
+Akut-knapp) – 42d och 42f kvarstår, inget av dem påbörjat. `ETAPPLAN6.md` (Etapp 37–41) är
+STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund). En deploy av v5.63.0 triggades via
+`deploy.yml` tidigare samma session – utfallet var INTE bekräftat när den här filen senast
+skrevs om (kontrollera `mcp__github__actions_list`/`actions_get` för senaste körning på
+branchen om du undrar). v5.64.0 och v5.65.0 är INTE ännu deployade. `ETAPPLAN5.md` (Etapp
+32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs de TRETTON NYA sektionerna
+längst ner i den här filen först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare
+samma dag)", "Uppföljning 2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)",
 "Uppföljning 2026-08-01 (Etapp 37c)", "Uppföljning 2026-08-01 (Etapp 37d)", "Uppföljning
 2026-08-01 (senare samma dag igen)", "Uppföljning 2026-08-01 (Etapp 38)", "Uppföljning
 2026-08-02 (Etapp 39a/39b)", "Uppföljning 2026-08-02 (Etapp 39c/39d)", "Uppföljning
-2026-08-02 (ETAPPLAN7 antagen)" och "Uppföljning 2026-08-02 (Etapp 41)") om du undrar var
-arbetet står idag – allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är
-historisk, äldre kontext.
+2026-08-02 (ETAPPLAN7 antagen)", "Uppföljning 2026-08-02 (Etapp 41)" och "Uppföljning
+2026-08-02 (Etapp 42e/42a/42b/42c)") om du undrar var arbetet står idag – allt mellan denna
+rad och dem (inklusive "Uppföljning 2026-07-28") är historisk, äldre kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -721,23 +721,65 @@ uppladdningen (oförändrad av denna etapp) uppvisar exakt samma symptom i samma
 Regellogiken är istället verifierad direkt via `test:storage` (21/21 gröna). Detaljer i
 `ETAPPLAN6.md`s Etapp 41-sektion. Version 5.63.0 → **5.64.0**.
 
-**INTE gjort ännu:** deploy av v5.64.0 till produktion.
+**INTE gjort ännu (vid det tillfället):** deploy av v5.64.0 till produktion. Se nästa sektion.
+
+## Uppföljning 2026-08-02 (Etapp 42e/42a/42b/42c): fyra av sex delpunkter i gränssnittsförnyelsen klara
+
+Byggde de tre första delarna av `ETAPPLAN7.md` på begäran ("genomför dem 3 första delarna").
+Premisskontroll (krav 8) vid byggstart hittade två viktiga korrigeringar av planens egna
+antaganden (fulla detaljer i `ETAPPLAN7.md`s "42e/42a/42b/42c ✅ KLARA"-sektion):
+
+1. **42a var redan till stor del byggt** – `RutinKort.jsx` visade redan fulltext/ägare/taggar
+   innan den här etappen; den enda genuina luckan var att bulk-markeringen (fanns redan för
+   masstaggning) inte kunde massgodkänna/-neka ett urval. Det är den enda kodändring som
+   gjordes för 42a.
+2. **42c:s planerade `/sok`-route byggdes INTE** – `BottomNav.jsx`s "Sök" öppnar redan en
+   global kommandopalett från alla sidor, objektivt bättre än en dedikerad sida hade varit.
+
+**Genomfört:**
+- **42b:** ny sida `/godkannanden` (`Godkannanden.jsx`), en ren sammanställningsfunktion
+  (`src/utils/godkannandeKo.js`) som slår ihop utkast-rutiner (kliniskt-stöd, administration),
+  utkast-förrådsartiklar (logistik) och väntande ändringsförslag, filtrerat per faktisk
+  behörighet. **Två medvetna avsteg från plantexten** (se ETAPPLAN7.md för fullständigt
+  resonemang): de gamla inline-knapparna togs INTE bort (risk att ta i samma pass utan egen
+  regressionsrunda), och ingen live badge-räknare byggdes (hade krävt extra
+  Firestore-lyssnare på nästan varje sidvisning oavsett behörighet).
+- **42c:** `/nyheter` tillagd i navigeringen. Ny global, flytande `AkutKnappFloating.jsx`
+  (monterad en gång i `App.jsx`, syns på alla sidor utom `/akutlage` självt) – ersätter den
+  gamla Hem-bundna knappen.
+- **42a:** "Godkänn/Ta bort N markerade utkast" i `Sektionssida.jsx`, återanvänder befintlig
+  markeringsmekanism.
+- **42e:** ingen kodändring krävdes – bekräftade att `src/index.css` redan har kompletta
+  tokens och byggde allt nytt mot dem.
+
+5 nya vitest-tester. Inga ändringar i firestore.rules/storage.rules behövdes (allt nytt läser/
+skriver bara sådant som redan hade regler). Fullt testsvep grönt (lint, build, 123
+vitest-tester, test:rules oförändrat 168/8/13/11/8 gröna). Verifierat end-to-end i en riktig
+webbläsare mot emulatorerna: bulk-godkänn av ett markerat utkast, den samlade kön med utkast
+från alla tre domäner plus ett väntande förslag, godkännande direkt därifrån, och den flytande
+Akut-knappen synlig på Hem/Kliniskt stöd men korrekt dold på `/akutlage`. Version 5.64.0 →
+**5.65.0**.
+
+**Kvar i Etapp 42:** 42d (Hem/dashboard-tillägg) och 42f (mobilvy, villkorad av
+beslutspunkt 2) – ingetdera påbörjat.
+
+**INTE gjort ännu:** deploy av v5.64.0/v5.65.0 till produktion.
 
 ## Om du är en ny Claude-session som läser detta
 
 Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete. Om
 användaren säger något i stil med "fortsätt där vi var" utan att specificera: **den aktiva
-planen är `ETAPPLAN7.md` (Etapp 42, gränssnittsförnyelse)** – börja med 42e
-(design-tokenrevisionen), som planen själv pekar ut som blockerande för resten. `ETAPPLAN6.md`
-har bara Etapp 40 kvar (villkorad av en konkret ny kund) och `ETAPPLAN5.md`s kvarvarande
-punkter kan tas närhelst de passar/blockeringen lossnar – ingen av dem konkurrerar om samma
-kapacitet som `ETAPPLAN7.md` egentligen behöver, men fråga användaren om prioritetsordning om
-det är oklart. Läs `CLAUDE.md` först om du är osäker på vilken fil som är auktoritativ för
-vad – och notera dess underhållsregel för DEN HÄR filen innan du avslutar sessionen. Om du ska
-verifiera en Cloud Function ELLER en Storage-filuppladdning i en webbläsare mot emulatorerna i
-den här miljön: testa FÖRST med en redan fungerande funktion (t.ex. `skickaFeedback`, eller
-den befintliga `bildUrl`-uppladdningen för förrådsartiklar) innan du felsöker din egen kod –
-båda har en känd, dokumenterad begränsning i den här specifika sandboxen som inte är kodens
-fel. Om du ska rendera en `.dc.html`-mockup eller något annat som laddar skript från
-`unpkg.com`: samma CDN-blockering gäller där också – installera paketen lokalt och fånga
-anropen med Playwrights `page.route()`, se ovan för exakt recept.
+planen är `ETAPPLAN7.md` (Etapp 42, gränssnittsförnyelse)** – 42e/42a/42b/42c är klara, nästa
+är 42d (låg insats) eller 42f (mobilvy, kräver att beslutspunkt 2 om omfattning besvaras
+först). `ETAPPLAN6.md` har bara Etapp 40 kvar (villkorad av en konkret ny kund) och
+`ETAPPLAN5.md`s kvarvarande punkter kan tas närhelst de passar/blockeringen lossnar – ingen av
+dem konkurrerar om samma kapacitet som `ETAPPLAN7.md` egentligen behöver, men fråga användaren
+om prioritetsordning om det är oklart. Läs `CLAUDE.md` först om du är osäker på vilken fil som
+är auktoritativ för vad – och notera dess underhållsregel för DEN HÄR filen innan du avslutar
+sessionen. Om du ska verifiera en Cloud Function ELLER en Storage-filuppladdning i en
+webbläsare mot emulatorerna i den här miljön: testa FÖRST med en redan fungerande funktion
+(t.ex. `skickaFeedback`, eller den befintliga `bildUrl`-uppladdningen för förrådsartiklar)
+innan du felsöker din egen kod – båda har en känd, dokumenterad begränsning i den här
+specifika sandboxen som inte är kodens fel. Om du ska rendera en `.dc.html`-mockup eller något
+annat som laddar skript från `unpkg.com`: samma CDN-blockering gäller där också – installera
+paketen lokalt och fånga anropen med Playwrights `page.route()`, se ovan för exakt recept.

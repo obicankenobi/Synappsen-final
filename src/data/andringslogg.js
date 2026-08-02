@@ -3,6 +3,16 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.65.0",
+    datum: "2026-08-02",
+    andringar: [
+      "Ny samlad sida \"Godkännanden\" för redaktörer – allt som väntar på granskning, oavsett område, samlat på en skärm",
+      "Nyheter finns nu som en egen flik i navigeringen",
+      "Akutläges-knappen är nu synlig på alla sidor, inte bara på startsidan",
+      "I Kliniskt stöd/Administration kan man nu markera flera utkast och godkänna eller ta bort dem tillsammans",
+    ],
+  },
+  {
     version: "5.64.0",
     datum: "2026-08-02",
     andringar: [

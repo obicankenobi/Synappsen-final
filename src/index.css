@@ -253,25 +253,6 @@ h1 {
   margin: 0 0 2px;
 }
 
-/* Etapp 17c: medvetet visuellt avvikande (röd, stor) och placerad högst upp – ska gå att
-   hitta och trycka på utan att behöva leta eller söka, även under stress. Minst 48px hög
-   tryckyta (Etapp 17d). */
-.hem__akutlage-knapp {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  margin-bottom: 16px;
-  padding: 12px 20px;
-  background: var(--farlig);
-  color: #ffffff;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 1.05rem;
-  border-radius: 10px;
-  box-shadow: var(--skugga);
-}
-
 .hem__kort-grid {
   display: grid;
   gap: 16px;
