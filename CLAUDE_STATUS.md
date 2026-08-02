@@ -555,6 +555,20 @@ punkten är 37c:s pilotutvärdering (kräver en redaktörs bedömning, inte kod)
 enligt planens egen ordningsprincip är Etapp 38 (redaktörens vardag) – men beslutspunkt 1
 (vem äger granskningskön) bör ställas till ägaren NU, inte när 38 ska byggas.
 
+## Uppföljning 2026-08-01 (senare samma dag igen): beslutspunkt 1 löst, Etapp 38 kan börjas
+
+**Ägarbeslut:** granskningskön i Etapp 38 ägs **per område** – VÖL/sektionsledare för
+Kliniskt stöd, VEC för Administration, samma uppdelning som redigeringsrätten redan följer.
+Utlovad svarstid på ett ändringsförslag: **inom en vecka.** Löser `ETAPPLAN4.md`s tidigare
+obesvarade beslutspunkt 3, uppdaterat i `ETAPPLAN6.md` (Etapp 38-sektionen + beslutspunkt 1).
+
+**Konsekvens för det kommande bygget:** 38a måste stödja flera samtidiga granskare (en kö
+per område, inte en gemensam), och 38b:s "vad hände med min ändring"-funktion ska nu
+inkludera en påminnelse till den ägande rollen om det gått mer än en vecka utan svar.
+
+**Inget kodat än** – detta var bara beslutet, inget commit gjordes (ren dokumentation,
+väldigt liten ändring, ingen versionsbump). Etapp 38 är redo att påbörjas.
+
 ## Om du är en ny Claude-session som läser detta
 
 Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete. Om

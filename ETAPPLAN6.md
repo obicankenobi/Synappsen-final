@@ -317,18 +317,22 @@ litar på, och en granskningsrunda kan startas och följas upp utan ett kalkylar
 
 **Modul:** Core.
 
-**⚠️ Blockerande beslut innan byggstart:** beslutspunkt 1 nedan (vem äger granskningskön och
-vilken svarstid utlovas) är samma fråga som stod obesvarad redan i `ETAPPLAN4.md`. Den ska
-ställas till ägaren **när Etapp 37 påbörjas**, inte när 38 ska börja byggas – annars blir
-den en blockering precis i det ögonblick 37 gjort kön längre. Frågan avgör om 38a behöver
-stödja flera samtidiga granskare eller bara en.
+**✅ Beslutat 2026-08-01 (se beslutspunkt 1 nedan):** granskningskön ägs **per område** –
+VÖL/sektionsledare för Kliniskt stöd, VEC för Administration, samma uppdelning som redan
+gäller redigeringsrätten. **38a måste därför stödja flera samtidiga granskare** (en kö per
+område räcker inte, eftersom flera personer kan dela redigeringsrätt för samma område).
+Utlovad svarstid på ett ändringsförslag: **inom en vecka.**
 
-- **38a – Granskningskö med samlade åtgärder.** En kö över allt som väntar (utkast,
-  AI-tolkade förslag, ändringsförslag från Etapp 26), med godkänn/avslå i klump och en
-  motivering vid avslag som faktiskt når den som föreslog.
-- **38b – "Vad hände med min ändring?"** Status synlig för förslagsställaren. Ett flöde utan
-  återkoppling slutar användas efter tredje gången – det är den enskilt viktigaste raden i
-  hela etappen för att Etapp 26 ska överleva.
+- **38a – Granskningskö med samlade åtgärder, per område.** En kö över allt som väntar
+  (utkast, AI-tolkade förslag, ändringsförslag från Etapp 26) FÖR DET EGNA OMRÅDET, med
+  godkänn/avslå i klump och en motivering vid avslag som faktiskt når den som föreslog. Ingen
+  gemensam kö över alla områden – matchar den beslutade ägarmodellen.
+- **38b – "Vad hände med min ändring?"** Status synlig för förslagsställaren, och **en
+  påminnelse om det gått mer än en vecka utan svar** (den beslutade svarstiden, tillagd efter
+  beslutet 2026-08-01) – till den ägande rollen för rutinens område, via befintlig
+  notis-/push-infrastruktur (ingen ny kanal, krav 10). Ett flöde utan återkoppling slutar
+  användas efter tredje gången – det är den enskilt viktigaste raden i hela etappen för att
+  Etapp 26 ska överleva.
 - **38c – Granska utan att tappa sammanhanget.** Skillnadsvy mot senast godkända version vid
   granskning. **Premisskontroll:** versionsdiff byggdes i fas 8 och finns som en radbaserad
   LCS-diff i `VersionsHistorik.jsx` (verifierat 2026-08-01) – kontrollera vad den täcker innan
@@ -447,12 +451,12 @@ stället för en vecka.
 
 ## Beslutspunkter som kräver ägaren
 
-1. **Etapp 38 (moderering) – ställ denna FRÅGA FÖRST, vid start av Etapp 37:** vem äger
-   granskningskön, och vad är utlovad svarstid på ett ändringsförslag? `ETAPPLAN4.md`s
-   beslutspunkt 3 är fortfarande obesvarad och blockerar att Etapp 26 blir verkligt värdefull.
-   **Varför den flyttats fram i tiden:** Etapp 37 kommer att göra kön längre innan 38 gjort
-   den snabbare. Kommer beslutet först när 38 ska byggas har mellantiden aktivt försämrat
-   redaktörernas situation.
+1. ✅ **Etapp 38 (moderering) – beslutat 2026-08-01:** granskningskön ägs per område
+   (VÖL/sektionsledare för Kliniskt stöd, VEC för Administration – samma uppdelning som
+   redigeringsrätten). Utlovad svarstid på ett ändringsförslag: **inom en vecka.** Löser
+   `ETAPPLAN4.md`s tidigare obesvarade beslutspunkt 3. Konsekvens för byggarbetet: 38a måste
+   stödja flera samtidiga granskare (en per område, inte en gemensam kö), och 38b:s
+   påminnelsemekanism ska utlösas efter en vecka utan svar.
 2. **Etapp 39c (personalpuls):** ska personalen tillfrågas i appen alls, och vem läser svaren?
    En enkät utan synlig konsekvens är sämre än ingen enkät. **Notera att minsta-n-spärren
    (krav 14) kan göra att resultatet aldrig visas i en liten verksamhet** – det är ett
