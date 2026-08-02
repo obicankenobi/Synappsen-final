@@ -322,6 +322,17 @@ service cloud.firestore {
         allow update: if false;
         allow delete: if arSuperadmin() && orgId == minOrganisation();
       }
+
+      // organisationer/{orgId}/personalpulsResultat/{omrade}_{kvartal} – Etapp 39c: aggregerad
+      // anonym personalpuls. Skrivs ENDAST av Cloud Function svaraPersonalpuls (transaktion,
+      // increment) – aldrig av klienten, precis som matvardenSnapshots. Läsning: ägarbeslut
+      // 2026-08-02 gav VÖL/sektionsledare (kliniskt-stod) och VEC (administration) rätt att
+      // läsa resultatet för SITT EGET område (samma uppdelning som redigeringsrätten,
+      // farRedigeraOmrade), inte bara superadmin.
+      match /personalpulsResultat/{id} {
+        allow read: if orgId == minOrganisation() && farRedigeraOmrade(resource.data.omrade);
+        allow write: if false;
+      }
     }
 
     // users/{uid} – innehåller namn, e-post, roll, organisationId och favoriter

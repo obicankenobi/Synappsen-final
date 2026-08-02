@@ -6,20 +6,19 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-02, version **5.62.0**. `ETAPPLAN6.md` (Etapp 37–41,
-innehållets kvalitet och bevisad nytta) är den aktiva planen. **Etapp 37 och Etapp 38 är
-klara** (37a/37b/37d/38 helt, 37c byggd men väntar på en pilotutvärdering av en riktig
-redaktör). **Etapp 39a och 39b är nu också klara** (trend-snapshot + datummarkeringar i
-ledningsrapporten) – 39c/39d väntar på ägarbeslut, inte påbörjade. **Allt detta ligger INTE
-ännu deployat till produktion** (senaste produktionsdeploy är fortfarande körning
-#63/`382562b`, v5.56.0). `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men
-inte stängd. **Läs de NIO NYA sektionerna längst ner i den här filen först** ("Uppföljning
-2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning 2026-08-01 (Etapp
-37a)", "Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning 2026-08-01 (Etapp 37c)",
-"Uppföljning 2026-08-01 (Etapp 37d)", "Uppföljning 2026-08-01 (senare samma dag igen)",
-"Uppföljning 2026-08-01 (Etapp 38)" och "Uppföljning 2026-08-02 (Etapp 39a/39b)") om du
-undrar var arbetet står idag – allt mellan denna rad och dem (inklusive "Uppföljning
-2026-07-28") är historisk, äldre kontext.
+**Senast uppdaterad:** 2026-08-02, version **5.63.0**. `ETAPPLAN6.md` (Etapp 37–41,
+innehållets kvalitet och bevisad nytta) är den aktiva planen. **Etapp 37, 38 och 39 är alla
+klara** (37a/37b/37d/38/39 helt, 37c byggd men väntar på en pilotutvärdering av en riktig
+redaktör). **Allt detta ligger INTE ännu deployat till produktion** (senaste produktions-
+deploy är fortfarande körning #63/`382562b`, v5.56.0). `ETAPPLAN5.md` (Etapp 32–36: säkerhet)
+är i det närmaste klar men inte stängd. **Läs de TIO NYA sektionerna längst ner i den här
+filen först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)",
+"Uppföljning 2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning
+2026-08-01 (Etapp 37c)", "Uppföljning 2026-08-01 (Etapp 37d)", "Uppföljning 2026-08-01
+(senare samma dag igen)", "Uppföljning 2026-08-01 (Etapp 38)", "Uppföljning 2026-08-02 (Etapp
+39a/39b)" och "Uppföljning 2026-08-02 (Etapp 39c/39d)") om du undrar var arbetet står idag –
+allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är historisk, äldre
+kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -623,15 +622,54 @@ riktig webbläsare mot emulatorerna (trendtabell med seedad data, skapa+ta bort 
 Version 5.61.0 → **5.62.0**. Detaljer i `ETAPPLAN6.md`s nya sektion "39a/39b – Effekt över
 tid + Före och efter".
 
-**Kvar i Etapp 39:** 39c (anonym personalpuls) och 39d (referensunderlag) – båda kräver ett
-ägarbeslut innan kod skrivs (se `ETAPPLAN6.md` beslutspunkt 2 och 3), inte tillfrågat ännu.
+**Kvar i Etapp 39 (vid det tillfället):** 39c (anonym personalpuls) och 39d
+(referensunderlag) – båda krävde ett ägarbeslut innan kod skrevs. Se nästa sektion – båda är
+nu klara.
+
+## Uppföljning 2026-08-02 (Etapp 39c/39d): hela Etapp 39 klar, INTE ännu deployad
+
+**Ägarbeslut:** 39c byggs, resultatet läses PER OMRÅDE av VÖL/sektionsledare (kliniskt-stod)
+och VEC (administration) – inte superadmin ensam. 39d byggs, men ANONYMISERAT (kundens namn
+får aldrig förekomma i exporten).
+
+**Genomfört (39c):** `Personalpuls.jsx` på startsidan (alla roller) – tre skalfrågor (1–5)
+plus eget område, under 30 sekunder. `svaraPersonalpuls` (Cloud Function) skriver ALDRIG ett
+enskilt svar, bara en atomär aggregatsumma per område/kvartal plus en enda "redan svarat
+detta kvartal"-flagga på svarandens eget konto. `PersonalpulsResultatSektion.jsx` i
+adminpanelen visar resultatet – superadmin ser alla områden, VÖL/VEC bara sitt eget. Minsta-
+n-spärren (krav 14, fem svar) gäller per område.
+
+**Genomfört (39d):** `exporteraReferensunderlag` (superadmin, kräver ett AKTIVT bekräftat
+samtycke i varje enskilt anrop) returnerar bara siffror – aldrig kundens namn/orgnr/
+organisationId – och loggas i revisionsloggen. UI i `ReferensunderlagSektion.jsx`
+(Ledningsrapport).
+
+**Premisskontroll (krav 8):** inga avvikelser mot planen.
+
+15 nya tester (6 rules, 9 funktionstester), alla gröna. Fullt testsvep grönt.
+
+**Browserverifiering – delvis, en miljöbegränsning dokumenterad:** UI:t verifierades i en
+riktig webbläsare (formulär, knappars på/av-läge, minsta-n-spärrens platshållartext).
+Själva skicka-anropet gick INTE att verifiera end-to-end: ett HTTP-anrop mot Cloud Functions-
+emulatorn hänger utan svar i den här sandboxade miljön (bekräftat att det INTE är en
+regression – samma sak händer för en redan levererad funktion, `skickaFeedback`, anropad på
+samma sätt; sannolik orsak är att emulatorns metadata-serveruppslag blockeras av miljöns
+nätverksproxy). Anropslogikens korrekthet täcks istället av de 9 nya funktionstesterna, som
+anropar funktionerna direkt och kringgår HTTP-lagret. Detaljer i `ETAPPLAN6.md`s sektion
+"39c/39d – Personalpuls + Referensunderlag". Version 5.62.0 → **5.63.0**.
+
+**INTE gjort ännu:** deploy till produktion (37a/37b/37d/38/39 ligger alla bara pushade till
+branchen). Etapp 37c väntar fortfarande på pilotutvärdering.
 
 ## Om du är en ny Claude-session som läser detta
 
 Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete. Om
 användaren säger något i stil med "fortsätt där vi var" utan att specificera: **den aktiva
-planen är `ETAPPLAN6.md` (Etapp 37–41)** – Etapp 37, 38, 39a och 39b är klara (39c/39d väntar
-på ägarbeslut, se ovan). Nästa i planens egen ordningsprincip är Etapp 40. Fråga innan du
-bygger 39c/39d. `ETAPPLAN5.md`s kvarvarande punkter är blockerade av ägarbeslut/extern tid,
-inte av kapacitet. Läs `CLAUDE.md` först om du är osäker på vilken fil som är auktoritativ
-för vad – och notera dess underhållsregel för DEN HÄR filen innan du avslutar sessionen.
+planen är `ETAPPLAN6.md` (Etapp 37–41)** – Etapp 37, 38 och 39 är alla klara (37c väntar dock
+fortfarande på en pilotutvärdering, se ovan). Nästa i planens egen ordningsprincip är Etapp
+40 (villkorad – kräver en konkret ny kund, se beslutspunkt 5). `ETAPPLAN5.md`s kvarvarande
+punkter är blockerade av ägarbeslut/extern tid, inte av kapacitet. Läs `CLAUDE.md` först om
+du är osäker på vilken fil som är auktoritativ för vad – och notera dess underhållsregel för
+DEN HÄR filen innan du avslutar sessionen. Om du ska verifiera en Cloud Function i en
+webbläsare mot emulatorerna i den här miljön: testa FÖRST med en redan fungerande funktion
+(t.ex. `skickaFeedback`) innan du felsöker din egen kod – se begränsningen ovan.

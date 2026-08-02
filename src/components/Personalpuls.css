@@ -1,0 +1,42 @@
+.personalpuls__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.personalpuls__form > label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+  max-width: 320px;
+}
+
+.personalpuls__fraga {
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.personalpuls__fraga legend {
+  padding: 0 4px;
+  font-size: 0.95rem;
+}
+
+.personalpuls__skala {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.personalpuls__skala label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.personalpuls__fel {
+  color: var(--fel, #c0392b);
+}

@@ -366,7 +366,7 @@ byggblock som gör själva granskningen/redigeringen snabbare.
 
 ---
 
-# Etapp 39 – Bevisad effekt ⏳ PÅBÖRJAD (39a/39b klara 2026-08-02, 39c/39d väntar på ägarbeslut)
+# Etapp 39 – Bevisad effekt ✅ KLAR (2026-08-02, alla fyra delmål)
 
 **Varför:** Underlag som inte går att skapa i efterhand. Varje vecka som passerar utan
 snapshot är en vecka historik som aldrig kommer tillbaka.
@@ -390,6 +390,9 @@ snapshot är en vecka historik som aldrig kommer tillbaka.
   nyckelpersoner är "aggregerat" inte automatiskt anonymt – tre svar av fem kan peka ut en
   person lika säkert som ett namn. Inga resultat visas alls under fem svarande, och det ska
   stå i vyn för de tillfrågade **innan** de svarar, inte bara i en integritetstext.
+  **Ägarbeslut 2026-08-02:** resultatet läses per område av samma roll som redan äger
+  granskningskön där (VÖL/sektionsledare Kliniskt stöd, VEC Administration) – inte
+  superadmin ensam. Spärren på fem svar gäller PER OMRÅDE.
 - **39d – Referensunderlag.** Anonymiserad sammanställning som kan bifogas `PITCH.md` eller ett
   anbud. **Kräver kundens uttryckliga medgivande** som ett aktivt val i exporten, inte som en
   förutsättning. Medgivandet ska dessutom **loggas i revisionsloggen** (Etapp 14-mekaniken
@@ -435,9 +438,57 @@ kvarvarande data. Full testsvep grönt (lint, build, 108 vitest-tester, test:rul
 regeltester för de två nya collections, test:functions inkl. de 8 nya, test:storage). Version
 5.61.0 → **5.62.0**.
 
-**Kvar i Etapp 39:** 39c (anonym personalpuls) och 39d (referensunderlag för säljmaterial) –
-båda kräver ett ägarbeslut innan kod skrivs (se beslutspunkter 2 och 3 nedan), och är inte
-påbörjade.
+### 39c/39d – Personalpuls + Referensunderlag ✅ KLARA (2026-08-02) → hela Etapp 39 klar
+
+**Ägarbeslut 2026-08-02:** 39c byggs, resultatet läses PER OMRÅDE av VÖL/sektionsledare
+(kliniskt-stod) och VEC (administration) – inte superadmin ensam. 39d byggs, men
+ANONYMISERAT (kundens namn får aldrig förekomma i exporten).
+
+**Genomfört (39c):** tre skalfrågor (1–5) plus vilket område man tillhör, under 30 sekunder.
+`svaraPersonalpuls` (Cloud Function, `functions/index.js`) skriver ALDRIG ett enskilt svar –
+bara en atomär `FieldValue.increment` i en aggregatpost
+`organisationer/{orgId}/personalpulsResultat/{omrade}_{kvartal}`, i samma transaktion som en
+enda flagga på svarandens EGET användardokument (`personalpulsSenastBesvarad`, bara VILKET
+kvartal, aldrig VAD personen svarade) som spärrar dubbelinskick. `Personalpuls.jsx` på
+startsidan (alla roller), `PersonalpulsResultatSektion.jsx` i adminpanelen (superadmin ser
+alla områden, VÖL/VEC ser sitt eget – `firestore.rules` kräver `farRedigeraOmrade
+(resource.data.omrade)`, samma per-dokument-villkor som gör att frågan MÅSTE ha ett matchande
+`where("omrade","==",...)` för icke-superadmin, annars nekas hela listningen: samma "list-
+provability"-mönster som redan dokumenterats i `src/firebase/roles.js` för rutiner/förråds-
+artiklar). Minsta-n-spärren (krav 14, fem svar) gäller PER OMRÅDE och kontrolleras
+klient-sidan i visningskomponenten – ett kvartal med färre än fem svar visas som "visas inte",
+aldrig som en siffra.
+
+**Genomfört (39d):** `exporteraReferensunderlag` (superadmin, kräver `samtycke: true` i VARJE
+enskilt anrop – sparas aldrig som en förutsättning) returnerar ett objekt med bara siffror
+(antal anställda, kvitteringsgrad, nollträffar, tid-att-hitta, innehållshälsa från senaste
+`matvardenSnapshots`-posten) och medvetet ALDRIG kundens namn/orgnr/organisationId – anonymi-
+seringen sitter i vilka fält som SAKNAS i svaret, inte i en efterbehandling av text. Loggas i
+revisionsloggen (`referensunderlag_exporterat`). UI i `ReferensunderlagSektion.jsx`
+(Ledningsrapport, superadmin) med en kryssruta för medgivandet och en "Kopiera som text"-knapp.
+
+**Premisskontroll (krav 8):** inga avvikelser mot planen. 39c:s tre frågor och 39d:s fältlista
+formulerades vid byggstarten (planen specificerade inte exakt frågetext/fältlista) – ingen
+konflikt med något befintligt antagande.
+
+15 nya tester (6 rules för `personalpulsResultat`, 6 funktionstester för `svaraPersonalpuls`, 3
+för `exporteraReferensunderlag`), alla gröna. Fullt testsvep grönt (lint, build, 108
+vitest-tester, test:rules, test:functions, test:storage).
+
+**Browserverifiering – delvis, med en dokumenterad begränsning:** UI:t verifierades i en
+riktig webbläsare mot Firestore-/Auth-emulatorerna (formuläret renderas, "Skicka"-knappen är
+inaktiverad tills alla tre frågor är besvarade, resultatvyns minsta-n-spärr visar rätt
+platshållartext, samtyckeskryssrutan styr "Generera"-knappen korrekt). Det faktiska
+skicka-och-aggregera-anropet gick INTE att verifiera end-to-end i den här sessionen: ett
+riktigt HTTP-anrop mot Cloud Functions-emulatorn hänger utan svar i den här sandboxade
+miljön – bekräftat att detta INTE är en regression genom att samma sak händer för en redan
+levererad, sedan tidigare fungerande funktion (`skickaFeedback`) anropad på samma sätt.
+Sannolik orsak: emulatorns metadata-serveruppslag blockeras av miljöns nätverksproxy
+("MetadataLookupWarning ... 502", syns i emulatorloggen redan vid uppstart). Korrektheten i
+själva anropslogiken täcks istället av de 9 nya emulatortesterna ovan, som anropar funktionerna
+direkt (`funcs.svaraPersonalpuls.run({data, auth})`) och därmed kringgår HTTP-lagret helt.
+
+**Version 5.62.0 → 5.63.0.** Hela Etapp 39 är nu klar.
 
 ---
 
@@ -518,13 +569,15 @@ stället för en vecka.
    `ETAPPLAN4.md`s tidigare obesvarade beslutspunkt 3. Konsekvens för byggarbetet: 38a måste
    stödja flera samtidiga granskare (en per område, inte en gemensam kö), och 38b:s
    påminnelsemekanism ska utlösas efter en vecka utan svar.
-2. **Etapp 39c (personalpuls):** ska personalen tillfrågas i appen alls, och vem läser svaren?
-   En enkät utan synlig konsekvens är sämre än ingen enkät. **Notera att minsta-n-spärren
-   (krav 14) kan göra att resultatet aldrig visas i en liten verksamhet** – det är ett
-   argument mot att bygga 39c alls där personalgruppen är under tio personer, inte något att
-   lösa med en lägre spärr.
-3. **Etapp 39d (referensunderlag):** får den befintliga kundens siffror användas externt, och
-   hur anonymiserat?
+2. ✅ **Etapp 39c (personalpuls) – beslutat 2026-08-02:** ja, bygg den. Resultatet bryts ner
+   per område och läses av samma roll som redan äger granskningskön där (VÖL/sektionsledare
+   för Kliniskt stöd, VEC för Administration – samma uppdelning som beslutspunkt 1). Inte
+   superadmin ensam. Minsta-n-spärren (krav 14, fem svar) gäller per område, inte bara
+   organisationen som helhet – i ett litet område kan det innebära att resultatet aldrig
+   visas, vilket är avsiktligt och inte en bugg.
+3. ✅ **Etapp 39d (referensunderlag) – beslutat 2026-08-02:** ja, men anonymiserat – kundens
+   namn får INTE förekomma i exporten. Medgivandet ska ändå aktivt bekräftas (kryssruta i
+   exportflödet, inte en förutsättning) och loggas i revisionsloggen.
 4. **Etapp 37b (granskningsrundor):** vem har mandat att sätta en deadline på en kollegas
    granskning? Det är en verksamhetsfråga, inte en teknisk.
 5. **Etapp 40 (villkorad):** finns en ny kund konkret nog att bygga importstöd mot, eller ska

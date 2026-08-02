@@ -11,6 +11,7 @@ import { berakningRundaFramsteg } from "../utils/granskningsrunda";
 import { formateraDatum } from "../utils/datum";
 import { OMRADE_NAMN } from "../components/admin/adminHjalp";
 import MatvardenTrendSektion from "../components/admin/MatvardenTrendSektion";
+import ReferensunderlagSektion from "../components/admin/ReferensunderlagSektion";
 import "./Admin.css";
 import "./Ledningsrapport.css";
 
@@ -261,6 +262,7 @@ export default function Ledningsrapport() {
       </section>
 
       <MatvardenTrendSektion />
+      <ReferensunderlagSektion />
     </div>
   );
 }

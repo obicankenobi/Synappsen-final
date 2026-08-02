@@ -22,6 +22,7 @@ export function AuthProvider({ children }) {
   const [pushTokens, setPushTokens] = useState([]);
   const [pushInstallningar, setPushInstallningar] = useState({});
   const [foregaendeInloggning, setForegaendeInloggning] = useState(null);
+  const [personalpulsSenastBesvarad, setPersonalpulsSenastBesvarad] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Etapp 6c: registrering kräver numera alltid en giltig inbjudan – öppen självbetjänings-
@@ -77,6 +78,7 @@ export function AuthProvider({ children }) {
         setPushTokens([]);
         setPushInstallningar({});
         setForegaendeInloggning(null);
+        setPersonalpulsSenastBesvarad(null);
       }
       setLoading(false);
     });
@@ -97,6 +99,9 @@ export function AuthProvider({ children }) {
       // en annan flik/enhet) syns direkt utan omladdning.
       setPushTokens(snap.exists() ? (snap.data().pushTokens ?? []) : []);
       setPushInstallningar(snap.exists() ? (snap.data().pushInstallningar ?? {}) : {});
+      // Etapp 39c: skrivs bara av Cloud Function svaraPersonalpuls (Admin SDK) – lyssnas live
+      // så formuläret försvinner direkt efter ett inskick, utan omladdning.
+      setPersonalpulsSenastBesvarad(snap.exists() ? (snap.data().personalpulsSenastBesvarad ?? null) : null);
       setNamnLaddat(true);
     });
     return unsubscribe;
@@ -112,6 +117,7 @@ export function AuthProvider({ children }) {
     pushTokens,
     pushInstallningar,
     foregaendeInloggning,
+    personalpulsSenastBesvarad,
     loading,
     registrera,
     loggaIn,

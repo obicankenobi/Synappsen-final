@@ -637,6 +637,62 @@ async function main() {
     assertSucceeds(deleteDoc(doc(superA, "organisationer", ORG_A, "matvardenMarkeringar", "markering1")))
   );
 
+  console.log("\norganisationer/{orgId}/personalpulsResultat/{id} – Etapp 39c");
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, "organisationer", ORG_A, "personalpulsResultat", "kliniskt-stod_2026-Q3"), {
+      omrade: "kliniskt-stod",
+      kvartal: "2026-Q3",
+      antalSvar: 6,
+      summaFraga1: 24,
+    });
+    await setDoc(doc(db, "organisationer", ORG_A, "personalpulsResultat", "administration_2026-Q3"), {
+      omrade: "administration",
+      kvartal: "2026-Q3",
+      antalSvar: 6,
+      summaFraga1: 24,
+    });
+  });
+  await test("volA (VÖL) kan läsa kliniskt-stod-resultatet i sin egen organisation", () =>
+    assertSucceeds(
+      getDoc(doc(volA, "organisationer", ORG_A, "personalpulsResultat", "kliniskt-stod_2026-Q3"))
+    )
+  );
+  await test("volA (VÖL) kan INTE läsa administration-resultatet (fel område)", () =>
+    assertFails(
+      getDoc(doc(volA, "organisationer", ORG_A, "personalpulsResultat", "administration_2026-Q3"))
+    )
+  );
+  await test("vecA kan läsa administration-resultatet men INTE kliniskt-stod-resultatet", async () => {
+    await assertSucceeds(
+      getDoc(doc(vecA, "organisationer", ORG_A, "personalpulsResultat", "administration_2026-Q3"))
+    );
+    await assertFails(
+      getDoc(doc(vecA, "organisationer", ORG_A, "personalpulsResultat", "kliniskt-stod_2026-Q3"))
+    );
+  });
+  await test("superadminA kan läsa båda områdenas resultat", async () => {
+    await assertSucceeds(
+      getDoc(doc(superA, "organisationer", ORG_A, "personalpulsResultat", "kliniskt-stod_2026-Q3"))
+    );
+    await assertSucceeds(
+      getDoc(doc(superA, "organisationer", ORG_A, "personalpulsResultat", "administration_2026-Q3"))
+    );
+  });
+  await test("superadminB (annan organisation) kan INTE läsa org A:s resultat", () =>
+    assertFails(
+      getDoc(doc(superB, "organisationer", ORG_A, "personalpulsResultat", "kliniskt-stod_2026-Q3"))
+    )
+  );
+  await test("volA kan INTE skriva till personalpulsResultat (endast Cloud Function)", () =>
+    assertFails(
+      setDoc(doc(volA, "organisationer", ORG_A, "personalpulsResultat", "kliniskt-stod_2026-Q3"), {
+        omrade: "kliniskt-stod",
+        antalSvar: 999,
+      })
+    )
+  );
+
   console.log("\nBefintliga rollkontroller INOM en organisation gäller fortfarande");
   await test('volA (fel roll för "administration") kan INTE skapa en administration-rutin', () =>
     assertFails(

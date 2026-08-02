@@ -2316,6 +2316,123 @@ exports.matvardenSnapshotSchemalagt = onSchedule(
   skapaMatvardenSnapshot
 );
 
+// Etapp 39c: anonym personalpuls. "Anonym" bygger på att INGET enskilt svar någonsin skrivs
+// någonstans – bara aggregerade summor (FieldValue.increment) i en per-område-per-kvartal-
+// collection som är Cloud-Function-only (samma mönster som matvardenSnapshots), plus en enda
+// flagga på användarens EGET dokument som bara säger "redan svarat detta kvartal" (inget om
+// VAD personen svarade). Dubbelinskick förhindras i en transaktion så att flaggkontroll och
+// increment sker atomiskt.
+function beraknaKvartal(datum = new Date()) {
+  const kvartal = Math.floor(datum.getMonth() / 3) + 1;
+  return `${datum.getFullYear()}-Q${kvartal}`;
+}
+exports.beraknaKvartal = beraknaKvartal;
+
+const GILTIGA_PERSONALPULS_OMRADEN = ["kliniskt-stod", "administration", "logistik"];
+
+exports.svaraPersonalpuls = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const { omrade, svar1, svar2, svar3 } = request.data ?? {};
+  if (!GILTIGA_PERSONALPULS_OMRADEN.includes(omrade)) {
+    throw new HttpsError("invalid-argument", "Ogiltigt område.");
+  }
+  const arGiltigtSvar = (v) => Number.isInteger(v) && v >= 1 && v <= 5;
+  if (!arGiltigtSvar(svar1) || !arGiltigtSvar(svar2) || !arGiltigtSvar(svar3)) {
+    throw new HttpsError("invalid-argument", "Varje svar måste vara ett heltal 1–5.");
+  }
+
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  const kvartal = beraknaKvartal();
+  const userRef = db.collection("users").doc(request.auth.uid);
+  const resultatRef = db
+    .collection("organisationer")
+    .doc(uppringare.organisationId)
+    .collection("personalpulsResultat")
+    .doc(`${omrade}_${kvartal}`);
+
+  await db.runTransaction(async (tx) => {
+    const userSnap = await tx.get(userRef);
+    if (userSnap.data()?.personalpulsSenastBesvarad === kvartal) {
+      throw new HttpsError("already-exists", "Du har redan svarat på personalpulsen detta kvartal.");
+    }
+    tx.set(
+      resultatRef,
+      {
+        omrade,
+        kvartal,
+        antalSvar: admin.firestore.FieldValue.increment(1),
+        summaFraga1: admin.firestore.FieldValue.increment(svar1),
+        summaFraga2: admin.firestore.FieldValue.increment(svar2),
+        summaFraga3: admin.firestore.FieldValue.increment(svar3),
+        senastUppdaterad: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    tx.update(userRef, { personalpulsSenastBesvarad: kvartal });
+  });
+
+  return { ok: true };
+});
+
+// Etapp 39d: referensunderlag för säljmaterial. Ägarbeslut 2026-08-02: anonymiserat – kundens
+// namn/organisationId får ALDRIG förekomma i den data som returneras till klienten, och
+// medgivandet ska bekräftas AKTIVT i varje enskild export (samtycke==true skickas av klienten
+// varje gång, sparas inte som en förutsättning en gång för alla) samt loggas i revisionsloggen.
+exports.exporteraReferensunderlag = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan exportera referensunderlag.");
+  }
+  if (request.data?.samtycke !== true) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Kundens uttryckliga medgivande måste bekräftas aktivt innan export."
+    );
+  }
+
+  const orgId = uppringare.organisationId;
+  const [snapshotSnap, anvandareSnap] = await Promise.all([
+    db
+      .collection("organisationer")
+      .doc(orgId)
+      .collection("matvardenSnapshots")
+      .orderBy("datum", "desc")
+      .limit(1)
+      .get(),
+    db.collection("users").where("organisationId", "==", orgId).select().get(),
+  ]);
+  const senaste = snapshotSnap.empty ? null : snapshotSnap.docs[0].data();
+
+  // Medvetet INGA fält här som kan identifiera kunden (namn, orgnr, orgId) – anonymiseringen
+  // sitter i vilka fält som SAKNAS i det här objektet, inte i en efterbehandling.
+  const underlag = {
+    antalAnstallda: anvandareSnap.size,
+    kvitteringsgradKlinisktStod: senaste?.kvitteringsgradKlinisktStod ?? null,
+    kvitteringsgradAdministration: senaste?.kvitteringsgradAdministration ?? null,
+    andelNollTraffar: senaste?.andelNollTraffar ?? null,
+    tidAttHittaSekunder: senaste?.tidAttHittaSekunder ?? null,
+    innehallshalsaKlinisktStod: senaste?.innehallshalsaKlinisktStod ?? null,
+    genererad: new Date().toISOString().slice(0, 10),
+  };
+
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: uppringare.roll,
+    handelsetyp: "referensunderlag_exporterat",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: "Anonymiserat referensunderlag exporterat (kundens medgivande bekräftat aktivt i exportflödet)",
+  });
+
+  return underlag;
+});
+
 // Etapp 14d: begränsningstext som MÅSTE följa med varje export/verifiering, i enlighet med
 // begränsningsrutan i ETAPPLAN3.md Etapp 14 – en granskare ska förstå exakt vad kontrollen
 // bevisar och inte bevisar, inte bara få ett "OK".

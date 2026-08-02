@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.63.0",
+    datum: "2026-08-02",
+    andringar: [
+      "Ny anonym \"Personalpuls\" på startsidan – tre snabba frågor per kvartal, inget enskilt svar sparas, bara ett sammanlagt resultat per område för VÖL/VEC",
+      "Superadmin kan generera ett anonymiserat referensunderlag för säljmaterial från ledningsrapporten",
+    ],
+  },
+  {
     version: "5.62.0",
     datum: "2026-08-02",
     andringar: [
