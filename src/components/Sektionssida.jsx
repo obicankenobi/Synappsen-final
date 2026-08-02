@@ -65,7 +65,21 @@ export default function Sektionssida({
   // redigeringsförsök felaktigt markera förslaget som hanterat.
   const [hanterasForslag, setHanterasForslag] = useState(null);
   const { forslag } = useAndringsforslag(omrade);
-  const oppnaForslag = forslag.filter((f) => f.status === "ny");
+  // Etapp 38c: varje öppet förslag får sin diff förberäknad (mot rutinens NUVARANDE innehåll,
+  // inte innehållet vid förslagets skapande – en rutin kan ha redigerats sedan dess) så
+  // ForslagSektion.jsx kan visa den utan att själv känna till infogaForslagIInnehall eller
+  // ha tillgång till hela rutinlistan.
+  const oppnaForslag = forslag
+    .filter((f) => f.status === "ny")
+    .map((f) => {
+      const rutin = rutiner.find((r) => r.id === f.rutinId);
+      if (!rutin) return f;
+      return {
+        ...f,
+        innehallFore: rutin.innehall,
+        innehallEfter: infogaForslagIInnehall(rutin.innehall, f.markeratStycke, f.forslag),
+      };
+    });
   const [aktivTagg, setAktivTagg] = useState(null);
   const [massval, setMassval] = useState(false);
   const [valda, setValda] = useState([]);

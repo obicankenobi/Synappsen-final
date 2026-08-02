@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
+import { useAndringsforslag, FORSLAG_STATUS } from "../hooks/useAndringsforslag";
 import { useNotiser } from "../hooks/useNotiser";
 import { borGranskas, narmarSigGranskning } from "../utils/rutinHjalp";
 import {
@@ -17,6 +18,8 @@ export default function MinaUppgifter() {
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
   const { artiklar: forradsartiklar } = useForradsartiklar();
+  const { forslag: forslagKlin } = useAndringsforslag("kliniskt-stod");
+  const { forslag: forslagAdmin } = useAndringsforslag("administration");
   const { notiser } = useNotiser();
 
   const farGodkannaKlin = KAN_GODKANNA_RUTINER.includes(role);
@@ -40,6 +43,19 @@ export default function MinaUppgifter() {
   }
   if (utkastForrad > 0) {
     uppgifter.push({ text: `${utkastForrad} förrådsartiklar väntar på granskning`, sokvag: "/logistik" });
+  }
+
+  // Etapp 38a: ändringsförslag (Etapp 26) syntes tidigare bara om man själv navigerade in i
+  // rätt sektion – nu räknas de in i samma samlade lista som utkast, så en redaktör ser HELA
+  // sin kö på ett ställe.
+  const forslagKlinAntal = farGodkannaKlin ? forslagKlin.filter((f) => f.status === FORSLAG_STATUS.NY).length : 0;
+  const forslagAdminAntal = farHanteraAdmin ? forslagAdmin.filter((f) => f.status === FORSLAG_STATUS.NY).length : 0;
+
+  if (forslagKlinAntal > 0) {
+    uppgifter.push({ text: `${forslagKlinAntal} ändringsförslag väntar i Kliniskt stöd`, sokvag: "/kliniskt-stod" });
+  }
+  if (forslagAdminAntal > 0) {
+    uppgifter.push({ text: `${forslagAdminAntal} ändringsförslag väntar i Administration`, sokvag: "/administration" });
   }
 
   // Etapp 37d: en arkiverad rutin ("gäller inte längre") ska inte nagga om granskning.

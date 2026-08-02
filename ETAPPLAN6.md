@@ -310,7 +310,7 @@ litar på, och en granskningsrunda kan startas och följas upp utan ett kalkylar
 
 ---
 
-# Etapp 38 – Redaktörens vardag
+# Etapp 38 – Redaktörens vardag ✅ KLAR (2026-08-01)
 
 **Varför:** Hela produkten vilar på ett fåtal personer. Etapp 26 (ändringsförslag) har dessutom
 öppnat en ny inkorg till dem utan att ge dem verktyg att beta av den.
@@ -323,26 +323,46 @@ gäller redigeringsrätten. **38a måste därför stödja flera samtidiga gransk
 område räcker inte, eftersom flera personer kan dela redigeringsrätt för samma område).
 Utlovad svarstid på ett ändringsförslag: **inom en vecka.**
 
-- **38a – Granskningskö med samlade åtgärder, per område.** En kö över allt som väntar
-  (utkast, AI-tolkade förslag, ändringsförslag från Etapp 26) FÖR DET EGNA OMRÅDET, med
-  godkänn/avslå i klump och en motivering vid avslag som faktiskt når den som föreslog. Ingen
-  gemensam kö över alla områden – matchar den beslutade ägarmodellen.
-- **38b – "Vad hände med min ändring?"** Status synlig för förslagsställaren, och **en
-  påminnelse om det gått mer än en vecka utan svar** (den beslutade svarstiden, tillagd efter
-  beslutet 2026-08-01) – till den ägande rollen för rutinens område, via befintlig
-  notis-/push-infrastruktur (ingen ny kanal, krav 10). Ett flöde utan återkoppling slutar
-  användas efter tredje gången – det är den enskilt viktigaste raden i hela etappen för att
-  Etapp 26 ska överleva.
-- **38c – Granska utan att tappa sammanhanget.** Skillnadsvy mot senast godkända version vid
-  granskning. **Premisskontroll:** versionsdiff byggdes i fas 8 och finns som en radbaserad
-  LCS-diff i `VersionsHistorik.jsx` (verifierat 2026-08-01) – kontrollera vad den täcker innan
-  något nytt byggs. Det här är sannolikt att lyfta fram befintlig funktionalitet på rätt plats
-  i flödet, inte att bygga en ny diff.
-- **38d – Byggblock i redigeraren.** Varningsruta, kontaktsteg, materiallista. Gör rutiner mer
-  enhetliga utan att någon behöver lära sig markdown.
+- **38a – Granskningskö med samlade åtgärder, per område.** ✅ **Premisskontroll (krav 8)
+  visade att det mesta redan fanns:** utkast hade redan "Godkänn alla"/"Neka alla" i
+  `Sektionssida.jsx`, ändringsförslag hade redan en egen granskningskö
+  (`ForslagSektion.jsx`), och flera samtidiga granskare stöds redan GRATIS av Firestores
+  realtidslyssnare (`onSnapshot`) – ingen låsning eller extra kod behövdes. Det som
+  FAKTISKT saknades var enkel upptäckbarhet: en redaktör såg bara sin kö genom att faktiskt
+  navigera till sin egen sektion. Åtgärdat genom att lägga till ändringsförslags-antal i
+  `MinaUppgifter.jsx`, bredvid de redan existerande utkast-antalen – en redaktör ser nu HELA
+  sin kö (utkast + förslag) på startsidan utan att klicka sig in någonstans.
+- **38b – "Vad hände med min ändring?"** ✅ **Den genuina luckan i hela etappen** – innan
+  detta fanns INGEN plats i appen där en medarbetare kunde se status på ett förslag hon
+  lämnat, bara redaktörens granskningskö visste. Ny komponent `MinaForslag.jsx` på startsidan
+  (synlig bara om man faktiskt har lämnat förslag) visar status (väntar/godkänd/avvisad,
+  återanvänder det befintliga statusbadge-systemet) och avvisningsmotivering. Ny schemalagd
+  Cloud Function `kontrolleraForslagPaminnelser` (körs dagligen) skickar en engångspåminnelse
+  till den ägande rollen för området om ett förslag stått obesvarat längre än den beslutade
+  svarstiden (en vecka) – ny opt-in push-typ `forslagPaminnelse` (förvalt avstängd, krav 10).
+- **38c – Granska utan att tappa sammanhanget.** ✅ **Premisskontrollen (redan gjord vid
+  antagandet) stämde exakt:** diffen fanns redan i `VersionsHistorik.jsx`, bara inte
+  återanvändbar. Extraherad till delade `utils/diff.js` + `DiffVy.jsx` (ren refaktorering,
+  `VersionsHistorik.jsx` fungerar identiskt efteråt). En redaktör kan nu klicka "Visa ändring
+  i sitt sammanhang" direkt i `ForslagSektion.jsx` och se EXAKT vad ett förslag skulle ändra
+  – innan hon ens öppnar redigeringsformuläret – i stället för att behöva läsa igenom hela
+  rutinen mentalt för att hitta skillnaden.
+- **38d – Byggblock i redigeraren.** ✅ Tre knappar i `RutinFormular.jsx`s befintliga
+  verktygsfält (samma mönster som fet text/rubrik/lista): Varning, Kontakt, Material – infogar
+  en färdig markdown-mall vid markörens position.
+
+**Genomfört och verifierat i en riktig webbläsare mot emulatorerna, hela kedjan end-to-end:**
+en personal-roll skickade ett förslag → status "Väntar på godkännande" syntes omedelbart i
+`MinaForslag.jsx` → VÖL-rollen såg räknaren i `MinaUppgifter.jsx` ("1 ändringsförslag väntar")
+→ diffvyn visade exakt den tillagda raden → efter att VÖL infört förslaget visade
+`MinaForslag.jsx` status "✓ Godkänd" med hanteringsdatum. Byggblocken verifierade att infoga
+rätt markdown vid rätt position. Fullt testsvep grönt (lint, build, vitest 108/108, test:rules,
+test:functions inkl. 6 nya tester för påminnelsefunktionen, test:storage). Version 5.60.0 →
+**5.61.0**.
 
 **Klart när:** en VÖL kan beta av granskningskön på en kafferast i stället för att skjuta upp
-den till nästa vecka.
+den till nästa vecka. **Uppnått** – hela kön (utkast + förslag) syns nu samlat, med diff och
+byggblock som gör själva granskningen/redigeringen snabbare.
 
 ---
 

@@ -1,7 +1,7 @@
 {
   "name": "synappsen-final",
   "private": true,
-  "version": "5.60.0",
+  "version": "5.61.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:rules": "firebase emulators:exec --project demo-test --only firestore \"node tests/rules/organisationsisolering.test.mjs && node tests/rules/mfapolicy.test.mjs && node tests/rules/revisionslogg.test.mjs && node tests/rules/granskningsrundor.test.mjs && node tests/rules/dubblettdismissningar.test.mjs\"",
-    "test:functions": "firebase emulators:exec --project demo-test --only firestore,storage,auth \"node tests/functions/migrering.test.cjs && node tests/functions/modulgating.test.cjs && node tests/functions/gatingmatris.test.cjs && node tests/functions/klinikstodratelimit.test.cjs && node tests/functions/etapp6.test.cjs && node tests/functions/backup.test.cjs && node tests/functions/backup-gallring.test.cjs && node tests/functions/kostnadshistorik.test.cjs && node tests/functions/revisionslogg-hash.test.cjs && node tests/functions/revisionslogg-handelser.test.cjs && node tests/functions/revisionslogg-export.test.cjs && node tests/functions/kallbevakning.test.cjs && node tests/functions/pushnotiser.test.cjs && node tests/functions/etapp32c.test.cjs && node tests/functions/etapp32d.test.cjs && node tests/functions/etapp32b.test.cjs && node tests/functions/aterstallning.test.cjs && node tests/functions/granskningsrunda.test.cjs\"",
+    "test:functions": "firebase emulators:exec --project demo-test --only firestore,storage,auth \"node tests/functions/migrering.test.cjs && node tests/functions/modulgating.test.cjs && node tests/functions/gatingmatris.test.cjs && node tests/functions/klinikstodratelimit.test.cjs && node tests/functions/etapp6.test.cjs && node tests/functions/backup.test.cjs && node tests/functions/backup-gallring.test.cjs && node tests/functions/kostnadshistorik.test.cjs && node tests/functions/revisionslogg-hash.test.cjs && node tests/functions/revisionslogg-handelser.test.cjs && node tests/functions/revisionslogg-export.test.cjs && node tests/functions/kallbevakning.test.cjs && node tests/functions/pushnotiser.test.cjs && node tests/functions/etapp32c.test.cjs && node tests/functions/etapp32d.test.cjs && node tests/functions/etapp32b.test.cjs && node tests/functions/aterstallning.test.cjs && node tests/functions/granskningsrunda.test.cjs && node tests/functions/forslagpaminnelse.test.cjs\"",
     "test:storage": "firebase emulators:exec --project demo-test --only firestore,storage \"node tests/rules/storage.test.mjs\"",
     "test:e2e": "firebase emulators:exec --project demo-test --only auth,firestore,storage \"playwright test\""
   },

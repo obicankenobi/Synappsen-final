@@ -2174,6 +2174,53 @@ exports.kvitteringsfristerSchemalagt = onSchedule(
   kontrolleraKvitteringsfrister
 );
 
+// Etapp 38b: den beslutade svarstiden (ägarbeslut 2026-08-01, se ETAPPLAN6.md beslutspunkt 1)
+// är EN VECKA på ett ändringsförslag. "Vad hände med min ändring?" är planens egen bedömning
+// av det viktigaste raden i hela etappen – ett förslag som tystnar i sju dagar utan att
+// någon ens fått en påminnelse är precis det scenario som får förslagsflödet att sluta
+// användas. Rollerna per område mirrorar firebase/roles.js farRedigeraOmrade (klienten) –
+// samma uppdelning som redan gäller redigeringsrätt, nu även ägarbeslutad för granskningskön.
+const FORSLAG_SVARSTID_MS = 7 * 24 * 60 * 60 * 1000;
+const ROLLER_PER_OMRADE = {
+  "kliniskt-stod": ["vol", "sektionsledare"],
+  administration: ["vec"],
+};
+
+async function kontrolleraForslagPaminnelser() {
+  const nu = Date.now();
+  const snap = await db.collection("andringsforslag").where("status", "==", "ny").get();
+  for (const forslagDoc of snap.docs) {
+    const data = forslagDoc.data();
+    if (data.paminnelseSkickad) continue;
+    const tidpunktMs = data.tidpunkt?.toMillis?.() ?? null;
+    if (tidpunktMs === null || nu - tidpunktMs < FORSLAG_SVARSTID_MS) continue;
+
+    const agandeRoller = ROLLER_PER_OMRADE[data.omrade];
+    if (!agandeRoller) continue;
+    const organisationId = data.organisationId ?? "default";
+
+    const mottagare = await hamtaAnvandareMedPushPreferens(
+      organisationId,
+      "forslagPaminnelse",
+      (a) => agandeRoller.includes(a.role)
+    );
+    if (mottagare.length === 0) continue;
+
+    await skickaPush(mottagare, {
+      titel: "Ett ändringsförslag väntar sedan över en vecka",
+      body: `Förslaget om "${data.rutinTitel ?? "en rutin"}" har inte hanterats än.`,
+      url: data.omrade === "administration" ? "/administration" : "/kliniskt-stod",
+    });
+    await forslagDoc.ref.update({ paminnelseSkickad: true });
+  }
+}
+exports.kontrolleraForslagPaminnelser = kontrolleraForslagPaminnelser;
+
+exports.forslagPaminnelserSchemalagt = onSchedule(
+  { schedule: "every day 08:00", timeZone: "Europe/Stockholm", region: "europe-west1" },
+  kontrolleraForslagPaminnelser
+);
+
 // Etapp 14d: begränsningstext som MÅSTE följa med varje export/verifiering, i enlighet med
 // begränsningsrutan i ETAPPLAN3.md Etapp 14 – en granskare ska förstå exakt vad kontrollen
 // bevisar och inte bevisar, inte bara få ett "OK".

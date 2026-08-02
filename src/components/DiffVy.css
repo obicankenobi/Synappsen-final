@@ -1,0 +1,22 @@
+.diff-vy {
+  font-family: inherit;
+  white-space: pre-wrap;
+  font-size: 0.9rem;
+  margin: 8px 0;
+}
+
+.diff-vy__rad {
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.diff-vy__rad--tillagd {
+  background: color-mix(in srgb, var(--success) 18%, transparent);
+  color: var(--success);
+}
+
+.diff-vy__rad--borttagen {
+  background: color-mix(in srgb, var(--farlig) 18%, transparent);
+  color: var(--farlig);
+  text-decoration: line-through;
+}

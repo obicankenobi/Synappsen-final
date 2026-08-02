@@ -4,6 +4,7 @@ import SektionsKort from "../components/SektionsKort";
 import SedanForraPassetKort from "../components/SedanForraPassetKort";
 import Notisklocka from "../components/Notisklocka";
 import MinaUppgifter from "../components/MinaUppgifter";
+import MinaForslag from "../components/MinaForslag";
 import KomIgangChecklista from "../components/KomIgangChecklista";
 import { useAuth } from "../hooks/useAuth";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
@@ -66,6 +67,7 @@ export default function Hem() {
       <SokFalt />
 
       <MinaUppgifter />
+      <MinaForslag />
 
       {role === ROLES.SUPERADMIN && <KomIgangChecklista />}
 

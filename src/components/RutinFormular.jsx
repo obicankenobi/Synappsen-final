@@ -227,6 +227,32 @@ export default function RutinFormular({
     });
   }
 
+  // Etapp 38d: färdiga byggblock (flerradiga mallar), infogade vid markörens position –
+  // samma verktygsfältsmönster som fet text/rubrik/lista ovan, men för hela stycken i stället
+  // för enstaka markdown-tecken. Gör rutiner mer enhetliga utan att någon behöver hitta på
+  // formuleringen eller markdown-strukturen själv varje gång.
+  const BYGGBLOCK = {
+    varning: "\n\n> ⚠️ **Varning:** \n\n",
+    kontakt: "\n\n**Kontakt vid behov:** [namn/roll] – [telefonnummer]\n\n",
+    material: "\n\n**Material som behövs:**\n- \n- \n\n",
+  };
+
+  function infogaByggblock(block) {
+    const el = innehallRef.current;
+    const text = BYGGBLOCK[block];
+    if (!el) {
+      setInnehall((tidigare) => `${tidigare}${text}`);
+      return;
+    }
+    const start = el.selectionStart;
+    const nyttInnehall = innehall.slice(0, start) + text + innehall.slice(start);
+    setInnehall(nyttInnehall);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + text.length, start + text.length);
+    });
+  }
+
   const harBilagor = nyaFiler.length > 0 || befintligaBilagor.length > 0;
 
   async function hanteraSubmit(e) {
@@ -338,6 +364,15 @@ export default function RutinFormular({
           </button>
           <button type="button" onClick={() => infogaRadprefix("- ")} title="Punktlista">
             • Lista
+          </button>
+          <button type="button" onClick={() => infogaByggblock("varning")} title="Infoga en varningsruta">
+            ⚠️ Varning
+          </button>
+          <button type="button" onClick={() => infogaByggblock("kontakt")} title="Infoga ett kontaktsteg">
+            ☎️ Kontakt
+          </button>
+          <button type="button" onClick={() => infogaByggblock("material")} title="Infoga en materiallista">
+            📋 Material
           </button>
           <button
             type="button"

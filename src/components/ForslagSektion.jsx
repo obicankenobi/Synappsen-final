@@ -1,14 +1,20 @@
 import { useState } from "react";
 import { kontrolleraPatientuppgifter } from "../utils/piiFilter";
 import { useDialog } from "../hooks/useDialog";
+import { diffRader } from "../utils/diff";
+import DiffVy from "./DiffVy";
 import "./ForslagSektion.css";
 
 // Etapp 26b: en rad per öppet förslag – "Inför" öppnar rutinformuläret med förslaget
 // förifyllt (se Sektionssida.jsx:s oppnaInforForslag), "Avvisa" kräver en kort motivering
 // direkt i raden (samma inline-mönster som bristanmälan i ForradArtikelKort.jsx).
+// Etapp 38c: en valbar diffvy (samma LCS-diff som versionshistoriken) visar EXAKT vad
+// förslaget skulle ändra i rutinens innehåll, innan redaktören ens öppnar formuläret – utan
+// den var enda vägen att se skillnaden att öppna editorn och läsa igenom hela texten själv.
 function ForslagRad({ f, onInfor, onAvvisa }) {
   const { visaMeddelande } = useDialog();
   const [visaAvvisa, setVisaAvvisa] = useState(false);
+  const [visaDiff, setVisaDiff] = useState(false);
   const [motivering, setMotivering] = useState("");
   const [skickar, setSkickar] = useState(false);
 
@@ -49,6 +55,14 @@ function ForslagRad({ f, onInfor, onAvvisa }) {
         <p className="forslag-sektion__avsandare">
           Från {f.visaNamnOffentligt !== false ? f.foreslagenAvNamn || "okänd" : "en anonym kollega"}
         </p>
+        {f.innehallFore !== undefined && (
+          <button type="button" className="knapp--lank" onClick={() => setVisaDiff((v) => !v)}>
+            {visaDiff ? "Dölj ändring i sitt sammanhang" : "Visa ändring i sitt sammanhang"}
+          </button>
+        )}
+        {visaDiff && f.innehallFore !== undefined && (
+          <DiffVy rader={diffRader(f.innehallFore, f.innehallEfter)} />
+        )}
       </div>
       <div className="forslag-sektion__knappar">
         <button type="button" className="knapp knapp--liten" onClick={() => onInfor(f)}>

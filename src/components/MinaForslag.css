@@ -1,0 +1,36 @@
+.mina-forslag__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mina-forslag__rad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--kant);
+  border-radius: var(--radius-liten);
+}
+
+.mina-forslag__rutin {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.mina-forslag__text,
+.mina-forslag__motivering {
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+}
+
+.mina-forslag__datum {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+}

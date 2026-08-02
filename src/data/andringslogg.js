@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.61.0",
+    datum: "2026-08-01",
+    andringar: [
+      "Nu syns status på dina ändringsförslag (väntar/godkänt/avvisat) direkt på startsidan, och redaktörer ser en samlad kö med alla väntande utkast och förslag",
+      "Redaktörer kan visa exakt vad ett ändringsförslag skulle ändra innan de öppnar det, och infoga färdiga textmallar (varning, kontakt, materiallista) när de skriver en rutin",
+    ],
+  },
+  {
     version: "5.60.0",
     datum: "2026-08-01",
     andringar: [

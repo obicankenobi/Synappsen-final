@@ -43,29 +43,6 @@
   color: var(--text-svag);
 }
 
-.versionshistorik__diff {
-  font-family: inherit;
-  white-space: pre-wrap;
-  font-size: 0.9rem;
-  margin: 8px 0;
-}
-
-.versionshistorik__diff-rad {
-  padding: 1px 4px;
-  border-radius: 3px;
-}
-
-.versionshistorik__diff-rad--tillagd {
-  background: color-mix(in srgb, var(--success) 18%, transparent);
-  color: var(--success);
-}
-
-.versionshistorik__diff-rad--borttagen {
-  background: color-mix(in srgb, var(--farlig) 18%, transparent);
-  color: var(--farlig);
-  text-decoration: line-through;
-}
-
 .versionshistorik__post-atgarder {
   display: flex;
   gap: 10px;

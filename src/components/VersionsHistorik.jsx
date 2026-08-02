@@ -1,62 +1,12 @@
 import { useEffect, useState } from "react";
 import { useDialog } from "../hooks/useDialog";
+import { diffRader } from "../utils/diff";
+import DiffVy from "./DiffVy";
 import "./VersionsHistorik.css";
 
 function formateraTid(tidpunkt) {
   if (!tidpunkt?.toDate) return "";
   return tidpunkt.toDate().toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" });
-}
-
-// Radbaserad diff (LCS) mellan två textinnehåll, för att visuellt visa vad som ändrats.
-function diffRader(gammal, ny) {
-  const a = (gammal ?? "").split("\n");
-  const b = (ny ?? "").split("\n");
-  const n = a.length;
-  const m = b.length;
-  const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
-  for (let i = n - 1; i >= 0; i--) {
-    for (let j = m - 1; j >= 0; j--) {
-      dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
-    }
-  }
-  const resultat = [];
-  let i = 0;
-  let j = 0;
-  while (i < n && j < m) {
-    if (a[i] === b[j]) {
-      resultat.push({ typ: "lika", text: a[i] });
-      i++;
-      j++;
-    } else if (dp[i + 1][j] >= dp[i][j + 1]) {
-      resultat.push({ typ: "borttagen", text: a[i] });
-      i++;
-    } else {
-      resultat.push({ typ: "tillagd", text: b[j] });
-      j++;
-    }
-  }
-  while (i < n) {
-    resultat.push({ typ: "borttagen", text: a[i] });
-    i++;
-  }
-  while (j < m) {
-    resultat.push({ typ: "tillagd", text: b[j] });
-    j++;
-  }
-  return resultat;
-}
-
-function DiffVy({ rader }) {
-  return (
-    <pre className="versionshistorik__diff">
-      {rader.map((r, i) => (
-        <div key={i} className={`versionshistorik__diff-rad versionshistorik__diff-rad--${r.typ}`}>
-          {r.typ === "tillagd" ? "+ " : r.typ === "borttagen" ? "- " : "  "}
-          {r.text}
-        </div>
-      ))}
-    </pre>
-  );
 }
 
 export default function VersionsHistorik({ hamtaVersioner, nuvarandeInnehall, onAterstall, onStang }) {

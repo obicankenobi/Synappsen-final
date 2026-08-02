@@ -132,6 +132,7 @@ const PUSH_TYPER = [
   { nyckel: "kallVarning", etikett: "Källvarning på en rutin jag äger", forAlla: true },
   { nyckel: "bristanmalan", etikett: "Ny bristanmälan i förrådet", forrad: true },
   { nyckel: "granskningsrunda", etikett: "En granskningsrunda har startat för en rutin jag äger", forAlla: true },
+  { nyckel: "forslagPaminnelse", etikett: "Ett ändringsförslag har väntat över en vecka", forAlla: true },
 ];
 
 function PushNotisSektion({ uid, role, pushTokens, pushInstallningar }) {

@@ -6,19 +6,18 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-01, version **5.60.0**. `ETAPPLAN6.md` (Etapp 37–41,
-innehållets kvalitet och bevisad nytta) är den aktiva planen. **Etapp 37 är i praktiken
-helt klar:** 37a (innehållshälsopanelen), 37b (riktade granskningsrundor) och 37d (arkiverad
-status) är ✅ KLARA. 37c (dubbletter) är BYGGD men väntar på en pilotutvärdering av en riktig
-redaktör – se den egna sektionen nedan för varför den inte är markerad helt klar. **Allt
-detta ligger INTE ännu deployat till produktion** (senaste produktionsdeploy är fortfarande
-körning #63/`382562b`, v5.56.0). `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste
-klar men inte stängd. **Läs de SEX NYA sektionerna längst ner i den här filen först**
-("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning
-2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning 2026-08-01
-(Etapp 37c)" och "Uppföljning 2026-08-01 (Etapp 37d)") om du undrar var arbetet står idag –
-allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är historisk, äldre
-kontext.
+**Senast uppdaterad:** 2026-08-01, version **5.61.0**. `ETAPPLAN6.md` (Etapp 37–41,
+innehållets kvalitet och bevisad nytta) är den aktiva planen. **Etapp 37 OCH Etapp 38 är nu
+klara** (37a/37b/37d/38 helt, 37c byggd men väntar på en pilotutvärdering av en riktig
+redaktör – se den egna sektionen nedan). **Allt detta ligger INTE ännu deployat till
+produktion** (senaste produktionsdeploy är fortfarande körning #63/`382562b`, v5.56.0).
+`ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs de ÅTTA
+NYA sektionerna längst ner i den här filen först** ("Uppföljning 2026-08-01",
+"Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning 2026-08-01 (Etapp 37a)",
+"Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning 2026-08-01 (Etapp 37c)", "Uppföljning
+2026-08-01 (Etapp 37d)", "Uppföljning 2026-08-01 (senare samma dag igen)" och "Uppföljning
+2026-08-01 (Etapp 38)") om du undrar var arbetet står idag – allt mellan denna rad och dem
+(inklusive "Uppföljning 2026-07-28") är historisk, äldre kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -568,6 +567,39 @@ inkludera en påminnelse till den ägande rollen om det gått mer än en vecka u
 
 **Inget kodat än** – detta var bara beslutet, inget commit gjordes (ren dokumentation,
 väldigt liten ändring, ingen versionsbump). Etapp 38 är redo att påbörjas.
+
+## Uppföljning 2026-08-01 (Etapp 38): redaktörens vardag klar, INTE ännu deployad
+
+**Etapp 38 klar, alla fyra delmål.** Premisskontrollen (krav 8) visade att mycket redan
+fanns: bulk-godkänn/neka för utkast, en egen granskningskö för ändringsförslag
+(`ForslagSektion.jsx`), och flera samtidiga granskare stöds GRATIS av Firestores
+realtidslyssnare – ingen låsmekanism behövde byggas. Den GENUINA luckan var 38b: ingen
+plats i appen visade en medarbetare status på sina egna inlämnade förslag.
+
+**Genomfört:**
+- **38a:** ändringsförslags-antal tillagt i `MinaUppgifter.jsx`, bredvid befintliga
+  utkast-antal – en redaktör ser nu hela sin kö samlat på startsidan.
+- **38b (den viktigaste delen):** ny `MinaForslag.jsx` på startsidan visar status
+  (väntar/godkänd/avvisad + motivering) på egna inlämnade förslag. Ny schemalagd Cloud
+  Function `kontrolleraForslagPaminnelser` (daglig) skickar en engångspåminnelse till den
+  ägande rollen om ett förslag väntat längre än den beslutade svarstiden (en vecka) – ny
+  opt-in push-typ `forslagPaminnelse` (förvalt avstängd, krav 10). 6 nya funktionstester.
+- **38c:** diffen fanns redan i `VersionsHistorik.jsx` (bekräftat vid antagandet) –
+  extraherad till delade `utils/diff.js`/`DiffVy.jsx` (ren refaktorering) och återanvänd i
+  `ForslagSektion.jsx` så en redaktör ser exakt vad ett förslag ändrar innan hon öppnar
+  editorn.
+- **38d:** tre byggblocksknappar (Varning/Kontakt/Material) i `RutinFormular.jsx`s befintliga
+  verktygsfält.
+
+**Verifierat end-to-end i en riktig webbläsare:** personal skickar förslag → status syns
+direkt hos avsändaren → VÖL ser räknaren → diffvyn visar exakt ändringen → efter att VÖL
+infört förslaget uppdateras status till "Godkänd" hos avsändaren. Ett testskriptfel på vägen
+(en PII-varningsdialog som skriptet först avfärdade i stället för att bekräfta) visade sig
+vara BEFINTLIG, korrekt produktbeteende, inte en bugg. Fullt testsvep grönt. Version 5.60.0 →
+**5.61.0**.
+
+**INTE gjort ännu:** deploy till produktion (37a/37b/37d/38 ligger alla bara pushade till
+branchen sedan tidigare i sessionen). Etapp 37c väntar fortfarande på pilotutvärdering.
 
 ## Om du är en ny Claude-session som läser detta
 
