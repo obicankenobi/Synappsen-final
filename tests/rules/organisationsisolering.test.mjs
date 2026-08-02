@@ -576,6 +576,67 @@ async function main() {
     )
   );
 
+  console.log("\norganisationer/{orgId}/matvardenSnapshots/{datum} – Etapp 39a");
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, "organisationer", ORG_A, "matvardenSnapshots", "2026-08-03"), {
+      datum: "2026-08-03",
+      kvitteringsgradKlinisktStod: 80,
+    });
+  });
+  await test("superadminA kan läsa sin egen organisations mätvärdessnapshot", () =>
+    assertSucceeds(getDoc(doc(superA, "organisationer", ORG_A, "matvardenSnapshots", "2026-08-03")))
+  );
+  await test("superadminB kan INTE läsa org A:s mätvärdessnapshot", () =>
+    assertFails(getDoc(doc(superB, "organisationer", ORG_A, "matvardenSnapshots", "2026-08-03")))
+  );
+  await test("volA (fel roll, superadmin krävs) kan INTE läsa mätvärdessnapshot", () =>
+    assertFails(getDoc(doc(volA, "organisationer", ORG_A, "matvardenSnapshots", "2026-08-03")))
+  );
+  await test("superadminA kan INTE skriva till matvardenSnapshots (endast Cloud Function)", () =>
+    assertFails(
+      setDoc(doc(superA, "organisationer", ORG_A, "matvardenSnapshots", "2026-08-10"), {
+        datum: "2026-08-10",
+        kvitteringsgradKlinisktStod: 100,
+      })
+    )
+  );
+
+  console.log("\norganisationer/{orgId}/matvardenMarkeringar/{id} – Etapp 39b");
+  await test("superadminA kan markera ett datum i sin egen organisation", () =>
+    assertSucceeds(
+      setDoc(doc(superA, "organisationer", ORG_A, "matvardenMarkeringar", "markering1"), {
+        etikett: "Granskningsrunda genomförd",
+        datum: "2026-08-03",
+        skapadAv: "superadminA",
+      })
+    )
+  );
+  await test("volA (fel roll) kan INTE markera ett datum", () =>
+    assertFails(
+      setDoc(doc(volA, "organisationer", ORG_A, "matvardenMarkeringar", "markeringVol"), {
+        etikett: "Test",
+        datum: "2026-08-03",
+        skapadAv: "volA",
+      })
+    )
+  );
+  await test("superadminA kan INTE utge sig för att vara en annan (skapadAv måste vara egna uiden)", () =>
+    assertFails(
+      setDoc(doc(superA, "organisationer", ORG_A, "matvardenMarkeringar", "markeringFalsk"), {
+        etikett: "Test",
+        datum: "2026-08-03",
+        skapadAv: "annanAnvandare",
+      })
+    )
+  );
+  await test("superadminB kan INTE läsa org A:s markeringar", () =>
+    assertFails(getDoc(doc(superB, "organisationer", ORG_A, "matvardenMarkeringar", "markering1")))
+  );
+  await test("superadminA kan radera sin egen markering", () =>
+    assertSucceeds(deleteDoc(doc(superA, "organisationer", ORG_A, "matvardenMarkeringar", "markering1")))
+  );
+
   console.log("\nBefintliga rollkontroller INOM en organisation gäller fortfarande");
   await test('volA (fel roll för "administration") kan INTE skapa en administration-rutin', () =>
     assertFails(

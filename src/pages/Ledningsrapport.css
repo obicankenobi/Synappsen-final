@@ -18,6 +18,18 @@
   border-bottom: 1px solid var(--kant);
 }
 
+.ledningsrapport__tabell-wrapper {
+  overflow-x: auto;
+}
+
+.admin-formular-rad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
 /* Utskrift/PDF-export: göm navigation och knappar, ge sidan gott om vitt utrymme. */
 @media print {
   .ledningsrapport__verktygsrad button,

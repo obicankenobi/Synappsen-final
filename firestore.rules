@@ -300,6 +300,28 @@ service cloud.firestore {
         allow read: if arSuperadmin() && orgId == minOrganisation();
         allow write: if false;
       }
+
+      // organisationer/{orgId}/matvardenSnapshots/{datum} – Etapp 39a: veckovis
+      // ögonblicksbild av nyckeltalen (kvitteringsgrad, tid-att-hitta, nollträffar,
+      // checklistkörningar, innehållshälsa) så en trend kan visas i ledningsrapporten.
+      // Skrivs endast av Cloud Function, samma mönster som kostnadshistorik ovan.
+      match /matvardenSnapshots/{datum} {
+        allow read: if arSuperadmin() && orgId == minOrganisation();
+        allow write: if false;
+      }
+
+      // organisationer/{orgId}/matvardenMarkeringar/{id} – Etapp 39b: superadmin markerar ett
+      // datum ("införande", "granskningsrunda genomförd") för att kunna se förändringen i
+      // trenden omkring det. Ren anteckning, ingen beräknad metrik – därför tillåten att
+      // skrivas direkt av klienten (till skillnad från matvardenSnapshots ovan).
+      match /matvardenMarkeringar/{id} {
+        allow read: if arSuperadmin() && orgId == minOrganisation();
+        allow create: if arSuperadmin() && orgId == minOrganisation()
+                       && request.resource.data.skapadAv == request.auth.uid
+                       && !harTroligtPersonnummer(request.resource.data.get('etikett', ''));
+        allow update: if false;
+        allow delete: if arSuperadmin() && orgId == minOrganisation();
+      }
     }
 
     // users/{uid} – innehåller namn, e-post, roll, organisationId och favoriter

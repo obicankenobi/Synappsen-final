@@ -6,18 +6,20 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-01, version **5.61.0**. `ETAPPLAN6.md` (Etapp 37–41,
-innehållets kvalitet och bevisad nytta) är den aktiva planen. **Etapp 37 OCH Etapp 38 är nu
+**Senast uppdaterad:** 2026-08-02, version **5.62.0**. `ETAPPLAN6.md` (Etapp 37–41,
+innehållets kvalitet och bevisad nytta) är den aktiva planen. **Etapp 37 och Etapp 38 är
 klara** (37a/37b/37d/38 helt, 37c byggd men väntar på en pilotutvärdering av en riktig
-redaktör – se den egna sektionen nedan). **Allt detta ligger INTE ännu deployat till
-produktion** (senaste produktionsdeploy är fortfarande körning #63/`382562b`, v5.56.0).
-`ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs de ÅTTA
-NYA sektionerna längst ner i den här filen först** ("Uppföljning 2026-08-01",
-"Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning 2026-08-01 (Etapp 37a)",
-"Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning 2026-08-01 (Etapp 37c)", "Uppföljning
-2026-08-01 (Etapp 37d)", "Uppföljning 2026-08-01 (senare samma dag igen)" och "Uppföljning
-2026-08-01 (Etapp 38)") om du undrar var arbetet står idag – allt mellan denna rad och dem
-(inklusive "Uppföljning 2026-07-28") är historisk, äldre kontext.
+redaktör). **Etapp 39a och 39b är nu också klara** (trend-snapshot + datummarkeringar i
+ledningsrapporten) – 39c/39d väntar på ägarbeslut, inte påbörjade. **Allt detta ligger INTE
+ännu deployat till produktion** (senaste produktionsdeploy är fortfarande körning
+#63/`382562b`, v5.56.0). `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men
+inte stängd. **Läs de NIO NYA sektionerna längst ner i den här filen först** ("Uppföljning
+2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning 2026-08-01 (Etapp
+37a)", "Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning 2026-08-01 (Etapp 37c)",
+"Uppföljning 2026-08-01 (Etapp 37d)", "Uppföljning 2026-08-01 (senare samma dag igen)",
+"Uppföljning 2026-08-01 (Etapp 38)" och "Uppföljning 2026-08-02 (Etapp 39a/39b)") om du
+undrar var arbetet står idag – allt mellan denna rad och dem (inklusive "Uppföljning
+2026-07-28") är historisk, äldre kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -601,12 +603,35 @@ vara BEFINTLIG, korrekt produktbeteende, inte en bugg. Fullt testsvep grönt. Ve
 **INTE gjort ännu:** deploy till produktion (37a/37b/37d/38 ligger alla bara pushade till
 branchen sedan tidigare i sessionen). Etapp 37c väntar fortfarande på pilotutvärdering.
 
+## Uppföljning 2026-08-02 (Etapp 39a/39b): trend + markeringar klara, INTE ännu deployade
+
+**39a (Effekt över tid) och 39b (Före och efter) klara.** Ny collection
+`organisationer/{orgId}/matvardenSnapshots/{datum}` (Cloud-Function-only, skriven av ny
+schemalagd funktion `matvardenSnapshotSchemalagt`, måndagar 02:00) och ny collection
+`organisationer/{orgId}/matvardenMarkeringar/{id}` (klientskrivbar av superadmin, ren
+anteckning utan beräkning). Visas som en 12-veckorstabell + markeringslista i en ny sektion
+i `Ledningsrapport.jsx` (`MatvardenTrendSektion.jsx`), gated på `role === "superadmin"` i
+själva komponenten trots att routen tillåter alla redaktörsroller (samma mönster som
+`arSuperadmin && <KostnadsuppfoljningSektion .../>` i `Admin.jsx`).
+
+**Premisskontroll (krav 8):** inga avvikelser mot planen – till skillnad från 37a stämde
+planens antaganden, inklusive att 39a:s insamling kunde byggas helt fristående från
+visningen.
+
+9 nya regeltester (rules), 8 nya funktionstester, fullt testsvep grönt, verifierat i en
+riktig webbläsare mot emulatorerna (trendtabell med seedad data, skapa+ta bort en markering).
+Version 5.61.0 → **5.62.0**. Detaljer i `ETAPPLAN6.md`s nya sektion "39a/39b – Effekt över
+tid + Före och efter".
+
+**Kvar i Etapp 39:** 39c (anonym personalpuls) och 39d (referensunderlag) – båda kräver ett
+ägarbeslut innan kod skrivs (se `ETAPPLAN6.md` beslutspunkt 2 och 3), inte tillfrågat ännu.
+
 ## Om du är en ny Claude-session som läser detta
 
 Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete. Om
 användaren säger något i stil med "fortsätt där vi var" utan att specificera: **den aktiva
-planen är `ETAPPLAN6.md` (Etapp 37–41), och inget av den är påbörjat** – börja där, med Etapp
-37 enligt planens egen ordningsprincip (undantag: 39a:s insamlingsdel kan och bör byggas
-parallellt, se planen). `ETAPPLAN5.md`s kvarvarande punkter är blockerade av ägarbeslut/extern
-tid, inte av kapacitet. Läs `CLAUDE.md` först om du är osäker på vilken fil som är auktoritativ
+planen är `ETAPPLAN6.md` (Etapp 37–41)** – Etapp 37, 38, 39a och 39b är klara (39c/39d väntar
+på ägarbeslut, se ovan). Nästa i planens egen ordningsprincip är Etapp 40. Fråga innan du
+bygger 39c/39d. `ETAPPLAN5.md`s kvarvarande punkter är blockerade av ägarbeslut/extern tid,
+inte av kapacitet. Läs `CLAUDE.md` först om du är osäker på vilken fil som är auktoritativ
 för vad – och notera dess underhållsregel för DEN HÄR filen innan du avslutar sessionen.

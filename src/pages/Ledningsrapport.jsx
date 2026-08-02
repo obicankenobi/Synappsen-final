@@ -10,6 +10,7 @@ import { borGranskas } from "../utils/rutinHjalp";
 import { berakningRundaFramsteg } from "../utils/granskningsrunda";
 import { formateraDatum } from "../utils/datum";
 import { OMRADE_NAMN } from "../components/admin/adminHjalp";
+import MatvardenTrendSektion from "../components/admin/MatvardenTrendSektion";
 import "./Admin.css";
 import "./Ledningsrapport.css";
 
@@ -258,6 +259,8 @@ export default function Ledningsrapport() {
           .
         </p>
       </section>
+
+      <MatvardenTrendSektion />
     </div>
   );
 }

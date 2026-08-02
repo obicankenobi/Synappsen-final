@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.62.0",
+    datum: "2026-08-02",
+    andringar: [
+      "Ledningsrapporten visar nu en veckovis trend för kvitteringsgrad, sökträffar och innehållshälsa, istället för bara dagens värde",
+      "Superadmin kan markera ett datum (t.ex. en genomförd åtgärd) i trenden för att se förändringen omkring det",
+    ],
+  },
+  {
     version: "5.61.0",
     datum: "2026-08-01",
     andringar: [

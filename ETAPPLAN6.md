@@ -366,7 +366,7 @@ byggblock som gör själva granskningen/redigeringen snabbare.
 
 ---
 
-# Etapp 39 – Bevisad effekt
+# Etapp 39 – Bevisad effekt ⏳ PÅBÖRJAD (39a/39b klara 2026-08-02, 39c/39d väntar på ägarbeslut)
 
 **Varför:** Underlag som inte går att skapa i efterhand. Varje vecka som passerar utan
 snapshot är en vecka historik som aldrig kommer tillbaka.
@@ -397,6 +397,47 @@ snapshot är en vecka historik som aldrig kommer tillbaka.
 
 **Klart när:** det går att visa en trovärdig nyttosiffra för en ny kund utan att be den
 befintliga kunden gräva fram något.
+
+### 39a/39b – Effekt över tid + Före och efter ✅ KLARA (2026-08-02)
+
+**Genomfört (39a):** `organisationer/{orgId}/matvardenSnapshots/{datum}` – Cloud-Function-only
+(samma mönster som `kostnadshistorik`), skriven av en ny schemalagd funktion
+`matvardenSnapshotSchemalagt` (måndagar 02:00, `functions/index.js`). Snapshoten innehåller
+kvitteringsgrad per område, andel nollträffar, tid-att-hitta, antal checklistkörningar och
+innehållshälsa (från 37a) – de två sistnämnda beräknas server-side med `beraknaHalsaServer`/
+`kvitteringsgradServer`, avsiktligt duplicerade (inte importerade) från klientens
+`sammanstallHalsa`/kvitteringsgradlogik eftersom `functions/index.js` är CommonJS och
+`src/utils` är ESM. En organisation utan data kraschar inte hela jobbet för övriga
+organisationer (varje org hanteras i sitt eget try/catch). 8 nya tester i
+`tests/functions/matvardensnapshot.test.cjs` (helperfunktionerna + en fullständig
+integrationskörning + en tom organisation). Visas som en 12-veckorstabell i
+`Ledningsrapport.jsx` via `useMatvardenTrend.js`.
+
+**Genomfört (39b):** `organisationer/{orgId}/matvardenMarkeringar/{id}` – till skillnad från
+snapshoten är detta en ren anteckning utan beräkning, så den är klientskrivbar direkt av
+superadmin (skapande kräver `skapadAv == request.auth.uid` samt PII-kontroll på etiketten,
+samma `harTroligtPersonnummer`-mönster som redan finns för andra fritextfält). Ingen Cloud
+Function behövdes. UI (skapa/radera markering) i samma sektion som 39a,
+`src/components/admin/MatvardenTrendSektion.jsx` / `useMatvardenMarkeringar.js`.
+
+**Premisskontroll (krav 8):** planens formulering "kan komma månader senare utan att någon
+historik gått förlorad" stämde – insamlingen (39a) byggdes och testades helt fristående från
+visningen, som ETAPPLAN6.md redan föreskrev. Inga andra avvikelser mot planen hittades; till
+skillnad från 37a fanns inga felaktiga antaganden att skala bort.
+
+Både 39a och 39b begränsas till superadmin i firestore.rules (`arSuperadmin()`), trots att
+`/ledningsrapport`-routen själv tillåter alla redaktörsroller (`REDAKTORSROLLER`) – sektionen
+returnerar `null` och laddar ingen data om `role !== ROLES.SUPERADMIN` (samma gating-mönster
+som `arSuperadmin && <KostnadsuppfoljningSektion .../>` i `Admin.jsx`). Verifierat i en riktig
+webbläsare mot Firestore-/Auth-emulatorerna (Playwright): trendtabell med tre veckors seedad
+data renderades korrekt, en markering skapades och syntes omedelbart, och togs bort igen utan
+kvarvarande data. Full testsvep grönt (lint, build, 108 vitest-tester, test:rules inkl. 9 nya
+regeltester för de två nya collections, test:functions inkl. de 8 nya, test:storage). Version
+5.61.0 → **5.62.0**.
+
+**Kvar i Etapp 39:** 39c (anonym personalpuls) och 39d (referensunderlag för säljmaterial) –
+båda kräver ett ägarbeslut innan kod skrivs (se beslutspunkter 2 och 3 nedan), och är inte
+påbörjade.
 
 ---
 

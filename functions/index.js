@@ -2221,6 +2221,101 @@ exports.forslagPaminnelserSchemalagt = onSchedule(
   kontrolleraForslagPaminnelser
 );
 
+// Etapp 39a: veckovis ögonblicksbild av nyckeltalen, så en trend kan visas i stället för bara
+// ett ögonblicksvärde. Insamlingen byggs medvetet FÖRE en riktig visning – varje vecka utan
+// snapshot är historik som aldrig går att skapa i efterhand.
+//
+// beraknaHalsaServer() är en avsiktlig, minimal DUPLICERING av logiken i
+// src/utils/innehallshalsa.js (klientens ESM-modul kan inte importeras rakt av i denna
+// CommonJS-miljö) – samma mönster som firestore.rules redan har flera exempel på (klient-
+// och regellogik hålls medvetet i synk manuellt, med kommentarer som pekar på originalet).
+function beraknaHalsaServer(rutiner) {
+  const nu = Date.now();
+  const GRANSKNINGSINTERVALL_MS = 180 * 24 * 60 * 60 * 1000;
+  const godkanda = rutiner.filter((r) => r.status === "godkand" && r.arkiverad !== true);
+  if (godkanda.length === 0) return null;
+  let utanFlaggor = 0;
+  for (const r of godkanda) {
+    const granskadMs = r.granskadDatum?.toMillis ? r.granskadDatum.toMillis() : null;
+    const passeratGranskning = granskadMs !== null && nu - granskadMs > GRANSKNINGSINTERVALL_MS;
+    const saknarAgare = !r.agare;
+    const aldrigKvitterad = !Array.isArray(r.lasteAv) || r.lasteAv.length === 0;
+    const obesvaradKallvarning = r.kallVarning === true;
+    const utgangen = Boolean(r.utgangsdatum) && new Date(r.utgangsdatum).getTime() < nu;
+    if (!passeratGranskning && !saknarAgare && !aldrigKvitterad && !obesvaradKallvarning && !utgangen) {
+      utanFlaggor++;
+    }
+  }
+  return Math.round((utanFlaggor / godkanda.length) * 100);
+}
+exports.beraknaHalsaServer = beraknaHalsaServer;
+
+function kvitteringsgradServer(rutiner, antalAnvandare) {
+  const godkanda = rutiner.filter((r) => r.status === "godkand" && r.arkiverad !== true);
+  if (godkanda.length === 0 || antalAnvandare === 0) return null;
+  const summa = godkanda.reduce((sum, r) => sum + (r.lasteAv?.length ?? 0) / antalAnvandare, 0);
+  return Math.round((summa / godkanda.length) * 100);
+}
+exports.kvitteringsgradServer = kvitteringsgradServer;
+
+async function skapaMatvardenSnapshot() {
+  const orgSnap = await db.collection("organisationer").get();
+  const datum = new Date().toISOString().slice(0, 10);
+  for (const orgDoc of orgSnap.docs) {
+    const orgId = orgDoc.id;
+    try {
+      const [klinRutinSnap, adminRutinSnap, anvandareSnap, soksnap, checklistSnap] = await Promise.all([
+        db.collection("rutiner").where("organisationId", "==", orgId).where("omrade", "==", "kliniskt-stod").get(),
+        db.collection("rutiner").where("organisationId", "==", orgId).where("omrade", "==", "administration").get(),
+        db.collection("users").where("organisationId", "==", orgId).select().get(),
+        db.collection("soksstatistik").doc(orgId).get(),
+        db.collection("checklistkorningar").where("organisationId", "==", orgId).get(),
+      ]);
+
+      const klinRutiner = klinRutinSnap.docs.map((d) => d.data());
+      const adminRutiner = adminRutinSnap.docs.map((d) => d.data());
+      const antalAnvandare = anvandareSnap.size;
+
+      const soksdata = soksnap.exists ? soksnap.data() : {};
+      const andelNollTraffar =
+        soksdata.totaltAntalSokningar > 0
+          ? Math.round((soksdata.antalNollTraffar / soksdata.totaltAntalSokningar) * 100)
+          : null;
+      const tidAttHittaSekunder =
+        soksdata.antalTidmatningar > 0
+          ? Math.round(soksdata.totalTidTillKlickMs / soksdata.antalTidmatningar / 1000)
+          : null;
+
+      const antalChecklistkorningar = checklistSnap.docs.reduce((sum, d) => sum + (d.data().antalPaborjade ?? 0), 0);
+
+      await db
+        .collection("organisationer")
+        .doc(orgId)
+        .collection("matvardenSnapshots")
+        .doc(datum)
+        .set({
+          datum,
+          kvitteringsgradKlinisktStod: kvitteringsgradServer(klinRutiner, antalAnvandare),
+          kvitteringsgradAdministration: kvitteringsgradServer(adminRutiner, antalAnvandare),
+          andelNollTraffar,
+          tidAttHittaSekunder,
+          antalChecklistkorningar,
+          innehallshalsaKlinisktStod: beraknaHalsaServer(klinRutiner),
+          innehallshalsaAdministration: beraknaHalsaServer(adminRutiner),
+          skapad: admin.firestore.FieldValue.serverTimestamp(),
+        });
+    } catch (fel) {
+      console.error(`Mätvärdessnapshot misslyckades för organisation ${orgId}:`, fel);
+    }
+  }
+}
+exports.skapaMatvardenSnapshot = skapaMatvardenSnapshot;
+
+exports.matvardenSnapshotSchemalagt = onSchedule(
+  { schedule: "every monday 02:00", timeZone: "Europe/Stockholm", region: "europe-west1", timeoutSeconds: 300 },
+  skapaMatvardenSnapshot
+);
+
 // Etapp 14d: begränsningstext som MÅSTE följa med varje export/verifiering, i enlighet med
 // begränsningsrutan i ETAPPLAN3.md Etapp 14 – en granskare ska förstå exakt vad kontrollen
 // bevisar och inte bevisar, inte bara få ett "OK".
