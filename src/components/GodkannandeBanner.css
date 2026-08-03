@@ -1,0 +1,18 @@
+.godkannande-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  margin-top: 16px;
+  padding: 10px 16px;
+  background: var(--amber-ljus);
+  border: 1px solid var(--amber);
+  color: var(--amber-text);
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+.godkannande-banner__pil {
+  font-weight: 700;
+}

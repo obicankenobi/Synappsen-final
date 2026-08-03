@@ -6,23 +6,23 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-02, version **5.65.0**. `ETAPPLAN7.md` (Etapp 42:
-gränssnittsförnyelse) är den AKTIVA planen. **42e/42a/42b/42c är klara** (design-tokenrevision,
-selektiv bulk-godkänn, den nya samlade "Godkännanden"-sidan, Nyheter i navigeringen, persistent
-Akut-knapp) – 42d och 42f kvarstår, inget av dem påbörjat. `ETAPPLAN6.md` (Etapp 37–41) är
-STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund). En deploy av v5.63.0 triggades via
-`deploy.yml` tidigare samma session – utfallet var INTE bekräftat när den här filen senast
-skrevs om (kontrollera `mcp__github__actions_list`/`actions_get` för senaste körning på
-branchen om du undrar). v5.64.0 och v5.65.0 är INTE ännu deployade. `ETAPPLAN5.md` (Etapp
-32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs de TRETTON NYA sektionerna
-längst ner i den här filen först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare
-samma dag)", "Uppföljning 2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)",
-"Uppföljning 2026-08-01 (Etapp 37c)", "Uppföljning 2026-08-01 (Etapp 37d)", "Uppföljning
-2026-08-01 (senare samma dag igen)", "Uppföljning 2026-08-01 (Etapp 38)", "Uppföljning
-2026-08-02 (Etapp 39a/39b)", "Uppföljning 2026-08-02 (Etapp 39c/39d)", "Uppföljning
-2026-08-02 (ETAPPLAN7 antagen)", "Uppföljning 2026-08-02 (Etapp 41)" och "Uppföljning
-2026-08-02 (Etapp 42e/42a/42b/42c)") om du undrar var arbetet står idag – allt mellan denna
-rad och dem (inklusive "Uppföljning 2026-07-28") är historisk, äldre kontext.
+**Senast uppdaterad:** 2026-08-02, version **5.66.0**. `ETAPPLAN7.md` (Etapp 42:
+gränssnittsförnyelse) är den AKTIVA planen. **42e/42a/42b/42c/42d är klara** – bara 42f
+(mobilvy) kvarstår, villkorad av en obesvarad beslutspunkt om omfattning (se
+`ETAPPLAN7.md` beslutspunkt 2). `ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40
+(villkorad av en konkret ny kund). En deploy av v5.63.0 triggades via `deploy.yml` tidigare
+samma session – utfallet var INTE bekräftat när den här filen senast skrevs om (kontrollera
+`mcp__github__actions_list`/`actions_get` för senaste körning på branchen om du undrar).
+v5.64.0–v5.66.0 är INTE ännu deployade. `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det
+närmaste klar men inte stängd. **Läs de FJORTON NYA sektionerna längst ner i den här filen
+först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning
+2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning 2026-08-01 (Etapp
+37c)", "Uppföljning 2026-08-01 (Etapp 37d)", "Uppföljning 2026-08-01 (senare samma dag igen)",
+"Uppföljning 2026-08-01 (Etapp 38)", "Uppföljning 2026-08-02 (Etapp 39a/39b)", "Uppföljning
+2026-08-02 (Etapp 39c/39d)", "Uppföljning 2026-08-02 (ETAPPLAN7 antagen)", "Uppföljning
+2026-08-02 (Etapp 41)", "Uppföljning 2026-08-02 (Etapp 42e/42a/42b/42c)" och "Uppföljning
+2026-08-02 (Etapp 42d)") om du undrar var arbetet står idag – allt mellan denna rad och dem
+(inklusive "Uppföljning 2026-07-28") är historisk, äldre kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -765,21 +765,44 @@ beslutspunkt 2) – ingetdera påbörjat.
 
 **INTE gjort ännu:** deploy av v5.64.0/v5.65.0 till produktion.
 
+## Uppföljning 2026-08-02 (Etapp 42d): femte av sex delpunkter i gränssnittsförnyelsen klar
+
+Byggde 42d på begäran ("genomför de nästkommande 3 punkterna" – bara en genuint ny delpunkt
+fanns dock kvar i Etapp 42 vid det laget, se nedan). Premisskontroll (krav 8) hittade samma
+mönster som redan sågs i 42a: **"Senast besökta"/"Mest använda" fanns redan på Hem** – 42d:s
+enda verkliga tillskott var att lägga dem sida vid sida (ny CSS, `.hem__sektion-rad`) och en
+helt ny banderoll ("X saker väntar på granskning" → `/godkannanden`), byggd som
+`GodkannandeBanner.jsx` ovanpå en ny delad hook `useGodkannandeKo.js` (refaktorerad ut ur
+`Godkannanden.jsx`s tidigare inline-logik från 42b, så de två ställena aldrig kan råka räkna
+olika). Banderollen är villkorat monterad (`arRedaktor(role)`), av samma prestandaskäl som
+redan gällde för `BottomNav.jsx`s badge-räknare (se Etapp 42e/42a/42b/42c-uppföljningen).
+
+Inga nya tester behövdes (ren UI ovanpå redan testad logik). Fullt testsvep grönt. Verifierat
+i en riktig webbläsare: banderollen räknar rätt och länkar rätt för en superadmin, syns INTE
+alls för en `personal`-roll. Version 5.65.0 → **5.66.0**.
+
+**Detta stänger Etapp 42 förutom 42f (mobilvy)** – som är villkorad av en OBESVARAD
+beslutspunkt (se `ETAPPLAN7.md` beslutspunkt 2: ska mobilvyn ingå alls, och mockupen täcker
+bara tre av flera skärmar). Fråga användaren om den frågan innan du bygger 42f – det är inte
+en premisskontroll-fråga, det är ett faktiskt öppet ägarbeslut.
+
+**INTE gjort ännu:** deploy av v5.64.0–v5.66.0 till produktion.
+
 ## Om du är en ny Claude-session som läser detta
 
 Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete. Om
 användaren säger något i stil med "fortsätt där vi var" utan att specificera: **den aktiva
-planen är `ETAPPLAN7.md` (Etapp 42, gränssnittsförnyelse)** – 42e/42a/42b/42c är klara, nästa
-är 42d (låg insats) eller 42f (mobilvy, kräver att beslutspunkt 2 om omfattning besvaras
-först). `ETAPPLAN6.md` har bara Etapp 40 kvar (villkorad av en konkret ny kund) och
-`ETAPPLAN5.md`s kvarvarande punkter kan tas närhelst de passar/blockeringen lossnar – ingen av
-dem konkurrerar om samma kapacitet som `ETAPPLAN7.md` egentligen behöver, men fråga användaren
-om prioritetsordning om det är oklart. Läs `CLAUDE.md` först om du är osäker på vilken fil som
-är auktoritativ för vad – och notera dess underhållsregel för DEN HÄR filen innan du avslutar
-sessionen. Om du ska verifiera en Cloud Function ELLER en Storage-filuppladdning i en
-webbläsare mot emulatorerna i den här miljön: testa FÖRST med en redan fungerande funktion
-(t.ex. `skickaFeedback`, eller den befintliga `bildUrl`-uppladdningen för förrådsartiklar)
-innan du felsöker din egen kod – båda har en känd, dokumenterad begränsning i den här
-specifika sandboxen som inte är kodens fel. Om du ska rendera en `.dc.html`-mockup eller något
-annat som laddar skript från `unpkg.com`: samma CDN-blockering gäller där också – installera
-paketen lokalt och fånga anropen med Playwrights `page.route()`, se ovan för exakt recept.
+planen är `ETAPPLAN7.md` (Etapp 42, gränssnittsförnyelse)** – 42e/42a/42b/42c/42d är alla
+klara. **Enda kvarvarande punkten är 42f (mobilvy), och den är villkorad av ett obesvarat
+ägarbeslut** (omfattning – se beslutspunkt 2) som INTE ska antas, bara frågas. `ETAPPLAN6.md`
+har bara Etapp 40 kvar (villkorad av en konkret ny kund) och `ETAPPLAN5.md`s kvarvarande
+punkter kan tas närhelst de passar/blockeringen lossnar. Läs `CLAUDE.md` först om du är osäker
+på vilken fil som är auktoritativ för vad – och notera dess underhållsregel för DEN HÄR filen
+innan du avslutar sessionen. Om du ska verifiera en Cloud Function ELLER en
+Storage-filuppladdning i en webbläsare mot emulatorerna i den här miljön: testa FÖRST med en
+redan fungerande funktion (t.ex. `skickaFeedback`, eller den befintliga `bildUrl`-
+uppladdningen för förrådsartiklar) innan du felsöker din egen kod – båda har en känd,
+dokumenterad begränsning i den här specifika sandboxen som inte är kodens fel. Om du ska
+rendera en `.dc.html`-mockup eller något annat som laddar skript från `unpkg.com`: samma
+CDN-blockering gäller där också – installera paketen lokalt och fånga anropen med Playwrights
+`page.route()`, se ovan för exakt recept.

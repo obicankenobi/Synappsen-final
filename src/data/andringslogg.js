@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.66.0",
+    datum: "2026-08-02",
+    andringar: [
+      "Startsidan visar nu en tydlig banderoll när något väntar på din granskning, med en genväg dit",
+      "\"Senast besökta\" och \"Mest använda\" visas nu sida vid sida på startsidan",
+    ],
+  },
+  {
     version: "5.65.0",
     datum: "2026-08-02",
     andringar: [

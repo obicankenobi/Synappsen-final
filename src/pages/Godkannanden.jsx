@@ -1,11 +1,8 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { useRutiner } from "../hooks/useRutiner";
-import { useForradsartiklar } from "../hooks/useForradsartiklar";
-import { useAndringsforslag } from "../hooks/useAndringsforslag";
 import { useDialog } from "../hooks/useDialog";
-import { byggGodkannandeKo } from "../utils/godkannandeKo";
-import { KAN_GODKANNA_RUTINER, KAN_HANTERA_ANSLAG, KAN_HANTERA_FORRAD, ROLE_LABELS } from "../firebase/roles";
+import { useGodkannandeKo } from "../hooks/useGodkannandeKo";
+import { ROLE_LABELS } from "../firebase/roles";
 import { OMRADE_NAMN } from "../components/admin/adminHjalp";
 import { formateraDatum } from "../utils/datum";
 import "./Godkannanden.css";
@@ -17,50 +14,21 @@ const OMRADE_ROUTE = { "kliniskt-stod": "/kliniskt-stod", administration: "/admi
 // planen medvetet skjuts upp) – det här är ett TILLÄGG: en redaktör som ansvarar för flera
 // områden slipper besöka varje sektion för sig för att se vad som väntar.
 export default function Godkannanden() {
-  const { currentUser, namn, role } = useAuth();
+  const { currentUser, namn } = useAuth();
   const mittNamn = namn || currentUser?.email;
   const { confirm } = useDialog();
-
-  const farGodkannaKlin = KAN_GODKANNA_RUTINER.includes(role);
-  const farGodkannaAdmin = KAN_HANTERA_ANSLAG.includes(role);
-  const farGodkannaLogistik = KAN_HANTERA_FORRAD.includes(role);
-
-  const { rutiner: klinRutiner, godkannRutin: godkannKlin, taBortRutin: taBortKlin } = useRutiner("kliniskt-stod");
-  const { rutiner: adminRutiner, godkannRutin: godkannAdmin, taBortRutin: taBortAdmin } = useRutiner("administration");
-  const { artiklar, godkannArtikel, taBortArtikel } = useForradsartiklar();
-  const { forslag: klinForslag } = useAndringsforslag("kliniskt-stod");
-  const { forslag: adminForslag } = useAndringsforslag("administration");
-
-  const ko = byggGodkannandeKo({
-    rutinerPerOmrade: { "kliniskt-stod": klinRutiner, administration: adminRutiner },
-    artiklar,
-    forslagPerOmrade: { "kliniskt-stod": klinForslag, administration: adminForslag },
-    behorighet: { "kliniskt-stod": farGodkannaKlin, administration: farGodkannaAdmin, logistik: farGodkannaLogistik },
-  });
-
-  const AKTORER = {
-    "kliniskt-stod": { godkann: godkannKlin, taBort: taBortKlin },
-    administration: { godkann: godkannAdmin, taBort: taBortAdmin },
-  };
+  const { utkast, forslag, antal, godkann, taBort } = useGodkannandeKo();
 
   async function hanteraGodkann(post) {
-    if (post.typ === "forradsartikel") {
-      await godkannArtikel(post.id);
-    } else {
-      await AKTORER[post.omrade].godkann(post.id, currentUser.uid, mittNamn);
-    }
+    await godkann(post, currentUser.uid, mittNamn);
   }
 
   async function hanteraTaBort(post) {
     if (!(await confirm(`Ta bort "${post.titel}"? Detta går inte att ångra.`))) return;
-    if (post.typ === "forradsartikel") {
-      await taBortArtikel(post.id, currentUser.uid);
-    } else {
-      await AKTORER[post.omrade].taBort(post.id, currentUser.uid);
-    }
+    await taBort(post, currentUser.uid);
   }
 
-  if (ko.antal === 0) {
+  if (antal === 0) {
     return (
       <div className="sida">
         <Link to="/">← Hem</Link>
@@ -73,17 +41,17 @@ export default function Godkannanden() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>✅ Godkännanden ({ko.antal})</h1>
+      <h1>✅ Godkännanden ({antal})</h1>
       <p className="sida__beskrivning">
         Allt som väntar på dig, oavsett område – samma godkännande/borttagning som i respektive
         sektion.
       </p>
 
-      {ko.utkast.length > 0 && (
+      {utkast.length > 0 && (
         <section className="admin-sektion">
           <h2>Nya utkast</h2>
           <ul className="godkannanden__lista">
-            {ko.utkast.map((post) => (
+            {utkast.map((post) => (
               <li key={`${post.typ}-${post.id}`} className="godkannanden__post">
                 <div className="godkannanden__post-header">
                   <Link to={`${OMRADE_ROUTE[post.omrade]}#rutin-${post.id}`}>{post.titel}</Link>
@@ -113,7 +81,7 @@ export default function Godkannanden() {
         </section>
       )}
 
-      {ko.forslag.length > 0 && (
+      {forslag.length > 0 && (
         <section className="admin-sektion">
           <h2>Väntande ändringsförslag</h2>
           <p className="sida__beskrivning">
@@ -121,7 +89,7 @@ export default function Godkannanden() {
             granska och besluta (samma flöde som redan finns där).
           </p>
           <ul className="godkannanden__lista">
-            {ko.forslag.map((post) => (
+            {forslag.map((post) => (
               <li key={`forslag-${post.id}`} className="godkannanden__post">
                 <div className="godkannanden__post-header">
                   <Link to={`${OMRADE_ROUTE[post.omrade]}#rutin-${post.rutinId}`}>{post.titel}</Link>

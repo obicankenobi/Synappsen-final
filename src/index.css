@@ -289,6 +289,19 @@ h1 {
   margin-top: 20px;
 }
 
+/* Etapp 42d: "Senast besökta" och "Mest använda" sida vid sida på bred skärm, staplat på
+   smal – samma mönster som redan finns för kort-rutnätet (.hem__kort-grid), bara för två
+   listor istället för sektionskort. */
+.hem__sektion-rad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.hem__sektion-rad .hem__sektion {
+  flex: 1 1 260px;
+}
+
 .hem__sektion h2 {
   font-size: 1rem;
   margin-bottom: 8px;

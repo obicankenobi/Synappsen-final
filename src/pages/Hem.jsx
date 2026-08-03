@@ -8,6 +8,7 @@ import MinaForslag from "../components/MinaForslag";
 import Personalpuls from "../components/Personalpuls";
 import VeckansRepetition from "../components/VeckansRepetition";
 import KomIgangChecklista from "../components/KomIgangChecklista";
+import GodkannandeBanner from "../components/GodkannandeBanner";
 import { useAuth } from "../hooks/useAuth";
 import { useMinaFavoritPoster } from "../hooks/useMinaFavoritPoster";
 import { usePopularaste } from "../hooks/useVisningar";
@@ -16,7 +17,7 @@ import { useSenastBesokta } from "../hooks/useSenastBesokta";
 import { useStartvyKonfiguration } from "../hooks/useStartvyKonfiguration";
 import { useOrganisationBranding } from "../hooks/useOrganisationBranding";
 import { STARTVY_BLOCK } from "../config/startvy";
-import { ROLE_LABELS, ROLES } from "../firebase/roles";
+import { ROLE_LABELS, ROLES, arRedaktor } from "../firebase/roles";
 
 export default function Hem() {
   const { currentUser, role, namn, loggaUt } = useAuth();
@@ -57,6 +58,10 @@ export default function Hem() {
       {/* Etapp 42c: den här knappen fanns tidigare bara på Hem – ersatt av en global,
           flytande knapp (AkutKnappFloating.jsx, monterad i App.jsx) som syns på alla sidor. */}
 
+      {/* Etapp 42d: bara monterad (och därmed bara Firestore-lyssnande) för roller som
+          faktiskt kan godkänna något – se GodkannandeBanner.jsx/useGodkannandeKo.js. */}
+      {arRedaktor(role) && <GodkannandeBanner />}
+
       <nav className="hem__snabblankar">
         {snabblankar.map((s) => (
           <Link key={s.nyckel} to={s.sokvag}>
@@ -87,31 +92,35 @@ export default function Hem() {
         </section>
       )}
 
-      {senastBesokta.length > 0 && (
-        <section className="hem__sektion">
-          <h2>🕓 Senast besökta</h2>
-          <ul className="hem__lista">
-            {senastBesokta.map((p) => (
-              <li key={p.id}>
-                <Link to={p.sokvag}>{p.titel}</Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {/* Etapp 42d: sida vid sida på bred skärm, staplat på smal (se .hem__sektion-rad) –
+          samma två listor som redan fanns, bara omplacerade. */}
+      <div className="hem__sektion-rad">
+        {senastBesokta.length > 0 && (
+          <section className="hem__sektion">
+            <h2>🕓 Senast besökta</h2>
+            <ul className="hem__lista">
+              {senastBesokta.map((p) => (
+                <li key={p.id}>
+                  <Link to={p.sokvag}>{p.titel}</Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-      {populara.length > 0 && (
-        <section className="hem__sektion">
-          <h2>🔥 Mest använda</h2>
-          <ul className="hem__lista">
-            {populara.map((p) => (
-              <li key={p.id}>
-                <Link to={p.sokvag}>{p.titel}</Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+        {populara.length > 0 && (
+          <section className="hem__sektion">
+            <h2>🔥 Mest använda</h2>
+            <ul className="hem__lista">
+              {populara.map((p) => (
+                <li key={p.id}>
+                  <Link to={p.sokvag}>{p.titel}</Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
 
       <div className="hem__kort-grid">
         {blockordning.map((nyckel) =>

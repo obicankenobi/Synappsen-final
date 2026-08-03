@@ -154,8 +154,29 @@ godkänn av ett markerat utkast i Kliniskt stöd, den samlade kön som visar utk
 domäner plus ett väntande förslag, godkännande direkt från den samlade kön, och den flytande
 Akut-knappen synlig på Hem och Kliniskt stöd men korrekt dold på `/akutlage`.
 
-**Kvar i Etapp 42:** 42d (Hem/dashboard-tillägg) och 42f (mobilvy, villkorad av
-beslutspunkt 2) – ingetdera påbörjat.
+### 42d ✅ KLAR (2026-08-02)
+
+**Premisskontroll vid byggstart hittade samma mönster som för 42a:** "Senast besökta" och
+"Mest använda" fanns REDAN på Hem (`useSenastBesokta`/`usePopularaste`, monterade sedan
+tidigare) – planens beskrivning ("lägg till...") stämde inte, de behövde bara läggas sida vid
+sida istället för staplat (`.hem__sektion-rad`, ny CSS-klass, samma `.hem__sektion`-innehåll
+oförändrat). De tre domänkorten (`hem__kort-grid`/`SektionsKort`) fanns också redan.
+
+**Den enda genuint nya funktionen:** banderollen ("X saker väntar på granskning" →
+`/godkannanden`). Byggd som `GodkannandeBanner.jsx`, som delar en ny hook
+(`useGodkannandeKo.js`) med `Godkannanden.jsx` (42b) – refaktorerade 42b:s tidigare inline-
+logik in i den delade hooken så de två ställena aldrig kan råka räkna olika. Banderollen
+monteras BARA för `arRedaktor(role)` (samma villkor som Admin-länken i `BottomNav.jsx`) –
+annars hade `useGodkannandeKo()`s sex Firestore-lyssnare lagts på Hem, appens mest besökta
+sida, för varje inloggad användare oavsett behörighet.
+
+Inga nya vitest-tester (ren UI-sammansättning av redan testad logik – `byggGodkannandeKo()`
+har redan 5 tester sedan 42b). Inga rules-ändringar. Fullt testsvep grönt (lint, build, 123
+vitest-tester, test:rules oförändrat). Verifierat i en riktig webbläsare: banderollen syns och
+räknar rätt för en superadmin (4 väntande poster, matchande 42b:s kö), länkar till
+`/godkannanden`, och syns INTE alls för en `personal`-roll. Version 5.65.0 → 5.66.0.
+
+**Kvar i Etapp 42:** endast 42f (mobilvy), villkorad av beslutspunkt 2 – inte påbörjad.
 
 ---
 
