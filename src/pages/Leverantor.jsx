@@ -271,9 +271,14 @@ export default function Leverantor() {
       </section>
 
       <section className="admin-sektion">
-        <h2>Organisationer ({organisationer.length})</h2>
+        {/* Etapp 43e: `organisationer` är `null` tills anropet lyckas – om `fel` sätts till
+            NÅGOT annat än exakt `permission-denied` (t.ex. ett nätverksfel eller en annan
+            functions-felkod) faller renderingen igenom till här med `organisationer` fortfarande
+            `null`, vilket kraschade sidan (bekräftat i en riktig webbläsare). `?? []` täcker alla
+            felfall, inte bara det enda som redan hade en egen tidig retur. */}
+        <h2>Organisationer ({(organisationer ?? []).length})</h2>
         <ul className="admin-lista">
-          {organisationer.map((org) => (
+          {(organisationer ?? []).map((org) => (
             <li key={org.orgId} className="admin-lista__rad leverantor__rad">
               <div>
                 <strong>{org.namn}</strong>{" "}

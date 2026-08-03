@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.72.0",
+    datum: "2026-08-03",
+    andringar: [
+      "Fixat: Leverantörsvyn kunde krascha vid vissa nätverksfel istället för att visa ett felmeddelande",
+    ],
+  },
+  {
     version: "5.71.0",
     datum: "2026-08-03",
     andringar: [

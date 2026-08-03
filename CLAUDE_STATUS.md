@@ -6,15 +6,13 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-03, version **5.71.0** (oförändrad sedan 43c – 43d krävde
-ingen kodändring). `ETAPPLAN7.md`s Etapp 42 (a–f) är HELT KLAR och deployad (v5.67.0,
-körning #65). **Etapp 43 (samma fil)** under bygge, gruppvis: **43a, 43b, 43c, 43d, och
-43e:s "Kritiska specialfall"/"Vardagsverktyg" är KLARA/GRANSKADE.** Endast 43e:s tre
-återstående grupper (Stöd/hjälp, Personligt, Ledning/leverantör) kvarstår i hela Etapp 43.
-`ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund).
-`ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs
-sektionen "Uppföljning 2026-08-03 (Etapp 43d: mörkt läge redan klart)" längst ner i den här
-filen först** om du undrar var arbetet står idag.
+**Senast uppdaterad:** 2026-08-03, version **5.72.0**. `ETAPPLAN7.md` (Etapp 42 + Etapp 43)
+är **HELT KLAR** – samtliga delpunkter i båda etapperna byggda/granskade. **INTE ännu
+deployad** (senaste deploy är v5.67.0, körning #65, som bara täcker Etapp 42). `ETAPPLAN6.md`
+(Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund). `ETAPPLAN5.md`
+(Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs sektionen "Uppföljning
+2026-08-03 (Etapp 43 helt klar)" längst ner i den här filen först** om du undrar var arbetet
+står idag – nästa steg är sannolikt bara att deploya, om inget annat begärs.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1026,3 +1024,30 @@ därmed löst: svaret var att frågan redan var besvarad i koden.
 Kontakter/Lankbibliotek; Personligt: Profil/Papperskorg/OfflineCenter; Ledning/leverantör:
 Leverantor/Kompetensmatris/Ledningsrapport – den sistnämnda med extra försiktighet efter
 43c:s scope-creep-fynd kring dess delade komponenter).
+
+## Uppföljning 2026-08-03 (Etapp 43 helt klar)
+
+Granskade de tre sista 43e-grupperna i en riktig webbläsare (1280px/375px):
+
+- **Stöd/hjälp** (`Hjalp`/`Feedback`/`Kontakter`/`Lankbibliotek`) och **Personligt**
+  (`Profil`/`Papperskorg`/`OfflineCenter`): alla sju redan konsekventa, ingen kodändring.
+  `Hjalp.jsx`s FAQ visade sig redan använda native `<details>/<summary>` – ytterligare
+  bekräftelse att 43c:s mönster redan fanns etablerat i kodbasen innan den etappen.
+- **Ledning/leverantör** (`Leverantor`/`Kompetensmatris`/`Ledningsrapport`), granskad med
+  extra försiktighet efter 43c:s scope-creep-incident: `Kompetensmatris`/`Ledningsrapport`
+  rena. **En genuin bugg hittades i `Leverantor.jsx`:** sidan kraschade
+  (`Cannot read properties of null (reading 'length')`) om `listaOrganisationer()`
+  misslyckades med något annat än exakt felkoden `permission-denied` – koden hade bara en
+  tidig retur för det EN specifika felfallet. Bekräftat i en riktig webbläsare (utlöst av ett
+  sandlåde-nätverksfel, men lika verklig vid t.ex. ett Functions-timeout i produktion).
+  Fixat med `organisationer ?? []`.
+
+Inga nya vitest-tester. Inga rules-ändringar. Fullt testsvep grönt. Version 5.71.0 → 5.72.0,
+committat och pushat. **Inte deployat.**
+
+**`ETAPPLAN7.md` (Etapp 42 + Etapp 43) är därmed HELT KLAR.** Två genuina buggar hittades och
+fixades under Etapp 43:s byggpass (Korvy-knappens flex-läckage i "Kritiska specialfall",
+Leverantörsvyns null-krasch här) – ingen av dem var kända innan premisskontrollen/testningen.
+Nästa steg utan vidare instruktion: fråga om deploy (v5.67.0 → v5.72.0 innehåller sex releaser
+UI-arbete som väntar), eller `ETAPPLAN6.md`s Etapp 40/`ETAPPLAN5.md`s kvarvarande punkter om
+inget UI-arbete efterfrågas.

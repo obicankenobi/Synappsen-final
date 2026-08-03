@@ -1,10 +1,13 @@
 # ETAPPLAN 7 – Gränssnittsförnyelse
 
 **✅ ANTAGEN 2026-08-02.** Utgångsläge v5.63.0, efter att Etapp 37–39 (`ETAPPLAN6.md`) blivit
-klara. Etapp 42 (a–f) är HELT KLAR (2026-08-03), v5.67.0, deployad. **Etapp 43 tillagd
-2026-08-03** – täcker de 20 sidor och tre uppskjutna punkter (snabblänksrad, Admin-densitet,
-mörkt läge) Etapp 42 aldrig nådde, se den egna sektionen längst ner i den här filen.
-Väntar på ägarbeslut (se Etapp 43:s egna beslutspunkter) innan bygge påbörjas.
+klara. Etapp 42 (a–f) är HELT KLAR (2026-08-03), v5.67.0, deployad. **Etapp 43 (tillagd
+2026-08-03) är också HELT KLAR (2026-08-03), v5.72.0** – täckte de 20 sidor och tre
+uppskjutna punkter (snabblänksrad, Admin-densitet, mörkt läge) Etapp 42 aldrig nådde. Se
+Etapp 43:s egen sektion längst ner för detaljer, inklusive två genuina buggar som hittades
+och fixades under bygget (Korvy-knappens flex-läckage, Leverantörsvyns null-krasch).
+**Hela ETAPPLAN7.md (Etapp 42 + 43) är därmed helt klar. Inte deployad ännu (senaste deploy
+är v5.67.0).**
 
 **Detta är den AKTIVA planen för nytt arbete.** `ETAPPLAN6.md` är inte stängd – dess
 kvarvarande punkter (Etapp 40, villkorad av en konkret ny kund, och Etapp 41, lågt hängande
@@ -410,6 +413,36 @@ premisskontroll-utgång: en delpunkt som visade sig redan vara klar, inte en del
 byggdes. Ingen version-bump. Beslutspunkt 3 från Etapp 42 (skulle mörkt läge ingå?) är därmed
 löst av sig själv – svaret var "det finns redan".
 
+#### 43e:s tre återstående grupper ✅ KLARA (2026-08-03)
+
+**Stöd/hjälp** (`Hjalp`, `Feedback`, `Kontakter`, `Lankbibliotek`) och **Personligt**
+(`Profil`, `Papperskorg`, `OfflineCenter`) granskade i en riktig webbläsare vid 1280px/375px –
+alla sju redan konsekventa med resten av appens kort/tokens. `Hjalp.jsx`s FAQ-sektion visade
+sig redan använda native `<details>/<summary>` för sina utfällbara svar, samma mönster 43c
+byggde på i adminpanelen – ytterligare en bekräftelse på att mönstret redan var etablerat i
+kodbasen. **Ingen kodändring i någon av de sju.**
+
+**Ledning/leverantör** (`Leverantor`, `Kompetensmatris`, `Ledningsrapport`) granskades med
+extra försiktighet efter 43c:s scope-creep-fynd kring `Ledningsrapport.jsx`s delade
+komponenter. `Kompetensmatris.jsx` och `Ledningsrapport.jsx` var rena (ingen ändring;
+`Ledningsrapport.jsx`s `.admin-sektion`-sektioner förblir medvetet ICKE hopfällbara, eftersom
+sidan är en utskriftsvänlig rapport – samma resonemang som redan gav grunden till 43c:s
+scope-creep-fix).
+
+**En genuin bugg hittades och fixades i `Leverantor.jsx`:** sidan kraschade
+(`TypeError: Cannot read properties of null (reading 'length')`) om anropet till
+`listaOrganisationer()` misslyckades med något ANNAT än exakt felkoden `permission-denied` –
+`organisationer` förblir `null` i det läget, och renderingen antog fel att bara det ena
+felfallet behövde hanteras. Bekräftat i en riktig webbläsare (ett nätverksfel i sandlådan
+utlöste det, men buggen är lika verklig vid t.ex. ett tillfälligt Functions-timeout i
+produktion). Fixat med `organisationer ?? []` på båda användningsställena.
+
+Inga nya vitest-tester (en defensiv null-koll, ingen ny logik att enhetstesta separat). Inga
+rules-ändringar. Fullt testsvep grönt (lint, build, 123 vitest-tester). Version 5.71.0 →
+5.72.0.
+
+**Etapp 43 är därmed HELT KLAR** – alla delpunkter (43a–43e, samtliga fem 43e-grupper).
+
 ### 43e – Resterande 17 sidor, granskade i grupper
 Grupperas efter vem som använder dem, inte efter filstorlek, så varje delomgång ger ett
 sammanhängande värde:
@@ -417,9 +450,9 @@ sammanhängande värde:
 | Grupp | Sidor | Vem berörs |
 |---|---|---|
 | Vardagsverktyg ✅ GRANSKAD (2026-08-03) | `ForradVy`, `LaddaUpp`, `Skiftrapport`, `Anslagstavla` | All personal, dagligen |
-| Stöd/hjälp | `Hjalp`, `Feedback`, `Kontakter`, `Lankbibliotek` | All personal, sällan |
-| Personligt | `Profil`, `Papperskorg`, `OfflineCenter` | All personal, sällan |
-| Ledning/leverantör | `Leverantor`, `Kompetensmatris`, `Ledningsrapport` | Redaktörer/superadmin |
+| Stöd/hjälp ✅ GRANSKAD | `Hjalp`, `Feedback`, `Kontakter`, `Lankbibliotek` | All personal, sällan |
+| Personligt ✅ GRANSKAD | `Profil`, `Papperskorg`, `OfflineCenter` | All personal, sällan |
+| Ledning/leverantör ✅ GRANSKAD, 1 bugg fixad | `Leverantor`, `Kompetensmatris`, `Ledningsrapport` | Redaktörer/superadmin |
 | Kritiska specialfall ✅ KLAR (2026-08-03) | `Akutlage`, `Korvy`, `SedanForraPasset` | Se egen skrivning nedan |
 
 **Rekommenderad ordning:** 43a → 43b (båda låg insats, hög synlighet) → 43e:s "Kritiska

@@ -37,7 +37,7 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 | Fil | Innehåll | Status |
 |---|---|---|
-| `ETAPPLAN7.md` | Etapp 42 (klar) + Etapp 43 (ny): gränssnittsförnyelse | **AKTIV.** Etapp 42a–42f klara och deployade (2026-08-03). Etapp 43 (de 20 sidor + tre uppskjutna punkter Etapp 42 aldrig nådde) tillagd samma dag, väntar på ägarbeslut innan bygge. |
+| `ETAPPLAN7.md` | Etapp 42 + Etapp 43: gränssnittsförnyelse | **AKTIV, HELT KLAR** (2026-08-03). Etapp 42a–42f och Etapp 43a–43e (samtliga fem 43e-grupper) klara. v5.72.0 – INTE ännu deployad (senaste deploy är v5.67.0). |
 | `ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag, bevisad effekt, import, synlighet | **Aktiv men ej stängd.** Etapp 37–39 och 41 klara. Kvarvarande punkt (Etapp 40, villkorad av en konkret ny kund) väntar inte på ägarbeslut, bara på att komma i tur. |
 | `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv men ej stängd.** I det närmaste klar – kvarvarande punkter (32b, ToS-genomgång, 30b, uppföljning av 35e) är blockerade av ägarbeslut/extern tid, inte av kapacitet. |
 | `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast som INTE antogs när `ETAPPLAN6.md` valdes | **Utkast, ej antagna.** Arkiverade – se `FRAMTIDSPLAN.md` för omprövningsvillkor per alternativ. |
