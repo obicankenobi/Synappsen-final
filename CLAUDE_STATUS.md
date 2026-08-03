@@ -6,15 +6,14 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-03, version **5.68.0**. `ETAPPLAN7.md`s Etapp 42 (a–f) är HELT
-KLAR och deployad (v5.67.0, körning #65). **Etapp 43 (samma fil, tillagd 2026-08-03)** är nu
-under bygge: ägaren beslutade 2026-08-03 gruppvis utrullning (som Etapp 42), mörkt läge kvar
-i den här etapplanen (inte en separat), och ingen framflyttning av 43c. **43a är KLAR**
-(LoggaIn/Registrera/Introduktion – centrerat kort istället för fri text, global
-`select`-styling). v5.68.0 är INTE ännu deployad. Nästa: 43b (Hem:s snabblänksrad). `ETAPPLAN6.md`
+**Senast uppdaterad:** 2026-08-03, version **5.69.0**. `ETAPPLAN7.md`s Etapp 42 (a–f) är HELT
+KLAR och deployad (v5.67.0, körning #65). **Etapp 43 (samma fil)** under bygge, gruppvis:
+**43a och 43b är KLARA** (auth-sidornas kort + global select-styling; Hem:s snabblänksrad
+kapad till 4 + "Fler"-växlare). v5.69.0 är INTE ännu deployad. Nästa enligt beslutad
+byggordning: 43e:s "Kritiska specialfall" (Akutlage/Korvy/SedanForraPasset). `ETAPPLAN6.md`
 (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund). `ETAPPLAN5.md`
 (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs sektionen "Uppföljning
-2026-08-03 (Etapp 43a klar)" längst ner i den här filen först** om du undrar var arbetet står
+2026-08-03 (Etapp 43b klar)" längst ner i den här filen först** om du undrar var arbetet står
 idag.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
@@ -918,3 +917,23 @@ Version 5.67.0 → 5.68.0, committat och pushat till `claude/compassionate-euler
 
 Nästa steg utan vidare instruktion: 43b (Hem:s snabblänksrad, låg insats) enligt den
 beslutade byggordningen i `ETAPPLAN7.md`.
+
+## Uppföljning 2026-08-03 (Etapp 43b klar)
+
+Byggde 43b direkt efter 43a, samma session. **Premisskontroll hittade en existerande,
+underutnyttjad lösning istället för att behöva bygga en ny:** `useSnabblankar.js` låter redan
+varje användare välja vilka snabblänkar som visas på Hem (sparat på `users/{uid}.snabblankar`,
+redigerbart i `Profil.jsx`) – men standardvärdet (ingen har anpassat) visar ALLA 10. Att ändra
+det standardvärdet avvisades: det hade ändrat beteendet för alla BEFINTLIGA användare som
+aldrig besökt Profil, inte bara nya konton. Löste densiteten utan att röra datamodellen: en
+lokal `useState`-växlare i `Hem.jsx` visar bara de första fyra länkarna, resten bakom en
+"Fler (N) ▾"-knapp. Inget sparas, inget påverkar `Profil.jsx`s befintliga anpassning.
+
+Ingen ny vitest-testning (ren UI/CSS + lokal komponent-state). Inga rules-ändringar. Fullt
+testsvep grönt. Verifierat i en riktig webbläsare mot emulatorerna vid 375px: hopfälld vy
+(2 rader istället för 5, sökfältet syns direkt) och expanderad vy. Version 5.68.0 → 5.69.0,
+committat och pushat. **Inte deployat.**
+
+Nästa steg enligt byggordningen: 43e:s "Kritiska specialfall" (Akutlage/Korvy/
+SedanForraPasset) – prioriterat före de andra 43e-grupperna eftersom Akutlage är
+patientsäkerhetsrelaterat.

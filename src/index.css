@@ -296,6 +296,29 @@ h1 {
   box-shadow: var(--skugga);
 }
 
+/* Etapp 43b: samma pill-utseende som länkarna, men som en knapp utan bakgrundsfärg – ska
+   inte se ut som en genväg i sig, bara en växlare för att visa/dölja resten. */
+.hem__snabblankar-fler {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-svag);
+  background: none;
+  border: 1px solid var(--kant);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s;
+}
+
+.hem__snabblankar-fler:hover {
+  background: var(--bg);
+}
+
 .hem__sektion {
   margin-top: 20px;
 }

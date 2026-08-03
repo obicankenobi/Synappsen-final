@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import SokFalt from "../components/SokFalt";
 import SektionsKort from "../components/SektionsKort";
@@ -19,11 +20,20 @@ import { useOrganisationBranding } from "../hooks/useOrganisationBranding";
 import { STARTVY_BLOCK } from "../config/startvy";
 import { ROLE_LABELS, ROLES, arRedaktor } from "../firebase/roles";
 
+// Etapp 43b: bekräftat i en riktig 375px-skärmdump under 42f:s byggpass att snabblänkarna
+// (upp till 10 st, valbara per användare i Profil.jsx men ALLA visas som standard – se
+// useSnabblankar.js) tar upp fem rader innan sökfältet ens syns. Reglerna kunde inte ändras
+// (skulle ändra beteendet för alla befintliga användare som aldrig anpassat sina val, inte
+// bara nya) – istället visas bara de första fyra, resten bakom en "Fler"-växlare.
+const SNABBLANKAR_ALLTID_SYNLIGA = 4;
+
 export default function Hem() {
   const { currentUser, role, namn, loggaUt } = useAuth();
   const favoritPoster = useMinaFavoritPoster();
   const populara = usePopularaste(5);
   const { synliga: snabblankar } = useSnabblankar(currentUser?.uid);
+  const [visaAllaSnabblankar, setVisaAllaSnabblankar] = useState(false);
+  const doldaSnabblankar = Math.max(0, snabblankar.length - SNABBLANKAR_ALLTID_SYNLIGA);
   const { senastBesokta } = useSenastBesokta(currentUser?.uid);
   const { blockordningForRoll } = useStartvyKonfiguration();
   const blockordning = blockordningForRoll(role);
@@ -63,11 +73,20 @@ export default function Hem() {
       {arRedaktor(role) && <GodkannandeBanner />}
 
       <nav className="hem__snabblankar">
-        {snabblankar.map((s) => (
+        {(visaAllaSnabblankar ? snabblankar : snabblankar.slice(0, SNABBLANKAR_ALLTID_SYNLIGA)).map((s) => (
           <Link key={s.nyckel} to={s.sokvag}>
             {s.ikon} {s.namn}
           </Link>
         ))}
+        {doldaSnabblankar > 0 && (
+          <button
+            type="button"
+            className="hem__snabblankar-fler"
+            onClick={() => setVisaAllaSnabblankar((v) => !v)}
+          >
+            {visaAllaSnabblankar ? "Färre ▲" : `Fler (${doldaSnabblankar}) ▾`}
+          </button>
+        )}
       </nav>
 
       <SokFalt />

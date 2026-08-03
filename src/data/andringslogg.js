@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.69.0",
+    datum: "2026-08-03",
+    andringar: [
+      "Startsidans genvägsrad visar nu bara de fyra vanligaste länkarna direkt, med en \"Fler\"-knapp för resten – mindre skrollning innan sökfältet syns",
+    ],
+  },
+  {
     version: "5.68.0",
     datum: "2026-08-03",
     andringar: [

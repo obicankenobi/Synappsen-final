@@ -326,13 +326,26 @@ Inga nya vitest-tester (ren CSS). Inga rules-ändringar. Fullt testsvep grönt (
 123 vitest-tester). Verifierat i en riktig webbläsare mot emulatorerna vid 1280px och 375px:
 LoggaIn, Registrera och Introduktion. Version 5.67.0 → 5.68.0.
 
-### 43b – Hem:s snabblänksrad (låg insats, redan verifierad brist)
+### 43b ✅ KLAR (2026-08-03) – Hem:s snabblänksrad
 Bekräftad i en riktig 375px-skärmdump under 42f:s byggpass: nio korta länkar (Anslagstavla,
 Nyheter, Feedback, Hjälp, Min profil, Kontakter, Introduktion, Kompetensmatris,
 Länkbibliotek, Papperskorg) tar upp fem rader ovanför sökfältet innan man ens når det
-faktiska innehållet. Lös genom att flytta de mest sällan använda av dem (Papperskorg,
-Länkbibliotek, Introduktion – engångs-/admin-karaktär) till en egen, hopfällbar rad eller in
-i "Mer"-menyns mönster från 42f, snarare än att bygga en helt ny navigationsyta.
+faktiska innehållet.
+
+**Premisskontroll vid byggstart hittade en existerande, underutnyttjad lösning:**
+`useSnabblankar.js` låter varje användare redan idag välja vilka snabblänkar som visas
+(sparat på `users/{uid}.snabblankar`, redigerbart i `Profil.jsx`) – men standardvärdet
+(`valda === null`, dvs. ingen har anpassat sina val) visar ALLA. Att ändra det standardvärdet
+avvisades: det hade ändrat beteendet för alla BEFINTLIGA användare som aldrig besökt Profil,
+inte bara nya. Löste istället densiteten utan att röra datamodellen: `Hem.jsx` visar bara de
+första fyra länkarna, resten bakom en "Fler (N) ▾"-växlare (ren lokal `useState`, inget sparat
+val). Alla länkar är fortfarande nåbara i ett klick, bara inte alla synliga direkt.
+
+Ingen ny vitest-testning (ren UI/CSS + lokal komponent-state, ingen ny logik i en delad
+hook/util). Inga rules-ändringar. Fullt testsvep grönt (lint, build, 123 vitest-tester).
+Verifierat i en riktig webbläsare mot emulatorerna vid 375px: hopfälld vy (2 rader istället
+för 5, sökfältet syns direkt) och expanderad vy (alla 10 länkar + "Färre ▲"). Version 5.68.0
+→ 5.69.0.
 
 ### 43c – Admin-panelens densitet på mobil (medel–hög insats, egen fristående insats)
 Mockupens accordion-lösning (varje sektion – Användare & roller, Moduler, Innehållshälsa,
@@ -380,7 +393,7 @@ användningsfrekvens).
 3. ✅ **43c:s prioritet – ingen framflyttning.** Tas i den ordning som annars är lämplig;
    ägaren har inget behov av att Admin-panelens accordion görs före resten.
 
-**Byggordning härifrån:** 43a ✅ KLAR → 43b (Hem:s snabblänksrad) →
+**Byggordning härifrån:** 43a ✅ KLAR → 43b ✅ KLAR →
 43e:s "Kritiska specialfall" (Akutlage/Korvy/SedanForraPasset) → 43e:s "Vardagsverktyg" → 43c
 (Admin-accordion) → 43d (mörkt läge) → 43e:s återstående grupper (Stöd/Personligt/Ledning).
 Samma motivering som tidigare: låg insats/hög synlighet och patientsäkerhet går före
