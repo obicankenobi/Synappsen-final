@@ -299,10 +299,32 @@ behöver ändras förrän den faktiskt öppnats i en riktig webbläsare (mobil O
 jämförts mot samma måttstock som 42a–42f använde (innehållstäthet, ägare/taggar-synlighet,
 bulk-hantering, nav-överflöde). Flera kan visa sig redan vara i sin ordning.
 
-### 43a – Första intrycket: LoggaIn, Registrera, Introduktion
+### 43a ✅ KLAR (2026-08-03) – Första intrycket: LoggaIn, Registrera, Introduktion
 Den enda sida ALLA användare ser innan de ens är inloggade, plus onboardingflödet direkt
 efter. Högst prioritet trots låg teknisk komplexitet (109/118/319 rader) – ett dåligt första
 intryck väger tyngre än en sida en redaktör öppnar en gång i månaden.
+
+**Premisskontroll (skärmdump, 1280px och 375px) hittade den faktiska bristen:**
+`.sida--auth` (LoggaIn/Registrera) var den ENDA platsen i appen utan kort/upphöjning – bara
+vänsterjusterad text/formulär direkt mot bakgrunden, dessutom uppe i det tomma övre vänstra
+hörnet på breda skärmar istället för centrerat. Introduktion (och därmed även Kompetensmatris,
+Feedback, Leverantor, `AnslagFormular`/`InbjudanFormular`/`Personalpuls`/`RutinFormular` –
+alla `<select>`-fält i appen) hade obemärkta webbläsarstandard-dropdowns, synligt avvikande
+från de intilliggande `<input>`-fälten.
+
+**Byggt:**
+1. `.sida--auth` är nu ett centrerat kort (`--yta`/`--skugga`/`--radius`, samma tokens som
+   resten av appens kort) istället för fri text. `flex: 0 1 auto` (inte `.sida`s ärvda
+   `flex: 1`) så kortet hugger om sitt innehåll istället för att sträcka sig till hela
+   viewportens höjd.
+2. En global `select`-regel i `src/index.css` (samma stil som `.auth-form input`) – täcker
+   ALLA sidor med ett `<select>`, inte bara Introduktion, eftersom ingen tidigare hade en
+   global stil. Sidor med en egen, mer specifik select-regel (LaddaUpp/Leverantor/Feedback)
+   påverkas inte av cascade-regler.
+
+Inga nya vitest-tester (ren CSS). Inga rules-ändringar. Fullt testsvep grönt (lint, build,
+123 vitest-tester). Verifierat i en riktig webbläsare mot emulatorerna vid 1280px och 375px:
+LoggaIn, Registrera och Introduktion. Version 5.67.0 → 5.68.0.
 
 ### 43b – Hem:s snabblänksrad (låg insats, redan verifierad brist)
 Bekräftad i en riktig 375px-skärmdump under 42f:s byggpass: nio korta länkar (Anslagstavla,
@@ -348,15 +370,21 @@ användningsfrekvens).
 
 ---
 
-## Beslutspunkter för Etapp 43 som kräver ägaren
+## Beslutspunkter för Etapp 43 – lösta 2026-08-03
 
-1. **Omfattning:** ska alla 20 sidor + de tre uppskjutna punkterna tas i en enda
-   sammanhängande omgång, eller släppas gruppvis (som 42 gjorde, sektion för sektion)?
-2. **Mörkt läge (43d):** in i den här etappen nu när premisskontroll kan göras ordentligt,
-   eller fortsatt uppskjutet till en egen, separat etapp?
-3. **43c:s prioritet:** Admin-panelens accordion är den mest omfattande enskilda delpunkten
-   här – ska den vänta tills resten av Etapp 43 är klar, eller tas tidigt eftersom den redan
-   är den mest konkret verifierade bristen (skärmdump finns)?
+1. ✅ **Omfattning – gruppvis, som Etapp 42.** Släpps sektion för sektion (43a, sedan 43b,
+   sedan grupperna i 43e, osv.), inte som en enda sammanhängande omgång.
+2. ✅ **Mörkt läge (43d) – in i den här etappen (7), inte en egen separat plan.** Byggs som en
+   avgränsad delpunkt med egen premisskontroll och testning, precis som ursprungligen
+   föreslaget – bara *var* den hör hemma (samma fil) var frågan, inte *om*.
+3. ✅ **43c:s prioritet – ingen framflyttning.** Tas i den ordning som annars är lämplig;
+   ägaren har inget behov av att Admin-panelens accordion görs före resten.
+
+**Byggordning härifrån:** 43a ✅ KLAR → 43b (Hem:s snabblänksrad) →
+43e:s "Kritiska specialfall" (Akutlage/Korvy/SedanForraPasset) → 43e:s "Vardagsverktyg" → 43c
+(Admin-accordion) → 43d (mörkt läge) → 43e:s återstående grupper (Stöd/Personligt/Ledning).
+Samma motivering som tidigare: låg insats/hög synlighet och patientsäkerhet går före
+lågfrekventa admin-sidor.
 
 ---
 

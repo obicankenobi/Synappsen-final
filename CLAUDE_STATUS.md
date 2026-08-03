@@ -6,18 +6,16 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-03, version **5.67.0** – DEPLOYAD TILL PRODUKTION (körning #65,
-commit `0552d59`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`). `ETAPPLAN7.md`s
-Etapp 42 (a–f) är HELT KLAR och ute. **Samma dag lades en ny Etapp 43 till i samma fil**
-(inte ett nytt `ETAPPLANx.md` – användaren bad uttryckligen om att fortsätta i den pågående
-planen): de 20 sidor (av 27 totalt i `App.jsx`) som aldrig jämfördes mot den nya profilen
-under Etapp 42 (mockuperna visade bara sju sidor), plus tre tidigare uppskjutna punkter
-(Hem:s snabblänksrad, Admin-panelens mobildensitet, mörkt läge). **Inget byggt än** – Etapp
-43 väntar på ägarbeslut om omfattning/prioritet (se dess egna beslutspunkter i
-`ETAPPLAN7.md`). `ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en
-konkret ny kund). `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte
-stängd. **Läs sektionen "Uppföljning 2026-08-03 (Etapp 43 tillagd)" längst ner i den här
-filen först** om du undrar var arbetet står idag.
+**Senast uppdaterad:** 2026-08-03, version **5.68.0**. `ETAPPLAN7.md`s Etapp 42 (a–f) är HELT
+KLAR och deployad (v5.67.0, körning #65). **Etapp 43 (samma fil, tillagd 2026-08-03)** är nu
+under bygge: ägaren beslutade 2026-08-03 gruppvis utrullning (som Etapp 42), mörkt läge kvar
+i den här etapplanen (inte en separat), och ingen framflyttning av 43c. **43a är KLAR**
+(LoggaIn/Registrera/Introduktion – centrerat kort istället för fri text, global
+`select`-styling). v5.68.0 är INTE ännu deployad. Nästa: 43b (Hem:s snabblänksrad). `ETAPPLAN6.md`
+(Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund). `ETAPPLAN5.md`
+(Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs sektionen "Uppföljning
+2026-08-03 (Etapp 43a klar)" längst ner i den här filen först** om du undrar var arbetet står
+idag.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -890,3 +888,33 @@ prioriteras tidigt eftersom den redan har en bekräftad brist (skärmdump från 
 `claude/compassionate-euler-rho0q5` (commit `dadf0f6`), trots att inget kodarbete skedde –
 planeringen i sig är den beständiga ändringen. Nästa steg: invänta ägarbeslut på Etapp 43:s
 tre beslutspunkter innan bygge påbörjas.
+
+## Uppföljning 2026-08-03 (Etapp 43a klar)
+
+Ägaren löste Etapp 43:s tre beslutspunkter: (1) gruppvis utrullning, som Etapp 42, (2) mörkt
+läge (43d) stannar i den här etapplanen (7) – frågan var bara VAR den hör hemma, inte OM den
+ska byggas, (3) 43c (Admin-accordion) flyttas inte fram i kön; byggordningen jag föreslog
+gäller. Byggde 43a (LoggaIn/Registrera/Introduktion) enligt planen.
+
+**Premisskontroll (riktiga skärmdumpar, 1280px och 375px, mot emulatorerna) hittade den
+faktiska bristen:** `.sida--auth` (LoggaIn/Registrera) var den ENDA platsen i hela appen utan
+kort/upphöjning – text/formulär flöt fritt mot bakgrunden, uppe i det tomma övre vänstra
+hörnet på breda skärmar. Introduktion (och därmed egentligen alla `<select>`-fält i appen –
+Kompetensmatris, Feedback, Leverantor, `AnslagFormular`/`InbjudanFormular`/`Personalpuls`/
+`RutinFormular`) hade helt ostilade webbläsarstandard-dropdowns.
+
+**Byggt (ren CSS, inga JS-ändringar):**
+- `.sida--auth` är nu ett centrerat kort (`--yta`/`--skugga`/`--radius`). Krävde `flex: 0 1
+  auto` för att INTE ärva `.sida`s `flex: 1` (som annars sträckte kortets bakgrund till hela
+  viewportens höjd – upptäcktes och fixades under samma byggpass, inte i premisskontrollen).
+- En global `select`-regel i `src/index.css`, samma stil som `.auth-form input` – täcker alla
+  ovannämnda sidor på en gång eftersom ingen hade en global stil sedan tidigare. Sidor med
+  redan en egen, mer specifik select-regel (LaddaUpp/Leverantor/Feedback) opåverkade.
+
+Inga nya vitest-tester (ren CSS). Inga rules-ändringar. Fullt testsvep grönt (lint, build,
+123 vitest-tester). Verifierat i en riktig webbläsare mot emulatorerna vid 1280px och 375px.
+Version 5.67.0 → 5.68.0, committat och pushat till `claude/compassionate-euler-rho0q5`.
+**Inte deployat** – ingen deploy begärd den här gången.
+
+Nästa steg utan vidare instruktion: 43b (Hem:s snabblänksrad, låg insats) enligt den
+beslutade byggordningen i `ETAPPLAN7.md`.

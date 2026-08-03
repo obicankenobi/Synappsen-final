@@ -209,9 +209,20 @@ h1 {
   padding: 24px 16px 90px;
 }
 
+/* Etapp 43a: auth-sidorna (LoggaIn/Registrera) renderade tidigare bara som vänsterjusterad,
+   okantad text/formulär direkt mot bakgrunden – enda platsen i appen utan kort/upphöjning,
+   bekräftat i en riktig skärmdump på 1280px där innehållet flöt i det tomma övre vänstra
+   hörnet. Nu ett centrerat kort, samma `--yta`/`--skugga`/`--radius`-tokens som resten av
+   appens kort (t.ex. `.sektionskort`) redan använder. */
 .sida--auth {
+  flex: 0 1 auto;
   max-width: 380px;
-  padding-top: 64px;
+  width: 100%;
+  margin: 64px auto 0;
+  padding: 32px 28px;
+  background: var(--yta);
+  border-radius: var(--radius);
+  box-shadow: var(--skugga);
 }
 
 .sida__beskrivning {
@@ -418,6 +429,28 @@ h1 {
 .auth__fel {
   color: var(--farlig);
   font-size: 0.9rem;
+}
+
+/* Etapp 43a: `<select>` saknade en global stil – varje sida som hade en (Introduktion,
+   Kompetensmatris, AnslagFormular, InbjudanFormular, Personalpuls, RutinFormular) föll
+   tillbaka på webbläsarens omärkta standardutseende, synligt avvikande från de intilliggande
+   `<input>`-fälten som redan har `--kant`-kant och rundade hörn. Sidor med en egen, mer
+   specifik select-regel (LaddaUpp/Leverantor/Feedback) påverkas inte – deras selektorer väger
+   tyngre än denna. */
+select {
+  padding: 10px 12px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: var(--yta);
+  color: var(--text);
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--primar);
+  box-shadow: 0 0 0 3px var(--primar-ljus);
 }
 
 .auth__bytlank {

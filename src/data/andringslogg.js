@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.68.0",
+    datum: "2026-08-03",
+    andringar: [
+      "Inloggnings- och registreringssidan har nu ett tydligare, upphöjt kort istället för att flyta fritt mot bakgrunden",
+      "Nedrullningsbara listor (t.ex. i Introduktion) har nu samma utseende som appens övriga fält",
+    ],
+  },
+  {
     version: "5.67.0",
     datum: "2026-08-03",
     andringar: [
