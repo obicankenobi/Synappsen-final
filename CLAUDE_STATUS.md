@@ -6,16 +6,14 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-03, version **5.67.0**. `ETAPPLAN7.md` (Etapp 42:
-gränssnittsförnyelse) är HELT KLAR – alla delpunkter 42a–42f byggda. `ETAPPLAN6.md`
-(Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund). En deploy av
-v5.63.0 triggades via `deploy.yml` tidigare i veckan – utfallet var INTE bekräftat när den
-här filen senast skrevs om (kontrollera `mcp__github__actions_list`/`actions_get` för senaste
-körning på branchen om du undrar). v5.64.0–v5.67.0 är INTE ännu deployade. `ETAPPLAN5.md`
-(Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs sektionen "Uppföljning
-2026-08-03 (Etapp 42f)" längst ner i den här filen först** om du undrar var arbetet står
-idag – allt före den (inklusive alla "Uppföljning 2026-08-0[12]"-sektioner) är historisk,
-äldre kontext.
+**Senast uppdaterad:** 2026-08-03, version **5.67.0** – DEPLOYAD TILL PRODUKTION (körning #65,
+commit `0552d59`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`). `ETAPPLAN7.md`
+(Etapp 42: gränssnittsförnyelse) är HELT KLAR – alla delpunkter 42a–42f byggda och nu ute.
+`ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund).
+`ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs
+sektionen "Uppföljning 2026-08-03 (Etapp 42f)" längst ner i den här filen först** om du
+undrar var arbetet står idag – allt före den (inklusive alla "Uppföljning
+2026-08-0[12]"-sektioner) är historisk, äldre kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -850,7 +848,8 @@ Nya filer: `src/components/MerMeny.jsx`, `src/components/MerMeny.css`. Ändrade:
 (`.app-innehall` padding-bottom). Inga nya vitest-tester (ren UI/CSS). Inga rules-ändringar.
 Fullt testsvep grönt (lint, build, 123 vitest-tester). Verifierat i en riktig webbläsare mot
 emulatorerna vid 375×812. Version 5.66.0 → 5.67.0, committat och pushat till
-`claude/compassionate-euler-rho0q5`. **Inte deployat** – ingen deploy begärd den här gången.
+`claude/compassionate-euler-rho0q5`. **DEPLOYAT TILL PRODUKTION 2026-08-03** (körning #65,
+commit `0552d59`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`).
 
 `ETAPPLAN7.md` (Etapp 42) är därmed HELT KLAR, alla delpunkter 42a–42f. Nästa steg utan
 vidare instruktion: `ETAPPLAN6.md`s Etapp 40 (villkorad av en konkret ny kund) eller
