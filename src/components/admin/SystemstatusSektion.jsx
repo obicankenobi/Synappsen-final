@@ -13,8 +13,8 @@ export default function SystemstatusSektion({
   halsokontrollhistorik,
 }) {
   return (
-    <section className="admin-sektion">
-      <h2>📊 Systemstatus</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>📊 Systemstatus</h2></summary>
       <div className="admin-statistik-grid">
         <p className="sida__beskrivning">
           Version <strong>{APP_VERSION}</strong>
@@ -87,6 +87,6 @@ export default function SystemstatusSektion({
           </ul>
         </div>
       )}
-    </section>
+    </details>
   );
 }

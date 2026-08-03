@@ -72,8 +72,8 @@ export default function GranskningsrundorSektion() {
   }
 
   return (
-    <section className="admin-sektion">
-      <h2>📋 Riktade granskningsrundor</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>📋 Riktade granskningsrundor</h2></summary>
       <p className="sida__beskrivning">
         Starta en runda för ett urval äldre rutiner i ett område, med en gemensam deadline.
         Varje rutins ägare meddelas. En rutin räknas som klar när dess redaktör trycker
@@ -149,6 +149,6 @@ export default function GranskningsrundorSektion() {
           })}
         </ul>
       )}
-    </section>
+    </details>
   );
 }

@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.71.0",
+    datum: "2026-08-03",
+    andringar: [
+      "Adminpanelens ~26 sektioner går nu att fälla ihop och ut var för sig, istället för att alla visas i en enda lång lista",
+    ],
+  },
+  {
     version: "5.70.0",
     datum: "2026-08-03",
     andringar: [

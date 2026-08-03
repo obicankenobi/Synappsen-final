@@ -38,6 +38,59 @@
   margin: 0 0 8px;
 }
 
+/* Etapp 43c: Admin.jsx renderar ~26 sektioner flatt i rad, bekräftat i en riktig 375px-
+   skärmdump vara en lång, ostrukturerad statistiklista utan möjlighet att hoppa förbi det man
+   inte behöver just nu. `.admin-sektion` återanvänds på FLERA andra sidor (Logistik,
+   Introduktion, Leverantor, Kompetensmatris, Ledningsrapport, Godkännanden, Personalpuls m.fl.)
+   – för att inte påverka dem gäller allt nedan bara `.admin-sektion--hopfallbar`, den nya
+   klassen som bara sätts på adminpanelens egna `<details>`-sektioner. `<h2>` sitter kvar precis
+   som innan, bara flyttad in i `<summary>` (samma rubriktext, ingen dubblering).*/
+.admin-sektion--hopfallbar {
+  border: 1px solid var(--kant);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.admin-sektion--hopfallbar summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.admin-sektion--hopfallbar summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-sektion--hopfallbar summary::before {
+  content: "▸";
+  display: inline-block;
+  color: var(--text-svag);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.admin-sektion--hopfallbar[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.admin-sektion--hopfallbar[open] summary {
+  margin-bottom: 12px;
+}
+
+.admin-sektion--hopfallbar summary h2 {
+  margin: 0;
+}
+
+.admin-sektion--hopfallbar summary:focus-visible {
+  outline: 2px solid var(--primar);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .admin-budget__sparrad {
   color: var(--farlig);
   font-weight: 600;

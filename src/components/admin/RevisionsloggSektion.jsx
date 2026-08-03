@@ -102,8 +102,8 @@ export default function RevisionsloggSektion({
   }
 
   return (
-    <section className="admin-sektion">
-      <h2>🔒 Revisionslogg</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>🔒 Revisionslogg</h2></summary>
       <p className="sida__beskrivning">
         En granskningsbar logg med begränsad manipuleringsdetektion (hashkedja) – se
         "Verifiera kedjan" nedan för vad kontrollen faktiskt bevisar och inte bevisar.
@@ -179,6 +179,6 @@ export default function RevisionsloggSektion({
           ))}
         </ul>
       )}
-    </section>
+    </details>
   );
 }

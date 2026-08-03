@@ -9,8 +9,8 @@ export default function AnvandareRollerSektion({
   hanteraTvingaUtloggning,
 }) {
   return (
-    <section className="admin-sektion">
-      <h2>Användare och roller</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>Användare och roller</h2></summary>
       {laddar && <p>Laddar...</p>}
       <ul className="admin-lista">
         {anvandare.map((anvandarpost) => (
@@ -46,6 +46,6 @@ export default function AnvandareRollerSektion({
           </li>
         ))}
       </ul>
-    </section>
+    </details>
   );
 }

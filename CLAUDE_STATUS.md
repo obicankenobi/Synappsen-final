@@ -6,15 +6,14 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-03, version **5.70.0** (oförändrad sedan Kritiska specialfall –
-"Vardagsverktyg" krävde ingen kodändring). `ETAPPLAN7.md`s Etapp 42 (a–f) är HELT KLAR och
-deployad (v5.67.0, körning #65). **Etapp 43 (samma fil)** under bygge, gruppvis: **43a, 43b,
-43e:s "Kritiska specialfall" och 43e:s "Vardagsverktyg" är KLARA/GRANSKADE.** v5.70.0 är INTE
-ännu deployad. Nästa enligt beslutad byggordning: 43c (Admin-panelens mobildensitet,
-accordion). `ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret
-ny kund). `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd.
-**Läs sektionen "Uppföljning 2026-08-03 (Etapp 43e: Vardagsverktyg granskad)" längst ner i
-den här filen först** om du undrar var arbetet står idag.
+**Senast uppdaterad:** 2026-08-03, version **5.71.0**. `ETAPPLAN7.md`s Etapp 42 (a–f) är HELT
+KLAR och deployad (v5.67.0, körning #65). **Etapp 43 (samma fil)** under bygge, gruppvis:
+**43a, 43b, 43c, och 43e:s "Kritiska specialfall"/"Vardagsverktyg" är KLARA/GRANSKADE.**
+v5.71.0 är INTE ännu deployad. Nästa enligt beslutad byggordning: 43d (mörkt läge).
+`ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund).
+`ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs
+sektionen "Uppföljning 2026-08-03 (Etapp 43c klar)" längst ner i den här filen först** om du
+undrar var arbetet står idag.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -973,3 +972,35 @@ granskade i `ETAPPLAN7.md`.
 Nästa steg enligt byggordningen: 43c (Admin-panelens mobildensitet, accordion-lösning) –
 den mest omfattande enskilda delpunkten i Etapp 43, kräver en egen premisskontroll av
 `Admin.jsx`s faktiska sektionsindelning (sedan Etapp 8c) innan bygge.
+
+## Uppföljning 2026-08-03 (Etapp 43c klar)
+
+Premisskontroll: `Admin.jsx` består sedan Etapp 8c av 26 fristående sektionskomponenter i
+`src/components/admin/`, alla med IDENTISKT mönster
+(`<section className="admin-sektion"><h2>...</h2>...</section>`) – bekräftat via grep innan
+bygge, inte antaget. Byggde en bulkkonvertering till native `<details>/<summary>` (ren HTML,
+ingen ny JS-logik) av alla 26 + Admin.jsx:s egen inline-sektion, med en ny scopad CSS-klass
+`admin-sektion--hopfallbar` (INTE på den delade basklassen `.admin-sektion`, som återanvänds
+av Logistik/Introduktion/Leverantor/Kompetensmatris/Ledningsrapport/Godkännanden/Personalpuls
+m.fl. – de skulle annars av misstag blivit hopfällbara också).
+
+**En genuin scope-creep-bugg hittades och fixades UNDER byggpasset, inte i
+premisskontrollen:** bulkkonverteringen råkade även träffa `MatvardenTrendSektion.jsx`/
+`ReferensunderlagSektion.jsx` – två filer som råkar ligga i `components/admin/`-mappen men
+används av `Ledningsrapport.jsx` (en utskriftsvänlig rapportsida), inte av `Admin.jsx`. Att
+göra en utskriftssidas innehåll hopfällt-som-standard hade varit direkt skadligt (osynligt
+vid `window.print()`) och var utanför 43c:s omfattning. Båda återställda (`git checkout`)
+innan commit – bekräftat med en efterföljande grep att INGEN av de 26 kvarvarande filerna
+används någon annanstans än `Admin.jsx`.
+
+Alla sektioner collapsade som standard (matchar mockupen) – medveten avvägning: innehåll är
+inte Ctrl+F-sökbart förrän öppnat, men densitetsvinsten (26 poster i en lista istället för
+flera skärmhöjders statistik) väger tyngre för en adminpanel som besöks för specifika
+uppgifter. Inga nya vitest-tester (ren HTML/CSS). Inga rules-ändringar. Fullt testsvep grönt.
+Verifierat i en riktig webbläsare vid 1280px/375px: hopfällt/expanderat läge, chevron-
+rotation, OCH en regressionskontroll av Logistik/Kompetensmatris som bekräftade att de delade
+`.admin-sektion`-sidorna förblev helt oförändrade. Version 5.70.0 → 5.71.0, committat och
+pushat. **Inte deployat.**
+
+Nästa steg enligt byggordningen: 43d (mörkt läge, löser Etapp 42:s beslutspunkt 3) – kräver
+en egen premisskontroll av vilka komponenter som saknar en fungerande mörk variant idag.

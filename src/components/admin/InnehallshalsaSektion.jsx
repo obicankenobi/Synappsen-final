@@ -44,8 +44,8 @@ export default function InnehallshalsaSektion({ endastOmrade }) {
   const sjukaPoster = poster.filter((p) => p.antalFlaggor > 0).slice(0, 20);
 
   return (
-    <section className="admin-sektion">
-      <h2>🩺 Innehållshälsa{endastOmrade ? ` – ${OMRADE_NAMN[endastOmrade]}` : ""}</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>🩺 Innehållshälsa{endastOmrade ? ` – ${OMRADE_NAMN[endastOmrade]}` : ""}</h2></summary>
       <p className="sida__beskrivning">
         Hur aktuella de godkända rutinerna är – sammanställt av data som redan finns, ingen ny
         insamling.
@@ -97,6 +97,6 @@ export default function InnehallshalsaSektion({ endastOmrade }) {
           )}
         </>
       )}
-    </section>
+    </details>
   );
 }

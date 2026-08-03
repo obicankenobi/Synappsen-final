@@ -1,7 +1,7 @@
 export default function BudgetSektion({ budget, nyttTak, setNyttTak, hanteraNyttTak }) {
   return (
-    <section className="admin-sektion">
-      <h2>Budget för bildtolkning (Gemini)</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>Budget för bildtolkning (Gemini)</h2></summary>
       {budget && (
         <p className="sida__beskrivning">
           Använt denna månad: <strong>{(budget.anvantOre / 100).toFixed(2)} kr</strong> av{" "}
@@ -27,6 +27,6 @@ export default function BudgetSektion({ budget, nyttTak, setNyttTak, hanteraNytt
           Uppdatera tak
         </button>
       </form>
-    </section>
+    </details>
   );
 }

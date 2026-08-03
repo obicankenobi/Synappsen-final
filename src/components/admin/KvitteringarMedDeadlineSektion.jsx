@@ -1,7 +1,7 @@
 export default function KvitteringarMedDeadlineSektion({ anslagMedFrist }) {
   return (
-    <section className="admin-sektion">
-      <h2>⏰ Kvitteringar med deadline</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>⏰ Kvitteringar med deadline</h2></summary>
       <button
         className="knapp knapp--sekundar knapp--liten"
         onClick={() => {
@@ -41,6 +41,6 @@ export default function KvitteringarMedDeadlineSektion({ anslagMedFrist }) {
           </li>
         ))}
       </ol>
-    </section>
+    </details>
   );
 }

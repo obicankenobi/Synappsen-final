@@ -5,8 +5,8 @@ export default function AutoUtloggningSektion({
   hanteraNyUtloggningstid,
 }) {
   return (
-    <section className="admin-sektion">
-      <h2>Auto-utloggningstid</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>Auto-utloggningstid</h2></summary>
       <p className="sida__beskrivning">
         Nuvarande: <strong>{utloggningMinuter} minuter</strong> inaktivitet innan automatisk utloggning.
       </p>
@@ -23,6 +23,6 @@ export default function AutoUtloggningSektion({
           Uppdatera
         </button>
       </form>
-    </section>
+    </details>
   );
 }

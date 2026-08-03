@@ -347,14 +347,47 @@ Verifierat i en riktig webbläsare mot emulatorerna vid 375px: hopfälld vy (2 r
 för 5, sökfältet syns direkt) och expanderad vy (alla 10 länkar + "Färre ▲"). Version 5.68.0
 → 5.69.0.
 
-### 43c – Admin-panelens densitet på mobil (medel–hög insats, egen fristående insats)
+### 43c ✅ KLAR (2026-08-03) – Admin-panelens densitet på mobil
 Mockupens accordion-lösning (varje sektion – Användare & roller, Moduler, Innehållshälsa,
 Granskningsrundor, Personalpuls, Kostnadsuppföljning, Säkerhet – som en egen hopfällbar rad)
 bekräftades under 42f:s premisskontroll vara en genuin förbättring: en lång, platt
-statistiklista utan struktur på en 375px-skärm. **Förutsättning innan bygge:** en ny
-premisskontroll av exakt vilka undersektioner `Admin.jsx` faktiskt består av sedan
-Etapp 8c:s uppdelning (`Admin.jsx` + dess sektionskomponenter) – bygg accordion-strukturen
-runt den FAKTISKA komponentuppdelningen, inte mockupens gissning om vad panelen innehåller.
+statistiklista utan struktur på en 375px-skärm.
+
+**Premisskontroll vid byggstart:** `Admin.jsx` består sedan Etapp 8c av **26 fristående
+sektionskomponenter** i `src/components/admin/`, alla med samma uniforma mönster
+(`<section className="admin-sektion"><h2>ikon titel</h2>...</section>`) – inte mockupens
+gissning om ett fåtal namngivna sektioner, utan betydligt fler.
+
+**Byggt:** samtliga 26 sektionskomponenter + Admin.jsx:s egen inline "Bjud in kollega"-sektion
+konverterade till native `<details>`/`<summary>` – ren HTML-semantik, ingen ny JS-logik,
+ingen React-state. Varje sektions redan existerande `<h2>` flyttades in i `<summary>` (samma
+rubriktext, ingen dubblering), så ingen av de 26 komponenternas övriga JSX behövde ändras.
+Ny CSS-klass `admin-sektion--hopfallbar` (i `Admin.css`) ger en klickbar rad med
+rotationspil, ram och padding – scopad till just den klassen, INTE till den delade
+`.admin-sektion`-basklassen, eftersom den återanvänds av flera andra sidor (Logistik,
+Introduktion, Leverantor, Kompetensmatris, Ledningsrapport, Godkännanden, Personalpuls m.fl.)
+som inte skulle få bli klickbara/hopfällbara av misstag.
+
+**En genuin scope creep hittades och korrigerades under byggpasset:** en bulkkonvertering
+(mönstret var 100 % identiskt i alla filer i mappen, verifierat innan bygget) råkade även
+konvertera `MatvardenTrendSektion.jsx`/`ReferensunderlagSektion.jsx` – två filer som ligger i
+`components/admin/`-mappen men som faktiskt används av `Ledningsrapport.jsx` (en
+utskriftsvänlig rapportsida, `window.print()`), inte av `Admin.jsx`. Att göra en
+utskriftssidas innehåll hopfällt-som-standard hade varit direkt kontraproduktivt (osynligt
+vid utskrift) och var dessutom utanför den här delpunktens omfattning – `Ledningsrapport.jsx`
+hör hemma i 43e:s "Ledning/leverantör"-grupp, inte här. Båda filerna återställda innan commit.
+
+Alla sektioner är collapsade som standard (matchar mockupens mönster) – en medveten avvägning:
+innehåll bakom en hopfälld sektion är inte sökbart med webbläsarens Ctrl+F förrän den öppnats,
+men densitetsvinsten (en 26-posters lista istället för flera skärmhöjder statistik) bedömdes
+väga tyngre för en adminpanel som besöks för specifika uppgifter, inte för att läsas i sin
+helhet.
+
+Inga nya vitest-tester (ren HTML/CSS-konvertering, ingen ny logik). Inga rules-ändringar.
+Fullt testsvep grönt (lint, build, 123 vitest-tester). Verifierat i en riktig webbläsare mot
+emulatorerna vid 1280px och 375px: hopfällt/expanderat läge för flera sektioner, chevron-
+rotation, och en regressionskontroll av Logistik/Kompetensmatris (båda använder den delade
+`.admin-sektion`-klassen) som bekräftade att de förblev OFÖRÄNDRADE. Version 5.70.0 → 5.71.0.
 
 ### 43d – Mörkt läge (löser beslutspunkt 3 från Etapp 42)
 Aldrig avgjort under Etapp 42 eftersom mockupens växlare inte gick att verifiera som
@@ -428,8 +461,9 @@ ovan). Ingen version-bump eftersom inget som visas för användaren ändrades.
    ägaren har inget behov av att Admin-panelens accordion görs före resten.
 
 **Byggordning härifrån:** 43a ✅ KLAR → 43b ✅ KLAR →
-43e:s "Kritiska specialfall" ✅ KLAR → 43e:s "Vardagsverktyg" ✅ GRANSKAD → 43c
-(Admin-accordion) → 43d (mörkt läge) → 43e:s återstående grupper (Stöd/Personligt/Ledning).
+43e:s "Kritiska specialfall" ✅ KLAR → 43e:s "Vardagsverktyg" ✅ GRANSKAD → 43c ✅ KLAR
+→ 43d (mörkt läge) → 43e:s återstående grupper (Stöd/Personligt/Ledning – Ledningsrapport
+ingår här nu, med extra försiktighet efter 43c:s scope-creep-fynd).
 Samma motivering som tidigare: låg insats/hög synlighet och patientsäkerhet går före
 lågfrekventa admin-sidor.
 

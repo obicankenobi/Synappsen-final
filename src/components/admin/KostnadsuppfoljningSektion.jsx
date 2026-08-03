@@ -1,7 +1,7 @@
 export default function KostnadsuppfoljningSektion({ kostnadshistorik }) {
   return (
-    <section className="admin-sektion">
-      <h2>💰 Kostnadsuppföljning (Etapp 5)</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>💰 Kostnadsuppföljning (Etapp 5)</h2></summary>
       <p className="sida__beskrivning">
         AI-kostnad per avslutad månad, arkiverad automatiskt vid varje månadsskifte – för
         att se en trend, inte bara denna månads förbrukning ovan.
@@ -20,6 +20,6 @@ export default function KostnadsuppfoljningSektion({ kostnadshistorik }) {
           ))}
         </ul>
       )}
-    </section>
+    </details>
   );
 }

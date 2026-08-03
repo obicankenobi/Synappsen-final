@@ -2,8 +2,8 @@ import { formateraTid } from "./adminHjalp";
 
 export default function SokningarUtanTraffarSektion({ sokloggar, sokningarPerDag, maxPerDag }) {
   return (
-    <section className="admin-sektion">
-      <h2>Sökningar utan träffar</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>Sökningar utan träffar</h2></summary>
       {sokloggar.length === 0 && (
         <p className="sida__beskrivning">Inga nolleträffar loggade ännu.</p>
       )}
@@ -33,6 +33,6 @@ export default function SokningarUtanTraffarSektion({ sokloggar, sokningarPerDag
           </li>
         ))}
       </ul>
-    </section>
+    </details>
   );
 }

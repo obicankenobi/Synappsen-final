@@ -6,8 +6,8 @@ export default function PilotMatvardenSektion({
   feedback,
 }) {
   return (
-    <section className="admin-sektion">
-      <h2>📈 Pilot-mätvärden</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>📈 Pilot-mätvärden</h2></summary>
       <p className="sida__beskrivning">
         Sammanställning inför/under en pilot (Etapp 4): vilka Operations/Intelligence-
         funktioner som faktiskt värderas och hur väl information når fram.
@@ -39,6 +39,6 @@ export default function PilotMatvardenSektion({
             : "Inga mätningar ännu"}
         </li>
       </ul>
-    </section>
+    </details>
   );
 }

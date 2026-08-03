@@ -10,8 +10,8 @@ export default function FeedbackSektion({
   uppdateraFeedbackStatus,
 }) {
   return (
-    <section className="admin-sektion">
-      <h2>Feedback från användare ({feedback.length})</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>Feedback från användare ({feedback.length})</h2></summary>
       {feedback.length === 0 && <p className="sida__beskrivning">Ingen feedback ännu.</p>}
       <ul className="admin-lista admin-lista--vertikal">
         {feedback.map((f) => (
@@ -54,6 +54,6 @@ export default function FeedbackSektion({
           </li>
         ))}
       </ul>
-    </section>
+    </details>
   );
 }

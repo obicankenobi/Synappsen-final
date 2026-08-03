@@ -1,7 +1,7 @@
 export default function StatistikAllaOmradenSektion({ mestAktiva, mestKvitterade }) {
   return (
-    <section className="admin-sektion">
-      <h2>Statistik (alla områden)</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>Statistik (alla områden)</h2></summary>
       <div className="admin-statistik-grid">
         <div>
           <h3>Mest aktiva användare</h3>
@@ -26,6 +26,6 @@ export default function StatistikAllaOmradenSektion({ mestAktiva, mestKvitterade
           </ol>
         </div>
       </div>
-    </section>
+    </details>
   );
 }

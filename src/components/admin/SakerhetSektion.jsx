@@ -2,8 +2,8 @@ import { REDAKTORSROLLER, ROLE_LABELS } from "../../firebase/roles";
 
 export default function SakerhetSektion({ kravMfaForRoller, vaxlaMfaKrav, sakerhetSparad }) {
   return (
-    <section className="admin-sektion">
-      <h2>🔐 Säkerhet</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>🔐 Säkerhet</h2></summary>
       <p className="sida__beskrivning">
         Kräv tvåfaktorsautentisering för valda roller. Den som inte har aktiverat det
         möts av en påminnelse i appen och blockeras från att ändra roller eller
@@ -26,6 +26,6 @@ export default function SakerhetSektion({ kravMfaForRoller, vaxlaMfaKrav, sakerh
         </ul>
         {sakerhetSparad && "✓ Sparat"}
       </div>
-    </section>
+    </details>
   );
 }

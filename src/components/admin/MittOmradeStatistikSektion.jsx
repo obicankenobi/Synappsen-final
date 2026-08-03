@@ -7,8 +7,8 @@ export default function MittOmradeStatistikSektion({
   kvitteradeIMittOmrade,
 }) {
   return (
-    <section className="admin-sektion">
-      <h2>Statistik för mitt område ({OMRADE_NAMN[mittOmrade]})</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>Statistik för mitt område ({OMRADE_NAMN[mittOmrade]})</h2></summary>
       {mittOmrade === "logistik" ? (
         <>
           <p className="sida__beskrivning">{utkastIMittOmrade} artikelutkast väntar på granskning.</p>
@@ -40,6 +40,6 @@ export default function MittOmradeStatistikSektion({
           </ol>
         </>
       )}
-    </section>
+    </details>
   );
 }

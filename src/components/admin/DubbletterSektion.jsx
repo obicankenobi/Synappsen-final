@@ -29,8 +29,8 @@ export default function DubbletterSektion() {
   );
 
   return (
-    <section className="admin-sektion">
-      <h2>🔍 Möjliga dubbletter (pilot: Kliniskt stöd)</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>🔍 Möjliga dubbletter (pilot: Kliniskt stöd)</h2></summary>
       <p className="sida__beskrivning">
         Mekanisk likhetsjämförelse mellan godkända rutiner – en fråga att titta på, aldrig ett
         påstående. Ingenting slås ihop automatiskt. Öppna båda rutinerna och avgör själv; om de
@@ -75,6 +75,6 @@ export default function DubbletterSektion() {
           ))}
         </ul>
       )}
-    </section>
+    </details>
   );
 }

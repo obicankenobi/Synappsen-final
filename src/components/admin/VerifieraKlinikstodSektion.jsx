@@ -4,8 +4,8 @@ export default function VerifieraKlinikstodSektion({
   klinikstodStatus,
 }) {
   return (
-    <section className="admin-sektion">
-      <h2>🔍 Verifiera klinikstöd-sökningen</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>🔍 Verifiera klinikstöd-sökningen</h2></summary>
       <p className="sida__beskrivning">
         Kör tre fasta testfrågor genom sökmotorn (förbi cachen) och kontrollerar att ALLA
         källor den hittar ligger inom de godkända domänerna. Kör detta om ni misstänker att
@@ -45,6 +45,6 @@ export default function VerifieraKlinikstodSektion({
           ))}
         </ul>
       )}
-    </section>
+    </details>
   );
 }

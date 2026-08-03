@@ -10,8 +10,8 @@ export default function AndringsloggSektion({
   filtreradAuditlogg,
 }) {
   return (
-    <section className="admin-sektion">
-      <h2>Ändringslogg</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>Ändringslogg</h2></summary>
       {auditlogg.length === 0 && <p className="sida__beskrivning">Inga händelser loggade ännu.</p>}
       {auditlogg.length > 0 && (
         <div className="admin-audit-filter">
@@ -41,6 +41,6 @@ export default function AndringsloggSektion({
           </li>
         ))}
       </ul>
-    </section>
+    </details>
   );
 }

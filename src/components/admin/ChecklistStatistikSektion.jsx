@@ -47,8 +47,8 @@ export default function ChecklistStatistikSektion() {
   if (rader.length === 0) return null;
 
   return (
-    <section className="admin-sektion">
-      <h2>☑️ Checklistanvändning</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>☑️ Checklistanvändning</h2></summary>
       <p className="sida__beskrivning">
         Aggregerad, personkopplingsfri statistik per rutin – ingen patientkoppling, ingen
         körningslogg (se SAKERHETSRAPPORT.md).
@@ -77,6 +77,6 @@ export default function ChecklistStatistikSektion() {
           </tbody>
         </table>
       </div>
-    </section>
+    </details>
   );
 }

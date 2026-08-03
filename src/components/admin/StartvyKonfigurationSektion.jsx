@@ -49,8 +49,8 @@ export default function StartvyKonfigurationSektion() {
   }
 
   return (
-    <section className="admin-sektion">
-      <h2>🏠 Startvy per roll</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>🏠 Startvy per roll</h2></summary>
       <p className="sida__beskrivning">
         Ändra i vilken ordning korten på startsidan visas för en viss roll. Alla kort finns
         kvar för alla roller – det här styr bara vad som hamnar högst upp.
@@ -97,6 +97,6 @@ export default function StartvyKonfigurationSektion() {
       <button type="button" className="knapp knapp--sekundar knapp--liten" disabled={sparar} onClick={hanteraAterstall}>
         Återställ till standard för {ROLE_LABELS[vaidRoll]}
       </button>
-    </section>
+    </details>
   );
 }

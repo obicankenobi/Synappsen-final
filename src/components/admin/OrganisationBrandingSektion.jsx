@@ -93,8 +93,8 @@ export default function OrganisationBrandingSektion() {
   const { branding, laddat, sparaBranding } = useOrganisationBranding();
 
   return (
-    <section className="admin-sektion">
-      <h2>🏷️ Vår profil</h2>
+    <details className="admin-sektion admin-sektion--hopfallbar">
+      <summary><h2>🏷️ Vår profil</h2></summary>
       <p className="sida__beskrivning">
         Logotyp, accentfärg och en kort välkomsttext som visas för alla i er organisation.
         Akutläget behåller alltid sin egen färgsättning, oavsett vad ni väljer här.
@@ -104,6 +104,6 @@ export default function OrganisationBrandingSektion() {
       {laddat && (
         <OrganisationBrandingFormular branding={branding} organisationId={organisationId} sparaBranding={sparaBranding} />
       )}
-    </section>
+    </details>
   );
 }
