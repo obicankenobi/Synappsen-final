@@ -110,8 +110,12 @@
   gap: 12px;
 }
 
+/* Etapp 43e: `.korvy__knapp` återanvänds både i knapparaden (.korvy__knappar, där flex:1 ger
+   två jämnbreda knappar) OCH fristående (t.ex. "← Tillbaka"/"Till startsidan" när rutinen
+   saknar checklistesteg) – som en direkt flex-child av `.korvy` (flex-direction: column) fick
+   flex:1 den fristående länken att sträcka sig till HELA sidans höjd, bekräftat i en riktig
+   skärmdump. flex:1 hör nu bara hemma i knapparaden. */
 .korvy__knapp {
-  flex: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -125,6 +129,12 @@
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
+  align-self: flex-start;
+}
+
+.korvy__knappar .korvy__knapp {
+  flex: 1;
+  align-self: auto;
 }
 
 .korvy__knapp:disabled {

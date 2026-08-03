@@ -3,6 +3,13 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.70.0",
+    datum: "2026-08-03",
+    andringar: [
+      "Fixat: en fristående knapp i checklisteläget ('checka av'-vyn) kunde tidigare bli felaktigt stor",
+    ],
+  },
+  {
     version: "5.69.0",
     datum: "2026-08-03",
     andringar: [

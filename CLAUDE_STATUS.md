@@ -6,15 +6,14 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-03, version **5.69.0**. `ETAPPLAN7.md`s Etapp 42 (a–f) är HELT
+**Senast uppdaterad:** 2026-08-03, version **5.70.0**. `ETAPPLAN7.md`s Etapp 42 (a–f) är HELT
 KLAR och deployad (v5.67.0, körning #65). **Etapp 43 (samma fil)** under bygge, gruppvis:
-**43a och 43b är KLARA** (auth-sidornas kort + global select-styling; Hem:s snabblänksrad
-kapad till 4 + "Fler"-växlare). v5.69.0 är INTE ännu deployad. Nästa enligt beslutad
-byggordning: 43e:s "Kritiska specialfall" (Akutlage/Korvy/SedanForraPasset). `ETAPPLAN6.md`
-(Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund). `ETAPPLAN5.md`
-(Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs sektionen "Uppföljning
-2026-08-03 (Etapp 43b klar)" längst ner i den här filen först** om du undrar var arbetet står
-idag.
+**43a, 43b och 43e:s "Kritiska specialfall" (Akutlage/Korvy/SedanForraPasset) är KLARA.**
+v5.70.0 är INTE ännu deployad. Nästa enligt beslutad byggordning: 43e:s "Vardagsverktyg"
+(ForradVy/LaddaUpp/Skiftrapport/Anslagstavla). `ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM
+Etapp 40 (villkorad av en konkret ny kund). `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det
+närmaste klar men inte stängd. **Läs sektionen "Uppföljning 2026-08-03 (Etapp 43e: Kritiska
+specialfall klar)" längst ner i den här filen först** om du undrar var arbetet står idag.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -937,3 +936,24 @@ committat och pushat. **Inte deployat.**
 Nästa steg enligt byggordningen: 43e:s "Kritiska specialfall" (Akutlage/Korvy/
 SedanForraPasset) – prioriterat före de andra 43e-grupperna eftersom Akutlage är
 patientsäkerhetsrelaterat.
+
+## Uppföljning 2026-08-03 (Etapp 43e: Kritiska specialfall klar)
+
+Premisskontroll (källkod + skärmdumpar mot emulatorerna, 1280px/375px) av alla tre:
+
+- **`Akutlage.jsx`:** medvetet, dokumenterat FORCERAD hög kontrast (svart/vit/röd, Etapp 17c)
+  oavsett ljust/mörkt tema. **Ingen ändring** – det hade varit fel att göra den lik resten.
+- **`Korvy.jsx`:** använder redan tokens korrekt. **En genuin bugg hittades och fixades:**
+  `.korvy__knapp` hade `flex: 1` (avsett för knapparaden, två jämnbreda knappar) som läckte
+  till fristående återanvändning av samma klass ("← Tillbaka" när rutinen saknar
+  checklistesteg, "Till startsidan" på klar-skärmen) – som direkt flex-child av `.korvy`
+  (flex-column) sträckte det knappen till HELA sidans höjd. Bekräftat i en skärmdump, fixat
+  genom att scopa `flex: 1` till `.korvy__knappar .korvy__knapp`.
+- **`SedanForraPasset.jsx`:** använder redan tokens korrekt. **Ingen ändring.**
+
+Seedade en testrutin med tre checklistesteg (`e2eChecklista`) för att verifiera BÅDA
+Korvy-lägena (utan steg / med steg) i en riktig webbläsare – inte bara den tomma
+fallback-vyn. Inga nya vitest-tester (ren CSS-scoping-fix). Inga rules-ändringar. Fullt
+testsvep grönt. Version 5.69.0 → 5.70.0, committat och pushat. **Inte deployat.**
+
+Nästa steg: 43e:s "Vardagsverktyg" (`ForradVy`, `LaddaUpp`, `Skiftrapport`, `Anslagstavla`).

@@ -374,12 +374,35 @@ sammanhängande värde:
 | Stöd/hjälp | `Hjalp`, `Feedback`, `Kontakter`, `Lankbibliotek` | All personal, sällan |
 | Personligt | `Profil`, `Papperskorg`, `OfflineCenter` | All personal, sällan |
 | Ledning/leverantör | `Leverantor`, `Kompetensmatris`, `Ledningsrapport` | Redaktörer/superadmin |
-| Kritiska specialfall | `Akutlage`, `Korvy`, `SedanForraPasset` | Prioritera `Akutlage` högt trots få besök – akutlägessidan måste hålla samma standard som resten, inte tvärtom |
+| Kritiska specialfall ✅ KLAR (2026-08-03) | `Akutlage`, `Korvy`, `SedanForraPasset` | Se egen skrivning nedan |
 
 **Rekommenderad ordning:** 43a → 43b (båda låg insats, hög synlighet) → 43e:s "Kritiska
 specialfall" (Akutlage särskilt, patientsäkerhetsrelaterat) → 43e:s "Vardagsverktyg" → 43c →
 43d → 43e:s återstående grupper (Stöd/Personligt/Ledning, lägst prioritet – låg
 användningsfrekvens).
+
+#### 43e:s "Kritiska specialfall" ✅ KLAR (2026-08-03)
+
+Premisskontroll (källkod + riktiga skärmdumpar, 1280px/375px, mot emulatorerna) för alla tre:
+
+- **`Akutlage.jsx`/`.css`:** medvetet, dokumenterat FORCERAD hög kontrast (svart bakgrund,
+  vit/röd text) oavsett ljust/mörkt tema – en explicit Etapp 17c-motiverad avvikelse från
+  resten av profilen ("ska vara omedelbart visuellt avvikande och läsbart i starkt ljus").
+  **Ingen ändring** – att göra den mer lik resten av appen hade varit fel, inte en förbättring.
+- **`Korvy.jsx`/`.css`:** använder redan konsekvent `--bg`/`--text`/`--primar`/`--kant`-tokens.
+  **En genuin bugg hittades och fixades:** `.korvy__knapp` hade `flex: 1` avsett för
+  knapparaden (`.korvy__knappar`, två jämnbreda knappar), men klassen återanvänds även
+  FRISTÅENDE (t.ex. "← Tillbaka" när rutinen saknar checklistesteg, "Till startsidan" på
+  klar-skärmen) – som en direkt flex-child av `.korvy` (flex-direction: column) fick
+  `flex: 1` den fristående länken att sträcka sig till HELA sidans höjd, bekräftat i en
+  skärmdump. `flex: 1` gäller nu bara via `.korvy__knappar .korvy__knapp`, inte basklassen.
+- **`SedanForraPasset.jsx`/`.css`:** använder redan `--yta`/`--kant`/`--radius`-tokens
+  korrekt. **Ingen ändring.**
+
+Inga nya vitest-tester (ren CSS-scoping-fix). Inga rules-ändringar. Fullt testsvep grönt
+(lint, build, 123 vitest-tester). Verifierat i en riktig webbläsare: Akutlage (tomt läge),
+Korvy (både utan steg och med en seedad 3-stegs checklista – båda knapplägena), och
+SedanForraPasset. Version 5.69.0 → 5.70.0.
 
 ---
 
@@ -394,7 +417,7 @@ användningsfrekvens).
    ägaren har inget behov av att Admin-panelens accordion görs före resten.
 
 **Byggordning härifrån:** 43a ✅ KLAR → 43b ✅ KLAR →
-43e:s "Kritiska specialfall" (Akutlage/Korvy/SedanForraPasset) → 43e:s "Vardagsverktyg" → 43c
+43e:s "Kritiska specialfall" ✅ KLAR → 43e:s "Vardagsverktyg" → 43c
 (Admin-accordion) → 43d (mörkt läge) → 43e:s återstående grupper (Stöd/Personligt/Ledning).
 Samma motivering som tidigare: låg insats/hög synlighet och patientsäkerhet går före
 lågfrekventa admin-sidor.
