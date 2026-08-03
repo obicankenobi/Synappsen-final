@@ -885,7 +885,8 @@ användarkrets, inte filstorlek). Tre nya beslutspunkter väntar på ägaren: om
 prioriteras tidigt eftersom den redan har en bekräftad brist (skärmdump från 42f).
 
 **Inget kodat ännu** – detta var enbart planering. `CLAUDE.md`s dokumentkarta uppdaterad
-(ETAPPLAN7.md beskrivs nu som "42 klar + 43 ny", inte längre "HELT KLAR"). Inget committat
-till git eftersom inget kodarbete skedde – bara dokumentationsändringar
-(`ETAPPLAN7.md`/`CLAUDE.md`/den här filen). Nästa steg: invänta ägarbeslut på Etapp 43:s tre
-beslutspunkter innan bygge påbörjas.
+(ETAPPLAN7.md beskrivs nu som "42 klar + 43 ny", inte längre "HELT KLAR"). Dokumentändringarna
+(`ETAPPLAN7.md`/`CLAUDE.md`/den här filen) committade och pushade till
+`claude/compassionate-euler-rho0q5` (commit `dadf0f6`), trots att inget kodarbete skedde –
+planeringen i sig är den beständiga ändringen. Nästa steg: invänta ägarbeslut på Etapp 43:s
+tre beslutspunkter innan bygge påbörjas.
