@@ -6,14 +6,15 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-03, version **5.70.0**. `ETAPPLAN7.md`s Etapp 42 (a–f) är HELT
-KLAR och deployad (v5.67.0, körning #65). **Etapp 43 (samma fil)** under bygge, gruppvis:
-**43a, 43b och 43e:s "Kritiska specialfall" (Akutlage/Korvy/SedanForraPasset) är KLARA.**
-v5.70.0 är INTE ännu deployad. Nästa enligt beslutad byggordning: 43e:s "Vardagsverktyg"
-(ForradVy/LaddaUpp/Skiftrapport/Anslagstavla). `ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM
-Etapp 40 (villkorad av en konkret ny kund). `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det
-närmaste klar men inte stängd. **Läs sektionen "Uppföljning 2026-08-03 (Etapp 43e: Kritiska
-specialfall klar)" längst ner i den här filen först** om du undrar var arbetet står idag.
+**Senast uppdaterad:** 2026-08-03, version **5.70.0** (oförändrad sedan Kritiska specialfall –
+"Vardagsverktyg" krävde ingen kodändring). `ETAPPLAN7.md`s Etapp 42 (a–f) är HELT KLAR och
+deployad (v5.67.0, körning #65). **Etapp 43 (samma fil)** under bygge, gruppvis: **43a, 43b,
+43e:s "Kritiska specialfall" och 43e:s "Vardagsverktyg" är KLARA/GRANSKADE.** v5.70.0 är INTE
+ännu deployad. Nästa enligt beslutad byggordning: 43c (Admin-panelens mobildensitet,
+accordion). `ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret
+ny kund). `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd.
+**Läs sektionen "Uppföljning 2026-08-03 (Etapp 43e: Vardagsverktyg granskad)" längst ner i
+den här filen först** om du undrar var arbetet står idag.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -957,3 +958,18 @@ fallback-vyn. Inga nya vitest-tester (ren CSS-scoping-fix). Inga rules-ändringa
 testsvep grönt. Version 5.69.0 → 5.70.0, committat och pushat. **Inte deployat.**
 
 Nästa steg: 43e:s "Vardagsverktyg" (`ForradVy`, `LaddaUpp`, `Skiftrapport`, `Anslagstavla`).
+
+## Uppföljning 2026-08-03 (Etapp 43e: Vardagsverktyg granskad)
+
+Premisskontroll (källkod + riktiga skärmdumpar, 1280px/375px, mot emulatorerna) av
+`ForradVy`, `LaddaUpp`, `Skiftrapport` och `Anslagstavla`: alla fyra använder redan samma
+delade `.sida`-omslag, `Skelett`-laddningsskelett, tomtillstånd och design-tokens som resten
+av appen – samma mönster som redan bekräftades för de sju sidorna i Etapp 42. **Ingen genuin
+brist hittades den här gången** (till skillnad från Korvy-fixen i "Kritiska specialfall") –
+en ärlig premisskontroll-utgång är ibland "redan i sin ordning". Ingen kodändring, ingen
+version-bump (inget som visas för användaren ändrades), bara dokumentation av att sidorna är
+granskade i `ETAPPLAN7.md`.
+
+Nästa steg enligt byggordningen: 43c (Admin-panelens mobildensitet, accordion-lösning) –
+den mest omfattande enskilda delpunkten i Etapp 43, kräver en egen premisskontroll av
+`Admin.jsx`s faktiska sektionsindelning (sedan Etapp 8c) innan bygge.
