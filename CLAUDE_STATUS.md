@@ -6,24 +6,15 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-02, version **5.66.0**. `ETAPPLAN7.md` (Etapp 42:
-gränssnittsförnyelse) är den AKTIVA planen, **i praktiken klar**. 42e/42a/42b/42c/42d är
-klara; 42f (mobilvy) är MEDVETET PAUSAD på ägarens beslut samma dag – vänta tills de skärmar
-som saknar en mockup (Administration/Admin/Godkännanden/Nyheter) har designats, inte en
-oavslutad uppgift. `ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en
-konkret ny kund). En deploy av v5.63.0 triggades via `deploy.yml` tidigare samma session –
-utfallet var INTE bekräftat när den här filen senast skrevs om (kontrollera
-`mcp__github__actions_list`/`actions_get` för senaste körning på branchen om du undrar).
-v5.64.0–v5.66.0 är INTE ännu deployade. `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det
-närmaste klar men inte stängd. **Läs de FEMTON NYA sektionerna längst ner i den här filen
-först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning
-2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning 2026-08-01 (Etapp
-37c)", "Uppföljning 2026-08-01 (Etapp 37d)", "Uppföljning 2026-08-01 (senare samma dag igen)",
-"Uppföljning 2026-08-01 (Etapp 38)", "Uppföljning 2026-08-02 (Etapp 39a/39b)", "Uppföljning
-2026-08-02 (Etapp 39c/39d)", "Uppföljning 2026-08-02 (ETAPPLAN7 antagen)", "Uppföljning
-2026-08-02 (Etapp 41)", "Uppföljning 2026-08-02 (Etapp 42e/42a/42b/42c)", "Uppföljning
-2026-08-02 (Etapp 42d)" och "Uppföljning 2026-08-02 (42f pausad)") om du undrar var arbetet
-står idag – allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är historisk,
+**Senast uppdaterad:** 2026-08-03, version **5.67.0**. `ETAPPLAN7.md` (Etapp 42:
+gränssnittsförnyelse) är HELT KLAR – alla delpunkter 42a–42f byggda. `ETAPPLAN6.md`
+(Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund). En deploy av
+v5.63.0 triggades via `deploy.yml` tidigare i veckan – utfallet var INTE bekräftat när den
+här filen senast skrevs om (kontrollera `mcp__github__actions_list`/`actions_get` för senaste
+körning på branchen om du undrar). v5.64.0–v5.67.0 är INTE ännu deployade. `ETAPPLAN5.md`
+(Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs sektionen "Uppföljning
+2026-08-03 (Etapp 42f)" längst ner i den här filen först** om du undrar var arbetet står
+idag – allt före den (inklusive alla "Uppföljning 2026-08-0[12]"-sektioner) är historisk,
 äldre kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
@@ -824,3 +815,46 @@ dokumenterad begränsning i den här specifika sandboxen som inte är kodens fel
 rendera en `.dc.html`-mockup eller något annat som laddar skript från `unpkg.com`: samma
 CDN-blockering gäller där också – installera paketen lokalt och fånga anropen med Playwrights
 `page.route()`, se ovan för exakt recept.
+
+## Uppföljning 2026-08-03 (Etapp 42f – ETAPPLAN7 nu helt klar)
+
+Användaren tog fram fyra nya mockuper (Claude Design) för de tidigare saknade mobilskärmarna
+(Administration, Godkännanden, Admin, Nyheter) plus en lösning på 9-postersproblemet i
+`BottomNav.jsx`. Granskade dem (samma `page.route()`-recept mot lokalt cachade npm-paket som
+tidigare i veckan) och gav skriftlig feedback – alla fyra skärmar och "Mer"-menyn höll måttet.
+Byggde sedan 42f. Se `ETAPPLAN7.md`s egen "42f ✅ KLAR"-sektion för hela premisskontrollen och
+motiveringen – kort sammanfattat här:
+
+- **Mockupens ramberättelse ("nedre flikbar ersätter sidopanel på smala skärmar") stämde
+  inte** – appen har aldrig haft en sidopanel, `BottomNav.jsx` är redan alltid-mobil. Det
+  gjorde 42f:s FAKTISKA omfattning betydligt mindre än planerat: två konkreta buggfixar, inte
+  en ny mobilvy per sida.
+- **Fix 1:** `BottomNav.jsx` hade växt till 9 poster, synligt trasigt på en riktig 375px-skärm
+  (bekräftat med Playwright mot emulatorerna, inloggad som en riktig testanvändare) – löst med
+  en ny `MerMeny.jsx`-bottensheet, samma mönster som mockupen visade.
+- **Fix 2:** `.app-innehall` saknade `padding-bottom` för den fixed-positionerade
+  `BottomNav.jsx` – sidans sista innehåll gömdes bakom navigeringen på vilken sida som helst,
+  bekräftat i en riktig skärmdump. Fixat med samma `76px`-marginal `AkutKnappFloating.css`
+  redan använder.
+- **En tredje bugg hittades UNDER byggpasset** (inte i premisskontrollen): `MerMeny` renderad
+  som barn till `<nav>` fastnade i navets egen stapel-kontext (`position: fixed` +
+  `z-index`), vilket fick den flytande Akut-knappen att felaktigt rendera ovanpå menyn – fixat
+  genom att rendera den som syskon (React-fragment) istället.
+- **Medvetet INTE byggt:** mockupens tätare/omdesignade kortlayouter för Administration/Admin/
+  Nyheter-sidorna själva (t.ex. Admin-panelens accordion-lösning på dess densitet). Det är en
+  större, fristående insats utanför vad `ETAPPLAN7.md`s egen skrivna 42f-definition (nav +
+  Akut-knapp) bad om – spara till en egen etapp om den ska tas.
+
+Nya filer: `src/components/MerMeny.jsx`, `src/components/MerMeny.css`. Ändrade:
+`src/components/BottomNav.jsx` (reducerad primärrad + Mer-knapp), `src/index.css`
+(`.app-innehall` padding-bottom). Inga nya vitest-tester (ren UI/CSS). Inga rules-ändringar.
+Fullt testsvep grönt (lint, build, 123 vitest-tester). Verifierat i en riktig webbläsare mot
+emulatorerna vid 375×812. Version 5.66.0 → 5.67.0, committat och pushat till
+`claude/compassionate-euler-rho0q5`. **Inte deployat** – ingen deploy begärd den här gången.
+
+`ETAPPLAN7.md` (Etapp 42) är därmed HELT KLAR, alla delpunkter 42a–42f. Nästa steg utan
+vidare instruktion: `ETAPPLAN6.md`s Etapp 40 (villkorad av en konkret ny kund) eller
+`ETAPPLAN5.md`s kvarvarande punkter (blockerade av ägarbeslut/extern tid) – båda väntar bara
+på att komma i tur, inte på kapacitet. En ny `ETAPPLAN8.md` behöver skrivas när/om det finns
+ett nytt större arbetsområde att ta itu med (t.ex. Admin-panelens mobildensitet, om det
+prioriteras).

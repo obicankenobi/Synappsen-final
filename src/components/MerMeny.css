@@ -1,0 +1,58 @@
+.mer-meny__bakgrund {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+}
+
+.mer-meny {
+  background: var(--yta);
+  color: var(--text);
+  width: 100%;
+  border-radius: 16px 16px 0 0;
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+  box-shadow: var(--skugga-hover);
+}
+
+.mer-meny__handtag {
+  width: 36px;
+  height: 4px;
+  background: var(--kant);
+  border-radius: 999px;
+  margin: 0 auto 12px;
+}
+
+.mer-meny__rubrik {
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.mer-meny__rutnat {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.mer-meny__post {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 4px;
+  border-radius: var(--radius-liten);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.mer-meny__post:hover,
+.mer-meny__post.active {
+  background: var(--bg);
+}
+
+.mer-meny__ikon {
+  font-size: 1.4rem;
+}

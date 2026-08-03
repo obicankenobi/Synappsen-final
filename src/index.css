@@ -509,6 +509,11 @@ h1 {
 
 .app-innehall {
   flex: 1;
+  /* Etapp 42f: BottomNav.jsx är fixed-positionerad (position: fixed; bottom: 0) och låg
+     tidigare ovanpå sidans sista innehåll utan något reserverat utrymme – bekräftat i en
+     riktig mobilvy (375px) där en väntande-granskning-rad doldes bakom navet. 76px är samma
+     värde AkutKnappFloating.css redan använder för sitt eget bottom-avstånd. */
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
 }
 
 .sektionssida__taggfilter {

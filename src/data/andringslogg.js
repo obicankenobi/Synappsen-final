@@ -3,6 +3,14 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.67.0",
+    datum: "2026-08-03",
+    andringar: [
+      "Nedre navigeringen är nu tydligare på smala skärmar – de fyra vanligaste sidorna syns direkt, resten samlas i en ny \"Mer\"-meny",
+      "Fixat: innehåll längst ner på en sida kunde tidigare hamna bakom nedre navigeringen på mobil",
+    ],
+  },
+  {
     version: "5.66.0",
     datum: "2026-08-02",
     andringar: [

@@ -181,6 +181,56 @@ mockuperna (Administration, Admin, Godkännanden, Nyheter i mobilformat) finns. 
 beslutspunkt 2. Etapp 42 är i praktiken klar för nu; 42f är en medveten paus, inte en
 oavslutad uppgift.
 
+### 42f ✅ KLAR (2026-08-03)
+
+De fyra saknade mockuperna togs fram (Claude Design) och granskades 2026-08-03: alla fyra
+skärmar (Administration, Godkännanden, Admin, Nyheter) samt en explicit lösning på det
+9-postersproblem i `BottomNav.jsx` som redan var dokumenterat som känt (`overflow-x: auto`-
+kommentaren i `BottomNav.css`) – en "Mer"-meny som samlar de mindre använda posterna.
+
+**Premisskontroll vid byggstart (krav 8) omkullkastade mockupens egen ramberättelse:**
+mockupens `github.md` påstod att en "nedre flikbar ersätter sidopanelen på smala skärmar" –
+men appen har ALDRIG haft en sidopanel att ersätta. `BottomNav.jsx` monteras redan idag på
+alla skärmstorlekar (`App.jsx`, samma `SkyddatLayout`/`RollSkyddadRoute` oavsett bredd). Det
+finns med andra ord ingen ny "mobilvy" att bygga från grunden – det som faktiskt behövde
+fixas var två konkreta, verifierade buggar i den redan existerande, alltid-mobila
+navigeringen:
+
+1. **9 poster i `BottomNav.jsx` överflödade synligt fält** på en 375px-skärm (bekräftat med en
+   riktig inloggad session mot emulatorerna, Playwright-skärmdump) – `overflow-x: auto` gjorde
+   dem NÅBARA men inte SYNLIGA, precis den brist mockupens "Mer"-meny adresserar. Löst genom
+   att reducera den alltid synliga raden till fem poster (Sök/Hem/Kliniskt/Logistik/Mer) och
+   flytta Anslag/Regler/Nyheter/Godkänn/Admin till en ny bottom-sheet (`MerMeny.jsx`).
+2. **`.app-innehall` reserverade inget utrymme för den fixed-positionerade `BottomNav.jsx`** –
+   bekräftat i en riktig skärmdump (Nyheter-sidan, skrollad till botten) att sidans sista
+   innehåll hamnade delvis bakom navigeringen. Fixat med samma `76px`-marginal
+   `AkutKnappFloating.css` redan använder (`padding-bottom` på `.app-innehall`).
+
+**En bugg till hittades och fixades under byggpasset, inte i premisskontrollen:** `MerMeny`
+renderades först som barn till `<nav className="bottom-nav">`, vars `position: fixed` +
+`z-index: 100` skapar en egen stapel-kontext – menyns eget `z-index: 800` gällde då bara
+INOM den kontexten, vilket fick den flytande Akut-knappen (`z-index: 150`, monterad utanför
+navets kontext i `App.jsx`) att felaktigt rendera ovanpå menyn. Löst genom att rendera
+`MerMeny` som syskon till `<nav>` (React-fragment) istället för barn.
+
+**Medvetet mindre omfattning än mockupens fem nya skärmar:** mockupens Administration-,
+Admin- och Nyheter-skärmar visar en tätare/omdesignad kortlayout för respektive sida – men
+`ETAPPLAN7.md`s egen skrivna definition av 42f (se ovan) omfattade bara navigeringen och
+Akut-knappen, inte en omdesign av innehållet på varje sida. Att bygga om Admin.jsx:s
+sektionslista till en accordion (mockupens lösning på dess densitet på mobil) är en
+betydligt större, fristående insats som förtjänar en egen etapp om den ska tas – inte
+klämmas in som en bonus här. Ingen ny "mobilvy" per sida byggdes; de befintliga sidornas
+flexbox-/grid-layouter (utan tidigare mobil-brytpunkter) visade sig redan fungera
+tillfredsställande staplade på 375px, bekräftat i samma skärmdumpar.
+
+Inga nya vitest-tester (ren UI/CSS, ingen ny logik att enhetstesta). Inga rules-ändringar.
+Fullt testsvep grönt (lint, build, 123 vitest-tester). Verifierat i en riktig webbläsare mot
+emulatorerna vid 375×812: den reducerade bottennavigeringen, "Mer"-menyn (öppnar/stänger,
+rätt poster per roll), att Akut-knappen inte längre kryper ovanpå menyn, och att sidans sista
+innehåll inte längre göms bakom navigeringen. Version 5.66.0 → 5.67.0.
+
+**Etapp 42 är nu helt klar (42a–42f).**
+
 ---
 
 ## Beslutspunkter som kräver ägaren
@@ -188,12 +238,11 @@ oavslutad uppgift.
 1. ✅ **Utrullningsstrategi – löst genom praxis 2026-08-02:** sektion för sektion, som
    rekommenderat. 42e/42a/42b/42c/42d byggda och släppta (42e/42a/42b/42c i ett pass, 42d
    separat) – bara 42f kvarstår.
-2. ✅ **Omfattning av 42f (mobil) – beslutat 2026-08-02: VÄNTA.** Mobilvyn skjuts upp tills
-   de skärmar som saknar mockup (Administration, Admin-panelen, Godkännanden, Nyheter) har
-   designats – annars blir 42f en ofullständig mobilupplevelse (tre skärmar mobilanpassade,
-   resten inte) istället för en komplett i ett svep. **Inget kodat.** Nästa steg för 42f är
-   INTE att bygga, utan att ta fram mockuper för de fyra saknade skärmarna (t.ex. via Claude
-   Design, samma väg som de två ursprungliga utkasten kom in) – ta upp det igen när de finns.
+2. ✅ **Omfattning av 42f (mobil) – beslutat 2026-08-02: VÄNTA, klar 2026-08-03.** Mockuper
+   för de fyra saknade skärmarna togs fram och granskades; premisskontroll vid byggstart
+   visade att den egentliga luckan var smalare än mockupens ramberättelse (ingen "sidopanel"
+   att ersätta, se 42f:s egen sektion ovan för detaljer). Byggt: reducerad bottennavigering +
+   "Mer"-meny, samt en fix för att sidans sista innehåll gömdes bakom navigeringen.
 3. **Mörkt läge:** ska det ingå i den här etappen, givet att det inte gick att verifiera som
    fungerande i källmockupen (se premisskontrollen)? Om ja: bygg det som en avgränsad
    delpunkt med egen testning, inte som en underförstådd bonus i 42a–42d.
@@ -209,7 +258,7 @@ oavslutad uppgift.
 | 42a | Innehållstätare listvyer | Medel | Färre klick för att bedöma ett utkast |
 | 42c | Navigation (Sök/Nyheter/persistent Akut) | Låg–medel | Akut alltid nåbar, oavsett sida |
 | 42d | Hem/dashboard-tillägg | Låg | Synliggör redan byggd data (senast besökta/mest lästa) |
-| 42f | Mobilvy | Hög (villkorad av beslutspunkt 2) | Första riktiga mobilupplevelsen |
+| 42f | Nav-överflöde ("Mer"-meny) + fix för dold innehåll bakom nav | Låg (visade sig smalare än väntat) | Bottennavigeringen syns och fungerar fullt ut även med 9 poster |
 
 **Om bara en sak hinns med:** 42e (tokenrevisionen) följt av 42b (samlad godkännandekö) – den
 förra skyddar mot att bygga fel, den senare ger det mätbart största friktionslyftet.
