@@ -7,22 +7,24 @@
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
 **Senast uppdaterad:** 2026-08-02, version **5.66.0**. `ETAPPLAN7.md` (Etapp 42:
-gränssnittsförnyelse) är den AKTIVA planen. **42e/42a/42b/42c/42d är klara** – bara 42f
-(mobilvy) kvarstår, villkorad av en obesvarad beslutspunkt om omfattning (se
-`ETAPPLAN7.md` beslutspunkt 2). `ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40
-(villkorad av en konkret ny kund). En deploy av v5.63.0 triggades via `deploy.yml` tidigare
-samma session – utfallet var INTE bekräftat när den här filen senast skrevs om (kontrollera
+gränssnittsförnyelse) är den AKTIVA planen, **i praktiken klar**. 42e/42a/42b/42c/42d är
+klara; 42f (mobilvy) är MEDVETET PAUSAD på ägarens beslut samma dag – vänta tills de skärmar
+som saknar en mockup (Administration/Admin/Godkännanden/Nyheter) har designats, inte en
+oavslutad uppgift. `ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en
+konkret ny kund). En deploy av v5.63.0 triggades via `deploy.yml` tidigare samma session –
+utfallet var INTE bekräftat när den här filen senast skrevs om (kontrollera
 `mcp__github__actions_list`/`actions_get` för senaste körning på branchen om du undrar).
 v5.64.0–v5.66.0 är INTE ännu deployade. `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det
-närmaste klar men inte stängd. **Läs de FJORTON NYA sektionerna längst ner i den här filen
+närmaste klar men inte stängd. **Läs de FEMTON NYA sektionerna längst ner i den här filen
 först** ("Uppföljning 2026-08-01", "Uppföljning 2026-08-01 (senare samma dag)", "Uppföljning
 2026-08-01 (Etapp 37a)", "Uppföljning 2026-08-01 (Etapp 37b)", "Uppföljning 2026-08-01 (Etapp
 37c)", "Uppföljning 2026-08-01 (Etapp 37d)", "Uppföljning 2026-08-01 (senare samma dag igen)",
 "Uppföljning 2026-08-01 (Etapp 38)", "Uppföljning 2026-08-02 (Etapp 39a/39b)", "Uppföljning
 2026-08-02 (Etapp 39c/39d)", "Uppföljning 2026-08-02 (ETAPPLAN7 antagen)", "Uppföljning
-2026-08-02 (Etapp 41)", "Uppföljning 2026-08-02 (Etapp 42e/42a/42b/42c)" och "Uppföljning
-2026-08-02 (Etapp 42d)") om du undrar var arbetet står idag – allt mellan denna rad och dem
-(inklusive "Uppföljning 2026-07-28") är historisk, äldre kontext.
+2026-08-02 (Etapp 41)", "Uppföljning 2026-08-02 (Etapp 42e/42a/42b/42c)", "Uppföljning
+2026-08-02 (Etapp 42d)" och "Uppföljning 2026-08-02 (42f pausad)") om du undrar var arbetet
+står idag – allt mellan denna rad och dem (inklusive "Uppföljning 2026-07-28") är historisk,
+äldre kontext.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -788,17 +790,33 @@ en premisskontroll-fråga, det är ett faktiskt öppet ägarbeslut.
 
 **INTE gjort ännu:** deploy av v5.64.0–v5.66.0 till produktion.
 
+## Uppföljning 2026-08-02 (42f pausad): ägarbeslut, inget kodat
+
+Ställde beslutspunkt 2 (omfattning av 42f, mobilvy) till användaren efter att 42d gjorde
+Etapp 42 klar förutom just den punkten. **Beslut: vänta.** Mobilvyn ska INTE byggas delvis
+(bara de tre skärmar mockupen redan täcker) – skjuts upp tills Administration/Admin/
+Godkännanden/Nyheter också har en mockup att bygga mot, så 42f blir en komplett
+mobilupplevelse i ett svep istället för en ofullständig. Inget kodat, ingen versionsbump
+(ren dokumentation). `ETAPPLAN7.md` beslutspunkt 2 och Etapp 42:s sammanfattning uppdaterade.
+**Nästa steg för 42f, när det blir aktuellt, är INTE att skriva kod** – det är att ta fram
+mockuper för de fyra saknade skärmarna (t.ex. via Claude Design, samma väg som de två
+ursprungliga UI-utkasten kom in denna session).
+
+**Med detta är hela `ETAPPLAN7.md` i praktiken klar** (42f medvetet pausad, inte oavslutad).
+Om användaren ber om "nästa steg" utan att specificera: fråga om prioritering mellan
+`ETAPPLAN6.md`s Etapp 40 (villkorad av en ny kund) och `ETAPPLAN5.md`s kvarvarande punkter –
+det finns inget mer ogjort och obeslutat i den aktiva UI-planen just nu.
+
 ## Om du är en ny Claude-session som läser detta
 
-Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete. Om
-användaren säger något i stil med "fortsätt där vi var" utan att specificera: **den aktiva
-planen är `ETAPPLAN7.md` (Etapp 42, gränssnittsförnyelse)** – 42e/42a/42b/42c/42d är alla
-klara. **Enda kvarvarande punkten är 42f (mobilvy), och den är villkorad av ett obesvarat
-ägarbeslut** (omfattning – se beslutspunkt 2) som INTE ska antas, bara frågas. `ETAPPLAN6.md`
-har bara Etapp 40 kvar (villkorad av en konkret ny kund) och `ETAPPLAN5.md`s kvarvarande
-punkter kan tas närhelst de passar/blockeringen lossnar. Läs `CLAUDE.md` först om du är osäker
-på vilken fil som är auktoritativ för vad – och notera dess underhållsregel för DEN HÄR filen
-innan du avslutar sessionen. Om du ska verifiera en Cloud Function ELLER en
+Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete.
+`ETAPPLAN7.md` (Etapp 42, gränssnittsförnyelse) är i praktiken klar: 42e/42a/42b/42c/42d
+byggda, 42f medvetet pausad på ägarens beslut (vänta på mockuper för de sidor som saknar en –
+se ovan). Bygg INTE 42f utan att först fråga om det förändrade läget (nya mockuper klara?).
+`ETAPPLAN6.md` har bara Etapp 40 kvar (villkorad av en konkret ny kund) och `ETAPPLAN5.md`s
+kvarvarande punkter kan tas närhelst de passar/blockeringen lossnar. Läs `CLAUDE.md` först om
+du är osäker på vilken fil som är auktoritativ för vad – och notera dess underhållsregel för
+DEN HÄR filen innan du avslutar sessionen. Om du ska verifiera en Cloud Function ELLER en
 Storage-filuppladdning i en webbläsare mot emulatorerna i den här miljön: testa FÖRST med en
 redan fungerande funktion (t.ex. `skickaFeedback`, eller den befintliga `bildUrl`-
 uppladdningen för förrådsartiklar) innan du felsöker din egen kod – båda har en känd,

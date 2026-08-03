@@ -176,19 +176,24 @@ vitest-tester, test:rules oförändrat). Verifierat i en riktig webbläsare: ban
 räknar rätt för en superadmin (4 väntande poster, matchande 42b:s kö), länkar till
 `/godkannanden`, och syns INTE alls för en `personal`-roll. Version 5.65.0 → 5.66.0.
 
-**Kvar i Etapp 42:** endast 42f (mobilvy), villkorad av beslutspunkt 2 – inte påbörjad.
+**Kvar i Etapp 42:** endast 42f (mobilvy) – ägarbeslut 2026-08-02: vänta tills de saknade
+mockuperna (Administration, Admin, Godkännanden, Nyheter i mobilformat) finns. Se
+beslutspunkt 2. Etapp 42 är i praktiken klar för nu; 42f är en medveten paus, inte en
+oavslutad uppgift.
 
 ---
 
 ## Beslutspunkter som kräver ägaren
 
 1. ✅ **Utrullningsstrategi – löst genom praxis 2026-08-02:** sektion för sektion, som
-   rekommenderat. 42e/42a/42b/42c byggda och släppta tillsammans i ett pass (de visade sig
-   vara tätt sammanlänkade – 42a:s fynd påverkade 42b:s omfattning), 42d/42f kvarstår.
-2. **Omfattning av 42f (mobil):** ska mobilvyn ingå i den här etappen alls, eller brytas ut
-   till en helt egen, senare etapp? Mockupens mobilskärmar visar bara tre av flera vyer (Hem,
-   Kliniskt stöd, Logistik) – Administration, Admin-panelen, Godkännanden och Nyheter i
-   mobilformat är inte designade än.
+   rekommenderat. 42e/42a/42b/42c/42d byggda och släppta (42e/42a/42b/42c i ett pass, 42d
+   separat) – bara 42f kvarstår.
+2. ✅ **Omfattning av 42f (mobil) – beslutat 2026-08-02: VÄNTA.** Mobilvyn skjuts upp tills
+   de skärmar som saknar mockup (Administration, Admin-panelen, Godkännanden, Nyheter) har
+   designats – annars blir 42f en ofullständig mobilupplevelse (tre skärmar mobilanpassade,
+   resten inte) istället för en komplett i ett svep. **Inget kodat.** Nästa steg för 42f är
+   INTE att bygga, utan att ta fram mockuper för de fyra saknade skärmarna (t.ex. via Claude
+   Design, samma väg som de två ursprungliga utkasten kom in) – ta upp det igen när de finns.
 3. **Mörkt läge:** ska det ingå i den här etappen, givet att det inte gick att verifiera som
    fungerande i källmockupen (se premisskontrollen)? Om ja: bygg det som en avgränsad
    delpunkt med egen testning, inte som en underförstådd bonus i 42a–42d.
