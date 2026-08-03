@@ -6,14 +6,15 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-03, version **5.71.0**. `ETAPPLAN7.md`s Etapp 42 (a–f) är HELT
-KLAR och deployad (v5.67.0, körning #65). **Etapp 43 (samma fil)** under bygge, gruppvis:
-**43a, 43b, 43c, och 43e:s "Kritiska specialfall"/"Vardagsverktyg" är KLARA/GRANSKADE.**
-v5.71.0 är INTE ännu deployad. Nästa enligt beslutad byggordning: 43d (mörkt läge).
+**Senast uppdaterad:** 2026-08-03, version **5.71.0** (oförändrad sedan 43c – 43d krävde
+ingen kodändring). `ETAPPLAN7.md`s Etapp 42 (a–f) är HELT KLAR och deployad (v5.67.0,
+körning #65). **Etapp 43 (samma fil)** under bygge, gruppvis: **43a, 43b, 43c, 43d, och
+43e:s "Kritiska specialfall"/"Vardagsverktyg" är KLARA/GRANSKADE.** Endast 43e:s tre
+återstående grupper (Stöd/hjälp, Personligt, Ledning/leverantör) kvarstår i hela Etapp 43.
 `ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund).
 `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs
-sektionen "Uppföljning 2026-08-03 (Etapp 43c klar)" längst ner i den här filen först** om du
-undrar var arbetet står idag.
+sektionen "Uppföljning 2026-08-03 (Etapp 43d: mörkt läge redan klart)" längst ner i den här
+filen först** om du undrar var arbetet står idag.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1004,3 +1005,24 @@ pushat. **Inte deployat.**
 
 Nästa steg enligt byggordningen: 43d (mörkt läge, löser Etapp 42:s beslutspunkt 3) – kräver
 en egen premisskontroll av vilka komponenter som saknar en fungerande mörk variant idag.
+
+## Uppföljning 2026-08-03 (Etapp 43d: mörkt läge redan klart)
+
+Premisskontroll vid byggstart visade att `ETAPPLAN7.md`s antagande var fel: mörkt läge
+antogs behöva byggas (data-tema-attribut, växlare i `Profil.jsx`), men **funktionen finns
+redan, komplett**: `src/hooks/useTema.js` + `src/components/TemaVaxlare.jsx` (redan monterad
+i `Profil.jsx`) – ljust/mörkt/system, `localStorage`-persistens, FOUC-säkert
+(`index.html` sätter attributet innan React laddar), PLUS en accentfärgsväljare planen inte
+ens kände till.
+
+Verifierat i en riktig webbläsare (inte bara läst källkoden): växlaren fungerar, temat syns
+korrekt på Hem/Profil/den nya 43c-accordionen (bekräftar att 43c byggdes mot rätt CSS-tokens
+sedan den fungerar i mörkt läge utan extra arbete), och inställningen överlever en
+sidladdning. **Ingen kodändring, ingen version-bump** – exakt samma "redan i sin ordning"-
+utgång som 43e:s "Vardagsverktyg". Etapp 42:s tre etapper gamla, olösta beslutspunkt 3 är
+därmed löst: svaret var att frågan redan var besvarad i koden.
+
+**Kvar i Etapp 43:** bara 43e:s tre återstående grupper (Stöd/hjälp: Hjalp/Feedback/
+Kontakter/Lankbibliotek; Personligt: Profil/Papperskorg/OfflineCenter; Ledning/leverantör:
+Leverantor/Kompetensmatris/Ledningsrapport – den sistnämnda med extra försiktighet efter
+43c:s scope-creep-fynd kring dess delade komponenter).

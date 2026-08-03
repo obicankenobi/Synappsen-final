@@ -389,13 +389,26 @@ emulatorerna vid 1280px och 375px: hopfällt/expanderat läge för flera sektion
 rotation, och en regressionskontroll av Logistik/Kompetensmatris (båda använder den delade
 `.admin-sektion`-klassen) som bekräftade att de förblev OFÖRÄNDRADE. Version 5.70.0 → 5.71.0.
 
-### 43d – Mörkt läge (löser beslutspunkt 3 från Etapp 42)
+### 43d ✅ KLAR (2026-08-03) – Mörkt läge, redan komplett byggt
 Aldrig avgjort under Etapp 42 eftersom mockupens växlare inte gick att verifiera som
-fungerande. Kräver ett explicit ägarbeslut (se nedan) innan bygge: `src/index.css` har redan
-`@media (prefers-color-scheme: dark)`-varianter av de flesta tokens (bekräftat i 42e) – en
-manuell växlare (inte bara OS-inställningen) är sannolikt mest en `data-tema`-attribut-lösning
-på `<html>` plus en inställning i `Profil.jsx`, men omfattningen (vilka komponenter saknar en
-mörk variant idag) behöver en egen premisskontroll innan den uppskattas.
+fungerande – planen antog därför att en manuell växlare behövde BYGGAS (data-tema-attribut,
+inställning i `Profil.jsx`, premisskontroll av vilka komponenter som saknade en mörk variant).
+
+**Premisskontroll vid byggstart visade att antagandet var fel: funktionen finns redan, helt
+färdig.** `src/hooks/useTema.js` + `src/components/TemaVaxlare.jsx` (monterad i `Profil.jsx`)
+ger precis den `data-tema`-attribut-lösningen planen beskrev som "sannolikt" behövde byggas –
+ljust/mörkt/system, sparat i `localStorage`, FOUC-säkert (satt i `index.html` innan React
+laddar), PLUS en accentfärgsväljare (blå/grön/lila/orange) som planen inte ens kände till.
+
+Verifierat i en riktig webbläsare, inte bara läst i källkoden: växlaren fungerar, temat
+appliceras direkt på Hem/Admin/alla andra sidor (inklusive den nya 43c-accordionen, som
+renderar korrekt i mörkt läge eftersom den byggdes mot samma CSS-tokens som allt annat), och
+inställningen ÖVERLEVER en sidladdning (localStorage-persistens bekräftad).
+
+**Ingen kodändring gjord.** Precis som 43e:s "Vardagsverktyg" är detta en ärlig
+premisskontroll-utgång: en delpunkt som visade sig redan vara klar, inte en delpunkt som
+byggdes. Ingen version-bump. Beslutspunkt 3 från Etapp 42 (skulle mörkt läge ingå?) är därmed
+löst av sig själv – svaret var "det finns redan".
 
 ### 43e – Resterande 17 sidor, granskade i grupper
 Grupperas efter vem som använder dem, inte efter filstorlek, så varje delomgång ger ett
@@ -462,8 +475,8 @@ ovan). Ingen version-bump eftersom inget som visas för användaren ändrades.
 
 **Byggordning härifrån:** 43a ✅ KLAR → 43b ✅ KLAR →
 43e:s "Kritiska specialfall" ✅ KLAR → 43e:s "Vardagsverktyg" ✅ GRANSKAD → 43c ✅ KLAR
-→ 43d (mörkt läge) → 43e:s återstående grupper (Stöd/Personligt/Ledning – Ledningsrapport
-ingår här nu, med extra försiktighet efter 43c:s scope-creep-fynd).
+→ 43d ✅ KLAR (redan byggt) → 43e:s återstående grupper (Stöd/Personligt/Ledning –
+Ledningsrapport ingår här nu, med extra försiktighet efter 43c:s scope-creep-fynd).
 Samma motivering som tidigare: låg insats/hög synlighet och patientsäkerhet går före
 lågfrekventa admin-sidor.
 
@@ -476,5 +489,5 @@ lågfrekventa admin-sidor.
 | 43a | LoggaIn/Registrera/Introduktion | Låg–medel | Det första intrycket matchar resten av appen |
 | 43b | Hem:s snabblänksrad | Låg | Mindre skrollning innan innehåll syns på mobil |
 | 43c | Admin-panelens mobildensitet (accordion) | Medel–hög | Löser en redan bekräftad, konkret brist |
-| 43d | Mörkt läge | Overifierad (kräver egen premisskontroll) | Löser en tre etapper gammal, olöst fråga |
+| 43d | Mörkt läge | Ingen (redan byggt – premisskontroll visade funktionen redan fanns) | Löser en tre etapper gammal, olöst fråga – svaret var "redan klart" |
 | 43e | Resterande 17 sidor, gruppvis | Medel (sprids ut) | Hela appen, inte bara sju sidor, matchar samma profil |
