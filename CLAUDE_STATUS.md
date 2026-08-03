@@ -7,13 +7,17 @@
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
 **Senast uppdaterad:** 2026-08-03, version **5.67.0** – DEPLOYAD TILL PRODUKTION (körning #65,
-commit `0552d59`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`). `ETAPPLAN7.md`
-(Etapp 42: gränssnittsförnyelse) är HELT KLAR – alla delpunkter 42a–42f byggda och nu ute.
-`ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund).
-`ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs
-sektionen "Uppföljning 2026-08-03 (Etapp 42f)" längst ner i den här filen först** om du
-undrar var arbetet står idag – allt före den (inklusive alla "Uppföljning
-2026-08-0[12]"-sektioner) är historisk, äldre kontext.
+commit `0552d59`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`). `ETAPPLAN7.md`s
+Etapp 42 (a–f) är HELT KLAR och ute. **Samma dag lades en ny Etapp 43 till i samma fil**
+(inte ett nytt `ETAPPLANx.md` – användaren bad uttryckligen om att fortsätta i den pågående
+planen): de 20 sidor (av 27 totalt i `App.jsx`) som aldrig jämfördes mot den nya profilen
+under Etapp 42 (mockuperna visade bara sju sidor), plus tre tidigare uppskjutna punkter
+(Hem:s snabblänksrad, Admin-panelens mobildensitet, mörkt läge). **Inget byggt än** – Etapp
+43 väntar på ägarbeslut om omfattning/prioritet (se dess egna beslutspunkter i
+`ETAPPLAN7.md`). `ETAPPLAN6.md` (Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en
+konkret ny kund). `ETAPPLAN5.md` (Etapp 32–36: säkerhet) är i det närmaste klar men inte
+stängd. **Läs sektionen "Uppföljning 2026-08-03 (Etapp 43 tillagd)" längst ner i den här
+filen först** om du undrar var arbetet står idag.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -857,3 +861,31 @@ vidare instruktion: `ETAPPLAN6.md`s Etapp 40 (villkorad av en konkret ny kund) e
 på att komma i tur, inte på kapacitet. En ny `ETAPPLAN8.md` behöver skrivas när/om det finns
 ett nytt större arbetsområde att ta itu med (t.ex. Admin-panelens mobildensitet, om det
 prioriteras).
+
+## Uppföljning 2026-08-03 (Etapp 43 tillagd)
+
+Användaren frågade vad som saknas för att HELA UI:t ska vara omgjort enligt den nya profilen.
+Svar: av 27 routade sidor (`App.jsx`) var det bara sju (Hem, Kliniskt stöd, Logistik,
+Administration, Godkännanden, Admin, Nyheter) som någonsin jämfördes mot mockuperna under
+Etapp 42 – 20 sidor har aldrig granskats, bland dem `LoggaIn.jsx` (den allra första sidan
+alla möter). Dessutom tre uppskjutna punkter från Etapp 42: Hem:s snabblänksrad (bekräftad
+tät på 375px under 42f:s test), Admin-panelens mobildensitet (mockupens accordion-lösning,
+medvetet inte byggd i 42f), och mörkt läge (beslutspunkt 3, aldrig löst).
+
+Användaren bad om en plan för detta, tillagd i SAMMA fil (`ETAPPLAN7.md`) som en ny
+"Etapp 43 – Slutföra gränssnittsförnyelsen"-sektion, snarare än en ny `ETAPPLANx.md` – ett
+uttryckligt undantag från den vanliga "ny fil per avslutad plan"-principen i `CLAUDE.md`,
+eftersom ETAPPLAN7 fortfarande var den aktiva/pågående filen när begäran kom.
+
+Etapp 43 delas i: 43a (LoggaIn/Registrera/Introduktion – första intrycket, hög prioritet),
+43b (Hem:s snabblänksrad, låg insats), 43c (Admin-panelens accordion, medel–hög insats),
+43d (mörkt läge, löser beslutspunkt 3), 43e (resterande 17 sidor i fem grupper efter
+användarkrets, inte filstorlek). Tre nya beslutspunkter väntar på ägaren: omfattning
+(allt i en omgång eller gruppvis som 42), om mörkt läge ska tas nu, och om 43c ska
+prioriteras tidigt eftersom den redan har en bekräftad brist (skärmdump från 42f).
+
+**Inget kodat ännu** – detta var enbart planering. `CLAUDE.md`s dokumentkarta uppdaterad
+(ETAPPLAN7.md beskrivs nu som "42 klar + 43 ny", inte längre "HELT KLAR"). Inget committat
+till git eftersom inget kodarbete skedde – bara dokumentationsändringar
+(`ETAPPLAN7.md`/`CLAUDE.md`/den här filen). Nästa steg: invänta ägarbeslut på Etapp 43:s tre
+beslutspunkter innan bygge påbörjas.

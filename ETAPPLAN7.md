@@ -1,7 +1,10 @@
 # ETAPPLAN 7 – Gränssnittsförnyelse
 
 **✅ ANTAGEN 2026-08-02.** Utgångsläge v5.63.0, efter att Etapp 37–39 (`ETAPPLAN6.md`) blivit
-klara. Etapp 42.
+klara. Etapp 42 (a–f) är HELT KLAR (2026-08-03), v5.67.0, deployad. **Etapp 43 tillagd
+2026-08-03** – täcker de 20 sidor och tre uppskjutna punkter (snabblänksrad, Admin-densitet,
+mörkt läge) Etapp 42 aldrig nådde, se den egna sektionen längst ner i den här filen.
+Väntar på ägarbeslut (se Etapp 43:s egna beslutspunkter) innan bygge påbörjas.
 
 **Detta är den AKTIVA planen för nytt arbete.** `ETAPPLAN6.md` är inte stängd – dess
 kvarvarande punkter (Etapp 40, villkorad av en konkret ny kund, och Etapp 41, lågt hängande
@@ -275,3 +278,94 @@ förra skyddar mot att bygga fel, den senare ger det mätbart största friktions
 | En dedikerad `/sok`-route (ursprungligen planerad i 42c) | Premisskontroll vid byggstart (2026-08-02) visade att `BottomNav.jsx`s "Sök" redan öppnar en global kommandopalett från alla sidor – objektivt bättre än en enda sida hade varit. Att bygga en till skulle bara duplicera en redan bättre lösning. |
 | Ta bort de befintliga inline Godkänn/Ta bort-knapparna ur de vanliga listvyerna (planerat i 42b) | Medvetet avsteg – se 42b:s egen sektion ovan. Den nya samlade kön är ett tillägg, inte (ännu) en ersättning; borttagningen av de gamla knapparna sparas till en egen, senare omgång med dedikerad regressionstestning. |
 | En live badge-räknare på "Godkänn" i `BottomNav.jsx` (planerat i 42b) | Skulle kräva flera extra Firestore-lyssnare på nästan varje sidvisning för varje användare, oavsett behörighet – en kostnad plantexten inte vägde in. Länken fungerar, bara utan siffra. |
+
+---
+
+## Etapp 43 – Slutföra gränssnittsförnyelsen (sidorna Etapp 42 aldrig nådde)
+
+**Varför:** Etapp 42 gjorde bara de sju sidor de två mockuperna faktiskt visade (Hem,
+Kliniskt stöd, Logistik, Administration, Godkännanden, Admin, Nyheter) rättvisa. Appen har
+27 routade sidor totalt (`App.jsx`) – **20 har aldrig jämförts mot den nya profilen**, bland
+dem den allra första sidan varje användare möter (`LoggaIn.jsx`). De delar visserligen samma
+CSS-tokens som resten av appen (`--primar`/`--kant`/badge-systemet i `src/index.css`) så de
+är inte trasiga eller omoderna – bara oreviderade. Utöver det finns tre kända, uppskjutna
+punkter från Etapp 42 som hör hemma här: Hem:s snabblänksrad, Admin-panelens mobildensitet,
+och mörkt läge (beslutspunkt 3, aldrig löst).
+
+**Genomgående krav 8 gäller extra strikt här:** Etapp 42a och 42d visade båda att en plans
+antagande om "detta behöver byggas om" ofta var fel – innehållet fanns redan, bara inte på
+den plats/i den form planen trodde. Anta INTE att någon av de 20 sidorna nedan faktiskt
+behöver ändras förrän den faktiskt öppnats i en riktig webbläsare (mobil OCH desktop) och
+jämförts mot samma måttstock som 42a–42f använde (innehållstäthet, ägare/taggar-synlighet,
+bulk-hantering, nav-överflöde). Flera kan visa sig redan vara i sin ordning.
+
+### 43a – Första intrycket: LoggaIn, Registrera, Introduktion
+Den enda sida ALLA användare ser innan de ens är inloggade, plus onboardingflödet direkt
+efter. Högst prioritet trots låg teknisk komplexitet (109/118/319 rader) – ett dåligt första
+intryck väger tyngre än en sida en redaktör öppnar en gång i månaden.
+
+### 43b – Hem:s snabblänksrad (låg insats, redan verifierad brist)
+Bekräftad i en riktig 375px-skärmdump under 42f:s byggpass: nio korta länkar (Anslagstavla,
+Nyheter, Feedback, Hjälp, Min profil, Kontakter, Introduktion, Kompetensmatris,
+Länkbibliotek, Papperskorg) tar upp fem rader ovanför sökfältet innan man ens når det
+faktiska innehållet. Lös genom att flytta de mest sällan använda av dem (Papperskorg,
+Länkbibliotek, Introduktion – engångs-/admin-karaktär) till en egen, hopfällbar rad eller in
+i "Mer"-menyns mönster från 42f, snarare än att bygga en helt ny navigationsyta.
+
+### 43c – Admin-panelens densitet på mobil (medel–hög insats, egen fristående insats)
+Mockupens accordion-lösning (varje sektion – Användare & roller, Moduler, Innehållshälsa,
+Granskningsrundor, Personalpuls, Kostnadsuppföljning, Säkerhet – som en egen hopfällbar rad)
+bekräftades under 42f:s premisskontroll vara en genuin förbättring: en lång, platt
+statistiklista utan struktur på en 375px-skärm. **Förutsättning innan bygge:** en ny
+premisskontroll av exakt vilka undersektioner `Admin.jsx` faktiskt består av sedan
+Etapp 8c:s uppdelning (`Admin.jsx` + dess sektionskomponenter) – bygg accordion-strukturen
+runt den FAKTISKA komponentuppdelningen, inte mockupens gissning om vad panelen innehåller.
+
+### 43d – Mörkt läge (löser beslutspunkt 3 från Etapp 42)
+Aldrig avgjort under Etapp 42 eftersom mockupens växlare inte gick att verifiera som
+fungerande. Kräver ett explicit ägarbeslut (se nedan) innan bygge: `src/index.css` har redan
+`@media (prefers-color-scheme: dark)`-varianter av de flesta tokens (bekräftat i 42e) – en
+manuell växlare (inte bara OS-inställningen) är sannolikt mest en `data-tema`-attribut-lösning
+på `<html>` plus en inställning i `Profil.jsx`, men omfattningen (vilka komponenter saknar en
+mörk variant idag) behöver en egen premisskontroll innan den uppskattas.
+
+### 43e – Resterande 17 sidor, granskade i grupper
+Grupperas efter vem som använder dem, inte efter filstorlek, så varje delomgång ger ett
+sammanhängande värde:
+
+| Grupp | Sidor | Vem berörs |
+|---|---|---|
+| Vardagsverktyg | `ForradVy`, `LaddaUpp`, `Skiftrapport`, `Anslagstavla` | All personal, dagligen |
+| Stöd/hjälp | `Hjalp`, `Feedback`, `Kontakter`, `Lankbibliotek` | All personal, sällan |
+| Personligt | `Profil`, `Papperskorg`, `OfflineCenter` | All personal, sällan |
+| Ledning/leverantör | `Leverantor`, `Kompetensmatris`, `Ledningsrapport` | Redaktörer/superadmin |
+| Kritiska specialfall | `Akutlage`, `Korvy`, `SedanForraPasset` | Prioritera `Akutlage` högt trots få besök – akutlägessidan måste hålla samma standard som resten, inte tvärtom |
+
+**Rekommenderad ordning:** 43a → 43b (båda låg insats, hög synlighet) → 43e:s "Kritiska
+specialfall" (Akutlage särskilt, patientsäkerhetsrelaterat) → 43e:s "Vardagsverktyg" → 43c →
+43d → 43e:s återstående grupper (Stöd/Personligt/Ledning, lägst prioritet – låg
+användningsfrekvens).
+
+---
+
+## Beslutspunkter för Etapp 43 som kräver ägaren
+
+1. **Omfattning:** ska alla 20 sidor + de tre uppskjutna punkterna tas i en enda
+   sammanhängande omgång, eller släppas gruppvis (som 42 gjorde, sektion för sektion)?
+2. **Mörkt läge (43d):** in i den här etappen nu när premisskontroll kan göras ordentligt,
+   eller fortsatt uppskjutet till en egen, separat etapp?
+3. **43c:s prioritet:** Admin-panelens accordion är den mest omfattande enskilda delpunkten
+   här – ska den vänta tills resten av Etapp 43 är klar, eller tas tidigt eftersom den redan
+   är den mest konkret verifierade bristen (skärmdump finns)?
+
+---
+
+## Sammanfattning – Etapp 43
+
+| Delpunkt | Innehåll | Insats | Vad det ger |
+|---|---|---|---|
+| 43a | LoggaIn/Registrera/Introduktion | Låg–medel | Det första intrycket matchar resten av appen |
+| 43b | Hem:s snabblänksrad | Låg | Mindre skrollning innan innehåll syns på mobil |
+| 43c | Admin-panelens mobildensitet (accordion) | Medel–hög | Löser en redan bekräftad, konkret brist |
+| 43d | Mörkt läge | Overifierad (kräver egen premisskontroll) | Löser en tre etapper gammal, olöst fråga |
+| 43e | Resterande 17 sidor, gruppvis | Medel (sprids ut) | Hela appen, inte bara sju sidor, matchar samma profil |
