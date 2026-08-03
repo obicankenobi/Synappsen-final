@@ -6,13 +6,13 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-03, version **5.72.0**. `ETAPPLAN7.md` (Etapp 42 + Etapp 43)
-är **HELT KLAR** – samtliga delpunkter i båda etapperna byggda/granskade. **INTE ännu
-deployad** (senaste deploy är v5.67.0, körning #65, som bara täcker Etapp 42). `ETAPPLAN6.md`
-(Etapp 37–41) är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund). `ETAPPLAN5.md`
-(Etapp 32–36: säkerhet) är i det närmaste klar men inte stängd. **Läs sektionen "Uppföljning
-2026-08-03 (Etapp 43 helt klar)" längst ner i den här filen först** om du undrar var arbetet
-står idag – nästa steg är sannolikt bara att deploya, om inget annat begärs.
+**Senast uppdaterad:** 2026-08-03, version **5.72.0** – DEPLOYAD TILL PRODUKTION (körning #66,
+commit `3efb193`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`). `ETAPPLAN7.md`
+(Etapp 42 + Etapp 43) är HELT KLAR och nu helt ute – samtliga 27 sidor i appen granskade mot
+den nya profilen, alla ändringar (Etapp 42a–42f, 43a–43e) live. `ETAPPLAN6.md` (Etapp 37–41)
+är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund). `ETAPPLAN5.md` (Etapp 32–36:
+säkerhet) är i det närmaste klar men inte stängd. **Läs sektionen "Uppföljning 2026-08-03
+(Etapp 43 helt klar)" längst ner i den här filen först** om du undrar var arbetet står idag.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1048,6 +1048,12 @@ committat och pushat. **Inte deployat.**
 **`ETAPPLAN7.md` (Etapp 42 + Etapp 43) är därmed HELT KLAR.** Två genuina buggar hittades och
 fixades under Etapp 43:s byggpass (Korvy-knappens flex-läckage i "Kritiska specialfall",
 Leverantörsvyns null-krasch här) – ingen av dem var kända innan premisskontrollen/testningen.
-Nästa steg utan vidare instruktion: fråga om deploy (v5.67.0 → v5.72.0 innehåller sex releaser
-UI-arbete som väntar), eller `ETAPPLAN6.md`s Etapp 40/`ETAPPLAN5.md`s kvarvarande punkter om
-inget UI-arbete efterfrågas.
+
+**DEPLOYAD TILL PRODUKTION 2026-08-03** (körning #66, commit `3efb193`, `deploy.yml` via
+`workflow_dispatch`, `conclusion: success`) – v5.67.0 → v5.72.0 i ett enda hopp, alltså både
+Etapp 42 och Etapp 43 samtidigt. Hela gränssnittsförnyelsen (`ETAPPLAN7.md`) är nu live.
+
+Nästa steg utan vidare instruktion: `ETAPPLAN6.md`s Etapp 40 eller `ETAPPLAN5.md`s
+kvarvarande punkter, båda blockerade av ägarbeslut/extern tid snarare än kapacitet. Ingen ny
+UI-plan väntar just nu – nästa `ETAPPLANx.md` skrivs när/om ett nytt större arbetsområde
+identifieras.
