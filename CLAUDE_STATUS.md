@@ -6,16 +6,17 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-04, version **5.76.0** (pushad, INTE ännu deployad – senaste
-produktionsdeploy är v5.73.0, körning #67, alltså tre releaser bakom). **`ETAPPLAN9.md` (Etapp
-45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är ALLA HELT KLARA** – inget mer kodat och obeslutat
-väntar just nu i den aktiva UI-/kvalitets-linjen. Etapp 47 (sök- och kunskapsupptäckt):
-rutinformuläret föreslår nu relaterade rutiner baserat på delade taggar, och "Sedan ditt förra
-pass" visar väsentligt uppdaterat innehåll, inte bara nytt – den tredje ursprungliga idén
-(bredare kommandopalett) visade sig redan vara byggd. **Läs sektionen "Uppföljning 2026-08-04
-(Etapp 47 klar)" längst ner i den här filen först** om du undrar var arbetet står idag – nästa
-steg är en deploy av v5.76.0 (tre releaser väntar: 5.74/5.75/5.76) eller ett nytt större
-arbetsområde att identifiera.
+**Senast uppdaterad:** 2026-08-04, version **5.76.0**, **DEPLOYAD TILL PRODUKTION** (körning
+#68, commit `328f940`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`, asset-hash
+`index-BtpA3PtP.js` bekräftad live). **`ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44,
+46, 47) är ALLA HELT KLARA OCH DEPLOYADE** – inget mer kodat och obeslutat väntar just nu i den
+aktiva UI-/kvalitets-linjen. Etapp 47 (sök- och kunskapsupptäckt): rutinformuläret föreslår nu
+relaterade rutiner baserat på delade taggar, och "Sedan ditt förra pass" visar väsentligt
+uppdaterat innehåll, inte bara nytt – den tredje ursprungliga idén (bredare kommandopalett)
+visade sig redan vara byggd. **Läs sektionen "Uppföljning 2026-08-04 (Etapp 47 klar)" och
+sektionen direkt under den längst ner i den här filen först** om du undrar var arbetet står
+idag – ingen ny UI-/kvalitetsplan väntar just nu; nästa steg är att identifiera ett nytt större
+arbetsområde, eller ta upp en av de öppna punkterna i `OPPNA-PUNKTER.md`.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1345,3 +1346,16 @@ build, vitest 124/124). Version 5.75.0 → **5.76.0**. Committat och pushat.
 **Med detta är `ETAPPLAN8.md` (Etapp 44, 46, 47) OCH `ETAPPLAN9.md` (Etapp 45) alla helt
 klara.** Tre releaser (5.74–5.76) väntar på deploy. Ingen ny UI-/kvalitetsplan väntar – nästa
 `ETAPPLANx.md` skrivs när/om ett nytt större arbetsområde identifieras.
+
+## Uppföljning 2026-08-04 (deploy): v5.76.0 live i produktion
+
+Användaren bad "deploya den". Triggade `deploy.yml` via `workflow_dispatch` på
+`claude/compassionate-euler-rho0q5`, commit `328f940` (Etapp 47-committen, v5.76.0). Körning
+#68: `status: completed`, `conclusion: success`. Detta var ett trehopp – v5.74.0 (Etapp 45),
+v5.75.0 (Etapp 46) och v5.76.0 (Etapp 47) gick alla live samtidigt eftersom ingen av dem
+deployats individuellt sedan v5.73.0 (körning #67). Bekräftade ny asset-hash i produktion
+(`assets/index-BtpA3PtP.js`) via `curl`. Uppdaterade `CLAUDE.md`s `ETAPPLAN8.md`-rad i
+dokumentkartan (tog bort "inte deployade ännu").
+
+Inget nytt kodat i den här sessionen – rent avstämnings-/dokumentationsarbete kring en redan
+lyckad deploy.
