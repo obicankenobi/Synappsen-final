@@ -183,6 +183,20 @@
 
 body {
   margin: 0;
+  /* Etapp 44d: förhindrar webbläsarens gummistuds/pull-to-refresh vid överscrollning – ett av
+     de tydligaste "det här är bara en webbsida"-tecknen på en telefon. Sidor med eget internt
+     scroll (t.ex. modaler) påverkas inte, det här gäller bara sidans egen rullning. */
+  overscroll-behavior-y: contain;
+}
+
+/* Etapp 44d: tar bort den långtryck-callout-meny (kopiera/dela) webbläsare visar på
+   knappar/länkar/navigering – matchar en riktig apps touchbeteende. Gäller INTE brödtext
+   (rutininnehåll ska fortfarande gå att markera och kopiera). */
+button,
+a,
+.bottom-nav,
+.korvy__knapp {
+  -webkit-touch-callout: none;
 }
 
 ::selection {

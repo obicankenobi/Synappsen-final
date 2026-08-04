@@ -7,7 +7,10 @@
     <meta name="theme-color" content="#1d4ed8" />
     <meta name="description" content="Synappsen – kunskapsbank för akutmottagningen" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="/icons/icon.svg" />
+    <!-- Etapp 44b: Apple stöder officiellt bara PNG för apple-touch-icon (inte SVG som
+         manifest.webmanifest annars använder för Android/Chrome) – en egen genererad
+         PNG-variant, se public/icons/apple-touch-icon.png. -->
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Synappsen" />

@@ -81,6 +81,52 @@ båda plattformarna, en deploy stör aldrig en pågående arbetssession utan var
 inte längre "läcker" webbläsarbeteenden (gummistuds, textmarkerings-popup på knappar) som
 avslöjar att det inte är en riktig app.
 
+### 44a–44d ✅ KLARA (2026-08-04)
+
+**44c verifierades FÖRE bygget genom att läsa `vite-plugin-pwa`s faktiska registreringskod**
+(`node_modules/vite-plugin-pwa/dist/client/build/register.js`), inte genom att gissa – ett
+starkare verifieringssteg än den ursprungligen planerade "håll en flik öppen under en riktig
+deploy"-testen, som inte gick att genomföra i den här sessionen. Bekräftat: med
+`registerType: 'autoUpdate'` injicerar pluginet AUTOMATISKT ett registreringsskript
+(`injectRegister: 'auto'` → `'script'` eftersom ingen kod importerade `virtual:pwa-register`)
+som anropar `window.location.reload()` UTAN VARSEL så fort en ny service worker aktiverats –
+premisskontrollens farhåga var korrekt, inte bara en känsla.
+
+**Byggt:**
+- **44c:** `registerType` ändrad till `'prompt'` (`vite.config.js`). Ny `useAppUppdatering.js`
+  som importerar `virtual:pwa-register` själv (gör att `injectRegister` blir `null` – inget
+  automatiskt skript längre) och exponerar `behoverUppdatering`/`uppdatera()`. Ny
+  `AppUppdateringBanner.jsx`, monterad globalt i `App.jsx`, visar "En ny version av Synappsen
+  är redo" med en Uppdatera-knapp – laddar ALDRIG om utan att användaren själv klickat.
+- **44a:** ny `useInstallBanner.js` fångar `beforeinstallprompt` (Android/Chrome/Desktop),
+  detekterar redan-installerad (`display-mode: standalone`/`navigator.standalone`) för att
+  ALDRIG visa banderollen i onödan, och en separat gren för iOS Safari (som aldrig avfyrar
+  `beforeinstallprompt`) med en textinstruktion istället för en knapp som inte skulle fungera.
+  Avvisning sparas i `localStorage`, kommer inte tillbaka. Ny `InstalleraAppBanner.jsx`,
+  monterad globalt.
+- **44b:** genererade en riktig 180×180 PNG (`public/icons/apple-touch-icon.png`) från den
+  befintliga SVG:n (via en Playwright-skärmdump av SVG:n i en headless webbläsare – inga nya
+  byggberoenden behövdes) och pekade `index.html`s `apple-touch-icon`-tagg dit istället för
+  SVG:n. `manifest.webmanifest`s SVG-ikoner (Android/Chrome) orörda – riktad iOS-fix.
+- **44d:** `overscroll-behavior-y: contain` på `body` (förhindrar pull-to-refresh-gummistuds)
+  och `-webkit-touch-callout: none` på knappar/länkar/navigering (INTE på brödtext – rutin-
+  innehåll ska fortfarande gå att markera/kopiera), i `src/index.css`.
+
+**Verifierat i en riktig webbläsare mot emulatorerna** (Playwright, 375×812, inte bara läst
+källkod): `beforeinstallprompt` simulerat och `prompt()` bekräftat anropad vid klick;
+avvisning verifierad kvarstå efter omladdning; iOS Safari-User-Agent gav korrekt
+instruktionstexten (inte installationsknappen); `display-mode: standalone` simulerat gav
+INGEN banderoll alls; `apple-touch-icon.png` bekräftat ladda med HTTP 200. Inga konsolfel
+under hela flödet (inloggning → Hem).
+
+Inga nya vitest-tester (ren UI/hook-logik utan datamodell). Inga rules-/storage-ändringar,
+`test:rules`/`test:functions`/`test:storage` därför inte omkörda (samma princip som tidigare
+"inga rules-ändringar"-fall i `ETAPPLAN7.md`). Fullt testsvep grönt: lint, build, vitest
+123/123. Version 5.72.0 → **5.73.0**, `andringslogg.js` uppdaterad.
+
+**Etapp 44 (och därmed hela `ETAPPLAN8.md`s nuvarande innehåll) är klar.** Nästa steg: B
+(sök/kunskapsupptäckt 2.0) enligt den beslutade ordningen, om inget annat prioriteras.
+
 **Genomgående krav (gäller hela etappen):**
 - Krav 8 (premisskontroll) gäller på nytt vid start av VARJE delpunkt ovan, inte bara vid
   antagandet av hela planen – 44b och 44c är uttryckligen markerade "overifierat" och ska

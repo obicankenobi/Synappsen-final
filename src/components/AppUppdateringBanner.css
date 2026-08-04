@@ -1,0 +1,30 @@
+.app-uppdatering-banner {
+  position: sticky;
+  top: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--primar);
+  color: #ffffff;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.app-uppdatering-banner__knapp {
+  border: 1px solid #ffffff;
+  background: transparent;
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.app-uppdatering-banner__knapp:hover {
+  background: rgba(255, 255, 255, 0.15);
+}

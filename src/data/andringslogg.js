@@ -3,6 +3,16 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.73.0",
+    datum: "2026-08-04",
+    andringar: [
+      "Ny uppmaning att installera Synappsen på hemskärmen (Android/Chrome/Desktop samt en instruktion för iPhone)",
+      "En ny version av appen laddas nu bara om du själv väljer det, istället för att göra det utan förvarning",
+      "Fixat: appikonen på hemskärmen kunde bli fel på iPhone",
+      "Mindre polish: appen känns nu mer som en riktig app vid touch (ingen gummistuds vid rullning)",
+    ],
+  },
+  {
     version: "5.72.0",
     datum: "2026-08-03",
     andringar: [

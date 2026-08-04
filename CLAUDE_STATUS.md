@@ -6,15 +6,14 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-04, version fortfarande **5.72.0** (ingen kod ändrad denna
-session, bara planering). `ETAPPLAN7.md` (Etapp 42 + 43, gränssnittsförnyelsen) är HELT KLAR
-OCH DEPLOYAD sedan tidigare (körning #66, commit `3efb193`). **Ny aktiv plan: `ETAPPLAN8.md`
-(Etapp 44 – mobilappskänsla och installationsbarhet)**, antagen efter en helhetsgenomgång av
-produkten. Två ytterligare riktningar (B: sök/kunskapsupptäckt 2.0, C: incidentberedskap i
-produkten) är medvetet köade som framtida etapper, inte förkastade. `ETAPPLAN6.md` (Etapp
-40) och `ETAPPLAN5.md`s kvarvarande punkter är fortsatt öppna men inte aktiva just nu. **Läs
-sektionen "Uppföljning 2026-08-04 (ETAPPLAN8 antagen)" längst ner i den här filen först** om
-du undrar var arbetet står idag.
+**Senast uppdaterad:** 2026-08-04, version **5.73.0** – pushad, INTE ännu deployad till
+produktion (senaste produktionsdeploy är fortfarande v5.72.0, körning #66). `ETAPPLAN8.md`
+Etapp 44 (mobilappskänsla och installationsbarhet, 44a–44d) är HELT KLAR. Två ytterligare
+riktningar (B: sök/kunskapsupptäckt 2.0, C: incidentberedskap i produkten) är medvetet köade
+som framtida etapper, inte förkastade. `ETAPPLAN6.md` (Etapp 40) och `ETAPPLAN5.md`s
+kvarvarande punkter är fortsatt öppna men inte aktiva just nu. **Läs sektionen "Uppföljning
+2026-08-04 (Etapp 44 klar)" längst ner i den här filen först** om du undrar var arbetet står
+idag.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1087,3 +1086,40 @@ uppdaterade (`ETAPPLAN8.md` är nu steg 2 i läsordningen, `ETAPPLAN7.md` nedgra
 historisk). Nästa steg: börja Etapp 44 (44a–44d i den ordning planen anger), med extra
 uppmärksamhet på att 44b och 44c uttryckligen kräver verifiering mot ett riktigt beteende
 (en iOS-enhet respektive en riktig deploy under en öppen flik) innan kod skrivs.
+
+## Uppföljning 2026-08-04 (Etapp 44 klar): mobilappskänsla byggd, INTE ännu deployad
+
+Byggde alla fyra delmål av Etapp 44 direkt efter att planen antogs ("kör igång med etapp 44").
+
+**44c:s "overifierat"-flagga löstes genom att LÄSA `vite-plugin-pwa`s faktiska
+registreringskod** (`node_modules/vite-plugin-pwa/dist/client/build/register.js`) istället för
+att gissa eller behöva en riktig deploy under en öppen flik (som inte gick att arrangera i den
+här sessionen) – bekräftade att `registerType: 'autoUpdate'` verkligen gav en OANMÄLD
+`window.location.reload()` så fort en ny service worker aktiverats. Premisskontrollens farhåga
+höll, inte bara en känsla.
+
+**Genomfört:**
+- **44c:** `registerType` → `'prompt'` (`vite.config.js`), egen registrering via
+  `virtual:pwa-register` i ny `useAppUppdatering.js`, ny `AppUppdateringBanner.jsx` – en
+  användarstyrd "Uppdatera"-knapp ersätter den tysta omladdningen.
+- **44a:** ny `useInstallBanner.js`/`InstalleraAppBanner.jsx` – fångar `beforeinstallprompt`
+  (Android/Chrome/Desktop), separat instruktionstext för iOS Safari (som aldrig avfyrar det
+  eventet), redan-installerad-detektion så banderollen aldrig stör en som redan installerat,
+  avvisning sparas permanent.
+- **44b:** genererade en riktig 180×180 PNG-hemskärmsikon från den befintliga SVG:n (via en
+  Playwright-skärmdump, inga nya byggberoenden) – `apple-touch-icon` pekade tidigare på en SVG,
+  som Apple inte officiellt stöder för den taggen. `manifest.webmanifest`s SVG-ikoner
+  (Android/Chrome) orörda.
+- **44d:** `overscroll-behavior-y: contain` + `-webkit-touch-callout: none` (knappar/länkar/
+  navigering, inte brödtext) i `src/index.css`.
+
+**Verifierat i en riktig webbläsare mot emulatorerna** (Playwright, 375×812): installations-
+banderollen visas/döljs/kommer inte tillbaka korrekt, iOS-grenen visar rätt text, standalone-
+läge visar ingen banderoll alls, ikonen svarar HTTP 200, inga konsolfel i hela inloggnings-
+flödet. Inga nya vitest-tester (ren UI/hook-logik). Inga rules-/storage-ändringar. Fullt
+testsvep grönt (lint, build, vitest 123/123). Version 5.72.0 → **5.73.0**, `andringslogg.js`
+uppdaterad. Committat och pushat till `claude/compassionate-euler-rho0q5`. **Inte deployat**
+– ingen deploy begärd än.
+
+`ETAPPLAN8.md` Etapp 44 är därmed helt klar. Nästa steg: fråga om deploy, annars börja Etapp B
+(sök- och kunskapsupptäckt 2.0) enligt den beslutade ordningen i `ETAPPLAN8.md`.

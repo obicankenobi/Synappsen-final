@@ -11,6 +11,8 @@ import OfflineIndikator from "./components/OfflineIndikator";
 import ErrorBoundary from "./components/ErrorBoundary";
 import MfaPolicyBanner from "./components/MfaPolicyBanner";
 import ProvperiodBanner from "./components/ProvperiodBanner";
+import InstalleraAppBanner from "./components/InstalleraAppBanner";
+import AppUppdateringBanner from "./components/AppUppdateringBanner";
 import AkutlagePrefetch from "./components/AkutlagePrefetch";
 import AkutKnappFloating from "./components/AkutKnappFloating";
 import OrganisationsBranding from "./components/OrganisationsBranding";
@@ -118,8 +120,10 @@ export default function App() {
           Hoppa till innehåll
         </a>
         <SidTitelBevakning />
+        <AppUppdateringBanner />
         <MfaPolicyBanner />
         <ProvperiodBanner />
+        <InstalleraAppBanner />
         <AkutlagePrefetch />
         <AkutKnappFloating />
         <Routes>

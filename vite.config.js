@@ -37,7 +37,13 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // Etapp 44c: 'autoUpdate' lät vite-plugin-pwas injicerade standardregistrering göra en
+      // tyst window.location.reload() så fort en ny service worker aktiverats – utan varsel,
+      // vilket kan slå till mitt i en pågående arbetssession (t.ex. ett halvifyllt formulär).
+      // 'prompt' + en egen registrering via virtual:pwa-register (se App.jsx/useAppUppdatering)
+      // ger istället kontroll: en ny version väntar tyst tills användaren själv klickar
+      // "Uppdatera" i AppUppdateringBanner.jsx.
+      registerType: 'prompt',
       // Etapp 24a: injectManifest (istället för generateSW) så att Vite/Rollup faktiskt
       // bearbetar src/sw.js – bara då kan import.meta.env.VITE_FIREBASE_* ersättas med
       // riktiga värden vid bygget. En statisk public/firebase-messaging-sw.js hade krävt att
