@@ -1198,3 +1198,29 @@ Fullt testsvep grönt (lint, build, vitest 124/124). Committat och pushat.
 
 **Kvar i Etapp 45:** 45b (rökprovssvit), 45c (tillgänglighetsgranskning), 45e (ändringsloggens
 ton), 45f (beslutslogg) – i den ordningen enligt `ETAPPLAN9.md`.
+
+## Uppföljning 2026-08-04 (Etapp 45b klar): rökprovssvit, alla sex roller × 25 routes
+
+Byggde 45b direkt efter 45a ("ja").
+
+Ny `tests/e2e/rokprov.spec.js` (tillagd i `test:e2e`) laddar samtliga 25 routes (23 statiska +
+2 dynamiska) för alla sex roller i `src/firebase/roles.js` och kontrollerar per sida: ingen
+`ErrorBoundary`-krasch, inga konsolfel. Utökade `global-setup.mjs` med tre tidigare saknade
+rollkonton (sektionsledare, vec, forradesansvarig) – bara hälften av rollerna hade ett seedat
+konto sedan Etapp 31b. `plattformsadmin`-åtkomsten (styr `/leverantor` server-side) medvetet
+utanför sviten, noterat i koden.
+
+**Två tekniska hinder hittades och löstes, ingen app-bugg:** (1) Playwrights 30s-standardtimeout
+räckte inte för 25 sekventiella sidladdningar med `networkidle` (Firestores websocket-
+lyssnare kan hindra den från att lösa upp) – löst med `waitUntil: "load"` + kort väntan +
+`test.setTimeout(120_000)`. (2) `/leverantor` gav en förväntad `ERR_CONNECTION_REFUSED`-rad
+eftersom `test:e2e` inte startar functions-emulatorn – sidan kraschade INTE (bekräftar att
+Etapp 43e:s null-fix håller), filtrerad bort med en route-specifik allowlist istället för att
+göra hela sviten mindre strikt. Kört tre gånger under byggandet – 6/9 fel → 6/9 fel (rätt
+orsak synlig) → **9/9 gröna**.
+
+Ingen versionsbump (rent testarbete). Fullt testsvep grönt (lint, build, vitest 124/124,
+test:e2e 9/9). Committat och pushat.
+
+**Kvar i Etapp 45:** 45c (tillgänglighetsgranskning), 45e (ändringsloggens ton), 45f
+(beslutslogg).

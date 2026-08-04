@@ -59,7 +59,7 @@ ikapp, tillgänglighetsgranskning) – inget nytt funktionsarbete.
     sakfel om klinikstöd snarare än att smeta över det) – effektsiffror ska fortsatt vara
     uttryckligen märkta som uppskattningar utan pilotdata bakom sig (se Etapp 45f/`ETAPPLAN9`s
     öppna-punkter-koppling: ingen kund finns ännu).
-- **45b – Rökprovssvit: varje route, varje roll.** En ny Playwright-testsvit
+- **45b – ✅ KLAR (2026-08-04): Rökprovssvit: varje route, varje roll.** En ny Playwright-testsvit
   (`tests/e2e/rokprov.spec.js`, tillagd i `test:e2e`) som laddar samtliga ~27 routes i
   `App.jsx` för var och en av de sex rollerna (superadmin, VÖL/sektionsledare, VEC,
   förrådsansvarig, personal, leverantörsadmin – filtrerat per vad respektive roll faktiskt kan
@@ -140,6 +140,41 @@ motsvarande deploybar yta. `PITCH.md`s versionsrad pekar på nuvarande `package.
 
 Fullt testsvep grönt (lint, build, vitest 124/124 – en ny). Inga rules-/storage-/
 functions-ändringar. Committat och pushat.
+
+### 45b ✅ KLAR (2026-08-04)
+
+Ny `tests/e2e/rokprov.spec.js`, tillagd i `test:e2e`. Utökade `global-setup.mjs` med tre
+tidigare saknade rollkonton (sektionsledare, vec, forradesansvarig) – bara superadmin/vol/
+personal fanns seedade sedan Etapp 31b, vilket hade gjort "varje roll" till bara halva
+löftet. Sex roller × 25 routes (23 statiska + 2 dynamiska: `/logistik/sterilforradet` med en
+av de sex fasta förrådsslugsen, `/checklista/e2eRutinA` med den redan seedade rutinen) = 150
+sidladdningar per körning, kontrollerar per sida: ingen `ErrorBoundary`-krasch, inga
+konsolfel. **`plattformsadmin`-åtkomsten (styr `/leverantor`s serversidiga behörighet)
+medvetet UTANFÖR sviten** – det är en egen Firestore-collection, inte ett rollfält, och
+kräver en egen seedningsmekanism (noterat, inte tyst uteslutet).
+
+**Två genuina tekniska hinder hittades och löstes under bygget, ingen av dem en app-bugg:**
+1. **Playwrights standardtesttimeout (30s) räckte inte** för 25 sekventiella sidladdningar
+   med `waitUntil: "networkidle"` – Firestores ihållande realtidslyssnare (websocket) kan
+   hindra "networkidle" från att någonsin lösa upp sig. Löst med `waitUntil: "load"` + en kort
+   explicit väntan, samt `test.setTimeout(120_000)`.
+2. **`/leverantor` gav en förväntad konsolrad** (`ERR_CONNECTION_REFUSED` från
+   `listaOrganisationer()`) eftersom `test:e2e` bara startar auth/firestore/storage-
+   emulatorerna, inte functions – ett medvetet, redan existerande val för de två tidigare
+   specfilerna. Sidan kraschade INTE (bekräftar att Etapp 43e:s `organisationer ?? []`-fix
+   fungerar som avsett) – bara en nätverksnivå-logg. Filtrerad bort med en snävt route-
+   specifik allowlist (`KANDA_MILJOBEGRANSNINGAR`), inte genom att göra hela sviten mindre
+   strikt.
+
+**Kört tre gånger under byggandet, inte bara en:** första körningen (utan timeout-fixen)
+gav 6 av 9 tester "Test timeout exceeded". Andra körningen (med timeout-fixen men utan
+allowlistningen) gav samma 6 fel, nu med rätt orsak synlig (`/leverantor`-konsolraden). Tredje
+körningen: **9/9 gröna**, inklusive alla sex roller.
+
+Ingen versionsbump (rent testarbete, ingen app-synlig skillnad – samma princip som 45a).
+Fullt testsvep grönt (lint, build, vitest 124/124, test:e2e 9/9). Inga rules-/storage-/
+functions-ändringar utöver `global-setup.mjs`s tre nya, harmlösa seedade konton. Committat
+och pushat.
 
 **Klart när:** `PITCH.md` inte kan glida mer än en bestämd gräns utan att ett test upptäcker
 det, en rökprovssvit körs i `test:e2e` över alla routes/roller, tillgänglighetsredogörelsen

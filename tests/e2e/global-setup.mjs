@@ -21,6 +21,12 @@ export default async function globalSetup() {
     { uid: "e2eVolA", email: "e2e-volA@orga.test", role: "vol", organisationId: ORG_A, namn: "E2E Vol A" },
     { uid: "e2ePersonalA", email: "e2e-personalA@orga.test", role: "personal", organisationId: ORG_A, namn: "E2E Personal A" },
     { uid: "e2eSuperB", email: "e2e-superB@orgb.test", role: "superadmin", organisationId: ORG_B, namn: "E2E Super B" },
+    // Etapp 45b (rökprovssvit): tre roller som tidigare saknade ett eget seedat konto, så
+    // "varje route, varje roll" faktiskt kan testas mot alla sex roller i src/firebase/roles.js
+    // – inte bara de tre som råkade finnas sedan Etapp 31b.
+    { uid: "e2eSektionsledareA", email: "e2e-sektionsledareA@orga.test", role: "sektionsledare", organisationId: ORG_A, namn: "E2E Sektionsledare A" },
+    { uid: "e2eVecA", email: "e2e-vecA@orga.test", role: "vec", organisationId: ORG_A, namn: "E2E Vec A" },
+    { uid: "e2eForradA", email: "e2e-forradA@orga.test", role: "forradesansvarig", organisationId: ORG_A, namn: "E2E Förråd A" },
   ];
 
   for (const k of KONTON) {
