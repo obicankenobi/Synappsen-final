@@ -6,13 +6,15 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-03, version **5.72.0** – DEPLOYAD TILL PRODUKTION (körning #66,
-commit `3efb193`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`). `ETAPPLAN7.md`
-(Etapp 42 + Etapp 43) är HELT KLAR och nu helt ute – samtliga 27 sidor i appen granskade mot
-den nya profilen, alla ändringar (Etapp 42a–42f, 43a–43e) live. `ETAPPLAN6.md` (Etapp 37–41)
-är STÄNGD FÖRUTOM Etapp 40 (villkorad av en konkret ny kund). `ETAPPLAN5.md` (Etapp 32–36:
-säkerhet) är i det närmaste klar men inte stängd. **Läs sektionen "Uppföljning 2026-08-03
-(Etapp 43 helt klar)" längst ner i den här filen först** om du undrar var arbetet står idag.
+**Senast uppdaterad:** 2026-08-04, version fortfarande **5.72.0** (ingen kod ändrad denna
+session, bara planering). `ETAPPLAN7.md` (Etapp 42 + 43, gränssnittsförnyelsen) är HELT KLAR
+OCH DEPLOYAD sedan tidigare (körning #66, commit `3efb193`). **Ny aktiv plan: `ETAPPLAN8.md`
+(Etapp 44 – mobilappskänsla och installationsbarhet)**, antagen efter en helhetsgenomgång av
+produkten. Två ytterligare riktningar (B: sök/kunskapsupptäckt 2.0, C: incidentberedskap i
+produkten) är medvetet köade som framtida etapper, inte förkastade. `ETAPPLAN6.md` (Etapp
+40) och `ETAPPLAN5.md`s kvarvarande punkter är fortsatt öppna men inte aktiva just nu. **Läs
+sektionen "Uppföljning 2026-08-04 (ETAPPLAN8 antagen)" längst ner i den här filen först** om
+du undrar var arbetet står idag.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1057,3 +1059,31 @@ Nästa steg utan vidare instruktion: `ETAPPLAN6.md`s Etapp 40 eller `ETAPPLAN5.m
 kvarvarande punkter, båda blockerade av ägarbeslut/extern tid snarare än kapacitet. Ingen ny
 UI-plan väntar just nu – nästa `ETAPPLANx.md` skrivs när/om ett nytt större arbetsområde
 identifieras.
+
+## Uppföljning 2026-08-04 (ETAPPLAN8 antagen): ny aktiv plan, mobilappskänsla
+
+Användaren bad om en genomgång av hela produkten (vad som är byggt, vilka funktioner som
+finns) och en avvägning av kandidater för nästa etapplan. Svar: alla tre huvudpaket +
+källbevakning är fullt byggda och i drift (se `MODULPLAN.md`), och UI:t precis totalförnyat
+(`ETAPPLAN7.md`). Tre kandidater till nästa steg togs fram: **(A) mobilappskänsla/
+installationsbarhet**, **(B) sök- och kunskapsupptäckt 2.0**, **(C) incidentberedskap i
+produkten**. Rekommendation gavs (A eller C, lägst beslutsspärr) – **ägaren beslutade A som
+Etapp 44, med B och C uttryckligen köade som kommande etapper, inte förkastade.**
+
+**Ny fil `ETAPPLAN8.md` skriven och antagen.** Premisskontroll (krav 8) vid antagandet
+hittade att en av de ursprungliga idéerna redan var löst i kod: bakgrundssynk av
+offline-gjorda kvitteringar/bristanmälningar finns redan (`useOfflineKo.js`, Etapp 29c) –
+den punkten utgår helt ur Etapp 44. De genuina luckorna som blev kvar: ingen egen
+installationsuppmaning (`beforeinstallprompt` + iOS-instruktion), en trolig men obekräftad
+iOS-hemskärmsikonbugg (`apple-touch-icon` pekar på SVG, Apple stöder officiellt bara PNG),
+ett obekräftat uppdateringsbeteende vid deploy (ingen kod hanterar `controllerchange`,
+okänt om `registerType: 'autoUpdate'` ger en tyst, oanmäld omladdning mitt i en session),
+och saknad touch-polish (pull-to-refresh, textmarkerings-callout på knappar). Detaljerad
+plan, inklusive vilka delar som kräver ytterligare verifiering INNAN kod skrivs (44b/44c),
+finns i `ETAPPLAN8.md`s egen Etapp 44-sektion.
+
+**Inget kodat** – ren planering, ingen version-bump. `CLAUDE.md`s läsordning och dokumentkarta
+uppdaterade (`ETAPPLAN8.md` är nu steg 2 i läsordningen, `ETAPPLAN7.md` nedgraderad till
+historisk). Nästa steg: börja Etapp 44 (44a–44d i den ordning planen anger), med extra
+uppmärksamhet på att 44b och 44c uttryckligen kräver verifiering mot ett riktigt beteende
+(en iOS-enhet respektive en riktig deploy under en öppen flik) innan kod skrivs.

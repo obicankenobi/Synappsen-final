@@ -21,15 +21,19 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 1. **`CLAUDE_STATUS.md`** – läs FÖRST. Kort "var slutade vi, vad gör jag nu"-sammanfattning,
    uppdateras löpande. Pekar vidare till detaljer i planfilerna nedan.
-2. **`ETAPPLAN7.md`** – den AKTIVA utvecklingsplanen (Etapp 42: gränssnittsförnyelse). Om
-   användaren ber om fortsatt arbete utan att specificera vad: det är här nästa punkt finns.
-3. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkter (Etapp 40, villkorad av en
-   konkret ny kund, och Etapp 41) är inte blockerade av kapacitet, bara av att `ETAPPLAN7.md`
-   kom i vägen kronologiskt. Ta dem när som helst.
-4. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter (Etapp 32b, ToS-genomgången,
+2. **`ETAPPLAN8.md`** – den AKTIVA utvecklingsplanen (Etapp 44: mobilappskänsla och
+   installationsbarhet). Om användaren ber om fortsatt arbete utan att specificera vad: det är
+   här nästa punkt finns. Filen noterar också två köade framtida etapper (sök/kunskapsupptäckt,
+   incidentberedskap i produkten) som INTE ska detaljplaneras eller påbörjas i förtid.
+3. **`ETAPPLAN7.md`** – HELT KLAR OCH DEPLOYAD (Etapp 42+43, gränssnittsförnyelse). Historisk
+   men korrekt, inget kvar att göra där.
+4. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkt (Etapp 40, villkorad av en
+   konkret ny kund) är inte blockerad av kapacitet, bara av att komma i tur. Ta den när som
+   helst.
+5. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter (Etapp 32b, ToS-genomgången,
    Etapp 30b, uppföljningen av 35e) är blockerade av ägarbeslut eller extern tid, inte av
    kapacitet. Ta dem när respektive blockering lossnar.
-5. Övriga dokument nedan, efter behov.
+6. Övriga dokument nedan, efter behov.
 
 ## Dokumentkarta
 
@@ -37,7 +41,8 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 | Fil | Innehåll | Status |
 |---|---|---|
-| `ETAPPLAN7.md` | Etapp 42 + Etapp 43: gränssnittsförnyelse | **HELT KLAR OCH DEPLOYAD** (2026-08-03). Etapp 42a–42f och Etapp 43a–43e klara, v5.72.0 live i produktion (körning #66). |
+| `ETAPPLAN8.md` | Etapp 44: mobilappskänsla och installationsbarhet | **AKTIV, ny 2026-08-04.** Antagen efter en helhetsgenomgång av produkten. Två framtida etapper (B: sök/kunskapsupptäckt, C: incidentberedskap i produkten) noterade som köade men medvetet inte detaljplanerade i filen. |
+| `ETAPPLAN7.md` | Etapp 42 + Etapp 43: gränssnittsförnyelse | **HELT KLAR OCH DEPLOYAD** (2026-08-03). Etapp 42a–42f och Etapp 43a–43e klara, v5.72.0 live i produktion (körning #66). Historisk men korrekt. |
 | `ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag, bevisad effekt, import, synlighet | **Aktiv men ej stängd.** Etapp 37–39 och 41 klara. Kvarvarande punkt (Etapp 40, villkorad av en konkret ny kund) väntar inte på ägarbeslut, bara på att komma i tur. |
 | `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv men ej stängd.** I det närmaste klar – kvarvarande punkter (32b, ToS-genomgång, 30b, uppföljning av 35e) är blockerade av ägarbeslut/extern tid, inte av kapacitet. |
 | `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast som INTE antogs när `ETAPPLAN6.md` valdes | **Utkast, ej antagna.** Arkiverade – se `FRAMTIDSPLAN.md` för omprövningsvillkor per alternativ. |
