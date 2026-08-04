@@ -21,19 +21,23 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 1. **`CLAUDE_STATUS.md`** – läs FÖRST. Kort "var slutade vi, vad gör jag nu"-sammanfattning,
    uppdateras löpande. Pekar vidare till detaljer i planfilerna nedan.
-2. **`ETAPPLAN8.md`** – den AKTIVA utvecklingsplanen (Etapp 44: mobilappskänsla och
-   installationsbarhet). Om användaren ber om fortsatt arbete utan att specificera vad: det är
-   här nästa punkt finns. Filen noterar också två köade framtida etapper (sök/kunskapsupptäckt,
-   incidentberedskap i produkten) som INTE ska detaljplaneras eller påbörjas i förtid.
-3. **`ETAPPLAN7.md`** – HELT KLAR OCH DEPLOYAD (Etapp 42+43, gränssnittsförnyelse). Historisk
+2. **`OPPNA-PUNKTER.md`** – läs ANDRA. Ett samlat register över allt som väntar på en människa
+   eller ett beslut (inte på kapacitet), tvärs över alla planfiler. Ersätter behovet av att
+   läsa statusblocken i punkt 4–6 nedan var för sig.
+3. **`ETAPPLAN9.md`** – den AKTIVA utvecklingsplanen (Etapp 45: kvalitetsmaskineriet riktas
+   utåt – en respons på en extern dokumentationsgranskning 2026-08-04). Om användaren ber om
+   fortsatt arbete utan att specificera vad: det är här nästa punkt finns.
+4. **`ETAPPLAN8.md`** – Etapp 44 (mobilappskänsla) HELT KLAR OCH DEPLOYAD. Två köade, ännu
+   inte detaljplanerade framtida etapper (46: incidentberedskap i produkten, 47: sök/
+   kunskapsupptäckt) noterade i filen – kommer EFTER `ETAPPLAN9.md`, INTE innan.
+5. **`ETAPPLAN7.md`** – HELT KLAR OCH DEPLOYAD (Etapp 42+43, gränssnittsförnyelse). Historisk
    men korrekt, inget kvar att göra där.
-4. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkt (Etapp 40, villkorad av en
+6. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkt (Etapp 40, villkorad av en
    konkret ny kund) är inte blockerad av kapacitet, bara av att komma i tur. Ta den när som
    helst.
-5. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter (Etapp 32b, ToS-genomgången,
-   Etapp 30b, uppföljningen av 35e) är blockerade av ägarbeslut eller extern tid, inte av
-   kapacitet. Ta dem när respektive blockering lossnar.
-6. Övriga dokument nedan, efter behov.
+7. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter listas nu i `OPPNA-PUNKTER.md`
+   istället för att behöva läsas härifrån.
+8. Övriga dokument nedan, efter behov.
 
 ## Dokumentkarta
 
@@ -41,10 +45,12 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 | Fil | Innehåll | Status |
 |---|---|---|
-| `ETAPPLAN8.md` | Etapp 44: mobilappskänsla och installationsbarhet | **AKTIV.** Etapp 44 (44a–44d) HELT KLAR OCH DEPLOYAD (2026-08-04, v5.73.0, körning #67). Två framtida etapper (B: sök/kunskapsupptäckt, C: incidentberedskap i produkten) noterade som köade men medvetet inte detaljplanerade i filen. |
+| `ETAPPLAN9.md` | Etapp 45: kvalitetsmaskineriet riktas utåt (respons på extern granskning) | **AKTIV, ny 2026-08-04.** Inget byggt ännu (utom 45d, se nedan). |
+| `OPPNA-PUNKTER.md` | Samlat register över människo-/beslutsberoende punkter, tvärs över alla planfiler | **Aktiv, LEVANDE, ny 2026-08-04 (Etapp 45d).** Händelsestyrd underhållsregel, se arbetsmönstren nedan. |
+| `ETAPPLAN8.md` | Etapp 44: mobilappskänsla och installationsbarhet | Etapp 44 (44a–44d) HELT KLAR OCH DEPLOYAD (2026-08-04, v5.73.0, körning #67). Två köade framtida etapper (46: incidentberedskap, 47: sök/kunskapsupptäckt) – kommer EFTER `ETAPPLAN9.md`. |
 | `ETAPPLAN7.md` | Etapp 42 + Etapp 43: gränssnittsförnyelse | **HELT KLAR OCH DEPLOYAD** (2026-08-03). Etapp 42a–42f och Etapp 43a–43e klara, v5.72.0 live i produktion (körning #66). Historisk men korrekt. |
-| `ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag, bevisad effekt, import, synlighet | **Aktiv men ej stängd.** Etapp 37–39 och 41 klara. Kvarvarande punkt (Etapp 40, villkorad av en konkret ny kund) väntar inte på ägarbeslut, bara på att komma i tur. |
-| `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv men ej stängd.** I det närmaste klar – kvarvarande punkter (32b, ToS-genomgång, 30b, uppföljning av 35e) är blockerade av ägarbeslut/extern tid, inte av kapacitet. |
+| `ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag, bevisad effekt, import, synlighet | **Aktiv men ej stängd.** Etapp 37–39 och 41 klara. Kvarvarande punkt (Etapp 40) listad i `OPPNA-PUNKTER.md`. |
+| `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv men ej stängd.** I det närmaste klar – kvarvarande punkter listade i `OPPNA-PUNKTER.md` istället för att dupliceras här. |
 | `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast som INTE antogs när `ETAPPLAN6.md` valdes | **Utkast, ej antagna.** Arkiverade – se `FRAMTIDSPLAN.md` för omprövningsvillkor per alternativ. |
 | `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv, LEVANDE** – händelsestyrd underhållsregel, se "Obligatorisk underhållsregel: CLAUDE_STATUS.md" under arbetsmönstren nedan. |
 | `src/data/andringslogg.js` | Användarvänd ändringslogg, visas i appen (`/nyheter`) | **Aktiv** – lägg till en post vid VARJE release. |
@@ -202,3 +208,22 @@ Ytterligare krav:
   `FRAMTIDSPLAN.md`/`MODULPLAN.md` ovan).
 - Om en session avslutas UTAN att ha committat något (bara diskussion/analys): ingen
   uppdatering krävs – regeln triggas av faktisk förändring, inte av tidsåtgång.
+
+### Obligatorisk underhållsregel: OPPNA-PUNKTER.md
+
+Skapad 2026-08-04 (Etapp 45d) för att lösa exakt det mönster en extern granskning pekade ut:
+fem människo-/beslutsberoende punkter stod stilla i tre veckor medan ett tjugotal etapper
+byggdes, utan att någon enda plats visade det samlat. Filen fyller bara sitt syfte om den
+faktiskt hålls aktuell – annars blir den en sjätte stale fil i samma mönster som
+`SAKERHETSRAPPORT.md`/`FRAMTIDSPLAN.md`/`MODULPLAN.md` en gång var. **Uppdatera i SAMMA
+commit** när något av följande inträffar:
+
+| Om du … | Uppdatera |
+|---|---|
+| Hittar eller skapar en ny punkt som är blockerad av en människa/ett beslut, inte av kapacitet | Lägg till en rad |
+| Löser en punkt (ägaren beslutar, någon fyller i ett fält, ett fysiskt test genomförs) | Ta bort raden – den finns kvar i sin planfils historik |
+| Upptäcker att en rad är inaktuell (redan löst utan att någon tog bort den, eller fel beskriven) | Rätta direkt, precis som för de andra levande dokumenten |
+
+En rad som blir ett beslut (ägaren säger ja/nej med ett omprövningsvillkor) flyttas till
+`BESLUTSLOGG.md` när den filen finns (se `ETAPPLAN9.md` 45f) – tas bort härifrån ändå, oavsett
+om beslutsloggen redan är byggd.

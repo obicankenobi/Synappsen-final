@@ -6,15 +6,16 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-04, version **5.73.0** – DEPLOYAD TILL PRODUKTION (körning #67,
-commit `5c4ab12`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`, ny asset-hash
-`index-DLJ3EL3S.js` bekräftad via `curl` mot produktions-URL:en). `ETAPPLAN8.md` Etapp 44
-(mobilappskänsla och installationsbarhet, 44a–44d) är HELT KLAR OCH LIVE. Två ytterligare
-riktningar (B: sök/kunskapsupptäckt 2.0, C: incidentberedskap i produkten) är medvetet köade
-som framtida etapper, inte förkastade. `ETAPPLAN6.md` (Etapp 40) och `ETAPPLAN5.md`s
-kvarvarande punkter är fortsatt öppna men inte aktiva just nu. **Läs sektionen "Uppföljning
-2026-08-04 (Etapp 44 klar)" längst ner i den här filen först** om du undrar var arbetet står
-idag.
+**Senast uppdaterad:** 2026-08-04, version fortfarande **5.73.0** (ingen kod ändrad, bara
+planering + ett nytt register). `ETAPPLAN8.md` Etapp 44 är fortsatt HELT KLAR OCH LIVE. **Ny
+aktiv plan: `ETAPPLAN9.md` (Etapp 45 – kvalitetsmaskineriet riktas utåt)**, en respons på en
+extern dokumentationsgranskning (2026-08-04) som pekade ut att `PITCH.md` låg 48 releaser
+efter, att tillgänglighetsredogörelsen inte täcker Etapp 42/43, och att fem människoberoende
+punkter saknade en egen synlig plats. **Nytt: `OPPNA-PUNKTER.md`** – läs den ANDRA (efter den
+här filen), den ersätter behovet av att läsa fyra-fem planfilers statusblock för att se vad
+som väntar på en människa. `ETAPPLAN8.md`s köade Etapp B/C bytte plats och heter nu 46/47,
+kommer EFTER Etapp 45. **Läs sektionen "Uppföljning 2026-08-04 (Etapp 45 antagen)" längst ner
+i den här filen först** om du undrar var arbetet står idag.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1128,3 +1129,47 @@ uppdaterad. Committat och pushat till `claude/compassionate-euler-rho0q5`.
 `ETAPPLAN8.md` Etapp 44 är därmed helt klar och LIVE. Nästa steg: Etapp B (sök- och
 kunskapsupptäckt 2.0) enligt den beslutade ordningen i `ETAPPLAN8.md`, om inget annat
 prioriteras.
+
+## Uppföljning 2026-08-04 (Etapp 45 antagen): extern granskning strukturerad till en plan
+
+Användaren delade en extern, skriftlig dokumentationsgranskning (inte kodgranskning) och bad
+om synpunkter, sedan om att strukturera granskningen + synpunkterna till en genomförbar plan.
+
+**Tre av granskningens sakpåståenden verifierades innan de togs för goda:** `PITCH.md`
+bekräftat stå kvar på "Version 5.25.0" (48 releaser efter v5.73.0, värre än granskningens
+egen siffra eftersom den gjordes mot v5.72.0). `TILLGANGLIGHETSREDOGORELSE.md`s
+`[FYLL I: datum]` bekräftad, rad 102. `INCIDENT-CHECKLISTA.md`s kontakttabell bekräftad
+till stor del tom, men "2 av 5 ifyllda" snarare än granskningens "en femtedel" – en mindre
+justering, slutsatsen höll ändå.
+
+**Ny plan `ETAPPLAN9.md` (Etapp 45 – "Kvalitetsmaskineriet riktas utåt") skriven och antagen.**
+Tesen: samma premisskontroll-/händelsestyrda-underhålls-disciplin som redan skyddar
+`version.js`/`FRAMTIDSPLAN.md`/`CLAUDE_STATUS.md` internt saknas för de dokument och den
+produktkvalitet en KUND eller MYNDIGHET faktiskt möter. Fem delmål:
+- **45a:** `PITCH.md` – ett versionsdriftstest (struktur) + en innehållsuppdatering till
+  Etapp 22–43 (engångsinsats). Inte byggt ännu.
+- **45b:** en ny rökprovssvit (alla ~27 routes × sex roller, kollar rendering/ErrorBoundary/
+  konsolfel) – motiverad med att samma enkla mekanism hade fångat tre av projektets mest
+  citerade buggar (31b, Korvy-flex, Leverantör-null). Inte byggd ännu.
+- **45c:** en ny tillgänglighetsgranskning (axe-core över alla 27 sidor + minst ett test med
+  en riktig skärmläsare) eftersom nuvarande redogörelse är från 2026-07-26, före Etapp 42/43.
+  Inte gjord ännu.
+- **45d – ✅ KLAR:** `OPPNA-PUNKTER.md` skapad, se filen. Ersätter (inte kompletterar)
+  granskningens eget delförslag om en egen etapp för de fem människoberoende punkterna.
+- **45e/45f:** ändringsloggens ton vid rena UI-releaser (konvention, framåtriktad) respektive
+  en `BESLUTSLOGG.md` (lägre prioritet, byggs om tid finns). Inte gjorda ännu.
+
+**Tre beslut togs och skrevs in direkt i `ETAPPLAN9.md`:** (1) `ETAPPLAN8.md`s köade Etapp
+B/C byter plats OCH sköts bakom Etapp 45 – heter nu 46 (incidentberedskap, tidigare C) och 47
+(sök/kunskapsupptäckt, tidigare B), med motivering (72-timmarsfristen i
+`avtal/PUB-AVTAL-MALL.md` p. 8). (2) Deploy-per-avslutad-etapp bekräftad som redan avsedd
+norm, ingen ändring. (3) `BESLUTSLOGG.md` (45f) byggs framåtriktat, ingen retroaktiv
+genomgång av `CLAUDE_STATUS.md`s historik.
+
+**Dokument uppdaterade i samma commit:** `CLAUDE.md` (läsordning nu 8 punkter, dokumentkarta,
+ny obligatorisk underhållsregel för `OPPNA-PUNKTER.md`), `ETAPPLAN8.md` (Etapp B/C → 46/47,
+kön flyttad bakom Etapp 45). Version oförändrad (5.73.0) – inget kodarbete, förutom
+`OPPNA-PUNKTER.md` som är ren dokumentation.
+
+**Nästa steg:** börja Etapp 45 i planens egen ordning (45a → 45b → 45c → 45e → 45f), om inget
+annat prioriteras.

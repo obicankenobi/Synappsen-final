@@ -1,0 +1,143 @@
+# ETAPPLAN 9 – Kvalitetsmaskineriet riktas utåt
+
+**✅ ANTAGEN 2026-08-04.** Utgångsläge v5.73.0, direkt efter att `ETAPPLAN8.md` Etapp 44
+(mobilappskänsla) blev klar och deployad. **Detta är den AKTIVA planen för nytt arbete.**
+`ETAPPLAN8.md`s köade Etapp B/C (se dess egen fil) skjuts EN etapp längre bak, med en
+omprioritering (se Beslut 1 nedan) – inget annat i produktionsköns ordning ändras.
+
+> **Bakgrund:** en extern skriftlig granskning (2026-08-04, se den bifogade PDF:en, inte
+> incheckad i repot) gick igenom hela dokumentationen (`CLAUDE.md`, `CLAUDE_STATUS.md`,
+> samtliga `ETAPPLANx.md`, `UTVECKLINGSLOGG.md`, `SAKERHETSRAPPORT.md`,
+> `TILLGANGLIGHETSREDOGORELSE.md`, `MODULPLAN.md`, `FRAMTIDSPLAN.md`, `INCIDENT-CHECKLISTA.md`,
+> `avtal/`, `PITCH.md`) utan kodgranskning. Slutsatsen var att dokumentationens **kvalitets-
+> maskineri** (premisskontroll, händelsestyrda underhållsregler, ärlig statusrapportering) är
+> ovanligt bra – men **enbart riktat inåt, mot vad Claude Code läser.** De dokument som möter
+> en KUND eller MYNDIGHET (`PITCH.md`, `TILLGANGLIGHETSREDOGORELSE.md`) har inte fått samma
+> skydd och har läckt precis det granskningen visar: `PITCH.md` stod kvar på "Version 5.25.0"
+> när produkten redan var på v5.73.0 – **48 releaser efter.** Den här etappen appliceras
+> samma strukturella lösningsmönster som redan använts internt (jfr `src/version.js`,
+> `FRAMTIDSPLAN.md`s rollbyte) på de utåtriktade dokumenten, plus tre konkreta luckor
+> granskningen hittade i produkten självt (ingen rökprovssvit, ingen tillgänglighets-
+> granskning sedan UI-förnyelsen, fem människoberoende punkter utan egen synlighet).
+
+---
+
+## Granskningens fynd, verifierade innan planen antogs (genomgående krav 8)
+
+Tre av granskningens mest konkreta sakpåståenden kontrollerades direkt mot koden/dokumenten
+innan den här planen skrevs, istället för att tas för givna:
+
+| Påstående | Verifierat |
+|---|---|
+| `PITCH.md` står kvar på "Version 5.25.0" | ✅ **Bekräftat, och värre än granskningen hann visa.** Granskningen gjordes mot v5.72.0 (glapp: 47 releaser). Vid planens antagande (v5.73.0) är glappet 48. |
+| `TILLGANGLIGHETSREDOGORELSE.md` har en aktiv `[FYLL I: datum]`-platshållare | ✅ Bekräftat, rad 102, plus två till (leverantörens juridiska namn, e-postadress). |
+| `INCIDENT-CHECKLISTA.md`s kontakttabell är till största delen tom | ⚠️ **Delvis.** 2 av 5 rader ifyllda (jourkontakt, IMY), inte "en femtedel" som granskningen skrev utan närmare två femtedelar – men slutsatsen (tre viktiga kontakter saknas) håller. |
+
+**Slutsats:** granskningens sakuppgifter håller vid stickprov. Den byggs vidare på som
+korrekt underlag, med den enda justeringen ovan (kontakttabellens exakta andel).
+
+---
+
+## Etapp 45 – Kvalitetsmaskineriet riktas utåt
+
+**Varför:** samma "hittar fel i sig själv"-disciplin som redan skyddar `version.js`,
+`FRAMTIDSPLAN.md` och `CLAUDE_STATUS.md` mot att glida saknas för de dokument och den
+produktkvalitet en KUND eller en MYNDIGHETSGRANSKNING faktiskt möter. Etappen är uteslutande
+strukturell (test som förhindrar återfall) plus två avgränsade engångsinsatser (innehålls-
+ikapp, tillgänglighetsgranskning) – inget nytt funktionsarbete.
+
+- **45a – `PITCH.md` kan inte längre glida obemärkt.**
+  - **45a-i (struktur, görs FÖRST):** ett nytt vitest-test (`src/data/pitch-version.test.js`
+    eller motsvarande) som failar om `PITCH.md`s versionsrubrik ligger mer än ett bestämt
+    antal minorversioner efter `package.json`s (t.ex. 10) – samma "kan inte återkomma"-princip
+    som redan löste `version.js`-problemet, applicerad på ett dokument istället för kod. Ska
+    INTE tvinga en omskrivning vid varje patch, bara göra 48-releasers-glidningen omöjlig.
+  - **45a-ii (innehåll, engångsinsats):** skriv om `PITCH.md`s funktionslista så den täcker
+    Etapp 22–43 (innehållshälsa, granskningsrundor, samlad godkännandekö, effektmätning över
+    tid, personalpuls, referensunderlag, arkiverad status, hela gränssnittsförnyelsen).
+    **Behåll den ärliga tonen** befintliga `PITCH.md` redan har (13e rättade tidigare ett
+    sakfel om klinikstöd snarare än att smeta över det) – effektsiffror ska fortsatt vara
+    uttryckligen märkta som uppskattningar utan pilotdata bakom sig (se Etapp 45f/`ETAPPLAN9`s
+    öppna-punkter-koppling: ingen kund finns ännu).
+- **45b – Rökprovssvit: varje route, varje roll.** En ny Playwright-testsvit
+  (`tests/e2e/rokprov.spec.js`, tillagd i `test:e2e`) som laddar samtliga ~27 routes i
+  `App.jsx` för var och en av de sex rollerna (superadmin, VÖL/sektionsledare, VEC,
+  förrådsansvarig, personal, leverantörsadmin – filtrerat per vad respektive roll faktiskt kan
+  nå) och kontrollerar tre saker per sida: sidan renderar, ingen `ErrorBoundary`-krasch, inga
+  konsolfel. **Motivering:** samma enkla mekanism hade fångat tre av projektets fyra mest
+  citerade defekter (Etapp 31b:s tomma listor för `personal`, Korvy-knappens flex-läckage,
+  Leverantörsvyns null-krasch) – alla tre hittades hittills bara genom manuell, punktvis
+  granskning. Bygg som en datadriven loop över en rollmatris, ingen ny arkitektur.
+- **45c – Tillgänglighetsgranskning efter hela gränssnittsförnyelsen.** Föregående granskning
+  (bakom `TILLGANGLIGHETSREDOGORELSE.md`s nuvarande innehåll) gjordes 2026-07-26, mot fem
+  flöden, INNAN Etapp 42/43 byggde om navigeringen (Mer-meny, flytande Akut-knapp), lade till
+  `/godkannanden`, och gjorde adminpanelen till en hopfällbar accordion. Kör `axe-core` över
+  samtliga 27 sidor (inte fem flöden), med särskild uppmärksamhet på: accordion-tillståndet
+  (43c – kräver korrekt `aria-expanded`/fokushantering, native `<details>/<summary>` ger detta
+  GRATIS men måste verifieras, inte antas), Mer-menyn (42f), den flytande Akut-knappens
+  fokusordning (den ligger nu på i stort sett varje sida, inte bara Hem), `/godkannanden`, och
+  `.sida--auth`-kortet (43a). **Komplettera med minst ETT test med en riktig
+  skärmläsaranvändare** – dokumentet konstaterar redan självt att automatiserad testning
+  fångar ungefär en tredjedel av tillgänglighetsproblemen, en brist som annars bara upprepas.
+  Skriv om `TILLGANGLIGHETSREDOGORELSE.md` med resultatet. De tre `[FYLL I]`-fälten som INTE
+  kan härledas ur kod (leverantörens juridiska namn, e-postadress, åtgärdsdatum) flyttas till
+  `OPPNA-PUNKTER.md` istället för att lämnas som platshållare i ett dokument som delas externt.
+- **45d – ✅ KLAR (2026-08-04): `OPPNA-PUNKTER.md`.** Se filen själv. Konsoliderar de fem
+  människoberoende punkterna granskningen pekade ut (ToS-genomgång, Etapp 30b, 35e, 32b,
+  incidentkontakttabellen) plus en sjätte (45f/"boka en riktig användare", se nedan) och tre
+  äldre ägarbeslutspunkter (13f SSO, Etapp 16, Etapp 40) i EN tabell istället för statusblock
+  spridda över fem `ETAPPLANx.md`-filer. **Ersätter** – inte kompletterar – granskningens
+  eget delförslag om en egen "etapp" för dessa fem punkter (samma sak, mindre dokument-
+  duplicering).
+- **45e – Ändringsloggens ton vid rena UI-releaser.** v5.68.0–v5.72.0 var till stor del
+  CSS-scoping/null-skydd/densitetsjusteringar – korrekta men tekniska rader
+  ("flex-scoping-fix i Korvy") som säger lite till en medarbetare som läser `/nyheter`. Ny
+  skriven konvention (kommentar i `src/data/andringslogg.js`s topp): vid en release som
+  uteslutande är CSS/UI-polish utan ny funktion, led med EN sammanfattande, användarvänd rad
+  ("Nytt utseende i hela appen – tätare listor, samlad godkännandekö, Akut-knappen alltid
+  nåbar") istället för att bara lista tekniska delfixar. **Gäller framåt, ingen retroaktiv
+  omskrivning** av redan publicerade poster – ändringsloggen är en logg, inte ett levande
+  dokument som ska redigeras i efterhand.
+- **45f – Beslutslogg (lägre prioritet, byggs om tid finns).** Ny `BESLUTSLOGG.md`:
+  datum/fråga/beslut/motivering/vad det låste upp, en rad per ägarbeslut FRAMÅT (inte en
+  retroaktiv genomgång av alla historiska beslut i `CLAUDE_STATUS.md` – för stort för värdet).
+  Löser att en fråga som redan avgjorts (t.ex. Etapp 36c, externt pentest: nej för nu) annars
+  riskerar tas upp igen om tre månader utan att någon minns svaret.
+
+**Explicit UTANFÖR den här etappen:** inget nytt funktionsarbete. Etapp 45 är uteslutande
+kvalitets-/dokumentationsarbete – exakt den typ av arbete granskningen efterlyste FÖRE nästa
+funktionsetapp.
+
+**Klart när:** `PITCH.md` inte kan glida mer än en bestämd gräns utan att ett test upptäcker
+det, en rökprovssvit körs i `test:e2e` över alla routes/roller, tillgänglighetsredogörelsen
+speglar den faktiska appen efter Etapp 42/43, och de människoberoende punkterna finns på ETT
+ställe att läsa.
+
+---
+
+## Beslut 1 – Ordningen på `ETAPPLAN8.md`s köade Etapp B/C
+
+Granskningens Del 3.H argumenterade för att byta plats på de två köade, ännu odetaljerade
+etapperna i `ETAPPLAN8.md` ("B – sök/kunskapsupptäckt 2.0" och "C – incidentberedskap i
+produkten"). **Beslut: byt.** Motiveringen håller vid granskning mot projektets eget
+material – incidentberedskap har en dokumenterad 72-timmarsfrist i
+`avtal/PUB-AVTAL-MALL.md` p. 8 bakom sig och `INCIDENT-CHECKLISTA.md`s statustabell har
+fortfarande flera tomma rader (se `OPPNA-PUNKTER.md`), medan sök/kunskapsupptäckt förbättrar
+något som redan fungerar. **Ny ordning: 45 (den här etappen) → C (nu Etapp 46,
+incidentberedskap i produkten) → B (nu Etapp 47, sök/kunskapsupptäckt 2.0).**
+`ETAPPLAN8.md`s "Kommande etapper"-sektion är uppdaterad i samma commit som denna fil.
+
+## Beslut 2 – Deploy per avslutad etapp (bekräftad, inte ny)
+
+Granskningens Del 3.G föreslog att deploya per avslutad etapp, inte per delmål (för ofta)
+eller per plan (för sällan, som hände med v5.67.0→v5.72.0 i ett enda hopp över hela Etapp
+42+43). Det är redan den avsedda normen (se `CLAUDE.md`s arbetsmönster) – v5.67→5.72-hoppet
+var ett avsteg, inte en ny regel. Ingen ändring i `CLAUDE.md` behövs, bara en bekräftelse här:
+**deploya när en etapp (inte ett enskilt delmål) är klar**, om inte användaren uttryckligen
+ber om en tidigare deploy.
+
+## Beslut 3 – Etapp 45f (beslutslogg) byggs framåtriktat, inte retroaktivt
+
+Se 45f ovan. En fullständig genomgång av alla historiska beslut i `CLAUDE_STATUS.md` bedömdes
+kosta mer än den ger – de finns redan där, kronologiskt, om än utspridda. `BESLUTSLOGG.md`
+löser problemet för NYA beslut framåt.

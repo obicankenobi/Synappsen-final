@@ -143,21 +143,26 @@ Inga nya vitest-tester (ren UI/hook-logik utan datamodell). Inga rules-/storage-
 ## Kommande etapper (ej detaljplanerade ännu)
 
 Två ytterligare riktningar identifierades i samma genomgång som gav upphov till Etapp 44.
-**Ingendera är förkastad** – de är medvetet köade, i tur och ordning, för att undvika att bygga
-tre stora, oberoende initiativ samtidigt. Skriv INTE ut deras fulla delmålsplaner här (samma
+**Ingendera är förkastad** – de är medvetet köade, för att undvika att bygga tre stora,
+oberoende initiativ samtidigt. Skriv INTE ut deras fulla delmålsplaner här (samma
 för-tidigt-att-detaljplanera-princip som `FRAMTIDSPLAN.md`/`MODULPLAN.md` använder) – när
-respektive etapp faktiskt påbörjas, skriv en egen `ETAPPLAN9.md`/`ETAPPLAN10.md` (eller en ny
-sektion här, om den här filen fortfarande är aktiv) med en riktig premisskontroll gjord DÅ, mot
-kodläget vid den tidpunkten, inte mot dagens.
+respektive etapp faktiskt påbörjas, skriv en riktig premisskontroll gjord DÅ, mot kodläget vid
+den tidpunkten, inte mot dagens.
 
-- **Etapp B – Sök- och kunskapsupptäckt 2.0.** Idé i korthet: "relaterade rutiner"-förslag
-  baserat på taggar/område, en "vad är nytt sedan sist du var här"-vy utöver den redan
-  existerande ändringsloggen, och en bredare kommandopalett (kontakter/förråd, inte bara
-  rutiner). Nästa i tur efter Etapp 44.
-- **Etapp C – Incidentberedskap i produkten.** Idé i korthet: göra `INCIDENT-CHECKLISTA.md`/
-  `avtal/INCIDENTRESPONSPLAN.md`s innehåll till en aktiv adminvy (senaste backup, App
-  Check-verifieringsgrad, misslyckade inloggningsförsök i realtid) istället för ett passivt
-  dokument som bara läses under press. Tredje i tur.
+> **Omprioriterade 2026-08-04** (se `ETAPPLAN9.md` Beslut 1, efter en extern granskning): en
+> ny etapp (45, kvalitetsmaskineriet riktas utåt – `ETAPPLAN9.md`) sköts in FÖRE båda, och C
+> och B bytte plats sinsemellan. Skälet: C har en dokumenterad 72-timmarsfrist
+> (`avtal/PUB-AVTAL-MALL.md` p. 8) och kända, ifyllbara luckor redan idag
+> (`OPPNA-PUNKTER.md`), medan B förbättrar något som redan fungerar.
 
-Ordning: **44 (A) → B → C**, men omprövningsbar om en konkret kundhändelse (t.ex. en ny kund,
-en verklig incident) gör en av dem mer akut.
+- **Etapp 46 (tidigare "C") – Incidentberedskap i produkten.** Idé i korthet: göra
+  `INCIDENT-CHECKLISTA.md`/`avtal/INCIDENTRESPONSPLAN.md`s innehåll till en aktiv adminvy
+  (senaste backup, App Check-verifieringsgrad, misslyckade inloggningsförsök i realtid)
+  istället för ett passivt dokument som bara läses under press. Näst i tur, efter Etapp 45.
+- **Etapp 47 (tidigare "B") – Sök- och kunskapsupptäckt 2.0.** Idé i korthet: "relaterade
+  rutiner"-förslag baserat på taggar/område, en "vad är nytt sedan sist du var här"-vy utöver
+  den redan existerande ändringsloggen, och en bredare kommandopalett (kontakter/förråd, inte
+  bara rutiner). Sist i tur.
+
+Ordning: **44 → 45 → 46 → 47**, men omprövningsbar om en konkret kundhändelse (t.ex. en ny
+kund, en verklig incident) gör en av dem mer akut.
