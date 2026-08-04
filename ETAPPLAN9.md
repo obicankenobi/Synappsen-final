@@ -89,7 +89,7 @@ ikapp, tillgänglighetsgranskning) – inget nytt funktionsarbete.
   spridda över fem `ETAPPLANx.md`-filer. **Ersätter** – inte kompletterar – granskningens
   eget delförslag om en egen "etapp" för dessa fem punkter (samma sak, mindre dokument-
   duplicering).
-- **45e – Ändringsloggens ton vid rena UI-releaser.** v5.68.0–v5.72.0 var till stor del
+- **45e – ✅ KLAR (2026-08-04): Ändringsloggens ton vid rena UI-releaser.** v5.68.0–v5.72.0 var till stor del
   CSS-scoping/null-skydd/densitetsjusteringar – korrekta men tekniska rader
   ("flex-scoping-fix i Korvy") som säger lite till en medarbetare som läser `/nyheter`. Ny
   skriven konvention (kommentar i `src/data/andringslogg.js`s topp): vid en release som
@@ -98,7 +98,7 @@ ikapp, tillgänglighetsgranskning) – inget nytt funktionsarbete.
   nåbar") istället för att bara lista tekniska delfixar. **Gäller framåt, ingen retroaktiv
   omskrivning** av redan publicerade poster – ändringsloggen är en logg, inte ett levande
   dokument som ska redigeras i efterhand.
-- **45f – Beslutslogg (lägre prioritet, byggs om tid finns).** Ny `BESLUTSLOGG.md`:
+- **45f – ✅ KLAR (2026-08-04): Beslutslogg.** Ny `BESLUTSLOGG.md`:
   datum/fråga/beslut/motivering/vad det låste upp, en rad per ägarbeslut FRAMÅT (inte en
   retroaktiv genomgång av alla historiska beslut i `CLAUDE_STATUS.md` – för stort för värdet).
   Löser att en fråga som redan avgjorts (t.ex. Etapp 36c, externt pentest: nej för nu) annars
@@ -235,6 +235,22 @@ Fullt testsvep grönt (lint, build, vitest 124/124, test:e2e 11/11). Version 5.7
 
 **Etapp 45a–45d är därmed klara.** Kvar: 45e (ändringsloggens ton vid rena UI-releaser) och
 45f (beslutslogg), i den ordningen.
+
+### 45e/45f ✅ KLARA (2026-08-04)
+
+**45e:** en dokumenterad konvention (kommentar i `src/data/andringslogg.js`s topp), inget
+annat – gäller framåt, ingen retroaktiv omskrivning av redan publicerade poster.
+
+**45f:** ny `BESLUTSLOGG.md`, tom vid skapandet (byggs framåtriktat, se Beslut 3 ovan) med
+format datum/fråga/beslut/motivering/vad det påverkade. Ny obligatorisk underhållsregel i
+`CLAUDE.md` (samma händelsestyrda mönster som `OPPNA-PUNKTER.md`s egen regel) – en rad i
+`OPPNA-PUNKTER.md` som blir ett beslut flyttas hit och tas bort därifrån.
+
+Ingen versionsbump (ren dokumentation, ingen app-synlig skillnad – samma princip som 45a/45b).
+Fullt testsvep grönt (lint, build, vitest 124/124).
+
+**Med detta är hela Etapp 45 (45a–45f) klar.** Nästa steg enligt den beslutade ordningen
+(Beslut 1): Etapp 46 (incidentberedskap i produkten), i `ETAPPLAN8.md`.
 
 ---
 

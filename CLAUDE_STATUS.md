@@ -6,16 +6,15 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-04, version fortfarande **5.73.0** (ingen kod ändrad, bara
-planering + ett nytt register). `ETAPPLAN8.md` Etapp 44 är fortsatt HELT KLAR OCH LIVE. **Ny
-aktiv plan: `ETAPPLAN9.md` (Etapp 45 – kvalitetsmaskineriet riktas utåt)**, en respons på en
-extern dokumentationsgranskning (2026-08-04) som pekade ut att `PITCH.md` låg 48 releaser
-efter, att tillgänglighetsredogörelsen inte täcker Etapp 42/43, och att fem människoberoende
-punkter saknade en egen synlig plats. **Nytt: `OPPNA-PUNKTER.md`** – läs den ANDRA (efter den
-här filen), den ersätter behovet av att läsa fyra-fem planfilers statusblock för att se vad
-som väntar på en människa. `ETAPPLAN8.md`s köade Etapp B/C bytte plats och heter nu 46/47,
-kommer EFTER Etapp 45. **Läs sektionen "Uppföljning 2026-08-04 (Etapp 45 antagen)" längst ner
-i den här filen först** om du undrar var arbetet står idag.
+**Senast uppdaterad:** 2026-08-04, version **5.74.0** (pushad, INTE ännu deployad – senaste
+produktionsdeploy är v5.73.0, körning #67). **`ETAPPLAN9.md` (Etapp 45 – kvalitetsmaskineriet
+riktas utåt) är HELT KLAR, alla sex delmål 45a–45f**, byggd som en respons på en extern
+dokumentationsgranskning (2026-08-04). Konkret: `PITCH.md` skriven ikapp + versionslåst,
+en ny rökprovssvit och en ny tillgänglighetssvit i `test:e2e` (sex genuina a11y-buggar
+hittade och fixade), `OPPNA-PUNKTER.md` och `BESLUTSLOGG.md` skapade. `ETAPPLAN8.md`s köade
+Etapp B/C bytte plats och heter nu 46/47, kommer EFTER Etapp 45. **Läs sektionen
+"Uppföljning 2026-08-04 (Etapp 45 helt klar)" längst ner i den här filen först** om du undrar
+var arbetet står idag – nästa steg är Etapp 46 (incidentberedskap i produkten).
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1260,3 +1259,22 @@ Fullt testsvep grönt (lint, build, vitest 124/124, test:e2e 11/11). Version 5.7
 **5.74.0** (första riktiga app-synliga fixen i Etapp 45). Committat och pushat.
 
 **Etapp 45a–45d klara.** Kvar: 45e (ändringsloggens ton), 45f (beslutslogg).
+
+## Uppföljning 2026-08-04 (Etapp 45 helt klar): 45e/45f byggda
+
+Byggde 45e och 45f direkt efter 45c ("ja").
+
+**45e:** en dokumenterad konvention i `src/data/andringslogg.js`s topp – vid en release som
+uteslutande är CSS/UI-polish, led med en sammanfattande användarvänd rad istället för
+tekniska delfixar. Gäller framåt, ingen retroaktiv omskrivning.
+
+**45f:** ny `BESLUTSLOGG.md` – tom vid skapandet (byggs framåtriktat, ingen retroaktiv
+genomgång av `CLAUDE_STATUS.md`s historik). Ny obligatorisk underhållsregel i `CLAUDE.md`.
+En rad i `OPPNA-PUNKTER.md` som blir ett beslut flyttas hit och tas bort därifrån.
+
+Ingen versionsbump (ren dokumentation). Fullt testsvep grönt (lint, vitest 124/124).
+Committat och pushat.
+
+**Med detta är HELA `ETAPPLAN9.md` (Etapp 45, alla sex delmål 45a–45f) klar.** Nästa steg
+enligt den beslutade ordningen (Beslut 1 i `ETAPPLAN9.md`): Etapp 46 (incidentberedskap i
+produkten), i `ETAPPLAN8.md`.

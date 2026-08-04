@@ -45,8 +45,9 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 | Fil | Innehåll | Status |
 |---|---|---|
-| `ETAPPLAN9.md` | Etapp 45: kvalitetsmaskineriet riktas utåt (respons på extern granskning) | **AKTIV, ny 2026-08-04.** Inget byggt ännu (utom 45d, se nedan). |
+| `ETAPPLAN9.md` | Etapp 45: kvalitetsmaskineriet riktas utåt (respons på extern granskning) | **HELT KLAR** (2026-08-04). Alla sex delmål 45a–45f byggda, v5.74.0. Inte deployad ännu. |
 | `OPPNA-PUNKTER.md` | Samlat register över människo-/beslutsberoende punkter, tvärs över alla planfiler | **Aktiv, LEVANDE, ny 2026-08-04 (Etapp 45d).** Händelsestyrd underhållsregel, se arbetsmönstren nedan. |
+| `BESLUTSLOGG.md` | Samlat register över tagna ägarbeslut, framåtriktat från 2026-08-04 | **Aktiv, LEVANDE, ny 2026-08-04 (Etapp 45f).** Byggs inte retroaktivt – historiska beslut finns i `CLAUDE_STATUS.md`. Händelsestyrd underhållsregel, se arbetsmönstren nedan. |
 | `ETAPPLAN8.md` | Etapp 44: mobilappskänsla och installationsbarhet | Etapp 44 (44a–44d) HELT KLAR OCH DEPLOYAD (2026-08-04, v5.73.0, körning #67). Två köade framtida etapper (46: incidentberedskap, 47: sök/kunskapsupptäckt) – kommer EFTER `ETAPPLAN9.md`. |
 | `ETAPPLAN7.md` | Etapp 42 + Etapp 43: gränssnittsförnyelse | **HELT KLAR OCH DEPLOYAD** (2026-08-03). Etapp 42a–42f och Etapp 43a–43e klara, v5.72.0 live i produktion (körning #66). Historisk men korrekt. |
 | `ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag, bevisad effekt, import, synlighet | **Aktiv men ej stängd.** Etapp 37–39 och 41 klara. Kvarvarande punkt (Etapp 40) listad i `OPPNA-PUNKTER.md`. |
@@ -227,3 +228,18 @@ commit** när något av följande inträffar:
 En rad som blir ett beslut (ägaren säger ja/nej med ett omprövningsvillkor) flyttas till
 `BESLUTSLOGG.md` när den filen finns (se `ETAPPLAN9.md` 45f) – tas bort härifrån ändå, oavsett
 om beslutsloggen redan är byggd.
+
+### Obligatorisk underhållsregel: BESLUTSLOGG.md
+
+Skapad 2026-08-04 (Etapp 45f) – byggs FRAMÅTRIKTAT, ingen retroaktiv genomgång av historiska
+beslut (se `ETAPPLAN9.md` Beslut 3). **Uppdatera i SAMMA commit/session** när något av
+följande inträffar:
+
+| Om du … | Uppdatera |
+|---|---|
+| Tar ett ägarbeslut tillsammans med användaren (ja/nej/vänta, med eller utan omprövningsvillkor) | Lägg till en rad: datum, fråga, beslut, motivering, vad det påverkade/låste upp |
+| Ser en rad i `OPPNA-PUNKTER.md` bli avgjord | Flytta raden hit, ta bort den därifrån |
+| Upptäcker att ett tidigare loggat beslut omprövats eller ändrats | Lägg till en NY rad (ändra inte den gamla i efterhand) – samma kronologi-princip som `ETAPPLANx.md`-filerna |
+
+Håll motiveringskolumnen kort – en mening, inte en sammanfattning av hela resonemanget (det
+hör hemma i `CLAUDE_STATUS.md`s uppföljningssektion för den sessionen).

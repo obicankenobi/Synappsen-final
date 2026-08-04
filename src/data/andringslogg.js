@@ -1,6 +1,14 @@
 // Användarvänd ändringslogg, visas på sidan "Nyheter" (/nyheter).
 // Nyast först. Lägg till en ny post högst upp varje gång en release görs.
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
+//
+// Etapp 45e: vid en release som UTESLUTANDE är CSS/UI-polish utan ny funktion (t.ex. ren
+// scoping-/densitets-/kontrastjustering) – led med EN sammanfattande, användarvänd rad om
+// VAD som känns annorlunda ("Nytt utseende i hela appen – tätare listor, samlad
+// godkännandekö, Akut-knappen alltid nåbar") snarare än att bara lista tekniska delfixar
+// rad för rad. En medarbetare som läser /nyheter bryr sig om vad hon möter, inte vilken CSS-
+// klass som scopades om. Gäller FRAMÅT – ingen retroaktiv omskrivning av redan publicerade
+// poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
     version: "5.74.0",
