@@ -1,6 +1,6 @@
 # Synappsen – rätt information, direkt i handen, när det är bråttom
 
-*Beslutsunderlag för verksamhetsledning · Version 5.25.0 · 2026-07-26*
+*Beslutsunderlag för verksamhetsledning · Version 5.73.0 · 2026-08-04*
 
 ---
 
@@ -37,15 +37,42 @@ nät) som samlar mottagningens hela praktiska kunskap på ett ställe – sökba
 - **Spårbarhet:** läskvittering på rutiner och anslag – se vilka som INTE tagit del av en
   ny rutin, med deadline och exporterbar rapport till t.ex. APT-underlag.
 - **Kvalitetskontroll:** versionshistorik, granskningssignaturer, automatiska påminnelser
-  när en rutin behöver ses över, och en fullständig ändringslogg (vem gjorde vad, när).
+  när en rutin behöver ses över, och en fullständig ändringslogg (vem gjorde vad, när) –
+  manipuleringsskyddad via en hashkedja (revisionslogg), inte bara en vanlig logg-tabell.
 - **Datadriven prioritering:** appen loggar vad personalen söker efter utan att hitta –
-  ledningen ser exakt vilka rutiner som saknas och efterfrågas mest. Sedan senaste
-  versionen mäts även **tiden från påbörjad sökning till klick** per session, så det går
-  att se om det tar sekunder eller minuter att hitta rätt.
+  ledningen ser exakt vilka rutiner som saknas och efterfrågas mest. Tiden från påbörjad
+  sökning till klick mäts per session, så det går att se om det tar sekunder eller minuter
+  att hitta rätt.
+- **En samlad godkännandekö:** alla väntande utkast och ändringsförslag – oavsett om de
+  kommer från Kliniskt stöd, Logistik eller Administration – i EN vy istället för utspridda
+  per sektion, med en banderoll på startsidan som visar hur mycket som väntar.
+- **Effekten synlig över tid, inte bara ett ögonblick:** en veckovis mätt trendkurva
+  (kvitteringsgrad, sökbeteende) och en "före/efter"-jämförelse kring specifika insatser –
+  se "Ärlighet om vad som faktiskt är mätt" nedan för vad det kräver för att bli meningsfullt.
 - **Ledningsrapport:** en utskriftsvänlig sida byggd specifikt för det en chef vill kunna
-  visa uppåt – kvitteringsgrad per område, inte bara operativa detaljer.
+  visa uppåt – kvitteringsgrad per område, trend, och (frivilligt) en anonym
+  personalpuls-sammanställning per område, inte bara operativa detaljer.
 - **Kommunikation som når fram:** anslagstavla med prioritet, skiftrapport för driftinfo
   (aldrig patientdata), notiser och @omnämnanden.
+
+## Innehållet hålls vid liv, inte bara publicerat en gång
+
+Den vanligaste svagheten i den här typen av system är inte att innehåll saknas – det är att
+det blir gammalt utan att någon märker det. Synappsen har en egen innehållshälsokontroll:
+
+- **En hälsosiffra per område, alltid med sin nedbrytning** – aldrig ett ensamt procenttal
+  utan att samtidigt visa VILKA rutiner som bör granskas, saknar ägare, aldrig kvitterats
+  eller är utgångna. En siffra utan orsak går att runda av; en siffra med lista går inte.
+- **Riktade granskningsrundor:** en redaktör kan starta en tidsbestämd genomgång av ett urval
+  äldre rutiner inom ett område, med automatisk påminnelse till varje berörd ägare.
+- **Möjliga dubbletter flaggas** (under pilotutvärdering i Kliniskt stöd) – två rutiner som
+  liknar varandra för mycket upptäcks automatiskt istället för att upptäckas av en
+  sammanträffande läsning.
+- **"Ni sa, vi gjorde":** en publik lista på startsidan över ändringsförslag som faktiskt
+  införts – synliggör att personalens inspel leder till riktiga ändringar, inte bara till en
+  kö ingen ser resultatet av.
+- **Arkiverad status** för innehåll som inte längre gäller, skild från papperskorgen – syns
+  aldrig i akutläget även om ett gammalt fält råkar säga att det borde.
 
 ## Byggd för vårdens krav
 
@@ -63,7 +90,12 @@ nät) som samlar mottagningens hela praktiska kunskap på ett ställe – sökba
   buggenomgångar (se SAKERHETSRAPPORT.md), med automatiska tester som körs i CI vid varje
   ändring – inklusive databehörighetsreglerna, inte bara applikationskoden.
 - **Tillgänglighet:** granskad mot WCAG 2.1 AA (se TILLGANGLIGHETSREDOGORELSE.md), med
-  kända kvarstående punkter öppet redovisade snarare än dolda.
+  kända kvarstående punkter öppet redovisade snarare än dolda. Mörkt läge, valfri
+  accentfärg och ett gränssnitt förnyat i sin helhet (2026) mot ett konsekvent designspråk.
+- **Byggd för att kännas som en app, inte en webbsida på jobbet:** installerbar på
+  hemskärmen på både Android och iPhone med en tydlig uppmaning (inte bara webbläsarens
+  diskreta ikon), och en ny version av appen laddas aldrig in utan förvarning mitt i en
+  pågående arbetssession – personalen väljer själv när.
 - **Upphandlingsklart:** PUB-avtalsmall, underbiträdesförteckning, DPIA-underlag och ett
   tekniskt faktablad till IT-avdelningen finns färdiga (se avtal/-katalogen), så ett
   inköpsbeslut inte behöver vänta på att någon skriver dessa från grunden.
@@ -76,6 +108,16 @@ nät) som samlar mottagningens hela praktiska kunskap på ett ställe – sökba
 | Veta vilka som läst en ny rutin | okänt | exakt lista + deadline |
 | Digitalisera en pappersrutin | manuell omskrivning | foto → utkast på sekunder |
 | Driftkostnad | – | ~0 kr fast; AI-budget ~200 kr/mån (justerbart tak) |
+
+### Ärlighet om vad som faktiskt är mätt
+
+Trendkurvorna, personalpulsen och effektjämförelsen ovan är byggda och redo att samla in
+data – men det finns ännu ingen betalande kund, och därför inga verkliga veckor att visa.
+Tabellen ovan är fortsatt en uppskattning, inte ett resultat. Anonymitetsspärren i
+personalpulsen (minst fem svarande innan ett områdesresultat visas) är avsiktlig och
+betyder att en ny, liten pilot kan behöva vänta ett tag innan den siffran syns alls – det är
+rätt avvägning, inte en bugg. Vi säger detta rakt ut eftersom det är precis den sortens
+detalj vi själva skulle vilja veta innan vi köpte något liknande.
 
 ## Förslag på nästa steg
 

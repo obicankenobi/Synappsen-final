@@ -46,7 +46,7 @@ produktkvalitet en KUND eller en MYNDIGHETSGRANSKNING faktiskt möter. Etappen �
 strukturell (test som förhindrar återfall) plus två avgränsade engångsinsatser (innehålls-
 ikapp, tillgänglighetsgranskning) – inget nytt funktionsarbete.
 
-- **45a – `PITCH.md` kan inte längre glida obemärkt.**
+- **45a – ✅ KLAR (2026-08-04): `PITCH.md` kan inte längre glida obemärkt.**
   - **45a-i (struktur, görs FÖRST):** ett nytt vitest-test (`src/data/pitch-version.test.js`
     eller motsvarande) som failar om `PITCH.md`s versionsrubrik ligger mer än ett bestämt
     antal minorversioner efter `package.json`s (t.ex. 10) – samma "kan inte återkomma"-princip
@@ -107,6 +107,39 @@ ikapp, tillgänglighetsgranskning) – inget nytt funktionsarbete.
 **Explicit UTANFÖR den här etappen:** inget nytt funktionsarbete. Etapp 45 är uteslutande
 kvalitets-/dokumentationsarbete – exakt den typ av arbete granskningen efterlyste FÖRE nästa
 funktionsetapp.
+
+### 45a ✅ KLAR (2026-08-04)
+
+**45a-i (struktur):** ny `tests/docs/pitch-version.test.js` (vitest) – läser versionsnumret ur
+`PITCH.md`s rubrik och `package.json`, failar om major skiljer sig ELLER om PITCH.md:s
+minorversion ligger mer än 15 bakom. **Verifierat att testet faktiskt fångar det verkliga
+felet innan fixen skrevs:** kört mot det ursprungliga läget (PITCH.md 5.25.0, package.json
+5.73.0) gav ett rött test med felmeddelandet "48 minorversioner efter, gränsen är 15" – inte
+bara en grön attrapp. Gränsen (15) är medvetet satt löst nog att inte tvinga en omskrivning
+vid varje enskild patch, men tight nog att en 48-releasers-glidning omöjliggörs.
+
+**45a-ii (innehåll):** `PITCH.md` omskriven för att täcka Etapp 22–43 (var tidigare stale
+sedan 13e/v5.25.0). Tillagt: en samlad godkännandekö (42b), effektmätning över tid (39a/39b),
+en ny sektion "Innehållet hålls vid liv" (innehållshälsa 37a, granskningsrundor 37b,
+dubblettdetektion 37c, "Ni sa vi gjorde" 41a, arkiverad status 37d), revisionsloggens
+hashkedja (fanns aldrig med, trots att den byggdes redan i Etapp 14 – ännu en lucka utöver de
+granskningen själv hittade), mörkt läge och gränssnittsförnyelsen (Etapp 42+43), samt
+installationsbarhet/kontrollerad uppdatering (Etapp 44). **Ny sektion "Ärlighet om vad som
+faktiskt är mätt"** – skriven direkt som en respons på granskningens fynd #7 (mätningen mäter
+en verksamhet som ännu inte finns): säger rakt ut att trendkurvor/personalpuls/effekt-
+jämförelsen ännu inte har någon verklig kund bakom sig, och att minsta-n-spärren (fem
+svarande) kan göra att en liten pilot inte visar någon personalpuls-siffra alls till en
+början. Samma ärliga ton som redan fanns i dokumentet (13e:s rättelse om klinikstöd) –
+förstärkt, inte mjukad upp.
+
+**Ingen versionsbump.** Övervägdes (5.73.0 → 5.74.0) men reverterades: detta är en
+dokumentations-/testförändring utan någon app-synlig skillnad – matchar det redan
+etablerade mönstret (t.ex. Etapp 14b/14c) att inte bumpa version för ändringar utan
+motsvarande deploybar yta. `PITCH.md`s versionsrad pekar på nuvarande `package.json`-version
+(5.73.0) utan att den själv orsakade en ny release.
+
+Fullt testsvep grönt (lint, build, vitest 124/124 – en ny). Inga rules-/storage-/
+functions-ändringar. Committat och pushat.
 
 **Klart när:** `PITCH.md` inte kan glida mer än en bestämd gräns utan att ett test upptäcker
 det, en rökprovssvit körs i `test:e2e` över alla routes/roller, tillgänglighetsredogörelsen

@@ -1173,3 +1173,28 @@ kön flyttad bakom Etapp 45). Version oförändrad (5.73.0) – inget kodarbete,
 
 **Nästa steg:** börja Etapp 45 i planens egen ordning (45a → 45b → 45c → 45e → 45f), om inget
 annat prioriteras.
+
+## Uppföljning 2026-08-04 (Etapp 45a klar): PITCH.md kan inte längre glida obemärkt
+
+Byggde 45a direkt efter att `ETAPPLAN9.md` antogs ("börja med delmål 45a").
+
+**45a-i:** ny `tests/docs/pitch-version.test.js` – jämför `PITCH.md`s versionsrubrik mot
+`package.json`, failar om major skiljer sig eller minor ligger mer än 15 bakom. **Verifierat
+mot det verkliga felet innan fixen:** kört mot ursprungsläget gav rött med "48
+minorversioner efter, gränsen är 15" – bekräftar att testet faktiskt fångar problemet, inte
+bara en attrapp som alltid är grön.
+
+**45a-ii:** `PITCH.md` omskriven till att täcka Etapp 22–43 – samlad godkännandekö,
+effektmätning över tid, en ny sektion om innehållshälsa/granskningsrundor/dubblettdetektion/
+"Ni sa vi gjorde"/arkiverad status, revisionsloggens hashkedja (aldrig omnämnd tidigare, en
+lucka utöver de granskningen själv hittade), gränssnittsförnyelsen och installationsbarheten.
+Ny sektion "Ärlighet om vad som faktiskt är mätt" – skriven direkt mot granskningens fynd #7
+(ingen kund ännu, siffrorna är fortsatt uppskattningar).
+
+**Ingen versionsbump** – övervägd men reverterad, matchar det etablerade mönstret att inte
+bumpa för ändringar utan motsvarande app-synlig/deploybar yta (jfr Etapp 14b/14c).
+
+Fullt testsvep grönt (lint, build, vitest 124/124). Committat och pushat.
+
+**Kvar i Etapp 45:** 45b (rökprovssvit), 45c (tillgänglighetsgranskning), 45e (ändringsloggens
+ton), 45f (beslutslogg) – i den ordningen enligt `ETAPPLAN9.md`.
