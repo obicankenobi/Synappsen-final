@@ -11,6 +11,14 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.76.0",
+    datum: "2026-08-04",
+    andringar: [
+      "Rutinformuläret föreslår nu automatiskt relaterade rutiner som delar en tagg med den du redigerar",
+      "'Sedan ditt förra pass' visar nu även väsentligt uppdaterade rutiner, inte bara helt nya",
+    ],
+  },
+  {
     version: "5.75.0",
     datum: "2026-08-04",
     andringar: [

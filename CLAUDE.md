@@ -27,9 +27,8 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 3. **`ETAPPLAN9.md`** – den AKTIVA utvecklingsplanen (Etapp 45: kvalitetsmaskineriet riktas
    utåt – en respons på en extern dokumentationsgranskning 2026-08-04). Om användaren ber om
    fortsatt arbete utan att specificera vad: det är här nästa punkt finns.
-4. **`ETAPPLAN8.md`** – Etapp 44 (mobilappskänsla) HELT KLAR OCH DEPLOYAD. Två köade, ännu
-   inte detaljplanerade framtida etapper (46: incidentberedskap i produkten, 47: sök/
-   kunskapsupptäckt) noterade i filen – kommer EFTER `ETAPPLAN9.md`, INTE innan.
+4. **`ETAPPLAN8.md`** – Etapp 44, 46 och 47 HELT KLARA (44 deployad, 46/47 inte ännu). Ingen
+   etapp väntar ogjord i den här filen just nu.
 5. **`ETAPPLAN7.md`** – HELT KLAR OCH DEPLOYAD (Etapp 42+43, gränssnittsförnyelse). Historisk
    men korrekt, inget kvar att göra där.
 6. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkt (Etapp 40, villkorad av en
@@ -48,7 +47,7 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 | `ETAPPLAN9.md` | Etapp 45: kvalitetsmaskineriet riktas utåt (respons på extern granskning) | **HELT KLAR** (2026-08-04). Alla sex delmål 45a–45f byggda, v5.74.0. Inte deployad ännu. |
 | `OPPNA-PUNKTER.md` | Samlat register över människo-/beslutsberoende punkter, tvärs över alla planfiler | **Aktiv, LEVANDE, ny 2026-08-04 (Etapp 45d).** Händelsestyrd underhållsregel, se arbetsmönstren nedan. |
 | `BESLUTSLOGG.md` | Samlat register över tagna ägarbeslut, framåtriktat från 2026-08-04 | **Aktiv, LEVANDE, ny 2026-08-04 (Etapp 45f).** Byggs inte retroaktivt – historiska beslut finns i `CLAUDE_STATUS.md`. Händelsestyrd underhållsregel, se arbetsmönstren nedan. |
-| `ETAPPLAN8.md` | Etapp 44: mobilappskänsla, Etapp 46: incidentberedskap i produkten | Etapp 44 HELT KLAR OCH DEPLOYAD (v5.73.0, körning #67). **Etapp 46 HELT KLAR** (2026-08-04, v5.75.0), inte deployad ännu. Etapp 47 (sök/kunskapsupptäckt) köad, inte påbörjad. |
+| `ETAPPLAN8.md` | Etapp 44: mobilappskänsla, Etapp 46: incidentberedskap, Etapp 47: sök/kunskapsupptäckt | **Alla tre HELT KLARA.** 44 deployad (v5.73.0, körning #67). 46/47 klara 2026-08-04 (v5.75.0/v5.76.0), inte deployade ännu. |
 | `ETAPPLAN7.md` | Etapp 42 + Etapp 43: gränssnittsförnyelse | **HELT KLAR OCH DEPLOYAD** (2026-08-03). Etapp 42a–42f och Etapp 43a–43e klara, v5.72.0 live i produktion (körning #66). Historisk men korrekt. |
 | `ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag, bevisad effekt, import, synlighet | **Aktiv men ej stängd.** Etapp 37–39 och 41 klara. Kvarvarande punkt (Etapp 40) listad i `OPPNA-PUNKTER.md`. |
 | `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv men ej stängd.** I det närmaste klar – kvarvarande punkter listade i `OPPNA-PUNKTER.md` istället för att dupliceras här. |

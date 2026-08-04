@@ -60,6 +60,13 @@
   font-weight: 400;
 }
 
+/* Etapp 47a: en synligt annorlunda ram (accentfärgad) för föreslagna rutiner, så de går att
+   skilja från "alla rutiner i området"-listan utan att behöva läsa hjälptexten ovanför. */
+.rutin-formular__relaterade--foreslagna {
+  border-color: var(--primar);
+  max-height: 120px;
+}
+
 .rutin-formular__relaterad-rad {
   display: flex;
   align-items: center;

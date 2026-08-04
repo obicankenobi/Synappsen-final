@@ -157,10 +157,8 @@ den tidpunkten, inte mot dagens.
 
 - **Etapp 46 (tidigare "C") – ✅ KLAR (2026-08-04): Incidentberedskap i produkten.** Se egen
   sektion nedan.
-- **Etapp 47 (tidigare "B") – Sök- och kunskapsupptäckt 2.0.** Idé i korthet: "relaterade
-  rutiner"-förslag baserat på taggar/område, en "vad är nytt sedan sist du var här"-vy utöver
-  den redan existerande ändringsloggen, och en bredare kommandopalett (kontakter/förråd, inte
-  bara rutiner). Sist i tur.
+- **Etapp 47 – ✅ ANTAGEN OCH PÅBÖRJAD (2026-08-04): Sök- och kunskapsupptäckt 2.0.** Se egen
+  sektion nedan.
 
 Ordning: **44 → 45 → 46 → 47**, men omprövningsbar om en konkret kundhändelse (t.ex. en ny
 kund, en verklig incident) gör en av dem mer akut.
@@ -239,3 +237,77 @@ uppdaterad. Committat och pushat.
 
 **Etapp 46 klar.** Nästa steg enligt ordningen: Etapp 47 (sök- och kunskapsupptäckt 2.0),
 när/om den prioriteras.
+
+---
+
+## Etapp 47 – Sök- och kunskapsupptäckt 2.0
+
+**Varför:** produkten är bra på att svara när någon SÖKER, men gör lite för att hjälpa
+någon UPPTÄCKA innehåll den inte visste fanns – en angränsande rutin, en uppdatering på
+något man redan läst, eller ett annat innehållsområde än rutiner i den globala sökningen.
+
+### Premisskontroll (krav 8), gjord innan bygget – två av tre ursprungliga idéer var redan
+### helt eller delvis lösta
+
+| Idé | Status |
+|---|---|
+| En bredare kommandopalett (kontakter/förråd, inte bara rutiner) | ❌ **Redan helt byggd.** `useSokindex.js` indexerar redan kontakter, förrådsartiklar OCH länkbiblioteket (inte bara rutiner) – bekräftat genom att läsa koden, inte anta. **Inget att bygga här**, utgår helt ur etappen. |
+| "Relaterade rutiner"-förslag baserat på taggar/område | ⚠️ **Fältet finns, men är 100% manuellt.** `rutin.relateradeRutiner` (visas som "Se även:" i `RutinKort.jsx`) sätts idag genom att en redaktör manuellt letar upp och väljer varje rutin i `RutinFormular.jsx` – ingen automatisk föreslagning baserat på delade taggar/område finns. **Genuin lucka, byggs (47a).** |
+| "Vad är nytt sedan sist du var här" utöver ändringsloggen | ⚠️ **Delvis byggd, med en konkret begränsning.** `SedanForraPasset.jsx`/`useSedanForraPasset.js` (Etapp 25) visar redan NYA rutiner/anslag/skiftrapporter sedan förra inloggningen – men filtrerar på `r.skapad`, aldrig på en uppdatering av en REDAN BEFINTLIG rutin. En rutin som fått ett viktigt innehållstillägg sedan sist syns inte alls. **Genuin lucka, byggs (47b).** |
+
+**Konsekvens:** etappen blir två riktade fixar på ett redan existerande, delvis byggt
+fundament – inte tre nya funktioner från grunden.
+
+### 47a – ✅ KLAR (2026-08-04) – Föreslagna relaterade rutiner baserat på taggar/område
+
+I `RutinFormular.jsx`, när en rutin har minst en tagg satt: visa en lista med FÖRESLAGNA
+rutiner (godkända, samma område, delar minst en tagg, inte redan tillagd) bredvid det
+befintliga `relateradeRutiner`-fältet, med en "Lägg till"-knapp per förslag – i stället för
+att redaktören måste komma ihåg och söka upp varje relaterad rutin manuellt. Ren
+klientberäkning (ingen ny Firestore-fråga – rutinerna för området är redan laddade i
+formuläret), ingen ny datamodell.
+
+### 47b – ✅ KLAR (2026-08-04) – "Sedan ditt förra pass" känner nu igen väsentligt uppdaterat innehåll, inte bara nytt
+
+**Premisskontroll vid byggstart (inte bara vid antagandet) hittade en bättre lösning än den
+ursprungligen skisserade.** Första tanken var att lägga till ett nytt fält som stämplas vid
+VARJE redigering – men ett fält som redan gör precis det jobbet finns sedan Etapp 19c:
+`rutin.senasteVasentligaAndring`, satt av `Sektionssida.jsx` ENDAST när en VÖL/superadmin
+uttryckligen kryssar i "väsentlig ändring" vid publicering (samma fält som redan tvingar
+omkvittering i kompetensmatrisen, `utils/kompetensStatus.js`). Att stämpla EN gång per
+redigering (oavsett hur trivial) hade dränkt "Sedan ditt förra pass" i brus – en stavfelsfix
+hade räknats likadant som ett viktigt tillägg. Genom att återanvända
+`senasteVasentligaAndring` ärver funktionen samma redan avsiktliga, kuraterade signal, utan
+ett nytt fält, ingen regeländring, ingen extra Firestore-fråga.
+
+`useSedanForraPasset.js` utökas att inkludera rutiner där `senasteVasentligaAndring` (inte
+bara `skapad`) ligger efter förra inloggningen, med en egen text ("Uppdaterad rutin: X" skild
+från "Ny rutin: X") så skillnaden är tydlig för läsaren.
+
+**Klart när:** en redaktör som taggar en ny rutin ser omedelbart vilka andra rutiner i samma
+område som delar minst en tagg, och en medarbetare som loggar in efter ett pass ser BÅDE nytt
+OCH väsentligt uppdaterat innehåll i "Sedan ditt förra pass" – inte bara det förra.
+
+### Verifierat i en riktig webbläsare mot emulatorerna
+
+- **47a:** en seedad rutin med taggarna `sepsis`/`akut`, redigerad – en ANNAN seedad rutin med
+  taggen `sepsis` visades korrekt i den nya "Föreslagna"-rutan.
+- **47b:** en seedad rutin med `senasteVasentligaAndring` satt efter användarens
+  `foregaendeInloggning` visades korrekt som "Uppdaterad rutin: ..." i "Sedan ditt förra
+  pass", skild från "Ny rutin: ...".
+- **Ett testskriptfel hittades och korrigerades under verifieringen, ingen produktbugg:**
+  första försöket navigerade mellan sidor med `page.goto()` (fulla omladdningar), vilket
+  omonterade och återmonterade `AuthContext` en andra gång – exakt det scenario
+  `foregaendeInloggning`s egen kommentar redan varnar för ("sparas en gång per session"), och
+  gjorde att den redan uppdaterade `senasteInloggning` lästes in på nytt. Fixat genom att
+  navigera via en klientsidig länk (`<Link>`) istället för en ny sidladdning, som en riktig
+  användare gör i en enda inloggad session.
+
+Inga nya vitest-tester (klientsidig UI-logik verifierad i browser, samma mönster som andra
+formulärsjusteringar). Inga rules-/functions-/storage-ändringar. Fullt testsvep grönt (lint,
+build, vitest 124/124). Version 5.75.0 → **5.76.0**, `andringslogg.js` uppdaterad. Committat
+och pushat.
+
+**Etapp 47 (47a, 47b) klar – 47c (bredare kommandopalett) utgick helt vid premisskontrollen,
+redan byggd.** Med detta är samtliga fyra köade etapper i `ETAPPLAN8.md` (44, 46, 47) klara
+plus `ETAPPLAN9.md` (45). Ingen ny UI-/upptäckts-etapp väntar just nu.

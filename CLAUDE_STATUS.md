@@ -6,15 +6,16 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-04, version **5.75.0** (pushad, INTE ännu deployad – senaste
-produktionsdeploy är v5.73.0, körning #67). **`ETAPPLAN9.md` (Etapp 45) är HELT KLAR** (respons
-på en extern dokumentationsgranskning), och **`ETAPPLAN8.md` Etapp 46 (incidentberedskap i
-produkten) är också HELT KLAR** – en ny "Incidentberedskap"-sektion i adminpanelen visar
-revisionskedjans senaste automatiska kontroll och senaste backup, med en ärlig ruta om de två
-saker (App Check-metrik, misslyckade inloggningar) som INTE gick att bygga. **Läs sektionen
-"Uppföljning 2026-08-04 (Etapp 46 klar)" längst ner i den här filen först** om du undrar var
-arbetet står idag – nästa steg är Etapp 47 (sök/kunskapsupptäckt 2.0) eller en deploy av
-v5.75.0.
+**Senast uppdaterad:** 2026-08-04, version **5.76.0** (pushad, INTE ännu deployad – senaste
+produktionsdeploy är v5.73.0, körning #67, alltså tre releaser bakom). **`ETAPPLAN9.md` (Etapp
+45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är ALLA HELT KLARA** – inget mer kodat och obeslutat
+väntar just nu i den aktiva UI-/kvalitets-linjen. Etapp 47 (sök- och kunskapsupptäckt):
+rutinformuläret föreslår nu relaterade rutiner baserat på delade taggar, och "Sedan ditt förra
+pass" visar väsentligt uppdaterat innehåll, inte bara nytt – den tredje ursprungliga idén
+(bredare kommandopalett) visade sig redan vara byggd. **Läs sektionen "Uppföljning 2026-08-04
+(Etapp 47 klar)" längst ner i den här filen först** om du undrar var arbetet står idag – nästa
+steg är en deploy av v5.76.0 (tre releaser väntar: 5.74/5.75/5.76) eller ett nytt större
+arbetsområde att identifiera.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1313,3 +1314,34 @@ inte en regression, bekräftat genom en ren omkörning (11/11 gröna).
 
 Version 5.74.0 → **5.75.0**. Committat och pushat. **Etapp 46 klar.** Nästa: Etapp 47
 (sök/kunskapsupptäckt 2.0), när/om den prioriteras.
+
+## Uppföljning 2026-08-04 (Etapp 47 klar): sök- och kunskapsupptäckt 2.0
+
+Byggde Etapp 47 direkt efter Etapp 46 ("påbörja etapp 47").
+
+**Premisskontroll (krav 8) visade att bara en av tre ursprungliga idéer var byggbar rakt av:**
+en bredare kommandopalett (kontakter/förråd) var redan HELT byggd (`useSokindex.js` indexerar
+redan båda) – utgick helt. "Relaterade rutiner"-fältet fanns men var 100% manuellt. "Sedan
+ditt förra pass" fanns men fångade bara NYA rutiner, aldrig uppdaterade.
+
+**47a:** rutinformuläret föreslår nu automatiskt andra godkända rutiner i samma område som
+delar minst en tagg med den som redigeras, som en egen "Föreslagna"-lista före den fulla
+manuella listan. Ren klientberäkning, ingen ny datamodell.
+
+**47b:** en bättre lösning hittades under bygget än den ursprungligen skisserade – istället
+för ett nytt fält som stämplas vid VARJE redigering (hade dränkt vyn i brus) återanvänds
+`rutin.senasteVasentligaAndring` (Etapp 19c), redan en avsiktlig, kuraterad VÖL/superadmin-
+flagga. `useSedanForraPasset.js` visar nu "Uppdaterad rutin: X" utöver "Ny rutin: X".
+
+**Ett testskriptfel hittades och korrigerades under browserverifieringen, ingen produktbugg:**
+navigering med `page.goto()` (full omladdning) mellan sidor omonterade `AuthContext` en andra
+gång och läste in en redan uppdaterad `senasteInloggning` – exakt det scenario koden själv
+varnar för. Fixat genom att navigera via en klientsidig länk istället, som en riktig
+inloggad session gör.
+
+Inga nya vitest-tester, inga rules-/functions-/storage-ändringar. Fullt testsvep grönt (lint,
+build, vitest 124/124). Version 5.75.0 → **5.76.0**. Committat och pushat.
+
+**Med detta är `ETAPPLAN8.md` (Etapp 44, 46, 47) OCH `ETAPPLAN9.md` (Etapp 45) alla helt
+klara.** Tre releaser (5.74–5.76) väntar på deploy. Ingen ny UI-/kvalitetsplan väntar – nästa
+`ETAPPLANx.md` skrivs när/om ett nytt större arbetsområde identifieras.

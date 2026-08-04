@@ -56,7 +56,7 @@ export function useSedanForraPasset() {
         kvittera: () => kvitteraLastAnslagMedKo(a.id, uid, namn),
       }));
 
-    const rutinposter = allaRutiner
+    const nyaRutinposter = allaRutiner
       .filter((r) => r.status === RUTIN_STATUS.GODKAND && efterFörraPasset(r.skapad, foregaendeInloggning))
       .map((r) => ({
         id: `rutin-${r.id}`,
@@ -67,6 +67,30 @@ export function useSedanForraPasset() {
         kanKvittera: !harKvitterat(r.lasteAv, uid),
         kvittera: () => kvitteraLastMedKo(r.id, uid, namn),
       }));
+
+    // Etapp 47b: en rutin som fanns sedan tidigare men fått en VÄSENTLIG uppdatering (samma
+    // kuraterade `senasteVasentligaAndring`-fält som redan tvingar omkvittering i
+    // kompetensmatrisen, Etapp 19c) syns nu också – inte bara helt nya rutiner. Filtrerad på
+    // `r.skapad` INTE efter förra passet (annars dubbelräknas en rutin som både "ny" OCH
+    // "uppdaterad" om den både skapades och väsentligt ändrades under samma fönster).
+    const uppdateradeRutinposter = allaRutiner
+      .filter(
+        (r) =>
+          r.status === RUTIN_STATUS.GODKAND &&
+          !efterFörraPasset(r.skapad, foregaendeInloggning) &&
+          efterFörraPasset(r.senasteVasentligaAndring, foregaendeInloggning)
+      )
+      .map((r) => ({
+        id: `rutin-uppdaterad-${r.id}`,
+        typ: "rutin",
+        text: `Uppdaterad rutin: ${r.titel}`,
+        sokvag: `${OMRADE_SOKVAG[r.omrade] ?? "/"}#rutin-${r.id}`,
+        tid: r.senasteVasentligaAndring,
+        kanKvittera: !harKvitterat(r.lasteAv, uid),
+        kvittera: () => kvitteraLastMedKo(r.id, uid, namn),
+      }));
+
+    const rutinposter = [...nyaRutinposter, ...uppdateradeRutinposter];
 
     const skiftposter = skiftrapporter
       .filter((s) => efterFörraPasset(s.skapad, foregaendeInloggning))

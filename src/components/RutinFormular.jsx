@@ -325,6 +325,22 @@ export default function RutinFormular({
 
   const valbaraRutiner = ovrigaRutiner.filter((r) => r.id !== initialaVarden?.id);
 
+  // Etapp 47a: `relateradeRutiner` var tidigare en helt manuell lista att bläddra igenom –
+  // ingen hjälp att hitta rätt bland ett områdes alla rutiner. Föreslår istället, live medan
+  // redaktören skriver taggar, vilka ANDRA rutiner i samma område som delar minst en tagg.
+  // Ren klientberäkning av redan laddad data (ingen ny Firestore-fråga eller datamodell).
+  const aktuellaTaggar = taggarText
+    .split(",")
+    .map((t) => t.trim().toLowerCase())
+    .filter(Boolean);
+  const foreslagnaRutiner =
+    aktuellaTaggar.length === 0
+      ? []
+      : valbaraRutiner.filter(
+          (r) => !relaterade.includes(r.id) && (r.taggar ?? []).some((t) => aktuellaTaggar.includes(t.toLowerCase()))
+        );
+  const ovrigaValbaraRutiner = valbaraRutiner.filter((r) => !foreslagnaRutiner.includes(r));
+
   return (
     <form className="rutin-formular" onSubmit={hanteraSubmit}>
       <label>
@@ -737,8 +753,28 @@ export default function RutinFormular({
       {valbaraRutiner.length > 0 && (
         <label>
           Relaterade rutiner (valfritt)
+          {foreslagnaRutiner.length > 0 && (
+            <>
+              <span className="rutin-formular__hjalptext">
+                Föreslagna – delar minst en tagg med den här rutinen:
+              </span>
+              <div className="rutin-formular__relaterade rutin-formular__relaterade--foreslagna">
+                {foreslagnaRutiner.map((r) => (
+                  <label key={r.id} className="rutin-formular__relaterad-rad">
+                    <input
+                      type="checkbox"
+                      checked={relaterade.includes(r.id)}
+                      onChange={() => vaxlaRelaterad(r.id)}
+                    />
+                    {r.titel}
+                  </label>
+                ))}
+              </div>
+              <span className="rutin-formular__hjalptext">Alla rutiner i området:</span>
+            </>
+          )}
           <div className="rutin-formular__relaterade">
-            {valbaraRutiner.map((r) => (
+            {ovrigaValbaraRutiner.map((r) => (
               <label key={r.id} className="rutin-formular__relaterad-rad">
                 <input
                   type="checkbox"
