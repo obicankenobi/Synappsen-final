@@ -155,10 +155,8 @@ den tidpunkten, inte mot dagens.
 > (`avtal/PUB-AVTAL-MALL.md` p. 8) och kända, ifyllbara luckor redan idag
 > (`OPPNA-PUNKTER.md`), medan B förbättrar något som redan fungerar.
 
-- **Etapp 46 (tidigare "C") – Incidentberedskap i produkten.** Idé i korthet: göra
-  `INCIDENT-CHECKLISTA.md`/`avtal/INCIDENTRESPONSPLAN.md`s innehåll till en aktiv adminvy
-  (senaste backup, App Check-verifieringsgrad, misslyckade inloggningsförsök i realtid)
-  istället för ett passivt dokument som bara läses under press. Näst i tur, efter Etapp 45.
+- **Etapp 46 (tidigare "C") – ✅ KLAR (2026-08-04): Incidentberedskap i produkten.** Se egen
+  sektion nedan.
 - **Etapp 47 (tidigare "B") – Sök- och kunskapsupptäckt 2.0.** Idé i korthet: "relaterade
   rutiner"-förslag baserat på taggar/område, en "vad är nytt sedan sist du var här"-vy utöver
   den redan existerande ändringsloggen, och en bredare kommandopalett (kontakter/förråd, inte
@@ -166,3 +164,78 @@ den tidpunkten, inte mot dagens.
 
 Ordning: **44 → 45 → 46 → 47**, men omprövningsbar om en konkret kundhändelse (t.ex. en ny
 kund, en verklig incident) gör en av dem mer akut.
+
+---
+
+## Etapp 46 – Incidentberedskap i produkten
+
+**Varför:** `INCIDENT-CHECKLISTA.md` beskrev flera detektionsförmågor (revisionskedjans
+nattliga kontroll, backuper) som bara var synliga via Sentry-larm (bara vid en AVVIKELSE) eller
+genom att gräva i Firebase-konsolen – aldrig som ett "läget just nu"-svar i själva appen.
+
+### Premisskontroll (krav 8), gjord innan bygget – planens ursprungliga idé var för bred
+
+Den ursprungliga idén (från granskningen som gav upphov till hela `ETAPPLAN8.md`) nämnde tre
+saker: "senaste backup, App Check-verifieringsgrad, misslyckade inloggningsförsök i realtid".
+Kontroll mot faktisk kod/infrastruktur INNAN bygget visade att bara EN av de tre var byggbar
+som planerat:
+
+| Idé | Byggbar? | Varför |
+|---|---|---|
+| Senaste backup | ✅ Ja | Filerna finns redan i Storage (`backups/{orgId}/`), bara oläsbara för klienten – en Cloud Function med Admin SDK kan lista dem. |
+| App Check-verifieringsgrad | ❌ Nej | Firebase Admin SDK exponerar ingen funktion för att LÄSA den metriken – den finns bara i Firebase-konsolens UI (Build → App Check → Metrics), inte via någon dokumenterad API. Inte en kodfråga att lösa, en produktbegränsning hos Firebase självt. |
+| Misslyckade inloggningsförsök, realtid | ❌ Nej | Redan dokumenterat blockerat i `INCIDENT-CHECKLISTA.md`s egen "Vad som ännu inte finns"-tabell sedan tidigare: kräver ett ägarbeslut om en betald tjänst (Sentry API-token/GCP-faktureringsexport, Etapp 32b) – spårad i `OPPNA-PUNKTER.md`. |
+
+**Konsekvens:** planens omfattning smalnades till det som faktiskt går att bygga (backup +
+revisionskedjans status), med en tydlig, ärlig UI-text om vad som INTE visas och var det
+faktiskt går att kontrollera istället – hellre en mindre men sann vy än en som låtsas täcka
+allt planen ursprungligen räknade upp.
+
+### Genomfört
+
+- **Ny collection `systemstatus/{id}`** – `verifieraRevisionskedjor()` (den redan existerande
+  nattliga kontrollen, Etapp 32d) skriver nu ett sammanfattningsdokument VARJE körning, inte
+  bara vid en avvikelse. Utan det gick det inte att skilja "kedjan är intakt" från "jobbet
+  slutade köras för tre veckor sedan" – tystnad betydde tidigare båda sakerna, oskiljbart.
+- **Ny callable `hamtaBackupstatus`** – listar en organisations backupfiler i Storage via
+  Admin SDK och returnerar senaste datum. Återanvänder exakt samma auth-upplösning som
+  revisionsloggens callables (`kravLasningAvRevisionslogg`).
+- **Ny adminsektion `IncidentberedskapSektion.jsx`** (superadmin, i `/admin`) – visar båda,
+  plus en uttrycklig "Vad den här vyn INTE visar"-ruta som pekar till Firebase-konsolen
+  respektive `OPPNA-PUNKTER.md` för de två saker som inte kunde byggas.
+- **`firestore.rules`**: `systemstatus/{id}` läsbar bara för superadmin, skrivbar av ingen
+  klient – samma mönster som redan etablerade `systemvarningar`.
+- **Dokumentation uppdaterad i samma commit** (obligatorisk underhållsregel för
+  incidentdokumenten, `CLAUDE.md`): `INCIDENT-CHECKLISTA.md`s "Var saker finns"-tabell (ny
+  rad) och "Vad som ännu inte finns"-tabell (hashkedjeraden uppdaterad), toppradens
+  kodläge/datum. `SAKERHETSRAPPORT.md` fick ett nytt `## Tillägg`-block (ny collection har
+  regeltester, ingen ny PII-yta, inga nya uppladdningsvägar).
+
+### Testat
+
+- 6 nya regeltester (`tests/rules/systemstatus.test.mjs`) – superadmin läser, ingen annan
+  roll, ALDRIG någon klientskrivning.
+- 4 nya functions-tester (`tests/functions/backupstatus.test.cjs`) – behörighet (nekar
+  icke-superadmin), en organisation utan Operations-modulen ger `harOperationsModul: false`
+  utan en Storage-fråga, och det SENASTE datumet hittas korrekt bland flera sparade
+  backuper utan att blanda in en annan organisations filer.
+- 1 nytt assert i `tests/functions/etapp32d.test.cjs` – `systemstatus/revisionskedja`
+  uppdateras även när allt är i sin ordning, inte bara vid en avvikelse.
+- **Verifierat i en riktig webbläsare** mot emulatorerna: sektionen visar "🟢 Intakt – senast
+  kontrollerad ..., (2 organisationer)" korrekt från en seedad `systemstatus`-post.
+  Backup-knappen gav förväntat en känd miljöbegränsning (functions-emulatorn körs inte i
+  `test:e2e`/den här manuella verifieringen) – **genuint fel hittat under verifieringen**:
+  felmeddelandet visade Firebase-klientens råa, obegripliga kod ("internal") istället för en
+  läsbar text. Fixat till en egen, tydlig felrad med en direkt pekare till Storage-konsolen.
+- **Ett flaky testfel under byggandet, inte en regression:** en körning av `test:e2e` gav ett
+  enstaka `ERR_CONNECTION_REFUSED`-fel på `/admin` för en enda roll (forradesansvarig, som
+  inte ens ser den nya sektionen – den är superadmin-gated). En omedelbar omkörning gav 11/11
+  gröna. Bedömt som en transient nätverksartefakt av parallell testkörning, inte en verklig
+  regression orsakad av den här etappen.
+
+Fullt testsvep grönt (lint, build, vitest 124/124, test:rules, test:functions, test:storage
+21/21, test:e2e 11/11 vid omkörning). Version 5.74.0 → **5.75.0**, `andringslogg.js`
+uppdaterad. Committat och pushat.
+
+**Etapp 46 klar.** Nästa steg enligt ordningen: Etapp 47 (sök- och kunskapsupptäckt 2.0),
+när/om den prioriteras.

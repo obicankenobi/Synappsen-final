@@ -326,3 +326,36 @@ produktionsbygge) kvarstår obehandlad. Den mest väsentliga öppna punkten är 
 skrivbordsövningen bekräftade: missbruk av redan legitim behörighet syns fortfarande inte
 någonstans i systemet, och att stänga den luckan helt är ett ägarbeslut om extern
 infrastruktur, inte ett kvarstående kodproblem.
+
+---
+
+## Tillägg (2026-08-04, version 5.75.0): Etapp 46 – incidentberedskap i produkten, säkerhetsgenomgång
+
+**Ny collection `systemstatus/{id}`** (senaste läget för en automatisk bakgrundskontroll,
+just nu bara `revisionskedja`) – har egna regeltester (`tests/rules/systemstatus.test.mjs`,
+6 tester): läsbar endast för superadmin, skrivbar av ingen klient, samma mönster som redan
+etablerade `systemvarningar`. Skrivs bara av Cloud Function (`verifieraRevisionskedjor`).
+
+**Ny callable `hamtaBackupstatus`** – listar en organisations backupfiler i Storage via
+Admin SDK (klienten har ingen egen läsrätt till `backups/`, se `storage.rules`, oförändrat).
+Återanvänder befintlig auth-upplösning (`kravLasningAvRevisionslogg`): superadmin i egen
+organisation, eller plattformsadmin med ett angivet `organisationId`. 4 nya functions-tester
+bevisar att en icke-superadmin nekas, och att en organisations backupstatus aldrig blandas
+med en annans (seedade filer för två organisationer, verifierat att rätt organisations
+senaste datum returneras).
+
+**Ny loggpunkt (`systemstatus/revisionskedja`) läcker ingen personuppgift eller
+dokumentinnehåll** – bara organisations-ID:n och den redan existerande maskinella
+orsakstexten (t.ex. "kedjan bruten"), identiskt med vad `systemvarningar` redan skickade till
+Sentry. Ingen ny PII-yta.
+
+**Ingen ny uppladdningsväg** i den här etappen (inget att bedöma mot storage.rules storlek/
+innehållstyp).
+
+**npm-audit/Dependabot** – inte en del av den här etappens omfattning, senaste bedömning
+oförändrad sedan tidigare tillägg.
+
+Se `ETAPPLAN8.md` Etapp 46 för den fullständiga premisskontrollen – bland annat att "App
+Check-verifieringsgrad" och "misslyckade inloggningsförsök i realtid" (två av tre saker den
+ursprungliga idén nämnde) INTE byggdes: den förra har ingen programmatisk API-väg via
+Firebase Admin SDK, den senare är redan dokumenterat blockerad på ett ägarbeslut (Etapp 32b).

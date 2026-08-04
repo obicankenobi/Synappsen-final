@@ -76,6 +76,12 @@ export function exporteraRevisionslogg() {
   return fn();
 }
 
+// Etapp 46
+export function hamtaBackupstatus() {
+  const fn = httpsCallable(functions, "hamtaBackupstatus");
+  return fn();
+}
+
 // Etapp 6a – leverantörsadmin
 export function blibForstaPlattformsadmin() {
   const fn = httpsCallable(functions, "blibForstaPlattformsadmin");

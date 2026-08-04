@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.75.0",
+    datum: "2026-08-04",
+    andringar: [
+      "Ny sektion i adminpanelen: 'Incidentberedskap' (superadmin) – visar revisionsloggens senaste automatiska kontroll och senaste backup, utan att behöva leta i Firebase-konsolen",
+    ],
+  },
+  {
     version: "5.74.0",
     datum: "2026-08-04",
     andringar: [

@@ -91,6 +91,18 @@ async function main() {
     vantaSig(!nyaAvvikelser.some((a) => a.orgId === "org32dTrasig"), "org32dTrasig flaggades trots att organisationen togs bort");
   });
 
+  console.log("\nverifieraRevisionskedjor – Etapp 46: skriver systemstatus/revisionskedja VARJE körning");
+  await test("summeringsdokumentet uppdateras även när allt är i sin ordning (inte bara vid en avvikelse)", async () => {
+    await funcs.verifieraRevisionskedjor();
+    const statusDoc = await db.collection("systemstatus").doc("revisionskedja").get();
+    vantaSig(statusDoc.exists, "systemstatus/revisionskedja skrevs inte");
+    const data = statusDoc.data();
+    vantaSig(data.senastKord != null, "senastKord saknas");
+    vantaSig(typeof data.alletGiltigt === "boolean", "alletGiltigt saknas eller har fel typ");
+    vantaSig(typeof data.antalOrganisationerKontrollerade === "number", "antalOrganisationerKontrollerade saknas");
+    vantaSig(Array.isArray(data.avvikelser), "avvikelser ska alltid vara en array (tom vid allt OK)");
+  });
+
   console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);
   process.exit(antalMisslyckade > 0 ? 1 : 0);
 }

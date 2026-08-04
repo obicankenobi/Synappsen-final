@@ -1831,6 +1831,25 @@ async function verifieraRevisionskedjor() {
       avvikelser.push({ orgId: orgDoc.id, ...resultat });
     }
   }
+
+  // Etapp 46: skriv resultatet ÄVEN när allt är i sin ordning, inte bara vid en avvikelse.
+  // Utan detta går det inte att skilja "kedjan är intakt" från "det här jobbet slutade
+  // köras för tre veckor sedan" – tystnad betydde tidigare båda sakerna, oskiljbart, för
+  // den som tittar i adminpanelen. `systemstatus/revisionskedja` är ett enda, delat
+  // sammanfattningsdokument (samma icke-organisationsskopade mönster som
+  // `systemvarningar`) – inte en logg, bara senaste kända läget.
+  await db
+    .collection("systemstatus")
+    .doc("revisionskedja")
+    .set({
+      senastKord: admin.firestore.FieldValue.serverTimestamp(),
+      alletGiltigt: avvikelser.length === 0,
+      antalOrganisationerKontrollerade: orgSnap.size,
+      // Bara organisation + den redan maskinella orsakstexten (t.ex. "kedjan bruten") –
+      // aldrig dokumentinnehåll, samma försiktighet som Sentry-larmet nedan.
+      avvikelser: avvikelser.map((a) => ({ orgId: a.orgId, orsak: a.orsak })),
+    });
+
   if (avvikelser.length === 0) return avvikelser;
 
   // Aldrig dokumentinnehåll i larmet – bara organisation, dokument-ID och den redan
@@ -2493,6 +2512,34 @@ exports.exporteraRevisionslogg = onCall({ region: "europe-west1" }, async (reque
     sammanfattning: "Revisionsloggen exporterades",
   });
   return { ...resultat, begransningstext: REVISIONSLOGG_BEGRANSNINGSTEXT };
+});
+
+// Etapp 46: gör "senaste backup" till något en superadmin kan se i adminpanelen istället för
+// att behöva leta i Firebase Storage-konsolen (vilket `INCIDENT-CHECKLISTA.md` steg 8
+// tidigare krävde). Storage-listningen kräver Admin SDK (klienten har ingen läsrätt alls till
+// backups/, se storage.rules) – därför en egen callable, inte en direkt Firestore-fråga.
+// Återanvänder samma auth-upplösning som revisionsloggens callables (superadmin i egen
+// organisation, eller plattformsadmin med ett angivet orgId).
+exports.hamtaBackupstatus = onCall({ region: "europe-west1" }, async (request) => {
+  const organisationId = await kravLasningAvRevisionslogg(request, request.data?.organisationId);
+  const orgDoc = await db.collection("organisationer").doc(organisationId).get();
+  const harOperationsModul = orgDoc.data()?.moduler?.operations === true;
+
+  if (!harOperationsModul) {
+    return { harOperationsModul: false, senasteDatum: null, antalBackuper: 0 };
+  }
+
+  const [filer] = await bucket.getFiles({ prefix: `backups/${organisationId}/` });
+  const datum = filer
+    .map((fil) => fil.name.match(/^backups\/[^/]+\/(\d{4}-\d{2}-\d{2})\.json$/)?.[1])
+    .filter(Boolean)
+    .sort();
+
+  return {
+    harOperationsModul: true,
+    senasteDatum: datum.length > 0 ? datum[datum.length - 1] : null,
+    antalBackuper: datum.length,
+  };
 });
 
 // Etapp 1 (multi-tenant-grund) – engångsmigrering: sätter organisationId = STANDARD_ORG på

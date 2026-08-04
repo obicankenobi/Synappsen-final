@@ -6,15 +6,15 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-04, version **5.74.0** (pushad, INTE ännu deployad – senaste
-produktionsdeploy är v5.73.0, körning #67). **`ETAPPLAN9.md` (Etapp 45 – kvalitetsmaskineriet
-riktas utåt) är HELT KLAR, alla sex delmål 45a–45f**, byggd som en respons på en extern
-dokumentationsgranskning (2026-08-04). Konkret: `PITCH.md` skriven ikapp + versionslåst,
-en ny rökprovssvit och en ny tillgänglighetssvit i `test:e2e` (sex genuina a11y-buggar
-hittade och fixade), `OPPNA-PUNKTER.md` och `BESLUTSLOGG.md` skapade. `ETAPPLAN8.md`s köade
-Etapp B/C bytte plats och heter nu 46/47, kommer EFTER Etapp 45. **Läs sektionen
-"Uppföljning 2026-08-04 (Etapp 45 helt klar)" längst ner i den här filen först** om du undrar
-var arbetet står idag – nästa steg är Etapp 46 (incidentberedskap i produkten).
+**Senast uppdaterad:** 2026-08-04, version **5.75.0** (pushad, INTE ännu deployad – senaste
+produktionsdeploy är v5.73.0, körning #67). **`ETAPPLAN9.md` (Etapp 45) är HELT KLAR** (respons
+på en extern dokumentationsgranskning), och **`ETAPPLAN8.md` Etapp 46 (incidentberedskap i
+produkten) är också HELT KLAR** – en ny "Incidentberedskap"-sektion i adminpanelen visar
+revisionskedjans senaste automatiska kontroll och senaste backup, med en ärlig ruta om de två
+saker (App Check-metrik, misslyckade inloggningar) som INTE gick att bygga. **Läs sektionen
+"Uppföljning 2026-08-04 (Etapp 46 klar)" längst ner i den här filen först** om du undrar var
+arbetet står idag – nästa steg är Etapp 47 (sök/kunskapsupptäckt 2.0) eller en deploy av
+v5.75.0.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1278,3 +1278,38 @@ Committat och pushat.
 **Med detta är HELA `ETAPPLAN9.md` (Etapp 45, alla sex delmål 45a–45f) klar.** Nästa steg
 enligt den beslutade ordningen (Beslut 1 i `ETAPPLAN9.md`): Etapp 46 (incidentberedskap i
 produkten), i `ETAPPLAN8.md`.
+
+## Uppföljning 2026-08-04 (Etapp 46 klar): incidentberedskap i produkten
+
+Byggde Etapp 46 direkt efter Etapp 45 ("gå vidare").
+
+**Premisskontroll (krav 8) smalnade planens omfattning innan bygget:** av de tre sakerna den
+ursprungliga idén nämnde (senaste backup, App Check-verifieringsgrad, misslyckade
+inloggningsförsök i realtid) var bara EN byggbar. App Check-metriken exponeras inte via någon
+Firebase Admin SDK-funktion (bara i konsolens UI) – en produktbegränsning hos Firebase, inte
+en kodfråga. Misslyckade inloggningsförsök var redan dokumenterat blockerat på ett ägarbeslut
+(Etapp 32b, `OPPNA-PUNKTER.md`).
+
+**Genomfört:** ny collection `systemstatus/{id}` – den redan existerande nattliga
+hashkedjekontrollen (Etapp 32d) skriver nu ett resultat VARJE körning, inte bara vid en
+avvikelse (annars omöjligt att skilja "kedjan är intakt" från "jobbet slutade köras för tre
+veckor sedan"). Ny callable `hamtaBackupstatus` (listar Storage via Admin SDK). Ny
+adminsektion `IncidentberedskapSektion.jsx` (superadmin) – visar båda, plus en uttrycklig
+"Vad den här vyn INTE visar"-ruta för de två saker som inte kunde byggas.
+
+**Ett genuint UX-fel hittades och fixades under den manuella webbläsarverifieringen:** ett
+misslyckat backupstatus-anrop visade Firebase-klientens råa felkod ("internal") istället för
+en läsbar text – fixat till en egen, tydlig felrad.
+
+Dokumentation uppdaterad i samma commit (obligatorisk regel för incidentdokumenten):
+`INCIDENT-CHECKLISTA.md` (ny rad i "Var saker finns", uppdaterad hashkedjerad, nytt
+kodläge/datum), `SAKERHETSRAPPORT.md` (nytt tillägg-block).
+
+6 nya regeltester, 4 nya functions-tester, 1 nytt assert i en befintlig testfil. Fullt
+testsvep grönt (lint, build, vitest 124/124, test:rules, test:functions, test:storage
+21/21). **Ett flaky test:e2e-fel under byggandet** (ERR_CONNECTION_REFUSED på `/admin` för en
+roll som inte ens ser den nya sektionen) – bedömt som transient parallell-körnings-artefakt,
+inte en regression, bekräftat genom en ren omkörning (11/11 gröna).
+
+Version 5.74.0 → **5.75.0**. Committat och pushat. **Etapp 46 klar.** Nästa: Etapp 47
+(sök/kunskapsupptäckt 2.0), när/om den prioriteras.

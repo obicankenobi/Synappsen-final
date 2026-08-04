@@ -657,6 +657,15 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // systemstatus/{id} – Etapp 46: senaste kända läget för en automatisk bakgrundskontroll
+    // (t.ex. revisionskedjans nattliga verifiering), skrivet VARJE körning – inte bara vid en
+    // avvikelse (till skillnad från systemvarningar ovan). Samma delade, icke-org-skopade
+    // resonemang. Skrivs endast av Cloud Function.
+    match /systemstatus/{id} {
+      allow read: if arSuperadmin();
+      allow write: if false;
+    }
+
     // halsokontrollhistorik/{id} – Etapp 3c: sparade resultat från "Testa anslutningar" och
     // den dagliga klinikstöd-verifieringen, så trender syns över tid. Samma resonemang som
     // systemvarningar ovan – delad infrastruktur, medvetet INTE organisationsskopat. Skrivs

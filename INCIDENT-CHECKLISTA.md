@@ -3,7 +3,7 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-01 · **Motsvarar kodläge:** v5.56.0
+**Senast uppdaterad:** 2026-08-04 · **Motsvarar kodläge:** v5.75.0
 
 > **Ägarbeslut 2026-08-01:** jourkontakt utanför kontorstid ifylld (se tabellen nedan).
 > Backup-retention 90 dagar, gallringslogiken byggd och testad (se `ETAPPLAN5.md` Etapp 33c).
@@ -58,6 +58,10 @@ HH:MM  vad jag gjorde / vad jag såg
 
 **Var du tittar:**
 
+- `/admin` → **Incidentberedskap** (Etapp 46, 2026-08-04) – snabbstatus utan att behöva öppna
+  Firebase-konsolen: revisionskedjans senaste automatiska nattkontroll (intakt/avvikelse,
+  senast körd) och senaste backup för din organisation. Visar INTE App Check-metriken eller
+  misslyckade inloggningar – se rutan nedan för varför.
 - Firebase-konsolen → Firestore → Usage (onormal läs-/skrivvolym)
 - Firebase-konsolen → Authentication (nya eller okända konton, senaste inloggning)
 - Sentry (krascher – men **obs**, se rutan nedan)
@@ -255,13 +259,15 @@ användare. Sakligt, kort, verifierat.
 
 | Vad | Var |
 |---|---|
+| Snabbstatus: revisionskedjans senaste kontroll + senaste backup | `/admin` → **Incidentberedskap** (ny, Etapp 46) |
 | Tvinga utloggning, ändra roll | `/admin` → Användare & roller |
 | Revisionslogg (hashkedja) + export | `/admin` → Revisionslogg |
 | Ändringslogg (bredare aktivitet) | `/admin` → Ändringslogg |
 | Pausa/återaktivera organisation | `/leverantor` |
 | Konton, inloggningar | Firebase-konsolen → Authentication |
 | Läs-/skrivvolym | Firebase-konsolen → Firestore → Usage |
-| Backupfiler | Firebase Storage → `backups/{orgId}/` |
+| Backupfiler (fullständig lista, inte bara senaste) | Firebase Storage → `backups/{orgId}/` |
+| App Check-verifieringsgrad (inte i appen, se Etapp 46) | Firebase-konsolen → Build → App Check → Metrics |
 | API-nycklar | GitHub Secrets → sätts i Secret Manager via deploy |
 | Krascher | Sentry (**men se varningen i steg 1**) |
 
@@ -287,7 +293,7 @@ användare. Sakligt, kort, verifierat.
 | `permission-denied` rapporteras (till Sentry, ej realtidslarm) | ✅ Klart (2026-07-31) | Etapp 32a |
 | Rollbyte loggas i revisionsloggen | ✅ Klart (2026-07-31) | Etapp 32c |
 | Plattformsadmins tvärorg. läsning loggas | ✅ Klart (2026-07-31) | Etapp 32c |
-| Hashkedjan kontrolleras automatiskt | ✅ Klart (2026-07-31, varje natt 04:00) | Etapp 32d |
+| Hashkedjan kontrolleras automatiskt | ✅ Klart (2026-07-31, varje natt 04:00). Resultatet syns nu i `/admin` → Incidentberedskap, inte bara som ett larm vid en avvikelse (2026-08-04) | Etapp 32d, 46 |
 | Automatisk omfattningsanalys | ⬜ Finns inte | Etapp 32b |
 | Återställning från backup | ✅ Klart (2026-07-31, se steg 8) | Etapp 33a |
 | Gallring av gamla backuper | ✅ Klart (2026-08-01, 90 dagars retention) | Etapp 33c |
