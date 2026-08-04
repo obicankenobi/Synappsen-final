@@ -6,9 +6,10 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-04, version **5.73.0** – pushad, INTE ännu deployad till
-produktion (senaste produktionsdeploy är fortfarande v5.72.0, körning #66). `ETAPPLAN8.md`
-Etapp 44 (mobilappskänsla och installationsbarhet, 44a–44d) är HELT KLAR. Två ytterligare
+**Senast uppdaterad:** 2026-08-04, version **5.73.0** – DEPLOYAD TILL PRODUKTION (körning #67,
+commit `5c4ab12`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`, ny asset-hash
+`index-DLJ3EL3S.js` bekräftad via `curl` mot produktions-URL:en). `ETAPPLAN8.md` Etapp 44
+(mobilappskänsla och installationsbarhet, 44a–44d) är HELT KLAR OCH LIVE. Två ytterligare
 riktningar (B: sök/kunskapsupptäckt 2.0, C: incidentberedskap i produkten) är medvetet köade
 som framtida etapper, inte förkastade. `ETAPPLAN6.md` (Etapp 40) och `ETAPPLAN5.md`s
 kvarvarande punkter är fortsatt öppna men inte aktiva just nu. **Läs sektionen "Uppföljning
@@ -1118,8 +1119,12 @@ banderollen visas/döljs/kommer inte tillbaka korrekt, iOS-grenen visar rätt te
 läge visar ingen banderoll alls, ikonen svarar HTTP 200, inga konsolfel i hela inloggnings-
 flödet. Inga nya vitest-tester (ren UI/hook-logik). Inga rules-/storage-ändringar. Fullt
 testsvep grönt (lint, build, vitest 123/123). Version 5.72.0 → **5.73.0**, `andringslogg.js`
-uppdaterad. Committat och pushat till `claude/compassionate-euler-rho0q5`. **Inte deployat**
-– ingen deploy begärd än.
+uppdaterad. Committat och pushat till `claude/compassionate-euler-rho0q5`.
 
-`ETAPPLAN8.md` Etapp 44 är därmed helt klar. Nästa steg: fråga om deploy, annars börja Etapp B
-(sök- och kunskapsupptäckt 2.0) enligt den beslutade ordningen i `ETAPPLAN8.md`.
+**DEPLOYAD TILL PRODUKTION 2026-08-04** (körning #67, commit `5c4ab12`, `deploy.yml` via
+`workflow_dispatch`, `conclusion: success`) – ny asset-hash `index-DLJ3EL3S.js` bekräftad via
+`curl` mot produktions-URL:en.
+
+`ETAPPLAN8.md` Etapp 44 är därmed helt klar och LIVE. Nästa steg: Etapp B (sök- och
+kunskapsupptäckt 2.0) enligt den beslutade ordningen i `ETAPPLAN8.md`, om inget annat
+prioriteras.

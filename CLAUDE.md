@@ -41,7 +41,7 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 | Fil | Innehåll | Status |
 |---|---|---|
-| `ETAPPLAN8.md` | Etapp 44: mobilappskänsla och installationsbarhet | **AKTIV, ny 2026-08-04.** Antagen efter en helhetsgenomgång av produkten. Två framtida etapper (B: sök/kunskapsupptäckt, C: incidentberedskap i produkten) noterade som köade men medvetet inte detaljplanerade i filen. |
+| `ETAPPLAN8.md` | Etapp 44: mobilappskänsla och installationsbarhet | **AKTIV.** Etapp 44 (44a–44d) HELT KLAR OCH DEPLOYAD (2026-08-04, v5.73.0, körning #67). Två framtida etapper (B: sök/kunskapsupptäckt, C: incidentberedskap i produkten) noterade som köade men medvetet inte detaljplanerade i filen. |
 | `ETAPPLAN7.md` | Etapp 42 + Etapp 43: gränssnittsförnyelse | **HELT KLAR OCH DEPLOYAD** (2026-08-03). Etapp 42a–42f och Etapp 43a–43e klara, v5.72.0 live i produktion (körning #66). Historisk men korrekt. |
 | `ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag, bevisad effekt, import, synlighet | **Aktiv men ej stängd.** Etapp 37–39 och 41 klara. Kvarvarande punkt (Etapp 40, villkorad av en konkret ny kund) väntar inte på ägarbeslut, bara på att komma i tur. |
 | `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv men ej stängd.** I det närmaste klar – kvarvarande punkter (32b, ToS-genomgång, 30b, uppföljning av 35e) är blockerade av ägarbeslut/extern tid, inte av kapacitet. |
