@@ -47,7 +47,7 @@ export default function LoggaIn() {
 
   if (resolver) {
     return (
-      <div className="sida sida--auth">
+      <main id="huvudinnehall" className="sida sida--auth" tabIndex={-1}>
         <h1>Verifieringskod</h1>
         <p className="auth__undertext">Ange koden från din autentiseringsapp.</p>
         <form onSubmit={hanteraTotpSubmit} className="auth-form">
@@ -67,12 +67,12 @@ export default function LoggaIn() {
             {laddar ? "Verifierar..." : "Verifiera"}
           </button>
         </form>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="sida sida--auth">
+    <main id="huvudinnehall" className="sida sida--auth" tabIndex={-1}>
       <h1>Logga in</h1>
       <p className="auth__undertext">Synappsen – kunskapsbank för akutmottagningen</p>
       <form onSubmit={hanteraSubmit} className="auth-form">
@@ -104,6 +104,6 @@ export default function LoggaIn() {
       <p className="auth__bytlank">
         Inget konto? <Link to="/registrera">Skapa konto</Link>
       </p>
-    </div>
+    </main>
   );
 }

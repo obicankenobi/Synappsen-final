@@ -651,6 +651,21 @@ select:focus {
   top: 8px;
 }
 
+/* Etapp 45c: standardmönster för en rubrik som behövs för korrekt rubrikordning/struktur
+   (skärmläsare) men inte ska upprepa vad omgivande UI redan visar visuellt (t.ex. "Förråd"
+   ovanför en grid av redan tydligt märkta förrådskort). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .sektionssida__valbar-kryssruta {
   display: flex;
   align-items: center;

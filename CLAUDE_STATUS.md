@@ -1224,3 +1224,39 @@ test:e2e 9/9). Committat och pushat.
 
 **Kvar i Etapp 45:** 45c (tillgänglighetsgranskning), 45e (ändringsloggens ton), 45f
 (beslutslogg).
+
+## Uppföljning 2026-08-04 (Etapp 45c klar): tillgänglighetsgranskning + sex genuina fixar
+
+Byggde 45c direkt efter 45b ("ja").
+
+Ny automatiserad granskning (axe-core, `@axe-core/playwright`) mot alla 27 sidor, körd som
+BÅDE superadmin och personal (en andra roll avslöjade tre roll-specifika brister superadmin
+inte kunde hitta – samma insikt som redan låg bakom 45b:s flerrollstestning).
+
+**Sex genuina, tidigare okända tillgänglighetsbrister hittades och åtgärdades**, samtliga
+uppkomna av eller synliggjorda av Etapp 42–44:
+- `/logga-in`/`/registrera`/`/akutlage`/`/checklista/:rutinId` saknade `<main>`-landmärke
+  (renderas utanför `SkyddatLayout`) – bifynd: "Hoppa till innehåll"-länken pekade mot ett
+  id som inte fanns på dessa sidor, fixat som en bonus.
+- Den flytande Akut-knappen (global sedan 42c) låg utanför alla landmärken.
+- Två `<nav>`-landmärken utan unika namn (BottomNav, Hem:s snabblänksrad).
+- **"Mer"-menyn (42f) påstod sig vara en modal dialog men saknade Esc/fokusfångst/
+  fokusåterlämning** – samma mönster som redan fanns för bekräftelsedialogen (Etapp 13g)
+  återanvänt, bara aldrig applicerat här.
+- Rubrikordning som hoppade h1→h3 på tre ställen, inklusive två sidor som helt saknade
+  `<h1>` i sitt tomma/nekade-läge för en `personal`-roll.
+
+**Ny permanent regressionsspärr:** `tests/e2e/tillganglighet.spec.js` (tillagd i `test:e2e`),
+plus en ny delad `tests/e2e/rutter.mjs` så rökprovssviten och tillgänglighetssviten aldrig kan
+driva isär om en route ändras. Noll överträdelser efter fixarna, bekräftat i en riktig
+körning (11/11 gröna totalt i `test:e2e`).
+
+`TILLGANGLIGHETSREDOGORELSE.md` omskriven: nya rader #12–#17, en ärlig ny sektion om vad som
+FORTFARANDE inte är testat (riktig skärmläsare – oförändrat sedan innan; interaktionsutlöst
+UI som modaler bara skannas i statiskt läge, inte öppna – ny nyans). Skärmläsartestning
+tillagd i `OPPNA-PUNKTER.md`.
+
+Fullt testsvep grönt (lint, build, vitest 124/124, test:e2e 11/11). Version 5.73.0 →
+**5.74.0** (första riktiga app-synliga fixen i Etapp 45). Committat och pushat.
+
+**Etapp 45a–45d klara.** Kvar: 45e (ändringsloggens ton), 45f (beslutslogg).

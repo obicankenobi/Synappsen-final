@@ -13,8 +13,15 @@ export default function AkutKnappFloating() {
   if (!currentUser || location.pathname === "/akutlage") return null;
 
   return (
-    <Link to="/akutlage" className="akut-knapp-floating" aria-label="Akutläge">
-      🚨 Akut
-    </Link>
+    // Etapp 45c: ARIA tillåter inte role="navigation" direkt på en <a href> (den har redan
+    // den implicita rollen "link", och landmärkesroller får inte skriva över den – axe-core:
+    // aria-allowed-role). En namngiven wrapper-<div> ger samma landmärke utan att bryta mot
+    // det – annars hamnade knappen utanför ALLA landmärken (axe-core: "region"), eftersom den
+    // renderas globalt i App.jsx, syskon till <main>, på i stort sett varje sida i appen.
+    <div role="navigation" aria-label="Akutläge, snabbåtkomst">
+      <Link to="/akutlage" className="akut-knapp-floating" aria-label="Akutläge">
+        🚨 Akut
+      </Link>
+    </div>
   );
 }

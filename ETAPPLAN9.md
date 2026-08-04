@@ -68,7 +68,7 @@ ikapp, tillgänglighetsgranskning) – inget nytt funktionsarbete.
   citerade defekter (Etapp 31b:s tomma listor för `personal`, Korvy-knappens flex-läckage,
   Leverantörsvyns null-krasch) – alla tre hittades hittills bara genom manuell, punktvis
   granskning. Bygg som en datadriven loop över en rollmatris, ingen ny arkitektur.
-- **45c – Tillgänglighetsgranskning efter hela gränssnittsförnyelsen.** Föregående granskning
+- **45c – ✅ KLAR (2026-08-04): Tillgänglighetsgranskning efter hela gränssnittsförnyelsen.** Föregående granskning
   (bakom `TILLGANGLIGHETSREDOGORELSE.md`s nuvarande innehåll) gjordes 2026-07-26, mot fem
   flöden, INNAN Etapp 42/43 byggde om navigeringen (Mer-meny, flytande Akut-knapp), lade till
   `/godkannanden`, och gjorde adminpanelen till en hopfällbar accordion. Kör `axe-core` över
@@ -180,6 +180,61 @@ och pushat.
 det, en rökprovssvit körs i `test:e2e` över alla routes/roller, tillgänglighetsredogörelsen
 speglar den faktiska appen efter Etapp 42/43, och de människoberoende punkterna finns på ETT
 ställe att läsa.
+
+### 45c ✅ KLAR (2026-08-04)
+
+Lade till `@axe-core/playwright` som nytt devDependency. Kördes först som en engångsskanning
+(temporära skript, inte incheckade) mot alla 27 sidor som superadmin – **noll** överträdelser.
+En andra körning som `personal`-rollen avslöjade tre YTTERLIGARE, roll-specifika brister
+axe-scanningen mot superadmin inte kunde hitta (samma insikt som redan låg bakom 45b:s beslut
+att testa flera roller, inte bara en) – ett konkret argument för att den permanenta sviten
+(se nedan) kör mot flera roller, inte bara en representativ.
+
+**Sex genuina, tidigare okända brister hittades och åtgärdades, samtliga uppkomna av eller
+synliggjorda av Etapp 42–44** (fulla detaljer i `TILLGANGLIGHETSREDOGORELSE.md`s nya rader
+#12–#17):
+1. `/logga-in`/`/registrera` saknade `<main>`-landmärke helt (renderas utanför
+   `SkyddatLayout`) – fixat.
+2. Samma brist på `/akutlage` (`Akutlage.jsx`) och `/checklista/:rutinId` (`Korvy.jsx`) –
+   båda medvetet utanför den vanliga layouten (inget nav i de lägena) men fick därför aldrig
+   ett `<main>`. Bifynd: den globala "Hoppa till innehåll"-länken pekade mot ett id som inte
+   fanns på just dessa sidor – fixat som en bonus.
+3. Den flytande Akut-knappen (global sedan 42c) låg helt utanför alla landmärken – fixat med
+   en namngiven `role="navigation"`-wrapper (ARIA tillåter INTE `role="navigation"` direkt på
+   en `<a href>`, ett eget litet delfynd under bygget).
+4. Två `<nav>`-landmärken (BottomNav, Hem:s snabblänksrad) utan unika namn – `aria-label`
+   tillagt på båda.
+5. **"Mer"-menyn (42f) påstod sig vara en modal dialog men saknade Esc/fokusfångst/
+   fokusåterlämning** – den mest substantiella fixen. Exakt samma mönster som redan byggdes
+   för bekräftelsedialogen i Etapp 13g (`DialogProvider.jsx`) återanvänt, bara aldrig
+   applicerat på `MerMeny.jsx` när den byggdes.
+6. Rubrikordning som hoppade `h1`→`h3`: förrådsartikelkort, Logistik:s förrådskort (när ingen
+   `h2`-sektion rådde att rendera), och två sidor (`Kompetensmatris.jsx`, `Papperskorg.jsx`)
+   som helt saknade `<h1>` i sitt tomma/nekade-läge för en `personal`-roll.
+
+**Ny permanent regressionsspärr:** `tests/e2e/tillganglighet.spec.js`, tillagd i `test:e2e` –
+kör axe-core mot samtliga 25 inloggade routes (`tests/e2e/rutter.mjs`, en ny delad fil som
+även `rokprov.spec.js` nu importerar från, för att de två sviterna aldrig ska kunna driva isär
+om en route ändras) för både superadmin och personal. **Noll överträdelser efter fixarna,
+bekräftat i en riktig körning** (inte bara antaget) – 11/11 gröna i `test:e2e` totalt.
+
+**Ett verifieringsfynd under bygget, inte en app-bugg:** en för kort väntan (500 ms) efter
+navigering gav enstaka falska "page-has-heading-one"-träffar på Hem (lazy-laddad, hann inte
+rendera klart innan axe-core kördes) – löst med en längre väntan (900 ms) i både
+engångsskripten och den permanenta sviten.
+
+`TILLGANGLIGHETSREDOGORELSE.md` omskriven: nya rader #12–#17 (alla redan åtgärdade), ny
+beskrivning av den bredare 2026-08-04-granskningen, en ärlig ny sektion om vad som fortfarande
+INTE är testat (riktig skärmläsare – oförändrat; interaktionsutlöst UI som modaler/bottensheets
+skannas bara i STATISKT laddat läge, inte öppna – ny, ärlig nyans upptäckt under skrivandet).
+Skärmläsartestning tillagd i `OPPNA-PUNKTER.md` som en egen rad.
+
+Fullt testsvep grönt (lint, build, vitest 124/124, test:e2e 11/11). Version 5.73.0 →
+**5.74.0** (första riktiga app-synliga fixen i Etapp 45, till skillnad från 45a/45b) –
+`andringslogg.js` uppdaterad. Committat och pushat.
+
+**Etapp 45a–45d är därmed klara.** Kvar: 45e (ändringsloggens ton vid rena UI-releaser) och
+45f (beslutslogg), i den ordningen.
 
 ---
 

@@ -123,39 +123,42 @@ export default function Korvy() {
     setSekunderPaSteg(0);
   }
 
+  // Etapp 45c: /checklista/:rutinId renderas UTANFÖR SkyddatLayout (se App.jsx – ett
+  // medvetet val, Korvy är ett eget helskärmsläge utan BottomNav) och saknade därför
+  // <main id="huvudinnehall"> i alla fyra grenar – axe-core: "region".
   if (laddar) {
     return (
-      <div className="korvy">
+      <main id="huvudinnehall" className="korvy" tabIndex={-1}>
         <p>Laddar...</p>
-      </div>
+      </main>
     );
   }
 
   if (!rutin || steg.length === 0) {
     return (
-      <div className="korvy">
+      <main id="huvudinnehall" className="korvy" tabIndex={-1}>
         <p>Den här rutinen har inga checklistesteg.</p>
         <Link to="/" className="korvy__knapp korvy__knapp--sekundar">
           ← Tillbaka
         </Link>
-      </div>
+      </main>
     );
   }
 
   if (klart) {
     return (
-      <div className="korvy">
+      <main id="huvudinnehall" className="korvy" tabIndex={-1}>
         <h1>✅ Klar</h1>
         <p>Checklistan för "{rutin.titel}" är genomförd.</p>
         <Link to="/" className="korvy__knapp">
           Till startsidan
         </Link>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="korvy">
+    <main id="huvudinnehall" className="korvy" tabIndex={-1}>
       <header className="korvy__header">
         <Link to="/" className="korvy__stang" aria-label="Avsluta checklistan">
           ✕
@@ -189,6 +192,6 @@ export default function Korvy() {
           {index === steg.length - 1 ? "Klar ✓" : "Klart, nästa steg →"}
         </button>
       </div>
-    </div>
+    </main>
   );
 }

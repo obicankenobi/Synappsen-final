@@ -119,6 +119,11 @@ export default function Logistik() {
         </section>
       )}
 
+      {/* Etapp 45c: en h2 innan förrådskortens h3:or (SektionsKort.jsx) – utan den hoppade
+          rubrikordningen direkt från h1 till h3 så fort ingen bristanmälnings-/utgångsdatum-
+          sektion (också h2) rådde att rendera, t.ex. för en roll utan bristanmälningsdata
+          (axe-core: heading-order). */}
+      <h2 className="sr-only">Förråd</h2>
       <div className="hem__kort-grid">
         {FORRAD.map((forrad) => (
           <SektionsKort

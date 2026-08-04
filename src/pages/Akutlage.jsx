@@ -18,7 +18,12 @@ export default function Akutlage() {
   const akutnummer = kontakter.filter((k) => k.akutnummer);
 
   return (
-    <div className="akutlage">
+    // Etapp 45c: /akutlage renderas UTANFÖR SkyddatLayout (se App.jsx – ett medvetet val,
+    // sidan har ingen BottomNav) och saknade därför helt <main id="huvudinnehall">. Utöver
+    // axe-core: "region" gjorde det den globala "Hoppa till innehåll"-länken obsolet
+    // (pekade mot ett id som inte fanns) på just den sida där ett snabbt tangentbordshopp
+    // förbi ett hopp till innehållet borde spela störst roll.
+    <main id="huvudinnehall" className="akutlage" tabIndex={-1}>
       <header className="akutlage__header">
         <h1>🚨 Akutläge</h1>
         <Link to="/" className="akutlage__stang">
@@ -62,6 +67,6 @@ export default function Akutlage() {
           </ul>
         </section>
       )}
-    </div>
+    </main>
   );
 }

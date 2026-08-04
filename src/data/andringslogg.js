@@ -3,6 +3,16 @@
 // Håll texterna korta och begripliga för slutanvändare (inga filnamn/tekniska detaljer).
 export const ANDRINGSLOGG = [
   {
+    version: "5.74.0",
+    datum: "2026-08-04",
+    andringar: [
+      "Fixat: den flytande Akut-knappen och navigeringen var svårare att hitta med skärmläsare än de borde vara",
+      "Fixat: 'Mer'-menyn i mobilnavet stängs nu med Esc och håller kvar tangentbordsfokus korrekt",
+      "Fixat: inloggnings- och registreringssidorna, samt akutläget och checklistläget, saknade en tydlig sidstruktur för skärmläsare",
+      "Mindre fixar av rubrikordning på Logistik, Kompetensmatris och Papperskorg",
+    ],
+  },
+  {
     version: "5.73.0",
     datum: "2026-08-04",
     andringar: [

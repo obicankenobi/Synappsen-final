@@ -96,20 +96,20 @@ export default function Kompetensmatris() {
     return (
       <div className="sida">
         <Link to="/">← Hem</Link>
-        {minaRader.length > 0 && (
-          <>
-            <h1>📋 Min kompetensstatus</h1>
-            <ul className="admin-lista">
-              {minaRader.map((r, i) => (
-                <li key={i} className="admin-lista__rad">
-                  {STATUS_IKON[r.status]} {r.krav.rutinTitel} –{" "}
-                  <span className={STATUS_KLASS[r.status]}>{KOMPETENS_STATUS_LABEL[r.status]}</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-        {minaRader.length === 0 && (
+        {/* Etapp 45c: <h1> flyttad ut ur minaRader.length > 0-villkoret – en tom lista
+            gav tidigare en sida helt utan rubrik (axe-core: page-has-heading-one), inte
+            bara ett tomt-läge utan rubrik som resten av appen konsekvent undviker. */}
+        <h1>📋 Min kompetensstatus</h1>
+        {minaRader.length > 0 ? (
+          <ul className="admin-lista">
+            {minaRader.map((r, i) => (
+              <li key={i} className="admin-lista__rad">
+                {STATUS_IKON[r.status]} {r.krav.rutinTitel} –{" "}
+                <span className={STATUS_KLASS[r.status]}>{KOMPETENS_STATUS_LABEL[r.status]}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
           <p className="sida__beskrivning">Inga obligatoriska rutiner är kopplade till din roll ännu.</p>
         )}
       </div>

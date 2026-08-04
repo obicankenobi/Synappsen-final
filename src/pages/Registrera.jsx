@@ -53,7 +53,7 @@ export default function Registrera() {
 
   if (!token || granskningsfel) {
     return (
-      <div className="sida sida--auth">
+      <main id="huvudinnehall" className="sida sida--auth" tabIndex={-1}>
         <h1>Skapa konto</h1>
         <p className="auth__undertext">
           Registrering kräver en inbjudan från din organisations administratör. Be en
@@ -63,21 +63,21 @@ export default function Registrera() {
         <p className="auth__bytlank">
           Har du redan ett konto? <Link to="/logga-in">Logga in</Link>
         </p>
-      </div>
+      </main>
     );
   }
 
   if (granskar) {
     return (
-      <div className="sida sida--auth">
+      <main id="huvudinnehall" className="sida sida--auth" tabIndex={-1}>
         <h1>Skapa konto</h1>
         <p className="auth__undertext">Kontrollerar inbjudan...</p>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="sida sida--auth">
+    <main id="huvudinnehall" className="sida sida--auth" tabIndex={-1}>
       <h1>Skapa konto</h1>
       <p className="auth__undertext">
         Du bjöds in till <strong>{inbjudan.organisationsNamn}</strong> med rollen{" "}
@@ -113,6 +113,6 @@ export default function Registrera() {
       <p className="auth__bytlank">
         Har du redan ett konto? <Link to="/logga-in">Logga in</Link>
       </p>
-    </div>
+    </main>
   );
 }

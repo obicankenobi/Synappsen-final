@@ -49,7 +49,10 @@ export default function ForradArtikelKort({
       <div className="forrad-artikel-kort__info">
         <header className="forrad-artikel-kort__header">
           <div className="forrad-artikel-kort__titelrad">
-            <h3>{artikel.namn}</h3>
+            {/* Etapp 45c: h2, inte h3 – ForradVy.jsx:s enda sidrubrik är en <h1>, ett hopp
+                direkt till h3 bröt rubrikordningen (axe-core: heading-order). Komponenten
+                används bara här, ingen annan sida med en annan rubrikstruktur. */}
+            <h2>{artikel.namn}</h2>
             {arUtkast && <StatusBadge status="vantar" />}
           </div>
           <FavoritKnapp typ="artikel" id={artikel.id} />

@@ -1,7 +1,8 @@
 # Tillgänglighetsredogörelse för Synappsen
 
-> **Status på detta dokument:** utkast baserat på en genomförd teknisk granskning
-> 2026-07-26. Tre uppgifter måste fyllas i av leverantören innan publicering – de är
+> **Status på detta dokument:** utkast baserat på en teknisk granskning 2026-07-26,
+> **omgranskat och uppdaterat 2026-08-04** (Etapp 45c) efter att gränssnittet byggts om i sin
+> helhet (Etapp 42–44). Tre uppgifter måste fyllas i av leverantören innan publicering – de är
 > markerade `[FYLL I]` nedan och kan inte härledas ur koden. Se även avsnittet
 > "Att göra före publicering" sist i dokumentet.
 
@@ -58,6 +59,12 @@ tangentbordsanvändare från att nå tjänstens huvudfunktioner.
 nedan) är nu åtgärdade i koden – se raderna för status. Kvarstår gör punkterna #4–#6 och
 #8–#11, samtliga fortsatt spårade som ärende SYN-6.
 
+**Uppdatering 2026-08-04 (Etapp 45c):** en betydligt bredare automatiserad granskning
+(samtliga 27 sidor × två roller, se "Hur vi har testat tjänsten" nedan) hittade sex NYA
+brister – samtliga uppkomna av eller synliggjorda av gränssnittsförnyelsen (Etapp 42–44) och
+alla **åtgärdade samma dag, se #12–#17** i tabellen. Punkterna #4–#6 och #8–#11 från den
+ursprungliga granskningen kvarstår oförändrade.
+
 ### Vad som fungerar bra
 
 Följande är kontrollerat och uppfyller kraven:
@@ -70,9 +77,14 @@ Följande är kontrollerat och uppfyller kraven:
 - **Formulär.** Etiketter är kopplade till sina fält (via omslutande `<label>`), så
   skärmläsare läser upp rätt fältnamn.
 - **Tangentbordsnavigering.** Alla kontrollerade interaktiva element går att nå med
-  tangentbord, i logisk ordning, och har en synlig fokusmarkering.
-- **Automatiserad testning.** Inloggning, startsida med sökfunktion, kliniskt stöd och
-  anslagstavla gav **noll** överträdelser vid maskinell granskning.
+  tangentbord, i logisk ordning, och har en synlig fokusmarkering. "Mer"-menyn (mobilnav,
+  Etapp 42f) fångar nu tangentbordsfokus korrekt (Esc stänger, Tab cyklar inuti, fokus
+  återlämnas vid stängning) – åtgärdat 2026-08-04, se #16.
+- **Automatiserad testning, permanent.** Samtliga 27 sidor, för både en superadmin- och en
+  personal-roll, gav **noll** överträdelser vid maskinell granskning (axe-core) efter
+  2026-08-04-fixarna – och är sedan samma dag en del av `test:e2e`
+  (`tests/e2e/tillganglighet.spec.js`), så en framtida regression upptäcks automatiskt i CI
+  istället för vid nästa manuella granskning.
 
 ---
 
@@ -95,10 +107,16 @@ Följande brister är kända och planerade att åtgärdas.
 | 9 | I mörkt tema har den blå accentfärgen kontrasten 3,98:1 mot kortbakgrund (kravet är 4,5:1). | 1.4.3 Kontrast (minimum) | **AA** | Länktext i mörkt läge kan vara svårläst. Ljust tema är opåverkat. | Kvarstår, spåras i SYN-6. |
 | 10 | En etikett i rutinformuläret omsluter både en verktygsrad med knappar och ett textfält. | 1.3.1 Information och relationer | **A** | Kopplingen mellan etikett och fält blir tvetydig för hjälpmedel. | Kvarstår, spåras i SYN-6. |
 | 11 | Emoji förekommer i rubriker och navigeringslänkar. | 1.3.1 (tolkning) | – | Skärmläsare läser upp emojinamn, vilket gör uppläsningen omständlig. Formellt inget krav­brott, men en reell försämring. | Kvarstår, spåras i SYN-6. |
+| 12 | `/logga-in` och `/registrera` (inloggade sidors förnyelse i Etapp 13g nådde aldrig dessa två, eftersom de renderas utanför den skyddade layouten) saknade helt `<main>`-landmärke. | 1.3.1, 2.4.1 | – (bästa praxis) | Skärmläsaranvändare fick ingen strukturell startpunkt på appens första sida någon möter. | **Åtgärdat 2026-08-04** – `<main id="huvudinnehall">` tillagt i `LoggaIn.jsx`/`Registrera.jsx`. |
+| 13 | Samma brist på `/akutlage` och `/checklista/:rutinId` (Korvy) – båda renderas medvetet utanför den vanliga layouten (inget nav i akutläge/checklistläge) men fick därför aldrig ett `<main>`. | 1.3.1 | – (bästa praxis) | "Hoppa till innehåll"-länken (global, alla sidor) pekade mot ett id som inte fanns på just dessa två sidor. | **Åtgärdat 2026-08-04.** |
+| 14 | Den flytande Akut-knappen (global, syns på nästan alla sidor sedan Etapp 42c) renderades helt utanför alla landmärken. | 1.3.1 (bästa praxis) | – | Skärmläsaranvändare som navigerar landmärkesvis missade knappen helt på varje sida den syns. | **Åtgärdat 2026-08-04** – wrappad i en namngiven `role="navigation"`-region. |
+| 15 | Två `<nav>`-landmärken (bottennavigeringen och Hem:s snabblänksrad, Etapp 43b) utan unika namn. | 4.1.2 (bästa praxis) | – | Går inte att skilja åt vid landmärkesnavigering med skärmläsare. | **Åtgärdat 2026-08-04** – `aria-label` tillagt på båda. |
+| 16 | "Mer"-menyn (mobilnav, Etapp 42f) påstod sig vara en modal dialog (`role="dialog" aria-modal="true"`) men saknade Esc-stängning, fokusfångst och fokusåterlämning. | 2.1.2, 2.4.3, 4.1.2 | A/AA | Tangentbords-/skärmläsaranvändare kunde tabba ut i bakgrundsinnehållet medan menyn "låg över" det, och fastnade utan en tydlig väg tillbaka. | **Åtgärdat 2026-08-04** – samma mönster som bekräftelsedialogen (#7) återanvänt. |
+| 17 | Rubrikordning hoppade från `<h1>` direkt till `<h3>` på tre ställen: förrådsartikelkort (`/logistik/<förråd>`), förrådskort på `/logistik` (när inga bristanmälningar/utgående artiklar fanns att visa en `<h2>` för), och två sidor (`/kompetensmatris`, `/papperskorg`) som helt saknade `<h1>` i sitt "ingen behörighet"/tomt-läge för en personal-roll. | 1.3.1 | – (bästa praxis) | Rubriknavigering (vanlig skärmläsarteknik) gav en förvirrande eller obefintlig sidstruktur, särskilt för roller utan redaktörsbehörighet. | **Åtgärdat 2026-08-04.** |
 
-**Planerad åtgärd:** punkterna 1–3 och 7 (samtliga nivå A, de fyra som identifierades som
-enklast att åtgärda) är åtgärdade – se Etapp 13g (`ETAPPLAN3.md`) och `UTVECKLINGSLOGG.md`
-fas 46. Övriga punkter hanteras inom Etapp 9b i produktens utvecklingsplan (spåras som
+**Planerad åtgärd:** punkterna 1–3, 7 och 12–17 (samtliga) är åtgärdade – se Etapp 13g
+(`ETAPPLAN3.md`) respektive Etapp 45c (`ETAPPLAN9.md`) och `UTVECKLINGSLOGG.md`. Övriga
+punkter (#4–#6, #8–#11) hanteras inom Etapp 9b i produktens utvecklingsplan (spåras som
 ärende SYN-6). Beräknat åtgärdat senast `[FYLL I: datum]`.
 
 ### 2. Oskäligt betungande anpassning
@@ -120,8 +138,8 @@ Vi åberopar inget undantag för oskäligt betungande anpassning.
 
 ## Hur vi har testat tjänsten
 
-Granskningen genomfördes **2026-07-26** som en **självskattning** av leverantören, med
-följande metoder:
+Den ursprungliga granskningen genomfördes **2026-07-26** som en **självskattning** av
+leverantören, med följande metoder:
 
 1. **Automatiserad granskning** med axe-core mot WCAG 2.0/2.1 nivå A och AA, körd i
    Chromium mot en fullständigt fungerande testmiljö med inloggad användare. Fem flöden
@@ -134,17 +152,40 @@ följande metoder:
 4. **Kodgranskning** av semantisk struktur, landmärken, rubriknivåer, formuläretiketter,
    ARIA-attribut och dialoghantering.
 
+**Omgranskningen 2026-08-04 (Etapp 45c)** utökade metod 1 avsevärt, efter att
+gränssnittsförnyelsen (Etapp 42–44) byggt om navigering, adminpanel och lagt till flera nya
+sidor sedan den ursprungliga granskningen:
+
+5. **Automatiserad granskning, samtliga sidor.** axe-core kört mot alla 27 routes i
+   `App.jsx` (inte fem flöden), för både en superadmin-roll och en personal-roll (samma sida
+   kan ha olika DOM-struktur beroende på rollens data – ett verkligt fynd under den här
+   omgranskningen, se #17). Resultat: sex nya brister hittade och åtgärdade (#12–#17),
+   **noll kvarstående** axe-core-överträdelser efter fixarna.
+6. **Permanent regressionsspärr.** Samma granskning finns nu som en körbar testfil
+   (`tests/e2e/tillganglighet.spec.js`), en del av `test:e2e`/CI – skiljer den här
+   omgranskningen från den ursprungliga, som var en engångsinsats utan uppföljande skydd.
+
 ### Vad vi uttryckligen inte har testat
 
 Detta är väsentligt för att bedöma redogörelsens tillförlitlighet:
 
-- **Ingen testning med riktig skärmläsare** (NVDA, JAWS eller VoiceOver) har genomförts.
-  Automatiserad testning fångar erfarenhetsmässigt bara omkring en tredjedel av alla
-  tillgänglighetsproblem. Ytterligare brister kan finnas.
+- **Ingen testning med riktig skärmläsare** (NVDA, JAWS eller VoiceOver) har genomförts –
+  **oförändrat sedan 2026-07-26, trots omgranskningen.** Automatiserad testning fångar
+  erfarenhetsmässigt bara omkring en tredjedel av alla tillgänglighetsproblem. Ytterligare
+  brister kan finnas, särskilt sådana som kräver en interaktion (t.ex. att en modal dialog
+  faktiskt fungerar med tangentbord, inte bara att dess statiska markup ser rätt ut). Kräver
+  en människa, inte en session – spårad i `OPPNA-PUNKTER.md`.
+- **Interaktionsutlöst UI (modaler, bottensheets) granskades bara delvis.** axe-core-skanningen
+  körs mot varje sidas STATISKA laddade tillstånd – den öppnar inte "Mer"-menyn,
+  kommandopaletten eller bekräftelsedialogen för att skanna DEM i öppet läge. Deras
+  fokushantering verifierades istället genom kodgranskning (#16) och matchar ett redan
+  etablerat, testat mönster (bekräftelsedialogen, #7) – men är inte maskinellt bevisat på
+  samma sätt som resten av granskningen.
+- Bara två av sex roller (superadmin, personal) ingår i den automatiserade granskningen –
+  ett medvetet avgränsat urval, inte alla sex.
 - **Ingen granskning av förstoring/omflöde** vid 400 % zoom (WCAG 1.4.10).
 - **Ingen systematisk mätning av träffytors storlek** på pekskärm.
 - **Ingen användartestning med personer med funktionsnedsättning.**
-- Cirka 28 av tjänstens sidor omfattades inte av den automatiserade granskningen.
 
 En oberoende extern granskning och ett skärmläsartest rekommenderas innan tjänsten
 beskrivs som fullt förenlig.
@@ -187,10 +228,12 @@ följande är gjort:
 3. **Bestäm om redogörelsen även ska levereras som bilaga i anbud.** Det är
    rekommendationen – det besvarar en fråga varje offentlig upphandlare ställer.
 
-**Senast granskad och uppdaterad:** 2026-07-26
+**Senast granskad och uppdaterad:** 2026-08-04 (Etapp 45c)
 **Nästa översyn bör ske:** vid nästa större funktionsändring, dock senast om tolv månader.
 
 ---
 
-*Underlaget till denna redogörelse – fullständiga mätvärden, verktygsversioner och
-granskade sidor – finns dokumenterat i `UTVECKLINGSLOGG.md` under Fas 34.*
+*Underlaget till den ursprungliga redogörelsen – fullständiga mätvärden, verktygsversioner
+och granskade sidor – finns dokumenterat i `UTVECKLINGSLOGG.md` under Fas 34. Underlaget till
+2026-08-04-omgranskningen (Etapp 45c) finns i `ETAPPLAN9.md` och som en körbar testfil,
+`tests/e2e/tillganglighet.spec.js`.*

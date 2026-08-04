@@ -72,7 +72,10 @@ export default function Hem() {
           faktiskt kan godkänna något – se GodkannandeBanner.jsx/useGodkannandeKo.js. */}
       {arRedaktor(role) && <GodkannandeBanner />}
 
-      <nav className="hem__snabblankar">
+      {/* Etapp 45c: aria-label krävs eftersom det redan finns en annan <nav> (BottomNav) på
+          sidan – två landmärken av samma typ utan unik namngivning blir odistinguerbara för
+          en skärmläsaranvändare som navigerar landmärkesvis (axe-core: landmark-unique). */}
+      <nav className="hem__snabblankar" aria-label="Snabblänkar">
         {(visaAllaSnabblankar ? snabblankar : snabblankar.slice(0, SNABBLANKAR_ALLTID_SYNLIGA)).map((s) => (
           <Link key={s.nyckel} to={s.sokvag}>
             {s.ikon} {s.namn}
