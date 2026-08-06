@@ -8,6 +8,7 @@ import {
   satAvtalsstatus,
   satProvperiod,
   satAvtaladArsavgift,
+  satSokkvotTakPerDygn,
   blibForstaPlattformsadmin,
 } from "../firebase/functions";
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
@@ -49,6 +50,7 @@ export default function Leverantor() {
   const [exportMeddelande, setExportMeddelande] = useState(null);
   const [provperiodDraft, setProvperiodDraft] = useState({});
   const [arsavgiftDraft, setArsavgiftDraft] = useState({});
+  const [sokkvotTakDraft, setSokkvotTakDraft] = useState({});
 
   function ladda() {
     setLaddar(true);
@@ -166,6 +168,19 @@ export default function Leverantor() {
     try {
       const kr = varde === "" ? null : Number(varde);
       await satAvtaladArsavgift(orgId, kr === null || Number.isNaN(kr) ? null : kr);
+      await ladda();
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setAtgard(null);
+    }
+  }
+
+  async function hanteraSokkvotTak(orgId, varde) {
+    setAtgard(orgId);
+    try {
+      const tak = varde === "" ? null : Number(varde);
+      await satSokkvotTakPerDygn(orgId, tak === null || Number.isNaN(tak) ? null : tak);
       await ladda();
     } catch (e) {
       setFel(e);
@@ -330,7 +345,9 @@ export default function Leverantor() {
                   {org.senasteKostnad && (
                     <> · Senaste avslutade månad: {(org.senasteKostnad.anvantOre / 100).toFixed(2)} kr</>
                   )}
-                  {org.sokkvotIdag > 0 && <> · Sökkvot idag: {org.sokkvotIdag}</>}
+                  {org.sokkvotIdag > 0 && (
+                    <> · Sökkvot idag: {org.sokkvotIdag} / {org.sokkvotTakPerDygn ?? sokkvot?.orgTakStandard ?? "–"}</>
+                  )}
                   {org.avtaladArsavgiftKr != null && (
                     <> · Avtalat: {org.avtaladArsavgiftKr.toLocaleString("sv-SE")} kr/år</>
                   )}
@@ -394,6 +411,31 @@ export default function Leverantor() {
                   }
                 >
                   Spara pris
+                </button>
+                <label className="leverantor__avtalsstatus">
+                  Sökkvottak/dygn
+                  <input
+                    type="number"
+                    min="1"
+                    max={sokkvot?.tak ?? 100}
+                    step="1"
+                    placeholder={`Standard (${sokkvot?.orgTakStandard ?? 50})`}
+                    value={sokkvotTakDraft[org.orgId] ?? org.sokkvotTakPerDygn ?? ""}
+                    disabled={atgard === org.orgId}
+                    onChange={(e) =>
+                      setSokkvotTakDraft((d) => ({ ...d, [org.orgId]: e.target.value }))
+                    }
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="knapp knapp--liten"
+                  disabled={atgard === org.orgId}
+                  onClick={() =>
+                    hanteraSokkvotTak(org.orgId, sokkvotTakDraft[org.orgId] ?? org.sokkvotTakPerDygn ?? "")
+                  }
+                >
+                  Spara tak
                 </button>
                 <button
                   type="button"

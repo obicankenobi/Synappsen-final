@@ -134,13 +134,13 @@ AI-budgetlarmet vid 80 % i Etapp 32b – men den delade sökkvoten har inget mot
   molnkostnad tillgänglig programmatiskt? **Svar: nej, bekräftat blockerat, inte en kodfråga.**
   Se "Premisskontroll" nedan. Delmålet krympte till det förberedande steg som faktiskt går att
   bygga idag – se "Genomfört"/"Testat" nedan.
-- **48d – Rimlighetstak per organisation.** Ett konfigurerbart tak så att en enskild
-  organisation inte kan förbruka hela den delade kvoten. Förvalt generöst; syftet är ett
-  skyddsräcke, inte en begränsning.
+- **48d – ✅ KLAR (2026-08-06).** Rimlighetstak per organisation. Se "Genomfört"/"Testat"
+  nedan för detaljer.
 
 **Klart när:** frågan "vad kostar den här kunden, och vad händer om hon dubblar sin
 användning?" går att besvara på en minut, och en kund kan inte längre släcka en annans
-funktioner utan förvarning. (48d kvarstår – se ovan.)
+funktioner utan förvarning. **Etapp 48 är därmed helt klar** (48c smalare än planerat, väntar
+på samma ägarbeslut som redan spårades för Etapp 32b, se `OPPNA-PUNKTER.md`).
 
 ### Premisskontroll (48c), gjord innan bygget
 
@@ -217,6 +217,37 @@ behöver ändras.
   redan av befintliga, testade regler (`tests/rules/systemstatus.test.mjs`,
   `organisationsisolering.test.mjs`); hela `test:rules`-sviten kördes om ändå och är grön.
 - Fullt testsvep: lint, build, vitest (124/124), `test:rules`, `test:functions`.
+
+### Genomfört (48d)
+
+- **`okaSokkvot` kontrollerar nu ett per-organisationstak FÖRST, innan något skrivs.** En
+  organisation som redan nått sitt eget tak för dagen får `resource-exhausted` direkt – varken
+  den delade totalen eller organisationens egen räknare ökar av det nekade försöket (annars
+  hade en blockerad förfrågan ändå "kostat" kvot den aldrig fick använda).
+  `SOKKVOT_ORG_TAK_STANDARD = 50` (hälften av den delade dygnskvoten) används när
+  `organisationer/{orgId}.sokkvotTakPerDygn` inte är satt – ett skyddsräcke, inte en
+  åtstramning.
+- **Ny callable `satSokkvotTakPerDygn(orgId, tak)`** – plattformsadmin, valideras till ett
+  heltal 1–100 eller `null` (återgå till standard), loggat i revisionsloggen. Samma mönster
+  som `satAvtaladArsavgift`/`satProvperiod`.
+- **`listaOrganisationer`** returnerar `sokkvotTakPerDygn` per organisation samt
+  `sokkvot.orgTakStandard`, så leverantörsvyn kan visa vad "Ej ifyllt" faktiskt betyder.
+- **Leverantörsvyn**: sammanfattningsraden visar nu "Sökkvot idag: N / tak", och ett nytt
+  redigerbart fält "Sökkvottak/dygn" med spara-knapp per organisation.
+- **Felmeddelandet som når personalen** (`KlinikfragaSok.jsx` visar `e.message` direkt) är
+  skrivet för att vara begripligt utan teknisk kontext: förklarar att kvoten delas av
+  kollegorna, återställs vid midnatt, och att superadmin kan höja taket.
+
+### Testat (48d)
+
+- 3 nya functions-tester i `tests/functions/sokkvot.test.cjs`: anrop under taket tillåts,
+  anropet som skulle passera taket nekas med `resource-exhausted` UTAN att räkna upp vare sig
+  den delade totalen eller organisationens egen räknare, och en organisation utan eget
+  konfigurerat tak begränsas ändå av standardtaket (inte obegränsat).
+- 5 nya functions-tester i `tests/functions/etapp6.test.cjs`: behörighet, gränsvärden (0 och
+  över 100 avvisas), sätts/återställs till standard korrekt.
+- Fullt testsvep: lint, build, vitest (124/124), `test:functions`. Ingen ny collection eller
+  regeländring.
 
 ---
 
@@ -394,7 +425,7 @@ finns nedskrivet vad som hände.
 
 | Etapp | Innehåll | Insats | Vad det ger |
 |---|---|---|---|
-| 48 | Kapacitet och kostnad per organisation | Medel (48a är en nybyggnad, inte en avsmalning) | En kund kan inte släcka en annans funktioner |
+| 48 | Kapacitet och kostnad per organisation | **✅ HELT KLAR (2026-08-06)** | En kund kan inte längre släcka en annans funktioner, varken av misstag eller genom att ensam ta hela sökkvoten |
 | 49 | Livscykeln stängd | Medel | Inga obesvarade löften kvar i `avtal/` |
 | 50 | Supportbarhet utan innehållsåtkomst | Medel–hög (50b är arkitektoniskt nytt) | Hållbar support + ett starkt upphandlingssvar |
 | 51 | Demo- och övningsmiljö | Låg–medel | Säljdemo utan kunddata + trygg övningsplats |

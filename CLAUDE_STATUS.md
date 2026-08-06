@@ -6,18 +6,18 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-06, version **5.78.0** (pushad, INTE ännu deployad – senaste
-produktionsdeploy är v5.77.0, körning #69). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
-är den AKTIVA planen, antagen 2026-08-06. **Etapp 48a, 48b och 48c är KLARA**: den delade
-sökkvoten för klinikstöd mäts och larmar (48a–48b), och 48c (täckningsbidrag) visade sig vara
-bekräftat blockerat på ett ägarbeslut (GCP-faktureringsexport) – samma blockering som redan
-fanns för Etapp 32b, nu noterad på samma rad i `OPPNA-PUNKTER.md`. Byggde det förberedande steg
-som INTE var blockerat: ett manuellt "avtalat pris"-fält per organisation i leverantörsvyn.
-48d kvarstår. `ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT
-KLARA OCH DEPLOYADE sedan tidigare. **Läs sektionen "Uppföljning 2026-08-06 (Etapp 48c klar,
-smalare än planerat)" längst ner i den här filen först** om du undrar var arbetet står idag –
-nästa steg är 48d (rimlighetstak per organisation) eller Etapp 49, om användaren ber om
-fortsatt arbete.
+**Senast uppdaterad:** 2026-08-06, version **5.79.0** (pushad, INTE ännu deployad – senaste
+produktionsdeploy är v5.77.0, körning #69, alltså två releaser bakom). `ETAPPLAN10.md` (Etapp
+48–52, "Redo att drivas") är den AKTIVA planen, antagen 2026-08-06. **Etapp 48 (48a–48d) är
+HELT KLAR**: den delade sökkvoten för klinikstöd mäts, larmar vid 80 % (48a–48b), och en
+enskild organisation kan nu varken av misstag eller avsiktligt ta hela den delade kvoten
+(48d, konfigurerbart tak, förvalt till hälften). 48c (täckningsbidrag) visade sig vara
+bekräftat blockerat på ett ägarbeslut (GCP-faktureringsexport) – byggde det förberedande steg
+som INTE var blockerat istället (manuellt "avtalat pris"-fält). `ETAPPLAN9.md` (Etapp 45) och
+`ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs
+sektionen "Uppföljning 2026-08-06 (Etapp 48 helt klar)" längst ner i den här filen först** om
+du undrar var arbetet står idag – nästa steg är Etapp 49 (livscykeln stängd) om användaren ber
+om fortsatt arbete, eller en deploy av de två väntande releaserna (5.78–5.79).
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1440,3 +1440,23 @@ täckningsbidrag. 5 nya functions-tester i `tests/functions/etapp6.test.cjs`. Fu
 grönt. Version 5.77.0 → **5.78.0**. Committat och pushat, INTE deployat ännu.
 
 48d (rimlighetstak per organisation) kvarstår i `ETAPPLAN10.md` – det enda obyggda i Etapp 48.
+
+## Uppföljning 2026-08-06 (Etapp 48 helt klar)
+
+Byggde 48d direkt efter 48c, på användarens "ja, börja med 48d".
+
+Lade in kontrollen FÖRST i `okaSokkvot`s befintliga transaktion, innan något skrivs: en
+organisation som redan nått sitt eget dagliga tak nekas med `resource-exhausted`, utan att
+vare sig den delade totalen eller organisationens egen räknare ökar (annars hade en blockerad
+förfrågan ändå "kostat" kvot den aldrig fick använda). Standardtak `SOKKVOT_ORG_TAK_STANDARD =
+50` (hälften av den delade dygnskvoten) när inget är konfigurerat. Ny callable
+`satSokkvotTakPerDygn`, samma mönster som `satAvtaladArsavgift`. Leverantörsvyn fick en ny
+redigerbar "Sökkvottak/dygn"-rad och visar nu "Sökkvot idag: N / tak" istället för bara N.
+
+8 nya functions-tester (3 i `sokkvot.test.cjs`, 5 i `etapp6.test.cjs`). Fullt testsvep grönt:
+lint, build, vitest 124/124, test:functions. Version 5.78.0 → **5.79.0**. Committat och
+pushat, INTE deployat ännu.
+
+**Med detta är Etapp 48 (48a–48d) helt klar.** Två releaser (5.78–5.79) väntar på deploy.
+Nästa punkt i `ETAPPLAN10.md` är Etapp 49 (livscykeln stängd – automatiserad radering vid
+avetablering, en faktisk återställningsövning, exportens fullständighet).

@@ -354,6 +354,48 @@ async function main() {
     vantaSig(rad.avtaladArsavgiftKr === null, `förväntade null, fick ${rad.avtaladArsavgiftKr}`);
   });
 
+  console.log("\nsatSokkvotTakPerDygn – Etapp 48d konfigurerbart tak för den delade sökkvoten");
+  await test("en icke-plattformsadmin kan INTE ändra sökkvottaket", () =>
+    forvantaFel("permission-denied", () =>
+      funcs.satSokkvotTakPerDygn.run({
+        data: { orgId: nyOrgId, sokkvotTakPerDygn: 20 },
+        auth: { uid: "vanligPersonal" },
+      })
+    )
+  );
+  await test("noll avvisas med invalid-argument (måste vara minst 1)", () =>
+    forvantaFel("invalid-argument", () =>
+      funcs.satSokkvotTakPerDygn.run({
+        data: { orgId: nyOrgId, sokkvotTakPerDygn: 0 },
+        auth: { uid: "vanligSuperadmin" },
+      })
+    )
+  );
+  await test("ett tak över den delade dygnskvoten (100) avvisas med invalid-argument", () =>
+    forvantaFel("invalid-argument", () =>
+      funcs.satSokkvotTakPerDygn.run({
+        data: { orgId: nyOrgId, sokkvotTakPerDygn: 101 },
+        auth: { uid: "vanligSuperadmin" },
+      })
+    )
+  );
+  await test("en plattformsadmin KAN sätta ett giltigt tak", async () => {
+    await funcs.satSokkvotTakPerDygn.run({
+      data: { orgId: nyOrgId, sokkvotTakPerDygn: 20 },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const orgSnap = await db.collection("organisationer").doc(nyOrgId).get();
+    vantaSig(orgSnap.data().sokkvotTakPerDygn === 20, "sokkvotTakPerDygn uppdaterades inte");
+  });
+  await test("sokkvotTakPerDygn kan återställas till standard genom att sätta null", async () => {
+    await funcs.satSokkvotTakPerDygn.run({
+      data: { orgId: nyOrgId, sokkvotTakPerDygn: null },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const orgSnap = await db.collection("organisationer").doc(nyOrgId).get();
+    vantaSig(orgSnap.data().sokkvotTakPerDygn === null, "sokkvotTakPerDygn återställdes inte");
+  });
+
   console.log("\nsatProvperiod / kontrolleraProvperioder – Etapp 15e provperiod och automatisk pausning");
   await test("en icke-plattformsadmin kan INTE sätta en provperiod", () =>
     forvantaFel("permission-denied", () =>

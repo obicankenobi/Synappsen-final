@@ -107,6 +107,13 @@ const MAX_KLINIKSTOD_FRAGOR_PER_TIMME = 20;
 const SOKKVOT_DAGSTAK = 100;
 const SOKKVOT_VARNING_TROSKEL = 0.8;
 
+// Etapp 48d: 48b löste bara SYNLIGHET (larm till en människa) – ingenting stoppade en enskild
+// organisation från att själv ta hela den delade dygnskvoten. Förvalt till hälften av den
+// delade kvoten: ett skyddsräcke (ingen ensam organisation kan släcka klinikstödet för alla
+// andra), inte en åtstramning – de allra flesta organisationer använder aldrig i närheten av
+// detta. Konfigurerbart högre eller lägre per organisation via satSokkvotTakPerDygn.
+const SOKKVOT_ORG_TAK_STANDARD = 50;
+
 function dagensDatumStockholm() {
   // sv-SE ger "ÅÅÅÅ-MM-DD", samma sorterbara format som används för manadsNyckel m.fl.
   return new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Stockholm" });
@@ -206,6 +213,21 @@ async function okaSokkvot(organisationId) {
   await db.runTransaction(async (tx) => {
     const [globalSnap, orgSnap] = await Promise.all([tx.get(globalRef), tx.get(orgRef)]);
 
+    // Etapp 48d: kontrolleras FÖRST, innan något skrivs – en organisation som redan nått sitt
+    // eget tak ska varken räknas mot den delade totalen eller mot sig själv en gång till, och
+    // det faktiska Custom Search-anropet (efter denna funktion, se fragaKlinisktStod) ska
+    // aldrig göras alls i så fall.
+    const orgData = orgSnap.exists ? orgSnap.data() : {};
+    const orgTak = orgData.sokkvotTakPerDygn ?? SOKKVOT_ORG_TAK_STANDARD;
+    const orgDagensAntal = orgData.sokkvotDatum === idag ? (orgData.sokkvotAntal ?? 0) : 0;
+    if (orgDagensAntal >= orgTak) {
+      throw new HttpsError(
+        "resource-exhausted",
+        "Din organisations dagliga sökkvot för klinikstöd är slut. Den delas av alla era " +
+          "kollegor och återställs vid midnatt – kontakta superadmin om taket behöver höjas."
+      );
+    }
+
     const globalData = globalSnap.exists ? globalSnap.data() : {};
     const globalDagensAntal = globalData.datum === idag ? (globalData.totalAntal ?? 0) : 0;
     const nyttTotalAntal = globalDagensAntal + 1;
@@ -220,8 +242,6 @@ async function okaSokkvot(organisationId) {
     }
     tx.set(globalRef, { datum: idag, totalAntal: nyttTotalAntal, tak: SOKKVOT_DAGSTAK, larmSkickad });
 
-    const orgData = orgSnap.exists ? orgSnap.data() : {};
-    const orgDagensAntal = orgData.sokkvotDatum === idag ? (orgData.sokkvotAntal ?? 0) : 0;
     tx.set(orgRef, { sokkvotDatum: idag, sokkvotAntal: orgDagensAntal + 1 }, { merge: true });
   });
 
@@ -2904,6 +2924,8 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         sokkvotIdag: data.sokkvotDatum === idag ? (data.sokkvotAntal ?? 0) : 0,
         // Etapp 48c: manuellt inmatat avtalat årspris, se satAvtaladArsavgift.
         avtaladArsavgiftKr: data.avtaladArsavgiftKr ?? null,
+        // Etapp 48d: null betyder "använder standardtaket", inte "inget tak alls".
+        sokkvotTakPerDygn: data.sokkvotTakPerDygn ?? null,
       };
     })
   );
@@ -2913,6 +2935,8 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
     // gårdagens sista mätning som om den vore aktuell tills första sökningen idag.
     totalAntal: sokkvotData?.datum === idag ? (sokkvotData.totalAntal ?? 0) : 0,
     tak: sokkvotData?.tak ?? SOKKVOT_DAGSTAK,
+    // Etapp 48d: så leverantörsvyn kan visa vad "Ej ifyllt" faktiskt betyder i praktiken.
+    orgTakStandard: SOKKVOT_ORG_TAK_STANDARD,
   };
   // Etapp 32c: plattformsadmins tvärorganisatoriska åtkomst loggades tidigare inte alls.
   // "_plattform" är inget riktigt organisationId (det finns aldrig en kund vid namn det) –
@@ -3049,6 +3073,50 @@ exports.satAvtaladArsavgift = onCall({ region: "europe-west1" }, async (request)
       avtaladArsavgiftKr === null
         ? "Avtalad årsavgift borttagen"
         : `Avtalad årsavgift satt till ${avtaladArsavgiftKr} kr/år`,
+  });
+  return { ok: true };
+});
+
+// Etapp 48d: konfigurerbart tak för en enskild organisations andel av den DELADE dygnskvoten
+// (se SOKKVOT_ORG_TAK_STANDARD/okaSokkvot ovan). null = använd standardtaket.
+exports.satSokkvotTakPerDygn = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId, sokkvotTakPerDygn } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+  if (
+    sokkvotTakPerDygn !== null &&
+    (typeof sokkvotTakPerDygn !== "number" ||
+      !Number.isInteger(sokkvotTakPerDygn) ||
+      sokkvotTakPerDygn < 1 ||
+      sokkvotTakPerDygn > SOKKVOT_DAGSTAK)
+  ) {
+    throw new HttpsError(
+      "invalid-argument",
+      `sokkvotTakPerDygn måste vara null eller ett heltal mellan 1 och ${SOKKVOT_DAGSTAK}.`
+    );
+  }
+  const orgRef = db.collection("organisationer").doc(orgId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists) {
+    throw new HttpsError("not-found", "Organisationen hittades inte.");
+  }
+  await orgRef.set({ sokkvotTakPerDygn }, { merge: true });
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "organisation_sokkvottak_andrad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning:
+      sokkvotTakPerDygn === null
+        ? `Sökkvottak återställt till standard (${SOKKVOT_ORG_TAK_STANDARD}/dygn)`
+        : `Sökkvottak satt till ${sokkvotTakPerDygn}/dygn`,
   });
   return { ok: true };
 });

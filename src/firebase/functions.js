@@ -153,6 +153,11 @@ export function satAvtaladArsavgift(orgId, avtaladArsavgiftKr) {
   return fn({ orgId, avtaladArsavgiftKr });
 }
 
+export function satSokkvotTakPerDygn(orgId, sokkvotTakPerDygn) {
+  const fn = httpsCallable(functions, "satSokkvotTakPerDygn");
+  return fn({ orgId, sokkvotTakPerDygn });
+}
+
 export function exporteraOrganisation(orgId) {
   const fn = httpsCallable(functions, "exporteraOrganisation");
   return fn({ orgId });

@@ -2,6 +2,9 @@
 // organisation, (b) räknar upp varje organisations EGEN andel separat, (c) nollställer båda
 // räknarna när datumet inte längre är "idag" (gårdagens siffror ska aldrig blandas in), och
 // (d) inte läcker en organisations sökförbrukning till en annan organisations dokument.
+// Etapp 48d: bevisar dessutom att ett konfigurerat per-organisationstak faktiskt stoppar
+// anrop vid taket UTAN att räkna dem mot vare sig den delade totalen eller organisationen
+// själv en gång till (annars skulle en blockerad förfrågan ändå "kosta" kvot).
 //
 // Körs mot Firestore-emulatorn:
 //   npx firebase-tools@13 emulators:exec --project demo-test --only firestore \
@@ -90,6 +93,49 @@ async function main() {
     const global = (await db.collection("systemstatus").doc("sokkvot").get()).data();
     vantaSig(global.totalAntal === 80, `totalAntal: ${global.totalAntal}`);
     vantaSig(global.larmSkickad === true, "larmSkickad borde vara true vid 80/100");
+  });
+
+  console.log("\n48d: per-organisationstak (sokkvotTakPerDygn)");
+  const ORG_C = "orgSokkvotC";
+  await db.collection("organisationer").doc(ORG_C).set({ namn: "Sökkvot C", sokkvotTakPerDygn: 2 });
+
+  await test("tillåter anrop under det egna taket", async () => {
+    await funcs.okaSokkvot(ORG_C);
+    await funcs.okaSokkvot(ORG_C);
+    const org = (await db.collection("organisationer").doc(ORG_C).get()).data();
+    vantaSig(org.sokkvotAntal === 2, `sokkvotAntal: ${org.sokkvotAntal}`);
+  });
+
+  await test("nekar (resource-exhausted) anropet som skulle passera taket, UTAN att räkna upp någonting", async () => {
+    const globalFore = (await db.collection("systemstatus").doc("sokkvot").get()).data();
+    try {
+      await funcs.okaSokkvot(ORG_C);
+      throw new Error("förväntade fel, fick inget");
+    } catch (fel) {
+      vantaSig(fel.code === "resource-exhausted", `fel kod: ${fel.code}`);
+    }
+    const org = (await db.collection("organisationer").doc(ORG_C).get()).data();
+    const globalEfter = (await db.collection("systemstatus").doc("sokkvot").get()).data();
+    vantaSig(org.sokkvotAntal === 2, `sokkvotAntal borde stannat på 2: ${org.sokkvotAntal}`);
+    vantaSig(
+      globalEfter.totalAntal === globalFore.totalAntal,
+      `den delade totalen ska INTE öka av ett nekat anrop: ${globalFore.totalAntal} -> ${globalEfter.totalAntal}`
+    );
+  });
+
+  await test("en organisation UTAN eget tak begränsas av standardtaket (50), inte obegränsat", async () => {
+    const ORG_D = "orgSokkvotD";
+    await db.collection("organisationer").doc(ORG_D).set({
+      namn: "Sökkvot D",
+      sokkvotDatum: new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Stockholm" }),
+      sokkvotAntal: 50,
+    });
+    try {
+      await funcs.okaSokkvot(ORG_D);
+      throw new Error("förväntade fel, fick inget");
+    } catch (fel) {
+      vantaSig(fel.code === "resource-exhausted", `fel kod: ${fel.code}`);
+    }
   });
 
   console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);
