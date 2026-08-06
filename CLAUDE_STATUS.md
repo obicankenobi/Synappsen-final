@@ -6,17 +6,15 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-04, version **5.76.0**, **DEPLOYAD TILL PRODUKTION** (körning
-#68, commit `328f940`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`, asset-hash
-`index-BtpA3PtP.js` bekräftad live). **`ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44,
-46, 47) är ALLA HELT KLARA OCH DEPLOYADE** – inget mer kodat och obeslutat väntar just nu i den
-aktiva UI-/kvalitets-linjen. Etapp 47 (sök- och kunskapsupptäckt): rutinformuläret föreslår nu
-relaterade rutiner baserat på delade taggar, och "Sedan ditt förra pass" visar väsentligt
-uppdaterat innehåll, inte bara nytt – den tredje ursprungliga idén (bredare kommandopalett)
-visade sig redan vara byggd. **Läs sektionen "Uppföljning 2026-08-04 (Etapp 47 klar)" och
-sektionen direkt under den längst ner i den här filen först** om du undrar var arbetet står
-idag – ingen ny UI-/kvalitetsplan väntar just nu; nästa steg är att identifiera ett nytt större
-arbetsområde, eller ta upp en av de öppna punkterna i `OPPNA-PUNKTER.md`.
+**Senast uppdaterad:** 2026-08-06, version **5.76.0** (oförändrad – ingen kod byggd denna
+session, bara planering). **`ETAPPLAN10.md` är den nya AKTIVA planen** (Etapp 48–52, "Redo att
+drivas": kapacitet/kostnad per organisation, avetableringens livscykel, supportbarhet utan
+innehållsåtkomst, demo/övningsmiljö, pilotpaketet) – antagen efter granskning av ett externt
+utkast, inget delmål byggt ännu. `ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46,
+47) är alla HELT KLARA OCH DEPLOYADE sedan tidigare (v5.76.0, körning #68, se
+"Uppföljning 2026-08-04" nedan). **Läs sektionen "Uppföljning 2026-08-06 (ETAPPLAN10 antagen)"
+längst ner i den här filen först** om du undrar var arbetet står idag – nästa steg är att
+börja med Etapp 48a om användaren ber om fortsatt arbete.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1359,3 +1357,26 @@ dokumentkartan (tog bort "inte deployade ännu").
 
 Inget nytt kodat i den här sessionen – rent avstämnings-/dokumentationsarbete kring en redan
 lyckad deploy.
+
+## Uppföljning 2026-08-06 (ETAPPLAN10 antagen)
+
+Användaren delade ett externt utkast, `ETAPPLAN10UTKAST.md` (Etapp 48–52, "Redo att drivas" –
+från byggd produkt till driftbar tjänst). Bads om synpunkter, gav dem, blev ombedd att
+strukturera om det till en riktig plan.
+
+**Granskade utkastets sakpåståenden mot faktisk kod** innan antagande (samma premisskontroll-
+disciplin som gäller allt annat bygge). Allt stämde: `exporteraOrganisation` täcker bara 7
+collections, saknar de 7 utkastet pekade ut; `pausaOrganisation` gör bara en statusflagga;
+backup-gallringen (90 dagar) och `hamtaBackupstatus` finns redan; `arPlattformsadmin()`-
+gränsen stämmer.
+
+**Tre skärpningar innan antagande** (detaljer i `ETAPPLAN10.md`s egen "Ändringar mot
+utkastet"): (1) 48a är en nybyggnad av mätpunkt, inte en avsmalning – AI-budgetlarmet är ett
+Sentry-larm, inte en UI-yta, och sökkvoten har ingen mätpunkt alls i dag; (2) 48c och 50a/50b
+fick egna "verifiera först"-flaggor (molnkostnadsdata resp. tidsbegränsade Firestore-regler är
+osäkra/nya); (3) 49a (radering) avkopplades explicit från 49b–49d, som ska köras oavsett vad
+ägaren beslutar om 49a.
+
+Skrev `ETAPPLAN10.md`, uppdaterade `CLAUDE.md`s läsordning och dokumentkarta (ny rad, flyttade
+`ETAPPLAN9.md` till "helt klar och deployad"). Inget delmål byggt än – väntar på att användaren
+säger vilket delmål som ska påbörjas.

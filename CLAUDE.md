@@ -24,19 +24,23 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 2. **`OPPNA-PUNKTER.md`** – läs ANDRA. Ett samlat register över allt som väntar på en människa
    eller ett beslut (inte på kapacitet), tvärs över alla planfiler. Ersätter behovet av att
    läsa statusblocken i punkt 4–6 nedan var för sig.
-3. **`ETAPPLAN9.md`** – den AKTIVA utvecklingsplanen (Etapp 45: kvalitetsmaskineriet riktas
-   utåt – en respons på en extern dokumentationsgranskning 2026-08-04). Om användaren ber om
-   fortsatt arbete utan att specificera vad: det är här nästa punkt finns.
-4. **`ETAPPLAN8.md`** – Etapp 44, 46 och 47 HELT KLARA (44 deployad, 46/47 inte ännu). Ingen
-   etapp väntar ogjord i den här filen just nu.
-5. **`ETAPPLAN7.md`** – HELT KLAR OCH DEPLOYAD (Etapp 42+43, gränssnittsförnyelse). Historisk
+3. **`ETAPPLAN10.md`** – den AKTIVA utvecklingsplanen (Etapp 48–52: "Redo att drivas" – från
+   byggd produkt till driftbar tjänst: kapacitet/kostnad, avetableringens livscykel,
+   supportbarhet utan innehållsåtkomst, demo/övning, pilotpaketet). Antagen 2026-08-06, inget
+   delmål byggt ännu. Om användaren ber om fortsatt arbete utan att specificera vad: det är
+   här nästa punkt finns.
+4. **`ETAPPLAN9.md`** – HELT KLAR (Etapp 45: kvalitetsmaskineriet riktas utåt). Historisk men
+   korrekt, inget kvar att göra där.
+5. **`ETAPPLAN8.md`** – Etapp 44, 46 och 47 HELT KLARA OCH DEPLOYADE. Ingen etapp väntar
+   ogjord i den här filen just nu.
+6. **`ETAPPLAN7.md`** – HELT KLAR OCH DEPLOYAD (Etapp 42+43, gränssnittsförnyelse). Historisk
    men korrekt, inget kvar att göra där.
-6. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkt (Etapp 40, villkorad av en
+7. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkt (Etapp 40, villkorad av en
    konkret ny kund) är inte blockerad av kapacitet, bara av att komma i tur. Ta den när som
    helst.
-7. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter listas nu i `OPPNA-PUNKTER.md`
+8. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter listas nu i `OPPNA-PUNKTER.md`
    istället för att behöva läsas härifrån.
-8. Övriga dokument nedan, efter behov.
+9. Övriga dokument nedan, efter behov.
 
 ## Dokumentkarta
 
@@ -44,7 +48,8 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 | Fil | Innehåll | Status |
 |---|---|---|
-| `ETAPPLAN9.md` | Etapp 45: kvalitetsmaskineriet riktas utåt (respons på extern granskning) | **HELT KLAR** (2026-08-04). Alla sex delmål 45a–45f byggda, v5.74.0. Inte deployad ännu. |
+| `ETAPPLAN10.md` | Etapp 48–52: "Redo att drivas" – kapacitet/kostnad, avetableringens livscykel, supportbarhet utan innehållsåtkomst, demo/övning, pilotpaketet | **Aktiv, ANTAGEN 2026-08-06.** Ursprungligen externt utkast, granskat och skärpt (se filens egen "Ändringar mot utkastet"). Inget delmål byggt ännu. |
+| `ETAPPLAN9.md` | Etapp 45: kvalitetsmaskineriet riktas utåt (respons på extern granskning) | **HELT KLAR OCH DEPLOYAD** (2026-08-04, v5.74.0, körning #68). Alla sex delmål 45a–45f byggda. |
 | `OPPNA-PUNKTER.md` | Samlat register över människo-/beslutsberoende punkter, tvärs över alla planfiler | **Aktiv, LEVANDE, ny 2026-08-04 (Etapp 45d).** Händelsestyrd underhållsregel, se arbetsmönstren nedan. |
 | `BESLUTSLOGG.md` | Samlat register över tagna ägarbeslut, framåtriktat från 2026-08-04 | **Aktiv, LEVANDE, ny 2026-08-04 (Etapp 45f).** Byggs inte retroaktivt – historiska beslut finns i `CLAUDE_STATUS.md`. Händelsestyrd underhållsregel, se arbetsmönstren nedan. |
 | `ETAPPLAN8.md` | Etapp 44: mobilappskänsla, Etapp 46: incidentberedskap, Etapp 47: sök/kunskapsupptäckt | **Alla tre HELT KLARA OCH DEPLOYADE.** 44 v5.73.0 (körning #67). 46/47 v5.75.0/v5.76.0, deployade 2026-08-04 (körning #68). |
