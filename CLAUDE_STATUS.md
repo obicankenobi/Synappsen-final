@@ -6,16 +6,17 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-06, version **5.77.0** (pushad, INTE ännu deployad – senaste
-produktionsdeploy är v5.76.0, körning #68). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
-är den AKTIVA planen, antagen 2026-08-06. **Etapp 48a och 48b är KLARA**: den delade
+**Senast uppdaterad:** 2026-08-06, version **5.77.0**, **DEPLOYAD TILL PRODUKTION** (körning
+#69, commit `8054230`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`, asset-hash
+`index-IBbHn0yL.js` bekräftad live). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas") är den
+AKTIVA planen, antagen 2026-08-06. **Etapp 48a och 48b är KLARA OCH DEPLOYADE**: den delade
 sökkvoten för klinikstöd (100/dygn, tidigare helt utan mätpunkt) mäts nu, larmar vid 80 % via
 Sentry, och syns i leverantörsvyn totalt och per organisation. 48c/48d kvarstår. `ETAPPLAN9.md`
 (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH DEPLOYADE sedan
-tidigare. **Läs sektionen "Uppföljning 2026-08-06 (Etapp 48a–48b klara)" längst ner i den här
-filen först** om du undrar var arbetet står idag – nästa steg är 48c (verifiera om
-molnkostnadsdata går att hämta programmatiskt) eller 48d, om användaren ber om fortsatt
-arbete.
+tidigare. **Läs sektionen "Uppföljning 2026-08-06 (Etapp 48a–48b klara)" och sektionen direkt
+under den längst ner i den här filen först** om du undrar var arbetet står idag – nästa steg
+är 48c (verifiera om molnkostnadsdata går att hämta programmatiskt) eller 48d, om användaren
+ber om fortsatt arbete.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1406,4 +1407,11 @@ Leverantörsvyn (`Leverantor.jsx`) fick en ny sektion + en rad per organisation.
 test:rules, test:functions. Version 5.76.0 → **5.77.0**. Committat och pushat.
 
 48c (verifiera molnkostnadsdata, sedan täckningsbidrag) och 48d (rimlighetstak per
-organisation) kvarstår i `ETAPPLAN10.md`. Inte deployat ännu.
+organisation) kvarstår i `ETAPPLAN10.md`.
+
+## Uppföljning 2026-08-06 (deploy): v5.77.0 live i produktion
+
+Användaren bad "deploya den". Triggade `deploy.yml` via `workflow_dispatch`, commit `8054230`
+(Etapp 48a–48b-committen). Körning #69: `status: completed`, `conclusion: success`. Ny
+asset-hash bekräftad live (`assets/index-IBbHn0yL.js`) via `curl`. Senaste produktionsdeploy
+innan detta var v5.76.0 (körning #68) – ett enda releasehopp (v5.77.0).
