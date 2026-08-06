@@ -123,20 +123,13 @@ AI-budgetlarmet vid 80 % i Etapp 32b – men den delade sökkvoten har inget mot
 
 **Modul:** ingen (plattform).
 
-- **48a – Verifiera först, och räkna med att det är en nybyggnad, inte en avsmalning.**
-  Bekräftat inför antagandet: sökkvoten rate-limitas i dag bara per användare (20/timme,
-  `MAX_KLINIKSTOD_FRAGOR_PER_TIMME`), och det delade dygnstaket (100/dygn hos Google) har
-  ingen egen mätpunkt någonstans i koden. Läs ändå `functions/index.js` och adminpanelens
-  kostnadsvyer en gång till direkt före bygget, i händelse av att något tillkommit sedan
-  denna granskning.
-- **48b – Delade kvoter synliga och larmande.** Sökmotorns dygnskvot visad som förbrukning
-  mot tak, per organisation och totalt, i leverantörsvyn. Larm **före** taket enligt samma
-  princip som AI-budgetens 80 %-larm – men **inte samma mekanism**: AI-budgetlarmet i dag är
-  ett `Sentry.captureMessage`, inte en UI-yta. 48b måste alltså bygga en faktisk räknare och en
-  faktisk vy, inte bara koppla in sig på något befintligt. **Larma till människa, blockera
-  inte automatiskt** (samma princip som `ETAPPLAN5.md` redan slog fast för avvikelselarm: ett
-  falsklarm som släcker klinikstödet mitt i ett akutförlopp är farligare än det det skyddar
-  mot).
+- **48a – ✅ KLAR (2026-08-06).** Verifiera först, och räkna med att det är en nybyggnad, inte
+  en avsmalning. Bekräftat inför antagandet: sökkvoten rate-limitas i dag bara per användare
+  (20/timme, `MAX_KLINIKSTOD_FRAGOR_PER_TIMME`), och det delade dygnstaket (100/dygn hos
+  Google) hade ingen egen mätpunkt någonstans i koden. Omkontrollerad en gång till direkt
+  före 48b:s bygge – ingenting hade ändrats.
+- **48b – ✅ KLAR (2026-08-06).** Delade kvoter synliga och larmande. Se "Genomfört"/"Testat"
+  nedan för detaljer.
 - **48c – Verifiera först: är faktisk molnkostnad ens tillgänglig programmatiskt?** Innan
   täckningsbidrag byggs, kontrollera om Firebase/GCP-faktureringsdata går att hämta via API
   för det här projektet. Om inte (samma typ av begränsning som gjorde App Check-metriken
@@ -152,7 +145,41 @@ AI-budgetlarmet vid 80 % i Etapp 32b – men den delade sökkvoten har inget mot
 
 **Klart när:** frågan "vad kostar den här kunden, och vad händer om hon dubblar sin
 användning?" går att besvara på en minut, och en kund kan inte längre släcka en annans
-funktioner utan förvarning.
+funktioner utan förvarning. (48c/48d kvarstår – se ovan.)
+
+### Genomfört (48a–48b)
+
+- **Ny mätpunkt `okaSokkvot(organisationId)`** i `functions/index.js`, anropad i
+  `fragaKlinisktStod` direkt före det faktiska externa anropet till Custom Search (efter
+  cache-kontrollen – en cacheträff kostar ingen kvot, precis som tidigare).
+- **Aggregatet ligger i `systemstatus/sokkvot`** (samma delade infrastruktur-collection som
+  `systemstatus/revisionskedja` från Etapp 46, ingen ny regel behövs) – men **medvetet utan
+  per-organisation-uppdelning där**, eftersom `systemstatus/{id}` är läsbar för EN superadmin
+  i VILKEN ORGANISATION SOM HELST, inte bara leverantörsadmin. Att lägga en annan kunds
+  sökförbrukning där hade läckt cross-tenant, av samma skäl som redan gjorde att
+  AI-budgetlarmet går via Sentry istället för `systemvarningar` (se kommentaren i
+  `reserveraBudget`).
+- **Per-organisation-räkningen ligger istället på `organisationer/{orgId}`** själv
+  (`sokkvotDatum`/`sokkvotAntal`), som redan bara är läsbar av den egna organisationen och
+  leverantörsadmin – ingen ny regel, ingen ny läcka.
+- **Larm vid 80 % av dagstaket** via `Sentry.captureMessage` (samma mönster/tröskel som
+  AI-budgetens `BUDGETVARNING_TROSKEL`), en gång per dygn.
+- **`listaOrganisationer`** utökad att returnera `sokkvot: { totalAntal, tak }` (aggregat) och
+  `sokkvotIdag` per organisation – båda beräknade mot dagens datum (Europe/Stockholm) så att
+  gårdagens siffror aldrig visas som aktuella.
+- **Leverantörsvyn (`Leverantor.jsx`)** visar en ny sektion "🔍 Delad sökkvot idag"
+  (total/tak, varningsfärgad vid ≥80 %) och en rad per organisation ("Sökkvot idag: N") när
+  organisationen sökt minst en gång samma dag.
+
+### Testat (48a–48b)
+
+- 5 nya functions-tester (`tests/functions/sokkvot.test.cjs`): total- och orgräknare ökar
+  korrekt och oberoende av varandra, ett gammalt datum nollställer BÅDA räknarna istället för
+  att räkna vidare på gårdagens siffror, och larmet sätts (utan att kasta fel) vid 80/100.
+- Inga nya Firestore-regler krävdes – `systemstatus/{id}` och `organisationer/{orgId}` täcks
+  redan av befintliga, testade regler (`tests/rules/systemstatus.test.mjs`,
+  `organisationsisolering.test.mjs`); hela `test:rules`-sviten kördes om ändå och är grön.
+- Fullt testsvep: lint, build, vitest (124/124), `test:rules`, `test:functions`.
 
 ---
 

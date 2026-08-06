@@ -6,15 +6,16 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-06, version **5.76.0** (oförändrad – ingen kod byggd denna
-session, bara planering). **`ETAPPLAN10.md` är den nya AKTIVA planen** (Etapp 48–52, "Redo att
-drivas": kapacitet/kostnad per organisation, avetableringens livscykel, supportbarhet utan
-innehållsåtkomst, demo/övningsmiljö, pilotpaketet) – antagen efter granskning av ett externt
-utkast, inget delmål byggt ännu. `ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46,
-47) är alla HELT KLARA OCH DEPLOYADE sedan tidigare (v5.76.0, körning #68, se
-"Uppföljning 2026-08-04" nedan). **Läs sektionen "Uppföljning 2026-08-06 (ETAPPLAN10 antagen)"
-längst ner i den här filen först** om du undrar var arbetet står idag – nästa steg är att
-börja med Etapp 48a om användaren ber om fortsatt arbete.
+**Senast uppdaterad:** 2026-08-06, version **5.77.0** (pushad, INTE ännu deployad – senaste
+produktionsdeploy är v5.76.0, körning #68). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
+är den AKTIVA planen, antagen 2026-08-06. **Etapp 48a och 48b är KLARA**: den delade
+sökkvoten för klinikstöd (100/dygn, tidigare helt utan mätpunkt) mäts nu, larmar vid 80 % via
+Sentry, och syns i leverantörsvyn totalt och per organisation. 48c/48d kvarstår. `ETAPPLAN9.md`
+(Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH DEPLOYADE sedan
+tidigare. **Läs sektionen "Uppföljning 2026-08-06 (Etapp 48a–48b klara)" längst ner i den här
+filen först** om du undrar var arbetet står idag – nästa steg är 48c (verifiera om
+molnkostnadsdata går att hämta programmatiskt) eller 48d, om användaren ber om fortsatt
+arbete.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1380,3 +1381,29 @@ osäkra/nya); (3) 49a (radering) avkopplades explicit från 49b–49d, som ska k
 Skrev `ETAPPLAN10.md`, uppdaterade `CLAUDE.md`s läsordning och dokumentkarta (ny rad, flyttade
 `ETAPPLAN9.md` till "helt klar och deployad"). Inget delmål byggt än – väntar på att användaren
 säger vilket delmål som ska påbörjas.
+
+## Uppföljning 2026-08-06 (Etapp 48a–48b klara): delad sökkvot mätt och synlig
+
+Byggde 48a (premisskontroll, ingen kod – bekräftade att sökkvoten bara rate-limitas per
+användare och att det delade dygnstaket helt saknade mätpunkt) och därefter 48b direkt, båda
+på användarens "gå vidare"/"börja med"-instruktioner.
+
+**Design valdes med krav 16 i åtanke:** aggregatet (`systemstatus/sokkvot`, totalAntal+tak,
+INGEN per-org-uppdelning) ligger i samma collection som `systemstatus/revisionskedja`
+(Etapp 46) – men den är läsbar av VILKEN organisations superadmin som helst, så en
+per-organisation-uppdelning där hade läckt cross-tenant, exakt det skäl som redan fick
+AI-budgetlarmet att gå via Sentry istället för `systemvarningar`. Per-organisation-räkningen
+ligger istället direkt på `organisationer/{orgId}` (redan bara läsbar av egen org +
+leverantörsadmin). Ingen ny Firestore-regel behövdes.
+
+Ny mätpunkt `okaSokkvot()` i `functions/index.js`, anropad i `fragaKlinisktStod` direkt före
+det faktiska externa Custom Search-anropet (efter cache-kontrollen). Larmar en gång/dygn vid
+80 % via Sentry. `listaOrganisationer` utökad med aggregat + per-org dagens antal.
+Leverantörsvyn (`Leverantor.jsx`) fick en ny sektion + en rad per organisation.
+
+5 nya functions-tester (`tests/functions/sokkvot.test.cjs`), inga nya rules-tester behövdes
+(befintliga täcker collectionerna redan). Fullt testsvep grönt: lint, build, vitest 124/124,
+test:rules, test:functions. Version 5.76.0 → **5.77.0**. Committat och pushat.
+
+48c (verifiera molnkostnadsdata, sedan täckningsbidrag) och 48d (rimlighetstak per
+organisation) kvarstår i `ETAPPLAN10.md`. Inte deployat ännu.

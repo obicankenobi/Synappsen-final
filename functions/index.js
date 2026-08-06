@@ -101,6 +101,17 @@ const MAX_PER_ANVANDARE_ORE = 5000; // 50 kr
 // den bristen oavsett budgettak.
 const MAX_KLINIKSTOD_FRAGOR_PER_TIMME = 20;
 
+// Etapp 48b: den delade dygnskvoten (100/dygn, kommentaren ovan) hade fram tills nu ingen
+// egen mätpunkt alls – bara hastighetsbegränsningen per användare. Utan detta kunde en kunds
+// förmiddag släcka klinikstödet för alla andra kunder utan att någon fick en förvarning.
+const SOKKVOT_DAGSTAK = 100;
+const SOKKVOT_VARNING_TROSKEL = 0.8;
+
+function dagensDatumStockholm() {
+  // sv-SE ger "ÅÅÅÅ-MM-DD", samma sorterbara format som används för manadsNyckel m.fl.
+  return new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Stockholm" });
+}
+
 // Budgeten är per organisation (Etapp 1) – annars skulle två kunder dela samma pott.
 // Ligger som en egen subcollection under organisationen, i samma dokumentform som tidigare
 // (installningar/geminiBudget), bara omplacerad.
@@ -174,6 +185,56 @@ async function kontrolleraOchOkaHastighet(uid, typ, maxPerFonster) {
 }
 // Exporterad enbart för tests/functions/klinikstodratelimit.test.cjs.
 exports.kontrolleraOchOkaHastighet = kontrolleraOchOkaHastighet;
+
+// Etapp 48b: räknar upp den delade sökmotorkvoten (se SOKKVOT_DAGSTAK) EN gång per faktiskt
+// externt anrop till Custom Search – anropas alltså aldrig vid en cacheträff, bara direkt
+// före sokViaProgrammerbarSokmotor(). Totalen ligger i systemstatus/sokkvot, samma delade,
+// icke-organisationsskopade infrastruktur-collection som revisionskedjan (Etapp 46) – bara
+// AGGREGAT (ingen per-organisation-uppdelning) sparas där, eftersom systemstatus/{id} är
+// läsbar för EN superadmin I VILKEN ORGANISATION SOM HELST (se firestore.rules), inte bara
+// leverantörsadmin. Att lägga en annan kunds sökförbrukning där hade läckt cross-tenant, av
+// exakt samma skäl som redan gjorde att AI-budgetlarmet går via Sentry och inte
+// systemvarningar (se kommentaren i reserveraBudget). Per-organisation-räkningen sparas
+// därför på organisationer/{orgId} istället, som redan bara är läsbar av den egna
+// organisationen och leverantörsadmin.
+async function okaSokkvot(organisationId) {
+  const idag = dagensDatumStockholm();
+  const globalRef = db.collection("systemstatus").doc("sokkvot");
+  const orgRef = db.collection("organisationer").doc(organisationId);
+  let larmAttSkicka = null;
+
+  await db.runTransaction(async (tx) => {
+    const [globalSnap, orgSnap] = await Promise.all([tx.get(globalRef), tx.get(orgRef)]);
+
+    const globalData = globalSnap.exists ? globalSnap.data() : {};
+    const globalDagensAntal = globalData.datum === idag ? (globalData.totalAntal ?? 0) : 0;
+    const nyttTotalAntal = globalDagensAntal + 1;
+    // Larmar EN gång per dygn (flaggan nollställs automatiskt när datumet byts ovan) när
+    // förbrukningen passerar tröskeln – samma "inte vid varje anrop därefter"-princip som
+    // BUDGETVARNING_TROSKEL redan använder.
+    const larmRedanSkickatIdag = globalData.datum === idag && (globalData.larmSkickad ?? false);
+    const larmSkickad =
+      larmRedanSkickatIdag || nyttTotalAntal >= SOKKVOT_DAGSTAK * SOKKVOT_VARNING_TROSKEL;
+    if (!larmRedanSkickatIdag && larmSkickad) {
+      larmAttSkicka = { organisationId, totalAntal: nyttTotalAntal, tak: SOKKVOT_DAGSTAK };
+    }
+    tx.set(globalRef, { datum: idag, totalAntal: nyttTotalAntal, tak: SOKKVOT_DAGSTAK, larmSkickad });
+
+    const orgData = orgSnap.exists ? orgSnap.data() : {};
+    const orgDagensAntal = orgData.sokkvotDatum === idag ? (orgData.sokkvotAntal ?? 0) : 0;
+    tx.set(orgRef, { sokkvotDatum: idag, sokkvotAntal: orgDagensAntal + 1 }, { merge: true });
+  });
+
+  if (larmAttSkicka) {
+    Sentry.captureMessage("Delad sökkvot (klinikstöd) närmar sig dagstaket", {
+      level: "warning",
+      tags: { typ: "sokkvotvarning" },
+      extra: larmAttSkicka,
+    });
+  }
+}
+// Exporterad enbart för tests/functions/sokkvot.test.cjs.
+exports.okaSokkvot = okaSokkvot;
 
 // Etapp 32b: en plötslig kostnadsspik "tystnar" idag – budgetspärren STOPPAR anropet vid
 // taket, men larmar aldrig innan dess, så en organisation kan gå från 10% till 100% använd
@@ -973,6 +1034,11 @@ exports.fragaKlinisktStod = onCall(
     await reserveraBudget(organisationId, request.auth.uid);
 
     const kalldomanerText = GODKANDA_KALLDOMANER.join(", ");
+
+    // Etapp 48b: räknas här, direkt före det faktiska externa anropet – en cacheträff ovan
+    // returnerar redan innan den här punkten och kostar ingen kvot. Räknas oavsett om anropet
+    // nedan sedan lyckas eller inte, eftersom kvoten hos Google konsumeras av själva anropet.
+    await okaSokkvot(organisationId);
 
     let traffar;
     try {
@@ -2810,7 +2876,11 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
   }
   await kravPlattformsadmin(request.auth.uid);
 
-  const orgSnap = await db.collection("organisationer").get();
+  const idag = dagensDatumStockholm();
+  const [orgSnap, sokkvotSnap] = await Promise.all([
+    db.collection("organisationer").get(),
+    db.collection("systemstatus").doc("sokkvot").get(),
+  ]);
   const organisationer = await Promise.all(
     orgSnap.docs.map(async (orgDoc) => {
       const data = orgDoc.data();
@@ -2829,9 +2899,19 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         // en riktig, aktiv kund – annars skulle en befintlig kund plötsligt visas som "offert".
         avtalsstatus: data.avtalsstatus ?? "aktiv",
         provperiodSlut: data.provperiodSlut ?? null,
+        // Etapp 48b: dagens andel av den DELADE sökkvoten – 0 om organisationen inte sökt
+        // alls idag, oavsett vad fältet råkar innehålla från ett tidigare datum.
+        sokkvotIdag: data.sokkvotDatum === idag ? (data.sokkvotAntal ?? 0) : 0,
       };
     })
   );
+  const sokkvotData = sokkvotSnap.exists ? sokkvotSnap.data() : null;
+  const sokkvot = {
+    // Samma "0 om datumet inte är idag"-princip som ovan, per organisation – annars visas
+    // gårdagens sista mätning som om den vore aktuell tills första sökningen idag.
+    totalAntal: sokkvotData?.datum === idag ? (sokkvotData.totalAntal ?? 0) : 0,
+    tak: sokkvotData?.tak ?? SOKKVOT_DAGSTAK,
+  };
   // Etapp 32c: plattformsadmins tvärorganisatoriska åtkomst loggades tidigare inte alls.
   // "_plattform" är inget riktigt organisationId (det finns aldrig en kund vid namn det) –
   // en egen hashkedja för händelser som spänner över ALLA organisationer, inte en specifik.
@@ -2844,7 +2924,7 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
     objektId: null,
     sammanfattning: `Listade ${organisationer.length} organisationer`,
   });
-  return { organisationer };
+  return { organisationer, sokkvot };
 });
 
 // Etapp 15d: avtals-/betalningsflödet sker MEDVETET utanför appen (avtalssignering och

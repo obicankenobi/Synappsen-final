@@ -41,6 +41,11 @@
   color: var(--farlig);
 }
 
+.leverantor__varning {
+  color: var(--amber-text);
+  font-weight: 600;
+}
+
 .leverantor__info {
   color: var(--success);
 }

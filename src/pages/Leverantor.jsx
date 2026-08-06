@@ -29,6 +29,7 @@ const AVTALSSTATUS_ETIKETT = {
 // klientkontroll ger faktisk säkerhet.
 export default function Leverantor() {
   const [organisationer, setOrganisationer] = useState(null);
+  const [sokkvot, setSokkvot] = useState(null);
   const [fel, setFel] = useState(null);
   const [laddar, setLaddar] = useState(true);
   const [namn, setNamn] = useState("");
@@ -51,7 +52,10 @@ export default function Leverantor() {
     setLaddar(true);
     setFel(null);
     return listaOrganisationer()
-      .then(({ data }) => setOrganisationer(data.organisationer))
+      .then(({ data }) => {
+        setOrganisationer(data.organisationer);
+        setSokkvot(data.sokkvot);
+      })
       .catch((e) => setFel(e))
       .finally(() => setLaddar(false));
   }
@@ -61,7 +65,10 @@ export default function Leverantor() {
   // har redan rätt startvärden (true/null) så bara resultatet behöver sättas här.
   useEffect(() => {
     listaOrganisationer()
-      .then(({ data }) => setOrganisationer(data.organisationer))
+      .then(({ data }) => {
+        setOrganisationer(data.organisationer);
+        setSokkvot(data.sokkvot);
+      })
       .catch((e) => setFel(e))
       .finally(() => setLaddar(false));
   }, []);
@@ -206,6 +213,18 @@ export default function Leverantor() {
       {fel && <p className="leverantor__fel">{fel.message}</p>}
       {exportMeddelande && <p className="leverantor__info">{exportMeddelande}</p>}
 
+      {sokkvot && (
+        <section className="admin-sektion">
+          <h2>🔍 Delad sökkvot idag</h2>
+          <p className={sokkvot.totalAntal >= sokkvot.tak * 0.8 ? "leverantor__varning" : "sida__beskrivning"}>
+            {sokkvot.totalAntal} / {sokkvot.tak} sökningar (Custom Search, delas av ALLA
+            organisationer).{" "}
+            {sokkvot.totalAntal >= sokkvot.tak * 0.8 &&
+              "⚠️ Nära dagstaket – klinikstöd kan sluta fungera för alla kunder om taket nås."}
+          </p>
+        </section>
+      )}
+
       <section className="admin-sektion">
         <h2>Skapa ny organisation</h2>
         <form className="leverantor__form" onSubmit={hanteraSkapa}>
@@ -289,6 +308,7 @@ export default function Leverantor() {
                   {org.senasteKostnad && (
                     <> · Senaste avslutade månad: {(org.senasteKostnad.anvantOre / 100).toFixed(2)} kr</>
                   )}
+                  {org.sokkvotIdag > 0 && <> · Sökkvot idag: {org.sokkvotIdag}</>}
                   {org.provperiodSlut && <> · Provperiod t.o.m. {org.provperiodSlut}</>}
                 </div>
               </div>
