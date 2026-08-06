@@ -2902,6 +2902,8 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         // Etapp 48b: dagens andel av den DELADE sökkvoten – 0 om organisationen inte sökt
         // alls idag, oavsett vad fältet råkar innehålla från ett tidigare datum.
         sokkvotIdag: data.sokkvotDatum === idag ? (data.sokkvotAntal ?? 0) : 0,
+        // Etapp 48c: manuellt inmatat avtalat årspris, se satAvtaladArsavgift.
+        avtaladArsavgiftKr: data.avtaladArsavgiftKr ?? null,
       };
     })
   );
@@ -3003,6 +3005,50 @@ exports.satProvperiod = onCall({ region: "europe-west1" }, async (request) => {
     objektTyp: "organisationer",
     objektId: orgId,
     sammanfattning: provperiodSlut ? `Provperiod satt till ${provperiodSlut}` : "Provperiod borttagen",
+  });
+  return { ok: true };
+});
+
+// Etapp 48c: manuellt inmatat avtalat årspris (kr), så att leverantörsvyn kan visa det
+// bredvid den redan kända AI-kostnaden – INTE ett fullständigt täckningsbidrag. Faktisk
+// molnkostnad (Firestore/Storage/Functions utöver AI) kräver GCP-faktureringsexport till
+// BigQuery, ett projektval bara ägaren kan aktivera i GCP-konsolen, inte en kodfråga (se
+// samma slutsats redan dragen för Etapp 32b:s inloggningslarm, ETAPPLAN5.md/
+// SAKERHETSRAPPORT.md). Utan den exporten finns ingen programmatisk källa till total
+// molnkostnad per organisation, så det här fältet är ett förberedande steg, inte en färdig
+// automatisk vy.
+exports.satAvtaladArsavgift = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId, avtaladArsavgiftKr } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+  if (
+    avtaladArsavgiftKr !== null &&
+    (typeof avtaladArsavgiftKr !== "number" || !Number.isFinite(avtaladArsavgiftKr) || avtaladArsavgiftKr < 0)
+  ) {
+    throw new HttpsError("invalid-argument", "avtaladArsavgiftKr måste vara null eller ett tal ≥ 0.");
+  }
+  const orgRef = db.collection("organisationer").doc(orgId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists) {
+    throw new HttpsError("not-found", "Organisationen hittades inte.");
+  }
+  await orgRef.set({ avtaladArsavgiftKr }, { merge: true });
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "organisation_avtalad_arsavgift_andrad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning:
+      avtaladArsavgiftKr === null
+        ? "Avtalad årsavgift borttagen"
+        : `Avtalad årsavgift satt till ${avtaladArsavgiftKr} kr/år`,
   });
   return { ok: true };
 });

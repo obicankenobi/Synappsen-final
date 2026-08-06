@@ -315,6 +315,45 @@ async function main() {
     vantaSig(rad.avtalsstatus === "aktiv", `förväntade fallback-avtalsstatus 'aktiv', fick ${rad.avtalsstatus}`);
   });
 
+  console.log("\nsatAvtaladArsavgift – Etapp 48c manuellt inmatat avtalat årspris");
+  await test("en icke-plattformsadmin kan INTE ändra avtalad årsavgift", () =>
+    forvantaFel("permission-denied", () =>
+      funcs.satAvtaladArsavgift.run({
+        data: { orgId: nyOrgId, avtaladArsavgiftKr: 50000 },
+        auth: { uid: "vanligPersonal" },
+      })
+    )
+  );
+  await test("ett negativt belopp nekas med invalid-argument", () =>
+    forvantaFel("invalid-argument", () =>
+      funcs.satAvtaladArsavgift.run({
+        data: { orgId: nyOrgId, avtaladArsavgiftKr: -1 },
+        auth: { uid: "vanligSuperadmin" },
+      })
+    )
+  );
+  await test("en plattformsadmin KAN sätta ett avtalat pris", async () => {
+    await funcs.satAvtaladArsavgift.run({
+      data: { orgId: nyOrgId, avtaladArsavgiftKr: 75000 },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const orgSnap = await db.collection("organisationer").doc(nyOrgId).get();
+    vantaSig(orgSnap.data().avtaladArsavgiftKr === 75000, "avtaladArsavgiftKr uppdaterades inte");
+  });
+  await test("avtaladArsavgiftKr kan tas bort igen genom att sätta null", async () => {
+    await funcs.satAvtaladArsavgift.run({
+      data: { orgId: nyOrgId, avtaladArsavgiftKr: null },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const orgSnap = await db.collection("organisationer").doc(nyOrgId).get();
+    vantaSig(orgSnap.data().avtaladArsavgiftKr === null, "avtaladArsavgiftKr togs inte bort");
+  });
+  await test("listaOrganisationer visar null för en organisation som aldrig fått ett pris satt", async () => {
+    const resultat = await funcs.listaOrganisationer.run({ data: {}, auth: { uid: "vanligSuperadmin" } });
+    const rad = resultat.organisationer.find((o) => o.orgId === "orgVanlig");
+    vantaSig(rad.avtaladArsavgiftKr === null, `förväntade null, fick ${rad.avtaladArsavgiftKr}`);
+  });
+
   console.log("\nsatProvperiod / kontrolleraProvperioder – Etapp 15e provperiod och automatisk pausning");
   await test("en icke-plattformsadmin kan INTE sätta en provperiod", () =>
     forvantaFel("permission-denied", () =>

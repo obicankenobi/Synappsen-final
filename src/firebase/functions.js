@@ -148,6 +148,11 @@ export function satProvperiod(orgId, provperiodSlut) {
   return fn({ orgId, provperiodSlut });
 }
 
+export function satAvtaladArsavgift(orgId, avtaladArsavgiftKr) {
+  const fn = httpsCallable(functions, "satAvtaladArsavgift");
+  return fn({ orgId, avtaladArsavgiftKr });
+}
+
 export function exporteraOrganisation(orgId) {
   const fn = httpsCallable(functions, "exporteraOrganisation");
   return fn({ orgId });

@@ -130,22 +130,59 @@ AI-budgetlarmet vid 80 % i Etapp 32b – men den delade sökkvoten har inget mot
   före 48b:s bygge – ingenting hade ändrats.
 - **48b – ✅ KLAR (2026-08-06).** Delade kvoter synliga och larmande. Se "Genomfört"/"Testat"
   nedan för detaljer.
-- **48c – Verifiera först: är faktisk molnkostnad ens tillgänglig programmatiskt?** Innan
-  täckningsbidrag byggs, kontrollera om Firebase/GCP-faktureringsdata går att hämta via API
-  för det här projektet. Om inte (samma typ av begränsning som gjorde App Check-metriken
-  obyggbar, se `ETAPPLAN4.md`) krymper delmålet till en manuell, dokumenterad uppskattning
-  istället för en automatiserad vy.
-- **48c (fortsättning) – Täckningsbidrag per kund.** Faktisk molnkostnad ställd mot avtalad
-  avgift. `MODULPLAN.md`s prismodell (fast årsavgift per avdelning) vilar på ett
-  förbrukningsantagande som ingen har mätt mot verkligheten. Det kan visa att modellen behöver
-  ändras – obekvämt, men billigare att veta nu än efter tre avtal.
+- **48c – ✅ KLAR, MEN SMALARE ÄN PLANERAT (2026-08-06).** Verifiera först: är faktisk
+  molnkostnad tillgänglig programmatiskt? **Svar: nej, bekräftat blockerat, inte en kodfråga.**
+  Se "Premisskontroll" nedan. Delmålet krympte till det förberedande steg som faktiskt går att
+  bygga idag – se "Genomfört"/"Testat" nedan.
 - **48d – Rimlighetstak per organisation.** Ett konfigurerbart tak så att en enskild
   organisation inte kan förbruka hela den delade kvoten. Förvalt generöst; syftet är ett
   skyddsräcke, inte en begränsning.
 
 **Klart när:** frågan "vad kostar den här kunden, och vad händer om hon dubblar sin
 användning?" går att besvara på en minut, och en kund kan inte längre släcka en annans
-funktioner utan förvarning. (48c/48d kvarstår – se ovan.)
+funktioner utan förvarning. (48d kvarstår – se ovan.)
+
+### Premisskontroll (48c), gjord innan bygget
+
+Kontrollerade om Firebase/GCP-faktureringsdata går att hämta programmatiskt, innan
+täckningsbidrag byggdes. **Svar: nej, och det är inte en kodfråga.** Projektets egen
+dokumentation har redan dragit exakt samma slutsats tre gånger tidigare för en annan funktion
+(Etapp 32b:s larm på misslyckade inloggningsförsök) – se `ETAPPLAN5.md`, `SAKERHETSRAPPORT.md`
+och `INCIDENT-CHECKLISTA.md`: verklig molnkostnad per organisation kräver att GCP:s
+faktureringsexport till BigQuery aktiveras, ett projektval bara ägaren kan göra i GCP-
+konsolen, inte något en Cloud Function kan slå på åt sig själv. Utan den exporten finns ingen
+programmatisk källa till total molnkostnad (Firestore/Storage/Functions utöver AI).
+
+**En andra, tidigare okänd lucka hittades vid samma kontroll:** det finns inte heller något
+lagrat fält för vad en organisation FAKTISKT betalar. `MODULPLAN.md`s prismodell ("fast
+årsavgift per avdelning") är bara en beskrivning i ett dokument – inget kronbelopp finns
+sparat per organisation någonstans i datamodellen. Ett täckningsbidrag (avtalad intäkt minus
+kostnad) går alltså inte att räkna ut ens som en grov uppskattning idag, oavsett
+faktureringsexporten, eftersom hälften av uträkningen (intäkten) inte finns lagrad.
+
+**Konsekvens:** 48c smalnades till det enda förberedande steget som faktiskt är byggbart nu –
+ett manuellt inmatat "avtalat pris"-fält per organisation, ställt bredvid den redan kända
+AI-kostnaden, med en tydlig, ärlig text om vad jämförelsen INTE är. Den dag ägaren aktiverar
+faktureringsexporten går det att komplettera med verklig molnkostnad utan att detta fält
+behöver ändras.
+
+### Genomfört (48c)
+
+- **Ny callable `satAvtaladArsavgift(orgId, avtaladArsavgiftKr)`** i `functions/index.js` –
+  manuellt inmatat, loggat i revisionsloggen, samma mönster som `satProvperiod`/
+  `satAvtalsstatus`.
+- **`listaOrganisationer`** returnerar `avtaladArsavgiftKr` (null om aldrig satt).
+- **Leverantörsvyn**: nytt fält "Avtalat pris (kr/år)" med spara-knapp per organisation, samt
+  en uttrycklig text om att jämförelsen mot "Senaste avslutade månad" bara täcker AI-kostnad,
+  inte ett fullständigt täckningsbidrag, och pekar till detta avsnitt för varför.
+
+### Testat (48c)
+
+- 5 nya functions-tester i `tests/functions/etapp6.test.cjs` (samma fil som redan testar
+  `satProvperiod`/`satAvtalsstatus`): behörighet, negativt belopp avvisas, sätts/tas bort
+  korrekt, `listaOrganisationer` visar `null` för en organisation utan pris satt.
+- Fullt testsvep: lint, build, vitest (124/124), `test:functions`. Ingen ny collection eller
+  regeländring – `organisationer/{orgId}` täcks redan av befintliga regler och tester.
 
 ### Genomfört (48a–48b)
 
@@ -332,9 +369,12 @@ finns nedskrivet vad som hände.
 
 ## Beslutspunkter som kräver ägaren
 
-1. **Etapp 48c (täckningsbidrag):** vill du veta det? Svaret kan bli att prismodellen i
-   `MODULPLAN.md` inte håller. (Beror även på 48c:s "verifiera först" – frågan kan vara moot om
-   faktureringsdata inte går att hämta programmatiskt.)
+1. **Etapp 48c (täckningsbidrag): bekräftat blockerat på ett ägarbeslut, inte längre en öppen
+   fråga.** Verklig molnkostnad kräver att du aktiverar GCP:s faktureringsexport till BigQuery
+   i GCP-konsolen – en engångsinställning, inte en kodändring. Vill du veta det? Svaret kan bli
+   att prismodellen i `MODULPLAN.md` inte håller. Det manuella "avtalat pris"-fältet (byggt i
+   48c) fungerar oavsett vad du bestämmer här – det bara saknar den verkliga kostnadssidan tills
+   exporten aktiveras.
 2. **Etapp 49a (radering):** ska den byggas nu, eller räcker den manuella rutinen tills en
    kund med strikta raderingskrav dyker upp? PUB-mallen är ärlig om läget, så det är inte
    akut – men det blir det vid första uppsägningen. **49b–49d körs oavsett svar.**

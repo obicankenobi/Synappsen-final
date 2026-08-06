@@ -6,17 +6,18 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-06, version **5.77.0**, **DEPLOYAD TILL PRODUKTION** (körning
-#69, commit `8054230`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`, asset-hash
-`index-IBbHn0yL.js` bekräftad live). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas") är den
-AKTIVA planen, antagen 2026-08-06. **Etapp 48a och 48b är KLARA OCH DEPLOYADE**: den delade
-sökkvoten för klinikstöd (100/dygn, tidigare helt utan mätpunkt) mäts nu, larmar vid 80 % via
-Sentry, och syns i leverantörsvyn totalt och per organisation. 48c/48d kvarstår. `ETAPPLAN9.md`
-(Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH DEPLOYADE sedan
-tidigare. **Läs sektionen "Uppföljning 2026-08-06 (Etapp 48a–48b klara)" och sektionen direkt
-under den längst ner i den här filen först** om du undrar var arbetet står idag – nästa steg
-är 48c (verifiera om molnkostnadsdata går att hämta programmatiskt) eller 48d, om användaren
-ber om fortsatt arbete.
+**Senast uppdaterad:** 2026-08-06, version **5.78.0** (pushad, INTE ännu deployad – senaste
+produktionsdeploy är v5.77.0, körning #69). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
+är den AKTIVA planen, antagen 2026-08-06. **Etapp 48a, 48b och 48c är KLARA**: den delade
+sökkvoten för klinikstöd mäts och larmar (48a–48b), och 48c (täckningsbidrag) visade sig vara
+bekräftat blockerat på ett ägarbeslut (GCP-faktureringsexport) – samma blockering som redan
+fanns för Etapp 32b, nu noterad på samma rad i `OPPNA-PUNKTER.md`. Byggde det förberedande steg
+som INTE var blockerat: ett manuellt "avtalat pris"-fält per organisation i leverantörsvyn.
+48d kvarstår. `ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT
+KLARA OCH DEPLOYADE sedan tidigare. **Läs sektionen "Uppföljning 2026-08-06 (Etapp 48c klar,
+smalare än planerat)" längst ner i den här filen först** om du undrar var arbetet står idag –
+nästa steg är 48d (rimlighetstak per organisation) eller Etapp 49, om användaren ber om
+fortsatt arbete.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1415,3 +1416,27 @@ Användaren bad "deploya den". Triggade `deploy.yml` via `workflow_dispatch`, co
 (Etapp 48a–48b-committen). Körning #69: `status: completed`, `conclusion: success`. Ny
 asset-hash bekräftad live (`assets/index-IBbHn0yL.js`) via `curl`. Senaste produktionsdeploy
 innan detta var v5.76.0 (körning #68) – ett enda releasehopp (v5.77.0).
+
+## Uppföljning 2026-08-06 (Etapp 48c klar, smalare än planerat)
+
+Byggde 48c direkt efter deploy, på användarens "gå vidare med 48c".
+
+**Premisskontroll bekräftade delmålets egen "verifiera först"-varning helt och hållet:**
+faktisk molnkostnad per organisation kräver att GCP:s faktureringsexport till BigQuery
+aktiveras – ett projektval bara ägaren kan göra i GCP-konsolen, inte en kodfråga. Det här är
+INTE en ny slutsats: `ETAPPLAN5.md`, `SAKERHETSRAPPORT.md` och `INCIDENT-CHECKLISTA.md` har
+redan dragit exakt samma slutsats för Etapp 32b:s inloggningslarm. Uppdaterade
+`OPPNA-PUNKTER.md` så samma rad nu nämner båda – ett enda ägarbeslut låser upp båda.
+
+**En andra lucka hittades vid samma kontroll, inte tidigare känd:** det finns inget lagrat
+kronbelopp för vad en organisation faktiskt betalar någonstans i datamodellen –
+`MODULPLAN.md`s prismodell är bara text i ett dokument. Ett täckningsbidrag går alltså inte
+att räkna ut ens grovt idag, oavsett faktureringsexporten.
+
+**Byggde det enda förberedande steget som faktiskt var byggbart:** ny callable
+`satAvtaladArsavgift`, manuellt inmatat pris per organisation i leverantörsvyn, ställt bredvid
+den redan kända AI-kostnaden – med en tydlig text om att det INTE är ett fullständigt
+täckningsbidrag. 5 nya functions-tester i `tests/functions/etapp6.test.cjs`. Fullt testsvep
+grönt. Version 5.77.0 → **5.78.0**. Committat och pushat, INTE deployat ännu.
+
+48d (rimlighetstak per organisation) kvarstår i `ETAPPLAN10.md` – det enda obyggda i Etapp 48.

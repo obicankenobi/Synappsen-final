@@ -7,6 +7,7 @@ import {
   exporteraOrganisation,
   satAvtalsstatus,
   satProvperiod,
+  satAvtaladArsavgift,
   blibForstaPlattformsadmin,
 } from "../firebase/functions";
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
@@ -47,6 +48,7 @@ export default function Leverantor() {
   const [bootstrapar, setBootstrapar] = useState(false);
   const [exportMeddelande, setExportMeddelande] = useState(null);
   const [provperiodDraft, setProvperiodDraft] = useState({});
+  const [arsavgiftDraft, setArsavgiftDraft] = useState({});
 
   function ladda() {
     setLaddar(true);
@@ -151,6 +153,19 @@ export default function Leverantor() {
     setAtgard(orgId);
     try {
       await satProvperiod(orgId, provperiodSlut || null);
+      await ladda();
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setAtgard(null);
+    }
+  }
+
+  async function hanteraArsavgift(orgId, varde) {
+    setAtgard(orgId);
+    try {
+      const kr = varde === "" ? null : Number(varde);
+      await satAvtaladArsavgift(orgId, kr === null || Number.isNaN(kr) ? null : kr);
       await ladda();
     } catch (e) {
       setFel(e);
@@ -296,6 +311,13 @@ export default function Leverantor() {
             `null`, vilket kraschade sidan (bekräftat i en riktig webbläsare). `?? []` täcker alla
             felfall, inte bara det enda som redan hade en egen tidig retur. */}
         <h2>Organisationer ({(organisationer ?? []).length})</h2>
+        <p className="sida__beskrivning">
+          "Avtalat pris" fylls i manuellt och är inte kopplat till någon betalningstjänst.
+          Ställt mot "Senaste avslutade månad" ger det en GROV fingervisning, inte ett
+          täckningsbidrag – den siffran täcker bara AI-kostnad, inte Firestore/Storage/
+          Functions-kostnad. Fullständig molnkostnad kräver GCP-faktureringsexport till
+          BigQuery, ett ägarbeslut (se <code>ETAPPLAN10.md</code> Etapp 48c).
+        </p>
         <ul className="admin-lista">
           {(organisationer ?? []).map((org) => (
             <li key={org.orgId} className="admin-lista__rad leverantor__rad">
@@ -309,6 +331,9 @@ export default function Leverantor() {
                     <> · Senaste avslutade månad: {(org.senasteKostnad.anvantOre / 100).toFixed(2)} kr</>
                   )}
                   {org.sokkvotIdag > 0 && <> · Sökkvot idag: {org.sokkvotIdag}</>}
+                  {org.avtaladArsavgiftKr != null && (
+                    <> · Avtalat: {org.avtaladArsavgiftKr.toLocaleString("sv-SE")} kr/år</>
+                  )}
                   {org.provperiodSlut && <> · Provperiod t.o.m. {org.provperiodSlut}</>}
                 </div>
               </div>
@@ -345,6 +370,30 @@ export default function Leverantor() {
                   onClick={() => hanteraProvperiod(org.orgId, provperiodDraft[org.orgId] ?? org.provperiodSlut)}
                 >
                   Spara provperiod
+                </button>
+                <label className="leverantor__avtalsstatus">
+                  Avtalat pris (kr/år)
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="Ej ifyllt"
+                    value={arsavgiftDraft[org.orgId] ?? org.avtaladArsavgiftKr ?? ""}
+                    disabled={atgard === org.orgId}
+                    onChange={(e) =>
+                      setArsavgiftDraft((d) => ({ ...d, [org.orgId]: e.target.value }))
+                    }
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="knapp knapp--liten"
+                  disabled={atgard === org.orgId}
+                  onClick={() =>
+                    hanteraArsavgift(org.orgId, arsavgiftDraft[org.orgId] ?? org.avtaladArsavgiftKr ?? "")
+                  }
+                >
+                  Spara pris
                 </button>
                 <button
                   type="button"
