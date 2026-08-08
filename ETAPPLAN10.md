@@ -272,24 +272,54 @@ motsvarighet i kod.
   **Backup-gallringen (90 dagar) byggdes redan i Etapp 33c och är bekräftat aktiv** –
   raderingsfunktionen behöver alltså bara städa organisationens live-data och Storage-filer,
   inte uppfinna backup-hanteringen på nytt.
-- **49b – En faktisk återställningsövning.** Återställ en veckobackup i en testmiljö, ta tid,
-  och fyll i `[FYLLS I]` i `avtal/IT-FAKTABLAD.md` med en **uppmätt** siffra. Skriv ner
-  proceduren som en runbook medan den är färsk – samma logik som tabletop-övningen i 34c, som
-  var det bästa enskilda arbetet i hela dokumentationen just för att den följde ett verkligt
-  förlopp i stället för att beskriva ett tänkt.
-- **49c – Återställningsövningen som återkommande rutin.** En rad i den befintliga
-  återkommande säkerhetsgenomgången, inte en engångshändelse.
-- **49d – Exportens fullständighet.** Bekräftat: `exporteraOrganisation` täcker i dag bara
-  `rutiner, anslag, kontakter, lankbibliotek, forradsartiklar, skiftrapporter, kommentarer`
-  (`BACKUP_COLLECTIONS`, `functions/index.js`). Sju collections saknas helt:
-  `revisionslogg`, `matvardenSnapshots`, `checklistkorningar`, `bristanmalningar`,
-  `introduktionsspar`, `kompetenskrav`, `systemstatus`. `kompetenskrav` är dessutom
-  rent klientskriven (`src/hooks/useKompetenskrav.js`) och rörs aldrig av Cloud Functions –
-  värt att dubbelkolla dess Firestore-regelvägar samtidigt. En dataportabilitetsbegäran som
-  saknar hälften är en GDPR-brist, inte en bugg.
+- **49b – ⚠️ PLANENS PREMISS VAR FEL (upptäckt 2026-08-06).** Utkastet påstod att
+  `avtal/IT-FAKTABLAD.md` "fortfarande har `[FYLLS I]` för återställningstid" – det stämmer
+  INTE. Etapp 33d (2026-07-31, redan klar långt innan den här planen antogs) mätte redan RTO
+  end-to-end och skrev in siffran, ärligt caveerad som uppmätt mot Firestore-emulatorn, inte
+  produktion. Den enda genuint kvarstående luckan är en **produktionslik** mätning (verklig
+  nätverkslatens, verklig datamängd) – det är ett ägarbeslut om att avsätta tid och en
+  testmiljö, inte kod jag kan bygga mig fram till. Flyttad till `OPPNA-PUNKTER.md`.
+- **49c – ✅ KLAR (2026-08-06).** Återställningsövningen som återkommande rutin. Ny punkt (5)
+  i `CLAUDE.md`s återkommande säkerhetsgenomgång, plus en påminnelse i
+  `avtal/IT-FAKTABLAD.md` p. 6 om senast genomförd övning.
+- **49d – ✅ KLAR (2026-08-06).** Exportens fullständighet. Se "Genomfört"/"Testat" nedan.
+  Premisskontrollen hittade dessutom att en av de sju ursprungligen listade collectionerna
+  (`systemstatus`) INTE ska läggas till (delad plattforminfrastruktur, inget
+  `organisationId`-fält – en where-fråga mot den hade bara gett ett tomt, missvisande
+  resultat), att en (`matvardenSnapshots`) är en underkollektion som kräver en helt annan
+  kod-väg än de andra, och att en åttonde, tidigare oflaggad collection
+  (`introduktionstilldelningar`) också saknades.
 
 **Klart när:** det inte finns ett enda `[FYLLS I]` kvar i `avtal/`-mappen, och varje löfte i
-PUB-mallen har en funktion bakom sig.
+PUB-mallen har en funktion bakom sig. (49a kvarstår, villkorat av ägarbeslutet – se
+`OPPNA-PUNKTER.md`.)
+
+### Genomfört (49d)
+
+- **`BACKUP_COLLECTIONS`** utökad från 7 till 13 toppnivå-collections:
+  `checklistkorningar`, `bristanmalningar`, `introduktionsspar`, `introduktionstilldelningar`,
+  `kompetenskrav`, `revisionslogg` tillagda.
+- **Ny `BACKUP_SUBCOLLECTIONS`** (`matvardenSnapshots`, som ligger under
+  `organisationer/{orgId}/...`) med egen backup-/återställningsväg – `aterstallOrganisation`
+  skriver nu tillbaka till rätt sökväg istället för att av misstag skapa en toppnivå-
+  collection med samma namn.
+- **`revisionsloggHuvud/{orgId}`** (en post per organisation, nyckeln är orgId direkt, ingen
+  `organisationId`-fältfråga) läggs till i samlingar separat – behövs för att revisionsloggens
+  hashkedja ska kunna fortsätta korrekt efter en återställning (`loggaRevision` läser
+  `senasteHash` härifrån för nästa post).
+- `avtal/IT-FAKTABLAD.md` p. 6 uppdaterad med den utökade omfattningen.
+
+### Testat (49d)
+
+- Nya asserts i `tests/functions/backup.test.cjs`: `kompetenskrav`, `matvardenSnapshots`
+  (underkollektionen) och `revisionsloggHuvud` finns med i en riktig backup, och
+  `systemstatus` finns uttryckligen INTE med.
+- Nya asserts i `tests/functions/aterstallning.test.cjs`: en full backup→radera→återställ-
+  cykel för underkollektionen bevisar att den hamnar på rätt sökväg (inte en felaktig
+  toppnivå-collection), och att `revisionsloggHuvud` återställs korrekt.
+- Fullt testsvep: lint, build, vitest (124/124), `test:functions`. Ingen ny Firestore-regel
+  krävdes (Admin SDK-vägen kringgår regler som vanligt; alla berörda collections är redan
+  regeltestade sedan tidigare).
 
 ---
 

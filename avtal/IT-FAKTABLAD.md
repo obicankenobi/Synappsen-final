@@ -87,7 +87,11 @@ aktiverats.**
 
 - **Automatisk veckovis backup** av hela organisationens Firestore-data, schemalagt
   varje måndag 03:00 (svensk tid), verifierat direkt i koden
-  (`functions/index.js`, `veckovisBackupSchemalagt`).
+  (`functions/index.js`, `veckovisBackupSchemalagt`). Omfattar 13 collections plus
+  mätvärdeshistoriken (en underkollektion) och revisionsloggens hashkedje-huvud – utökad
+  2026-08-06 (Etapp 49d) från en tidigare ofullständig lista på 7. Omfattar MEDVETET INTE
+  delad plattforminfrastruktur (t.ex. den globalt delade sökkvoten) som inte är
+  organisationens egen data.
 - Backupen kan också tas ut manuellt på begäran, när som helst (samma funktion som
   används vid avetablering, se punkt 8).
 - **Återställningsfunktion finns** (Etapp 33a, 2026-07-31): en Cloud Function
@@ -105,6 +109,12 @@ aktiverats.**
   faktiska flaskhalsen vid en verklig incident är sällan själva återställningen, utan
   tiden det tar en människa att identifiera rätt backupfil och fatta beslutet att
   återställa (se `INCIDENT-CHECKLISTA.md` steg 8).
+  **Kvarstående begränsning (öppen, se `OPPNA-PUNKTER.md`):** ingen mätning har ännu gjorts
+  mot en produktionslik miljö (verklig nätverkslatens, verklig datamängd) – det kräver ett
+  ägarbeslut om att avsätta tid och en riktig testmiljö, inte en kodändring.
+  **Återkommande övning (Etapp 49c):** en rad i den återkommande säkerhetsgenomgången
+  (`CLAUDE.md`) påminner nu om att kontrollera om det är dags att göra om övningen –
+  senast genomförd 2026-07-31 (Etapp 33d).
 - **Återställningspunkt (RPO):** upp till en veckas dataförlust i värsta scenario
   (tiden mellan senaste schemalagda backup och en eventuell incident), utöver vad
   Firestores egen inbyggda redundans inom Google Cloud i sig hanterar för

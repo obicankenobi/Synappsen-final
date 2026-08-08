@@ -1642,6 +1642,15 @@ exports.verifieraKlinikstodSchemalagt = onSchedule(
 // featuren i src/config/features.js hör till). Skriver EN json-fil per organisation och
 // körning till backups/{orgId}/{datum}.json (se storage.rules – helt stängd för klienter,
 // bara läsbar via Cloud Console/gsutil av den som har tillgång till projektet).
+//
+// Etapp 49d: samma funktion används av BÅDE den schemalagda katastrofbackupen OCH knappen
+// "Exportera" i leverantörsvyn (GDPR-liknande dataportabilitet) – exporteraOrganisation
+// nedan är bara en tunn wrapper runt den här. Utökad från 7 till 12 collections + en
+// underkollektion + en särskild post, efter en premisskontroll som visade att hälften av
+// appens org-skopade data saknades helt. `systemstatus` läggs MEDVETET INTE till – den
+// collectionen är delad plattforminfrastruktur (Etapp 46/48b) utan organisationId-fält
+// överhuvudtaget, inte orgdata; en where("organisationId","==",orgId)-fråga mot den skulle
+// bara ge ett tomt, missvisande resultat.
 const BACKUP_COLLECTIONS = [
   "rutiner",
   "anslag",
@@ -1650,7 +1659,19 @@ const BACKUP_COLLECTIONS = [
   "forradsartiklar",
   "skiftrapporter",
   "kommentarer",
+  "checklistkorningar",
+  "bristanmalningar",
+  "introduktionsspar",
+  "introduktionstilldelningar",
+  "kompetenskrav",
+  "revisionslogg",
 ];
+
+// Etapp 49d: matvardenSnapshots är INTE en toppnivå-collection som de ovan – den ligger som
+// en underkollektion på organisationer/{orgId}/matvardenSnapshots/{datum} (se
+// skapaMatvardenSnapshot), utan eget organisationId-fält (skopningen är redan implicit i
+// sökvägen). Kräver därför en egen fråga/skrivväg, inte den generiska where()-loopen ovan.
+const BACKUP_SUBCOLLECTIONS = ["matvardenSnapshots"];
 
 async function backupaOrganisation(orgId) {
   const samlingar = {};
@@ -1658,6 +1679,18 @@ async function backupaOrganisation(orgId) {
     const snap = await db.collection(namn).where("organisationId", "==", orgId).get();
     samlingar[namn] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   }
+  for (const namn of BACKUP_SUBCOLLECTIONS) {
+    const snap = await db.collection("organisationer").doc(orgId).collection(namn).get();
+    samlingar[namn] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  }
+  // Etapp 49d: revisionsloggHuvud/{orgId} är EN post per organisation, nyckeln ÄR orgId –
+  // ingen where()-fråga, bara en direkt läsning. Behövs för att revisionsloggens hashkedja
+  // ska kunna fortsätta korrekt efter en återställning (se loggaRevision, som läser
+  // senasteHash härifrån för nästa post) – utan den skulle kedjan se intakt ut bakåt men
+  // knäckas framåt av nästa händelse som loggas efter en återställning.
+  const huvudSnap = await db.collection("revisionsloggHuvud").doc(orgId).get();
+  samlingar.revisionsloggHuvud = huvudSnap.exists ? [{ id: orgId, ...huvudSnap.data() }] : [];
+
   const datum = new Date().toISOString().slice(0, 10);
   const path = `backups/${orgId}/${datum}.json`;
   await bucket.file(path).save(JSON.stringify({ orgId, datum, samlingar }, null, 2), {
@@ -1771,13 +1804,19 @@ async function aterstallOrganisation(orgId, sokvag) {
 
   let antalAterstallda = 0;
   for (const [samlingsNamn, dokument] of Object.entries(data.samlingar ?? {})) {
+    // Etapp 49d: matvardenSnapshots ligger under organisationer/{orgId}/... i Firestore
+    // (se BACKUP_SUBCOLLECTIONS/backupaOrganisation ovan) – måste skrivas tillbaka dit, inte
+    // till en toppnivå-collection med samma namn (som inte existerar för den datan).
+    const samlingsRef = BACKUP_SUBCOLLECTIONS.includes(samlingsNamn)
+      ? db.collection("organisationer").doc(orgId).collection(samlingsNamn)
+      : db.collection(samlingsNamn);
     const BATCHSTORLEK = 400; // Firestores gräns är 500 skrivningar per batch
     for (let i = 0; i < dokument.length; i += BATCHSTORLEK) {
       const batch = db.batch();
       for (const dok of dokument.slice(i, i + BATCHSTORLEK)) {
         const { id, ...falt } = dok;
         if (falt.organisationId && falt.organisationId !== orgId) continue;
-        batch.set(db.collection(samlingsNamn).doc(id), ateruppbyggTidsstamplar(falt));
+        batch.set(samlingsRef.doc(id), ateruppbyggTidsstamplar(falt));
         antalAterstallda += 1;
       }
       await batch.commit();

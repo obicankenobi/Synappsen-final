@@ -24,6 +24,8 @@ bort härifrån (den finns kvar i sin planfils historik) snarare än att markera
 | Etapp 13f – SSO/Microsoft Entra ID | `ETAPPLAN3.md` §13f, `ETAPPLAN5-ALT-A.md` | Sedan `ETAPPLAN3.md` | Ägarbeslut: SAML eller OIDC? | Ägaren väljer protokoll, bygget kan sedan planeras |
 | Etapp 16 – veckopuls | `ETAPPLAN3.md` §16 | Sedan `ETAPPLAN3.md` | Ägarbeslut om omfattning | Ägaren tar ställning till om/hur den ska byggas |
 | Etapp 40 (`ETAPPLAN6.md`) – importstöd vid en ny kunds inflyttning | `ETAPPLAN6.md` §40 | 2026-08-01 | Väntar på att en konkret ny kund blir aktuell | Bevaka, bygg inte i förväg (se planens egen motivering) |
+| Etapp 49b – produktionslik RTO-mätning (dagens siffra är uppmätt mot Firestore-emulatorn, ärligt caveerad, men aldrig mot verklig nätverkslatens/datamängd) | `avtal/IT-FAKTABLAD.md` p. 6, `ETAPPLAN10.md` §49b | 2026-08-06 | Ägarbeslut: avsätta tid + en produktionslik testmiljö för en riktig övning | Ägaren bokar in tid; ingen kod krävs, `aterstallOrganisationCallable` finns redan |
+| Etapp 49a – automatiserad radering vid avetablering: byggas nu eller vänta? | `ETAPPLAN10.md` §49a, beslutspunkt 2 | 2026-08-06 | Ägarbeslut – inte akut (PUB-mallen är ärlig om den manuella rutinen), men blir det vid första uppsägningen | Ägaren tar ställning; `avtal/PUB-AVTAL-MALL.md` p. 6 uppdateras i samma commit som funktionen, om ja |
 
 **Medvetet UTANFÖR listan:** punkter där ägaren redan sagt nej/vänta med ett giltigt
 omprövningsvillkor (t.ex. Etapp 36c, externt penetrationstest – se `ETAPPLAN5.md`) är ett

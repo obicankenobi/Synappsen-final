@@ -142,10 +142,14 @@ Dessa två är de enda dokumenten i projektet vars felaktighet kan få juridiska
   en kort, fast checklista – (1) har en ny collection fått regeltester i
   `tests/rules/`? (2) har en ny uppladdningsväg storlek/innehållstypsbegränsningar i
   `storage.rules`? (3) läcker en ny loggpunkt personuppgifter eller dokumentinnehåll? (4) är
-  `npm-audit-rapport.md`/Dependabot-PR:arna genomlästa, inte bara ihopmergade blint? Skriv in
-  resultatet som ett `## Tillägg (datum, version): …`-block i `SAKERHETSRAPPORT.md` – samma
-  händelsestyrda princip som underhållsregeln för incidentdokumenten nedan. Motiveringen är
-  identisk: `SAKERHETSRAPPORT.md` låg själv 51 releaser efter verkligheten innan den skrevs om
+  `npm-audit-rapport.md`/Dependabot-PR:arna genomlästa, inte bara ihopmergade blint? (5)
+  (Etapp 49c) har det gått lång tid (riktmärke: ~6 månader) sedan senaste faktiska
+  återställningsövningen (`avtal/IT-FAKTABLAD.md` p. 6)? Om ja, flagga det som en punkt att
+  boka in – en RTO-siffra som aldrig omprövas blir en gissning med tiden, i takt med att
+  datamängden och koden förändras. Skriv in resultatet som ett
+  `## Tillägg (datum, version): …`-block i `SAKERHETSRAPPORT.md` – samma händelsestyrda
+  princip som underhållsregeln för incidentdokumenten nedan. Motiveringen är identisk:
+  `SAKERHETSRAPPORT.md` låg själv 51 releaser efter verkligheten innan den skrevs om
   2026-08-01 (se filens egen läsanvisning högst upp).
 
 ### Obligatorisk underhållsregel: incidentdokumenten

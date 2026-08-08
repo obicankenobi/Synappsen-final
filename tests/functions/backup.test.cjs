@@ -52,6 +52,22 @@ async function main() {
     titel: "Anslag A",
     organisationId: "orgA",
   });
+  // Etapp 49d: en av de sju collections som tidigare saknades helt i backupen.
+  await db.collection("kompetenskrav").doc("kravOrgA").set({
+    rutinTitel: "Handhygien",
+    organisationId: "orgA",
+  });
+  // Etapp 49d: underkollektion (organisationer/{orgId}/matvardenSnapshots/{datum}), en helt
+  // annan sökväg än de vanliga toppnivå-collectionerna ovan.
+  await db
+    .collection("organisationer")
+    .doc("orgA")
+    .collection("matvardenSnapshots")
+    .doc("2026-08")
+    .set({ datum: "2026-08", andelNollTraffar: 5 });
+  // Etapp 49d: revisionsloggHuvud/{orgId} – EN post, nyckeln är orgId direkt, ingen
+  // organisationId-fältfråga.
+  await db.collection("revisionsloggHuvud").doc("orgA").set({ senasteHash: "abc123" });
 
   console.log("\nbackupaOrganisation – direkt");
   let path1;
@@ -75,6 +91,24 @@ async function main() {
     vantaSig(
       !JSON.stringify(data).includes("Rutin B"),
       "org B:s data läckte in i org A:s backup!"
+    );
+    vantaSig(
+      data.samlingar.kompetenskrav.length === 1 && data.samlingar.kompetenskrav[0].rutinTitel === "Handhygien",
+      `kompetenskrav: ${JSON.stringify(data.samlingar.kompetenskrav)}`
+    );
+    vantaSig(
+      data.samlingar.matvardenSnapshots.length === 1 && data.samlingar.matvardenSnapshots[0].datum === "2026-08",
+      `matvardenSnapshots (underkollektion): ${JSON.stringify(data.samlingar.matvardenSnapshots)}`
+    );
+    vantaSig(
+      data.samlingar.revisionsloggHuvud.length === 1 &&
+        data.samlingar.revisionsloggHuvud[0].id === "orgA" &&
+        data.samlingar.revisionsloggHuvud[0].senasteHash === "abc123",
+      `revisionsloggHuvud: ${JSON.stringify(data.samlingar.revisionsloggHuvud)}`
+    );
+    vantaSig(
+      !("systemstatus" in data.samlingar),
+      "systemstatus (delad plattforminfrastruktur, inte orgdata) ska ALDRIG ingå i en organisations backup"
     );
   });
 

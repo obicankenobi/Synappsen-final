@@ -133,6 +133,47 @@ async function main() {
     vantaSig(!snap.exists, "ett dokument från en ANNAN organisation skrevs in trots skyddet");
   });
 
+  console.log("\naterstallOrganisation – Etapp 49d: underkollektion + revisionsloggHuvud");
+  const ORG2 = "org49dAterstall";
+  await db
+    .collection("organisationer")
+    .doc(ORG2)
+    .collection("matvardenSnapshots")
+    .doc("2026-08")
+    .set({ datum: "2026-08", andelNollTraffar: 12 });
+  await db.collection("revisionsloggHuvud").doc(ORG2).set({ senasteHash: "hashen-fore-radering" });
+
+  let backupPath2;
+  await test("backupaOrganisation fångar underkollektionen och revisionsloggHuvud", async () => {
+    backupPath2 = await funcs.backupaOrganisation(ORG2);
+    const bucket2 = admin.storage().bucket("synappsen-final-build.firebasestorage.app");
+    const [buffer] = await bucket2.file(backupPath2).download();
+    const data = JSON.parse(buffer.toString());
+    vantaSig(data.samlingar.matvardenSnapshots.length === 1, "matvardenSnapshots saknas i backupen");
+    vantaSig(data.samlingar.revisionsloggHuvud[0].senasteHash === "hashen-fore-radering", "revisionsloggHuvud saknas i backupen");
+  });
+
+  await db.collection("organisationer").doc(ORG2).collection("matvardenSnapshots").doc("2026-08").delete();
+  await db.collection("revisionsloggHuvud").doc(ORG2).delete();
+
+  await test("aterstallOrganisation skriver underkollektionen tillbaka till RÄTT sökväg (organisationer/{orgId}/matvardenSnapshots), inte en toppnivå-collection", async () => {
+    await funcs.aterstallOrganisation(ORG2, backupPath2);
+    const undersnap = await db
+      .collection("organisationer")
+      .doc(ORG2)
+      .collection("matvardenSnapshots")
+      .doc("2026-08")
+      .get();
+    vantaSig(undersnap.exists && undersnap.data().andelNollTraffar === 12, "matvardenSnapshots återställdes inte till underkollektionen");
+    const toppNivaSnap = await db.collection("matvardenSnapshots").doc("2026-08").get();
+    vantaSig(!toppNivaSnap.exists, "matvardenSnapshots skrevs felaktigt till en toppnivå-collection");
+  });
+
+  await test("aterstallOrganisation skriver revisionsloggHuvud tillbaka (så hashkedjan kan fortsätta korrekt)", async () => {
+    const huvudSnap = await db.collection("revisionsloggHuvud").doc(ORG2).get();
+    vantaSig(huvudSnap.exists && huvudSnap.data().senasteHash === "hashen-fore-radering", "revisionsloggHuvud återställdes inte");
+  });
+
   console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);
   process.exit(antalMisslyckade > 0 ? 1 : 0);
 }

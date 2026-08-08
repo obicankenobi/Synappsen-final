@@ -6,18 +6,20 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-06, version **5.79.0** (pushad, INTE ännu deployad – senaste
-produktionsdeploy är v5.77.0, körning #69, alltså två releaser bakom). `ETAPPLAN10.md` (Etapp
+**Senast uppdaterad:** 2026-08-06, version **5.80.0** (pushad, INTE ännu deployad – senaste
+produktionsdeploy är v5.77.0, körning #69, alltså tre releaser bakom). `ETAPPLAN10.md` (Etapp
 48–52, "Redo att drivas") är den AKTIVA planen, antagen 2026-08-06. **Etapp 48 (48a–48d) är
-HELT KLAR**: den delade sökkvoten för klinikstöd mäts, larmar vid 80 % (48a–48b), och en
-enskild organisation kan nu varken av misstag eller avsiktligt ta hela den delade kvoten
-(48d, konfigurerbart tak, förvalt till hälften). 48c (täckningsbidrag) visade sig vara
-bekräftat blockerat på ett ägarbeslut (GCP-faktureringsexport) – byggde det förberedande steg
-som INTE var blockerat istället (manuellt "avtalat pris"-fält). `ETAPPLAN9.md` (Etapp 45) och
-`ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs
-sektionen "Uppföljning 2026-08-06 (Etapp 48 helt klar)" längst ner i den här filen först** om
-du undrar var arbetet står idag – nästa steg är Etapp 49 (livscykeln stängd) om användaren ber
-om fortsatt arbete, eller en deploy av de två väntande releaserna (5.78–5.79).
+HELT KLAR** (se tidigare uppföljning). **Etapp 49: 49c och 49d klara, 49a och 49b väntar på
+ägarbeslut** (spårade i `OPPNA-PUNKTER.md`). Viktigt fynd: planens egen premiss för 49b
+("IT-FAKTABLAD.md saknar en RTO-siffra") visade sig vara FEL – siffran fanns redan sedan Etapp
+33d (2026-07-31), bara ärligt caveerad som uppmätt mot emulator, inte produktion. 49d utökade
+organisationers backup/export från 7 till 13 collections + en underkollektion +
+revisionsloggens hashkedje-huvud, MEDVETET utan den delade plattforminfrastrukturen
+(`systemstatus`). `ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT
+KLARA OCH DEPLOYADE sedan tidigare. **Läs sektionen "Uppföljning 2026-08-06 (Etapp 49: 49c/49d
+klara, 49a/49b kräver ägarbeslut)" längst ner i den här filen först** om du undrar var arbetet
+står idag – nästa steg är Etapp 50 om användaren ber om fortsatt arbete, eller en deploy av de
+tre väntande releaserna (5.78–5.80).
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1474,3 +1476,33 @@ overflowar till fil, håller sig utanför kontext) framför upprepade `get_workf
 (som INTE overflowar och därför kostar tokens varje gång), plus en enda väl tilltagen väntetid
 (~5–6 min, baserat på historiska körningar) istället för täta pollningsloopar. Ingen
 projektkod ändrad. Pekare tillagd i `CLAUDE.md`s arbetsmönster-avsnitt.
+
+## Uppföljning 2026-08-06 (Etapp 49: 49c/49d klara, 49a/49b kräver ägarbeslut)
+
+Byggde Etapp 49 med hjälp av den nya `synappsen-release`-skillen för själva release-stegen.
+
+**49d (exportens fullständighet) – klar.** Premisskontroll visade att av de sju collections
+utkastet pekade ut var en (`systemstatus`) FEL att lägga till (delad plattforminfrastruktur,
+inget `organisationId`-fält – skulle bara gett ett tomt, missvisande resultat i varje
+organisations export) och en (`matvardenSnapshots`) är en underkollektion som krävde en helt
+annan kod-väg än de andra sex. Hittade dessutom en ÅTTONDE, tidigare oflaggad collection
+(`introduktionstilldelningar`) med samma lucka. `BACKUP_COLLECTIONS` gick från 7 till 13 +
+`BACKUP_SUBCOLLECTIONS` (`matvardenSnapshots`) + en särskild post för
+`revisionsloggHuvud/{orgId}` (krävs för att revisionsloggens hashkedja ska kunna fortsätta
+korrekt efter en återställning). 8 nya functions-tester.
+
+**49b – planens egen premiss visade sig vara fel.** Utkastet påstod att
+`avtal/IT-FAKTABLAD.md` saknade en RTO-siffra. Den fanns redan (Etapp 33d, 2026-07-31),
+ärligt caveerad som uppmätt mot emulator, inte produktion. Den enda genuint kvarstående
+luckan – en produktionslik mätning – är ett ägarbeslut (tid + testmiljö), inte något jag kan
+bygga mig fram till. Flyttad till `OPPNA-PUNKTER.md`, tillsammans med 49a (radering, redan
+villkorat av ett ägarbeslut sedan planen antogs).
+
+**49c – klar.** Ny punkt (5) i `CLAUDE.md`s återkommande säkerhetsgenomgång som påminner om
+att kontrollera om det är dags för en ny återställningsövning.
+
+Fullt testsvep grönt: lint, build, vitest (124/124), test:functions. Version 5.79.0 →
+**5.80.0**. Committat och pushat, INTE deployat ännu (tre releaser väntar: 5.78–5.80).
+
+Nästa punkt i `ETAPPLAN10.md`, om användaren ber om fortsatt arbete, är Etapp 50
+(supportbarhet utan innehållsåtkomst).
