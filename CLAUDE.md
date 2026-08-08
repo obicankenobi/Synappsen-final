@@ -119,6 +119,11 @@ Dessa två är de enda dokumenten i projektet vars felaktighet kan få juridiska
 
 ## Etablerade arbetsmönster (se `CLAUDE_STATUS.md` för den fullständiga, levande listan)
 
+- **Releasechecklistan** (versionsbump, changelog, `ETAPPLANx.md`/`CLAUDE_STATUS.md`-
+  uppdatering, testsvep, commit, deploy-trigger + effektiv polling) finns skriven ut steg för
+  steg i skillen `.claude/skills/synappsen-release/SKILL.md` (2026-08-06) – läs den istället
+  för att härleda ordningen på nytt varje gång. `CLAUDE.md` förblir sanningskällan för VARFÖR
+  reglerna finns; skillen är bara en snabbreferens för HUR.
 - **Deploy** görs alltid via GitHub Actions-workflowen `deploy.yml`
   (`mcp__github__actions_run_trigger`, `run_workflow`), aldrig manuellt. Trigger:as bara
   manuellt (`workflow_dispatch`) – push till branchen deployar INTE automatiskt.

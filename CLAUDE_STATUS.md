@@ -1460,3 +1460,17 @@ pushat, INTE deployat ännu.
 **Med detta är Etapp 48 (48a–48d) helt klar.** Två releaser (5.78–5.79) väntar på deploy.
 Nästa punkt i `ETAPPLAN10.md` är Etapp 49 (livscykeln stängd – automatiserad radering vid
 avetablering, en faktisk återställningsövning, exportens fullständighet).
+
+## Uppföljning 2026-08-06 (meta): ny skill för releasechecklistan
+
+Användaren bad om förslag på egna arbetsförbättringar (kapacitet/token/UX), inte
+projektarbete. Byggde tre av förslagen som en ny projektskill,
+`.claude/skills/synappsen-release/SKILL.md`: (1) hela releasechecklistan (version/changelog/
+`ETAPPLANx.md`/`CLAUDE_STATUS.md`/testsvep/commit) skriven ut steg för steg istället för att
+härledas på nytt varje gång, (2) ett skript
+(`scripts/gh_run_status.py`) som extraherar bara de fält som faktiskt behövs ur en GitHub
+Actions-körnings JSON, (3) en tydlig regel om att föredra `list_workflow_runs` (som
+overflowar till fil, håller sig utanför kontext) framför upprepade `get_workflow_run`-anrop
+(som INTE overflowar och därför kostar tokens varje gång), plus en enda väl tilltagen väntetid
+(~5–6 min, baserat på historiska körningar) istället för täta pollningsloopar. Ingen
+projektkod ändrad. Pekare tillagd i `CLAUDE.md`s arbetsmönster-avsnitt.
