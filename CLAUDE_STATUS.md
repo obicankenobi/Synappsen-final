@@ -6,20 +6,21 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-06, version **5.80.0** (pushad, INTE ännu deployad – senaste
-produktionsdeploy är v5.77.0, körning #69, alltså tre releaser bakom). `ETAPPLAN10.md` (Etapp
-48–52, "Redo att drivas") är den AKTIVA planen, antagen 2026-08-06. **Etapp 48 (48a–48d) är
-HELT KLAR** (se tidigare uppföljning). **Etapp 49: 49c och 49d klara, 49a och 49b väntar på
-ägarbeslut** (spårade i `OPPNA-PUNKTER.md`). Viktigt fynd: planens egen premiss för 49b
-("IT-FAKTABLAD.md saknar en RTO-siffra") visade sig vara FEL – siffran fanns redan sedan Etapp
-33d (2026-07-31), bara ärligt caveerad som uppmätt mot emulator, inte produktion. 49d utökade
-organisationers backup/export från 7 till 13 collections + en underkollektion +
-revisionsloggens hashkedje-huvud, MEDVETET utan den delade plattforminfrastrukturen
-(`systemstatus`). `ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT
-KLARA OCH DEPLOYADE sedan tidigare. **Läs sektionen "Uppföljning 2026-08-06 (Etapp 49: 49c/49d
-klara, 49a/49b kräver ägarbeslut)" längst ner i den här filen först** om du undrar var arbetet
-står idag – nästa steg är Etapp 50 om användaren ber om fortsatt arbete, eller en deploy av de
-tre väntande releaserna (5.78–5.80).
+**Senast uppdaterad:** 2026-08-08, version **5.80.0**, **DEPLOYAD TILL PRODUKTION** (körning
+#70, commit `e4a2cff`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`, asset-hash
+`index-aQzGtcuw.js` bekräftad live). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas") är den
+AKTIVA planen, antagen 2026-08-06. **Etapp 48 (48a–48d) är HELT KLAR OCH DEPLOYAD.** **Etapp
+49: 49c och 49d klara och deployade, 49a och 49b väntar på ägarbeslut** (spårade i
+`OPPNA-PUNKTER.md` – användaren har sagt att hen själv tar de besluten, ingen kod att bygga
+förrän dess). Viktigt fynd under 49b: planens egen premiss ("IT-FAKTABLAD.md saknar en
+RTO-siffra") visade sig vara FEL – siffran fanns redan sedan Etapp 33d (2026-07-31), bara
+ärligt caveerad som uppmätt mot emulator, inte produktion. 49d utökade organisationers
+backup/export från 7 till 13 collections + en underkollektion + revisionsloggens
+hashkedje-huvud, MEDVETET utan den delade plattforminfrastrukturen (`systemstatus`).
+`ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH
+DEPLOYADE sedan tidigare. **Läs sektionen "Uppföljning 2026-08-08 (deploy): v5.80.0 live"
+längst ner i den här filen först** om du undrar var arbetet står idag – nästa steg är Etapp 50
+om användaren ber om fortsatt arbete, annars väntar man på ägarbesluten om 49a/49b.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1506,3 +1507,16 @@ Fullt testsvep grönt: lint, build, vitest (124/124), test:functions. Version 5.
 
 Nästa punkt i `ETAPPLAN10.md`, om användaren ber om fortsatt arbete, är Etapp 50
 (supportbarhet utan innehållsåtkomst).
+
+## Uppföljning 2026-08-08 (deploy): v5.80.0 live i produktion
+
+Användaren bad "deploya dem" (de tre väntande releaserna) och sa att hen själv tar besluten om
+49a/49b – de behöver alltså INGEN uppföljning från min sida just nu, bara vänta på ägaren.
+
+Triggade `deploy.yml` via `workflow_dispatch`, commit `e4a2cff` (Etapp 49c/49d-committen).
+Körning #70: `status: completed`, `conclusion: success`, med den nya `synappsen-release`-
+skillens polling-metod (en enda `sleep 330` istället för en pollingloop, sedan
+`list_workflow_runs` + `gh_run_status.py` istället för upprepade `get_workflow_run`-anrop) –
+fungerade som avsett. Ny asset-hash bekräftad live (`assets/index-aQzGtcuw.js`) via `curl`.
+Detta var ett trehopp – v5.78.0 (48c), v5.79.0 (48d) och v5.80.0 (49c/49d) gick alla live
+samtidigt, eftersom ingen av dem deployats individuellt sedan v5.77.0 (körning #69).
