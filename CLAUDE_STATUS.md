@@ -6,8 +6,9 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-09, version **5.81.0** (pushad, INTE ännu deployad – senaste
-produktionsdeploy är v5.80.0, körning #70). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
+**Senast uppdaterad:** 2026-08-09, version **5.81.0** – **DEPLOYAD TILL PRODUKTION**
+(körning #71, commit `b18e591`, asset-hash `assets/index-CCVkCV2A.js`, bekräftad live på
+`https://synappsen-final-build.web.app/`). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
 är den AKTIVA planen, antagen 2026-08-06. **Etapp 48 (48a–48d) OCH Etapp 49 (49a–49d) är HELT
 KLARA.** 49a byggdes efter ett ägarbeslut (se `BESLUTSLOGG.md`, 2026-08-06): kundens egen
 superadmin kan begära permanent radering i appen, men den verkställs först efter en
@@ -18,9 +19,8 @@ GitHub Actions-workflow (`.github/workflows/rto-matning.yml`) – körd 2026-08-
 Firestore/Storage, resultat **1 136 ms för 100 dokument**, inskrivet i
 `avtal/IT-FAKTABLAD.md` p. 6. `ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47)
 är alla HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs sektionen "Uppföljning 2026-08-09
-(Etapp 49b klar – produktionsmätning)" längst ner** om du undrar var arbetet står idag –
-nästa steg är Etapp 50 (supportbarhet utan innehållsåtkomst) om användaren ber om fortsatt
-arbete, eller en deploy av v5.81.0.
+(deploy: v5.81.0 live)" längst ner** om du undrar var arbetet står idag – nästa steg är
+Etapp 50 (supportbarhet utan innehållsåtkomst) om användaren ber om fortsatt arbete.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1590,3 +1590,13 @@ manuellt", inte en manuell improvisation nästa gång.
 **Med detta är Etapp 49 (49a–49d) helt klar, inga öppna punkter kvar för Etapp 49.**
 `OPPNA-PUNKTER.md` och `BESLUTSLOGG.md` uppdaterade i samma commit. Version oförändrad
 (5.81.0) – dokumentations-/verktygsarbete, ingen ny app-funktionalitet.
+
+## Uppföljning 2026-08-09 (deploy: v5.81.0 live)
+
+Användaren bad "deploya den". Triggade `deploy.yml` (`workflow_dispatch`) mot grenen
+`claude/compassionate-euler-rho0q5`, commit `b18e591` (innehåller både Etapp 49a:s
+raderingsfunktion och Etapp 49b:s RTO-mätningsverktyg/resultat). Körning **#71**,
+`conclusion: success`. Bekräftade den nya versionen live genom att hämta startsidan och
+läsa av asset-hashen: `assets/index-CCVkCV2A.js` på
+`https://synappsen-final-build.web.app/`. Ingen kodändring i denna uppföljning, bara
+statusuppdatering – v5.81.0 är nu produktionens faktiska version.
