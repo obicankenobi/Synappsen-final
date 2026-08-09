@@ -65,6 +65,12 @@
   display: none;
 }
 
+/* Etapp 49a: en irreversibel åtgärd (permanent radering) förtjänar en synligt annorlunda
+   ram, inte bara samma neutrala box som resten av panelen. */
+.admin-sektion--farlig {
+  border-color: var(--farlig);
+}
+
 .admin-sektion--hopfallbar summary::before {
   content: "▸";
   display: inline-block;

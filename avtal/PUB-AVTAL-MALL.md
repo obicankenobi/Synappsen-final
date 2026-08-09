@@ -66,21 +66,32 @@ underbiträden, och ge Kunden möjlighet att invända, i enlighet med art. 28.2 
 ## 6. Lagringstid och radering
 
 - Personuppgifter behandlas så länge avtalet om Tjänsten löper.
-- **Vid uppsägning eller avetablering av Kundens organisation** genomförs idag följande,
-  redan implementerade steg (se `functions/index.js`, funktionerna `pausaOrganisation` och
-  `exporteraOrganisation`):
-  1. Organisationen pausas – all läs- och skrivåtkomst till organisationens data stängs
-     omedelbart för samtliga användare (enforcerat i `firestore.rules`).
-  2. En fullständig exportfil av organisationens data kan tas ut på begäran, för Kundens egen
-     arkivering eller vidare GDPR-hantering.
-- **Känd begränsning, upprättad efter kontroll av faktisk kod (Etapp 13a, i enlighet med
-  genomgående krav 8 i `ETAPPLAN3.md`):** i dagsläget finns **ingen automatiserad, permanent
-  radering** av en avetablerad organisations data i produktionsdatabasen. Radering sker
-  manuellt av Biträdet på skriftlig begäran från Kunden, inom [FYLLS I: avtalad tidsfrist,
-  t.ex. 30 dagar].
+- **Vid uppsägning eller avetablering av Kundens organisation** (ägarbeslut och genomfört
+  2026-08-06/08, se `ETAPPLAN10.md` Etapp 49a):
+  1. Kundens egen superadmin (eller Biträdet, i undantagsfall) begär radering i appen, med en
+     obligatorisk angiven anledning. Organisationen **pausas omedelbart** – all läs- och
+     skrivåtkomst stängs för samtliga användare (enforcerat i `firestore.rules`).
+  2. Raderingen genomförs **automatiskt efter 48 timmar**. Under det fönstret kan både
+     Kundens egen superadmin och Biträdet avbryta raderingen.
+  3. Vid genomförd radering tas en sista säkerhetskopia (se punkt nedan om backupretention),
+     varpå Firestore-dokument, uppladdade filer och användarkonton knutna till organisationen
+     raderas permanent. En minimal post ("gravsten": namn, status, tidpunkt) blir kvar så att
+     Biträdet kan visa att raderingen skedde. Organisationens revisionslogg (spårbarheten över
+     vad som hänt, inklusive raderingen själv) raderas ALDRIG.
+  4. En fullständig exportfil av organisationens data kan även tas ut på begäran innan
+     raderingen, för Kundens egen arkivering eller vidare GDPR-hantering.
+- **Känd begränsning, kvarstående (Etapp 13a, Etapp 49a):** en manuell radering (t.ex. på
+  Biträdets eget initiativ utan att Kundens superadmin agerar) sker fortsatt genom att en
+  behörig person i Biträdets organisation utför samma steg via administratörsgränssnittet,
+  inom [FYLLS I: avtalad tidsfrist, t.ex. 30 dagar] efter en skriftlig begäran.
 - **Backupretention (ägarbeslut och genomfört 2026-08-01, se `ETAPPLAN5.md` Etapp 33c):**
-  schemalagda veckobackuper (`backups/{orgId}/...` i Firebase Storage) raderas automatiskt
-  efter **90 dagar** av en schemalagd funktion som körs varje vecka.
+  schemalagda veckobackuper (`backups/{orgId}/...` i Firebase Storage), INKLUSIVE den sista
+  säkerhetskopian som tas precis innan en permanent radering, raderas automatiskt efter
+  **90 dagar** av en schemalagd funktion som körs varje vecka. **Beslutat 2026-08-06:** detta
+  gäller medvetet ÄVEN efter en radering, som ett sista skyddsnät mot ett misstag som ändå
+  slank igenom 48-timmarsfönstret – innebär att en raderad organisations data i praktiken kan
+  finnas kvar i en backupfil i upp till 90 dagar till, trots att den är borta ur den levande
+  databasen.
 
 ## 7. Säkerhetsåtgärder
 

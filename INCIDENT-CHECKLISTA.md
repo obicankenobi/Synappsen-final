@@ -3,7 +3,7 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-04 · **Motsvarar kodläge:** v5.75.0
+**Senast uppdaterad:** 2026-08-08 · **Motsvarar kodläge:** v5.81.0
 
 > **Ägarbeslut 2026-08-01:** jourkontakt utanför kontorstid ifylld (se tabellen nedan).
 > Backup-retention 90 dagar, gallringslogiken byggd och testad (se `ETAPPLAN5.md` Etapp 33c).
@@ -62,6 +62,9 @@ HH:MM  vad jag gjorde / vad jag såg
   Firebase-konsolen: revisionskedjans senaste automatiska nattkontroll (intakt/avvikelse,
   senast körd) och senaste backup för din organisation. Visar INTE App Check-metriken eller
   misslyckade inloggningar – se rutan nedan för varför.
+- Sentry, tagg `typ: radering_schemalagd` (Etapp 49a, 2026-08-08) – **larmar VARJE gång en
+  organisation begär permanent radering**, oavsett om det var avsiktligt eller ett kapat
+  superadmin-konto. `/leverantor` visar samma varning med en "Avbryt radering"-knapp.
 - Firebase-konsolen → Firestore → Usage (onormal läs-/skrivvolym)
 - Firebase-konsolen → Authentication (nya eller okända konton, senaste inloggning)
 - Sentry (krascher – men **obs**, se rutan nedan)
@@ -113,6 +116,7 @@ loggen. Skriv ned det och gå vidare med största försiktighet.
 | Kontot har för hög behörighet | **Sänk rollen** | `/admin` → Användare & roller | Låg |
 | Misstänkt kapning, kontot behövs inte akut | Tvinga utloggning **+** sänk roll | `/admin` | Låg |
 | Hela organisationen är komprometterad | **Pausa organisationen** | `/leverantor` | **HÖG – hela avdelningen förlorar åtkomst.** Sista utvägen. Ring kunden först |
+| Ett kapat superadmin-konto har begärt permanent radering (Etapp 49a, Sentry-tagg `radering_schemalagd`) | **Avbryt raderingen** – 48-timmarsfönstret ger tid, ingen brådska på sekunder | `/leverantor` (raden med ⚠️-varningen) | Ingen om det avbryts i tid – radering sker INTE förrän fönstret gått ut |
 | Läckt API-nyckel (Gemini/sökmotor) | Rotera nyckeln i Secret Manager, deploya om | GitHub Secrets + deploy-workflow | Ingen |
 | Ditt eget plattformsadminkonto | Återkalla direkt, utan tvekan | Firebase-konsolen | Ingen – det är bara du |
 
@@ -264,6 +268,7 @@ användare. Sakligt, kort, verifierat.
 | Revisionslogg (hashkedja) + export | `/admin` → Revisionslogg |
 | Ändringslogg (bredare aktivitet) | `/admin` → Ändringslogg |
 | Pausa/återaktivera organisation | `/leverantor` |
+| Schemalagd radering (begära/avbryta) | `/admin` → **Radera organisationen permanent** (kunden), `/leverantor` (avbryt-knapp) – Etapp 49a |
 | Konton, inloggningar | Firebase-konsolen → Authentication |
 | Läs-/skrivvolym | Firebase-konsolen → Firestore → Usage |
 | Backupfiler (fullständig lista, inte bara senaste) | Firebase Storage → `backups/{orgId}/` |

@@ -258,20 +258,11 @@ motsvarighet i kod.
 
 **Modul:** ingen (plattform).
 
-- **49a – Automatiserad radering vid avetablering.** *Villkorat av beslutspunkt 2 (ägaren) –
-  49b–49d nedan är INTE beroende av detta beslut och ska köras oavsett utfall.* En riktig
-  raderingsfunktion: organisationens data, uppladdade filer och backupfiler. Dubbel
-  bekräftelse, obligatorisk angiven anledning, loggad i revisionsloggen **innan** körningen
-  (krav 17), och en kvittensrapport efteråt som kunden kan få. Uppdatera
-  `avtal/PUB-AVTAL-MALL.md` p. 6 – **i den ordningen**, aldrig tvärtom.
-  **Verifiera först:** bekräftat att `pausaOrganisation` bara sätter en statusflagga och att
-  `exporteraOrganisation` är en tunn wrapper runt samma `backupaOrganisation` som det
-  schemalagda jobbet – ingen av dem gör något som 49a kan återanvända rakt av, men
-  backup-gallringsmönstret (`gallraGamlaBackuper`, `functions/index.js`) är en bra mall för
-  hur en riktig raderingsfunktion bör vara strukturerad.
-  **Backup-gallringen (90 dagar) byggdes redan i Etapp 33c och är bekräftat aktiv** –
-  raderingsfunktionen behöver alltså bara städa organisationens live-data och Storage-filer,
-  inte uppfinna backup-hanteringen på nytt.
+- **49a – ✅ KLAR (2026-08-08).** Automatiserad radering vid avetablering. Ägarbeslutet blev
+  ett tredje alternativ, inte "bygg direkt" eller "vänta": **kundens EGEN superadmin begär
+  radering i appen, men den verkställs inte direkt – en 48-timmars väntetid ger både kunden
+  själv och leverantören en chans att avbryta.** Se "Genomfört"/"Testat" nedan och
+  `BESLUTSLOGG.md` för hela resonemanget.
 - **49b – ⚠️ PLANENS PREMISS VAR FEL (upptäckt 2026-08-06).** Utkastet påstod att
   `avtal/IT-FAKTABLAD.md` "fortfarande har `[FYLLS I]` för återställningstid" – det stämmer
   INTE. Etapp 33d (2026-07-31, redan klar långt innan den här planen antogs) mätte redan RTO
@@ -291,8 +282,59 @@ motsvarighet i kod.
   (`introduktionstilldelningar`) också saknades.
 
 **Klart när:** det inte finns ett enda `[FYLLS I]` kvar i `avtal/`-mappen, och varje löfte i
-PUB-mallen har en funktion bakom sig. (49a kvarstår, villkorat av ägarbeslutet – se
-`OPPNA-PUNKTER.md`.)
+PUB-mallen har en funktion bakom sig. **Etapp 49 är därmed helt klar** (49b:s produktionsmätning
+pågår, se `OPPNA-PUNKTER.md`).
+
+### Genomfört (49a)
+
+- **Ny callable `begarRaderingAvOrganisation(anledning)`** – kräver superadmin, en obligatorisk
+  anledning, pausar organisationen omedelbart och sätter
+  `raderingSchemalagdTill = nu + 48h` på `organisationer/{orgId}`. Loggat i revisionsloggen
+  och ett Sentry-larm (`typ: radering_schemalagd`) så leverantören faktiskt märker det – ett
+  fönster ingen märker är inget skydd.
+- **Ny callable `avbrytRaderingAvOrganisation`** – kundens EGEN superadmin ELLER
+  leverantörsadmin kan avbryta. Rör INTE `status` (den befintliga "Återaktivera"-knappen gör
+  det separat, medvetet – ett avbrutet raderingsförsök förtjänar en egen granskning).
+- **`raderaOrganisationensData(orgId)`** – den faktiska, irreversibla verkställigheten, körs
+  ENDAST av ett nytt schemalagt jobb (`utforSchemalagdRaderingSchemalagt`, varje timme):
+  1. En sista säkerhetskopia (samma `backupaOrganisation` som redan täcker alla 13
+     collections + underkollektionen sedan Etapp 49d).
+  2. Uppladdade filer (rutin-/artikelbilder, logotyp, avatarer, råfoton) – Storage-sökvägarna
+     är INTE organisationsskopade i sig (se `storage.rules`), så samma "ägar-id på path-index
+     2"-mönster som `manadsrapportOrganisationer` redan använder krävdes för att hitta rätt
+     filer.
+  3. Firebase Auth-konton och `users`-dokument för organisationens medlemmar.
+  4. Firestore-dokumenten i `BACKUP_COLLECTIONS`/`BACKUP_SUBCOLLECTIONS` – **MED ETT
+     UNDANTAG:** `revisionslogg`/`revisionsloggHuvud` rörs ALDRIG, trots att `revisionslogg`
+     ingår i backup-listan (för export) – organisationens historik, inklusive raderingen
+     själv, ska överleva raderingen.
+  5. `organisationer/{orgId}` skrivs INTE bort helt – ersätts med en minimal "gravsten"
+     (namn, status: "raderad", tidpunkt) så leverantörsvyn kan visa att organisationen fanns.
+- **firestore.rules**: `raderingSchemalagdTill`/`raderingBegardAv`/`raderingAnledning`
+  tillagda i organisationer/{orgId}s blocklista för direkta klientskrivningar (samma mönster
+  som `moduler`/`sakerhet` sedan Etapp 32c) – annars hade en superadmin kunnat schemalägga
+  eller tyst ångra en radering förbi hela dubbel-bekräftelse-/loggningsflödet.
+- **UI**: ny sektion "Radera organisationen permanent" i `/admin` (kunden, kräver att skriva
+  organisationens namn ordagrant + en `confirm()`-dialog, krav 17s dubbla bekräftelse), och en
+  varningsrad med "Avbryt radering"-knapp i `/leverantor` för alla organisationer med en
+  pågående schemaläggning.
+- `avtal/PUB-AVTAL-MALL.md` p. 6, `INCIDENT-CHECKLISTA.md` (steg 1/3/snabbreferens) och
+  `avtal/INCIDENTRESPONSPLAN.md` (avsnitt 5.2, version 1.1 → 1.2) uppdaterade i samma commit.
+
+### Testat (49a)
+
+- 14 nya functions-tester (`tests/functions/radering.test.cjs`): behörighet för både
+  begär/avbryt, hela raderingslivscykeln end-to-end (rutin, artikel, underkollektion,
+  Auth-konto och Storage-filer försvinner; revisionslogg/revisionsloggHuvud och backupfiler
+  överlever; en säkerhetskopia togs innan; en korrekt "gravsten" blir kvar).
+- 2 nya rules-tester i `tests/rules/mfapolicy.test.mjs`: en superadmin kan varken schemalägga
+  eller (tyst) avbryta en radering genom att skriva direkt mot Firestore.
+- **Två genuina buggar hittades av testerna, inte av mig i förväg** (precis testernas syfte):
+  (1) den slutliga "gravsten"-skrivningen använde `FieldValue.delete()` i ett icke-merge
+  `set()`, vilket Firestore avvisar – fixat genom att bara låta den fullständiga skrivningen
+  göra jobbet (den skriver redan över alla gamla fält). (2) ett testantagande om antal
+  användare i den seedade datan var fel (testbugg, inte produktbugg).
+- Fullt testsvep: lint, build, vitest (124/124), `test:rules`, `test:functions`.
 
 ### Genomfört (49d)
 
@@ -436,9 +478,8 @@ finns nedskrivet vad som hände.
    att prismodellen i `MODULPLAN.md` inte håller. Det manuella "avtalat pris"-fältet (byggt i
    48c) fungerar oavsett vad du bestämmer här – det bara saknar den verkliga kostnadssidan tills
    exporten aktiveras.
-2. **Etapp 49a (radering):** ska den byggas nu, eller räcker den manuella rutinen tills en
-   kund med strikta raderingskrav dyker upp? PUB-mallen är ärlig om läget, så det är inte
-   akut – men det blir det vid första uppsägningen. **49b–49d körs oavsett svar.**
+2. ~~Etapp 49a (radering)~~ **Avgjort 2026-08-06, se `BESLUTSLOGG.md`.** Byggd som en
+   kundinitierad, 48-timmars fördröjd radering – varken "bygg direkt" eller "vänta helt".
 3. **Etapp 50b (supportåtkomst):** ska den finnas alls? Alternativet – att fortsätta lösa
    support blint – är ett legitimt val, men bör vara ett val.
 4. **Etapp 52:** kräver bokad tid från riktiga människor. Det är den enda punkten i hela
@@ -456,7 +497,7 @@ finns nedskrivet vad som hände.
 | Etapp | Innehåll | Insats | Vad det ger |
 |---|---|---|---|
 | 48 | Kapacitet och kostnad per organisation | **✅ HELT KLAR (2026-08-06)** | En kund kan inte längre släcka en annans funktioner, varken av misstag eller genom att ensam ta hela sökkvoten |
-| 49 | Livscykeln stängd | Medel | Inga obesvarade löften kvar i `avtal/` |
+| 49 | Livscykeln stängd | **✅ HELT KLAR (2026-08-08)**, 49b:s produktionsmätning pågår | Inga obesvarade löften kvar i `avtal/` |
 | 50 | Supportbarhet utan innehållsåtkomst | Medel–hög (50b är arkitektoniskt nytt) | Hållbar support + ett starkt upphandlingssvar |
 | 51 | Demo- och övningsmiljö | Låg–medel | Säljdemo utan kunddata + trygg övningsplats |
 | 52 | Pilotpaketet | Låg kodinsats, hög ägarinsats | Den enda kunskap projektet helt saknar |

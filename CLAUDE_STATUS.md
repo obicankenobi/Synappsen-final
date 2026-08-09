@@ -6,20 +6,19 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-08, version **5.80.0**, **DEPLOYAD TILL PRODUKTION** (körning
-#70, commit `e4a2cff`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`, asset-hash
-`index-aQzGtcuw.js` bekräftad live). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas") är den
-AKTIVA planen, antagen 2026-08-06. **Etapp 48 (48a–48d) är HELT KLAR OCH DEPLOYAD.** **Etapp
-49: 49c och 49d klara och deployade, 49a och 49b väntar på ägarbeslut** (spårade i
-`OPPNA-PUNKTER.md` – användaren har sagt att hen själv tar de besluten, ingen kod att bygga
-förrän dess). Viktigt fynd under 49b: planens egen premiss ("IT-FAKTABLAD.md saknar en
-RTO-siffra") visade sig vara FEL – siffran fanns redan sedan Etapp 33d (2026-07-31), bara
-ärligt caveerad som uppmätt mot emulator, inte produktion. 49d utökade organisationers
-backup/export från 7 till 13 collections + en underkollektion + revisionsloggens
-hashkedje-huvud, MEDVETET utan den delade plattforminfrastrukturen (`systemstatus`).
-`ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH
-DEPLOYADE sedan tidigare. **Läs sektionen "Uppföljning 2026-08-08 (deploy): v5.80.0 live"
-längst ner i den här filen först** om du undrar var arbetet står idag – nästa steg är Etapp 50
+**Senast uppdaterad:** 2026-08-08, version **5.81.0** (pushad, INTE ännu deployad – senaste
+produktionsdeploy är v5.80.0, körning #70). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
+är den AKTIVA planen, antagen 2026-08-06. **Etapp 48 (48a–48d) OCH Etapp 49 (49a–49d) är HELT
+KLARA.** 49a byggdes efter ett ägarbeslut (se `BESLUTSLOGG.md`, 2026-08-06/08): kundens egen
+superadmin kan begära permanent radering i appen, men den verkställs först efter en
+48-timmars väntetid som både kunden och leverantören kan avbryta inom. **49b: alternativ A
+vald men INTE genomförd av mig** – jag har inga produktionscredentials i den här
+sessionsmiljön (ingen `gcloud`/`firebase`-CLI, ingen `GOOGLE_APPLICATION_CREDENTIALS`), så en
+riktig mätning mot skarp infrastruktur kräver att ägaren själv kör en färdig runbook via
+Firebase-konsolen. Se sektionen "Uppföljning 2026-08-08 (Etapp 49a klar, 49b väntar på
+ägaren)" längst ner för runbooken. `ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44,
+46, 47) är alla HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs den sektionen först** om du
+undrar var arbetet står idag – nästa steg är Etapp 50
 om användaren ber om fortsatt arbete, annars väntar man på ägarbesluten om 49a/49b.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
@@ -1520,3 +1519,46 @@ skillens polling-metod (en enda `sleep 330` istället för en pollingloop, sedan
 fungerade som avsett. Ny asset-hash bekräftad live (`assets/index-aQzGtcuw.js`) via `curl`.
 Detta var ett trehopp – v5.78.0 (48c), v5.79.0 (48d) och v5.80.0 (49c/49d) gick alla live
 samtidigt, eftersom ingen av dem deployats individuellt sedan v5.77.0 (körning #69).
+
+## Uppföljning 2026-08-08 (Etapp 49a klar, 49b väntar på ägaren)
+
+Bad om utveckling kring 49a/49b-alternativen, gav ett detaljerat svar med tre alternativ
+vardera. Användaren föreslog SJÄLV en tredje väg för 49a (kundinitierad, 48h-fördröjd
+radering som både kunden och leverantören kan avbryta) – bättre än något av mina tre förslag,
+byggde det. För backupretention vid radering ställde jag en riktig fråga
+(`AskUserQuestion`): behålla 90-dagarsgallringen som extra skyddsnät, eller radera direkt?
+Svar: behåll gallringen. Loggat i `BESLUTSLOGG.md`.
+
+**49a – helt byggt och testat:** `begarRaderingAvOrganisation`/`avbrytRaderingAvOrganisation`/
+`raderaOrganisationensData` + ett nytt schemalagt jobb (`utforSchemalagdRaderingSchemalagt`,
+varje timme). Städar Firestore-dokument (13 collections + underkollektionen, MEN INTE
+revisionslogg/revisionsloggHuvud – de ska överleva), Storage-filer (rutin-/artikelbilder,
+logotyp, avatarer, råfoton – krävde samma "ägar-id på path-index 2"-mönster som
+`manadsrapportOrganisationer` redan använder, eftersom de sökvägarna inte är
+organisationsskopade i sig) och Firebase Auth-konton. Ny UI i `/admin` (kunden, kräver att
+skriva organisationens namn + en `confirm()`-dialog) och `/leverantor` (avbryt-knapp).
+14 nya functions-tester hittade två RIKTIGA buggar (inte i testerna): `FieldValue.delete()`
+i ett icke-merge `set()` (Firestore avvisar det), och ett testantagande om användarantal som
+var fel (den var en testbugg). `avtal/PUB-AVTAL-MALL.md` p. 6,
+`avtal/INCIDENTRESPONSPLAN.md` (v1.1 → v1.2) och `INCIDENT-CHECKLISTA.md` uppdaterade i samma
+commit. Version 5.80.0 → **5.81.0**. Committat och pushat, INTE deployat ännu.
+
+**49b – jag kan INTE genomföra alternativ A själv.** Den här sessionsmiljön har ingen
+`gcloud`/`firebase`-CLI och ingen `GOOGLE_APPLICATION_CREDENTIALS` – jag har helt enkelt inga
+produktionscredentials. En riktig mätning kräver att ägaren (eller någon med
+projektåtkomst) kör en kort runbook själv:
+
+1. `/leverantor` (skarpt) → "Skapa ny organisation", namn t.ex. "RTO-mätning 2026-08-08 – TA
+   BORT", välj ett Startbibliotek (ger representativ datamängd).
+2. Firebase-konsolen → Functions → `exporteraOrganisation` → "Testa funktionen" →
+   `{"orgId": "<org-id från steg 1>"}` → notera den returnerade `path`.
+3. Firebase-konsolen → Functions → `aterstallOrganisationCallable` → "Testa funktionen" →
+   `{"orgId": "<samma org-id>", "sokvag": "<path från steg 2>"}`.
+4. Firebase-konsolen → Functions → Logs → hitta anropet från steg 3 → **körningstiden loggas
+   automatiskt av GCP**, inget stoppur behövs.
+5. Städa bort testorganisationen (`organisationer/<org-id>` + dess dokument) manuellt i
+   Firestore-konsolen.
+6. Ge mig siffran från steg 4, så skriver jag in den i `avtal/IT-FAKTABLAD.md` p. 6 och
+   markerar 49b klar i `ETAPPLAN10.md`/`OPPNA-PUNKTER.md`.
+
+Endast v5.81.0 väntar på deploy – v5.78.0/5.79.0/5.80.0 gick redan live i körning #70.

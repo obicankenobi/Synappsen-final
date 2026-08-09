@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.81.0",
+    datum: "2026-08-08",
+    andringar: [
+      "Superadmin kan nu begära permanent radering av sin organisation direkt i appen – med en 48-timmars ångerfrist innan något faktiskt raderas",
+    ],
+  },
+  {
     version: "5.80.0",
     datum: "2026-08-06",
     andringar: [

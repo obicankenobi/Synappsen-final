@@ -58,6 +58,7 @@ import InnehallshalsaSektion from "../components/admin/InnehallshalsaSektion";
 import GranskningsrundorSektion from "../components/admin/GranskningsrundorSektion";
 import DubbletterSektion from "../components/admin/DubbletterSektion";
 import PersonalpulsResultatSektion from "../components/admin/PersonalpulsResultatSektion";
+import RaderaOrganisationSektion from "../components/admin/RaderaOrganisationSektion";
 import "./Admin.css";
 
 // Vilket område en icke-superadmin-redaktörsroll ansvarar för, för den områdesscopade statistiken
@@ -456,6 +457,8 @@ export default function Admin() {
           sakerhetSparad={sakerhetSparad}
         />
       )}
+
+      {arSuperadmin && <RaderaOrganisationSektion />}
 
       {arSuperadmin && (
         <OrganisationMigreringSektion

@@ -2,9 +2,9 @@
 
 **Dokumenttyp:** Policy (extern – får delas med kund, kundens IT-säkerhetsfunktion och vid
 upphandling)
-**Version:** 1.1
-**Fastställd:** 2026-07-31
-**Gäller från:** 2026-07-31
+**Version:** 1.2
+**Fastställd:** 2026-08-08
+**Gäller från:** 2026-08-08
 **Nästa översyn:** vid varje större release, dock minst var sjätte månad (se avsnitt 12)
 
 > **Läsanvisning.** Detta dokument beskriver *vad* som ska ske vid en incident och *varför* –
@@ -116,7 +116,9 @@ utan krav på föranmälan, även från personer utan avtalsrelation.
 
 Målet är att stoppa pågående skada utan att skapa ny. Åtgärderna väljs enligt principen i
 avsnitt 7. Tillgängliga åtgärder inkluderar återkallande av sessioner, ändrad behörighet,
-pausning av en organisation och avstängning av enskilda funktionsmoduler.
+pausning av en organisation och avstängning av enskilda funktionsmoduler. En begärd permanent
+radering av en organisation genomförs aldrig omedelbart – ett fönster (48 timmar) medger att
+Biträdet stoppar en obehörig eller felaktig begäran innan något faktiskt raderas.
 
 **Bevis säkras före städning.** Ingen loggpost, användarpost eller konfiguration raderas innan
 den dokumenterats, även om raderingen i sig vore en rimlig åtgärd.
@@ -269,3 +271,4 @@ ingen plan alls.
 |---|---|---|
 | 1.0 | 2026-07-31 | Första fastställda versionen. Upprättad som del av Etapplan 5 (säkerhet, upptäckt och incidentberedskap). |
 | 1.1 | 2026-07-31 | Avsnitt 5.5 (Återställ): återställningsfunktionen som avsnittet beskrev existerade inte tidigare – den finns nu, är testad och loggar till revisionsloggen (Etapp 33a/33b). Gallring av gamla backuper väntar fortfarande på ett retentionsbeslut (Etapp 33c). |
+| 1.2 | 2026-08-08 | Avsnitt 5.2 (Begränsa): en begärd permanent radering av en organisation kan nu genomföras av kundens egen superadmin, men verkställs aldrig direkt – ett 48-timmarsfönster medger att Biträdet stoppar en obehörig eller felaktig begäran (Etapp 49a). |

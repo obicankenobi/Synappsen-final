@@ -87,6 +87,29 @@ async function main() {
       })
     )
   );
+  await test("superadmin kan INTE schemalägga en radering direkt, inte ens MED andra faktor (Etapp 49a – endast begarRaderingAvOrganisation)", () =>
+    assertFails(
+      updateDoc(doc(superMedAndrafaktor, "organisationer", "orgKravMfa"), {
+        raderingSchemalagdTill: new Date(),
+        raderingBegardAv: "superUtanMfa",
+        raderingAnledning: "Test",
+      })
+    )
+  );
+  await test("superadmin kan INTE avbryta en schemalagd radering genom att ta bort fälten direkt (Etapp 49a – endast avbrytRaderingAvOrganisation)", async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await updateDoc(doc(context.firestore(), "organisationer", "orgKravMfa"), {
+        raderingSchemalagdTill: new Date(),
+        raderingBegardAv: "superUtanMfa",
+        raderingAnledning: "Seedad för testet",
+      });
+    });
+    await assertFails(
+      updateDoc(doc(superMedAndrafaktor, "organisationer", "orgKravMfa"), {
+        raderingSchemalagdTill: null,
+      })
+    );
+  });
 
   console.log("\nusers/{userId} – 2FA-policy på övriga fält, roll är alltid stängd för klienten");
   await test("superadmin UTAN andra faktor kan INTE ändra en annan användares namn", () =>

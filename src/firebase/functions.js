@@ -158,6 +158,19 @@ export function satSokkvotTakPerDygn(orgId, sokkvotTakPerDygn) {
   return fn({ orgId, sokkvotTakPerDygn });
 }
 
+// Etapp 49a – schemalägger permanent radering av den egna organisationen (48 h väntetid)
+export function begarRaderingAvOrganisation(anledning) {
+  const fn = httpsCallable(functions, "begarRaderingAvOrganisation");
+  return fn({ anledning });
+}
+
+// Etapp 49a – avbryter en schemalagd radering. orgId behövs bara för en leverantörsadmin
+// (kundens egen superadmin avbryter alltid sin egen organisation, ingen orgId behövs då).
+export function avbrytRaderingAvOrganisation(orgId) {
+  const fn = httpsCallable(functions, "avbrytRaderingAvOrganisation");
+  return fn(orgId ? { orgId } : {});
+}
+
 export function exporteraOrganisation(orgId) {
   const fn = httpsCallable(functions, "exporteraOrganisation");
   return fn({ orgId });

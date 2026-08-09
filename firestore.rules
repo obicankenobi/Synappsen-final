@@ -280,9 +280,16 @@ service cloud.firestore {
       // regel) så att ändringen loggas i revisionsloggen – tidigare var det en direkt,
       // ospårad klient-skrivning. Övriga fält (t.ex. branding.*, se
       // OrganisationsBranding.jsx) skrivs fortfarande direkt av klienten.
+      // Etapp 49a: raderingSchemalagdTill/raderingBegardAv/raderingAnledning skrivs ENDAST via
+      // begarRaderingAvOrganisation/avbrytRaderingAvOrganisation – annars skulle en superadmin
+      // kunna schemalägga (eller tysta ångra) en radering direkt mot Firestore, förbi hela
+      // dubbel-bekräftelse-/loggningsflödet krav 17 kräver.
       allow write: if arSuperadmin() && orgId == minOrganisation() && mfaKravUppfylld()
                     && !(resource != null && request.resource != null
-                         && request.resource.data.diff(resource.data).affectedKeys().hasAny(['moduler', 'sakerhet']));
+                         && request.resource.data.diff(resource.data).affectedKeys().hasAny([
+                              'moduler', 'sakerhet',
+                              'raderingSchemalagdTill', 'raderingBegardAv', 'raderingAnledning'
+                            ]));
 
       // organisationer/{orgId}/installningar/geminiBudget|utloggning – budgettak och
       // auto-utloggningstid, per organisation. geminiBudget skrivs numera ENDAST via

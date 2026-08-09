@@ -2965,6 +2965,9 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         avtaladArsavgiftKr: data.avtaladArsavgiftKr ?? null,
         // Etapp 48d: null betyder "använder standardtaket", inte "inget tak alls".
         sokkvotTakPerDygn: data.sokkvotTakPerDygn ?? null,
+        // Etapp 49a: en pågående, avbrytbar radering – visas som en varning i leverantörsvyn.
+        raderingSchemalagdTill: data.raderingSchemalagdTill?.toDate?.().toISOString() ?? null,
+        raderingAnledning: data.raderingAnledning ?? null,
       };
     })
   );
@@ -3329,6 +3332,240 @@ exports.exporteraOrganisation = onCall({ region: "europe-west1", timeoutSeconds:
   });
   return { path };
 });
+
+// Etapp 49a: automatiserad radering vid avetablering, med ett fönster där leverantören ELLER
+// kundens egen superadmin kan ångra – ägarbeslut 2026-08-06 (se ETAPPLAN10.md, OPPNA-PUNKTER.md
+// innan dess). Beslutat mönster: kundens superadmin begär radering själv i appen (inte bara
+// leverantören via konsolen som första utkastet föreslog), men den utförs INTE direkt – en
+// väntetid ger tid att upptäcka och stoppa ett misstag eller en obehörig begäran (t.ex. en
+// avskedad anställd som hann vara superadmin). Krav 17 (ETAPPLAN10.md): dubbel bekräftelse
+// (skriv organisationens namn + en explicit "Ja"-dialog i UI:t) och en loggad anledning INNAN
+// körningen, inte efter.
+const RADERING_VANTETID_TIMMAR = 48;
+
+// Etapp 49a: kunden begär radering av sin EGEN organisation. Pausar organisationen omedelbart
+// (ingen ny data ska hinna tillkomma under väntetiden) och schemalägger den faktiska
+// raderingen. Kan när som helst ångras av kundens egen superadmin ELLER leverantören, se
+// avbrytRaderingAvOrganisation nedan.
+exports.begarRaderingAvOrganisation = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan begära radering av organisationen.");
+  }
+  const anledning = (request.data?.anledning ?? "").trim();
+  if (!anledning) {
+    throw new HttpsError("invalid-argument", "En anledning måste anges.");
+  }
+  const orgId = uppringare.organisationId;
+  const schemalagdTill = new Date(Date.now() + RADERING_VANTETID_TIMMAR * 60 * 60 * 1000);
+  await db.collection("organisationer").doc(orgId).set(
+    {
+      status: "pausad",
+      raderingSchemalagdTill: admin.firestore.Timestamp.fromDate(schemalagdTill),
+      raderingBegardAv: request.auth.uid,
+      raderingAnledning: anledning,
+    },
+    { merge: true }
+  );
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "superadmin",
+    handelsetyp: "organisation_radering_begard",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: `Radering begärd, schemalagd till ${schemalagdTill.toISOString()}. Anledning: ${anledning}`,
+  });
+  // Sentry, inte systemvarningar: en schemalagd radering är tidskritisk (leverantören måste
+  // FAKTISKT märka den för att fönstret ska betyda något) och det finns ingen anledning att
+  // låta andra kunders superadmins se att DEN HÄR organisationen ska raderas.
+  Sentry.captureMessage("Organisation har begärt radering – schemalagd", {
+    level: "error",
+    tags: { typ: "radering_schemalagd" },
+    extra: { orgId, schemalagdTill: schemalagdTill.toISOString(), anledning },
+  });
+  return { schemalagdTill: schemalagdTill.toISOString() };
+});
+
+// Etapp 49a: avbryter en schemalagd radering. Ospärrar INTE organisationen automatiskt (den
+// befintliga "Återaktivera"-knappen gör det, medvetet – ett avbrutet raderingsförsök förtjänar
+// en egen, uttrycklig granskning av leverantören innan drift återupptas, inte en tyst
+// återgång). Tillåten för BÅDE kundens egen superadmin (ångra sitt eget misstag) och
+// leverantören (upptäcka och stoppa en obehörig begäran).
+exports.avbrytRaderingAvOrganisation = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  const arPlattformsadminUppringare = await arPlattformsadminServer(request.auth.uid);
+  let orgId = request.data?.orgId;
+  if (arPlattformsadminUppringare) {
+    if (!orgId || typeof orgId !== "string") {
+      throw new HttpsError("invalid-argument", "orgId krävs för en leverantörsadmin.");
+    }
+  } else if (uppringare.roll === "superadmin") {
+    orgId = uppringare.organisationId;
+  } else {
+    throw new HttpsError("permission-denied", "Endast superadmin eller leverantörsadmin kan avbryta en radering.");
+  }
+  const orgRef = db.collection("organisationer").doc(orgId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists || !orgSnap.data().raderingSchemalagdTill) {
+    throw new HttpsError("failed-precondition", "Det finns ingen schemalagd radering att avbryta.");
+  }
+  await orgRef.update({
+    raderingSchemalagdTill: admin.firestore.FieldValue.delete(),
+    raderingBegardAv: admin.firestore.FieldValue.delete(),
+    raderingAnledning: admin.firestore.FieldValue.delete(),
+  });
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: arPlattformsadminUppringare ? "plattformsadmin" : "superadmin",
+    handelsetyp: "organisation_radering_avbruten",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: "Schemalagd radering avbruten",
+  });
+  return { ok: true };
+});
+
+// Etapp 49a: den faktiska, irreversibla raderingen – körs ENDAST av
+// utforSchemalagdRaderingSchemalagt nedan efter att väntetiden gått ut, aldrig direkt av en
+// callable. Ordning, av en anledning:
+//   1. En sista säkerhetskopia (samma backupaOrganisation() som redan täcker alla 13
+//      collections + underkollektionen + revisionsloggHuvud sedan Etapp 49d) – om något går
+//      fel i stegen nedan, eller om kunden ändå ångrar sig efter att fönstret stängt, finns
+//      ändå en färsk kopia kvar (backups/{orgId}/... gallras som vanligt efter 90 dagar,
+//      beslutat 2026-08-06 som ett medvetet extra skyddsnät utöver 48-timmarsfönstret).
+//   2. Uppladdade filer knutna till rutiner/förrådsartiklar (Storage-sökvägarna är INTE
+//      organisationsskopade i sig, se storage.rules – kräver en uppslagskarta, samma mönster
+//      som manadsrapportOrganisationer() redan använder för att fördela lagringsvolym).
+//   3. Organisationens användare: Firebase Auth-kontot, profilbild, råfoton och users/{uid}.
+//   4. Firestore-dokumenten (samma lista som backupaOrganisation), i batchar.
+//   5. organisationer/{orgId} skrivs INTE bort helt – ersätts med en minimal "gravsten" så att
+//      leverantörsvyn kan visa att organisationen fanns och raderades, utan att någon av dess
+//      egna data blir kvar. revisionslogg/revisionsloggHuvud rörs ALDRIG – organisationens
+//      historik över vad som hänt (inklusive raderingen själv) ska överleva raderingen.
+async function raderaOrganisationensData(orgId) {
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: "_system",
+    aktorRoll: "system",
+    handelsetyp: "organisation_permanent_radering_paborjad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: "Permanent radering påbörjad efter utgången väntetid",
+  });
+
+  await backupaOrganisation(orgId);
+
+  const [rutinerSnap, artiklarSnap, anvandareSnap] = await Promise.all([
+    db.collection("rutiner").where("organisationId", "==", orgId).select().get(),
+    db.collection("forradsartiklar").where("organisationId", "==", orgId).select().get(),
+    db.collection("users").where("organisationId", "==", orgId).select().get(),
+  ]);
+  const rutinIds = new Set(rutinerSnap.docs.map((d) => d.id));
+  const artikelIds = new Set(artiklarSnap.docs.map((d) => d.id));
+  const uids = anvandareSnap.docs.map((d) => d.id);
+
+  // Samma "ägar-id sitter på path-index 2"-mönster som manadsrapportOrganisationer() – filerna
+  // är inte organisationsskopade i sökvägen, bara via det ägande dokumentets organisationId.
+  const [rutinFiler, artikelFiler] = await Promise.all([
+    bucket.getFiles({ prefix: "rutiner/" }),
+    bucket.getFiles({ prefix: "forradsartiklar/" }),
+  ]);
+  const filerAttRadera = [
+    ...rutinFiler[0].filter((f) => rutinIds.has(f.name.split("/")[2])),
+    ...artikelFiler[0].filter((f) => artikelIds.has(f.name.split("/")[2])),
+  ];
+  await Promise.all(filerAttRadera.map((f) => f.delete().catch(() => {})));
+  await bucket.deleteFiles({ prefix: `organisationer/${orgId}/logotyp/`, force: true }).catch(() => {});
+
+  for (const uid of uids) {
+    await bucket.deleteFiles({ prefix: `avatarer/${uid}/`, force: true }).catch(() => {});
+    await bucket.deleteFiles({ prefix: `inkommande/${uid}/`, force: true }).catch(() => {});
+    await admin.auth().deleteUser(uid).catch(() => {});
+  }
+
+  let antalRaderadeDokument = 0;
+  // revisionslogg ingår i BACKUP_COLLECTIONS (för export/backup, Etapp 49d) men ska ALDRIG
+  // raderas här – se kommentaren ovanför funktionen: organisationens historik, inklusive den
+  // här raderingen själv, ska överleva raderingen.
+  const allaSamlingar = [
+    ...BACKUP_COLLECTIONS.filter((namn) => namn !== "revisionslogg"),
+    ...BACKUP_SUBCOLLECTIONS.map((n) => ({ underkollektion: n })),
+  ];
+  for (const post of allaSamlingar) {
+    const ar = typeof post === "string";
+    const snap = ar
+      ? await db.collection(post).where("organisationId", "==", orgId).get()
+      : await db.collection("organisationer").doc(orgId).collection(post.underkollektion).get();
+    const BATCHSTORLEK = 400;
+    for (let i = 0; i < snap.docs.length; i += BATCHSTORLEK) {
+      const batch = db.batch();
+      for (const dok of snap.docs.slice(i, i + BATCHSTORLEK)) {
+        batch.delete(dok.ref);
+        antalRaderadeDokument += 1;
+      }
+      await batch.commit();
+    }
+  }
+  for (const uid of uids) {
+    await db.collection("users").doc(uid).delete().catch(() => {});
+  }
+
+  const orgSnap = await db.collection("organisationer").doc(orgId).get();
+  const namn = orgSnap.data()?.namn ?? orgId;
+  // Ett fullständigt (icke-merge) set() skriver över HELA dokumentet, så de gamla
+  // raderingSchemalagdTill/raderingBegardAv/raderingAnledning-fälten försvinner redan av det
+  // – FieldValue.delete() är bara giltigt i update()/merge-set(), inte här.
+  await db.collection("organisationer").doc(orgId).set({
+    namn,
+    status: "raderad",
+    avtalsstatus: "avslutad",
+    moduler: {},
+    raderadTidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+    provperiodSlut: null,
+  });
+
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: "_system",
+    aktorRoll: "system",
+    handelsetyp: "organisation_permanent_raderad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: `Permanent radering slutförd: ${antalRaderadeDokument} dokument, ${uids.length} användarkonton`,
+  });
+  Sentry.captureMessage("Organisation permanent raderad", {
+    level: "warning",
+    tags: { typ: "radering_slutford" },
+    extra: { orgId, antalRaderadeDokument, antalAnvandare: uids.length },
+  });
+  return { antalRaderadeDokument, antalAnvandare: uids.length };
+}
+// Exporterad enbart för tests/functions/radering.test.cjs.
+exports.raderaOrganisationensData = raderaOrganisationensData;
+
+exports.utforSchemalagdRaderingSchemalagt = onSchedule(
+  { schedule: "every 60 minutes", timeZone: "Europe/Stockholm", region: "europe-west1", timeoutSeconds: 540 },
+  async () => {
+    const nu = admin.firestore.Timestamp.now();
+    const snap = await db.collection("organisationer").where("raderingSchemalagdTill", "<=", nu).get();
+    for (const orgDoc of snap.docs) {
+      try {
+        await raderaOrganisationensData(orgDoc.id);
+      } catch (fel) {
+        console.error(`Schemalagd radering misslyckades för organisation ${orgDoc.id}:`, fel);
+        Sentry.captureException(fel);
+      }
+    }
+  }
+);
 
 // Etapp 6c: inbjudningsflöde istället för öppen självbetjänings-registrering. Ett nytt konto
 // kan numera ALDRIG skapa sitt eget users/{uid}-dokument direkt (se firestore.rules – create

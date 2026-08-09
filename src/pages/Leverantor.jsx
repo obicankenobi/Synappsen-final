@@ -9,6 +9,7 @@ import {
   satProvperiod,
   satAvtaladArsavgift,
   satSokkvotTakPerDygn,
+  avbrytRaderingAvOrganisation,
   blibForstaPlattformsadmin,
 } from "../firebase/functions";
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
@@ -189,6 +190,18 @@ export default function Leverantor() {
     }
   }
 
+  async function hanteraAvbrytRadering(orgId) {
+    setAtgard(orgId);
+    try {
+      await avbrytRaderingAvOrganisation(orgId);
+      await ladda();
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setAtgard(null);
+    }
+  }
+
   async function hanteraExport(orgId) {
     setAtgard(orgId);
     setExportMeddelande(null);
@@ -339,6 +352,21 @@ export default function Leverantor() {
               <div>
                 <strong>{org.namn}</strong>{" "}
                 {org.status === "pausad" && <span className="leverantor__pausad">⏸ Pausad</span>}
+                {org.status === "raderad" && <span className="leverantor__fel">🗑️ Raderad</span>}
+                {org.raderingSchemalagdTill && (
+                  <div className="leverantor__fel">
+                    ⚠️ Radering schemalagd till {new Date(org.raderingSchemalagdTill).toLocaleString("sv-SE")}.
+                    Anledning: "{org.raderingAnledning}".{" "}
+                    <button
+                      type="button"
+                      className="knapp knapp--liten"
+                      disabled={atgard === org.orgId}
+                      onClick={() => hanteraAvbrytRadering(org.orgId)}
+                    >
+                      Avbryt radering
+                    </button>
+                  </div>
+                )}
                 <div className="admin-lista__email">
                   {org.antalAnvandare} användare · Operations {org.moduler?.operations ? "✅" : "❌"} ·
                   {" "}Intelligence {org.moduler?.intelligence ? "✅" : "❌"}
