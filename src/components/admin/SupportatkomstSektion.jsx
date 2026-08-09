@@ -4,14 +4,14 @@
 // bara en enkel bekräftelse, inte krav 17:s dubbla bekräftelse.
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { useSupportatkomst } from "../../hooks/useSupportatkomst";
+import { useOrganisationsstatus } from "../../hooks/useOrganisationsstatus";
 import { beviljaSupportAtkomst, avslutaSupportAtkomst } from "../../firebase/functions";
 import { useDialog } from "../../hooks/useDialog";
 import { formateraTid } from "./adminHjalp";
 
 export default function SupportatkomstSektion() {
   const { organisationId } = useAuth();
-  const { supportAtkomstTill, supportAtkomstAnledning, fel } = useSupportatkomst(organisationId);
+  const { supportAtkomstTill, supportAtkomstAnledning, fel } = useOrganisationsstatus(organisationId);
   const { confirm, visaMeddelande } = useDialog();
   const [anledning, setAnledning] = useState("");
   const [pagar, setPagar] = useState(false);

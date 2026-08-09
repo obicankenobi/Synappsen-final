@@ -4,14 +4,14 @@
 // namn ordagrant + en explicit "Ja"-dialog) och en obligatorisk anledning, INNAN körningen.
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { useRadering } from "../../hooks/useRadering";
+import { useOrganisationsstatus } from "../../hooks/useOrganisationsstatus";
 import { begarRaderingAvOrganisation, avbrytRaderingAvOrganisation } from "../../firebase/functions";
 import { useDialog } from "../../hooks/useDialog";
 import { formateraTid } from "./adminHjalp";
 
 export default function RaderaOrganisationSektion() {
   const { organisationId } = useAuth();
-  const { namn, raderingSchemalagdTill, raderingAnledning, fel } = useRadering(organisationId);
+  const { namn, raderingSchemalagdTill, raderingAnledning, fel } = useOrganisationsstatus(organisationId);
   const { confirm, visaMeddelande } = useDialog();
   const [skrivetNamn, setSkrivetNamn] = useState("");
   const [anledning, setAnledning] = useState("");
