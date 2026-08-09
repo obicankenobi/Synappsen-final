@@ -6,20 +6,21 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-08, version **5.81.0** (pushad, INTE ännu deployad – senaste
+**Senast uppdaterad:** 2026-08-09, version **5.81.0** (pushad, INTE ännu deployad – senaste
 produktionsdeploy är v5.80.0, körning #70). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
 är den AKTIVA planen, antagen 2026-08-06. **Etapp 48 (48a–48d) OCH Etapp 49 (49a–49d) är HELT
-KLARA.** 49a byggdes efter ett ägarbeslut (se `BESLUTSLOGG.md`, 2026-08-06/08): kundens egen
+KLARA.** 49a byggdes efter ett ägarbeslut (se `BESLUTSLOGG.md`, 2026-08-06): kundens egen
 superadmin kan begära permanent radering i appen, men den verkställs först efter en
-48-timmars väntetid som både kunden och leverantören kan avbryta inom. **49b: alternativ A
-vald men INTE genomförd av mig** – jag har inga produktionscredentials i den här
-sessionsmiljön (ingen `gcloud`/`firebase`-CLI, ingen `GOOGLE_APPLICATION_CREDENTIALS`), så en
-riktig mätning mot skarp infrastruktur kräver att ägaren själv kör en färdig runbook via
-Firebase-konsolen. Se sektionen "Uppföljning 2026-08-08 (Etapp 49a klar, 49b väntar på
-ägaren)" längst ner för runbooken. `ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44,
-46, 47) är alla HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs den sektionen först** om du
-undrar var arbetet står idag – nästa steg är Etapp 50
-om användaren ber om fortsatt arbete, annars väntar man på ägarbesluten om 49a/49b.
+48-timmars väntetid som både kunden och leverantören kan avbryta inom. **49b löstes utan
+manuella credentials**: bad användaren om en connector/annan åtkomst, hittade istället en väg
+som återanvänder `deploy.yml`s redan godkända service account-hemlighet via en ny, separat
+GitHub Actions-workflow (`.github/workflows/rto-matning.yml`) – körd 2026-08-09 mot SKARP
+Firestore/Storage, resultat **1 136 ms för 100 dokument**, inskrivet i
+`avtal/IT-FAKTABLAD.md` p. 6. `ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47)
+är alla HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs sektionen "Uppföljning 2026-08-09
+(Etapp 49b klar – produktionsmätning)" längst ner** om du undrar var arbetet står idag –
+nästa steg är Etapp 50 (supportbarhet utan innehållsåtkomst) om användaren ber om fortsatt
+arbete, eller en deploy av v5.81.0.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1562,3 +1563,30 @@ projektåtkomst) kör en kort runbook själv:
    markerar 49b klar i `ETAPPLAN10.md`/`OPPNA-PUNKTER.md`.
 
 Endast v5.81.0 väntar på deploy – v5.78.0/5.79.0/5.80.0 gick redan live i körning #70.
+
+## Uppföljning 2026-08-09 (Etapp 49b klar – produktionsmätning)
+
+Användaren frågade om det fanns en connector eller annan väg att ge mig produktionsåtkomst,
+istället för att köra runbooken själv. Bättre lösning hittades: `deploy.yml` har redan en
+service account-hemlighet (`secrets.FIREBASE_SERVICE_ACCOUNT`) godkänd för produktion – en
+NY, separat GitHub Actions-workflow (`workflow_dispatch` bara, aldrig på push) kan återanvända
+den utan att någon ny credential behöver delas eller hamna i min sessionsmiljö.
+
+Byggde `.github/workflows/rto-matning.yml` + `functions/scripts/rto-matning.cjs`: skapar en
+tydligt märkt syntetisk testorganisation (`_rto_matning_<tidsstämpel>`, samma
+"_"-prefix-konvention som `_plattform` redan använder för "detta är inte en riktig kund"),
+seedar 100 dokument över 4 collections, tar en backup, tidsätter en riktig återställning, och
+städar bort ALLT den skapade – inklusive backupfilen. **Verifierade skriptet lokalt mot
+Firestore-/Storage-emulatorn FÖRST** (samma disciplin som all annan kod i det här projektet)
+innan det committades eller kördes mot skarpt.
+
+Körde workflowen mot produktion: `conclusion: success`, jobbloggen visar
+`RTO_MATNING_RESULTAT: 1136 ms för 100 dokument`, och "städning klar" bekräftar att
+testorganisationen och backupfilen togs bort igen. Skrev in siffran i
+`avtal/IT-FAKTABLAD.md` p. 6 (ersatte den gamla, ärligt caveerade emulator-siffran).
+Verktyget behålls (inte engångsbruk) – 49c:s återkommande övning blir nu "kör om workflowen
+manuellt", inte en manuell improvisation nästa gång.
+
+**Med detta är Etapp 49 (49a–49d) helt klar, inga öppna punkter kvar för Etapp 49.**
+`OPPNA-PUNKTER.md` och `BESLUTSLOGG.md` uppdaterade i samma commit. Version oförändrad
+(5.81.0) – dokumentations-/verktygsarbete, ingen ny app-funktionalitet.

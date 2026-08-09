@@ -100,21 +100,24 @@ aktiverats.**
   anropa den – ingen självbetjänings-knapp i appen, medvetet, då en felriktad
   återställning skriver över levande kunddata. Bevisad end-to-end (seed → backup →
   radera → återställ → verifiera identiskt innehåll) i den automatiska testsviten.
-- **Återställningstid (RTO):** uppmätt mot Firestore-emulatorn (inte produktionsmiljö –
-  siffran saknar produktionens nätverkslatens, men visar att den batchade
-  implementationen skalar linjärt): 1 500 dokument över fem samlingar återställdes på
-  under 200 ms ren skrivtid. För en normalstor kundorganisation (upp till några tusen
-  dokument) är den realistiska förväntan **under en minut** aktiv bearbetningstid;
-  funktionens tekniska timeout är satt till 5 minuter som säkerhetsmarginal. Den
-  faktiska flaskhalsen vid en verklig incident är sällan själva återställningen, utan
-  tiden det tar en människa att identifiera rätt backupfil och fatta beslutet att
-  återställa (se `INCIDENT-CHECKLISTA.md` steg 8).
-  **Kvarstående begränsning (öppen, se `OPPNA-PUNKTER.md`):** ingen mätning har ännu gjorts
-  mot en produktionslik miljö (verklig nätverkslatens, verklig datamängd) – det kräver ett
-  ägarbeslut om att avsätta tid och en riktig testmiljö, inte en kodändring.
+- **Återställningstid (RTO):** **uppmätt mot SKARP produktionsmiljö 2026-08-09** (verklig
+  nätverkslatens och verklig infrastruktur, inte emulatorn) – en syntetisk testorganisation
+  med 100 dokument över fyra collections (rutiner, anslag, kontakter, förrådsartiklar)
+  säkerhetskopierades och återställdes på **1 136 ms**. Mätningen körs via ett repeterbart,
+  självstädande verktyg (`.github/workflows/rto-matning.yml`,
+  `functions/scripts/rto-matning.cjs`) – testorganisationen och dess backupfil raderas
+  automatiskt igen innan verktyget avslutas, ingen skarp kunddata rörs. En tidigare mätning
+  mot Firestore-emulatorn (1 500 dokument över fem samlingar, under 200 ms ren skrivtid)
+  visade att implementationen skalar linjärt; den slutsatsen står sig och bekräftas nu av en
+  riktig mätning. För en normalstor kundorganisation (upp till några tusen dokument) är den
+  realistiska förväntan fortsatt **under en minut** aktiv bearbetningstid; funktionens
+  tekniska timeout är satt till 5 minuter som säkerhetsmarginal. Den faktiska flaskhalsen vid
+  en verklig incident är sällan själva återställningen, utan tiden det tar en människa att
+  identifiera rätt backupfil och fatta beslutet att återställa (se
+  `INCIDENT-CHECKLISTA.md` steg 8).
   **Återkommande övning (Etapp 49c):** en rad i den återkommande säkerhetsgenomgången
-  (`CLAUDE.md`) påminner nu om att kontrollera om det är dags att göra om övningen –
-  senast genomförd 2026-07-31 (Etapp 33d).
+  (`CLAUDE.md`) påminner nu om att kontrollera om det är dags att göra om övningen – kör
+  helt enkelt om `.github/workflows/rto-matning.yml` manuellt. Senast genomförd 2026-08-09.
 - **Återställningspunkt (RPO):** upp till en veckas dataförlust i värsta scenario
   (tiden mellan senaste schemalagda backup och en eventuell incident), utöver vad
   Firestores egen inbyggda redundans inom Google Cloud i sig hanterar för

@@ -263,13 +263,17 @@ motsvarighet i kod.
   radering i appen, men den verkställs inte direkt – en 48-timmars väntetid ger både kunden
   själv och leverantören en chans att avbryta.** Se "Genomfört"/"Testat" nedan och
   `BESLUTSLOGG.md` för hela resonemanget.
-- **49b – ⚠️ PLANENS PREMISS VAR FEL (upptäckt 2026-08-06).** Utkastet påstod att
-  `avtal/IT-FAKTABLAD.md` "fortfarande har `[FYLLS I]` för återställningstid" – det stämmer
-  INTE. Etapp 33d (2026-07-31, redan klar långt innan den här planen antogs) mätte redan RTO
-  end-to-end och skrev in siffran, ärligt caveerad som uppmätt mot Firestore-emulatorn, inte
-  produktion. Den enda genuint kvarstående luckan är en **produktionslik** mätning (verklig
-  nätverkslatens, verklig datamängd) – det är ett ägarbeslut om att avsätta tid och en
-  testmiljö, inte kod jag kan bygga mig fram till. Flyttad till `OPPNA-PUNKTER.md`.
+- **49b – ✅ KLAR (2026-08-09).** ⚠️ Planens premiss var ursprungligen fel (upptäckt
+  2026-08-06): utkastet påstod att `avtal/IT-FAKTABLAD.md` "fortfarande har `[FYLLS I]` för
+  återställningstid" – Etapp 33d (2026-07-31) hade redan mätt RTO end-to-end, bara ärligt
+  caveerad som uppmätt mot Firestore-emulatorn, inte produktion. Den genuina luckan (en
+  **produktionslik** mätning) stängdes 2026-08-09: ett repeterbart GitHub Actions-verktyg
+  (`.github/workflows/rto-matning.yml`, `functions/scripts/rto-matning.cjs`) som återanvänder
+  `deploy.yml`s redan godkända service account-hemlighet skapar en tydligt märkt syntetisk
+  testorganisation mot SKARP Firestore/Storage, mäter en riktig återställning, och städar bort
+  allt den skapade. Resultat: **1 136 ms för 100 dokument.** Verktyget behålls (inte
+  engångsbruk) – 49c:s återkommande övning blir nu "kör om workflowen", inte en manuell
+  improvisation.
 - **49c – ✅ KLAR (2026-08-06).** Återställningsövningen som återkommande rutin. Ny punkt (5)
   i `CLAUDE.md`s återkommande säkerhetsgenomgång, plus en påminnelse i
   `avtal/IT-FAKTABLAD.md` p. 6 om senast genomförd övning.
@@ -282,8 +286,7 @@ motsvarighet i kod.
   (`introduktionstilldelningar`) också saknades.
 
 **Klart när:** det inte finns ett enda `[FYLLS I]` kvar i `avtal/`-mappen, och varje löfte i
-PUB-mallen har en funktion bakom sig. **Etapp 49 är därmed helt klar** (49b:s produktionsmätning
-pågår, se `OPPNA-PUNKTER.md`).
+PUB-mallen har en funktion bakom sig. **Etapp 49 (49a–49d) är HELT KLAR.**
 
 ### Genomfört (49a)
 
@@ -497,7 +500,7 @@ finns nedskrivet vad som hände.
 | Etapp | Innehåll | Insats | Vad det ger |
 |---|---|---|---|
 | 48 | Kapacitet och kostnad per organisation | **✅ HELT KLAR (2026-08-06)** | En kund kan inte längre släcka en annans funktioner, varken av misstag eller genom att ensam ta hela sökkvoten |
-| 49 | Livscykeln stängd | **✅ HELT KLAR (2026-08-08)**, 49b:s produktionsmätning pågår | Inga obesvarade löften kvar i `avtal/` |
+| 49 | Livscykeln stängd | **✅ HELT KLAR (2026-08-09)** | Inga obesvarade löften kvar i `avtal/` |
 | 50 | Supportbarhet utan innehållsåtkomst | Medel–hög (50b är arkitektoniskt nytt) | Hållbar support + ett starkt upphandlingssvar |
 | 51 | Demo- och övningsmiljö | Låg–medel | Säljdemo utan kunddata + trygg övningsplats |
 | 52 | Pilotpaketet | Låg kodinsats, hög ägarinsats | Den enda kunskap projektet helt saknar |
