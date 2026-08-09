@@ -359,3 +359,33 @@ Se `ETAPPLAN8.md` Etapp 46 för den fullständiga premisskontrollen – bland an
 Check-verifieringsgrad" och "misslyckade inloggningsförsök i realtid" (två av tre saker den
 ursprungliga idén nämnde) INTE byggdes: den förra har ingen programmatisk API-väg via
 Firebase Admin SDK, den senare är redan dokumenterat blockerad på ett ägarbeslut (Etapp 32b).
+
+---
+
+## Tillägg (2026-08-09, version 5.83.0): Etapp 50b – tillfällig, kundinitierad supportåtkomst
+
+**Nytt regelmönster i `firestore.rules`: `supportAtkomstAktiv(orgId)`/`farSupportlasa(orgId)`.**
+Det enda stället i hela regelfilen där en plattformsadmin (leverantören) får läsa en
+organisations INNEHÅLL (`rutiner`/`forradsartiklar`/`anslag`/`kontakter`), inte bara
+`organisationer/{orgId}` självt (som redan var läsbart för plattformsadmin sedan Etapp 6a).
+Gated på `organisationer/{orgId}.supportAtkomstTill` (en `request.time`-jämförelse,
+fail-closed om fältet saknas), skrivbart ENDAST via `beviljaSupportAtkomst`/
+`avslutaSupportAtkomst` (Admin SDK) – blockerat för direkt klientskrivning i
+`organisationer/{orgId}`s write-regel (samma mönster som redan gäller `moduler`/`sakerhet`/
+raderingsfälten). Nekar dessutom om organisationen är pausad, trots ett i övrigt aktivt
+fönster. 7 isolerade regeltester (`tests/rules/supportatkomst.test.mjs`) + 9
+functions-tester (`tests/functions/supportatkomst.test.cjs`).
+
+**Läckagerisk medvetet bedömd:** fönstret ger läsning av samma innehåll en redaktör i
+organisationen redan kan se (inklusive icke godkända utkast för `rutiner`), aldrig
+användarkonton, inställningar eller betalningsuppgifter. Kunden är den enda som kan öppna
+fönstret (superadmin i egen organisation); leverantören kan bara stänga det, inte öppna det.
+Loggat i organisationens EGEN revisionslogg i båda ändar (`support_atkomst_beviljad`/
+`support_atkomst_avslutad`) – men enskilda läsningar UNDER fönstret loggas INTE, bara att
+fönstret var öppet, av vem och varför (samma begränsning som redan gällde `permission-denied`-
+rapporteringen, se `INCIDENT-CHECKLISTA.md` steg 4).
+
+**Ingen ny PII-yta** – fältnamnen (`supportAtkomstTill`/`supportAtkomstBeviljadAv`/
+`supportAtkomstAnledning`) innehåller själva bara en tidsstämpel, ett uid och en fritextad
+anledning som kunden själv skriver (samma mönster som redan gällde raderingsanledningen,
+Etapp 49a).

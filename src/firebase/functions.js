@@ -177,6 +177,17 @@ export function avbrytRaderingAvOrganisation(orgId) {
   return fn(orgId ? { orgId } : {});
 }
 
+// Etapp 50b – tillfällig, kundinitierad supportåtkomst
+export function beviljaSupportAtkomst(anledning) {
+  const fn = httpsCallable(functions, "beviljaSupportAtkomst");
+  return fn({ anledning });
+}
+
+export function avslutaSupportAtkomst(orgId) {
+  const fn = httpsCallable(functions, "avslutaSupportAtkomst");
+  return fn(orgId ? { orgId } : {});
+}
+
 export function exporteraOrganisation(orgId) {
   const fn = httpsCallable(functions, "exporteraOrganisation");
   return fn({ orgId });

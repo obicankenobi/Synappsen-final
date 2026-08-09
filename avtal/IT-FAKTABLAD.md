@@ -82,6 +82,12 @@ aktiverats.**
 - **Er egen förmåga att agera:** superadmin-rollen kan själv pausa hela organisationens
   åtkomst (t.ex. vid en misstänkt pågående incident) utan att kontakta leverantören
   först, samt exportera all sin data när som helst.
+- **Vem hos leverantören kan se era uppgifter, och hur vet ni när de gör det?** Normalt
+  ingen – leverantören har ingen stående läsåtkomst till kunders innehåll (rutiner, förråd,
+  anslag, kontakter). Er egen superadmin kan, om ni själva väljer det för att lösa en
+  supportfråga, öppna ett tillfälligt läsfönster (högst 6 timmar, med en angiven anledning) –
+  detta syns i er adminpanel medan det pågår och loggas i revisionsloggen i båda ändar. Ni
+  kan avsluta fönstret när som helst, innan det annars upphör automatiskt (Etapp 50b).
 
 ## 6. Backup och återställningstid
 

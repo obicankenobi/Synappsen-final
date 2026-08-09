@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../firebase/config";
 import {
   listaOrganisationer,
   skapaOrganisation,
@@ -12,10 +14,21 @@ import {
   avbrytRaderingAvOrganisation,
   blibForstaPlattformsadmin,
   hamtaOrganisationsdiagnostik,
+  avslutaSupportAtkomst,
 } from "../firebase/functions";
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
 import ManadsrapportSektion from "../components/ManadsrapportSektion";
 import "./Leverantor.css";
+
+// Etapp 50b: läses direkt av leverantörens klient mot Firestore (inte via en Cloud Function) –
+// exercerar samma firestore.rules-fönster (farSupportlasa) som en riktig support-situation
+// skulle göra. Bara aktiv under ett kundbeviljat supportfönster, se firestore.rules.
+const SUPPORTINNEHALL_COLLECTIONS = [
+  { namn: "rutiner", falt: "titel" },
+  { namn: "forradsartiklar", falt: "namn" },
+  { namn: "anslag", falt: "titel" },
+  { namn: "kontakter", falt: "namn" },
+];
 
 // Etapp 15d: avtalssignering och betalning sker MEDVETET utanför appen – det här är bara en
 // statusflagga leverantörsadmin sätter manuellt, se ETAPPLAN3.md beslutspunkt 6.
@@ -56,6 +69,9 @@ export default function Leverantor() {
   const [diagnostikOppen, setDiagnostikOppen] = useState(null);
   const [diagnostikData, setDiagnostikData] = useState({});
   const [diagnostikLaddar, setDiagnostikLaddar] = useState(false);
+  const [innehallOppen, setInnehallOppen] = useState(null);
+  const [innehallData, setInnehallData] = useState({});
+  const [innehallLaddar, setInnehallLaddar] = useState(false);
 
   function ladda() {
     setLaddar(true);
@@ -226,6 +242,43 @@ export default function Leverantor() {
     }
   }
 
+  async function hanteraAvslutaSupportAtkomst(orgId) {
+    setAtgard(orgId);
+    try {
+      await avslutaSupportAtkomst(orgId);
+      await ladda();
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setAtgard(null);
+    }
+  }
+
+  async function hanteraVisaInnehall(orgId) {
+    if (innehallOppen === orgId) {
+      setInnehallOppen(null);
+      return;
+    }
+    setInnehallOppen(orgId);
+    if (innehallData[orgId]) {
+      return;
+    }
+    setInnehallLaddar(true);
+    try {
+      const perCollection = await Promise.all(
+        SUPPORTINNEHALL_COLLECTIONS.map(async ({ namn, falt }) => {
+          const snap = await getDocs(query(collection(db, namn), where("organisationId", "==", orgId)));
+          return [namn, snap.docs.map((d) => ({ id: d.id, titel: d.data()[falt] ?? "(utan titel)", status: d.data().status ?? null }))];
+        })
+      );
+      setInnehallData((d) => ({ ...d, [orgId]: Object.fromEntries(perCollection) }));
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setInnehallLaddar(false);
+    }
+  }
+
   async function hanteraExport(orgId) {
     setAtgard(orgId);
     setExportMeddelande(null);
@@ -391,6 +444,20 @@ export default function Leverantor() {
                     </button>
                   </div>
                 )}
+                {org.supportAtkomstTill && new Date(org.supportAtkomstTill) > new Date() && (
+                  <div className="leverantor__varning">
+                    🔓 Supportåtkomst aktiv till {new Date(org.supportAtkomstTill).toLocaleString("sv-SE")}.
+                    Anledning: "{org.supportAtkomstAnledning}".{" "}
+                    <button
+                      type="button"
+                      className="knapp knapp--liten"
+                      disabled={atgard === org.orgId}
+                      onClick={() => hanteraAvslutaSupportAtkomst(org.orgId)}
+                    >
+                      Avsluta åtkomsten
+                    </button>
+                  </div>
+                )}
                 <div className="admin-lista__email">
                   {org.antalAnvandare} användare · Operations {org.moduler?.operations ? "✅" : "❌"} ·
                   {" "}Intelligence {org.moduler?.intelligence ? "✅" : "❌"}
@@ -512,6 +579,15 @@ export default function Leverantor() {
                 >
                   {diagnostikOppen === org.orgId ? "Dölj diagnostik" : "Diagnostik"}
                 </button>
+                {org.supportAtkomstTill && new Date(org.supportAtkomstTill) > new Date() && (
+                  <button
+                    type="button"
+                    className="knapp knapp--liten"
+                    onClick={() => hanteraVisaInnehall(org.orgId)}
+                  >
+                    {innehallOppen === org.orgId ? "Dölj innehåll" : "🔓 Visa innehåll"}
+                  </button>
+                )}
               </div>
               {diagnostikOppen === org.orgId && (
                 <div className="leverantor__diagnostik">
@@ -551,6 +627,39 @@ export default function Leverantor() {
                             här – kräver ett separat Sentry API-token, se{" "}
                             <code>ETAPPLAN5.md</code> §32b.
                           </p>
+                        </>
+                      );
+                    })()
+                  )}
+                </div>
+              )}
+              {innehallOppen === org.orgId && (
+                <div className="leverantor__diagnostik">
+                  {innehallLaddar && !innehallData[org.orgId] ? (
+                    <p>Laddar innehåll...</p>
+                  ) : (
+                    (() => {
+                      const inn = innehallData[org.orgId];
+                      if (!inn) return null;
+                      return (
+                        <>
+                          <p className="sida__beskrivning">
+                            🔓 Läses under det aktiva supportfönstret – organisationen ser i sin
+                            egen adminpanel att detta pågår.
+                          </p>
+                          {SUPPORTINNEHALL_COLLECTIONS.map(({ namn }) => (
+                            <div key={namn}>
+                              <strong>{namn} ({inn[namn]?.length ?? 0})</strong>
+                              <ul className="leverantor__diagnostik-lista">
+                                {(inn[namn] ?? []).map((post) => (
+                                  <li key={post.id}>
+                                    {post.titel}
+                                    {post.status && ` (${post.status})`}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
                         </>
                       );
                     })()

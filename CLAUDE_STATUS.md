@@ -6,18 +6,20 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-09, version **5.82.0** (pushad, INTE ännu deployad – senaste
+**Senast uppdaterad:** 2026-08-09, version **5.83.0** (pushad, INTE ännu deployad – senaste
 produktionsdeploy är v5.81.0, körning #71). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
-är den AKTIVA planen, antagen 2026-08-06. **Etapp 48 OCH 49 är HELT KLARA (deployade).
-Etapp 50a är nu också KLAR** (byggd denna session, ej ännu deployad): en ny
-"Diagnostik"-knapp per organisation i `/leverantor` (`hamtaOrganisationsdiagnostik`) visar
-strukturell hälsa – antal dokument per collection, senaste loggade revisionslogg-händelse,
-backupstatus – MEDVETET utan dokumentinnehåll och utan felfrekvens (det senare blockerat av
-samma Sentry-API-token-behov som redan var känt från Etapp 32b). 50b (tidsbegränsad
-supportåtkomst) är näst på tur men har en olöst beslutspunkt: **ska den byggas alls?**
-(`ETAPPLAN10.md` "Beslutspunkter som kräver ägaren" punkt 3). `ETAPPLAN9.md` (Etapp 45) och
+är den AKTIVA planen, antagen 2026-08-06. **Etapp 48, 49, 50a OCH 50b är nu HELT KLARA**
+(50a/50b byggda denna session, ej ännu deployade). 50a: en "Diagnostik"-knapp per organisation
+i `/leverantor` visar strukturell hälsa (antal dokument, senaste loggade händelse,
+backupstatus) utan dokumentinnehåll. 50b: **ägarbeslut 2026-08-09** – tillfällig,
+kundinitierad supportåtkomst byggd, alternativ A, fönster satt till **6 timmar** (inte
+utkastets 4h). Ett helt nytt regelmönster i `firestore.rules`
+(`supportAtkomstAktiv`/`farSupportlasa`) ger en plattformsadmin riktig, tidsbegränsad
+läsåtkomst till en organisations innehåll – kundens EGEN superadmin är den enda som kan öppna
+fönstret, loggat i båda ändar, syns live i `/admin` medan det pågår. Endast 50c
+(ärendehistorik) kvarstår obyggt i Etapp 50, inget känt hinder. `ETAPPLAN9.md` (Etapp 45) och
 `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs
-sektionen "Uppföljning 2026-08-09 (Etapp 50a klar)" längst ner.**
+sektionen "Uppföljning 2026-08-09 (Etapp 50b klar)" längst ner.**
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1628,3 +1630,40 @@ Pushad till `claude/compassionate-euler-rho0q5`, INTE ännu deployad.
 **Kvar i Etapp 50:** 50b (tidsbegränsad supportåtkomst) har en olöst beslutspunkt – ska den
 byggas alls? (se `ETAPPLAN10.md` "Beslutspunkter som kräver ägaren" punkt 3). 50c
 (ärendehistorik) är obyggd, inget känt hinder.
+
+## Uppföljning 2026-08-09 (Etapp 50b klar)
+
+Användaren fick alternativen för 50b och svarade: "Genomför alternativ A, men sätt
+tidsfönstret till 6h" – ägarbeslutet är alltså att bygga tillfällig, kundinitierad
+supportåtkomst, med fönstret satt till 6 timmar istället för utkastets föreslagna 4h.
+
+**Genomfört, i den ordning `ETAPPLAN10.md` ursprungligen krävde ("isolera regelmönstret
+innan UI"):**
+1. `farSupportlasa(orgId)`/`supportAtkomstAktiv(orgId)` i `firestore.rules` – den ENDA platsen
+   i hela regelfilen där en plattformsadmin (leverantören) får läsa en organisations INNEHÅLL,
+   inte bara `organisationer/{orgId}` självt. Fail-closed (nekar om fältet saknas ELLER om
+   organisationen är pausad, trots ett i övrigt aktivt fönster). Skrivet och testat ISOLERAT
+   först (`tests/rules/supportatkomst.test.mjs`, 7 tester) innan den kopplades in i
+   `rutiner`/`forradsartiklar`/`anslag`/`kontakter`s läsregler.
+2. Två nya callables: `beviljaSupportAtkomst(anledning)` (superadmin, egen organisation) och
+   `avslutaSupportAtkomst(orgId?)` (superadmin ELLER plattformsadmin) – samma mönster som
+   49a:s radering. 9 nya functions-tester.
+3. Nytt UI: `/admin` → "Tillfällig supportåtkomst" (kunden beviljar/avslutar, kräver en
+   anledning), `/leverantor` → varningsrad + en "🔓 Visa innehåll"-knapp som ENDAST syns när
+   ett fönster är aktivt och läser rutiner/förråd/anslag/kontakter direkt mot Firestore från
+   leverantörens egen klient – exercerar regelmönstret på riktigt, inte via en Cloud Function
+   som skulle kunnat dölja transparensen.
+
+**Dokumentation uppdaterad i samma commit** (per CLAUDE.md:s obligatoriska underhållsregler,
+eftersom detta ändrar behörighetsmodellen och lägger till en ny begränsningsåtgärd):
+`INCIDENT-CHECKLISTA.md` (ny rad i "Var saker finns" + Steg 3:s containment-tabell + en
+caveat i Steg 4 om att enskilda läsningar under fönstret inte loggas, bara att fönstret var
+öppet), `avtal/INCIDENTRESPONSPLAN.md` (version 1.2 → 1.3, avsnitt 5.2), `avtal/IT-FAKTABLAD.md`
+§5 (ny rad: "vem hos leverantören kan se era uppgifter?"), `avtal/PUB-AVTAL-MALL.md` §7, och
+ett nytt `SAKERHETSRAPPORT.md`-tillägg (2026-08-09) med en ärlig läckageriskbedömning.
+`BESLUTSLOGG.md` fick en ny rad, `ETAPPLAN10.md` §50b markerad ✅ KLAR med full
+"Genomfört"-sektion, beslutspunkt 3 struckt.
+
+**Testat:** fullt testsvep (lint, build, vitest, rules – 219 tester inkl. de 7 nya, functions
+– inkl. de 9 nya, storage, e2e) – alla gröna, inga regressioner. Version bumpad 5.82.0 →
+**5.83.0**, ny post i `src/data/andringslogg.js`.

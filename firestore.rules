@@ -67,6 +67,24 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/plattformsadmin/$(request.auth.uid));
     }
 
+    // Etapp 50b: tillfällig, kundinitierad supportåtkomst. supportAtkomstTill skrivs ENDAST av
+    // beviljaSupportAtkomst/avslutaSupportAtkomst (Admin SDK, se organisationer/{orgId}s
+    // write-regel nedan) – kundens egen superadmin sätter fönstret, ingen kan förlänga det
+    // själv från klienten. Fönstret upphör automatiskt (request.time-jämförelsen), ingen
+    // serverstädning krävs. Detta är den ENDA platsen i hela regelfilen där en
+    // plattformsadmin får läsa en organisations INNEHÅLL (inte bara organisationer/{orgId}
+    // själv, som redan var läsbar för plattformsadmin) – se ETAPPLAN10.md §50b.
+    function supportAtkomstAktiv(orgId) {
+      return exists(/databases/$(database)/documents/organisationer/$(orgId))
+        && get(/databases/$(database)/documents/organisationer/$(orgId)).data.get('status', 'aktiv') != 'pausad'
+        && request.time <= get(/databases/$(database)/documents/organisationer/$(orgId))
+             .data.get('supportAtkomstTill', request.time - duration.value(1, 's'));
+    }
+
+    function farSupportlasa(dokumentetsOrgId) {
+      return arPlattformsadmin() && supportAtkomstAktiv(dokumentetsOrgId);
+    }
+
     // Etapp 6d (avetablering): falskt ENDAST om organisationen uttryckligen är pausad
     // (status == 'pausad', satt av leverantörsadmin via pausaOrganisation). Saknat fält eller
     // saknad organisation räknas som aktiv – samma "fail open bara vid frånvaro av data"-
@@ -288,7 +306,8 @@ service cloud.firestore {
                     && !(resource != null && request.resource != null
                          && request.resource.data.diff(resource.data).affectedKeys().hasAny([
                               'moduler', 'sakerhet',
-                              'raderingSchemalagdTill', 'raderingBegardAv', 'raderingAnledning'
+                              'raderingSchemalagdTill', 'raderingBegardAv', 'raderingAnledning',
+                              'supportAtkomstTill', 'supportAtkomstBeviljadAv', 'supportAtkomstAnledning'
                             ]));
 
       // organisationer/{orgId}/installningar/geminiBudget|utloggning – budgettak och
@@ -419,9 +438,11 @@ service cloud.firestore {
     // Fältet "omrade" styr vilken roll som får redigera, "status" styr godkännandeflödet
     match /rutiner/{rutinId} {
       // Utkast (ej godkända) är endast synliga för de som får redigera området – inom SAMMA
-      // organisation.
-      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'))
-                   && (resource.data.status == 'godkand' || farRedigeraOmrade(resource.data.omrade));
+      // organisation. Etapp 50b: ELLER en plattformsadmin under ett aktivt, kundbeviljat
+      // supportfönster (ser då allt, inklusive utkast – samma som en redaktör skulle sett).
+      allow read: if (matcharMinOrg(resource.data.get('organisationId', 'default'))
+                   && (resource.data.status == 'godkand' || farRedigeraOmrade(resource.data.omrade)))
+                   || farSupportlasa(resource.data.get('organisationId', 'default'));
 
       allow create: if farRedigeraOmrade(request.resource.data.omrade)
                      && request.resource.data.get('organisationId', 'default') == minOrganisation()
@@ -470,8 +491,10 @@ service cloud.firestore {
     // kunnat kringgå. Detta var den enda collection av de granskade som saknade
     // regelnivå-skyddet helt.
     match /forradsartiklar/{artikelId} {
-      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'))
-                   && (resource.data.status == 'godkand' || farRedigeraOmrade('logistik'));
+      // Etapp 50b: ELLER en plattformsadmin under ett aktivt, kundbeviljat supportfönster.
+      allow read: if (matcharMinOrg(resource.data.get('organisationId', 'default'))
+                   && (resource.data.status == 'godkand' || farRedigeraOmrade('logistik')))
+                   || farSupportlasa(resource.data.get('organisationId', 'default'));
       allow create: if farRedigeraOmrade('logistik')
                      && request.resource.data.get('organisationId', 'default') == minOrganisation()
                      && !harTroligtPersonnummer(request.resource.data.get('namn', ''))
@@ -593,7 +616,9 @@ service cloud.firestore {
 
     // anslag/{anslagId} – anslagstavla, meddelanden från ledningen till all personal
     match /anslag/{anslagId} {
-      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
+      // Etapp 50b: ELLER en plattformsadmin under ett aktivt, kundbeviljat supportfönster.
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'))
+                   || farSupportlasa(resource.data.get('organisationId', 'default'));
       // Alla inloggade i SAMMA organisation får kvittera läsning (lasteAv) utan att i övrigt
       // ha redigeringsbehörighet.
       allow update: if (farHanteraAnslag()
@@ -810,7 +835,9 @@ service cloud.firestore {
 
     // kontakter/{kontaktId} – telefonlista, endast textnummer (ingen ring-funktion i klienten).
     match /kontakter/{kontaktId} {
-      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
+      // Etapp 50b: ELLER en plattformsadmin under ett aktivt, kundbeviljat supportfönster.
+      allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'))
+                   || farSupportlasa(resource.data.get('organisationId', 'default'));
       allow create: if farHanteraAnslag()
                      && request.resource.data.get('organisationId', 'default') == minOrganisation();
       allow update, delete: if farHanteraAnslag() && matcharMinOrg(resource.data.get('organisationId', 'default'));

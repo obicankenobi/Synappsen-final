@@ -3,7 +3,7 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-08 · **Motsvarar kodläge:** v5.81.0
+**Senast uppdaterad:** 2026-08-09 · **Motsvarar kodläge:** v5.83.0
 
 > **Ägarbeslut 2026-08-01:** jourkontakt utanför kontorstid ifylld (se tabellen nedan).
 > Backup-retention 90 dagar, gallringslogiken byggd och testad (se `ETAPPLAN5.md` Etapp 33c).
@@ -117,6 +117,7 @@ loggen. Skriv ned det och gå vidare med största försiktighet.
 | Misstänkt kapning, kontot behövs inte akut | Tvinga utloggning **+** sänk roll | `/admin` | Låg |
 | Hela organisationen är komprometterad | **Pausa organisationen** | `/leverantor` | **HÖG – hela avdelningen förlorar åtkomst.** Sista utvägen. Ring kunden först |
 | Ett kapat superadmin-konto har begärt permanent radering (Etapp 49a, Sentry-tagg `radering_schemalagd`) | **Avbryt raderingen** – 48-timmarsfönstret ger tid, ingen brådska på sekunder | `/leverantor` (raden med ⚠️-varningen) | Ingen om det avbryts i tid – radering sker INTE förrän fönstret gått ut |
+| En aktiv supportåtkomst ser fel ut (fel tidpunkt, ingen som känns igen som anledning) | **Avsluta åtkomsten** direkt – går att bevilja igen om den var legitim | `/leverantor` (raden med 🔓-varningen) eller `/admin` (kunden själv) | Låg – fönstret ger bara läsrätt, ingen skrivrätt |
 | Läckt API-nyckel (Gemini/sökmotor) | Rotera nyckeln i Secret Manager, deploya om | GitHub Secrets + deploy-workflow | Ingen |
 | Ditt eget plattformsadminkonto | Återkalla direkt, utan tvekan | Firebase-konsolen | Ingen – det är bara du |
 
@@ -145,6 +146,9 @@ Besvara i denna ordning och skriv ned svaren:
 - **Begränsning att känna till:** *läsningar* loggas inte. Du kan se vad någon ändrat, inte
   vad de sett. Vid misstänkt datauttag måste du därför anta det bredare scenariot: allt som
   personens roll och organisation gav åtkomst till. Skriv det uttryckligen i din bedömning.
+  **Undantag som ÄR loggat (Etapp 50b):** en supportåtkomst syns i revisionsloggen med
+  exakt fönster (beviljande + ev. tidigt avslut) – men enskilda läsningar UNDER fönstret
+  loggas inte, bara att fönstret var öppet och varför.
 
 **Påminnelse om isoleringen:** organisationsgränsen är hårt kontrollerad i `firestore.rules`
 och bevisad med 149 regeltester. Att en användare i org A skulle ha sett org B:s data är
@@ -269,6 +273,7 @@ användare. Sakligt, kort, verifierat.
 | Ändringslogg (bredare aktivitet) | `/admin` → Ändringslogg |
 | Pausa/återaktivera organisation | `/leverantor` |
 | Schemalagd radering (begära/avbryta) | `/admin` → **Radera organisationen permanent** (kunden), `/leverantor` (avbryt-knapp) – Etapp 49a |
+| Tillfällig supportåtkomst (bevilja/avsluta) | `/admin` → **Tillfällig supportåtkomst** (kunden), `/leverantor` (varningsraden, "Avsluta åtkomsten") – Etapp 50b |
 | Konton, inloggningar | Firebase-konsolen → Authentication |
 | Läs-/skrivvolym | Firebase-konsolen → Firestore → Usage |
 | Backupfiler (fullständig lista, inte bara senaste) | Firebase Storage → `backups/{orgId}/` |

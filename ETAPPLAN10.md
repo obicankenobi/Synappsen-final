@@ -402,18 +402,40 @@ stället för ett arbetshinder.
   visar antal/status, ALDRIG dokumentinnehåll. 11 nya functions-tester
   (`tests/functions/diagnostik.test.cjs`), inklusive ett explicit test att inget
   dokumentinnehåll läcker i svaret.
-- **50b – Verifiera först: det här är den arkitektoniskt mest nya biten i hela planen.**
-  En tidsbegränsad, villkorad läsrätt i `firestore.rules` (en `request.time`-jämförelse mot en
-  lagrad utgångstid) finns inte som mönster någon annanstans i regelfilen i dag. Skriv och
-  testa mönstret isolerat (ett rules-test som beviljar läsning inom fönstret och nekar utanför
-  det) innan det kopplas in i en riktig UI-yta.
-- **50b (fortsättning) – Tillfällig, kundinitierad supportåtkomst.** Kundens superadmin
-  beviljar läsåtkomst i ett begränsat fönster (förslagsvis 4 timmar) med angiven anledning.
-  Loggas i revisionsloggen i båda ändar, **syns tydligt i kundens gränssnitt medan den är
-  aktiv**, upphör automatiskt. Det här är svaret på den fråga varje upphandling ställer: *"vem
-  hos er kan se våra uppgifter, och hur vet vi när de gör det?"* – i dag är svaret "ingen",
-  vilket är starkt men gör support omöjlig. Efter 50b är svaret "bara när ni själva öppnar, och
-  ni ser det".
+- **50b ✅ KLAR (2026-08-09) – Tillfällig, kundinitierad supportåtkomst.**
+  **Ägarbeslut (2026-08-09, se BESLUTSLOGG.md):** alternativ A – bygg den, med fönstret satt
+  till **6 timmar** (inte 4h som ursprungsutkastet föreslog).
+  **Genomfört, i den ordning ETAPPLAN10.md ursprungligen krävde ("verifiera/isolera
+  innan UI"):**
+  1. Ett nytt regelmönster i `firestore.rules`: `supportAtkomstAktiv(orgId)` (en
+     `request.time`-jämförelse mot `organisationer/{orgId}.supportAtkomstTill`, fail-closed
+     om fältet saknas eller organisationen är pausad) + `farSupportlasa(orgId)`. Detta är den
+     ENDA platsen i hela regelfilen där en plattformsadmin får läsa en organisations
+     INNEHÅLL (tidigare bara `organisationer/{orgId}` självt). Skrivet och testat ISOLERAT
+     först (`tests/rules/supportatkomst.test.mjs`, 7 tester: beviljar inom fönstret, nekar
+     utanför, nekar om organisationen är pausad trots aktivt fönster, superadmins egen
+     läsning opåverkad, fälten INTE skrivbara direkt av klienten) innan den kopplades in i
+     `rutiner`/`forradsartiklar`/`anslag`/`kontakter`s läsregler (samma fyra collections som
+     50a:s diagnostik, för konsekvens).
+  2. Två nya callables i `functions/index.js`: `beviljaSupportAtkomst(anledning)`
+     (superadmin, egen organisation, sätter ett 6-timmarsfönster) och
+     `avslutaSupportAtkomst(orgId?)` (superadmin ELLER plattformsadmin, tar bort fönstret i
+     förtid) – samma mönster som 49a:s `begarRaderingAvOrganisation`/
+     `avbrytRaderingAvOrganisation`. Loggas i organisationens EGEN revisionslogg i båda
+     ändar. 9 nya functions-tester (`tests/functions/supportatkomst.test.cjs`).
+  3. Kundens UI: ny sektion i `/admin` (`SupportatkomstSektion.jsx`) – kräver en anledning,
+     enkel bekräftelse (inte krav 17:s dubbla, eftersom detta är reversibelt och
+     tidsbegränsat, till skillnad från 49a:s radering), visar aktiv status live och en
+     "Avsluta åtkomsten nu"-knapp.
+  4. Leverantörens UI: `/leverantor` visar en varningsrad per organisation med aktiv
+     supportåtkomst (samma mönster som 49a:s raderingsvarning) + en "🔓 Visa
+     innehåll"-knapp som ENDAST syns när fönstret är aktivt – läser rutiner/förråd/anslag/
+     kontakter direkt mot Firestore från leverantörens egen klient (exercerar det nya
+     regelmönstret på riktigt, inte via en Cloud Function som skulle kunnat kringgå
+     transparensen).
+  Svaret på upphandlingsfrågan *"vem hos er kan se våra uppgifter, och hur vet vi när de gör
+  det?"* är nu: "bara när ni själva öppnar ett 6-timmarsfönster, och ni ser det i er egen
+  adminpanel medan det pågår."
 - **50c – Ärendehistorik per organisation.** En enkel notering i leverantörsvyn: vad hände,
   när, vad gjordes. Med mer än en kund räcker inte minnet.
 
@@ -502,8 +524,8 @@ finns nedskrivet vad som hände.
    exporten aktiveras.
 2. ~~Etapp 49a (radering)~~ **Avgjort 2026-08-06, se `BESLUTSLOGG.md`.** Byggd som en
    kundinitierad, 48-timmars fördröjd radering – varken "bygg direkt" eller "vänta helt".
-3. **Etapp 50b (supportåtkomst):** ska den finnas alls? Alternativet – att fortsätta lösa
-   support blint – är ett legitimt val, men bör vara ett val.
+3. ~~Etapp 50b (supportåtkomst)~~ **Avgjort 2026-08-09, se `BESLUTSLOGG.md`.** Byggd –
+   alternativ A, med fönstret satt till 6 timmar (inte utkastets 4h).
 4. **Etapp 52:** kräver bokad tid från riktiga människor. Det är den enda punkten i hela
    planen som inte går att lösa i en session, och den viktigaste.
 5. **`TILLGANGLIGHETSREDOGORELSE.md`s tre `[FYLL I]`-fält** (leverantörens juridiska namn,

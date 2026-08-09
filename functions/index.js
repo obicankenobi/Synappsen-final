@@ -3034,6 +3034,10 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         // Etapp 49a: en pågående, avbrytbar radering – visas som en varning i leverantörsvyn.
         raderingSchemalagdTill: data.raderingSchemalagdTill?.toDate?.().toISOString() ?? null,
         raderingAnledning: data.raderingAnledning ?? null,
+        // Etapp 50b: en aktiv, kundbeviljad supportåtkomst – visas i leverantörsvyn så det
+        // alltid syns VILKA organisationer som just nu går att läsa innehåll för.
+        supportAtkomstTill: data.supportAtkomstTill?.toDate?.().toISOString() ?? null,
+        supportAtkomstAnledning: data.supportAtkomstAnledning ?? null,
       };
     })
   );
@@ -3495,6 +3499,87 @@ exports.avbrytRaderingAvOrganisation = onCall({ region: "europe-west1" }, async 
     objektTyp: "organisationer",
     objektId: orgId,
     sammanfattning: "Schemalagd radering avbruten",
+  });
+  return { ok: true };
+});
+
+// Etapp 50b: tillfällig, kundinitierad supportåtkomst – ägarbeslut 2026-08-09 (alternativ A,
+// se BESLUTSLOGG.md): kundens EGEN superadmin beviljar leverantören läsrätt till organisationens
+// innehåll i ett begränsat fönster (6 timmar), med en obligatorisk anledning. Till skillnad
+// från 50a (som bara visar antal/metadata) ger detta fönster leverantören RIKTIG läsåtkomst
+// till innehållet i firestore.rules (se farSupportlasa() där) – därför krävs en anledning och
+// full loggning i båda ändar, och fönstret upphör automatiskt (request.time-jämförelsen i
+// regeln, ingen serverstädning krävs).
+const SUPPORTATKOMST_FONSTER_TIMMAR = 6;
+
+exports.beviljaSupportAtkomst = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan bevilja supportåtkomst.");
+  }
+  const anledning = (request.data?.anledning ?? "").trim();
+  if (!anledning) {
+    throw new HttpsError("invalid-argument", "En anledning måste anges.");
+  }
+  const orgId = uppringare.organisationId;
+  const till = new Date(Date.now() + SUPPORTATKOMST_FONSTER_TIMMAR * 60 * 60 * 1000);
+  await db.collection("organisationer").doc(orgId).set(
+    {
+      supportAtkomstTill: admin.firestore.Timestamp.fromDate(till),
+      supportAtkomstBeviljadAv: request.auth.uid,
+      supportAtkomstAnledning: anledning,
+    },
+    { merge: true }
+  );
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "superadmin",
+    handelsetyp: "support_atkomst_beviljad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: `Supportåtkomst beviljad till ${till.toISOString()}. Anledning: ${anledning}`,
+  });
+  return { till: till.toISOString() };
+});
+
+exports.avslutaSupportAtkomst = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  const arPlattformsadminUppringare = await arPlattformsadminServer(request.auth.uid);
+  let orgId = request.data?.orgId;
+  if (arPlattformsadminUppringare) {
+    if (!orgId || typeof orgId !== "string") {
+      throw new HttpsError("invalid-argument", "orgId krävs för en leverantörsadmin.");
+    }
+  } else if (uppringare.roll === "superadmin") {
+    orgId = uppringare.organisationId;
+  } else {
+    throw new HttpsError("permission-denied", "Endast superadmin eller leverantörsadmin kan avsluta supportåtkomst.");
+  }
+  const orgRef = db.collection("organisationer").doc(orgId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists || !orgSnap.data().supportAtkomstTill) {
+    throw new HttpsError("failed-precondition", "Det finns ingen aktiv supportåtkomst att avsluta.");
+  }
+  await orgRef.update({
+    supportAtkomstTill: admin.firestore.FieldValue.delete(),
+    supportAtkomstBeviljadAv: admin.firestore.FieldValue.delete(),
+    supportAtkomstAnledning: admin.firestore.FieldValue.delete(),
+  });
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: arPlattformsadminUppringare ? "plattformsadmin" : "superadmin",
+    handelsetyp: "support_atkomst_avslutad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: "Supportåtkomst avslutad i förtid",
   });
   return { ok: true };
 });

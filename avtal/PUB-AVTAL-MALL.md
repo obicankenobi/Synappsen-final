@@ -105,6 +105,9 @@ Biträdet tillämpar bland annat:
 - Loggning och felrapportering (Sentry) utan lagring av personuppgifter i felloggar.
 - Möjlighet för Kunden att omedelbart återkalla en enskild användares session
   (force-logout).
+- Biträdet har normalt ingen läsåtkomst till Kundens innehåll. Kunden kan själv, tillfälligt
+  och avbrytbart, öppna ett läsfönster (högst 6 timmar) för att en supportfråga ska kunna
+  besvaras – synligt i Kundens gränssnitt medan det pågår, loggat i båda ändar.
 
 Se `SAKERHETSRAPPORT.md` och `avtal/DPIA-UNDERLAG.md` för en fullständig teknisk genomgång.
 
