@@ -1,0 +1,33 @@
+name: RTO-mätning (Etapp 49b)
+
+# Engångsverktyg för en produktionslik återställningstidsmätning – ALDRIG på push, bara
+# manuellt. Skapar en tydligt märkt syntetisk testorganisation, seedar en representativ mängd
+# data, tar en backup, tidsätter en riktig återställning mot SKARP Firestore/Storage, och
+# städar bort allt den skapade innan den avslutas. Se functions/scripts/rto-matning.cjs för
+# den fullständiga kommentaren, och ETAPPLAN10.md Etapp 49b / avtal/IT-FAKTABLAD.md p. 6 för
+# varför.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  rto-matning:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Installera functions-beroenden
+        run: npm ci
+        working-directory: functions
+
+      - name: Autentisera mot Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Kör RTO-mätningen
+        run: node scripts/rto-matning.cjs
+        working-directory: functions
