@@ -6,10 +6,11 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-09, version **5.84.0** (pushad, INTE ännu deployad – senaste
-produktionsdeploy är v5.81.0, körning #71). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
+**Senast uppdaterad:** 2026-08-09, version **5.84.0** – **DEPLOYAD TILL PRODUKTION** (körning
+#72, commit `545e958`, asset-hash `assets/index-CJpO8Yof.js`, bekräftad live på
+`https://synappsen-final-build.web.app/`). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
 är den AKTIVA planen, antagen 2026-08-06. **Etapp 48, 49, 50 (50a+50b+50c) OCH 51 är nu ALLA
-HELT KLARA** (50c och 51 byggda denna session, ej ännu deployade). 50c: en ny
+HELT KLARA OCH DEPLOYADE.** 50c: en ny
 "🗒️ Ärenden"-sektion per organisation i `/leverantor` – internt leverantörsminne
 (arendeanteckningar), aldrig synligt för kunden. 51: en ny demo-/övningsorganisation
 (`_demo`, flaggad `arDemo`) med realistiskt fiktivt innehåll (checklistläge, godkännandekö,
@@ -1715,3 +1716,12 @@ för Etapp 50 och 51 uppdaterade.
 **Med detta är HELA `ETAPPLAN10.md` (Etapp 48–51) klar utom Etapp 52** (pilotpaketet – kräver
 bokad tid från riktiga människor, inte kodningstid, se planens egen "Beslutspunkter som kräver
 ägaren").
+
+## Uppföljning 2026-08-09 (deploy: v5.84.0 live)
+
+Användaren bad "deploya den". Triggade `deploy.yml` (`workflow_dispatch`) mot
+`claude/compassionate-euler-rho0q5`, commit `545e958` (Etapp 50c + hela Etapp 51). Körning
+**#72**, `conclusion: success`. Bekräftade genom att läsa av asset-hashen på startsidan:
+`assets/index-CJpO8Yof.js` på `https://synappsen-final-build.web.app/`. Ingen kodändring i
+denna uppföljning. Med detta är Etapp 48–51 (hela `ETAPPLAN10.md` utom Etapp 52) HELT KLARA
+OCH DEPLOYADE i produktion.
