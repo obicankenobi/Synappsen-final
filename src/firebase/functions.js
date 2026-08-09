@@ -93,6 +93,12 @@ export function listaOrganisationer() {
   return fn();
 }
 
+// Etapp 50a – strukturell diagnostik per organisation (metadata, aldrig dokumentinnehåll)
+export function hamtaOrganisationsdiagnostik(orgId) {
+  const fn = httpsCallable(functions, "hamtaOrganisationsdiagnostik");
+  return fn({ orgId });
+}
+
 // Etapp 15c – faktureringsunderlag/månadsrapport per organisation
 export function manadsrapportOrganisationer() {
   const fn = httpsCallable(functions, "manadsrapportOrganisationer");

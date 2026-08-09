@@ -2645,8 +2645,7 @@ exports.exporteraRevisionslogg = onCall({ region: "europe-west1" }, async (reque
 // backups/, se storage.rules) – därför en egen callable, inte en direkt Firestore-fråga.
 // Återanvänder samma auth-upplösning som revisionsloggens callables (superadmin i egen
 // organisation, eller plattformsadmin med ett angivet orgId).
-exports.hamtaBackupstatus = onCall({ region: "europe-west1" }, async (request) => {
-  const organisationId = await kravLasningAvRevisionslogg(request, request.data?.organisationId);
+async function hamtaBackupstatusForOrg(organisationId) {
   const orgDoc = await db.collection("organisationer").doc(organisationId).get();
   const harOperationsModul = orgDoc.data()?.moduler?.operations === true;
 
@@ -2664,6 +2663,73 @@ exports.hamtaBackupstatus = onCall({ region: "europe-west1" }, async (request) =
     harOperationsModul: true,
     senasteDatum: datum.length > 0 ? datum[datum.length - 1] : null,
     antalBackuper: datum.length,
+  };
+}
+
+exports.hamtaBackupstatus = onCall({ region: "europe-west1" }, async (request) => {
+  const organisationId = await kravLasningAvRevisionslogg(request, request.data?.organisationId);
+  return hamtaBackupstatusForOrg(organisationId);
+});
+
+// Etapp 50a: strukturell hälsodiagnostik per organisation för leverantörsvyn – "kan en
+// supportfråga besvaras utan att gissa, och utan stående åtkomst till kundinnehåll?".
+// Returnerar MEDVETET bara antal och tidpunkter, aldrig dokumentinnehåll (krav 13).
+// Premisskontroll (ETAPPLAN10.md §50a): 32a:s permission-denied-rapportering går bara till
+// Sentry (klientsidan) – det finns ingen serverbar väg att läsa Sentrys händelsedatabas utan
+// ett separat API-token, samma blockering som redan är dokumenterad för 32b:s tre kvarvarande
+// larmtyper. "Felfrekvens" är därför MEDVETET UTELÄMNAD här, inte bortglömd – se
+// OPPNA-PUNKTER.md/ETAPPLAN5.md §32b för samma öppna punkt. "Senaste skrivning" byggs inte
+// heller på en ny tidsstämpel per collection (skulle kräva att ändra alla skrivvägar i hela
+// appen) utan på den redan existerande revisionsloggen, som redan fångar de bokförda
+// innehållshändelserna (rutin_publicerad/rutin_godkand/rutin_borttagen m.fl.) – "senaste
+// loggade händelse", inte en fullständig senaste-skrivning-garanti.
+const DIAGNOSTIK_COLLECTIONS = ["rutiner", "forradsartiklar", "anslag", "kontakter"];
+
+exports.hamtaOrganisationsdiagnostik = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+
+  const [antalPerCollection, senasteHandelseSnap, backupstatus] = await Promise.all([
+    Promise.all(
+      DIAGNOSTIK_COLLECTIONS.map(async (namn) => {
+        const agg = await db.collection(namn).where("organisationId", "==", orgId).count().get();
+        return [namn, agg.data().count];
+      })
+    ),
+    db
+      .collection("revisionslogg")
+      .where("organisationId", "==", orgId)
+      .orderBy("tidpunkt", "desc")
+      .limit(1)
+      .get(),
+    hamtaBackupstatusForOrg(orgId),
+  ]);
+
+  const senasteHandelseDoc = senasteHandelseSnap.empty ? null : senasteHandelseSnap.docs[0].data();
+
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "organisation_diagnostik_visad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: "Leverantören visade strukturell diagnostik (antal/status, inget innehåll)",
+  });
+
+  return {
+    antalDokument: Object.fromEntries(antalPerCollection),
+    senasteHandelse: senasteHandelseDoc
+      ? { tidpunkt: senasteHandelseDoc.tidpunkt, handelsetyp: senasteHandelseDoc.handelsetyp }
+      : null,
+    backupstatus,
+    felfrekvensTillganglig: false,
   };
 });
 

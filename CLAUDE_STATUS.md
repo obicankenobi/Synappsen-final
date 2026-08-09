@@ -6,21 +6,18 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-09, version **5.81.0** – **DEPLOYAD TILL PRODUKTION**
-(körning #71, commit `b18e591`, asset-hash `assets/index-CCVkCV2A.js`, bekräftad live på
-`https://synappsen-final-build.web.app/`). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
-är den AKTIVA planen, antagen 2026-08-06. **Etapp 48 (48a–48d) OCH Etapp 49 (49a–49d) är HELT
-KLARA.** 49a byggdes efter ett ägarbeslut (se `BESLUTSLOGG.md`, 2026-08-06): kundens egen
-superadmin kan begära permanent radering i appen, men den verkställs först efter en
-48-timmars väntetid som både kunden och leverantören kan avbryta inom. **49b löstes utan
-manuella credentials**: bad användaren om en connector/annan åtkomst, hittade istället en väg
-som återanvänder `deploy.yml`s redan godkända service account-hemlighet via en ny, separat
-GitHub Actions-workflow (`.github/workflows/rto-matning.yml`) – körd 2026-08-09 mot SKARP
-Firestore/Storage, resultat **1 136 ms för 100 dokument**, inskrivet i
-`avtal/IT-FAKTABLAD.md` p. 6. `ETAPPLAN9.md` (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47)
-är alla HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs sektionen "Uppföljning 2026-08-09
-(deploy: v5.81.0 live)" längst ner** om du undrar var arbetet står idag – nästa steg är
-Etapp 50 (supportbarhet utan innehållsåtkomst) om användaren ber om fortsatt arbete.
+**Senast uppdaterad:** 2026-08-09, version **5.82.0** (pushad, INTE ännu deployad – senaste
+produktionsdeploy är v5.81.0, körning #71). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
+är den AKTIVA planen, antagen 2026-08-06. **Etapp 48 OCH 49 är HELT KLARA (deployade).
+Etapp 50a är nu också KLAR** (byggd denna session, ej ännu deployad): en ny
+"Diagnostik"-knapp per organisation i `/leverantor` (`hamtaOrganisationsdiagnostik`) visar
+strukturell hälsa – antal dokument per collection, senaste loggade revisionslogg-händelse,
+backupstatus – MEDVETET utan dokumentinnehåll och utan felfrekvens (det senare blockerat av
+samma Sentry-API-token-behov som redan var känt från Etapp 32b). 50b (tidsbegränsad
+supportåtkomst) är näst på tur men har en olöst beslutspunkt: **ska den byggas alls?**
+(`ETAPPLAN10.md` "Beslutspunkter som kräver ägaren" punkt 3). `ETAPPLAN9.md` (Etapp 45) och
+`ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs
+sektionen "Uppföljning 2026-08-09 (Etapp 50a klar)" längst ner.**
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1600,3 +1597,34 @@ raderingsfunktion och Etapp 49b:s RTO-mätningsverktyg/resultat). Körning **#71
 läsa av asset-hashen: `assets/index-CCVkCV2A.js` på
 `https://synappsen-final-build.web.app/`. Ingen kodändring i denna uppföljning, bara
 statusuppdatering – v5.81.0 är nu produktionens faktiska version.
+
+## Uppföljning 2026-08-09 (Etapp 50a klar)
+
+Användaren bad om nästa steg för Etapp 50 ("supportbarhet utan innehållsåtkomst"), sedan
+"Börja med 50a".
+
+**Premisskontroll gjord innan bygget:** kontrollerade var Etapp 32a:s
+`permission-denied`-rapportering faktiskt syns idag – bekräftat: bara i Sentry (klientsidan),
+ingen serverbar väg att fråga Sentrys händelsedatabas utan ett separat API-token. Samma
+blockering som redan var dokumenterad i `ETAPPLAN5.md` §32b. Beslöt att bygga resten av 50a
+nu och flagga felfrekvens som `felfrekvensTillganglig: false` i svaret istället för att låtsas
+den finns eller vänta på ägaren för hela etappen.
+
+**Genomfört:** ny callable `hamtaOrganisationsdiagnostik(orgId)` i `functions/index.js`
+(plattformsadmin-only) – antal dokument per collection (rutiner/forradsartiklar/anslag/
+kontakter, via Firestores `count()`), senaste loggade revisionslogg-händelse, backupstatus
+(bröt ut delad logik `hamtaBackupstatusForOrg` från den befintliga `hamtaBackupstatus`).
+Loggar sig själv in i organisationens EGEN revisionslogg (`organisation_diagnostik_visad`).
+Ny expanderbar "Diagnostik"-sektion per organisationsrad i `/leverantor`
+(`src/pages/Leverantor.jsx`). 11 nya functions-tester
+(`tests/functions/diagnostik.test.cjs`), inklusive ett test som bevisar att inget
+dokumentinnehåll läcker i svaret. `ETAPPLAN10.md` uppdaterad (§50a markerad ✅ KLAR med full
+"Genomfört"-sektion).
+
+**Testat:** fullt testsvep (lint, build, vitest, rules, functions, storage, e2e) – alla gröna,
+inga regressioner. Version bumpad 5.81.0 → **5.82.0**, ny post i `src/data/andringslogg.js`.
+Pushad till `claude/compassionate-euler-rho0q5`, INTE ännu deployad.
+
+**Kvar i Etapp 50:** 50b (tidsbegränsad supportåtkomst) har en olöst beslutspunkt – ska den
+byggas alls? (se `ETAPPLAN10.md` "Beslutspunkter som kräver ägaren" punkt 3). 50c
+(ärendehistorik) är obyggd, inget känt hinder.

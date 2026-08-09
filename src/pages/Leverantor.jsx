@@ -11,6 +11,7 @@ import {
   satSokkvotTakPerDygn,
   avbrytRaderingAvOrganisation,
   blibForstaPlattformsadmin,
+  hamtaOrganisationsdiagnostik,
 } from "../firebase/functions";
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
 import ManadsrapportSektion from "../components/ManadsrapportSektion";
@@ -52,6 +53,9 @@ export default function Leverantor() {
   const [provperiodDraft, setProvperiodDraft] = useState({});
   const [arsavgiftDraft, setArsavgiftDraft] = useState({});
   const [sokkvotTakDraft, setSokkvotTakDraft] = useState({});
+  const [diagnostikOppen, setDiagnostikOppen] = useState(null);
+  const [diagnostikData, setDiagnostikData] = useState({});
+  const [diagnostikLaddar, setDiagnostikLaddar] = useState(false);
 
   function ladda() {
     setLaddar(true);
@@ -199,6 +203,26 @@ export default function Leverantor() {
       setFel(e);
     } finally {
       setAtgard(null);
+    }
+  }
+
+  async function hanteraDiagnostik(orgId) {
+    if (diagnostikOppen === orgId) {
+      setDiagnostikOppen(null);
+      return;
+    }
+    setDiagnostikOppen(orgId);
+    if (diagnostikData[orgId]) {
+      return;
+    }
+    setDiagnostikLaddar(true);
+    try {
+      const { data } = await hamtaOrganisationsdiagnostik(orgId);
+      setDiagnostikData((d) => ({ ...d, [orgId]: data }));
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setDiagnostikLaddar(false);
     }
   }
 
@@ -481,7 +505,58 @@ export default function Leverantor() {
                 >
                   Exportera
                 </button>
+                <button
+                  type="button"
+                  className="knapp knapp--liten"
+                  onClick={() => hanteraDiagnostik(org.orgId)}
+                >
+                  {diagnostikOppen === org.orgId ? "Dölj diagnostik" : "Diagnostik"}
+                </button>
               </div>
+              {diagnostikOppen === org.orgId && (
+                <div className="leverantor__diagnostik">
+                  {diagnostikLaddar && !diagnostikData[org.orgId] ? (
+                    <p>Laddar diagnostik...</p>
+                  ) : (
+                    (() => {
+                      const d = diagnostikData[org.orgId];
+                      if (!d) return null;
+                      return (
+                        <>
+                          <p className="sida__beskrivning">
+                            Strukturell hälsa – antal och tidpunkter, aldrig dokumentinnehåll.
+                            Visningen loggas i organisationens egen revisionslogg.
+                          </p>
+                          <ul className="leverantor__diagnostik-lista">
+                            {Object.entries(d.antalDokument).map(([namn, antal]) => (
+                              <li key={namn}>
+                                {namn}: {antal}
+                              </li>
+                            ))}
+                          </ul>
+                          <p>
+                            Senaste loggade händelse:{" "}
+                            {d.senasteHandelse
+                              ? `${d.senasteHandelse.handelsetyp} (${new Date(d.senasteHandelse.tidpunkt).toLocaleString("sv-SE")})`
+                              : "Ingen"}
+                          </p>
+                          <p>
+                            Backup:{" "}
+                            {d.backupstatus.harOperationsModul
+                              ? `${d.backupstatus.antalBackuper} st, senast ${d.backupstatus.senasteDatum ?? "aldrig"}`
+                              : "Kräver Operations-modulen"}
+                          </p>
+                          <p className="sida__beskrivning">
+                            Felfrekvens (t.ex. upprepade nekade anrop) är ännu inte tillgänglig
+                            här – kräver ett separat Sentry API-token, se{" "}
+                            <code>ETAPPLAN5.md</code> §32b.
+                          </p>
+                        </>
+                      );
+                    })()
+                  )}
+                </div>
+              )}
             </li>
           ))}
         </ul>

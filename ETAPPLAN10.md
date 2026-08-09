@@ -375,14 +375,33 @@ stället för ett arbetshinder.
 
 **Modul:** ingen (plattform).
 
-- **50a – Verifiera först.** Kontrollera exakt vad Etapp 32a:s `permission-denied`-rapportering
-  redan fångar och var den visas i dag, innan en ny diagnostikvy byggs ovanpå den – det är
-  fullt möjligt att en del av 50a redan är synlig någonstans i leverantörsvyn.
-- **50a (fortsättning) – Diagnostik utan innehåll.** En leverantörsvy som per organisation
-  visar strukturell hälsa: antal dokument per collection, senaste skrivning, felfrekvens från
-  Etapp 32a:s `permission-denied`-rapportering, modulstatus, AI- och sökförbrukning mot tak
-  (48b), senaste lyckade backup (46 byggde redan `hamtaBackupstatus`, bekräftat i drift).
-  **Metadata, aldrig dokumentinnehåll.**
+- **50a ✅ KLAR (2026-08-09) – Diagnostik utan innehåll.**
+  **Premisskontroll (utfall):** Etapp 32a:s `permission-denied`-rapportering går ENDAST till
+  Sentry (klientsidan) – det finns ingen serverbar väg att läsa Sentrys händelsedatabas utan
+  ett separat API-token, samma blockering som redan var dokumenterad för 32b:s tre
+  kvarvarande larmtyper (`ETAPPLAN5.md` §32b). "Felfrekvens" är alltså MEDVETET UTELÄMNAD ur
+  diagnostikvyn, inte bortglömd – flaggas explicit i UI:t (`felfrekvensTillganglig: false`)
+  istället för att tystas ner. Modulstatus, AI-/sökförbrukning mot tak (48b) och senaste
+  backup (46:s `hamtaBackupstatus`) fanns redan tillgängliga (delvis redan synliga i
+  `/leverantor`, delvis via en existerande men ej UI-kopplad callable) – återanvända, inte
+  byggda om.
+  **Genomfört:** ny callable `hamtaOrganisationsdiagnostik(orgId)` (plattformsadmin-only) i
+  `functions/index.js` – returnerar antal dokument per collection (`rutiner`,
+  `forradsartiklar`, `anslag`, `kontakter`, via Firestores `count()`-aggregering, scopat med
+  `where("organisationId","==",orgId)`), senaste loggade revisionslogg-händelse för
+  organisationen (handelsetyp + tidpunkt, inte innehåll), samt backupstatus (via en
+  utbruten `hamtaBackupstatusForOrg`-hjälpfunktion, delad med den befintliga
+  `hamtaBackupstatus`). "Senaste skrivning" byggs MEDVETET på den redan existerande
+  revisionsloggen (som redan fångar `rutin_publicerad`/`rutin_godkand`/`rutin_borttagen`
+  m.fl.) istället för en ny tidsstämpel per collection – det senare hade krävt att ändra
+  alla skrivvägar i hela appen för ett marginellt bättre svar. Anropet loggar sig självt in
+  i den granskade organisationens EGEN revisionslogg (`organisation_diagnostik_visad`,
+  samma mönster som `exporteraOrganisation`) – transparens även för denna metadata-läsning,
+  fast utan Sentry-larm (skiljer den medvetet från 50b:s framtida innehållsläsning).
+  Ny UI-sektion i `/leverantor`: en expanderbar "Diagnostik"-knapp per organisationsrad,
+  visar antal/status, ALDRIG dokumentinnehåll. 11 nya functions-tester
+  (`tests/functions/diagnostik.test.cjs`), inklusive ett explicit test att inget
+  dokumentinnehåll läcker i svaret.
 - **50b – Verifiera först: det här är den arkitektoniskt mest nya biten i hela planen.**
   En tidsbegränsad, villkorad läsrätt i `firestore.rules` (en `request.time`-jämförelse mot en
   lagrad utgångstid) finns inte som mönster någon annanstans i regelfilen i dag. Skriv och
