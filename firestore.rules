@@ -349,6 +349,21 @@ service cloud.firestore {
         allow delete: if arSuperadmin() && orgId == minOrganisation();
       }
 
+      // organisationer/{orgId}/arendeanteckningar/{id} – Etapp 50c: leverantörens EGEN
+      // ärendehistorik ("vad hände, när, vad gjordes") per organisation – internt
+      // leverantörsminne, inte en kundfacing funktion (till skillnad från 50a/50b som
+      // kunden ser). Bara läsbar/skrivbar av plattformsadmin, aldrig av organisationens egna
+      // användare. Samma "ren anteckning, direkt klientskrivning"-mönster som
+      // matvardenMarkeringar ovan.
+      match /arendeanteckningar/{id} {
+        allow read: if arPlattformsadmin();
+        allow create: if arPlattformsadmin()
+                       && request.resource.data.skapadAv == request.auth.uid
+                       && !harTroligtPersonnummer(request.resource.data.get('text', ''));
+        allow update: if false;
+        allow delete: if arPlattformsadmin();
+      }
+
       // organisationer/{orgId}/personalpulsResultat/{omrade}_{kvartal} – Etapp 39c: aggregerad
       // anonym personalpuls. Skrivs ENDAST av Cloud Function svaraPersonalpuls (transaktion,
       // increment) – aldrig av klienten, precis som matvardenSnapshots. Läsning: ägarbeslut

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, addDoc, deleteDoc, doc, orderBy, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { useAuth } from "../hooks/useAuth";
 import {
   listaOrganisationer,
   skapaOrganisation,
@@ -15,6 +16,7 @@ import {
   blibForstaPlattformsadmin,
   hamtaOrganisationsdiagnostik,
   avslutaSupportAtkomst,
+  nollstallDemoOrganisation,
 } from "../firebase/functions";
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
 import ManadsrapportSektion from "../components/ManadsrapportSektion";
@@ -45,6 +47,7 @@ const AVTALSSTATUS_ETIKETT = {
 // och functions/index.js) – den här sidan är bara ett gränssnitt ovanpå det, ingen egen
 // klientkontroll ger faktisk säkerhet.
 export default function Leverantor() {
+  const { currentUser } = useAuth();
   const [organisationer, setOrganisationer] = useState(null);
   const [sokkvot, setSokkvot] = useState(null);
   const [fel, setFel] = useState(null);
@@ -72,6 +75,15 @@ export default function Leverantor() {
   const [innehallOppen, setInnehallOppen] = useState(null);
   const [innehallData, setInnehallData] = useState({});
   const [innehallLaddar, setInnehallLaddar] = useState(false);
+  const [arendenOppen, setArendenOppen] = useState(null);
+  const [arendenData, setArendenData] = useState({});
+  const [arendenLaddar, setArendenLaddar] = useState(false);
+  const [nyttArendeText, setNyttArendeText] = useState("");
+  const [arendeSparar, setArendeSparar] = useState(false);
+  const [demoEpost, setDemoEpost] = useState("");
+  const [demoNollstaller, setDemoNollstaller] = useState(false);
+  const [demoInbjudanLank, setDemoInbjudanLank] = useState(null);
+  const [demoMeddelande, setDemoMeddelande] = useState(null);
 
   function ladda() {
     setLaddar(true);
@@ -279,6 +291,83 @@ export default function Leverantor() {
     }
   }
 
+  async function hanteraArenden(orgId) {
+    if (arendenOppen === orgId) {
+      setArendenOppen(null);
+      return;
+    }
+    setArendenOppen(orgId);
+    setNyttArendeText("");
+    await laddaArenden(orgId);
+  }
+
+  async function laddaArenden(orgId) {
+    setArendenLaddar(true);
+    try {
+      const snap = await getDocs(
+        query(collection(db, "organisationer", orgId, "arendeanteckningar"), orderBy("skapadTidpunkt", "desc"))
+      );
+      setArendenData((d) => ({ ...d, [orgId]: snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })) }));
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setArendenLaddar(false);
+    }
+  }
+
+  async function hanteraLaggTillArende(orgId) {
+    const text = nyttArendeText.trim();
+    if (!text || !currentUser) return;
+    setArendeSparar(true);
+    try {
+      await addDoc(collection(db, "organisationer", orgId, "arendeanteckningar"), {
+        text,
+        skapadAv: currentUser.uid,
+        skapadTidpunkt: serverTimestamp(),
+      });
+      setNyttArendeText("");
+      await laddaArenden(orgId);
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setArendeSparar(false);
+    }
+  }
+
+  async function hanteraTaBortArende(orgId, arendeId) {
+    setArendeSparar(true);
+    try {
+      await deleteDoc(doc(db, "organisationer", orgId, "arendeanteckningar", arendeId));
+      await laddaArenden(orgId);
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setArendeSparar(false);
+    }
+  }
+
+  async function hanteraNollstallDemo(e) {
+    e.preventDefault();
+    setDemoNollstaller(true);
+    setDemoMeddelande(null);
+    setDemoInbjudanLank(null);
+    try {
+      const { data } = await nollstallDemoOrganisation(demoEpost.trim() || undefined);
+      if (data.inbjudanToken) {
+        setDemoInbjudanLank(`${window.location.origin}/registrera?bjudan=${data.inbjudanToken}`);
+        setDemoMeddelande("Demomiljön nollställd med nytt exempelinnehåll. Inbjudan skapad.");
+      } else {
+        setDemoMeddelande("Demomiljön nollställd med nytt exempelinnehåll.");
+      }
+      setDemoEpost("");
+      await ladda();
+    } catch (e2) {
+      setFel(e2);
+    } finally {
+      setDemoNollstaller(false);
+    }
+  }
+
   async function hanteraExport(orgId) {
     setAtgard(orgId);
     setExportMeddelande(null);
@@ -410,6 +499,37 @@ export default function Leverantor() {
       </section>
 
       <section className="admin-sektion">
+        <h2>🎓 Demo- och övningsmiljö</h2>
+        <p className="sida__beskrivning">
+          En egen organisation ("_demo") med fiktivt exempelinnehåll – aldrig en riktig kund,
+          aldrig i faktureringsunderlaget. Nollställs automatiskt varje natt 04:00. Fyll i en
+          e-postadress för att direkt få en färsk superadmin-inbjudan till den personen (giltig
+          i 7 dagar) – annars nollställs bara innehållet.
+        </p>
+        <form className="leverantor__form" onSubmit={hanteraNollstallDemo}>
+          <label>
+            E-post för inbjudan (valfritt)
+            <input
+              type="email"
+              value={demoEpost}
+              onChange={(e) => setDemoEpost(e.target.value)}
+              placeholder="prospekt@exempel.se"
+            />
+          </label>
+          <button type="submit" className="knapp" disabled={demoNollstaller}>
+            {demoNollstaller ? "..." : "Nollställ demomiljön nu"}
+          </button>
+        </form>
+        {demoMeddelande && <p className="leverantor__info">{demoMeddelande}</p>}
+        {demoInbjudanLank && (
+          <div className="leverantor__info">
+            <p>Skicka den här länken (giltig i 7 dagar):</p>
+            <input type="text" readOnly value={demoInbjudanLank} onFocus={(e) => e.target.select()} />
+          </div>
+        )}
+      </section>
+
+      <section className="admin-sektion">
         {/* Etapp 43e: `organisationer` är `null` tills anropet lyckas – om `fel` sätts till
             NÅGOT annat än exakt `permission-denied` (t.ex. ett nätverksfel eller en annan
             functions-felkod) faller renderingen igenom till här med `organisationer` fortfarande
@@ -430,6 +550,7 @@ export default function Leverantor() {
                 <strong>{org.namn}</strong>{" "}
                 {org.status === "pausad" && <span className="leverantor__pausad">⏸ Pausad</span>}
                 {org.status === "raderad" && <span className="leverantor__fel">🗑️ Raderad</span>}
+                {org.arDemo && <span className="leverantor__pausad">🎓 Demo</span>}
                 {org.raderingSchemalagdTill && (
                   <div className="leverantor__fel">
                     ⚠️ Radering schemalagd till {new Date(org.raderingSchemalagdTill).toLocaleString("sv-SE")}.
@@ -588,6 +709,13 @@ export default function Leverantor() {
                     {innehallOppen === org.orgId ? "Dölj innehåll" : "🔓 Visa innehåll"}
                   </button>
                 )}
+                <button
+                  type="button"
+                  className="knapp knapp--liten"
+                  onClick={() => hanteraArenden(org.orgId)}
+                >
+                  {arendenOppen === org.orgId ? "Dölj ärenden" : "🗒️ Ärenden"}
+                </button>
               </div>
               {diagnostikOppen === org.orgId && (
                 <div className="leverantor__diagnostik">
@@ -664,6 +792,58 @@ export default function Leverantor() {
                       );
                     })()
                   )}
+                </div>
+              )}
+              {arendenOppen === org.orgId && (
+                <div className="leverantor__diagnostik">
+                  <p className="sida__beskrivning">
+                    Internt leverantörsminne – syns aldrig för organisationens egna
+                    användare, oavsett roll.
+                  </p>
+                  {arendenLaddar && !arendenData[org.orgId] ? (
+                    <p>Laddar ärenden...</p>
+                  ) : (
+                    <ul className="leverantor__diagnostik-lista leverantor__arendelista">
+                      {(arendenData[org.orgId] ?? []).length === 0 && <li>Inga ärenden ännu.</li>}
+                      {(arendenData[org.orgId] ?? []).map((a) => (
+                        <li key={a.id}>
+                          <span>
+                            {a.skapadTidpunkt?.toDate
+                              ? a.skapadTidpunkt.toDate().toLocaleString("sv-SE")
+                              : "..."}
+                            {" – "}
+                            {a.text}
+                          </span>
+                          <button
+                            type="button"
+                            className="knapp knapp--liten"
+                            disabled={arendeSparar}
+                            onClick={() => hanteraTaBortArende(org.orgId, a.id)}
+                          >
+                            Ta bort
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="leverantor__form">
+                    <label>
+                      Ny anteckning
+                      <textarea
+                        rows={2}
+                        value={nyttArendeText}
+                        onChange={(e) => setNyttArendeText(e.target.value)}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="knapp knapp--liten"
+                      disabled={arendeSparar || !nyttArendeText.trim()}
+                      onClick={() => hanteraLaggTillArende(org.orgId)}
+                    >
+                      {arendeSparar ? "..." : "Lägg till"}
+                    </button>
+                  </div>
                 </div>
               )}
             </li>

@@ -436,15 +436,21 @@ stället för ett arbetshinder.
   Svaret på upphandlingsfrågan *"vem hos er kan se våra uppgifter, och hur vet vi när de gör
   det?"* är nu: "bara när ni själva öppnar ett 6-timmarsfönster, och ni ser det i er egen
   adminpanel medan det pågår."
-- **50c – Ärendehistorik per organisation.** En enkel notering i leverantörsvyn: vad hände,
-  när, vad gjordes. Med mer än en kund räcker inte minnet.
+- **50c ✅ KLAR (2026-08-09) – Ärendehistorik per organisation.** Ny subcollection
+  `organisationer/{orgId}/arendeanteckningar/{id}` (text, skapadAv, skapadTidpunkt) – bara
+  läsbar/skrivbar av plattformsadmin, aldrig av organisationens egna användare (internt
+  leverantörsminne, till skillnad från 50a/50b som är kundfacing). Direkt klientskrivning
+  (samma "ren anteckning"-mönster som `matvardenMarkeringar`), ingen Cloud Function behövs.
+  Ny "🗒️ Ärenden"-knapp per organisationsrad i `/leverantor` – expanderbar lista + ett
+  litet formulär för att lägga till/ta bort en anteckning. 6 nya rules-tester
+  (`tests/rules/arendeanteckningar.test.mjs`).
 
 **Klart när:** en supportfråga kan besvaras utan att gissa, och utan att leverantören har
-stående åtkomst till något kundinnehåll.
+stående åtkomst till något kundinnehåll. ✅ Uppfyllt (50a+50b+50c).
 
 ---
 
-# Etapp 51 – Demo- och övningsmiljö (`ETAPPLAN2.md` Etapp 10a)
+# Etapp 51 – Demo- och övningsmiljö (`ETAPPLAN2.md` Etapp 10a) ✅ KLAR (2026-08-09)
 
 **Varför:** det enda ej genomförda delmålet i hela Etapp 10, aldrig byggt, och nu det som
 står mellan produkten och både ett riskfritt säljmöte och en trygg övningsplats för en
@@ -453,22 +459,55 @@ koden är emulatorns projekt-ID (`demo-test`), inte en riktig tenant.
 
 **Modul:** ingen.
 
-- **51a** En demo-organisation med realistiskt men helt fiktivt innehåll. Verksamhetsmallarna
-  från fas 31 är grunden, men behöver mer kött för att visa checklistläge, kompetensmatris,
-  innehållshälsa och den samlade godkännandekön. **Samma hållning som fas 31:** strukturella
-  platshållare, aldrig fabricerat kliniskt innehåll.
-- **51b** Nollställs nattligt via det redan etablerade schemalagda jobbmönstret, så en demo
-  aldrig ärver förra besökarens spår.
-- **51c** Dubblerar som **övningsmiljö för nyanställda** – kör en checklista, testa
-  bristanmälan, gör en mikrokviss utan att skriva i skarp data. Kopplas till
-  introduktionsspåret (19a).
-- **Hårt krav:** demo-organisationen får aldrig nås från ett riktigt kundkonto eller tvärtom.
-  Det är ett rules-test, inte en UI-regel.
+- **51a ✅ KLAR – demo-organisation med realistiskt men fiktivt innehåll.** Ny funktion
+  `nollstallDemoOrganisation`/`froSaDemoOrganisationensInnehall` (`functions/index.js`) seedar
+  organisationen `_demo` (flaggad `arDemo: true`) med: 2 godkända rutiner från
+  `VERKSAMHETSMALLAR.akutmottagning` (fas 31/Etapp 10d, återanvänt rakt av), 1 rutin i
+  `status: "utkast"` (visar den samlade godkännandekön), 1 checklistrutin
+  (`akutlage: true` + `steg`-array, visar checklistläget), 1 rutin med ett medvetet ~200
+  dagar gammalt `granskadDatum` (visar innehållshälsan), 2 förrådsartiklar (en medvetet under
+  `minAntal`, redo för bristanmälan), 1 anslag, 2 kontakter, samt 1 `kompetenskrav` utan
+  någon kvittering ännu (visar en gap-rad i kompetensmatrisen, redo att övas bort). **Samma
+  hållning som fas 31:** strukturella platshållare, aldrig fabricerat kliniskt innehåll –
+  återanvänder verksamhetsmallar.js:s befintliga innehåll och märkning rakt av.
+- **51b ✅ KLAR – nattlig nollställning.** `nollstallDemoOrganisationSchemalagt`
+  (`onSchedule`, var dag 04:00 Europe/Stockholm, samma mönster som `veckovisBackupSchemalagt`
+  m.fl.) städar bort ALLT innehåll (rutiner/förråd/anslag/kontakter/kompetenskrav) OCH alla
+  användarkonton (Firestore + Auth) i `_demo`, seedar sedan om från grunden – en demo ärver
+  aldrig förra besökarens spår, och stale demo-konton hopar sig aldrig.
+- **51c ✅ KLAR, MEN SMALARE ÄN UTKASTETS FORMULERING – övningsmiljö för nyanställda.**
+  **Premisskontroll (avgörande fynd):** `losInInbjudan` kräver att den inloggade e-postadressen
+  MATCHAR exakt den e-post en inbjudan utfärdades till (`functions/index.js`) – en generisk,
+  återanvändbar "vem som helst med länken kan gå med"-inbjudan finns INTE i den befintliga
+  arkitekturen, och att bygga en sådan (en jokerinbjudan) hade återinfört precis det Etapp 6c
+  medvetet stängde av säkerhetsskäl ("Inbjudningsflöde istället för öppen registrering").
+  Byggde därför INTE en jokerlänk. Istället: `nollstallDemoOrganisation` accepterar en valfri
+  `inbjudanEpost` – anges den (från en ny sektion i `/leverantor`, "🎓 Demo- och
+  övningsmiljö") utfärdas en färsk, riktig superadmin-inbjudan till EXAKT den angivna
+  personens e-post, med `skapaInbjudanIntern` – exakt samma mekanism `skapaOrganisation`
+  redan använder för en ny kunds första superadmin, bara riktad mot `_demo` istället för en
+  ny organisation. En säljare/HR-ansvarig begär en inbjudan per tillfälle/person, precis som
+  för en riktig kund. Ingen koppling byggd till introduktionsspåret (19a) – utkastets "kopplas
+  till" var en möjlig framtida förbättring, inte ett hårt krav, och bedömdes utanför omfånget
+  för denna omgång.
+- **Hårt krav ✅ uppfyllt.** Isoleringen kräver INGEN ny regel – samma `matcharMinOrg()`-
+  mekanism som redan skyddar alla organisationer mot varandra skyddar `_demo` automatiskt.
+  Byggt som ett explicit regeltest ändå (inte bara "litat på"), enligt kravet: nytt
+  `tests/rules/demo-isolering.test.mjs` (4 tester) bevisar att en riktig kunds superadmin
+  aldrig kan läsa `_demo`:s innehåll, och tvärtom.
+- **Uteslutning från fakturering:** `manadsrapportOrganisationer` filtrerar nu bort
+  `arDemo`-organisationer – annars hade den nattliga nollställningen förvrängt
+  faktureringsunderlaget varje dag.
 - **Bonus värd att notera:** 51 ger också en miljö där Etapp 52:s användartest kan göras utan
   att någon behöver oroa sig för att förstöra riktig data.
+- **Testat:** 12 nya functions-tester (`tests/functions/demo-organisation.test.cjs`) –
+  behörighet, innehållet som faktiskt seedas, att en andra körning städar bort den FÖRRA
+  körningens innehåll (idempotent, inte ackumulerande), inbjudan med normaliserad e-post, och
+  att varje körning loggas till `_plattform`-revisionsloggen.
 
 **Klart när:** en säljdemo och en nyanställds första övning kan göras utan att en rad riktig
-kunddata rörs.
+kunddata rörs. ✅ Uppfyllt: en leverantörsadmin skriver in en e-postadress i `/leverantor` och
+får en riktig, tidsbegränsad inbjudan till en färdigseedad övningsorganisation.
 
 ---
 
@@ -542,8 +581,8 @@ finns nedskrivet vad som hände.
 |---|---|---|---|
 | 48 | Kapacitet och kostnad per organisation | **✅ HELT KLAR (2026-08-06)** | En kund kan inte längre släcka en annans funktioner, varken av misstag eller genom att ensam ta hela sökkvoten |
 | 49 | Livscykeln stängd | **✅ HELT KLAR (2026-08-09)** | Inga obesvarade löften kvar i `avtal/` |
-| 50 | Supportbarhet utan innehållsåtkomst | Medel–hög (50b är arkitektoniskt nytt) | Hållbar support + ett starkt upphandlingssvar |
-| 51 | Demo- och övningsmiljö | Låg–medel | Säljdemo utan kunddata + trygg övningsplats |
+| 50 | Supportbarhet utan innehållsåtkomst | **✅ HELT KLAR (2026-08-09)** | Hållbar support + ett starkt upphandlingssvar |
+| 51 | Demo- och övningsmiljö | **✅ HELT KLAR (2026-08-09)** | Säljdemo utan kunddata + trygg övningsplats |
 | 52 | Pilotpaketet | Låg kodinsats, hög ägarinsats | Den enda kunskap projektet helt saknar |
 
 **Om bara en sak hinns med:** 48b (larm före den delade sökkvoten tar slut). Det är samma

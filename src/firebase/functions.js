@@ -99,6 +99,13 @@ export function hamtaOrganisationsdiagnostik(orgId) {
   return fn({ orgId });
 }
 
+// Etapp 51 – demo-/övningsorganisation: nollställ innehållet, valfritt med en färsk
+// superadmin-inbjudan till en specifik e-postadress (samma mekanism som skapaOrganisation).
+export function nollstallDemoOrganisation(inbjudanEpost) {
+  const fn = httpsCallable(functions, "nollstallDemoOrganisation");
+  return fn(inbjudanEpost ? { inbjudanEpost } : {});
+}
+
 // Etapp 15c – faktureringsunderlag/månadsrapport per organisation
 export function manadsrapportOrganisationer() {
   const fn = httpsCallable(functions, "manadsrapportOrganisationer");

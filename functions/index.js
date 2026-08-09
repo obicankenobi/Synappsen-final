@@ -3038,6 +3038,8 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         // alltid syns VILKA organisationer som just nu går att läsa innehåll för.
         supportAtkomstTill: data.supportAtkomstTill?.toDate?.().toISOString() ?? null,
         supportAtkomstAnledning: data.supportAtkomstAnledning ?? null,
+        // Etapp 51: badge:as tydligt i leverantörsvyn – aldrig en betalande kund.
+        arDemo: data.arDemo === true,
       };
     })
   );
@@ -3064,6 +3066,222 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
   });
   return { organisationer, sokkvot };
 });
+
+// Etapp 51: en demo-/övningsorganisation som aldrig är en riktig kund – en säljdemo eller en
+// nyanställds första övning ska aldrig kunna röra riktig kunddata, och tvärtom. Isoleringen
+// kräver INGEN särskild regel: samma matcharMinOrg()-mekanism som redan gäller mellan VILKA
+// två organisationer som helst (bevisat i tests/rules/organisationsisolering.test.mjs) skyddar
+// automatiskt _demo också – ett hårt krav i ETAPPLAN10.md §51 var att detta ska vara ett
+// regeltest, inte en UI-regel, se den nya explicita kontrollen i samma testfil.
+const DEMO_ORG_ID = "_demo";
+const DEMO_ORG_NAMN = "Demo & övning (nollställs varje natt, se ETAPPLAN10.md Etapp 51)";
+// Bara de collections som faktiskt seedas nedan – ett medvetet SMALARE urval än
+// BACKUP_COLLECTIONS (som raderaOrganisationensData återanvänder), eftersom demomiljön inte
+// har någon uppladdad fil, skiftrapport eller introduktionstilldelning att städa.
+const DEMO_COLLECTIONS = ["rutiner", "forradsartiklar", "anslag", "kontakter", "kompetenskrav"];
+
+async function stadaDemoOrganisationensInnehall() {
+  const uidSnap = await db.collection("users").where("organisationId", "==", DEMO_ORG_ID).select().get();
+  for (const uidDoc of uidSnap.docs) {
+    await admin.auth().deleteUser(uidDoc.id).catch(() => {});
+    await uidDoc.ref.delete().catch(() => {});
+  }
+  for (const namn of DEMO_COLLECTIONS) {
+    const snap = await db.collection(namn).where("organisationId", "==", DEMO_ORG_ID).get();
+    const BATCHSTORLEK = 400;
+    for (let i = 0; i < snap.docs.length; i += BATCHSTORLEK) {
+      const batch = db.batch();
+      for (const dok of snap.docs.slice(i, i + BATCHSTORLEK)) {
+        batch.delete(dok.ref);
+      }
+      await batch.commit();
+    }
+  }
+}
+
+// Innehållet är MEDVETET strukturella exempel, samma hållning som verksamhetsmallar.js –
+// aldrig fabricerat kliniskt innehåll (se den filens egen motivering). Täcker fyra ytor
+// §51a explicit efterfrågar: checklistläge (akutlage+steg), samlad godkännandekö (status
+// "utkast"), innehållshälsa (ett gammalt granskadDatum), och kompetensmatris (ett
+// kompetenskrav utan någon kvittering ännu – SAKNAS-status, redo att övas bort).
+async function froSaDemoOrganisationensInnehall() {
+  const mallar = VERKSAMHETSMALLAR.akutmottagning;
+  const batch = db.batch();
+  const forstaMallRef = db.collection("rutiner").doc();
+
+  mallar.forEach((mall, i) => {
+    const ref = i === 0 ? forstaMallRef : db.collection("rutiner").doc();
+    batch.set(ref, {
+      titel: mall.titel,
+      innehall: mall.innehall,
+      omrade: mall.omrade,
+      status: "godkand",
+      organisationId: DEMO_ORG_ID,
+      kalla: "demo",
+      granskadDatum: admin.firestore.FieldValue.serverTimestamp(),
+      skapad: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  });
+
+  batch.set(db.collection("rutiner").doc(), {
+    titel: "Ny rutin för läkemedelsavvikelser (demo, väntar på godkännande)",
+    innehall: "# Bakgrund\n\nDetta är en demo-rutin i utkast – öva på att granska och godkänna den.",
+    omrade: "administration",
+    status: "utkast",
+    organisationId: DEMO_ORG_ID,
+    kalla: "demo",
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  batch.set(db.collection("rutiner").doc(), {
+    titel: "Checklista – anafylaxi (demo)",
+    innehall: "# Följ stegen nedan i ordning.",
+    omrade: "kliniskt-stod",
+    status: "godkand",
+    akutlage: true,
+    steg: [
+      { text: "Bedöm luftväg, andning, cirkulation", bild: "", varning: "", timerSekunder: null },
+      { text: "Ge adrenalin enligt lokal rutin", bild: "", varning: "Kontrollera dos innan administrering", timerSekunder: null },
+      { text: "Larma och överlämna enligt er rutin", bild: "", varning: "", timerSekunder: null },
+    ],
+    organisationId: DEMO_ORG_ID,
+    kalla: "demo",
+    granskadDatum: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  const gransDatum = new Date();
+  gransDatum.setDate(gransDatum.getDate() - 200);
+  batch.set(db.collection("rutiner").doc(), {
+    titel: "Rutin för läkemedelsgenomgång (demo, bör granskas)",
+    innehall: "# Bakgrund\n\nDenna demo-rutin har medvetet ett gammalt granskningsdatum.",
+    omrade: "administration",
+    status: "godkand",
+    organisationId: DEMO_ORG_ID,
+    kalla: "demo",
+    granskadDatum: admin.firestore.Timestamp.fromDate(gransDatum),
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  batch.set(db.collection("forradsartiklar").doc(), {
+    namn: "Kompresser 10x10",
+    forrad: "Akutförråd",
+    skap: "A",
+    hylla: "1",
+    antal: 12,
+    minAntal: 5,
+    status: "godkand",
+    organisationId: DEMO_ORG_ID,
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  // Medvetet under minAntal – ger en trainee något verkligt att öva bristanmälan på.
+  batch.set(db.collection("forradsartiklar").doc(), {
+    namn: "Adrenalin 1 mg/ml",
+    forrad: "Akutförråd",
+    skap: "B",
+    hylla: "2",
+    antal: 2,
+    minAntal: 5,
+    status: "godkand",
+    organisationId: DEMO_ORG_ID,
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  batch.set(db.collection("anslag").doc(), {
+    titel: "Välkommen till demo- och övningsmiljön!",
+    innehall: "All data här nollställs automatiskt varje natt – öva fritt, inget kan gå sönder.",
+    organisationId: DEMO_ORG_ID,
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  batch.set(db.collection("kontakter").doc(), { namn: "Jour, medicin (demo)", telefon: "070-0000000", organisationId: DEMO_ORG_ID });
+  batch.set(db.collection("kontakter").doc(), { namn: "Växel (demo)", telefon: "08-0000000", organisationId: DEMO_ORG_ID });
+
+  await batch.commit();
+
+  await db.collection("kompetenskrav").add({
+    roll: "personal",
+    rutinId: forstaMallRef.id,
+    rutinTitel: mallar[0].titel,
+    omrade: mallar[0].omrade,
+    frekvensManader: 12,
+    organisationId: DEMO_ORG_ID,
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+// Delad kärna för både det nattliga schemat och ett manuellt "nollställ nu"-anrop.
+// inbjudanEpost är valfri: utan den nollställs bara innehållet (det nattliga schemat har
+// ingen känd mottagare); med den (det manuella anropet från /leverantor) skapas också en
+// färsk superadmin-inbjudan, EXAKT samma mekanism skapaOrganisation redan använder för att
+// bjuda in en ny kunds första superadmin – medvetet INTE en öppen/jokerinbjudan (Etapp 6c
+// stängde öppen registrering av säkerhetsskäl; en jokerlänk hade återinfört exakt det).
+async function nollstallDemoOrganisationKarna(inbjudanEpost) {
+  await db.collection("organisationer").doc(DEMO_ORG_ID).set(
+    {
+      namn: DEMO_ORG_NAMN,
+      status: "aktiv",
+      moduler: { operations: true, intelligence: true },
+      arDemo: true,
+      avtalsstatus: "aktiv",
+    },
+    { merge: true }
+  );
+
+  await stadaDemoOrganisationensInnehall();
+  await froSaDemoOrganisationensInnehall();
+
+  let inbjudanToken = null;
+  if (inbjudanEpost) {
+    inbjudanToken = await skapaInbjudanIntern({
+      organisationId: DEMO_ORG_ID,
+      epost: inbjudanEpost,
+      roll: "superadmin",
+      skapadAv: "_system",
+    });
+  }
+
+  await loggaRevision({
+    organisationId: "_plattform",
+    aktorUid: "_system",
+    aktorRoll: "system",
+    handelsetyp: "demo_organisation_nollstalld",
+    objektTyp: "organisationer",
+    objektId: DEMO_ORG_ID,
+    sammanfattning: inbjudanEpost
+      ? `Demo-organisationen nollställd, ny inbjudan utfärdad till ${inbjudanEpost}`
+      : "Demo-organisationen nollställd (schemalagt)",
+  });
+
+  return { inbjudanToken };
+}
+
+exports.nollstallDemoOrganisation = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const inbjudanEpostRaw = request.data?.inbjudanEpost;
+  const inbjudanEpost = inbjudanEpostRaw ? String(inbjudanEpostRaw).trim().toLowerCase() : null;
+  if (inbjudanEpost && !inbjudanEpost.includes("@")) {
+    throw new HttpsError("invalid-argument", "Inbjudans e-postadress är ogiltig.");
+  }
+  return nollstallDemoOrganisationKarna(inbjudanEpost);
+});
+
+// Etapp 51b: nollställs nattligt så en demo aldrig ärver förra besökarens spår. Samma
+// tidpunkt-mönster som övriga nattliga jobb (veckovisBackupSchemalagt m.fl.).
+exports.nollstallDemoOrganisationSchemalagt = onSchedule(
+  { schedule: "every day 04:00", timeZone: "Europe/Stockholm", region: "europe-west1", timeoutSeconds: 300 },
+  async () => {
+    try {
+      await nollstallDemoOrganisationKarna(null);
+    } catch (fel) {
+      console.error("Nattlig nollställning av demo-organisationen misslyckades:", fel);
+      Sentry.captureException(fel, { tags: { typ: "demo_nollstallning_misslyckades" } });
+    }
+  }
+);
 
 // Etapp 15d: avtals-/betalningsflödet sker MEDVETET utanför appen (avtalssignering och
 // fakturering, se beslutspunkt 6 i ETAPPLAN3.md) – det här är bara en statusflagga en
@@ -3316,7 +3534,11 @@ exports.manadsrapportOrganisationer = onCall({ region: "europe-west1", timeoutSe
   }
 
   const organisationer = await Promise.all(
-    orgSnap.docs.map(async (orgDoc) => {
+    // Etapp 51: demo-organisationen är aldrig en betalande kund – att räkna in den i
+    // faktureringsunderlaget hade förvrängt siffrorna varje natt den nollställs och seedas om.
+    orgSnap.docs
+      .filter((orgDoc) => orgDoc.data()?.arDemo !== true)
+      .map(async (orgDoc) => {
       const data = orgDoc.data();
       const [anvandareSnap, budgetSnap] = await Promise.all([
         db.collection("users").where("organisationId", "==", orgDoc.id).select().get(),

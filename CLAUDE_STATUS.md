@@ -6,20 +6,21 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-09, version **5.83.0** (pushad, INTE ännu deployad – senaste
+**Senast uppdaterad:** 2026-08-09, version **5.84.0** (pushad, INTE ännu deployad – senaste
 produktionsdeploy är v5.81.0, körning #71). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
-är den AKTIVA planen, antagen 2026-08-06. **Etapp 48, 49, 50a OCH 50b är nu HELT KLARA**
-(50a/50b byggda denna session, ej ännu deployade). 50a: en "Diagnostik"-knapp per organisation
-i `/leverantor` visar strukturell hälsa (antal dokument, senaste loggade händelse,
-backupstatus) utan dokumentinnehåll. 50b: **ägarbeslut 2026-08-09** – tillfällig,
-kundinitierad supportåtkomst byggd, alternativ A, fönster satt till **6 timmar** (inte
-utkastets 4h). Ett helt nytt regelmönster i `firestore.rules`
-(`supportAtkomstAktiv`/`farSupportlasa`) ger en plattformsadmin riktig, tidsbegränsad
-läsåtkomst till en organisations innehåll – kundens EGEN superadmin är den enda som kan öppna
-fönstret, loggat i båda ändar, syns live i `/admin` medan det pågår. Endast 50c
-(ärendehistorik) kvarstår obyggt i Etapp 50, inget känt hinder. `ETAPPLAN9.md` (Etapp 45) och
-`ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs
-sektionen "Uppföljning 2026-08-09 (Etapp 50b klar)" längst ner.**
+är den AKTIVA planen, antagen 2026-08-06. **Etapp 48, 49, 50 (50a+50b+50c) OCH 51 är nu ALLA
+HELT KLARA** (50c och 51 byggda denna session, ej ännu deployade). 50c: en ny
+"🗒️ Ärenden"-sektion per organisation i `/leverantor` – internt leverantörsminne
+(arendeanteckningar), aldrig synligt för kunden. 51: en ny demo-/övningsorganisation
+(`_demo`, flaggad `arDemo`) med realistiskt fiktivt innehåll (checklistläge, godkännandekö,
+innehållshälsa, kompetensmatris-gap), nollställd automatiskt varje natt 04:00, och en ny
+sektion i `/leverantor` för att på begäran utfärda en riktig, tidsbegränsad superadmin-
+inbjudan till en specifik e-postadress – **premisskontroll avgjorde bort en jokerlänk** (det
+befintliga inbjudningsflödet kräver att den registrerande e-posten matchar exakt, en
+jokerinbjudan hade återinfört Etapp 6c:s medvetet stängda öppna registrering). Endast Etapp 52
+(pilotpaketet, kräver bokad tid) kvarstår obyggt i hela ETAPPLAN10.md. `ETAPPLAN9.md`
+(Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH DEPLOYADE sedan
+tidigare. **Läs sektionen "Uppföljning 2026-08-09 (Etapp 50c + 51 klara)" längst ner.**
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1667,3 +1668,50 @@ ett nytt `SAKERHETSRAPPORT.md`-tillägg (2026-08-09) med en ärlig läckageriskb
 **Testat:** fullt testsvep (lint, build, vitest, rules – 219 tester inkl. de 7 nya, functions
 – inkl. de 9 nya, storage, e2e) – alla gröna, inga regressioner. Version bumpad 5.82.0 →
 **5.83.0**, ny post i `src/data/andringslogg.js`.
+
+## Uppföljning 2026-08-09 (Etapp 50c + 51 klara)
+
+Användaren frågade om hela `ETAPPLAN10.md` var slutförd. Svar: nej – 50c, 51a–c och Etapp 52
+kvarstod. Bad om "50c och 51a-c", vilket byggdes i samma session.
+
+**50c – ärendehistorik:** ny subcollection `organisationer/{orgId}/arendeanteckningar/{id}`,
+bara läsbar/skrivbar av plattformsadmin (internt leverantörsminne, aldrig kundfacing till
+skillnad från 50a/50b). Direkt klientskrivning, samma mönster som `matvardenMarkeringar`. Ny
+"🗒️ Ärenden"-sektion per organisationsrad i `/leverantor`. 6 nya regeltester.
+
+**51 – demo-/övningsmiljö:** en ny organisation `_demo` (flaggad `arDemo: true`) som
+`nollstallDemoOrganisation`/`nollstallDemoOrganisationSchemalagt` (nattlig, 04:00) seedar med
+strukturellt fiktivt innehåll – 2 rutiner från de befintliga verksamhetsmallarna (fas 31), en
+utkast-rutin (godkännandekö), en akutlägeschecklista (`steg`), en rutin med ett 200 dagar
+gammalt `granskadDatum` (innehållshälsa), förrådsartiklar/anslag/kontakter, och ett
+`kompetenskrav` utan kvittering (kompetensmatris-gap). Städas och seedas om helt varje natt
+(innehåll + Firestore/Auth-konton), så en demo aldrig ärver förra besökarens spår.
+
+**Viktigt fynd under premisskontroll:** utkastets idé om att "51c kopplas till
+introduktionsspåret" och antagandet om en återanvändbar inbjudningslänk höll inte –
+`losInInbjudan` kräver att den registrerande e-postadressen matchar exakt den inbjudan
+utfärdades till. En jokerlänk (vem som helst kan gå med) hade återinfört precis det Etapp 6c
+medvetet stängde av säkerhetsskäl. Löste det genom att återanvända EXAKT samma mekanism
+`skapaOrganisation` redan har för en ny kunds första superadmin: `nollstallDemoOrganisation`
+tar en valfri `inbjudanEpost` och utfärdar då en riktig, specifik inbjudan. Ny sektion i
+`/leverantor` ("🎓 Demo- och övningsmiljö") för att begära en sådan på plats.
+
+**Hårt krav uppfyllt som ett regeltest** (inte bara UI-antagande): nytt
+`tests/rules/demo-isolering.test.mjs` bevisar explicit att `_demo` och en riktig kund aldrig
+kan nå varandras data – mekanismen är identisk med all annan organisationsisolering, testet
+finns för att en framtida specialbehandling av `_demo` inte ska kunna bryta det tyst.
+`manadsrapportOrganisationer` filtrerar bort `arDemo`-organisationer så faktureringsunderlaget
+inte förvrängs av den nattliga nollställningen.
+
+**Testat:** fullt testsvep – lint, build, vitest, rules (233 tester, inkl. 10 nya), functions
+(inkl. 12 nya för demo-organisationen), storage, e2e ×3 (en instabil `rökprov`-träff på
+`/admin` upprepad gånger, alltid mot OLIKA roller, alltid grön i isolerad körning – en känd,
+förbekräftad sandlådeflakighet under Playwrights 2-worker-parallellism, inte en regression;
+samma mönster observerades även INNAN den här sessionens ändringar). Version bumpad 5.83.0 →
+**5.84.0**, ny post i `src/data/andringslogg.js`. `ETAPPLAN10.md` uppdaterad: §50c och hela
+§51 (51a–c) markerade ✅ KLAR med fulla "Genomfört"-sektioner, sammanfattningstabellens rader
+för Etapp 50 och 51 uppdaterade.
+
+**Med detta är HELA `ETAPPLAN10.md` (Etapp 48–51) klar utom Etapp 52** (pilotpaketet – kräver
+bokad tid från riktiga människor, inte kodningstid, se planens egen "Beslutspunkter som kräver
+ägaren").
