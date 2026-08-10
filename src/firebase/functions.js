@@ -178,6 +178,12 @@ export function satSokkvotTakPerDygn(orgId, sokkvotTakPerDygn) {
   return fn({ orgId, sokkvotTakPerDygn });
 }
 
+// Etapp 54b – huvudmannagruppering ovanpå organisationsmodellen, ingen ny läsväg
+export function satHuvudman(orgId, huvudman) {
+  const fn = httpsCallable(functions, "satHuvudman");
+  return fn({ orgId, huvudman });
+}
+
 // Etapp 49a – schemalägger permanent radering av den egna organisationen (48 h väntetid)
 export function begarRaderingAvOrganisation(anledning) {
   const fn = httpsCallable(functions, "begarRaderingAvOrganisation");

@@ -3327,6 +3327,8 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         supportAtkomstAnledning: data.supportAtkomstAnledning ?? null,
         // Etapp 51: badge:as tydligt i leverantörsvyn – aldrig en betalande kund.
         arDemo: data.arDemo === true,
+        // Etapp 54b: gruppering ovanpå, ingen ny läsväg – se satHuvudman.
+        huvudman: data.huvudman ?? null,
       };
     })
   );
@@ -3738,6 +3740,42 @@ exports.satSokkvotTakPerDygn = onCall({ region: "europe-west1" }, async (request
       sokkvotTakPerDygn === null
         ? `Sökkvottak återställt till standard (${SOKKVOT_ORG_TAK_STANDARD}/dygn)`
         : `Sökkvottak satt till ${sokkvotTakPerDygn}/dygn`,
+  });
+  return { ok: true };
+});
+
+// Etapp 54b: en huvudmannanivå OVANPÅ organisationsmodellen, inte istället för den – ingen
+// dataflytt, ingen ändrad regel (se ETAPPLAN11.md §54 "Premisskontroll" och
+// firestore.rules-kommentaren för organisationer/{orgId}, oförändrad). Ett fritextfält, satt
+// av leverantören, som bara används för att GRUPPERA redan separata, redan fullt isolerade
+// organisationer i leverantörsvyn – ingen ny läsväg mellan organisationer skapas.
+exports.satHuvudman = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId, huvudman } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+  if (huvudman !== null && (typeof huvudman !== "string" || huvudman.trim().length === 0)) {
+    throw new HttpsError("invalid-argument", "huvudman måste vara null eller en icke-tom text.");
+  }
+  const varde = huvudman === null ? null : huvudman.trim();
+  const orgRef = db.collection("organisationer").doc(orgId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists) {
+    throw new HttpsError("not-found", "Organisationen hittades inte.");
+  }
+  await orgRef.set({ huvudman: varde }, { merge: true });
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "organisation_huvudman_andrad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: varde === null ? "Huvudman borttagen" : `Huvudman satt till "${varde}"`,
   });
   return { ok: true };
 });

@@ -19,6 +19,7 @@ import {
   avslutaSupportAtkomst,
   nollstallDemoOrganisation,
   angeEpostAvstangd,
+  satHuvudman,
 } from "../firebase/functions";
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
 import ManadsrapportSektion from "../components/ManadsrapportSektion";
@@ -70,6 +71,7 @@ export default function Leverantor() {
   const [exportMeddelande, setExportMeddelande] = useState(null);
   const [provperiodDraft, setProvperiodDraft] = useState({});
   const [arsavgiftDraft, setArsavgiftDraft] = useState({});
+  const [huvudmanDraft, setHuvudmanDraft] = useState({});
   const [sokkvotTakDraft, setSokkvotTakDraft] = useState({});
   const [diagnostikOppen, setDiagnostikOppen] = useState(null);
   const [diagnostikData, setDiagnostikData] = useState({});
@@ -227,6 +229,19 @@ export default function Leverantor() {
     try {
       const kr = varde === "" ? null : Number(varde);
       await satAvtaladArsavgift(orgId, kr === null || Number.isNaN(kr) ? null : kr);
+      await ladda();
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setAtgard(null);
+    }
+  }
+
+  async function hanteraHuvudman(orgId, varde) {
+    setAtgard(orgId);
+    try {
+      const trimmat = varde.trim();
+      await satHuvudman(orgId, trimmat === "" ? null : trimmat);
       await ladda();
     } catch (e) {
       setFel(e);
@@ -576,6 +591,43 @@ export default function Leverantor() {
         )}
       </section>
 
+      {(() => {
+        // Etapp 54b: ren klientgruppering av redan hämtad data – ingen ny läsväg, ingen
+        // dataflytt. Organisationer utan huvudman ingår inte i någon grupp (ett fritextfält
+        // som aldrig fyllts i betyder "ingen huvudman", inte "en egen grupp kallad tomt").
+        const grupper = new Map();
+        for (const org of organisationer ?? []) {
+          if (!org.huvudman) continue;
+          if (!grupper.has(org.huvudman)) grupper.set(org.huvudman, []);
+          grupper.get(org.huvudman).push(org);
+        }
+        if (grupper.size === 0) return null;
+        return (
+          <section className="admin-sektion">
+            <h2>🏛️ Huvudmän</h2>
+            <p className="sida__beskrivning">
+              Grupperar organisationer som delar samma huvudman (t.ex. samma sjukhus med flera
+              enheter). Rent visuellt – varje organisation är fortfarande en egen, fullt
+              isolerad organisation i grunden.
+            </p>
+            <ul className="admin-lista">
+              {Array.from(grupper.entries()).map(([huvudman, orgar]) => {
+                const summaKr = orgar.reduce((s, o) => s + (o.avtaladArsavgiftKr ?? 0), 0);
+                return (
+                  <li key={huvudman} className="admin-lista__rad leverantor__rad">
+                    <div>
+                      <strong>{huvudman}</strong> · {orgar.length} enheter:{" "}
+                      {orgar.map((o) => o.namn).join(", ")}
+                      {summaKr > 0 && <> · Summerat avtalat pris: {summaKr.toLocaleString("sv-SE")} kr/år</>}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+      })()}
+
       <section className="admin-sektion">
         {/* Etapp 43e: `organisationer` är `null` tills anropet lyckas – om `fel` sätts till
             NÅGOT annat än exakt `permission-denied` (t.ex. ett nätverksfel eller en annan
@@ -598,6 +650,7 @@ export default function Leverantor() {
                 {org.status === "pausad" && <span className="leverantor__pausad">⏸ Pausad</span>}
                 {org.status === "raderad" && <span className="leverantor__fel">🗑️ Raderad</span>}
                 {org.arDemo && <span className="leverantor__pausad">🎓 Demo</span>}
+                {org.huvudman && <span className="leverantor__pausad">🏛️ {org.huvudman}</span>}
                 {org.raderingSchemalagdTill && (
                   <div className="leverantor__fel">
                     ⚠️ Radering schemalagd till {new Date(org.raderingSchemalagdTill).toLocaleString("sv-SE")}.
@@ -698,6 +751,24 @@ export default function Leverantor() {
                   }
                 >
                   Spara pris
+                </button>
+                <label className="leverantor__avtalsstatus">
+                  Huvudman (för gruppering, valfritt)
+                  <input
+                    type="text"
+                    placeholder="Ej ifyllt"
+                    value={huvudmanDraft[org.orgId] ?? org.huvudman ?? ""}
+                    disabled={atgard === org.orgId}
+                    onChange={(e) => setHuvudmanDraft((d) => ({ ...d, [org.orgId]: e.target.value }))}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="knapp knapp--liten"
+                  disabled={atgard === org.orgId}
+                  onClick={() => hanteraHuvudman(org.orgId, huvudmanDraft[org.orgId] ?? org.huvudman ?? "")}
+                >
+                  Spara huvudman
                 </button>
                 <label className="leverantor__avtalsstatus">
                   Sökkvottak/dygn

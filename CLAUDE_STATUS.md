@@ -6,23 +6,19 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.88.0** – **INTE ÄNNU DEPLOYAD** (senaste
-bekräftade produktionsdeploy är fortfarande v5.84.0, körning #72, commit `545e958`).
-`ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning till en kund som växer") är den AKTIVA
-planen, **ANTAGEN 2026-08-10** (ersatte `ETAPPLAN10.md`, som är HELT KLAR utom Etapp 52 –
-pilotpaketet, kräver bokad tid, inte kod). **HELA Etapp 53 (53a–53d) är nu KLAR:** en ny
-intern e-posthjälpare (`skickaEpost()`, Brevo som nytt EU-baserat underbiträde) med ett
-globalt nödstopp styrbart från `/leverantor`; inbjudningar (nya konton, nya organisationer,
-demomiljön) skickas automatiskt via e-post med den kopierbara länken kvar som reserv; en
-användare med en tilldelad uppgift (anslag att kvittera, ändringsförslag som väntat en
-vecka) får ett sammanslaget dagligt påminnelsemejl; och superadmin får nu en månatlig
-sammanfattning (kvitteringsgrad, innehållshälsa, obesvarade förslag, länk till
-ledningsrapporten – aldrig organisationens namn). Båda de nya mejltyperna har egna,
-oberoende opt-out-kryssrutor i `Profil.jsx`. **Ingen skarp `BREVO_API_KEY` är satt än**
-(ägarens att göra, se `OPPNA-PUNKTER.md`), så inget mejl går faktiskt ut förrän dess – koden
-no-oppar tyst genomgående. `ETAPPLAN9.md`/`ETAPPLAN8.md` fortsatt HELT KLARA OCH DEPLOYADE
-sedan tidigare. **Läs sektionerna "Uppföljning 2026-08-10" (a/b/c/d, i tur och ordning)
-längst ner.**
+**Senast uppdaterad:** 2026-08-10, version **5.89.0** – **DEPLOYAD TILL PRODUKTION**, se
+längst ned för körningsnummer/commit-hash. `ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning
+till en kund som växer") är den AKTIVA planen, **ANTAGEN 2026-08-10** (ersatte
+`ETAPPLAN10.md`, som är HELT KLAR utom Etapp 52 – pilotpaketet, kräver bokad tid, inte kod).
+**HELA Etapp 53 (53a–53d) OCH Etapp 54a–54b är nu KLARA:** e-post som kanal (inbjudan,
+dagliga påminnelser, månatlig sammanfattning – alla med opt-out, ingen skarp `BREVO_API_KEY`
+satt än så inget mejl går faktiskt ut förrän ägaren gör det, se `OPPNA-PUNKTER.md`), plus en
+utredning som visade att "flera enheter, en användare" är en avgränsad uppgift snarare än en
+omskrivning av behörighetsmodellen, och en huvudmannagruppering i `/leverantor` (54b) byggd
+på det. 54c (delade rutiner, högrisk) och 54d (växla enhet utan utloggning) väntar
+fortfarande på en konkret andra enhet hos en kund, se `OPPNA-PUNKTER.md`.
+`ETAPPLAN9.md`/`ETAPPLAN8.md` fortsatt HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs
+sektionerna "Uppföljning 2026-08-10" (a/b/c/d, i tur och ordning) längst ner.**
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1909,3 +1905,35 @@ deployad** (senaste produktionsdeploy är fortfarande v5.84.0). Nästa steg: ant
 (kräver att ägaren först satt en riktig `BREVO_API_KEY`, annars går inget mejl ut skarpt –
 se `OPPNA-PUNKTER.md`) eller fortsätta med Etapp 54 (utredning + huvudmannafält, lågrisk,
 kan köras parallellt/oberoende av 53).
+
+## Uppföljning 2026-08-10 (Etapp 54a–54b klara: utredning + huvudmannagruppering, v5.89.0)
+
+Användaren bad "genomför nästa steg" (Etapp 54) och att sedan deploya. **54a (utredning,
+bygg ingenting) genomförd först**, precis som planen kräver ("KÖR OAVSETT om resten av
+etappen antas"): kartlade att `organisationId` visserligen förekommer på 85 rader i
+`firestore.rules`, 198 i `functions/index.js` och i 47/63 klienthookar – men **69 av de 85
+regelraderna funnlar genom EN enda funktion** (`matcharMinOrg()` → `minOrganisation()` →
+`users/{uid}.organisationId`, läst LIVE vid varje regelutvärdering, ingen JWT-claim att
+förnya), och varje klienthook läser samma enda fält direkt från `useAuth()`. **Slutsats:
+"en organisation per användare" sitter i EN källa, inte utspritt** – att låta en användare
+byta aktiv organisation utan utloggning är alltså en avgränsad, väl förstådd uppgift (en
+medlemskaps-collection + en styrd växlingsfunktion + en UI-växlare), INTE en omskrivning av
+behörighetsmodellen som utkastet öppnade för att det kunde vara. 54d stryks alltså inte –
+nedgraderas från "okänd risk" till "förstådd, avgränsad". Den verkliga regelrisken i Etapp 54
+ligger i 54c (delade rutiner), inte 54d. Skrivet in i `ETAPPLAN11.md` som en
+"Premisskontroll"-sektion under §54.
+
+**54b byggd** ovanpå detta: fritextfältet `huvudman` på `organisationer/{orgId}`, satt via en
+ny callable `satHuvudman` (plattformsadmin-only), och en ren klientgruppering i
+`/leverantor` ("🏛️ Huvudmän" – antal enheter, summerat avtalat pris). Noll rader ändrade i
+`firestore.rules`. **Premisskontroll fångade en felaktighet i planens EGEN 54b-beskrivning:**
+den nämnde "en enkel utökning av `/ledningsrapport`" för tvärorganisatorisk jämförelse som en
+del av samma "riskfria" leverans – det stämmer inte, en sådan jämförelse kräver att en chef
+läser en SYSKONorganisations data, vilket är precis den typ av nytt cross-org-undantag som
+hör hemma i 54c, inte 54b. Den delen byggdes medvetet INTE.
+
+Testat: `tests/functions/etapp6.test.cjs` utökad med 5 nya tester för `satHuvudman`. Full
+testsvep grön: lint, build, vitest (124/124), rules, functions (31 testblock, samtliga 62 i
+etapp6.test.cjs), storage, e2e (11/11). Version bumpad 5.88.0 → **5.89.0**. `ETAPPLAN11.md`
+§54a/§54b markerade ✅ KLARA. `OPPNA-PUNKTER.md`s Etapp 54-rad omskriven till att bara gälla
+54c/54d (54a/54b är nu avklarade, inte längre en öppen fråga).

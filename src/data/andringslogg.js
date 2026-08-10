@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.89.0",
+    datum: "2026-08-10",
+    andringar: [
+      "Leverantörsvyn kan nu gruppera flera organisationer under samma huvudman (t.ex. flera enheter på samma sjukhus) – ren visning, ingen ändring av hur data isoleras mellan organisationer",
+    ],
+  },
+  {
     version: "5.88.0",
     datum: "2026-08-10",
     andringar: [

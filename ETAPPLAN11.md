@@ -261,20 +261,67 @@ skrivas ut som en riktig planfil innan det kan antas.** Det här är det försö
 hör hemma i prissättningen (`MODULPLAN.md`s "volympris per tillkommande enhet"), inte i en
 feature-flagga.
 
-- **54a – Utred bärkraften, bygg ingenting. KÖR OAVSETT om resten av etappen antas.**
-  Kartlägg exakt vad `organisationId` bär i dag: hur många collections, hur många
-  regelfunktioner, hur många hookar, och – viktigast – om `useAuth`s antagande om **ett**
-  `organisationId` per användare är inbakat på ett fåtal ställen eller överallt. Svaret
-  avgör om 54d är en dagsinsats eller en omskrivning av behörighetsmodellen. Resultatet
-  skrivs in i den här filen som en "Premisskontroll"-sektion, precis som 48c fick.
-  **Utfallet får ändra planen** – inklusive att stryka 54c och 54d helt.
-- **54b – Huvudmannanivå ovanpå, inte istället för.** Ett fält `huvudman` på
-  `organisationer/{orgId}` och en gruppering i `/leverantor`. Ingen dataflytt, inga ändrade
-  regler, ingen risk. Ger omedelbart: en samlad vy per huvudman i leverantörsvyn, en
-  gemensam fakturarad, och – med en enkel utökning av `/ledningsrapport` – en jämförelse
-  mellan enheter för en verksamhetschef som ansvarar för flera. **Detta ensamt löser
-  förmodligen 70 % av det upplevda behovet till 10 % av risken**, och bör byggas först och
-  utvärderas innan 54c ens övervägs.
+- **54a – ✅ UTFÖRD (2026-08-10) – Utred bärkraften, bygg ingenting.**
+
+  **Premisskontroll (utfall):** `organisationId` förekommer på 85 rader i `firestore.rules`,
+  198 rader i `functions/index.js`, och i 47 av 63 klienthookar. Vid första anblick ser det
+  ut som antagandet "ett `organisationId` per användare" är hårdkodat på dussintals fristående
+  ställen – men **alla 69 av de 85 raderna i `firestore.rules` funnlar genom EN enda
+  regelfunktion**, `matcharMinOrg()` → `minOrganisation()` → `minAnvandare().organisationId`.
+  Den läser `users/{uid}.organisationId` **direkt och live vid varje regelutvärdering** – det
+  finns ingen JWT-custom-claim att förnya, ingen token att sätta om. Samma mönster upprepas i
+  klienten: varje hook läser `organisationId` direkt från `useAuth()` (en enda `AuthContext`),
+  aldrig som en parameter som skickas runt – en ändring av det EN värdet i `AuthContext`
+  triggar automatiskt om varje `useEffect` som redan har `organisationId` i sin
+  beroendelista (vilket alla granskade hookar har).
+
+  **Slutsats: antagandet sitter INTE utspritt på 47+85+198 ställen – det sitter i EN enda
+  källa (`users/{uid}.organisationId`), som allt annat härleder från.** Att låta en
+  användare byta aktiv organisation utan utloggning är alltså INTE en omskrivning av
+  behörighetsmodellen. Det som saknas är bara ett sätt att uttrycka "medlem i flera
+  organisationer" (i dag finns bara "en anvandardokument, ett organisationId, en roll" – noll
+  stöd för flera medlemskap), plus en kontrollerad väg att byta vilket av dem som är aktivt:
+
+  1. En ny, liten collection (t.ex. `medlemskap/{uid}_{orgId}`) som listar VILKA organisationer
+     ett Firebase Auth-konto får växla till, med vilken roll i var och en.
+  2. En ny Cloud Function `bytOrganisation(orgId)` som validerar medlemskapet och uppdaterar
+     `users/{uid}.organisationId` (+ roll) – existerande `bararForandrarFalt`-spärren i
+     `firestore.rules` gör redan idag att bara Admin SDK (inte klienten direkt) kan ändra
+     `organisationId`, så ingen ny regelrisk uppstår.
+  3. En variant av inbjudningsflödet för "lägg till ett REDAN existerande konto i en till
+     organisation" – dagens `losInInbjudan` förutsätter uttryckligen ett nytt Firebase
+     Auth-konto (`createUserWithEmailAndPassword` körs av klienten FÖRE Cloud Function-
+     anropet) och stödjer inte detta alls idag.
+  4. En enkel växlare i UI:t (t.ex. i `Profil.jsx`).
+
+  **Uppskattning: en bunden, medelstor funktion (dagar, inte veckor) – INTE en omskrivning av
+  `firestore.rules`.** Noll av de 85 regelraderna eller 198 backend-raderna behöver ändras,
+  eftersom de alla läser samma enda fält – bara källan till DET fältets värde (medlemskap +
+  en styrd växlingsväg) behöver byggas. **54d stryks alltså INTE** (i motsats till vad
+  utkastet öppnade för som en möjlighet) – den nedgraderas istället från "okänd risk" till
+  "en avgränsad, väl förstådd uppgift", och kan byggas oberoende av 54c.
+
+  Separat, för 54c (delade rutiner): den kräver ett GENUINT nytt undantag i
+  `firestore.rules` (samma kategori som Etapp 50b var den enda tidigare av) – det är där den
+  faktiska regelrisken i hela Etapp 54 finns, inte i 54d.
+- **54b – ✅ KLAR (2026-08-10) – Huvudmannanivå ovanpå, inte istället för.** Byggd exakt som
+  planerat: ett fritextfält `huvudman` på `organisationer/{orgId}`, satt via en ny callable
+  `satHuvudman` (plattformsadmin-only, samma mönster som `satAvtaladArsavgift`/
+  `satSokkvotTakPerDygn`), och en ren klientgruppering i `/leverantor` – ingen dataflytt,
+  ingen ändrad regel (noll rader ändrade i `firestore.rules`). Ny sektion "🏛️ Huvudmän" listar
+  varje grupp med antal enheter och ett summerat avtalat pris; varje organisationsrad visar en
+  huvudman-badge när fältet är satt.
+  **Premisskontroll under bygget:** planens egen beskrivning nämnde även "en enkel utökning
+  av `/ledningsrapport` – en jämförelse mellan enheter för en verksamhetschef" som en del av
+  54b:s "ingen risk"-paket. Det stämmer INTE – att låta en chef se en SYSKONorganisations
+  ledningsrapportsdata kräver att den chefen läser data utanför sin egen organisation, vilket
+  i sig är precis den sortens nytt cross-org-undantag som 54c (inte 54b) är till för och som
+  kräver en egen, medveten regelavvägning (se genomgående krav 20). **Den delen är därför
+  MEDVETET INTE byggd här** – utesluten ur 54b:s leverans, kvar som en eventuell framtida
+  54c-liknande utökning om huvudmannagrupperingen visar sig efterfrågad på riktigt.
+  Testat: `tests/functions/etapp6.test.cjs` utökad med 5 nya tester (behörighet, trimning,
+  borttagning via null, `listaOrganisationer` returnerar null för en organisation utan
+  huvudman). v5.89.0.
 - **54c – Gemensamma rutiner (HÖGRISK, villkorad av 54b:s utfall).** En organisation kan
   utses till *gemensam källa* för sin huvudman; dess **godkända** rutiner blir läsbara för
   syskonorganisationerna, tydligt märkta *"Gemensam rutin – förvaltas av X, kan inte ändras
@@ -475,7 +522,7 @@ till invändningen.
 |---|---|---|---|---|
 | **57a** | Rätta det felaktiga påståendet i `PITCH.md` | Ingen | Minuter | ✅ **KLAR (2026-08-10)** |
 | **53** | E-post som kanal (inbjudan, påminnelser, månadsrapport) | Låg–medel | Medel | ✅ **HELT KLAR (2026-08-10), v5.85.0–5.88.0** – 53a–53d alla byggda och testade |
-| **54a–54b** | Utred enhetsmodellen + huvudmannanivå | Låg | Låg | Parallellt med 53 |
+| **54a–54b** | Utred enhetsmodellen + huvudmannanivå | Låg | Låg | ✅ **KLAR (2026-08-10), v5.89.0** – 54a visade att 54d är avgränsad, inte en omskrivning; 54b byggd |
 | **56** | Startbiblioteket: fler mallar, mallar för icke-rutiner | Ingen | Låg–medel | När som helst |
 | **55** | Kioskläge (delad surfplatta) | Medel | Medel | När som helst |
 | **57b–57c** | Händelsestyrd `PITCH.md`-regel + ärlighetsstycke | Ingen | Låg | Ihop med 57a |

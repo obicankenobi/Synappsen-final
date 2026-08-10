@@ -396,6 +396,45 @@ async function main() {
     vantaSig(orgSnap.data().sokkvotTakPerDygn === null, "sokkvotTakPerDygn återställdes inte");
   });
 
+  console.log("\nsatHuvudman – Etapp 54b huvudmannagruppering (ren visning, ingen ny läsväg)");
+  await test("en icke-plattformsadmin kan INTE sätta en huvudman", () =>
+    forvantaFel("permission-denied", () =>
+      funcs.satHuvudman.run({
+        data: { orgId: nyOrgId, huvudman: "Regionsjukhuset" },
+        auth: { uid: "vanligPersonal" },
+      })
+    )
+  );
+  await test("en tom text avvisas med invalid-argument (använd null för att ta bort)", () =>
+    forvantaFel("invalid-argument", () =>
+      funcs.satHuvudman.run({
+        data: { orgId: nyOrgId, huvudman: "   " },
+        auth: { uid: "vanligSuperadmin" },
+      })
+    )
+  );
+  await test("en plattformsadmin KAN sätta en huvudman, trimmad", async () => {
+    await funcs.satHuvudman.run({
+      data: { orgId: nyOrgId, huvudman: "  Regionsjukhuset  " },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const orgSnap = await db.collection("organisationer").doc(nyOrgId).get();
+    vantaSig(orgSnap.data().huvudman === "Regionsjukhuset", "huvudman sattes inte (trimmad)");
+  });
+  await test("huvudman kan tas bort igen genom att sätta null", async () => {
+    await funcs.satHuvudman.run({
+      data: { orgId: nyOrgId, huvudman: null },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    const orgSnap = await db.collection("organisationer").doc(nyOrgId).get();
+    vantaSig(orgSnap.data().huvudman === null, "huvudman togs inte bort");
+  });
+  await test("listaOrganisationer visar null för en organisation utan huvudman", async () => {
+    const resultat = await funcs.listaOrganisationer.run({ data: {}, auth: { uid: "vanligSuperadmin" } });
+    const rad = resultat.organisationer.find((o) => o.orgId === "orgVanlig");
+    vantaSig(rad.huvudman === null, `förväntade null, fick ${rad.huvudman}`);
+  });
+
   console.log("\nsatProvperiod / kontrolleraProvperioder – Etapp 15e provperiod och automatisk pausning");
   await test("en icke-plattformsadmin kan INTE sätta en provperiod", () =>
     forvantaFel("permission-denied", () =>
