@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.93.0",
+    datum: "2026-08-10",
+    andringar: [
+      "Snabbare sidladdning för organisationer med många rutiner",
+    ],
+  },
+  {
     version: "5.92.0",
     datum: "2026-08-10",
     andringar: [

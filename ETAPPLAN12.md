@@ -259,13 +259,53 @@ scenario som aldrig testats. Det vore ett dåligt sätt att upptäcka en flaskha
   `lasteAv`-array) och `scripts/prestandamat.mjs` (Playwright, mäter en riktig kall
   inloggning mot en redan seedad organisation). Körde 500/1 000/2 000 rutiner. Resultat och
   slutsats i en egen underrubrik direkt nedan.
-- **60b – Listvyn ska inte hämta hela innehållet.** *Villkorat av 60a.* Rutindokumentets
-  tunga fält (`innehall`, `steg`, `kviss`, `externaKallor`) behövs inte för att rendera ett
-  `RutinKort` i en lista – bara för att öppna rutinen. Två vägar att väga: (i) ett
-  `listvy`-projekterat fält som skrivs vid spara, (ii) en separat `rutinerIndex`-collection.
-  Alternativ (ii) är renare men inför en synkroniseringsrisk (två källor som kan gå isär) –
-  och den sortens risk har det här projektet redan brottats med i dokumentationen. Väg det
-  medvetet.
+- **60b – ✅ KLAR (2026-08-10), men i en MYCKET mindre form än ursprungligen skriven.** Se
+  "Vad som hände" nedan – originalskrivningens premiss (innehåll/steg/kviss "behövs bara för
+  att öppna rutinen") visade sig felaktig när den kontrollerades mot faktisk kod.
+
+  **Vad som hände:** innan något byggdes kontrollerades premissen mot `Sektionssida.jsx` –
+  och den höll inte. Det finns ingen separat "öppna rutinen"-vy: `RutinKort` renderar HELA
+  `innehall` direkt, ogömt, för VARJE godkänd rutin på sidan samtidigt (troligen medvetet – en
+  akutmottagning ska inte behöva ett extra klick för att se en rutin under press). En
+  listvyprojektion (alternativ i eller ii) hade alltså inte sparat någon bandbredd alls –
+  sidan hade ändå behövt hämta allt innehåll för att rendera det den redan renderar. Att
+  bygga om till en riktig "hämta bara vid öppning"-modell hade krävt att sidan själv byggdes
+  om (paginering/virtualisering) – en genuin UX-förändring, inte en datalagerjustering, och
+  betydligt större risk än vad originaltexten antydde ("(i) ett listvy-fält, (ii) en separat
+  collection" – båda beskrivningarna underskattade omfattningen rejält).
+
+  Lades fram för ägaren som tre alternativ. Valt: en tredje, mindre väg som identifierades
+  under undersökningen och inte fanns i planen från början – **ta bort `namn` ur varje
+  `lasteAv`-post** (`{uid, namn, tidpunkt}` → `{uid, tidpunkt}`, `useLaskvittering.js`).
+  Namnet var ren duplicering: `RutinKort.jsx`/`AnslagKort.jsx` har redan organisationens
+  användarlista laddad som en separat prop och kan slå upp namnet från `uid` (samma
+  lösning tillämpad konsekvent på BÅDA `lasteAv`-användningarna, rutiner och anslag – inte
+  bara rutiner, eftersom de delar exakt samma datamodell och skrivfunktion). Ingen ny
+  collection, ingen migrering, inga regeländringar (`bararForandrarFalt(['lasteAv'])` bryr
+  sig inte om den interna formen på varje post), `kompetensStatus.js`/`veckansRepetition.js`
+  (som båda genuint behöver `tidpunkt` per person, se undersökningen) helt orörda.
+
+  **Uppmätt effekt (samma harness som 60a, `prestandaOrg`, 2 000 rutiner, kall inloggning):**
+  77,3 MB → **36,0 MB, en minskning med 53 %** – större än det ~30–40 % som uppskattades i
+  förväg, eftersom `namn`-strängarna (`"Testperson 123"`, ~15–20 byte) utgjorde en större
+  andel av varje kvitteringspost än väntat relativt `{uid, tidpunkt}`s ~25–30 byte.
+  `innehall`/`steg`/`kviss` finns kvar oförändrade – 36 MB är fortfarande betydande, men det
+  är den ärliga, uppmätta siffran för vad den HÄR åtgärden faktiskt gav, inte ett löfte om
+  att problemet är löst i sin helhet.
+
+  **Testat:** `npm run lint`/`build`/`npx vitest run` gröna (130/130 – befintliga tester i
+  `kompetensStatus.test.js`/`veckansRepetition.test.js`/`innehallshalsa.test.js` använde
+  redan `{uid, tidpunkt}` utan `namn`, vilket bekräftar i efterhand att `namn` aldrig
+  behövdes av logiken, bara av en tidigare (nu borttagen) direktvisning). Inga
+  `functions/index.js`-/regeländringar denna gång, så `test:functions`/`test:rules` kördes
+  inte om.
+
+  **Struket, inte bara "inte gjort":** en fullständig listvyprojektion (alternativ i/ii från
+  originaltexten) är inte längre rekommenderad som nästa steg i den här formen – premissen
+  den byggde på (att listan och "öppna rutinen" är olika vyer) stämmer inte med hur appen
+  faktiskt är byggd. Om bandbredden vid en verklig pilotorganisations volym fortfarande är
+  ett problem efter 60c, är rätt nästa fråga "ska Sektionssida pagineras/virtualiseras" –
+  ett UX-beslut för ägaren, inte en teknisk detalj att besluta i en kodsession.
 - **60c – Filtrera bort papperskorg och arkiv i frågan, inte i klienten.** `useRutiner`
   hämtar mjukraderade och arkiverade rutiner och kastar dem i JavaScript. Med
   `where("borttagen", "!=", true)` finns en känd fälla: **Firestore utesluter dokument som
@@ -354,9 +394,11 @@ faktiska rutinantal).
 
 **Klart när:** samma tre mätvärden som i 60a är körda igen mot 2 000 rutiner och ligger inom
 en gräns som skrivits ned i planen i förväg – eller när 60a visat att inget behövde göras.
-**✅ Uppfyllt för tid-till-interaktiv/Fuse-byggtid/Firestore-kostnad (inget behövde göras).
-Delvis avvikande för överförd datamängd** (se avvikelsen ovan) – 60b/60c kvarstår som
-rekommenderat, ej byggt, arbete.
+**✅ Uppfyllt för tid-till-interaktiv/Fuse-byggtid/Firestore-kostnad (inget behövde göras).**
+**Överförd datamängd delvis åtgärdad av 60b** (77,3→36,0 MB, se §60b) – 60c kvarstår som
+rekommenderat, ej byggt, lågriskkomplement. En fullständig lösning (paginering/
+virtualisering av Sektionssida) är struken som fel omfattning för den här etappen, se 60b:s
+egen slutsats.
 
 ---
 
@@ -498,7 +540,8 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 |---|---|---|---|---|
 | **59** | Rätta logistikrutinerna, gata kioskläget, beroendehygien | Ingen/Operations | Låg | ✅ **HELT KLAR (2026-08-10)** – 59a–59c alla byggda |
 | **60a** | Mät prestanda med 500–2 000 rutiner | Ingen | Låg | ✅ **KLAR (2026-08-10)** |
-| **60b–c** | Listvyprojektion (inkl. `lasteAv`), serverside-filtrering | Ingen | Medel | **Rekommenderat av 60a:s siffror – ej byggt** |
+| **60b** | Krympa `lasteAv` (tog `namn` bort) | Ingen | Låg | ✅ **KLAR (2026-08-10)** – 77,3→36,0 MB (−53 %). Full listvyprojektion struken, se §60b |
+| **60c** | Serverside-filtrering (papperskorg/arkiv) | Ingen | Medel | Rekommenderat, ej byggt |
 | ~~**60d**~~ | ~~Sökindex i webbworker~~ | – | – | **Struket – 60a mätte Fuse-byggtid till <2 ms, inte den dyra delen** |
 | **61** | Dela `functions/index.js`, testluckor, kiosk-e2e | Ingen | Låg–medel | Förslag |
 | **62** | Sökluckor → rutin, veckopuls, åtgärdbar hälsosiffra | Operations | Låg | Förslag |

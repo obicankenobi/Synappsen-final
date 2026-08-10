@@ -203,7 +203,12 @@ export default function RutinKort({
             {jagHarLast ? "✓ Du har läst detta" : "Jag har läst och förstått"}
           </button>
           {farRedigera && lasteAv.length > 0 && (
-            <span className="rutin-kort__last-antal" title={lasteAv.map((l) => l.namn).join(", ")}>
+            <span
+              className="rutin-kort__last-antal"
+              title={lasteAv
+                .map((l) => anvandare.find((a) => a.id === l.uid)?.namn ?? l.uid)
+                .join(", ")}
+            >
               {lasteAv.length} har kvitterat
             </span>
           )}

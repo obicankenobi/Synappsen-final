@@ -113,9 +113,12 @@ async function main() {
     const omrade = OMRADEN[i % OMRADEN.length];
     const titel = `Rutin ${i + 1} – ${omrade === "kliniskt-stod" ? "klinisk åtgärd" : "administrativt moment"}`;
     const antalLasare = 10 + Math.floor(Math.random() * 170);
+    // Etapp 60b (ETAPPLAN12.md): namn ingår MEDVETET inte längre – kvitteraLast slutade
+    // skriva det (ren duplicering, namnet slås upp från användarlistan i UI:t istället), så
+    // seedningen ska spegla den faktiska skrivformen.
     const lasteAv = Array.from({ length: antalLasare }, () => {
       const uid = anvandarUid[Math.floor(Math.random() * anvandarUid.length)];
-      return { uid, namn: `Testperson ${uid.replace("prestandaUser", "")}`, tidpunkt: admin.firestore.Timestamp.now() };
+      return { uid, tidpunkt: admin.firestore.Timestamp.now() };
     });
     const harChecklista = Math.random() < 0.1;
     const harKviss = Math.random() < 0.2;

@@ -6,10 +6,8 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.92.0** (oförändrad – Etapp 60a var mätning +
-två nya verktygsskript, ingen appkodsändring, se skälet i uppföljningen längst ner) – **INTE
-ÄNNU DEPLOYAD** (senaste bekräftade produktionsdeploy är fortfarande v5.89.0, körning #73,
-commit `63f15d7`).
+**Senast uppdaterad:** 2026-08-10, version **5.93.0** – **INTE ÄNNU DEPLOYAD** (senaste
+bekräftade produktionsdeploy är fortfarande v5.89.0, körning #73, commit `63f15d7`).
 `ETAPPLAN11.md` (Etapp 53–58) är nu **HELT KLAR utom 54c/54d och Etapp 58** – båda väntar
 medvetet på en extern förutsättning (konkret andra enhet respektive en kund som kräver SSO),
 inte på kapacitet, se `OPPNA-PUNKTER.md`. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
@@ -17,17 +15,22 @@ drift") är den nya AKTIVA planen, ANTAGEN 2026-08-10** direkt efter en kodgenom
 dokumentgenomgång) av v5.91.0 – till skillnad från tidigare planer bygger den nästan inga nya
 funktioner, bara hållfasthet: den genomgången hittade tre fel som redan fanns i
 produktionsgrenen, varav två infördes av de två senaste etapperna (Etapp 55/56).
-**Etapp 59 (59a–59c) och nu även 60a är KLARA.** Etapp 60a mätte appen mot en realistisk
-rutinmängd (500/1 000/2 000 rutiner, emulator) – slutsats: tid-till-interaktiv och
-Fuse-sökindexbygge är helt oproblematiska (60d struket, onödigt), men en kall
-förstagångsinloggning drar 77 MB vid 2 000 rutiner, vilket gör 60b (trimma listvyns
-nyttolast) motiverat – REKOMMENDERAT men inte byggt än. Ett fristående, separat förslag
-(Etapp 64, ett "baspaket" av nationella referenser) hölls medvetet UTANFÖR den aktiva planen,
-i en egen fil `ETAPPLAN13.md` – den kräver en extern juridisk MDR-bedömning innan den ens är
-byggbar, till skillnad från allt annat. `ETAPPLAN9.md`/`ETAPPLAN8.md`/`ETAPPLAN10.md`
-fortsatt HELT KLARA OCH DEPLOYADE (utom 10:s Etapp 52, väntar på en bokning). **Läs sektionen
-"Uppföljning 2026-08-10 (Etapp 60a klar)" längst ner för vad som faktiskt mättes** – tidigare
-uppföljningar (Etapp 59, 53–57) finns kvar nedanför den, i kronologisk ordning.
+**Etapp 59 och 60a–60b är nu KLARA.** Etapp 60a mätte appen mot en realistisk rutinmängd
+(500/1 000/2 000 rutiner, emulator) – tid-till-interaktiv och Fuse-sökindexbygge helt
+oproblematiska (60d struket, onödigt), men en kall förstagångsinloggning drog 77 MB vid
+2 000 rutiner. Etapp 60b undersökte den ursprungligen skrivna lösningen (en
+listvyprojektion) och fann att PREMISSEN INTE HÖLL – `Sektionssida.jsx` renderar redan hela
+innehållet för varje rutin samtidigt (ingen separat "öppna"-vy att spara in på), så en
+projektion hade inte sparat något alls utan en genuin UX-ombyggnad (paginering). Byggde
+istället en mindre, egentligen upptäckt-under-vägen fix: `namn` togs bort ur varje
+`lasteAv`-post (ren duplicering, löses upp från den redan laddade användarlistan istället) –
+77,3→36,0 MB, −53 %, utan ny collection/migrering/regeländring. Ett fristående, separat
+förslag (Etapp 64, ett "baspaket" av nationella referenser) hölls medvetet UTANFÖR den
+aktiva planen, i en egen fil `ETAPPLAN13.md` – den kräver en extern juridisk MDR-bedömning
+innan den ens är byggbar. `ETAPPLAN9.md`/`ETAPPLAN8.md`/`ETAPPLAN10.md` fortsatt HELT KLARA
+OCH DEPLOYADE (utom 10:s Etapp 52, väntar på en bokning). **Läs sektionen "Uppföljning
+2026-08-10 (Etapp 60b klar)" längst ner** – tidigare uppföljningar (60a, 59, 53–57) finns
+kvar nedanför den, i kronologisk ordning.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -2195,3 +2198,45 @@ inget att testa om där.
 **60b/60c är rekommenderade av mätningen men INTE byggda** – uppdraget den här sessionen var
 specifikt "Etapp 60a". Nästa steg: bygg 60b (och lågriskkomplementet 60c) om det efterfrågas,
 eller fortsätt med Etapp 61 (underhållbarhet/testluckor) som inte är villkorat av något.
+
+## Uppföljning 2026-08-10 (Etapp 60b klar: krympt lasteAv, v5.93.0 – premissen bakom
+originalplanen höll INTE)
+
+Ombads köra "60b" enligt föregående sessions rekommendation. **Innan något byggdes
+kontrollerades planens premiss mot faktisk kod (samma disciplin som redan gäller i det här
+projektet, genomgående krav 8)** – och den höll inte. 60b:s text antog att listvyn
+(`Sektionssida.jsx`) och "öppna en rutin" är två separata vyer, där bara den senare behöver
+`innehall`/`steg`/`kviss`. I verkligheten renderar `RutinKort` hela innehållet direkt, ogömt,
+för VARJE godkänd rutin på listsidan samtidigt – det finns ingen separat öppningsvy att spara
+in på. En listvyprojektion (planens ursprungliga "(i) ett listvy-fält" eller "(ii) en separat
+collection") hade alltså sparat NOLL bandbredd; att faktiskt lösa det hade krävt att
+`Sektionssida` byggdes om med paginering/virtualisering – en genuin UX-förändring för en
+akutmottagning, inte en datalagerjustering, och en betydligt större/riskablare insats än
+originaltexten antydde.
+
+Lade fram det ärligt för ägaren som tre val (bygg full listvyprojektion ändå, gör ingenting,
+eller en tredje – mindre – väg som identifierades under undersökningen). **Valt: den tredje
+vägen.** `lasteAv`-kvitteringsposter (`{uid, namn, tidpunkt}`) innehöll `namn` i ren
+duplicering – `RutinKort.jsx`/`AnslagKort.jsx` har redan organisationens användarlista laddad
+som en separat prop och kan slå upp namnet från `uid`. Tog bort `namn` ur skrivningen
+(`useLaskvittering.js`, gäller BÅDE rutiner och anslag – samma datamodell), uppdaterade de två
+tooltip-visningarna att slå upp namnet istället. Ingen ny collection, ingen migrering, inga
+regeländringar (`bararForandrarFalt(['lasteAv'])` bryr sig inte om formen på varje post),
+`kompetensStatus.js`/`veckansRepetition.js` (som genuint behöver `tidpunkt` per person) helt
+orörda.
+
+**Uppmätt effekt** (samma harness som 60a, `prestandaOrg`, 2 000 rutiner, kall inloggning):
+77,3 → **36,0 MB, −53 %** – större än den ~30–40 % som uppskattades i förväg. Full
+listvyprojektion är struken som fel omfattning för den här etappen; nästa steg om
+bandbredden fortfarande är ett problem vid en verklig pilotorganisations volym är ett
+UX-beslut (paginera Sektionssida?), inte en teknisk detalj.
+
+Testat: lint, build, vitest (130/130, befintliga `kompetensStatus.test.js`/
+`veckansRepetition.test.js`/`innehallshalsa.test.js` använde redan `{uid, tidpunkt}` utan
+`namn` – bekräftar i efterhand att `namn` aldrig behövdes av logiken). Inga functions-/
+regeländringar denna gång. Version bumpad 5.92.0 → **5.93.0** (första app-synliga ändringen
+sedan 5.91.0). `ETAPPLAN12.md` §60b markerad ✅ KLAR med hela resonemanget.
+
+**Nästa steg:** 60c (serverside-filtrering av papperskorg/arkiv) kvarstår som rekommenderat,
+ej byggt. Etapp 61 (underhållbarhet/testluckor) är inte villkorat av något och kan tas när
+som helst.

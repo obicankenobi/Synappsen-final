@@ -50,7 +50,12 @@ export default function AnslagKort({ anslag, farHantera, anvandare = [], onRedig
           {jagHarLast ? "✓ Du har läst detta" : "Jag har läst"}
         </button>
         {farHantera && lasteAv.length > 0 && (
-          <span className="anslag-kort__last-antal" title={lasteAv.map((l) => l.namn).join(", ")}>
+          <span
+            className="anslag-kort__last-antal"
+            title={lasteAv
+              .map((l) => anvandare.find((a) => a.id === l.uid)?.namn ?? l.uid)
+              .join(", ")}
+          >
             {lasteAv.length} har kvitterat
           </span>
         )}
