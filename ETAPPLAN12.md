@@ -446,15 +446,49 @@ faktiskt har test.
 
 **Modul:** ingen.
 
-- **61a – Dela `functions/index.js`.** Samma behandling som `Admin.jsx` fick i Etapp 8c, och
-  samma motivering. Föreslagen indelning efter domän, inte efter storlek:
-  `epost.js`, `organisationslivscykel.js` (etablering/paus/radering/support),
-  `revisionslogg.js`, `klinikstod.js`, `ai-import.js`, `schemalagt.js`, `notiser.js`,
-  och ett `gemensamt.js` för `hamtaAnvandarInfo`/`kravModul`/`kontrolleraOchOkaHastighet`/
-  `loggaRevision`. **Ren flytt, noll beteendeändring** – och krav 24 gäller: fullt testsvep
-  före och efter, diffen ska gå att läsa som förflyttning. Behåll `index.js` som en tunn fil
-  som bara re-exporterar, så att `firebase deploy` och de 32 testfilernas `require`-sökvägar
-  fortsätter fungera oförändrade.
+- **61a – ✅ KLAR (2026-08-10).** `functions/index.js` (4 680 rader, 93 exports) delad i 12
+  domänfiler + en tunn re-exporterande skarv. Verifierat som en RIKTIG ren flytt, inte bara
+  påstådd: en multiset-diff av alla icke-tomma rader i hela `functions/`-katalogen
+  före/efter visar att exakt EN rad försvann (den gamla toppkommentaren, ersatt av nya
+  filhuvuden) – allt annat, inklusive varje kommentar, finns kvar ordagrant. Exportytan är
+  bevisat identisk (samma 93 namn, samma ordning, jämfört programmatiskt mot originalet via
+  `git stash`).
+
+  **Slutlig filindelning** (alla under ~800 rader, planens eget riktmärke):
+  `gemensamt.js` (700, delade primitiver: onCall/Sentry-omslaget, db/admin/bucket,
+  hemligheter, roll-/modulkontroller, e-post, hastighetsbegränsning, budget/sökkvot,
+  revisionsloggens skrivning, push/e-postmottagare), `ai-import.js` (453), `klinikstod.js`
+  (629, inkl. källbevakning), `organisationsadmin.js` (364), `backup.js` (237),
+  `revisionslogg.js` (152, kedjekontrollen – skrivningen ligger i gemensamt.js, se
+  avvikelse nedan), `notiser.js` (374), `matvarden.js` (319), `plattformsdrift.js` (304),
+  `organisationslivscykel.js` (534, etablering + demo-/övningsmiljön),
+  `avtalslivscykel.js` (726, avtal/provperiod/månadsrapport/paus/export/radering/support),
+  `inbjudningar.js` (235). `index.js` är nu 142 rader, en explicit (inte svepande)
+  re-exportlista.
+
+  **Avvikelser från planens föreslagna indelning, och varför:**
+  - **Ingen egen `epost.js` eller `schemalagt.js`.** `skickaEpost` ligger i `gemensamt.js`
+    (en delad primitiv, används från åtta domäner) – det enda som blivit kvar för en egen
+    e-postfil vore `angeEpostAvstangd` (~29 rader) och `skickaEpostPaminnelser`, en fil
+    efter radantal snarare än domän. Samma logik stoppade en egen schemafil: varje
+    `onSchedule` är en tunn wrapper runt en kärnfunktion som MÅSTE exporteras separat för
+    test (`kontrolleraKvitteringsfrister` m.fl.) – att bryta ut bara schemaläggningsdelen
+    hade splittrat de paren eller krävt cirkulära requires.
+  - **`loggaRevision`/kedjehashningen ligger i `gemensamt.js`**, inte i `revisionslogg.js` –
+    40+ anropsställen över åtta domäner. `revisionslogg.js` äger driftdelen (den
+    schemalagda kedjekontrollen, adminvyns verifiering/export).
+  - **`organisationslivscykel.js` delades EN gång till, samma dag** (se ovan) – 1 229 rader
+    efter den första omgången var för mycket. Kontrollerat med grep innan delningen att de
+    två halvorna (etablering+demo vs. avtal+avveckling) inte delar någon kod utöver de
+    vanliga gemensamt.js-/backup.js-/inbjudningar.js-primitiverna, så delningen var säker.
+  - Inga faktiska buggar hittades under flytten.
+
+  **Testat:** `npm run lint` (rent – obs: root-`eslint.config.js` har alltid globalt
+  ignorerat `functions/`, oförändrat av den här etappen, samma som innan delningen),
+  `node --check` på alla 12 filer, `node -e "require('./functions/index.js')"` (93 exports,
+  identiska mot originalet), full `npm run test:functions` KÖRD TVÅ GÅNGER (en gång efter
+  den första uppdelningsomgången, en gång efter den andra) – 35/35 filer gröna båda
+  gångerna, noll testfiler ändrade. `npm run build`/`npx vitest run` gröna (175/175).
 - **61b – ✅ KLAR (2026-08-10).** Alla fem utils testade: `offlineKo.test.js` (11 tester,
   inkl. att `laggTillIKo` returnerar posten utan att kasta även när `localStorage.setItem`
   kastar `QuotaExceededError` – privat läge/full lagring), `checklistFramsteg.test.js` (9,
@@ -488,8 +522,9 @@ faktiskt har test.
   de fem nya kiosktesterna och den utökade sjurollers-rökprovssviten. `npm run lint` grönt.
   Ingen versionsbump – ren testtäckning, ingen appkod ändrad.
 
-**Klart när:** ingen fil i `functions/` är över ~800 rader (61a, ej byggt denna session), de
-fem utils har test (✅ 61b), och kioskläget täcks av e2e (✅ 61c).
+**Klart när:** ingen fil i `functions/` är över ~800 rader (✅ 61a – störst är nu 726 rader),
+de fem utils har test (✅ 61b), och kioskläget täcks av e2e (✅ 61c). **Hela Etapp 61 är
+HELT KLAR (2026-08-10).**
 
 ---
 
@@ -603,7 +638,7 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 | **60b** | Krympa `lasteAv` (tog `namn` bort) | Ingen | Låg | ✅ **KLAR (2026-08-10)** – 77,3→36,0 MB (−53 %). Full listvyprojektion struken, se §60b |
 | **60c** | Serverside-filtrering av papperskorgen (`borttagen`) | Ingen | Medel | ✅ **KLAR (2026-08-10)** – arkivet (`arkiverad`) medvetet UTE, se §60c |
 | ~~**60d**~~ | ~~Sökindex i webbworker~~ | – | – | **Struket – 60a mätte Fuse-byggtid till <2 ms, inte den dyra delen** |
-| **61** | Dela `functions/index.js` (61a), testluckor (61b), kiosk-e2e (61c) | Ingen | Låg–medel | **61b/61c KLARA (2026-08-10) – 61a återstår** |
+| **61** | Dela `functions/index.js` (61a), testluckor (61b), kiosk-e2e (61c) | Ingen | Låg–medel | ✅ **HELT KLAR (2026-08-10)** |
 | **62** | Sökluckor → rutin, veckopuls, åtgärdbar hälsosiffra | Operations | Låg | Förslag |
 | **63** | Gruppera öppna punkter, förbered pilot, tre beslut | Ingen | Ingen | Förslag – kräver ägaren |
 

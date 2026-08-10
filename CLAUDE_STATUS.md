@@ -30,14 +30,19 @@ mjukraderade rutiner inte längre hämtas alls (60c). **Etapp 61b och 61c är nu
 `checklistFramsteg`, `senastBesokta`, `introduktionProgress`, `kvartal`) – två av dem
 (`offlineKo`/`checklistFramsteg`) har en genuin dataförlustrisk om de går sönder. 61c gav
 kioskläget (Etapp 55b) sin första e2e-täckning, en ny fil `tests/e2e/kioskbevakning.spec.js`
-(5 tester) plus kiosk tillagt i `rokprov.spec.js`s rollista (sex → sju roller). **61a
-(dela `functions/index.js`, 4 680 rader) är fortfarande INTE byggd** – störst, mest
-riskfylld av de tre, medvetet lämnad för en egen session. Ett fristående, separat förslag
-(Etapp 64, ett "baspaket" av nationella referenser) hölls medvetet UTANFÖR den aktiva planen,
-i en egen fil `ETAPPLAN13.md`. `ETAPPLAN9.md`/`ETAPPLAN8.md`/`ETAPPLAN10.md` fortsatt HELT
-KLARA OCH DEPLOYADE (utom 10:s Etapp 52, väntar på en bokning). **Läs sektionen "Uppföljning
-2026-08-10 (Etapp 61b/61c klara)" längst ner** – tidigare uppföljningar (60c, 60b, 60a, 59,
-53–57) finns kvar nedanför den, i kronologisk ordning.
+(5 tester) plus kiosk tillagt i `rokprov.spec.js`s rollista (sex → sju roller). **61a är nu
+också KLAR – hela Etapp 61 är HELT KLAR.** `functions/index.js` (4 680 rader, 93 exports)
+delad i 12 domänfiler + en tunn re-exporterande skarv, verifierat som en RIKTIG ren flytt
+(en multiset-diff av alla rader i hela `functions/`-katalogen visar att bara EN rad
+försvann – den gamla toppkommentaren – allt annat finns kvar ordagrant), exportytan bevisat
+identisk mot originalet, full `test:functions`-svit (35 filer) körd två gånger (en gång per
+delningsomgång) och grön båda gångerna, noll testfiler ändrade. Ett fristående, separat
+förslag (Etapp 64, ett "baspaket" av nationella referenser) hölls medvetet UTANFÖR den
+aktiva planen, i en egen fil `ETAPPLAN13.md`. `ETAPPLAN9.md`/`ETAPPLAN8.md`/`ETAPPLAN10.md`
+fortsatt HELT KLARA OCH DEPLOYADE (utom 10:s Etapp 52, väntar på en bokning). **Läs
+sektionen "Uppföljning 2026-08-10 (Etapp 61a klar, hela Etapp 61 klar)" längst ner** –
+tidigare uppföljningar (61b/61c, 60c, 60b, 60a, 59, 53–57) finns kvar nedanför den, i
+kronologisk ordning.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -2322,3 +2327,45 @@ grön (17/17). Ingen versionsbump – rent testarbete, ingen appkod ändrad. `ET
 **Nästa steg:** 61a (dela `functions/index.js`) kvarstår som den enda ogjorda delen av
 Etapp 61 – störst och mest riskfylld, medvetet lämnad. Etapp 62 (mätvärde → åtgärd) är
 villkorad av att Etapp 59 är stängd, vilket den redan är.
+
+## Uppföljning 2026-08-10 (Etapp 61a klar, hela Etapp 61 nu HELT KLAR)
+
+Ombads köra 61a. Given storleken (4 680 rader, 93 exports, tung intern koppling – nästan
+varenda export anropar delade hjälpfunktioner som `hamtaAnvandarInfo`/`kravModul`/
+`loggaRevision`) och risken (fel här stoppar HELA Cloud Functions-driften, inte bara en
+funktion) skickades den mekaniska extraktionen till en bakgrundsagent med strikta,
+uttryckliga krav: ren flytt, ingen beteendeändring, `index.js` som en tunn re-exporterande
+skarv, och egen verifiering (lint, `require`-rökprov, full `test:functions`) innan
+rapportering.
+
+**Verifierade INTE bara agentens egen rapport – körde om nyckelbevisen själv** innan något
+committades: (1) `git stash`-jämförelse av exportlistan – 93 namn, identiska mot originalet,
+programmatiskt jämförda, inte bara räknade; (2) `node --check` på alla nya filer; (3) full
+`npm run test:functions` (35 filer mot emulatorn) körd på nytt av mig – 0 misslyckade; (4)
+`npm run build`/`npx vitest run` gröna.
+
+**En sak agenten flaggade men inte åtgärdade: `organisationslivscykel.js` landade på
+1 229 rader** – över planens ~800-radersriktmärke ("Klart när"-kriteriet). Kontrollerade med
+grep att filens två teman (etablering+demo-frö vs. avtal+avvecklingslivscykel) inte delar
+någon kod utöver de vanliga gemensamt.js-/backup.js-/inbjudningar.js-primitiverna – en
+säker, ren delning – och bröt ut den andra halvan till en ny fil `avtalslivscykel.js`
+(726 rader) själv. Körde HELA `test:functions`-sviten en andra gång efter den delningen
+också, fortsatt 0 misslyckade.
+
+**Slutresultat:** `functions/index.js` 4 680 → 142 rader. 12 domänfiler, samtliga under
+~800 rader (störst är `avtalslivscykel.js` på 726). En multiset-diff av alla icke-tomma
+rader i HELA `functions/`-katalogen före/efter visar att exakt EN rad försvann (den gamla
+toppkommentaren, ersatt av nya filhuvuden) – bevisar att detta genuint var en ren flytt,
+inte bara påstådd. Se `ETAPPLAN12.md` §61a för den fullständiga filindelningen och
+avvikelserna från planens ursprungliga förslag (varför ingen egen `epost.js`/`schemalagt.js`
+byggdes, varför `loggaRevision` ligger i `gemensamt.js` snarare än `revisionslogg.js`).
+
+Testat: lint, `node --check` × 12, `require`-rökprov (93 exports, identiska), full
+`test:functions` (35 filer, körd två gånger) 0 misslyckade båda gångerna, build, vitest
+(175/175). Ingen versionsbump krävs egentligen (ren flytt, inget beteende ändrat för en
+användare) men bumpas ändå för spårbarhet i deploy-historiken. `ETAPPLAN12.md` §61a
+markerad ✅ KLAR – **hela Etapp 61 (61a–61c) är nu HELT KLAR.**
+
+**Nästa steg:** Etapp 62 (mätvärde → åtgärd) är villkorad av att Etapp 59 är stängd, vilket
+den är – inget hindrar att ta den näst. Etapp 63 (gruppera öppna punkter, förbered pilot)
+kräver ägaren för tre beslut.
