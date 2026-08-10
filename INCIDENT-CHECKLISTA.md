@@ -3,7 +3,7 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-09 · **Motsvarar kodläge:** v5.83.0
+**Senast uppdaterad:** 2026-08-10 · **Motsvarar kodläge:** v5.84.0 + Etapp 53a (ej släppt än)
 
 > **Ägarbeslut 2026-08-01:** jourkontakt utanför kontorstid ifylld (se tabellen nedan).
 > Backup-retention 90 dagar, gallringslogiken byggd och testad (se `ETAPPLAN5.md` Etapp 33c).
@@ -118,7 +118,8 @@ loggen. Skriv ned det och gå vidare med största försiktighet.
 | Hela organisationen är komprometterad | **Pausa organisationen** | `/leverantor` | **HÖG – hela avdelningen förlorar åtkomst.** Sista utvägen. Ring kunden först |
 | Ett kapat superadmin-konto har begärt permanent radering (Etapp 49a, Sentry-tagg `radering_schemalagd`) | **Avbryt raderingen** – 48-timmarsfönstret ger tid, ingen brådska på sekunder | `/leverantor` (raden med ⚠️-varningen) | Ingen om det avbryts i tid – radering sker INTE förrän fönstret gått ut |
 | En aktiv supportåtkomst ser fel ut (fel tidpunkt, ingen som känns igen som anledning) | **Avsluta åtkomsten** direkt – går att bevilja igen om den var legitim | `/leverantor` (raden med 🔓-varningen) eller `/admin` (kunden själv) | Låg – fönstret ger bara läsrätt, ingen skrivrätt |
-| Läckt API-nyckel (Gemini/sökmotor) | Rotera nyckeln i Secret Manager, deploya om | GitHub Secrets + deploy-workflow | Ingen |
+| Läckt API-nyckel (Gemini/sökmotor/Brevo) | Rotera nyckeln i Secret Manager, deploya om | GitHub Secrets + deploy-workflow | Ingen |
+| Utgående e-post missbrukas eller beter sig oväntat (Etapp 53a) | **Stäng av allt utgående e-post globalt** – kräver ingen deploy, gäller alla organisationer omedelbart | `/leverantor` → "✉️ Utgående e-post" | Ingen – rent tekniskt en avsändningsspärr, ingen som mister åtkomst till innehåll |
 | Ditt eget plattformsadminkonto | Återkalla direkt, utan tvekan | Firebase-konsolen | Ingen – det är bara du |
 
 > **Innan du pausar en hel organisation:** fråga dig om skadan av att avdelningen inte når sina
@@ -274,6 +275,7 @@ användare. Sakligt, kort, verifierat.
 | Pausa/återaktivera organisation | `/leverantor` |
 | Schemalagd radering (begära/avbryta) | `/admin` → **Radera organisationen permanent** (kunden), `/leverantor` (avbryt-knapp) – Etapp 49a |
 | Tillfällig supportåtkomst (bevilja/avsluta) | `/admin` → **Tillfällig supportåtkomst** (kunden), `/leverantor` (varningsraden, "Avsluta åtkomsten") – Etapp 50b |
+| Utgående e-post – globalt nödstopp (av/på) | `/leverantor` → **✉️ Utgående e-post** – Etapp 53a |
 | Konton, inloggningar | Firebase-konsolen → Authentication |
 | Läs-/skrivvolym | Firebase-konsolen → Firestore → Usage |
 | Backupfiler (fullständig lista, inte bara senaste) | Firebase Storage → `backups/{orgId}/` |

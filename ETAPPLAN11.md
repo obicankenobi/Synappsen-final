@@ -150,20 +150,33 @@ når sin mottagare.
 **Modul:** ingen (Core). En kanal som bara Operations-kunder får är fel – inbjudningsflödet
 är Core.
 
-**Beroende:** beslutspunkt 1 (nytt underbiträde) måste vara avgjord först.
+**Beroende:** beslutspunkt 1 (nytt underbiträde) – **avgjord 2026-08-10, se BESLUTSLOGG.md**:
+ja, Brevo (EU-baserat, Frankrike).
 
-- **53a – Kanalen som infrastruktur.** *Verifiera först:* utvärdera Firebase-extensionen
-  *Trigger Email from Firestore* mot en direkt SMTP-/API-integration (t.ex. Postmark, Brevo,
-  SendGrid). Extensionen är snabbast och håller sig inom Firebase-projektet, men den kräver
-  ändå ett SMTP-konto hos någon – ett nytt underbiträde uppstår i båda fallen. Bygg en enda
-  intern hjälpare (`skickaEpost({ till, amne, text })`) som allt annat går igenom, aldrig
-  spridda anrop. Hjälparen ska: (i) hårdvägra att skicka om `till` saknas eller är ogiltig,
-  (ii) köra samma PII-kontroll på ämne och brödtext som formulären gör, (iii) logga
-  *att* ett mejl skickats till revisionsloggen – aldrig innehållet, (iv) ha ett globalt
-  nödstopp (ett fält i `organisationer` eller en plattformsflagga) som stänger av all utgående
-  e-post utan en deploy. Punkt (iv) är inte överkonstruktion: det är den enda funktionen i
-  produkten som kan generera hundratals irreversibla utgående händelser till riktiga
-  människor på en minut.
+- **53a – ✅ KLAR (2026-08-10) – Kanalen som infrastruktur.** Verifierade Firebase-
+  extensionen *Trigger Email from Firestore* mot en direkt API-integration: extensionen
+  kräver ändå ett SMTP-konto hos någon (samma underbiträdesfråga uppstår ändå) och lägger
+  till ett extra abstraktionslager utan att lösa något – valde en direkt integration mot
+  Brevos REST-API istället. Byggde EN intern hjälpare, `skickaEpost({ till, amne, text,
+  organisationId })` (`functions/index.js`), som allt annat i planen (53b–53d) ska gå
+  igenom. Genomfört: (i) hårdvägrar en ogiltig/saknad mottagaradress
+  (`HttpsError("invalid-argument", …)`), (ii) kör samma Luhn-validerade
+  personnummer-kontroll (`innehallerPersonnummer`) på ämne+text som formulären gör, (iii)
+  loggar *att* ett mejl skickats till avsändarens `revisionslogg` – aldrig innehållet, (iv)
+  ett globalt nödstopp (`systemstatus/epost.avstangd`, satt via den nya callablen
+  `angeEpostAvstangd`, plattformsadmin-only) som stänger av ALL utgående e-post för alla
+  organisationer omedelbart, utan en deploy – med dubbel bekräftelse i UI:t (genomgående
+  krav 17). Nyckeln (`BREVO_API_KEY`) hanteras som Secret Manager-parameter, exakt samma
+  mönster som `GEMINI_API_KEY`/`SOKMOTOR_API_KEY` – saknas den (fram tills ägaren sätter en
+  riktig nyckel som GitHub-hemlighet) no-oppar `skickaEpost()` tyst och loggar en varning,
+  istället för att krascha anroparen. **Ingen produktfunktion anropar `skickaEpost()` ännu**
+  – det är precis vad 53b–53d ska göra. Testat: `tests/functions/epost.test.cjs` (10 tester
+  – validering, PII-spärr, nödstopp, tyst no-op utan nyckel, ett faktiskt utskick mot en
+  mockad Brevo-endpoint som bevisar att loggposten aldrig innehåller mejlets text, samt
+  `angeEpostAvstangd`s behörighet). En ny UI-sektion "✉️ Utgående e-post" i `/leverantor`
+  visar och styr nödstoppet. Se `avtal/UNDERBITRADEN.md` (ny rad, Brevo),
+  `avtal/INCIDENTRESPONSPLAN.md` (v1.4, avsnitt 5.2) och `INCIDENT-CHECKLISTA.md` för
+  underhållsreglerna som triggades. v5.85.0.
 - **53b – Inbjudan levereras per e-post.** Behåll den kopierbara länken (den behövs när
   mejlet fastnar i ett spamfilter, vilket det kommer att göra hos minst en region), men gör
   utskick till förval. Inbjudningsmejlet är det enda som med nödvändighet får innehålla

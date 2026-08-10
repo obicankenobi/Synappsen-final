@@ -26,7 +26,7 @@ krav 8 i `ETAPPLAN3.md`. Rader markerade "[FYLLS I]"/"[EJ VERIFIERAT]" kräver e
 | Sentry (Functional Software, Inc.) | Felmeddelanden och stacktraces vid krascher/undantag | EU (Frankfurt, `ingest.de.sentry.io` – verifierat) | I drift |
 | Google reCAPTCHA (App Check) | Enhets-/webbläsarsignaler för att avgöra äkta klientanrop | Global Google-infrastruktur | I drift (mätläge, se Etapp 12c) |
 | Linear | Interna utvecklingsärenden (backlogg) | [FYLLS I – rör inte kunddata, se not nedan] | Internt leverantörsverktyg |
-| E-postleverantör (veckopuls) | Ej upphandlad ännu | – | **Planerad, Etapp 16 – ska in i denna lista innan den tas i drift** |
+| Brevo (Sendinblue SAS) | E-postadresser + en innehållslös notistext (aldrig verksamhetsinnehåll, se Etapp 53 genomgående krav 18) | Frankrike/EU (verifierat, EU-baserat bolag) | **Infrastruktur byggd (Etapp 53a, 2026-08-10), INTE i drift** – kräver att ägaren sätter en riktig `BREVO_API_KEY` som GitHub-hemlighet innan något faktiskt skickas. Utan nyckeln no-oppar `skickaEpost()` tyst (se `functions/index.js`). Ersätter den tidigare planerade "E-postleverantör (veckopuls)"-raden – samma infrastruktur täcker både Etapp 53 och en eventuell framtida Etapp 16 |
 
 ---
 
@@ -108,11 +108,26 @@ tekniskt arbete, inte innehåll från en kunds Firestore-databas. Tas ändå upp
 fullständighet, eftersom vissa kunder/DPO efterfrågar en fullständig lista över samtliga
 verktyg leverantören använder, oavsett om kunddata behandlas.
 
-### E-postleverantör (planerad, Etapp 16 – veckopuls)
+### Brevo (Sendinblue SAS)
 
-Ännu inte upphandlad. Enligt `ETAPPLAN3.md` Etapp 16a ska valet av leverantör styras av
-kravet på EU-datalagring och ett tecknat PUB-avtal – **denna rad ska fyllas i och avtalet
-uppdateras innan funktionen tas i drift**, inte i efterhand.
+Vald 2026-08-10 (`BESLUTSLOGG.md`, beslutspunkt 1 i `ETAPPLAN11.md` §53) som e-postkanal för
+Etapp 53 – i första hand inbjudningar (53b), tilldelade påminnelser (53c) och en kundvänd
+månadssammanfattning (53d). EU-baserat bolag (Frankrike), vilket var det avgörande skälet
+framför ett amerikanskt alternativ.
+
+- **Vad som skickas:** en mottagaradress plus en kort, medvetet innehållslös notistext (t.ex.
+  "du har 3 rutiner att granska, logga in för att se dem"). Aldrig organisationens namn,
+  verksamhetsinnehåll eller andra personuppgifter än mottagarens egen adress – se
+  `ETAPPLAN11.md` genomgående krav 18. Enda undantaget är inbjudningsmejlet (53b), som med
+  nödvändighet måste nämna organisationens namn för att vara begripligt; det är ett medvetet,
+  dokumenterat undantag, inte en glidning.
+- **Teknisk status:** hjälparfunktionen `skickaEpost()` och det globala nödstoppet
+  (`angeEpostAvstangd`, en knapp i `/leverantor`) är byggda och testade (Etapp 53a). **Ingen
+  produktfunktion anropar den ännu** – 53b–53d återstår. Skickar ingenting förrän ägaren satt
+  en riktig `BREVO_API_KEY` som GitHub-hemlighet (Secret Manager-mönster, samma som
+  `GEMINI_API_KEY`); fram tills dess no-oppar varje anrop tyst och loggar en varning.
+- **Rättslig grund:** [FYLLS I av ägaren innan skarp drift] – ett PUB-avtal med Brevo måste
+  vara på plats, precis som kravet var för den tidigare planerade "veckopuls"-leverantören.
 
 ---
 

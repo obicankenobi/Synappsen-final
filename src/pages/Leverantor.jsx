@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { collection, getDocs, query, where, addDoc, deleteDoc, doc, orderBy, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "../hooks/useAuth";
+import { useDialog } from "../hooks/useDialog";
 import {
   listaOrganisationer,
   skapaOrganisation,
@@ -17,6 +18,7 @@ import {
   hamtaOrganisationsdiagnostik,
   avslutaSupportAtkomst,
   nollstallDemoOrganisation,
+  angeEpostAvstangd,
 } from "../firebase/functions";
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
 import ManadsrapportSektion from "../components/ManadsrapportSektion";
@@ -84,6 +86,9 @@ export default function Leverantor() {
   const [demoNollstaller, setDemoNollstaller] = useState(false);
   const [demoInbjudanLank, setDemoInbjudanLank] = useState(null);
   const [demoMeddelande, setDemoMeddelande] = useState(null);
+  const [epostAvstangd, setEpostAvstangd] = useState(false);
+  const [epostAndrar, setEpostAndrar] = useState(false);
+  const { confirm } = useDialog();
 
   function ladda() {
     setLaddar(true);
@@ -92,6 +97,7 @@ export default function Leverantor() {
       .then(({ data }) => {
         setOrganisationer(data.organisationer);
         setSokkvot(data.sokkvot);
+        setEpostAvstangd(data.epostAvstangd);
       })
       .catch((e) => setFel(e))
       .finally(() => setLaddar(false));
@@ -105,10 +111,30 @@ export default function Leverantor() {
       .then(({ data }) => {
         setOrganisationer(data.organisationer);
         setSokkvot(data.sokkvot);
+        setEpostAvstangd(data.epostAvstangd);
       })
       .catch((e) => setFel(e))
       .finally(() => setLaddar(false));
   }, []);
+
+  // Etapp 53a: genomgående krav 17 (dubbel bekräftelse för en irreversibel/potentiellt
+  // skadlig handling) – att av misstag stänga AV nödstoppet igen mitt under en pågående
+  // incident är precis lika allvarligt som att glömma stänga av det när man borde.
+  async function hanteraEpostAvstangd(nyttVarde) {
+    const fraga = nyttVarde
+      ? "Stänga av ALL utgående e-post, för alla organisationer, med omedelbar verkan?"
+      : "Slå på utgående e-post igen, för alla organisationer?";
+    if (!(await confirm(fraga))) return;
+    setEpostAndrar(true);
+    try {
+      await angeEpostAvstangd(nyttVarde);
+      setEpostAvstangd(nyttVarde);
+    } catch (e) {
+      setFel(e);
+    } finally {
+      setEpostAndrar(false);
+    }
+  }
 
   async function hanteraBootstrap() {
     setBootstrapar(true);
@@ -433,6 +459,24 @@ export default function Leverantor() {
           </p>
         </section>
       )}
+
+      <section className="admin-sektion">
+        <h2>✉️ Utgående e-post</h2>
+        <p className="sida__beskrivning">
+          Infrastrukturen för utgående e-post (Etapp 53a) – inget skickas ännu från någon
+          produktfunktion, det här är bara nödstoppet. {epostAvstangd
+            ? "Just nu AVSTÄNGD för alla organisationer."
+            : "Just nu påslagen (styr inget ännu, inget skickas förrän Etapp 53b–d byggs)."}
+        </p>
+        <button
+          type="button"
+          className="knapp"
+          disabled={epostAndrar}
+          onClick={() => hanteraEpostAvstangd(!epostAvstangd)}
+        >
+          {epostAndrar ? "..." : epostAvstangd ? "Slå på utgående e-post igen" : "Stäng av all utgående e-post"}
+        </button>
+      </section>
 
       <section className="admin-sektion">
         <h2>Skapa ny organisation</h2>

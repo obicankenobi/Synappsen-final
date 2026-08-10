@@ -112,6 +112,13 @@ export function manadsrapportOrganisationer() {
   return fn();
 }
 
+// Etapp 53a – globalt nödstopp för all utgående e-post, oavsett vilken funktion som
+// försöker skicka. Ingen kod, ingen deploy – bara en knapptryckning.
+export function angeEpostAvstangd(avstangd) {
+  const fn = httpsCallable(functions, "angeEpostAvstangd");
+  return fn({ avstangd });
+}
+
 // Etapp 6b – organisationsetablering (verksamhetstyp: Etapp 10d, valfritt startbibliotek).
 // Etapp 15a lade till orgnr/kontaktperson/anvandartak – kontaktperson.epost bjuder samtidigt
 // in kundens första superadmin (svaret innehåller då en inbjudanToken).

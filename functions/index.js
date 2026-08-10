@@ -165,6 +165,116 @@ function innehallerPersonnummer(text) {
   return false;
 }
 
+// Etapp 53a: e-post som utgående kanal. EN enda intern hjälpare som allt annat i planen
+// (inbjudan 53b, påminnelser 53c, månadsrapport 53d) ska gå igenom – aldrig spridda
+// fetch()-anrop mot Brevo på flera ställen. Se ETAPPLAN11.md §53 för resonemanget: ett mejl
+// från Synappsen får aldrig innehålla verksamhetens innehåll eller personuppgifter utöver
+// mottagarens egen adress (genomgående krav 18), och ska kunna stängas av globalt utan en
+// deploy (den enda funktionen i produkten som kan generera hundratals irreversibla utgående
+// händelser till riktiga människor på en minut).
+const BREVO_API_KEY = defineSecret("BREVO_API_KEY");
+// EU-baserat underbiträde (Sendinblue/Brevo, Frankrike) – se BESLUTSLOGG.md 2026-08-10 och
+// OPPNA-PUNKTER.md för beslutspunkt 1 (Etapp 53). Avsändaradressen är inget hemligt värde,
+// satt som en vanlig env-rad i functions/.env (se deploy.yml), samma mönster som SENTRY_DSN.
+const EPOST_AVSANDARE = process.env.EPOST_AVSANDARE || "noreply@synappsen.se";
+
+function giltigEpostadress(epost) {
+  return typeof epost === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(epost.trim());
+}
+
+// systemstatus/epost är den globala nödstoppet (punkt iv i 53a) – samma delade,
+// icke-org-skopade infrastruktur-collection som revisionskedjan/sökkvoten. Skrivs endast av
+// angeEpostAvstangd (Admin SDK), aldrig direkt av en klient (se firestore.rules
+// systemstatus/{id}, oförändrad).
+async function epostArAvstangdGlobalt() {
+  const snap = await db.collection("systemstatus").doc("epost").get();
+  return snap.exists && snap.data()?.avstangd === true;
+}
+
+// Skickar ETT transaktionellt e-postmeddelande via Brevos API. Kastar bara vid ett faktiskt
+// fel i anropet (ogiltig adress, misstänkt personnummer) – ett obekräftat/oskickat mejl på
+// grund av nödstoppet eller en saknad nyckel är INTE ett fel för anroparen, så att t.ex. en
+// inbjudan fortfarande skapas och går att dela som länk även om e-postkanalen är nere.
+async function skickaEpost({ till, amne, text, organisationId = null }) {
+  if (!giltigEpostadress(till)) {
+    throw new HttpsError("invalid-argument", "Ogiltig mottagaradress för e-post.");
+  }
+  if (innehallerPersonnummer(`${amne}\n${text}`)) {
+    throw new HttpsError(
+      "invalid-argument",
+      "E-postinnehållet verkar innehålla ett personnummer och skickades inte."
+    );
+  }
+  if (await epostArAvstangdGlobalt()) {
+    console.warn(`E-post till ${till} skippad: utgående e-post är globalt avstängd.`);
+    return { skickat: false, anledning: "epost_avstangd_globalt" };
+  }
+  const apiNyckel = BREVO_API_KEY.value();
+  if (!apiNyckel) {
+    console.warn(`E-post till ${till} skippad: BREVO_API_KEY är inte konfigurerad än.`);
+    return { skickat: false, anledning: "epost_ej_konfigurerad" };
+  }
+  const svar = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: { "api-key": apiNyckel, "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify({
+      sender: { email: EPOST_AVSANDARE, name: "Synappsen" },
+      to: [{ email: till.trim() }],
+      subject: amne,
+      textContent: text,
+    }),
+  });
+  if (!svar.ok) {
+    const feltext = await svar.text();
+    Sentry.captureMessage(`E-postutskick misslyckades (${svar.status}): ${feltext}`, {
+      level: "error",
+      tags: { typ: "epostutskick_misslyckades" },
+    });
+    return { skickat: false, anledning: "leverantorsfel" };
+  }
+  if (organisationId) {
+    await loggaRevision({
+      organisationId,
+      aktorUid: "_system",
+      aktorRoll: "system",
+      handelsetyp: "epost_skickad",
+      sammanfattning: "Ett e-postmeddelande skickades till en användare.",
+    });
+  }
+  return { skickat: true };
+}
+exports.skickaEpost = skickaEpost;
+
+// Plattformsadminens globala nödstopp – ingen kod, ingen deploy, bara en knapptryckning för
+// att stänga av (eller sätta på igen) ALL utgående e-post oavsett vilken funktion som
+// försöker skicka. Se genomgående krav 17: en irreversibel/potentiellt skadlig handling ska
+// kräva dubbel bekräftelse i UI:t (byggs i /leverantor, se Etapp 53a:s "Genomfört" nedan).
+exports.angeEpostAvstangd = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const avstangd = request.data?.avstangd === true;
+  await db.collection("systemstatus").doc("epost").set(
+    {
+      avstangd,
+      andradAv: request.auth.uid,
+      andradTidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  await loggaRevision({
+    organisationId: "_plattform",
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: avstangd ? "epost_avstangd_globalt" : "epost_paslagen_globalt",
+    sammanfattning: avstangd
+      ? "All utgående e-post stängdes av globalt (nödstopp)."
+      : "Utgående e-post slogs på igen globalt.",
+  });
+  return { avstangd };
+});
+
 // Enkel per-användare hastighetsbegränsning (rullande 1-timmesfönster), återanvänds av
 // skapaKommentar/skickaFeedback för att förhindra spam-skapande direkt mot Cloud Functions.
 const HASTIGHETSFONSTER_MS = 60 * 60 * 1000;
@@ -3002,9 +3112,10 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
   await kravPlattformsadmin(request.auth.uid);
 
   const idag = dagensDatumStockholm();
-  const [orgSnap, sokkvotSnap] = await Promise.all([
+  const [orgSnap, sokkvotSnap, epostSnap] = await Promise.all([
     db.collection("organisationer").get(),
     db.collection("systemstatus").doc("sokkvot").get(),
+    db.collection("systemstatus").doc("epost").get(),
   ]);
   const organisationer = await Promise.all(
     orgSnap.docs.map(async (orgDoc) => {
@@ -3052,6 +3163,10 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
     // Etapp 48d: så leverantörsvyn kan visa vad "Ej ifyllt" faktiskt betyder i praktiken.
     orgTakStandard: SOKKVOT_ORG_TAK_STANDARD,
   };
+  // Etapp 53a: det globala e-post-nödstoppet, samma "läses i samma anrop som resten av
+  // leverantörsvyn"-mönster som sokkvot ovan – ingen egen live-lyssnare behövs för en flagga
+  // som bara en plattformsadmin sätter, sällan, via en egen knapp.
+  const epostAvstangd = epostSnap.exists && epostSnap.data()?.avstangd === true;
   // Etapp 32c: plattformsadmins tvärorganisatoriska åtkomst loggades tidigare inte alls.
   // "_plattform" är inget riktigt organisationId (det finns aldrig en kund vid namn det) –
   // en egen hashkedja för händelser som spänner över ALLA organisationer, inte en specifik.
@@ -3064,7 +3179,7 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
     objektId: null,
     sammanfattning: `Listade ${organisationer.length} organisationer`,
   });
-  return { organisationer, sokkvot };
+  return { organisationer, sokkvot, epostAvstangd };
 });
 
 // Etapp 51: en demo-/övningsorganisation som aldrig är en riktig kund – en säljdemo eller en

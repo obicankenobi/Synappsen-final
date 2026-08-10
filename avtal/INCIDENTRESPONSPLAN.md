@@ -2,9 +2,9 @@
 
 **Dokumenttyp:** Policy (extern – får delas med kund, kundens IT-säkerhetsfunktion och vid
 upphandling)
-**Version:** 1.3
-**Fastställd:** 2026-08-09
-**Gäller från:** 2026-08-09
+**Version:** 1.4
+**Fastställd:** 2026-08-10
+**Gäller från:** 2026-08-10
 **Nästa översyn:** vid varje större release, dock minst var sjätte månad (se avsnitt 12)
 
 > **Läsanvisning.** Detta dokument beskriver *vad* som ska ske vid en incident och *varför* –
@@ -121,7 +121,10 @@ radering av en organisation genomförs aldrig omedelbart – ett fönster (48 ti
 Biträdet stoppar en obehörig eller felaktig begäran innan något faktiskt raderas. Biträdets
 egen läsåtkomst till en kunds innehåll är normalt obefintlig; en kund kan själv, tillfälligt
 och avbrytbart, öppna ett sådant fönster (högst 6 timmar) för att en supportfråga ska kunna
-besvaras – en oväntad eller felaktig öppning avslutas omedelbart av endera parten.
+besvaras – en oväntad eller felaktig öppning avslutas omedelbart av endera parten. Utgående
+e-post (införd 2026-08-10) kan stängas av globalt, för samtliga organisationer samtidigt,
+utan driftstopp eller ny driftsättning, om kanalen någonsin skulle missbrukas eller bete sig
+oväntat.
 
 **Bevis säkras före städning.** Ingen loggpost, användarpost eller konfiguration raderas innan
 den dokumenterats, även om raderingen i sig vore en rimlig åtgärd.
@@ -276,3 +279,4 @@ ingen plan alls.
 | 1.1 | 2026-07-31 | Avsnitt 5.5 (Återställ): återställningsfunktionen som avsnittet beskrev existerade inte tidigare – den finns nu, är testad och loggar till revisionsloggen (Etapp 33a/33b). Gallring av gamla backuper väntar fortfarande på ett retentionsbeslut (Etapp 33c). |
 | 1.2 | 2026-08-08 | Avsnitt 5.2 (Begränsa): en begärd permanent radering av en organisation kan nu genomföras av kundens egen superadmin, men verkställs aldrig direkt – ett 48-timmarsfönster medger att Biträdet stoppar en obehörig eller felaktig begäran (Etapp 49a). |
 | 1.3 | 2026-08-09 | Avsnitt 5.2 (Begränsa): kunden kan nu själv, tillfälligt och avbrytbart, öppna ett läsfönster (högst 6 timmar) för att ge Biträdet tillgång till organisationens innehåll vid en supportfråga – tidigare hade Biträdet ingen sådan åtkomst alls (Etapp 50b). |
+| 1.4 | 2026-08-10 | Avsnitt 5.2 (Begränsa): utgående e-post (ny kanal, infrastrukturen byggd men ännu inte kopplad till någon produktfunktion) kan stängas av globalt utan driftsättning, om kanalen någonsin missbrukas. Ett nytt underbiträde (Brevo, EU-baserat) tillkommer, se `avtal/UNDERBITRADEN.md` (Etapp 53a). |

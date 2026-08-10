@@ -33,10 +33,11 @@ jobs:
       - name: Bygg frontend
         run: npm run build
 
-      - name: Skapa .env med Sentry-konfiguration för Cloud Functions
+      - name: Skapa .env med Sentry-/e-postkonfiguration för Cloud Functions
         run: |
           cat > functions/.env <<'EOF'
           SENTRY_DSN=https://da30c8927ae17c2eed23e57ccedbd281@o4511801594281984.ingest.de.sentry.io/4511801671155792
+          EPOST_AVSANDARE=noreply@synappsen.se
           EOF
 
       - name: Installera functions-beroenden
@@ -56,6 +57,13 @@ jobs:
 
       - name: Sätt sökmotor-nyckeln i Secret Manager
         run: echo "${{ secrets.SOKMOTOR_API_KEY }}" | firebase functions:secrets:set SOKMOTOR_API_KEY --data-file=- --project synappsen-final-build --force
+
+      - name: Sätt Brevo-nyckeln (e-post, Etapp 53a) i Secret Manager
+        # Ingen produktfunktion anropar skickaEpost() ännu (bara det globala nödstoppet i
+        # /leverantor) – saknas GitHub-hemligheten BREVO_API_KEY sätts en tom sträng, och
+        # functions/index.js no-oppar tyst i så fall (se skickaEpost). Sätt den riktiga
+        # hemligheten i repots Settings → Secrets när Etapp 53b börjar skicka på riktigt.
+        run: echo "${{ secrets.BREVO_API_KEY }}" | firebase functions:secrets:set BREVO_API_KEY --data-file=- --project synappsen-final-build --force
 
       - name: Deploya till Firebase
         run: firebase deploy --project synappsen-final-build --non-interactive --force

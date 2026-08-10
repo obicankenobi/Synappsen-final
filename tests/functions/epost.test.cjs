@@ -1,0 +1,157 @@
+// Etapp 53a: bevisar skickaEpost() (validering, PII-spärr, globalt nödstopp, tyst no-op utan
+// konfigurerad nyckel, faktiskt utskick med en mockad Brevo-endpoint) och angeEpostAvstangd
+// (bara plattformsadmin, loggar till "_plattform"-revisionsloggen).
+//
+// Körs mot Firestore-emulatorn:
+//   npx firebase-tools@13 emulators:exec --project demo-test --only firestore \
+//     "node tests/functions/epost.test.cjs"
+process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
+process.env.GCLOUD_PROJECT = "demo-test";
+process.env.GCP_PROJECT = "demo-test";
+
+const path = require("node:path");
+const admin = require(
+  require.resolve("firebase-admin", { paths: [path.join(__dirname, "../../functions")] })
+);
+const funcs = require("../../functions/index.js");
+
+const db = admin.firestore();
+
+let antalKlarade = 0;
+let antalMisslyckade = 0;
+
+async function test(namn, fn) {
+  try {
+    await fn();
+    antalKlarade++;
+    console.log(`  OK   ${namn}`);
+  } catch (fel) {
+    antalMisslyckade++;
+    console.error(`  FEL  ${namn}`);
+    console.error(`       ${fel.stack || fel.message}`);
+  }
+}
+
+function vantaSig(villkor, meddelande) {
+  if (!villkor) {
+    throw new Error(meddelande);
+  }
+}
+
+async function forvantaFel(kod, promiseFn) {
+  try {
+    await promiseFn();
+    throw new Error(`förväntade fel ${kod}, fick inget`);
+  } catch (fel) {
+    vantaSig(fel.code === kod, `fel kod: ${fel.code} (${fel.message})`);
+  }
+}
+
+async function main() {
+  await db.collection("users").doc("superEpost53").set({ role: "superadmin", organisationId: "orgEpost53" });
+  await db.collection("plattformsadmin").doc("levEpost53").set({ blevPlattformsadmin: Date.now() });
+
+  console.log("\nskickaEpost – validering");
+  await test("en ogiltig mottagaradress avvisas", () =>
+    forvantaFel("invalid-argument", () =>
+      funcs.skickaEpost({ till: "inte-en-adress", amne: "Hej", text: "Test" })
+    )
+  );
+  await test("ett misstänkt personnummer i texten blockerar utskicket", () =>
+    // 900101-0017 är Skatteverkets kända test-personnummer (giltig Luhn-checksumma), samma
+    // som används i src/utils/piiFilter.test.js.
+    forvantaFel("invalid-argument", () =>
+      funcs.skickaEpost({ till: "test@exempel.se", amne: "Hej", text: "Mitt personnummer är 900101-0017" })
+    )
+  );
+
+  console.log("\nskickaEpost – tyst no-op utan konfigurerad nyckel (BREVO_API_KEY ej satt i denna testkörning)");
+  await test("utan en konfigurerad nyckel skickas inget, men inget kastas heller", async () => {
+    const resultat = await funcs.skickaEpost({ till: "test@exempel.se", amne: "Hej", text: "Test" });
+    vantaSig(resultat.skickat === false, "skickat borde vara false");
+    vantaSig(resultat.anledning === "epost_ej_konfigurerad", `fel anledning: ${resultat.anledning}`);
+  });
+
+  console.log("\nskickaEpost – globalt nödstopp");
+  await test("nödstoppet stoppar utskicket innan någon nätverksanrop görs", async () => {
+    await db.collection("systemstatus").doc("epost").set({ avstangd: true });
+    const resultat = await funcs.skickaEpost({ till: "test@exempel.se", amne: "Hej", text: "Test" });
+    vantaSig(resultat.skickat === false, "skickat borde vara false");
+    vantaSig(resultat.anledning === "epost_avstangd_globalt", `fel anledning: ${resultat.anledning}`);
+    await db.collection("systemstatus").doc("epost").set({ avstangd: false });
+  });
+
+  console.log("\nskickaEpost – faktiskt utskick (mockad Brevo-endpoint, ingen riktig nätverkstrafik)");
+  const ursprungligFetch = global.fetch;
+  let senasteAnrop = null;
+  await test("ett lyckat utskick loggas till organisationens revisionslogg, aldrig innehållet", async () => {
+    process.env.BREVO_API_KEY = "testnyckel";
+    global.fetch = async (url, init) => {
+      senasteAnrop = { url, body: JSON.parse(init.body) };
+      return { ok: true };
+    };
+    try {
+      const resultat = await funcs.skickaEpost({
+        till: "mottagare@exempel.se",
+        amne: "Du har en uppgift",
+        text: "Logga in för att se den.",
+        organisationId: "orgEpost53",
+      });
+      vantaSig(resultat.skickat === true, "skickat borde vara true");
+      vantaSig(senasteAnrop.url === "https://api.brevo.com/v3/smtp/email", "fel endpoint anropad");
+      vantaSig(senasteAnrop.body.to[0].email === "mottagare@exempel.se", "fel mottagare i anropet");
+    } finally {
+      global.fetch = ursprungligFetch;
+      delete process.env.BREVO_API_KEY;
+    }
+    const logg = await db
+      .collection("revisionslogg")
+      .where("organisationId", "==", "orgEpost53")
+      .where("handelsetyp", "==", "epost_skickad")
+      .get();
+    vantaSig(logg.size === 1, `förväntade 1 loggpost, fick ${logg.size}`);
+    vantaSig(
+      !logg.docs[0].data().sammanfattning.includes("Du har en uppgift"),
+      "loggposten läckte e-postens innehåll"
+    );
+  });
+
+  console.log("\nangeEpostAvstangd – behörighet och effekt");
+  await test("kräver inloggning", () =>
+    forvantaFel("unauthenticated", () => funcs.angeEpostAvstangd.run({ data: { avstangd: true }, auth: null }))
+  );
+  await test("en superadmin (inte plattformsadmin) nekas", () =>
+    forvantaFel("permission-denied", () =>
+      funcs.angeEpostAvstangd.run({ data: { avstangd: true }, auth: { uid: "superEpost53" } })
+    )
+  );
+  await test("en plattformsadmin KAN stänga av utgående e-post globalt", async () => {
+    const resultat = await funcs.angeEpostAvstangd.run({ data: { avstangd: true }, auth: { uid: "levEpost53" } });
+    vantaSig(resultat.avstangd === true, "avstangd borde vara true i svaret");
+    const snap = await db.collection("systemstatus").doc("epost").get();
+    vantaSig(snap.data().avstangd === true, "avstangd sattes inte i systemstatus/epost");
+    vantaSig(snap.data().andradAv === "levEpost53", "andradAv fel");
+  });
+  await test("avstängningen loggas till '_plattform'-revisionsloggen", async () => {
+    const logg = await db
+      .collection("revisionslogg")
+      .where("organisationId", "==", "_plattform")
+      .where("handelsetyp", "==", "epost_avstangd_globalt")
+      .get();
+    vantaSig(logg.size === 1, `förväntade 1 loggpost, fick ${logg.size}`);
+  });
+  await test("en plattformsadmin KAN slå på igen", async () => {
+    const resultat = await funcs.angeEpostAvstangd.run({ data: { avstangd: false }, auth: { uid: "levEpost53" } });
+    vantaSig(resultat.avstangd === false, "avstangd borde vara false i svaret");
+  });
+
+  console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);
+  if (antalMisslyckade > 0) {
+    process.exit(1);
+  }
+}
+
+main().catch((fel) => {
+  console.error(fel);
+  process.exit(1);
+});

@@ -1789,3 +1789,37 @@ delmål i `ETAPPLAN11.md`.
 
 Ingen produktkod ändrad denna session – rent dokumentationsarbete, ingen version bump av
 `package.json`/deploy behövdes.
+
+## Uppföljning 2026-08-10 (Etapp 53a klar: e-post-infrastruktur + globalt nödstopp, v5.85.0)
+
+Användaren svarade "ja" på beslutspunkt 1 (nytt underbiträde för e-post) – **Brevo
+(Sendinblue SAS), EU-baserat (Frankrike)**, precis planens rekommendation. Loggat i
+`BESLUTSLOGG.md`, borttaget från `OPPNA-PUNKTER.md` (en ny, smalare punkt tillagd: rättslig
+grund/PUB-avtal med Brevo samt en riktig `BREVO_API_KEY` krävs innan skarp drift).
+
+**Etapp 53a byggd och testad:** `skickaEpost({ till, amne, text, organisationId })`
+(`functions/index.js`) – EN intern hjälpare all framtida e-post (53b–53d) ska gå igenom.
+Validerar mottagaradress, kör samma Luhn-personnummerkontroll som formulären, loggar bara
+*att* ett mejl skickats (aldrig innehållet) till avsändarens revisionslogg, och har ett
+globalt nödstopp (`systemstatus/epost.avstangd`, satt via den nya callablen
+`angeEpostAvstangd`, plattformsadmin-only, dubbel bekräftelse i UI). `BREVO_API_KEY` hanteras
+som Secret Manager-parameter, samma mönster som `GEMINI_API_KEY` – saknas nyckeln (fram tills
+ägaren satt en riktig som GitHub-hemlighet) no-oppar funktionen tyst istället för att
+krascha. **Ingen produktfunktion anropar den ännu** – bara infrastrukturen och nödstoppet.
+Ny UI-sektion "✉️ Utgående e-post" i `/leverantor`.
+
+Underhållsregler triggade och åtgärdade i samma session: `avtal/UNDERBITRADEN.md` (ny rad,
+Brevo, ersätter den gamla "veckopuls"-placeholdern), `avtal/INCIDENTRESPONSPLAN.md` (v1.3 →
+**v1.4**, avsnitt 5.2), `INCIDENT-CHECKLISTA.md` (ny containment-rad + "Var saker finns"-rad,
+header uppdaterad).
+
+Testat: nytt `tests/functions/epost.test.cjs` (10 tester – validering, PII-spärr, nödstopp,
+tyst no-op utan nyckel, ett faktiskt utskick mot en mockad Brevo-endpoint som bevisar att
+loggposten aldrig innehåller mejlets text, `angeEpostAvstangd`s behörighet). Full testsvep
+grön: lint, build, vitest (124/124), rules (oförändrade, alla gröna), functions (inkl. de 10
+nya), storage, e2e (11/11 – inget flak denna gång). Version bumpad 5.84.0 → **5.85.0**, ny
+post i `src/data/andringslogg.js`. `ETAPPLAN11.md` §53a markerad ✅ KLAR med full
+"Genomfört"/"Testat"-sektion.
+
+**Nästa steg i `ETAPPLAN11.md`:** 53b (inbjudan levereras per e-post), 53c (påminnelser till
+rutinägare), 53d (kundvänd månadssammanfattning) – alla tre går genom samma `skickaEpost()`.
