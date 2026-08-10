@@ -126,6 +126,11 @@ för att bygga om Fuse-indexet**, inte den löpande Firestore-notan.
 
 > **Viktigt:** detta är ett *identifierat* problem, inte ett *uppmätt*. Se Etapp 60a – planen
 > kräver mätning före optimering, av precis samma skäl som genomgående krav 8 finns.
+>
+> **Uppdatering (Etapp 60a, 2026-08-10):** mätningen är nu gjord. Gissningen ovan om
+> Fuse-CPU-kostnaden stämde INTE – under 2 ms även vid 2 000 rutiner. Gissningen om första
+> inloggningens datamängd stämde desto bättre – 77 MB vid 2 000 rutiner, se Etapp 60:s
+> resultatsektion för hela utfallet.
 
 ### 5. `functions/index.js`: 4 621 rader, 92 exports, en fil
 
@@ -248,16 +253,12 @@ scenario som aldrig testats. Det vore ett dåligt sätt att upptäcka en flaskha
 
 **Modul:** ingen (Core-prestanda).
 
-- **60a – Mät först, med riktig volym. Ingen optimering i det här delmålet.** Skriv ett
-  seedningsskript (emulator, inte produktion) som skapar 500, 1 000 och 2 000 rutiner med
-  realistisk innehållsstorlek, plus 200 användare i `lasteAv`-arrayerna. Mät sedan, och skriv
-  in siffrorna i planen:
-  - tid till interaktiv startsida vid **första** inloggningen på en tom cache,
-  - överförd datamängd (Network-fliken) för samma laddning,
-  - tid att bygga Fuse-indexet i `useSokindex` (CPU, gärna med simulerad mobil-CPU),
-  - Firestore-läsningar per session, och vad det kostar per månad för 40 användare.
-  **Om siffrorna är acceptabla stannar Etapp 60 här** och 60b–60d stryks som onödiga. Det är
-  ett fullgott utfall, inte ett misslyckande – och exakt varför mätningen kommer först.
+- **60a – ✅ KLAR (2026-08-10).** Mätt först, med riktig volym – ingen optimering i det här
+  delmålet. Byggde `scripts/prestandaseed.mjs` (seedar Firestore-emulatorn, ALDRIG
+  produktion, med N rutiner + 200 användare vars uid:n sprids ut i varje rutins
+  `lasteAv`-array) och `scripts/prestandamat.mjs` (Playwright, mäter en riktig kall
+  inloggning mot en redan seedad organisation). Körde 500/1 000/2 000 rutiner. Resultat och
+  slutsats i en egen underrubrik direkt nedan.
 - **60b – Listvyn ska inte hämta hela innehållet.** *Villkorat av 60a.* Rutindokumentets
   tunga fält (`innehall`, `steg`, `kviss`, `externaKallor`) behövs inte för att rendera ett
   `RutinKort` i en lista – bara för att öppna rutinen. Två vägar att väga: (i) ett
@@ -278,8 +279,84 @@ scenario som aldrig testats. Det vore ett dåligt sätt att upptäcka en flaskha
   produktens mest använda funktion och en tyst försämring där är värre än en långsam
   indexering.
 
+### 60a – Resultat (2026-08-10)
+
+Uppmätt mot Firestore-/Auth-emulatorn (`prestandaOrg`, 200 användare, en superadmin loggar in
+i en HELT KALL webbläsarkontext – ingen `persistentLocalCache`-data sedan tidigare, alltså
+det dyraste tänkbara fallet):
+
+| Rutiner | Tid till interaktiv startsida | Fuse-byggtid | Överförd data (kall inloggning) | Firestore-läsningar (kall, analytiskt) |
+|---|---|---|---|---|
+| 500 | 1 007 ms | 1,7 ms | 16,5 MB | ~525 |
+| 1 000 | 923 ms | 1,1 ms | 41,2 MB | ~1 025 |
+| 2 000 | 918 ms | 0,9 ms | 77,3 MB | ~2 025 |
+
+**Metodanmärkning, värd att känna till innan siffrorna återanvänds:** den överförda
+datamängden gick INTE att mäta genom att summera `content-length`-headern (Firestores
+Listen/Write-kanaler svarar chunked, utan den headern) och inte heller genom att läsa
+`response.body()` (Firestores WebChannel håller en enda långlivad förbindelse öppen för
+realtidsdata, så den löser sig aldrig under en session). Båda gav samma (felaktiga) totalsumma
+oavsett rutinantal första gången detta kördes. Den tillförlitliga metoden – samma som Chrome
+DevTools Network-flikens "Transferred"-kolumn – är CDP:s `Network.dataReceived`, som eldar
+löpande i takt med att bytes faktiskt anländer. Skriv in det här om siffrorna någonsin
+återanvänds med ett annat verktyg. Firestore-läsningarna är beräknade analytiskt (rutinantal +
+en liten konstant för användar-/organisationsdokument och de små samlingarna), inte uppmätta
+via nätverket – Firestores egen fakturering räknar exakt så (1 läsning per dokument i en
+lyssnares INITIALA ögonblicksbild), så det är en korrekt siffra, bara inte en direkt
+instrumenterad.
+
+**Slutsats per mätvärde:**
+
+- **Tid till interaktiv och Fuse-byggtid: GODKÄNT, ingen åtgärd.** Under en sekund respektive
+  under 2 millisekunder även vid 2 000 rutiner – i praktiken oberoende av rutinantalet i det
+  här spannet. **60d (webbworker för sökindexet) är därmed INTE nödvändigt** – Fuse-bygget är
+  inte den dyra delen.
+- **Firestore-läsningar/kostnad: GODKÄNT, ingen åtgärd.** Appen använder redan
+  `persistentLocalCache` (`src/firebase/config.js`) – en andra inloggning på SAMMA enhet
+  synkar bara ändrade dokument sedan senast, inte hela samlingen igen. Den dyra kalla
+  synkroniseringen (~2 025 läsningar vid 2 000 rutiner) sker alltså en gång per (användare,
+  enhet), inte varje session. Även ett pessimistiskt antagande – alla 40 användare tvingas
+  till en kall omsynk en gång i månaden (ny enhet, rensad webbläsarcache, privat läge) – ger
+  ~81 000 läsningar/månad vid 2 000 rutiner, långt under en (1) krona i månadskostnad enligt
+  Googles publicerade Firestore-läsningspris. Den löpande kostnaden domineras i praktiken av
+  ANTAL ÄNDRINGAR × antal aktiva lyssnare, inte av samlingens totala storlek.
+- **Överförd datamängd: DET ENDA MÅTTET SOM INTE ÄR HELT GODKÄNT.** 16,5 → 41,2 → 77,3 MB
+  skalar ungefär linjärt med rutinantalet. 77 MB vid en kall förstagångsinloggning är mycket
+  för en app som ska fungera över sjukhus-wifi eller mobilnät på en akutmottagning – detta är
+  DEN siffra som gör att **60b (trimma listvyns nyttolast) är befogat**, inte bara en
+  teoretisk möjlighet. En sidoupptäckt under mätningen, värd att lägga till 60b:s omfattning:
+  **`lasteAv`-arrayen (kvitteringar) kan vara lika stor eller större än `innehall`/`steg`/
+  `kviss` tillsammans** för en populär rutin (upp till ~170 kvitteringsposter × ~70 byte
+  vardera ≈ 12 KB, jämfört med `innehall`s typiska 1,5–3 KB) – 60b:s ursprungliga fältlista
+  (`innehall`, `steg`, `kviss`, `externaKallor`) missade den. En listvyprojektion måste
+  utesluta `lasteAv` också, annars är vinsten liten.
+
+**Ärlig avvikelse från "Klart när"-kriteriet nedan:** planen sa att mätningen skulle jämföras
+mot "en gräns som skrivits ned i planen i förväg" – ingen sådan gräns skrevs ned innan
+mätningen kördes (ett eget premisskontroll-hål, upptäckt i efterhand snarare än undvikt i
+förväg). Bedömningen ovan är därför gjord i efterhand med sunt förnuft (vad som är rimligt för
+en app som ska fungera på ett mobilnät på en akutmottagning), inte mot en förutbestämd siffra.
+
+**Rekommendation, inte body av arbete:** 60a:s eget resultat pekar på 60b som motiverat och
+60c som ett billigt, lågrisk komplement (filtrera bort papperskorg/arkiv server-side snarare
+än att skicka ner dem och kasta dem i klienten – samma "onödig nätverkstrafik"-problem som
+60b, fast för ett annat skäl). 60d stryks som onödigt, bekräftat genom mätning snarare än
+antaget. 60b/60c är INTE byggda i den här sessionen – bara mätta och rekommenderade, eftersom
+uppdraget var specifikt "Etapp 60a".
+
+**Testat:** `npm run lint`/`build`/`npx vitest run` gröna (inga produktionsfiler ändrade –
+`src/hooks/useSokindex.js` instrumenterades TILLFÄLLIGT med `performance.mark`/`measure` för
+Fuse-byggtidsmätningen och återställdes till exakt ursprungligt skick innan commit, verifierat
+med en tom `git diff`). De två nya skripten (`scripts/prestandaseed.mjs`,
+`scripts/prestandamat.mjs`) är committade som återanvändbara mätverktyg för nästa gång
+volymen behöver mätas om (t.ex. efter 60b/60c, eller vid en verklig pilotorganisations
+faktiska rutinantal).
+
 **Klart när:** samma tre mätvärden som i 60a är körda igen mot 2 000 rutiner och ligger inom
 en gräns som skrivits ned i planen i förväg – eller när 60a visat att inget behövde göras.
+**✅ Uppfyllt för tid-till-interaktiv/Fuse-byggtid/Firestore-kostnad (inget behövde göras).
+Delvis avvikande för överförd datamängd** (se avvikelsen ovan) – 60b/60c kvarstår som
+rekommenderat, ej byggt, arbete.
 
 ---
 
@@ -404,8 +481,9 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 1. **✅ Etapp 59 – KLAR (2026-08-10).** Tre kända fel i produktionsgrenen rättade, varav ett
    som gjorde hälsosiffran missvisande för varje ny organisation som etableras. 59b stänger
    dessutom en affärsspärr (kiosk utan Operations).
-2. **Etapp 60a härnäst** – en dag, ger ett svar man kan sätta i ett upphandlingsunderlag.
-   60b–60d bara om mätningen motiverar dem.
+2. **✅ Etapp 60a – KLAR (2026-08-10).** Mätningen visade att 60d inte behövs (Fuse-byggtid
+   <2 ms även vid 2 000 rutiner) men att 60b/60c är motiverade (77 MB vid en kall
+   förstagångsinloggning med 2 000 rutiner). 60b/60c rekommenderade men INTE byggda ännu.
 3. **Etapp 61 när inget annat pågår** – störst nytta, minst risk, om den inte konkurrerar med
    ett funktionsbygge.
 4. **Etapp 62 när 59 är stängd.** Det är den enda etappen som ger en kund något nytt att se,
@@ -419,8 +497,9 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 | Etapp | Innehåll | Modul | Risk | Status |
 |---|---|---|---|---|
 | **59** | Rätta logistikrutinerna, gata kioskläget, beroendehygien | Ingen/Operations | Låg | ✅ **HELT KLAR (2026-08-10)** – 59a–59c alla byggda |
-| **60a** | Mät prestanda med 500–2 000 rutiner | Ingen | Låg | Förslag |
-| **60b–d** | Listvyprojektion, serverside-filtrering, sökindex | Ingen | Medel | **Villkorad av 60a:s siffror** |
+| **60a** | Mät prestanda med 500–2 000 rutiner | Ingen | Låg | ✅ **KLAR (2026-08-10)** |
+| **60b–c** | Listvyprojektion (inkl. `lasteAv`), serverside-filtrering | Ingen | Medel | **Rekommenderat av 60a:s siffror – ej byggt** |
+| ~~**60d**~~ | ~~Sökindex i webbworker~~ | – | – | **Struket – 60a mätte Fuse-byggtid till <2 ms, inte den dyra delen** |
 | **61** | Dela `functions/index.js`, testluckor, kiosk-e2e | Ingen | Låg–medel | Förslag |
 | **62** | Sökluckor → rutin, veckopuls, åtgärdbar hälsosiffra | Operations | Låg | Förslag |
 | **63** | Gruppera öppna punkter, förbered pilot, tre beslut | Ingen | Ingen | Förslag – kräver ägaren |

@@ -6,8 +6,10 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.92.0** – **INTE ÄNNU DEPLOYAD** (senaste
-bekräftade produktionsdeploy är fortfarande v5.89.0, körning #73, commit `63f15d7`).
+**Senast uppdaterad:** 2026-08-10, version **5.92.0** (oförändrad – Etapp 60a var mätning +
+två nya verktygsskript, ingen appkodsändring, se skälet i uppföljningen längst ner) – **INTE
+ÄNNU DEPLOYAD** (senaste bekräftade produktionsdeploy är fortfarande v5.89.0, körning #73,
+commit `63f15d7`).
 `ETAPPLAN11.md` (Etapp 53–58) är nu **HELT KLAR utom 54c/54d och Etapp 58** – båda väntar
 medvetet på en extern förutsättning (konkret andra enhet respektive en kund som kräver SSO),
 inte på kapacitet, se `OPPNA-PUNKTER.md`. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
@@ -15,14 +17,17 @@ drift") är den nya AKTIVA planen, ANTAGEN 2026-08-10** direkt efter en kodgenom
 dokumentgenomgång) av v5.91.0 – till skillnad från tidigare planer bygger den nästan inga nya
 funktioner, bara hållfasthet: den genomgången hittade tre fel som redan fanns i
 produktionsgrenen, varav två infördes av de två senaste etapperna (Etapp 55/56).
-**Etapp 59 (59a–59c) är redan KLAR**, byggd samma session som antagandet. Ett fristående,
-separat förslag (Etapp 64, ett "baspaket" av nationella referenser) hölls medvetet UTANFÖR
-den aktiva planen, i en egen fil `ETAPPLAN13.md` – den kräver en extern juridisk MDR-
-bedömning innan den ens är byggbar, till skillnad från allt annat. `ETAPPLAN9.md`/
-`ETAPPLAN8.md`/`ETAPPLAN10.md` fortsatt HELT KLARA OCH DEPLOYADE (utom 10:s Etapp 52, väntar
-på en bokning). **Läs sektionen "Uppföljning 2026-08-10 (Etapp 59 klar)" längst ner för vad
-som faktiskt byggdes** – tidigare uppföljningar för Etapp 53–57 finns kvar nedanför den, i
-kronologisk ordning.
+**Etapp 59 (59a–59c) och nu även 60a är KLARA.** Etapp 60a mätte appen mot en realistisk
+rutinmängd (500/1 000/2 000 rutiner, emulator) – slutsats: tid-till-interaktiv och
+Fuse-sökindexbygge är helt oproblematiska (60d struket, onödigt), men en kall
+förstagångsinloggning drar 77 MB vid 2 000 rutiner, vilket gör 60b (trimma listvyns
+nyttolast) motiverat – REKOMMENDERAT men inte byggt än. Ett fristående, separat förslag
+(Etapp 64, ett "baspaket" av nationella referenser) hölls medvetet UTANFÖR den aktiva planen,
+i en egen fil `ETAPPLAN13.md` – den kräver en extern juridisk MDR-bedömning innan den ens är
+byggbar, till skillnad från allt annat. `ETAPPLAN9.md`/`ETAPPLAN8.md`/`ETAPPLAN10.md`
+fortsatt HELT KLARA OCH DEPLOYADE (utom 10:s Etapp 52, väntar på en bokning). **Läs sektionen
+"Uppföljning 2026-08-10 (Etapp 60a klar)" längst ner för vad som faktiskt mättes** – tidigare
+uppföljningar (Etapp 59, 53–57) finns kvar nedanför den, i kronologisk ordning.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -2143,3 +2148,50 @@ kördes inte om. Version bumpad 5.91.0 → **5.92.0**. `ETAPPLAN12.md` §59 (59a
 **Med detta är Etapp 59 klar och testad – men INTE deployad** (senaste produktionsdeploy
 fortfarande v5.89.0). Nästa steg: deploya, eller fortsätta med Etapp 60a (mät prestanda mot
 en realistisk rutinmängd innan något optimeras).
+
+## Uppföljning 2026-08-10 (Etapp 60a klar: prestandamätning med realistisk rutinmängd)
+
+Byggde och körde de två verktyg 60a efterfrågade:
+
+- **`scripts/prestandaseed.mjs`** – seedar Firestore-EMULATORN (aldrig produktion) med N
+  rutiner (realistisk innehållsstorlek: markdown-brödtext, en del med checklistesteg/kviss)
+  + 200 användare, vars uid:n sprids ut i varje rutins `lasteAv`-kvitteringsarray.
+- **`scripts/prestandamat.mjs`** – Playwright, mäter en riktig KALL inloggning (ingen
+  `persistentLocalCache`-data sedan tidigare) mot en redan seedad organisation: tid till
+  interaktiv startsida, Fuse-indexbyggtid, och överförd datamängd.
+
+Körde 500/1 000/2 000 rutiner. **Ett metodfel upptäcktes och rättades under arbetet:** att
+mäta överförd data via `content-length`-headern gav samma (felaktiga) totalsumma oavsett
+rutinantal – Firestores realtidskanaler svarar chunked utan den headern, och att läsa
+`response.body()` istället fungerade inte heller (kanalen hålls medvetet öppen, löser sig
+aldrig). Löst med CDP:s `Network.dataReceived` (samma metod som Chrome DevTools egen
+Network-flik använder).
+
+**Resultat (se `ETAPPLAN12.md` §60 för hela tabellen och resonemanget):**
+
+- Tid till interaktiv (~0,9–1,0 s) och Fuse-byggtid (<2 ms) är GODKÄNDA även vid 2 000
+  rutiner – oberoende av rutinantalet i det här spannet. **60d (webbworker för sökindexet)
+  struket som onödigt**, bekräftat genom mätning.
+- Firestore-läsningar/kostnad GODKÄNT – `persistentLocalCache` gör den dyra kalla
+  synkroniseringen till en engångskostnad per (användare, enhet), inte per session. Även
+  pessimistiskt räknat (alla 40 användare kallsynkar en gång i månaden) blir kostnaden under
+  en krona/månad vid 2 000 rutiner.
+- **Överförd datamängd är det enda måttet som INTE är helt godkänt:** 77 MB vid en kall
+  förstagångsinloggning med 2 000 rutiner, skalar ~linjärt med rutinantalet. Gör **60b
+  (trimma listvyns nyttolast) motiverat** – en sidoupptäckt under mätningen var att
+  `lasteAv`-kvitteringsarrayen kan väga lika mycket som `innehall`/`steg`/`kviss` tillsammans
+  för en populär rutin, vilket 60b:s ursprungliga fältlista missade.
+
+**Ärlig avvikelse:** planens "Klart när"-kriterium förutsatte en tröskel nedskriven I FÖRVÄG
+– ingen sådan skrevs ned innan mätningen kördes. Bedömningen ovan är gjord i efterhand med
+sunt förnuft istället, vilket är skrivet ut ärligt i `ETAPPLAN12.md` snarare än dolt.
+
+**Ingen versionsbump:** rent mätnings-/verktygsarbete, ingen appkod ändrad.
+`src/hooks/useSokindex.js` instrumenterades TILLFÄLLIGT för Fuse-byggtidsmätningen och
+återställdes till exakt ursprungligt skick innan commit (verifierat med en tom `git diff`).
+Testsvep: lint, build, vitest (130/130) gröna – inga functions-/rules-/storage-ändringar,
+inget att testa om där.
+
+**60b/60c är rekommenderade av mätningen men INTE byggda** – uppdraget den här sessionen var
+specifikt "Etapp 60a". Nästa steg: bygg 60b (och lågriskkomplementet 60c) om det efterfrågas,
+eller fortsätt med Etapp 61 (underhållbarhet/testluckor) som inte är villkorat av något.
