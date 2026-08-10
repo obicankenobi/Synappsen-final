@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-09, version **5.84.0** – **DEPLOYAD TILL PRODUKTION** (körning
+**Senast uppdaterad:** 2026-08-10, version **5.84.0** – **DEPLOYAD TILL PRODUKTION** (körning
 #72, commit `545e958`, asset-hash `assets/index-CJpO8Yof.js`, bekräftad live på
 `https://synappsen-final-build.web.app/`). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
 är den AKTIVA planen, antagen 2026-08-06. **Etapp 48, 49, 50 (50a+50b+50c) OCH 51 är nu ALLA
@@ -21,7 +21,10 @@ befintliga inbjudningsflödet kräver att den registrerande e-posten matchar exa
 jokerinbjudan hade återinfört Etapp 6c:s medvetet stängda öppna registrering). Endast Etapp 52
 (pilotpaketet, kräver bokad tid) kvarstår obyggt i hela ETAPPLAN10.md. `ETAPPLAN9.md`
 (Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH DEPLOYADE sedan
-tidigare. **Läs sektionen "Uppföljning 2026-08-09 (Etapp 50c + 51 klara)" längst ner.**
+tidigare. **NYTT 2026-08-10: `ETAPPLAN11.md` finns som UTKAST – EJ ANTAGEN** (förslag på
+Etapp 53–58, inget delmål ska byggas innan ägaren gått igenom och antagit den; se sektionen
+"Uppföljning 2026-08-10" längst ner). **Läs sektionen "Uppföljning 2026-08-09 (Etapp 50c + 51
+klara)" och den 2026-08-10 längst ner.**
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1725,3 +1728,42 @@ Användaren bad "deploya den". Triggade `deploy.yml` (`workflow_dispatch`) mot
 `assets/index-CJpO8Yof.js` på `https://synappsen-final-build.web.app/`. Ingen kodändring i
 denna uppföljning. Med detta är Etapp 48–51 (hela `ETAPPLAN10.md` utom Etapp 52) HELT KLARA
 OCH DEPLOYADE i produktion.
+
+## Uppföljning 2026-08-10 (ETAPPLAN11.md skriven som UTKAST – ej antagen)
+
+Användaren bad om en genomgång av projektet och ett förslag på en ny etapplan (nya funktioner,
+saker att ändra, sådant som gör produkten mer attraktiv för kund). Resultat: **`ETAPPLAN11.md`,
+tydligt märkt UTKAST/EJ ANTAGEN** – inget delmål ska byggas förrän ägaren strukit det som inte
+ska med, samma ordning som `ETAPPLAN10.md` gick igenom 2026-08-06. Ingen produktkod ändrad.
+
+Sex premisser verifierades mot faktisk kod innan utkastet skrevs (genomgående krav 8), och
+samtliga sex stämde – de utgör planens grund:
+
+1. **Ingen e-postkapacitet finns någonstans** (noll träffar på `nodemailer`/`sendgrid`/
+   `mailto`/`skickaEpost`). Allt utgående är in-app-notiser + webbpush; systemet kan inte nå
+   någon som inte redan är inloggad.
+2. Inbjudningslänken levereras manuellt (`InbjudanFormular.jsx:32`).
+3. `FEATURE.KIOSK_MODE` är reserverad men **helt oläst** – förekommer bara på två rader i
+   `src/config/features.js`, ingen komponent/hook/regel/funktion refererar den.
+4. Ingen enhets-/avdelningsnivå under organisationen finns (noll träffar på `enhetId`/
+   `avdelningId`); `organisationId` ÄR avdelningen.
+5. **`PITCH.md` (v5.73.0) påstår felaktigt att klinikstöd-sökningen är "medvetet pausad i
+   gränssnittet".** `KlinikfragaSok.jsx:15` har `const PAUSAD = false;` sedan 2026-07-14
+   (Fas 13) – tre veckor innan `PITCH.md` senast skrevs. `MODULPLAN.md` säger korrekt att den
+   är i drift. **Sjätte fallet av samma stale-dokument-mönster** som gett upphov till fyra av
+   projektets underhållsregler. Åtgärd föreslagen som Etapp 57a + en händelsestyrd regel (57b).
+6. Startbiblioteket ger en ny akutmottagning **två** rutinmallar, och inga mallar alls för
+   förråd/kontakter/introduktionsspår/kompetenskrav.
+
+Föreslagen omfattning (Etapp 53–58): 53 e-post som kanal, 54 flera enheter under samma
+huvudman (54a utredning + 54b huvudmannafält lågrisk; 54c/54d högrisk och villkorade),
+55 kioskläge, 56 startbiblioteket, 57 säljmaterialets sanning, 58 SSO (beslut nu, bygge
+villkorat). Fyra beslutspunkter för ägaren med rekommendation i varje, samt ett
+"Vad jag INTE föreslår, och varför"-avsnitt (MDR-risken med dosberäkning,
+journalsystemsintegration, benchmarking mellan kunder, native app, Intelligence 2.0, chatt).
+
+**Rekommenderad omedelbar åtgärd oavsett om planen antas:** Etapp 57a (rätta `PITCH.md`) –
+tar minuter och det är det enda dokumentet en köpare faktiskt läser.
+
+`OPPNA-PUNKTER.md` orörd: utkastets beslutspunkter blir öppna punkter först om/när planen
+antas – ett ej antaget förslag är varken en öppen punkt eller ett beslut.
