@@ -463,10 +463,10 @@ export default function Leverantor() {
       <section className="admin-sektion">
         <h2>✉️ Utgående e-post</h2>
         <p className="sida__beskrivning">
-          Infrastrukturen för utgående e-post (Etapp 53a) – inget skickas ännu från någon
-          produktfunktion, det här är bara nödstoppet. {epostAvstangd
-            ? "Just nu AVSTÄNGD för alla organisationer."
-            : "Just nu påslagen (styr inget ännu, inget skickas förrän Etapp 53b–d byggs)."}
+          Sedan Etapp 53b skickas inbjudningar per e-post (utöver den kopierbara länken).
+          Fler kanaler (påminnelser, månadsrapport) tillkommer i 53c–d. {epostAvstangd
+            ? "Just nu AVSTÄNGD för alla organisationer – inbjudningar skapas fortfarande, men mejlas inte."
+            : "Just nu påslagen."}
         </p>
         <button
           type="button"
@@ -536,7 +536,10 @@ export default function Leverantor() {
         {skapadInfo && <p className="leverantor__info">{skapadInfo}</p>}
         {inbjudanLank && (
           <div className="leverantor__info">
-            <p>Skicka den här länken till kundens första superadmin (giltig i 7 dagar):</p>
+            <p>
+              Inbjudan är skickad till e-postadressen (om en angavs). Reservlänk om mejlet
+              inte kommer fram (giltig i 7 dagar):
+            </p>
             <input type="text" readOnly value={inbjudanLank} onFocus={(e) => e.target.select()} />
           </div>
         )}
@@ -567,7 +570,7 @@ export default function Leverantor() {
         {demoMeddelande && <p className="leverantor__info">{demoMeddelande}</p>}
         {demoInbjudanLank && (
           <div className="leverantor__info">
-            <p>Skicka den här länken (giltig i 7 dagar):</p>
+            <p>Inbjudan är skickad till e-postadressen. Reservlänk (giltig i 7 dagar):</p>
             <input type="text" readOnly value={demoInbjudanLank} onFocus={(e) => e.target.select()} />
           </div>
         )}

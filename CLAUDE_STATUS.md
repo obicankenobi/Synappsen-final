@@ -6,25 +6,18 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.84.0** – **DEPLOYAD TILL PRODUKTION** (körning
-#72, commit `545e958`, asset-hash `assets/index-CJpO8Yof.js`, bekräftad live på
-`https://synappsen-final-build.web.app/`). `ETAPPLAN10.md` (Etapp 48–52, "Redo att drivas")
-är den AKTIVA planen, antagen 2026-08-06. **Etapp 48, 49, 50 (50a+50b+50c) OCH 51 är nu ALLA
-HELT KLARA OCH DEPLOYADE.** 50c: en ny
-"🗒️ Ärenden"-sektion per organisation i `/leverantor` – internt leverantörsminne
-(arendeanteckningar), aldrig synligt för kunden. 51: en ny demo-/övningsorganisation
-(`_demo`, flaggad `arDemo`) med realistiskt fiktivt innehåll (checklistläge, godkännandekö,
-innehållshälsa, kompetensmatris-gap), nollställd automatiskt varje natt 04:00, och en ny
-sektion i `/leverantor` för att på begäran utfärda en riktig, tidsbegränsad superadmin-
-inbjudan till en specifik e-postadress – **premisskontroll avgjorde bort en jokerlänk** (det
-befintliga inbjudningsflödet kräver att den registrerande e-posten matchar exakt, en
-jokerinbjudan hade återinfört Etapp 6c:s medvetet stängda öppna registrering). Endast Etapp 52
-(pilotpaketet, kräver bokad tid) kvarstår obyggt i hela ETAPPLAN10.md. `ETAPPLAN9.md`
-(Etapp 45) och `ETAPPLAN8.md` (Etapp 44, 46, 47) är alla HELT KLARA OCH DEPLOYADE sedan
-tidigare. **NYTT 2026-08-10: `ETAPPLAN11.md` finns som UTKAST – EJ ANTAGEN** (förslag på
-Etapp 53–58, inget delmål ska byggas innan ägaren gått igenom och antagit den; se sektionen
-"Uppföljning 2026-08-10" längst ner). **Läs sektionen "Uppföljning 2026-08-09 (Etapp 50c + 51
-klara)" och den 2026-08-10 längst ner.**
+**Senast uppdaterad:** 2026-08-10, version **5.86.0** – **INTE ÄNNU DEPLOYAD** (senaste
+bekräftade produktionsdeploy är fortfarande v5.84.0, körning #72, commit `545e958`).
+`ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning till en kund som växer") är den AKTIVA
+planen, **ANTAGEN 2026-08-10** (ersatte `ETAPPLAN10.md`, som är HELT KLAR utom Etapp 52 –
+pilotpaketet, kräver bokad tid, inte kod). **Etapp 53a och 53b är nu KLARA:** en ny intern
+e-posthjälpare (`skickaEpost()`, Brevo som nytt EU-baserat underbiträde) med ett globalt
+nödstopp styrbart från `/leverantor`, och sedan 53b skickas inbjudningar (till nya konton,
+nya organisationer och demomiljön) nu automatiskt via e-post – den kopierbara länken finns
+kvar som reserv. **Ingen skarp `BREVO_API_KEY` är satt än** (ägarens att göra, se
+`OPPNA-PUNKTER.md`), så inget mejl går faktiskt ut förrän dess – koden no-oppar tyst.
+`ETAPPLAN9.md`/`ETAPPLAN8.md` fortsatt HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs
+sektionerna "Uppföljning 2026-08-10 (Etapp 53a klar…)" och "(Etapp 53b klar…)" längst ner.**
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1823,3 +1816,27 @@ post i `src/data/andringslogg.js`. `ETAPPLAN11.md` §53a markerad ✅ KLAR med f
 
 **Nästa steg i `ETAPPLAN11.md`:** 53b (inbjudan levereras per e-post), 53c (påminnelser till
 rutinägare), 53d (kundvänd månadssammanfattning) – alla tre går genom samma `skickaEpost()`.
+
+## Uppföljning 2026-08-10 (Etapp 53b klar: inbjudan mejlas, v5.86.0)
+
+Byggde vidare direkt på 53a, samma session. `skapaInbjudanIntern` (den delade hjälparen bakom
+`skapaInbjudan`, `skapaOrganisation` och `nollstallDemoOrganisation`) mejlar nu automatiskt
+inbjudan via `skickaEpost()` efter att inbjudningsdokumentet skapats – den kopierbara länken
+behålls i alla tre UI-ställena som uttrycklig reserv (texten omformulerad till "skickat, här
+är reservlänken"). Organisationens namn i ämnesrad/text är ett medvetet, i koden dokumenterat
+undantag från genomgående krav 18. Ett misslyckat e-postutskick blockerar ALDRIG att
+inbjudan skapas – bara ett `try/catch` runt e-poststeget, loggas som en varning. De tre
+callables fick `secrets: [BREVO_API_KEY]` tillagt.
+
+Testat: `tests/functions/epost.test.cjs` utökad till 12 tester (två nya: ett lyckat utskick
+med rätt mottagare/organisationsnamn/länk mot en mockad Brevo-endpoint, samt att ett
+simulerat nätverksfel inte hindrar att inbjudan ändå skapas). Full testsvep grön: lint,
+build, vitest (124/124), rules, functions (alla 29 testblock, inkl. befintliga
+`etapp6.test.cjs`s inbjudningssvit oförändrat grön), storage, e2e (11/11, inget flak). Version
+bumpad 5.85.0 → **5.86.0**, ny post i `src/data/andringslogg.js`. `ETAPPLAN11.md` §53b
+markerad ✅ KLAR. `avtal/UNDERBITRADEN.md` och `OPPNA-PUNKTER.md`s Brevo-rad uppdaterade för
+att spegla att koden nu faktiskt använder underbiträdet (fast fortfarande ingen skarp
+`BREVO_API_KEY`).
+
+**Nästa steg i `ETAPPLAN11.md`:** 53c (påminnelser till rutinägare, förvalt på för tilldelade
+uppgifter/av för allt annat, daglig sammanslagning) och 53d (kundvänd månadssammanfattning).

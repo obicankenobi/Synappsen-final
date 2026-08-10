@@ -177,11 +177,23 @@ ja, Brevo (EU-baserat, Frankrike).
   visar och styr nödstoppet. Se `avtal/UNDERBITRADEN.md` (ny rad, Brevo),
   `avtal/INCIDENTRESPONSPLAN.md` (v1.4, avsnitt 5.2) och `INCIDENT-CHECKLISTA.md` för
   underhållsreglerna som triggades. v5.85.0.
-- **53b – Inbjudan levereras per e-post.** Behåll den kopierbara länken (den behövs när
-  mejlet fastnar i ett spamfilter, vilket det kommer att göra hos minst en region), men gör
-  utskick till förval. Inbjudningsmejlet är det enda som med nödvändighet får innehålla
-  organisationens namn – annars går det inte att förstå. Det ska vara ett medvetet, skrivet
-  undantag från genomgående krav 18, inte en glidning.
+- **53b – ✅ KLAR (2026-08-10) – Inbjudan levereras per e-post.** `skapaInbjudanIntern`
+  (den delade hjälparen bakom `skapaInbjudan`, `skapaOrganisation` och
+  `nollstallDemoOrganisation`) skickar nu automatiskt inbjudan via `skickaEpost()` direkt
+  efter att inbjudningsdokumentet skapats. Behöll den kopierbara länken i alla tre UI-ställena
+  (`InbjudanFormular.jsx`, `Leverantor.jsx`s "Skapa ny organisation" och "Demo- och
+  övningsmiljö") som uttrycklig reserv – texten omformulerad till "skickat, här är
+  reservlänken" istället för att bara visa länken. Organisationens namn står i ämnesraden och
+  texten, ett medvetet, skrivet undantag från genomgående krav 18 (utan namnet är mejlet
+  obegripligt) – dokumenterat i koden, inte en tyst glidning. Ett misslyckat e-postutskick
+  (nödstoppet på, saknad nyckel, Brevo nere) blockerar ALDRIG att själva inbjudan skapas –
+  bara `try/catch` runt e-poststeget, felet loggas som en varning. De tre callables som nu
+  transitivt anropar `skickaEpost()` (`skapaInbjudan`, `skapaOrganisation`,
+  `nollstallDemoOrganisation`) fick `secrets: [BREVO_API_KEY]` tillagt. Testat:
+  `tests/functions/epost.test.cjs` utökad med två tester (ett lyckat utskick med rätt
+  mottagare/organisationsnamn/länk, samt att ett simulerat nätverksfel inte hindrar att
+  inbjudan ändå skapas) – 12/12 gröna, plus hela `etapp6.test.cjs`s befintliga
+  inbjudningssvit oförändrat grön. v5.86.0.
 - **53c – Påminnelser når ägaren även utanför appen.** Koppla de befintliga schemalagda
   jobben (`kontrolleraKvitteringsfrister`, `forslagPaminnelserSchemalagt`,
   granskningspåminnelser till rutinägare) till kanalen. **Opt-out per användare, förvalt

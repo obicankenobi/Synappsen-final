@@ -145,6 +145,49 @@ async function main() {
     vantaSig(resultat.avstangd === false, "avstangd borde vara false i svaret");
   });
 
+  console.log("\nskapaInbjudan – Etapp 53b: inbjudan mejlas nu, med organisationens namn i mejlet");
+  await db.collection("organisationer").doc("orgEpost53").set({ namn: "Mejltest AB", status: "aktiv" });
+  await test("en lyckad inbjudan skickar ETT mejl till precis den inbjudna adressen, med organisationens namn", async () => {
+    process.env.BREVO_API_KEY = "testnyckel";
+    let anrop = null;
+    global.fetch = async (url, init) => {
+      anrop = JSON.parse(init.body);
+      return { ok: true };
+    };
+    try {
+      const { token } = await funcs.skapaInbjudan.run({
+        data: { epost: "kollega@exempel.se", roll: "personal" },
+        auth: { uid: "superEpost53" },
+      });
+      vantaSig(!!token, "token saknas");
+      vantaSig(!!anrop, "inget e-postanrop gjordes");
+      vantaSig(anrop.to[0].email === "kollega@exempel.se", "fel mottagare");
+      vantaSig(anrop.subject.includes("Mejltest AB"), "organisationens namn saknas i ämnesraden");
+      vantaSig(anrop.textContent.includes(`/registrera?bjudan=${token}`), "länken med rätt token saknas i texten");
+    } finally {
+      global.fetch = ursprungligFetch;
+      delete process.env.BREVO_API_KEY;
+    }
+  });
+  await test("ett misslyckat e-postutskick blockerar INTE att inbjudan skapas", async () => {
+    process.env.BREVO_API_KEY = "testnyckel";
+    global.fetch = async () => {
+      throw new Error("Simulerat nätverksfel");
+    };
+    try {
+      const { token } = await funcs.skapaInbjudan.run({
+        data: { epost: "annan@exempel.se", roll: "personal" },
+        auth: { uid: "superEpost53" },
+      });
+      vantaSig(!!token, "inbjudan skapades inte trots att bara e-postutskicket misslyckades");
+      const snap = await db.collection("inbjudningar").doc(token).get();
+      vantaSig(snap.exists, "inbjudningsdokumentet saknas");
+    } finally {
+      global.fetch = ursprungligFetch;
+      delete process.env.BREVO_API_KEY;
+    }
+  });
+
   console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);
   if (antalMisslyckade > 0) {
     process.exit(1);

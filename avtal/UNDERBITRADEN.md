@@ -122,10 +122,13 @@ framför ett amerikanskt alternativ.
   nödvändighet måste nämna organisationens namn för att vara begripligt; det är ett medvetet,
   dokumenterat undantag, inte en glidning.
 - **Teknisk status:** hjälparfunktionen `skickaEpost()` och det globala nödstoppet
-  (`angeEpostAvstangd`, en knapp i `/leverantor`) är byggda och testade (Etapp 53a). **Ingen
-  produktfunktion anropar den ännu** – 53b–53d återstår. Skickar ingenting förrän ägaren satt
-  en riktig `BREVO_API_KEY` som GitHub-hemlighet (Secret Manager-mönster, samma som
-  `GEMINI_API_KEY`); fram tills dess no-oppar varje anrop tyst och loggar en varning.
+  (`angeEpostAvstangd`, en knapp i `/leverantor`) byggdes i Etapp 53a. **Sedan Etapp 53b
+  (2026-08-10) skickas inbjudningar faktiskt via den** – `skapaInbjudan`, `skapaOrganisation`
+  och `nollstallDemoOrganisation` mejlar nu automatiskt, med den kopierbara länken kvar som
+  reserv. 53c (påminnelser) och 53d (månadsrapport) återstår. Skickar fortfarande ingenting
+  förrän ägaren satt en riktig `BREVO_API_KEY` som GitHub-hemlighet (Secret Manager-mönster,
+  samma som `GEMINI_API_KEY`); fram tills dess no-oppar varje anrop tyst och loggar en
+  varning – inbjudan skapas ändå, bara mejlet uteblir.
 - **Rättslig grund:** [FYLLS I av ägaren innan skarp drift] – ett PUB-avtal med Brevo måste
   vara på plats, precis som kravet var för den tidigare planerade "veckopuls"-leverantören.
 

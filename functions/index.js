@@ -2998,7 +2998,7 @@ const VALKOMSTCHECKLISTA_STEG = [
 // (org.nr, kontaktperson, användartak, avtalsstatus) samt bjuder in kundens första
 // superadmin i samma anrop – tidigare krävde det ett manuellt steg utanför appen, eftersom
 // skapaInbjudan bara kan anropas av en superadmin som redan finns i organisationen.
-exports.skapaOrganisation = onCall({ region: "europe-west1" }, async (request) => {
+exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API_KEY] }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
   }
@@ -3371,7 +3371,7 @@ async function nollstallDemoOrganisationKarna(inbjudanEpost) {
   return { inbjudanToken };
 }
 
-exports.nollstallDemoOrganisation = onCall({ region: "europe-west1" }, async (request) => {
+exports.nollstallDemoOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API_KEY] }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
   }
@@ -4060,10 +4060,23 @@ exports.utforSchemalagdRaderingSchemalagt = onSchedule(
 // är stängt helt) – den enda vägen in är att lösa in en giltig inbjudan här, som körs med
 // Admin SDK och därför kan kringgå den regeln på ett kontrollerat sätt.
 const INBJUDAN_GILTIGHETSTID_MS = 7 * 24 * 60 * 60 * 1000;
+// Etapp 53b: appens publika URL, för länken i inbjudningsmejlet. Klienten bygger samma länk
+// från window.location.origin (se t.ex. InbjudanFormular.jsx), men servern har ingen
+// motsvarighet – en Cloud Function körs inte i en webbläsare.
+const APP_URL = "https://synappsen-final-build.web.app";
 
-// Delad av skapaInbjudan (superadmin bjuder in till sin egen organisation) och skapaOrganisation
+// Delad av skapaInbjudan (superadmin bjuder in till sin egen organisation), skapaOrganisation
 // (Etapp 15a: leverantörsadmin bjuder in den nya kundens första superadmin i samma anrop som
-// etableringen). Ingen egen behörighetskontroll här – anroparen ansvarar för det.
+// etableringen) och nollstallDemoOrganisation (Etapp 51c). Ingen egen behörighetskontroll här
+// – anroparen ansvarar för det.
+//
+// Etapp 53b: skickar nu ÄVEN inbjudan per e-post, som förval – men den kopierbara länken
+// (returnerad som token, byggs till en länk av anroparen) behålls ALLTID som fallback, eftersom
+// mejlet kommer att fastna i ett spamfilter hos minst en region. Ett misslyckat e-postutskick
+// (kanalen avstängd, saknad nyckel, Brevo nere) ska ALDRIG blockera att inbjudan skapas – bara
+// e-postkanalen är opålitlig, inte inbjudan i sig. Organisationens namn i mejlet är ett
+// medvetet, dokumenterat undantag från genomgående krav 18 (se ETAPPLAN11.md §53b): utan
+// namnet är mejlet obegripligt.
 async function skapaInbjudanIntern({ organisationId, epost, roll, skapadAv }) {
   const token = crypto.randomBytes(24).toString("base64url");
   await db.collection("inbjudningar").doc(token).set({
@@ -4075,13 +4088,29 @@ async function skapaInbjudanIntern({ organisationId, epost, roll, skapadAv }) {
     skapad: admin.firestore.FieldValue.serverTimestamp(),
     utgangstid: Date.now() + INBJUDAN_GILTIGHETSTID_MS,
   });
+  try {
+    const orgSnap = await db.collection("organisationer").doc(organisationId).get();
+    const orgNamn = orgSnap.data()?.namn ?? organisationId;
+    await skickaEpost({
+      till: epost,
+      amne: `Du är inbjuden till ${orgNamn} på Synappsen`,
+      text:
+        `Du har blivit inbjuden till ${orgNamn}s kunskapsbank i Synappsen.\n\n` +
+        `Skapa ditt konto här: ${APP_URL}/registrera?bjudan=${token}\n\n` +
+        `Länken är giltig i 7 dagar. Har du frågor, kontakta den som bjöd in dig.`,
+      organisationId,
+    });
+  } catch (fel) {
+    // Se motiveringen ovan: inbjudan är redan skapad och giltig även om mejlet uteblir.
+    console.warn(`Inbjudningsmejl till ${epost} kunde inte skickas:`, fel.message ?? fel);
+  }
   return token;
 }
 
 // Skapas av en superadmin i adminpanelen (KAN bara bjuda in till sin EGEN organisation –
 // organisationId hämtas här server-side från anroparen, tas ALDRIG emot som klientdata,
 // annars hade en superadmin kunnat bjuda in någon till en annan organisation).
-exports.skapaInbjudan = onCall({ region: "europe-west1" }, async (request) => {
+exports.skapaInbjudan = onCall({ region: "europe-west1", secrets: [BREVO_API_KEY] }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
   }
