@@ -25,12 +25,19 @@ papperskorgen och arkivet, men bara den förra ska döljas – arkivet ska medve
 för redaktörer). Byggde ändå riktiga, mindre träffsäkra fixar för båda: 60b tog bort ren
 datadublett (`namn` ur `lasteAv`), 60c flyttade papperskorgsfiltreringen server-side (med en
 egen migrering, `backfillaBorttagenFalt`). Tillsammans: 77,3 MB → 36,0 MB (60b) plus att
-mjukraderade rutiner inte längre hämtas alls (60c). Ett fristående, separat förslag
+mjukraderade rutiner inte längre hämtas alls (60c). **Etapp 61b och 61c är nu också KLARA:**
+61b lade till 45 tester på de fem utils utan tidigare testtäckning (`offlineKo`,
+`checklistFramsteg`, `senastBesokta`, `introduktionProgress`, `kvartal`) – två av dem
+(`offlineKo`/`checklistFramsteg`) har en genuin dataförlustrisk om de går sönder. 61c gav
+kioskläget (Etapp 55b) sin första e2e-täckning, en ny fil `tests/e2e/kioskbevakning.spec.js`
+(5 tester) plus kiosk tillagt i `rokprov.spec.js`s rollista (sex → sju roller). **61a
+(dela `functions/index.js`, 4 680 rader) är fortfarande INTE byggd** – störst, mest
+riskfylld av de tre, medvetet lämnad för en egen session. Ett fristående, separat förslag
 (Etapp 64, ett "baspaket" av nationella referenser) hölls medvetet UTANFÖR den aktiva planen,
 i en egen fil `ETAPPLAN13.md`. `ETAPPLAN9.md`/`ETAPPLAN8.md`/`ETAPPLAN10.md` fortsatt HELT
 KLARA OCH DEPLOYADE (utom 10:s Etapp 52, väntar på en bokning). **Läs sektionen "Uppföljning
-2026-08-10 (Etapp 60c klar, Etapp 60 helt klar)" längst ner** – tidigare uppföljningar (60b,
-60a, 59, 53–57) finns kvar nedanför den, i kronologisk ordning.
+2026-08-10 (Etapp 61b/61c klara)" längst ner** – tidigare uppföljningar (60c, 60b, 60a, 59,
+53–57) finns kvar nedanför den, i kronologisk ordning.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -2283,3 +2290,35 @@ functions-testfiler). Version bumpad 5.93.0 → **5.94.0**. `ETAPPLAN12.md` §60
 **Nästa steg:** Etapp 61 (underhållbarhet/testluckor) är inte villkorat av något och kan tas
 när som helst. Etapp 60 helt klart innebär att `ETAPPLAN12.md` nu bara har 61–63 kvar (plus
 det fristående, ej byggbara Etapp 64 i `ETAPPLAN13.md`).
+
+## Uppföljning 2026-08-10 (Etapp 61b/61c klara: testtäckning + kiosk-e2e)
+
+Ombads fortsätta med "nästa steg". Valde att göra 61b (lågrisk, ren testtäckning) och 61c
+(måttlig risk, ny e2e-fil) i samma session, men lämnade 61a (dela `functions/index.js`,
+4 680 rader/93 exports) orörd – den är genuint störst och mest riskfylld av de tre
+(planen själv kräver "fullt testsvep före och efter, diffen ska gå att läsa som
+förflyttning"), och förtjänar en egen session snarare än att klämmas in efter två andra
+delmål samma dag.
+
+**61b:** fem nya testfiler, 45 tester totalt: `offlineKo.test.js` (11, inkl. att en kastande
+`localStorage.setItem` – privat läge/full lagring – inte får krascha appen),
+`checklistFramsteg.test.js` (9), `senastBesokta.test.js` (8), `introduktionProgress.test.js`
+(12), `kvartal.test.js` (14, samtliga tolv månadsgränser). Samma mönster som
+`valkomstchecklista.test.js`. Inga produktionsfiler ändrade.
+
+**61c:** ny fil `tests/e2e/kioskbevakning.spec.js` (5 tester: `/akutlage` nås och stannar,
+`/profil` studsar till `/`, de tre huvudsidorna nås, PIN-dialogen öppnas/stängs korrekt).
+Kiosk tillagt i `rokprov.spec.js`s rollista (sex → sju roller, kommentaren uppdaterad) och
+`tests/e2e/global-setup.mjs`s seedade konton. **Medveten avgränsning:** `test:e2e` startar
+ingen functions-emulator (samma etablerade gräns som redan gäller `/leverantor`), så ett
+FAKTISKT PIN-upplåsningsförsök testas inte här – det täcks redan av
+`tests/functions/kioskrestriktioner.test.cjs`/`tests/rules/kioskrestriktioner.test.mjs`. Hela
+`test:e2e`-sviten kördes (inte bara den nya filen): 17/17 gröna.
+
+Testat: `npm run lint`/`build`/`npx vitest run` gröna (175/175, 25 filer), full `test:e2e`
+grön (17/17). Ingen versionsbump – rent testarbete, ingen appkod ändrad. `ETAPPLAN12.md`
+§61b och §61c markerade ✅ KLARA.
+
+**Nästa steg:** 61a (dela `functions/index.js`) kvarstår som den enda ogjorda delen av
+Etapp 61 – störst och mest riskfylld, medvetet lämnad. Etapp 62 (mätvärde → åtgärd) är
+villkorad av att Etapp 59 är stängd, vilket den redan är.

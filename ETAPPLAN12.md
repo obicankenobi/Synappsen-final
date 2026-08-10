@@ -455,17 +455,41 @@ faktiskt har test.
   före och efter, diffen ska gå att läsa som förflyttning. Behåll `index.js` som en tunn fil
   som bara re-exporterar, så att `firebase deploy` och de 32 testfilernas `require`-sökvägar
   fortsätter fungera oförändrade.
-- **61b – Testa det som kan tappa data.** `offlineKo` (offlinekön – en tappad post är en
-  förlorad kvittering eller bristanmälan som användaren tror gick fram) och
-  `checklistFramsteg` först. Därefter `introduktionProgress`, `kvartal`, `senastBesokta`.
-  Rena funktioner, ingen Firestore-mockning – samma mönster som `valkomstchecklista.test.js`.
-- **61c – E2E för kioskläget.** Etapp 55 byggde en ny inloggningsväg med en egen
-  ruttbegränsning och en automatisk återgång, och har noll e2e-täckning. Minst: en
-  kiosk-roll kan nå `/akutlage` men studsar från `/profil`, och PIN-dialogen öppnas från
-  Mer-menyn. Lägg samtidigt till kiosk i `rokprov.spec.js` rollista.
+- **61b – ✅ KLAR (2026-08-10).** Alla fem utils testade: `offlineKo.test.js` (11 tester,
+  inkl. att `laggTillIKo` returnerar posten utan att kasta även när `localStorage.setItem`
+  kastar `QuotaExceededError` – privat läge/full lagring), `checklistFramsteg.test.js` (9,
+  inkl. att två uid på samma enhet aldrig delar framsteg), `senastBesokta.test.js` (8, inkl.
+  max-8-gränsen och att ett återbesök flyttar posten istället för att dubblera den),
+  `introduktionProgress.test.js` (12, `berakraIntroduktionsProgress`/`dagarSedan`/
+  `liggerEfter`), `kvartal.test.js` (14, samtliga tolv månadsgränser). 45 nya tester, samma
+  mönster som `valkomstchecklista.test.js` (`@vitest-environment happy-dom` för de tre
+  localStorage-baserade filerna, ren node-miljö för de två rena funktionsfilerna). Testat:
+  `npm run lint`/`build`/`npx vitest run` gröna (175/175, 25 filer). Ingen versionsbump –
+  rent testarbete, ingen appkod ändrad.
+- **61c – ✅ KLAR (2026-08-10).** Ny fil `tests/e2e/kioskbevakning.spec.js`, fem tester:
+  kiosk når `/akutlage` och stannar där; kiosk studsar tillbaka till `/` från en otillåten
+  sida (`/profil`); kiosk når de tre tillåtna huvudsidorna (kliniskt stöd/logistik/
+  administration); PIN-dialogen öppnas från Mer-menyn med rätt fält (rubrik, PIN-fält,
+  "Lås upp"-knappen inaktiverad tills något skrivits in); dialogen går att avbryta utan att
+  kastas ur kioskläget. Kiosk lades samtidigt till i `rokprov.spec.js`s rollista (nu sju
+  roller istället för sex) och i `tests/e2e/global-setup.mjs`s seedade konton.
 
-**Klart när:** ingen fil i `functions/` är över ~800 rader, de fem utils har test, och
-kioskläget täcks av e2e.
+  **Medveten avgränsning, inte en lucka:** `test:e2e` startar bara auth-/firestore-/
+  storage-emulatorerna (samma etablerade gräns som redan gäller `/leverantor`, se
+  `rokprov.spec.js`s egen kommentar) – ingen functions-emulator. Ett FAKTISKT lyckat
+  PIN-upplåsningsförsök (`verifieraKioskPin`, en Cloud Function) kan alltså inte köras här;
+  testerna stannar vid att dialogen öppnas och stänger korrekt, inte ett lyckat
+  upplåsningsförsök. Det matchar redan täckt mark – `satKioskPin`/`verifieraKioskPin` själva
+  har egna enhetstester (`tests/functions/kioskrestriktioner.test.cjs`) och firestore.rules
+  har egna (`tests/rules/kioskrestriktioner.test.mjs`); den här filen fyller specifikt
+  luckan "fungerar det i en riktig webbläsare", inte affärslogiken i sig.
+
+  **Testat:** hela `test:e2e`-sviten körd (inte bara den nya filen) – 17/17 gröna, inklusive
+  de fem nya kiosktesterna och den utökade sjurollers-rökprovssviten. `npm run lint` grönt.
+  Ingen versionsbump – ren testtäckning, ingen appkod ändrad.
+
+**Klart när:** ingen fil i `functions/` är över ~800 rader (61a, ej byggt denna session), de
+fem utils har test (✅ 61b), och kioskläget täcks av e2e (✅ 61c).
 
 ---
 
@@ -579,7 +603,7 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 | **60b** | Krympa `lasteAv` (tog `namn` bort) | Ingen | Låg | ✅ **KLAR (2026-08-10)** – 77,3→36,0 MB (−53 %). Full listvyprojektion struken, se §60b |
 | **60c** | Serverside-filtrering av papperskorgen (`borttagen`) | Ingen | Medel | ✅ **KLAR (2026-08-10)** – arkivet (`arkiverad`) medvetet UTE, se §60c |
 | ~~**60d**~~ | ~~Sökindex i webbworker~~ | – | – | **Struket – 60a mätte Fuse-byggtid till <2 ms, inte den dyra delen** |
-| **61** | Dela `functions/index.js`, testluckor, kiosk-e2e | Ingen | Låg–medel | Förslag |
+| **61** | Dela `functions/index.js` (61a), testluckor (61b), kiosk-e2e (61c) | Ingen | Låg–medel | **61b/61c KLARA (2026-08-10) – 61a återstår** |
 | **62** | Sökluckor → rutin, veckopuls, åtgärdbar hälsosiffra | Operations | Låg | Förslag |
 | **63** | Gruppera öppna punkter, förbered pilot, tre beslut | Ingen | Ingen | Förslag – kräver ägaren |
 

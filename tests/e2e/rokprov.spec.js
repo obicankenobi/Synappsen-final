@@ -14,10 +14,16 @@ import { ALLA_ROUTES } from "./rutter.mjs";
 
 const LOSENORD = "test1234";
 
-// Samtliga sex roller i src/firebase/roles.js. "plattformsadmin" (styr /leverantor-åtkomst
+// Samtliga sju roller i src/firebase/roles.js. "plattformsadmin" (styr /leverantor-åtkomst
 // server-side) är MEDVETET UTANFÖR den här sviten – det är en separat Firestore-collection,
 // inte ett rollfält, och kräver en egen seedningsmekanism. Se OPPNA-PUNKTER.md om det ska
 // läggas till senare.
+//
+// Etapp 61c (ETAPPLAN12.md): kiosk lades till sist (Etapp 45b täckte bara de sex roller som
+// fanns då) – för kiosk är "renderar utan krasch" fortfarande rätt mått, trots att
+// KioskBevakning.jsx aktivt studsar bort från de flesta av dessa routes: sidan hinner
+// rendera innan omdirigeringen sker, och en tyst navigate() är exakt lika förväntat här som
+// en RollSkyddadRoute-omdirigering redan är för övriga roller (se filens inledande kommentar).
 const ROLLER = [
   { roll: "superadmin", epost: "e2e-superA@orga.test" },
   { roll: "vol", epost: "e2e-volA@orga.test" },
@@ -25,6 +31,7 @@ const ROLLER = [
   { roll: "vec", epost: "e2e-vecA@orga.test" },
   { roll: "forradesansvarig", epost: "e2e-forradA@orga.test" },
   { roll: "personal", epost: "e2e-personalA@orga.test" },
+  { roll: "kiosk", epost: "e2e-kioskA@orga.test" },
 ];
 
 // `test:e2e` startar bara auth/firestore/storage-emulatorerna (se package.json), INTE

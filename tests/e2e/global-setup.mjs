@@ -27,6 +27,10 @@ export default async function globalSetup() {
     { uid: "e2eSektionsledareA", email: "e2e-sektionsledareA@orga.test", role: "sektionsledare", organisationId: ORG_A, namn: "E2E Sektionsledare A" },
     { uid: "e2eVecA", email: "e2e-vecA@orga.test", role: "vec", organisationId: ORG_A, namn: "E2E Vec A" },
     { uid: "e2eForradA", email: "e2e-forradA@orga.test", role: "forradesansvarig", organisationId: ORG_A, namn: "E2E Förråd A" },
+    // Etapp 61c (ETAPPLAN12.md): kioskläget (Etapp 55b) hade ingen e2e-täckning alls – en
+    // egen ruttbegränsning (KioskBevakning.jsx) och en egen "lämna kioskläge"-väg
+    // (BottomNav.jsx) som aldrig körts i en riktig webbläsare förrän nu.
+    { uid: "e2eKioskA", email: "e2e-kioskA@orga.test", role: "kiosk", organisationId: ORG_A, namn: "E2E Kiosk A" },
   ];
 
   for (const k of KONTON) {
