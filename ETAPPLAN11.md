@@ -1,12 +1,18 @@
-# ETAPPLAN 11 (UTKAST – EJ ANTAGEN) – "Från en avdelning till en kund som växer"
+# ETAPPLAN 11 – "Från en avdelning till en kund som växer"
 
 *Skrivet 2026-08-10, utgångsläge v5.84.0, efter att Etapp 48–51 blivit klara och deployade
-(körning #72). Föreslagen omfattning: Etapp 53–58.*
+(körning #72). Omfattning: Etapp 53–58. **ANTAGEN 2026-08-10** – ägaren godkände planens
+omfattning och ordningsprincip.*
 
-> **Detta är ett UTKAST.** Inget delmål ska byggas förrän ägaren läst igenom, strukit det som
-> inte ska med, och planen markerats som antagen (samma gång som `ETAPPLAN10.md` gick igenom
-> 2026-08-06). Flera punkter nedan är medvetet formulerade som förslag med alternativ, inte
-> som beslut.
+> **Status:** aktiv plan. `ETAPPLAN10.md` (Etapp 48–51, plus den obyggda Etapp 52) är
+> föregående plan – se `CLAUDE.md`s dokumentkarta för den fulla läsordningen.
+>
+> **Antagandet av planen svarar INTE på beslutspunkterna nedan.** De fyra beslutspunkterna
+> (nytt underbiträde för e-post, hur långt Etapp 54 ska drivas spekulativt, SAML/OIDC, opt-in-
+> läge för påminnelser) är fristående ägarbeslut som var och en ska bekräftas explicit innan
+> respektive delmål byggs – särskilt beslutspunkt 1, som är ett avtalsrättsligt åtagande
+> (nytt underbiträde), inte ett tekniskt val. Rekommendationerna står kvar som förslag tills
+> dess.
 
 > **Premisskontrollens gränser:** de sakpåståenden som anges under "Premisskontroll gjord
 > inför utkastet" nedan är faktiskt verifierade mot koden. Allt annat i dokumentet är skrivet
@@ -318,12 +324,13 @@ bevisligen inte håller.
 
 **Modul:** ingen (dokumentation).
 
-- **57a – Rätta felet nu, före allt annat i planen.** `PITCH.md` påstår att
-  klinikstöd-sökningen är pausad. Den återaktiverades 2026-07-14. Rätta stycket, bumpa
-  versionsraden, och passa samtidigt på att kontrollera resten av dokumentet mot
-  `MODULPLAN.md` – Etapp 44–51:s funktioner (mobilappskänsla, sök/kunskapsupptäckt,
-  supportåtkomst, demomiljö) nämns sannolikt inte alls. **Kräver ingen antagen plan. Gör den
-  direkt.**
+- **57a – ✅ KLAR (2026-08-10).** Rättade `PITCH.md`s felaktiga påstående om att
+  klinikstöd-sökningen är pausad (den återaktiverades 2026-07-14) till en korrekt
+  historik-formulerad beskrivning. Bumpade versionsraden till 5.84.0/2026-08-10. Kontrollerade
+  resten av dokumentet mot `MODULPLAN.md`/`ETAPPLAN8.md`: lade till en kort rad om
+  kommandopaletten, relaterade rutin-förslag och det uppdaterade "Sedan ditt förra pass"
+  (Etapp 47a/47b) som saknades helt. 57b (händelsestyrd underhållsregel) och 57c (ärligt
+  "vad som inte finns"-stycke) kvarstår som egna delmål.
 - **57b – Händelsestyrd underhållsregel för `PITCH.md`.** Skriv in i `CLAUDE.md`, i samma
   format som de fyra befintliga obligatoriska reglerna: *om en etapp gör en kundvänd funktion
   synlig, avstängd eller väsentligt ändrad → uppdatera `PITCH.md` i samma commit.* Ta med

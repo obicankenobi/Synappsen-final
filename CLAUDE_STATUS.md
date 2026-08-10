@@ -1767,3 +1767,25 @@ tar minuter och det är det enda dokumentet en köpare faktiskt läser.
 
 `OPPNA-PUNKTER.md` orörd: utkastets beslutspunkter blir öppna punkter först om/när planen
 antas – ett ej antaget förslag är varken en öppen punkt eller ett beslut.
+
+## Uppföljning 2026-08-10 (ETAPPLAN11.md ANTAGEN, Etapp 57a klar)
+
+Användaren bad: "Anta den planen och starta första steget". `ETAPPLAN11.md` markerad
+**ANTAGEN 2026-08-10** och gjord till den aktiva planen i `CLAUDE.md`s läsordning/dokumentkarta
+(`ETAPPLAN10.md` nedgraderad till historisk, HELT KLAR utom Etapp 52). **Viktigt: antagandet
+av planens omfattning svarar INTE på planens fyra egna beslutspunkter** (nytt underbiträde för
+e-post m.fl.) – de kräver var sitt eget ägarbeslut innan respektive delmål byggs, och är nu
+inlagda i `OPPNA-PUNKTER.md`. Loggat i `BESLUTSLOGG.md`.
+
+**Första steget genomfört: Etapp 57a** (planens egen ordningsprincip: "kräver ingen antagen
+plan, gör den direkt", före allt annat). `PITCH.md` rättad – det felaktiga påståendet att
+klinikstöd-sökningen är "medvetet pausad i gränssnittet" (den återaktiverades 2026-07-14, tre
+veckor innan `PITCH.md` senast skrevs) ersatt med en korrekt, historik-formulerad beskrivning.
+Versionsraden bumpad till 5.84.0/2026-08-10 (dokumentversion, ingen kodändring/apprelease).
+Lade även till en kort rad om kommandopalett, taggbaserade rutin-förslag och det uppdaterade
+"Sedan ditt förra pass" (Etapp 47a/47b), som saknades helt i säljdokumentet. 57b (händelsestyrd
+underhållsregel för `PITCH.md`) och 57c (ärligt "vad som inte finns"-stycke) kvarstår som egna
+delmål i `ETAPPLAN11.md`.
+
+Ingen produktkod ändrad denna session – rent dokumentationsarbete, ingen version bump av
+`package.json`/deploy behövdes.

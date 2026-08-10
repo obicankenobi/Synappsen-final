@@ -24,6 +24,10 @@ bort härifrån (den finns kvar i sin planfils historik) snarare än att markera
 | Etapp 13f – SSO/Microsoft Entra ID | `ETAPPLAN3.md` §13f, `ETAPPLAN5-ALT-A.md` | Sedan `ETAPPLAN3.md` | Ägarbeslut: SAML eller OIDC? | Ägaren väljer protokoll, bygget kan sedan planeras |
 | Etapp 16 – veckopuls | `ETAPPLAN3.md` §16 | Sedan `ETAPPLAN3.md` | Ägarbeslut om omfattning | Ägaren tar ställning till om/hur den ska byggas |
 | Etapp 40 (`ETAPPLAN6.md`) – importstöd vid en ny kunds inflyttning | `ETAPPLAN6.md` §40 | 2026-08-01 | Väntar på att en konkret ny kund blir aktuell | Bevaka, bygg inte i förväg (se planens egen motivering) |
+| Etapp 53 (`ETAPPLAN11.md`) – får ett nytt underbiträde för e-postutskick anlitas, och vilken leverantör? | `ETAPPLAN11.md` §53, beslutspunkt 1 | 2026-08-10 | Ägarbeslut: avtalsrättsligt åtagande (`avtal/UNDERBITRADEN.md`), inte ett tekniskt val | Ägaren tar ställning (rekommendation i planen: ja, EU-baserad leverantör) – låser upp hela Etapp 53 |
+| Etapp 54 (`ETAPPLAN11.md`) – hur långt ska "flera enheter under samma huvudman" drivas spekulativt? | `ETAPPLAN11.md` §54, beslutspunkt 2 | 2026-08-10 | Marknadsbedömning, inte teknisk fråga | Ägaren tar ställning (rekommendation: 54a+54b nu, vänta med 54c/54d) |
+| Etapp 58 (`ETAPPLAN11.md`) – SAML eller OIDC för SSO? (samma öppna fråga som `ETAPPLAN3.md` §13f, nu med en konkret rekommendation) | `ETAPPLAN11.md` §58, beslutspunkt 3 | Sedan `ETAPPLAN3.md`, omformulerad 2026-08-10 | Ägarbeslut | Ägaren tar ställning (rekommendation: OIDC) – tar bort en rad som stått öppen i månader |
+| Etapp 53c (`ETAPPLAN11.md`) – ska påminnelsemejl vara förvalt på eller av? | `ETAPPLAN11.md` §53c, beslutspunkt 4 | 2026-08-10 | Avvägning beroende av verksamhetens kultur | Ägaren tar ställning (rekommendation: på för tilldelade uppgifter, av för allt annat) |
 
 **Medvetet UTANFÖR listan:** punkter där ägaren redan sagt nej/vänta med ett giltigt
 omprövningsvillkor (t.ex. Etapp 36c, externt penetrationstest – se `ETAPPLAN5.md`) är ett

@@ -24,23 +24,27 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 2. **`OPPNA-PUNKTER.md`** – läs ANDRA. Ett samlat register över allt som väntar på en människa
    eller ett beslut (inte på kapacitet), tvärs över alla planfiler. Ersätter behovet av att
    läsa statusblocken i punkt 4–6 nedan var för sig.
-3. **`ETAPPLAN10.md`** – den AKTIVA utvecklingsplanen (Etapp 48–52: "Redo att drivas" – från
-   byggd produkt till driftbar tjänst: kapacitet/kostnad, avetableringens livscykel,
-   supportbarhet utan innehållsåtkomst, demo/övning, pilotpaketet). Antagen 2026-08-06, inget
-   delmål byggt ännu. Om användaren ber om fortsatt arbete utan att specificera vad: det är
-   här nästa punkt finns.
-4. **`ETAPPLAN9.md`** – HELT KLAR (Etapp 45: kvalitetsmaskineriet riktas utåt). Historisk men
+3. **`ETAPPLAN11.md`** – den AKTIVA utvecklingsplanen (Etapp 53–58: "Från en avdelning till
+   en kund som växer" – e-post som kanal, flera enheter under samma huvudman, kioskläge,
+   startbiblioteket, säljmaterialets sanning, SSO). Antagen 2026-08-10. Om användaren ber om
+   fortsatt arbete utan att specificera vad: det är här nästa punkt finns. Flera delmål är
+   villkorade av egna ägarbeslut (se planens "Beslutspunkter som kräver ägaren") – kontrollera
+   det innan ett sådant delmål påbörjas.
+4. **`ETAPPLAN10.md`** – HELT KLAR utom Etapp 52 (pilotpaketet, kräver bokad tid med riktiga
+   människor, inte kod – se planens egen "Beslutspunkter som kräver ägaren"). Etapp 48–51
+   HELT KLARA OCH DEPLOYADE.
+5. **`ETAPPLAN9.md`** – HELT KLAR (Etapp 45: kvalitetsmaskineriet riktas utåt). Historisk men
    korrekt, inget kvar att göra där.
-5. **`ETAPPLAN8.md`** – Etapp 44, 46 och 47 HELT KLARA OCH DEPLOYADE. Ingen etapp väntar
+6. **`ETAPPLAN8.md`** – Etapp 44, 46 och 47 HELT KLARA OCH DEPLOYADE. Ingen etapp väntar
    ogjord i den här filen just nu.
-6. **`ETAPPLAN7.md`** – HELT KLAR OCH DEPLOYAD (Etapp 42+43, gränssnittsförnyelse). Historisk
+7. **`ETAPPLAN7.md`** – HELT KLAR OCH DEPLOYAD (Etapp 42+43, gränssnittsförnyelse). Historisk
    men korrekt, inget kvar att göra där.
-7. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkt (Etapp 40, villkorad av en
+8. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkt (Etapp 40, villkorad av en
    konkret ny kund) är inte blockerad av kapacitet, bara av att komma i tur. Ta den när som
    helst.
-8. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter listas nu i `OPPNA-PUNKTER.md`
+9. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter listas nu i `OPPNA-PUNKTER.md`
    istället för att behöva läsas härifrån.
-9. Övriga dokument nedan, efter behov.
+10. Övriga dokument nedan, efter behov.
 
 ## Dokumentkarta
 
@@ -48,7 +52,7 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 
 | Fil | Innehåll | Status |
 |---|---|---|
-| `ETAPPLAN10.md` | Etapp 48–52: "Redo att drivas" – kapacitet/kostnad, avetableringens livscykel, supportbarhet utan innehållsåtkomst, demo/övning, pilotpaketet | **Aktiv, ANTAGEN 2026-08-06.** Ursprungligen externt utkast, granskat och skärpt (se filens egen "Ändringar mot utkastet"). Inget delmål byggt ännu. |
+| `ETAPPLAN10.md` | Etapp 48–52: "Redo att drivas" – kapacitet/kostnad, avetableringens livscykel, supportbarhet utan innehållsåtkomst, demo/övning, pilotpaketet | **HELT KLAR utom Etapp 52** (pilotpaketet, kräver bokad tid, inte kod). Etapp 48–51 klara och deployade. Historisk men korrekt. |
 | `ETAPPLAN9.md` | Etapp 45: kvalitetsmaskineriet riktas utåt (respons på extern granskning) | **HELT KLAR OCH DEPLOYAD** (2026-08-04, v5.74.0, körning #68). Alla sex delmål 45a–45f byggda. |
 | `OPPNA-PUNKTER.md` | Samlat register över människo-/beslutsberoende punkter, tvärs över alla planfiler | **Aktiv, LEVANDE, ny 2026-08-04 (Etapp 45d).** Händelsestyrd underhållsregel, se arbetsmönstren nedan. |
 | `BESLUTSLOGG.md` | Samlat register över tagna ägarbeslut, framåtriktat från 2026-08-04 | **Aktiv, LEVANDE, ny 2026-08-04 (Etapp 45f).** Byggs inte retroaktivt – historiska beslut finns i `CLAUDE_STATUS.md`. Händelsestyrd underhållsregel, se arbetsmönstren nedan. |
@@ -56,7 +60,7 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 | `ETAPPLAN7.md` | Etapp 42 + Etapp 43: gränssnittsförnyelse | **HELT KLAR OCH DEPLOYAD** (2026-08-03). Etapp 42a–42f och Etapp 43a–43e klara, v5.72.0 live i produktion (körning #66). Historisk men korrekt. |
 | `ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag, bevisad effekt, import, synlighet | **Aktiv men ej stängd.** Etapp 37–39 och 41 klara. Kvarvarande punkt (Etapp 40) listad i `OPPNA-PUNKTER.md`. |
 | `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv men ej stängd.** I det närmaste klar – kvarvarande punkter listade i `OPPNA-PUNKTER.md` istället för att dupliceras här. |
-| `ETAPPLAN11.md` | Förslag på Etapp 53–58: e-post som kanal, flera enheter under samma huvudman, kioskläge, startbiblioteket, säljmaterialets sanning, SSO | **UTKAST, EJ ANTAGEN (2026-08-10).** Inget delmål får byggas härifrån förrän ägaren gått igenom och antagit den – samma ordning som `ETAPPLAN10.md` följde. Innehåller sex premisser verifierade mot faktisk kod. |
+| `ETAPPLAN11.md` | Etapp 53–58: e-post som kanal, flera enheter under samma huvudman, kioskläge, startbiblioteket, säljmaterialets sanning, SSO | **Aktiv, ANTAGEN 2026-08-10.** Sex premisser verifierade mot faktisk kod innan antagande. Flera delmål villkorade av egna ägarbeslut (se planens "Beslutspunkter som kräver ägaren") – kontrollera innan ett sådant delmål påbörjas. |
 | `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast som INTE antogs när `ETAPPLAN6.md` valdes | **Utkast, ej antagna.** Arkiverade – se `FRAMTIDSPLAN.md` för omprövningsvillkor per alternativ. |
 | `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv, LEVANDE** – händelsestyrd underhållsregel, se "Obligatorisk underhållsregel: CLAUDE_STATUS.md" under arbetsmönstren nedan. |
 | `src/data/andringslogg.js` | Användarvänd ändringslogg, visas i appen (`/nyheter`) | **Aktiv** – lägg till en post vid VARJE release. |

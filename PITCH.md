@@ -1,6 +1,6 @@
 # Synappsen – rätt information, direkt i handen, när det är bråttom
 
-*Beslutsunderlag för verksamhetsledning · Version 5.73.0 · 2026-08-04*
+*Beslutsunderlag för verksamhetsledning · Version 5.84.0 · 2026-08-10*
 
 ---
 
@@ -22,15 +22,15 @@ nät) som samlar mottagningens hela praktiska kunskap på ett ställe – sökba
 - **Fota en whiteboard eller inventarielista → färdigt utkast.** AI:n tolkar foton och
   skapar sökbart innehåll automatiskt. Inget publiceras utan att en behörig person granskat
   och godkänt det.
-- **Klinikstöd-sökning (under vidareutveckling):** en funktion byggd för att besvara en
-  generell medicinsk fråga med källhänvisning, tekniskt begränsad till enbart godkända
-  svenska källor (Internetmedicin, 1177, Nationella kliniska kunskapsstödet, FASS,
-  Läkemedelsverket m.fl.). Funktionen är **medvetet pausad i gränssnittet** just nu –
-  den visade sig i vissa fall kunna citera källor utanför listan, och vi valde att stänga
-  av den istället för att lita på en lösning med osäker träffsäkerhet. Koden finns kvar
-  och återaktiveras när en mer robust lösning (en riktigt domänbegränsad sökmotor) är på
-  plats. Vi nämner detta öppet eftersom det säger något om hur vi hanterar osäkerhet i
-  produkten.
+- **Klinikstöd-sökning:** besvarar en generell medicinsk fråga med källhänvisning, tekniskt
+  begränsad till enbart godkända svenska källor (Internetmedicin, 1177, Nationella kliniska
+  kunskapsstödet, FASS, Läkemedelsverket m.fl.) via en domänbegränsad sökmotor – inte en fri
+  AI-instruktion att bara citera dessa källor. En första version kunde i vissa fall ändå
+  citera källor utanför listan; vi valde då att stänga av funktionen istället för att lita på
+  en lösning med osäker träffsäkerhet, byggde om den att söka via en riktigt domänbegränsad
+  sökmotor istället, och den är sedan i drift igen. En daglig automatisk källkontroll och en
+  manuell verifieringsknapp bevakar att gränsen håller. Vi nämner historiken öppet eftersom
+  den säger något om hur vi hanterar osäkerhet i produkten.
 
 ## Vad ledningen får
 
@@ -54,6 +54,9 @@ nät) som samlar mottagningens hela praktiska kunskap på ett ställe – sökba
   personalpuls-sammanställning per område, inte bara operativa detaljer.
 - **Kommunikation som når fram:** anslagstavla med prioritet, skiftrapport för driftinfo
   (aldrig patientdata), notiser och @omnämnanden.
+- **Hittar det du inte visste fanns:** global kommandopalett (Ctrl/Cmd+K), föreslagna
+  relaterade rutiner baserat på delade taggar/område, och "Sedan ditt förra pass" som
+  känner igen även ett väsentligt uppdaterat innehåll – inte bara helt nytt.
 
 ## Innehållet hålls vid liv, inte bara publicerat en gång
 
