@@ -66,7 +66,7 @@ async function hamtaAnvandarInfo(uid) {
 }
 
 // Delad av skapaInbjudan, losInInbjudan och uppdateraAnvandarRoll (Etapp 32c).
-const GILTIGA_ROLLER = ["superadmin", "vol", "sektionsledare", "vec", "forradesansvarig", "personal"];
+const GILTIGA_ROLLER = ["superadmin", "vol", "sektionsledare", "vec", "forradesansvarig", "personal", "kiosk"];
 
 // Etapp 2 (feature-gating): serverkontroll av att organisationens Intelligence-modul är
 // påslagen. Måste köras INNAN budgetreservation/Gemini-anrop – detta är den verkliga
@@ -1337,6 +1337,63 @@ exports.uppdateraAnvandarRoll = onCall({ region: "europe-west1" }, async (reques
   return { ok: true };
 });
 
+// Etapp 55 (kioskläge): en kiosk-enhet lämnar det begränsade läget med en PIN-kod istället för
+// en persons lösenord (delad enhet, ingen ska behöva ett eget konto bara för att låsa upp den).
+// PIN:en lagras ENDAST hashad, under en sökväg som är helt stängd för klientåtkomst (se
+// organisationer/{orgId}/installningar/kioskPin i firestore.rules) – verifiering sker alltid
+// server-side. Klienten får aldrig se vare sig PIN:en eller hashen, bara ett booleskt svar.
+const MAX_KIOSK_PIN_FORSOK_PER_TIMME = 10;
+
+exports.satKioskPin = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan sätta kiosk-PIN-koden.");
+  }
+  const pin = String(request.data?.pin ?? "");
+  if (!/^\d{4,8}$/.test(pin)) {
+    throw new HttpsError("invalid-argument", "PIN-koden måste vara 4–8 siffror.");
+  }
+  const hash = crypto.createHash("sha256").update(pin).digest("hex");
+  await db
+    .collection("organisationer")
+    .doc(uppringare.organisationId)
+    .collection("installningar")
+    .doc("kioskPin")
+    .set({
+      hash,
+      andradAv: request.auth.uid,
+      andradTidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  return { ok: true };
+});
+
+// Anropas av kiosk-enheten själv (vilken inloggad roll som helst i organisationen, i praktiken
+// bara kiosk-kontot) för att jämföra en inmatad PIN mot den lagrade hashen. Hastighetsbegränsat
+// per konto – utan det skulle en enhet kunna testa alla 4-siffriga koder på några sekunder.
+exports.verifieraKioskPin = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kontrolleraOchOkaHastighet(request.auth.uid, "kioskpin", MAX_KIOSK_PIN_FORSOK_PER_TIMME);
+
+  const pin = String(request.data?.pin ?? "");
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  const dokSnap = await db
+    .collection("organisationer")
+    .doc(uppringare.organisationId)
+    .collection("installningar")
+    .doc("kioskPin")
+    .get();
+  if (!dokSnap.exists) {
+    return { giltig: false };
+  }
+  const hash = crypto.createHash("sha256").update(pin).digest("hex");
+  return { giltig: hash === dokSnap.data().hash };
+});
+
 // Etapp 32c: moduler på/av flyttat från en naken klient-updateDoc (Admin.jsx) hit, så
 // på/av-slag loggas. Samma behörighet som tidigare (superadmin, egen organisation) –
 // firestore.rules stänger nu den direkta klientvägen för moduler-fältet.
@@ -1457,10 +1514,14 @@ exports.skapaKommentar = onCall({ region: "europe-west1" }, async (request) => {
     );
   }
 
-  await kontrolleraOchOkaHastighet(request.auth.uid, "kommentar", MAX_KOMMENTARER_PER_TIMME);
+  const { roll, organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+  if (roll === "kiosk") {
+    // Etapp 55: en kommentar är alltid en enskild persons text – ett delat kioskkonto får
+    // aldrig kunna skriva den, annars blir "vem skrev det här" obesvarbart (genomgående krav 19).
+    throw new HttpsError("permission-denied", "Kioskläge kan inte skriva kommentarer.");
+  }
 
-  const { roll: _roll, organisationId } = await hamtaAnvandarInfo(request.auth.uid);
-  void _roll;
+  await kontrolleraOchOkaHastighet(request.auth.uid, "kommentar", MAX_KOMMENTARER_PER_TIMME);
   const [skaparSnap, orgAnvandare] = await Promise.all([
     db.collection("users").doc(request.auth.uid).get(),
     // Begränsat till SAMMA organisation – annars skulle man kunna @nämna (och trigga en
@@ -1511,12 +1572,16 @@ exports.skickaFeedback = onCall({ region: "europe-west1" }, async (request) => {
     );
   }
 
+  const { roll, organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+  if (roll === "kiosk") {
+    // Etapp 55: feedback är alltid en enskild persons synpunkt – se motiveringen i
+    // skapaKommentar ovan.
+    throw new HttpsError("permission-denied", "Kioskläge kan inte skicka in feedback.");
+  }
+
   await kontrolleraOchOkaHastighet(request.auth.uid, "feedback", MAX_FEEDBACK_PER_TIMME);
 
-  const [skaparSnap, { organisationId }] = await Promise.all([
-    db.collection("users").doc(request.auth.uid).get(),
-    hamtaAnvandarInfo(request.auth.uid),
-  ]);
+  const skaparSnap = await db.collection("users").doc(request.auth.uid).get();
   const skapadAvNamn = skaparSnap.data()?.namn ?? skaparSnap.data()?.email ?? "";
 
   const ref = await db.collection("feedback").add({
@@ -2774,6 +2839,11 @@ exports.svaraPersonalpuls = onCall({ region: "europe-west1" }, async (request) =
   }
 
   const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll === "kiosk") {
+    // Etapp 55: personalpulsen mäter enskilda medarbetares upplevelse – ett delat
+    // kioskkonto är ingen person och ska inte kunna svara (genomgående krav 19).
+    throw new HttpsError("permission-denied", "Kioskläge kan inte svara på personalpulsen.");
+  }
   const kvartal = beraknaKvartal();
   const userRef = db.collection("users").doc(request.auth.uid);
   const resultatRef = db

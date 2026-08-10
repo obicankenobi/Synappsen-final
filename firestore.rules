@@ -123,6 +123,16 @@ service cloud.firestore {
       return arInloggad() && minRoll() == 'forradesansvarig';
     }
 
+    // Etapp 55 (kioskläge): ett delat enhetskonto (foajé-platta e.dyl.), inte en person. Får
+    // läsa/söka/köra checklistor precis som andra roller, men får ALDRIG utföra en
+    // identitetsbunden handling (kvittera, kommentera, föreslå ändring, bristanmäla,
+    // skiftrapportera) – annars blir t.ex. kvitteringsgraden meningslös (genomgående krav 19).
+    // Varje skrivregel nedan som binder en handling till request.auth.uid som en enskild
+    // person måste uttryckligen uteslutas med !arKiosk().
+    function arKiosk() {
+      return arInloggad() && minRoll() == 'kiosk';
+    }
+
     // Får godkänna/publicera medicinskt innehåll (kliniskt stöd)
     function farGodkannaKlinisktInnehall() {
       return arSuperadmin() || arVol();
@@ -310,13 +320,27 @@ service cloud.firestore {
                               'supportAtkomstTill', 'supportAtkomstBeviljadAv', 'supportAtkomstAnledning'
                             ]));
 
+      // organisationer/{orgId}/installningar/kioskPin – Etapp 55: hashad PIN-kod som låser upp
+      // kioskläget. VIKTIGT (bugfynd under byggandet): Firestore-regler kombinerar flera
+      // matchande match-block med ELLER, inte "mest specifika block vinner" – ett eget
+      // `match /installningar/kioskPin { allow read, write: if false; }`-block bredvid
+      // wildcard-blocket nedan hade INTE stängt åtkomsten, eftersom wildcard-blockets
+      // `allow read: if arInloggad() && ...` fortfarande hade matchat samma dokument och
+      // beviljat läsning (bekräftat av ett failande regeltest, se
+      // tests/rules/kioskrestriktioner.test.mjs). Rätt sätt är istället att explicit UTESLUTA
+      // dokId == 'kioskPin' ur själva wildcard-villkoren nedan, så att INGET block någonsin
+      // beviljar åtkomst till just den dokumentsökvägen. PIN:en skrivs bara via satKioskPin
+      // (superadmin), verifieras bara via verifieraKioskPin (returnerar enbart en boolean,
+      // aldrig hashen) – båda Admin SDK, ingen klientväg finns eller ska finnas.
+      //
       // organisationer/{orgId}/installningar/geminiBudget|utloggning – budgettak och
       // auto-utloggningstid, per organisation. geminiBudget skrivs numera ENDAST via
       // uppdateraGeminiBudgetTak (Etapp 32c, samma skäl som ovan); utloggning skrivs
       // fortfarande direkt av superadmin i adminpanelen.
       match /installningar/{dokId} {
-        allow read: if arInloggad() && orgId == minOrganisation();
-        allow write: if arSuperadmin() && orgId == minOrganisation() && dokId != 'geminiBudget';
+        allow read: if arInloggad() && orgId == minOrganisation() && dokId != 'kioskPin';
+        allow write: if arSuperadmin() && orgId == minOrganisation()
+                      && dokId != 'geminiBudget' && dokId != 'kioskPin';
       }
 
       // organisationer/{orgId}/kostnadshistorik/{manad} – Etapp 5: arkiverad AI-kostnad per
@@ -449,7 +473,7 @@ service cloud.firestore {
               && !harTroligtPersonnummer(nytt.get('referenser', ''))
               && !harTroligtPersonnummerISteg(nytt.get('steg', []))
               && !harTroligtPersonnummerIKviss(nytt.get('kviss', [])))
-          || (sammaOrg && bararForandrarFalt(['lasteAv']));
+          || (sammaOrg && !arKiosk() && bararForandrarFalt(['lasteAv']));
     }
 
     // rutiner/{rutinId} – innehåll för kliniskt stöd, logistik och administration
@@ -551,6 +575,7 @@ service cloud.firestore {
     match /bristanmalningar/{bristId} {
       allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
       allow create: if arInloggad()
+                     && !arKiosk()
                      && request.resource.data.get('organisationId', 'default') == minOrganisation()
                      && request.resource.data.anmaldAv == request.auth.uid
                      && request.resource.data.status == 'ny'
@@ -585,6 +610,7 @@ service cloud.firestore {
                        || resource.data.foreslagenAv == request.auth.uid
                        || resource.data.status == 'infort');
       allow create: if arInloggad()
+                     && !arKiosk()
                      && request.resource.data.get('organisationId', 'default') == minOrganisation()
                      && request.resource.data.foreslagenAv == request.auth.uid
                      && request.resource.data.status == 'ny'
@@ -644,6 +670,7 @@ service cloud.firestore {
                      && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
                      && !harTroligtPersonnummer(request.resource.data.get('innehall', '')))
                      || (matcharMinOrg(resource.data.get('organisationId', 'default'))
+                         && !arKiosk()
                          && bararForandrarFalt(['lasteAv']));
       allow create: if farHanteraAnslag()
                      && request.resource.data.get('organisationId', 'default') == minOrganisation()
@@ -842,10 +869,11 @@ service cloud.firestore {
     // en redaktörsroll (i samma organisation) får ta bort.
     match /skiftrapporter/{postId} {
       allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
-      allow create: if arInloggad() && request.resource.data.skapadAv == request.auth.uid
+      allow create: if arInloggad() && !arKiosk() && request.resource.data.skapadAv == request.auth.uid
                      && request.resource.data.get('organisationId', 'default') == minOrganisation()
                      && !harTroligtPersonnummer(request.resource.data.get('text', ''));
       allow update: if matcharMinOrg(resource.data.get('organisationId', 'default'))
+                     && !arKiosk()
                      && bararForandrarFalt(['atgardad', 'atgardadAv']);
       allow delete: if matcharMinOrg(resource.data.get('organisationId', 'default'))
                      && (resource.data.skapadAv == request.auth.uid || arRedaktor());

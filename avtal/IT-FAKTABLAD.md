@@ -45,9 +45,15 @@ egna servrar. All åtkomst sker över vanlig HTTPS.
   superadmin hos er kan omedelbart återkalla en enskild användares aktiva session
   ("force-logout"), t.ex. vid en misstänkt komprometterad inloggning eller när någon
   slutar.
-- **Rollmodell:** sex roller (superadmin, VOL, sektionsledare, VEC, förrådsansvarig,
-  personal), var och en med ett tydligt avgränsat redigeringsområde, enforcerat i
+- **Rollmodell:** sju roller (superadmin, VOL, sektionsledare, VEC, förrådsansvarig,
+  personal, kiosk), var och en med ett tydligt avgränsat redigeringsområde, enforcerat i
   databasreglerna – inte bara döljande av knappar i gränssnittet.
+- **Kioskläge (delad enhet):** ett valfritt sjunde kontotyp för en delad platta (t.ex. i en
+  foajé), inte en person. Läser godkänt innehåll, söker och kör checklistor, men kan i
+  grunden aldrig kvittera, kommentera, föreslå en ändring eller bristanmäla – rollen är
+  spärrad från allt som skulle göra en spårbarhetssiffra (t.ex. kvitteringsgrad) missvisande.
+  Låses upp med en PIN-kod (hashad server-side, aldrig läsbar av klienten) istället för ett
+  personligt lösenord; er superadmin kan byta PIN-koden omedelbart vid förlust eller stöld.
 
 ## 3. App Check (skydd mot obehöriga klienter)
 

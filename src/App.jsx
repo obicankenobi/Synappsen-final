@@ -21,6 +21,7 @@ import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
 import KommandopalettLyssnare from "./components/KommandopalettLyssnare";
+import KioskBevakning from "./components/KioskBevakning";
 import { REDAKTORSROLLER } from "./firebase/roles";
 
 // Kontrollerar var 5:e minut om sessionen fortfarande är giltig – om en superadmin har
@@ -120,6 +121,7 @@ export default function App() {
           Hoppa till innehåll
         </a>
         <SidTitelBevakning />
+        <KioskBevakning />
         <AppUppdateringBanner />
         <MfaPolicyBanner />
         <ProvperiodBanner />

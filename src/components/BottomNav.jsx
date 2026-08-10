@@ -1,15 +1,66 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { arRedaktor } from "../firebase/roles";
+import { arRedaktor, ROLES } from "../firebase/roles";
 import { oppnaKommandopalett } from "../hooks/useKommandopalett";
 import MerMeny from "./MerMeny";
+import KioskPinModal from "./KioskPinModal";
 import "./BottomNav.css";
 
 // Mobilanpassad navigering längst ned på skärmen
 export default function BottomNav() {
-  const { role } = useAuth();
+  const { role, loggaUt } = useAuth();
   const [merOppen, setMerOppen] = useState(false);
+  const [pinOppen, setPinOppen] = useState(false);
+  const navigate = useNavigate();
+
+  if (role === ROLES.KIOSK) {
+    return (
+      <>
+        <nav className="bottom-nav" aria-label="Huvudnavigering">
+          <button type="button" className="bottom-nav__lank" onClick={oppnaKommandopalett}>
+            <span className="bottom-nav__ikon">🔎</span>
+            <span>Sök</span>
+          </button>
+          <NavLink to="/" end className="bottom-nav__lank">
+            <span className="bottom-nav__ikon">🏠</span>
+            <span>Hem</span>
+          </NavLink>
+          {/* Etapp 55b: akutläget ska vara en tryckning bort på en kiosk-enhet, inte gömt i
+              "Mer" som för övriga roller. */}
+          <NavLink to="/akutlage" className="bottom-nav__lank">
+            <span className="bottom-nav__ikon">🚨</span>
+            <span>Akutläge</span>
+          </NavLink>
+          <button type="button" className="bottom-nav__lank" onClick={() => setMerOppen(true)}>
+            <span className="bottom-nav__ikon">⋯</span>
+            <span>Mer</span>
+          </button>
+        </nav>
+        {merOppen && (
+          <MerMeny
+            poster={[
+              { till: "/kliniskt-stod", ikon: "🩺", namn: "Kliniskt" },
+              { till: "/logistik", ikon: "📦", namn: "Logistik" },
+              { till: "/administration", ikon: "📋", namn: "Regler" },
+              { onKlick: () => setPinOppen(true), ikon: "🔓", namn: "Lämna kioskläge" },
+            ]}
+            onStang={() => setMerOppen(false)}
+          />
+        )}
+        {pinOppen && (
+          <KioskPinModal
+            onLyckad={async () => {
+              setPinOppen(false);
+              await loggaUt();
+              navigate("/logga-in");
+            }}
+            onAvbryt={() => setPinOppen(false)}
+          />
+        )}
+      </>
+    );
+  }
 
   // Etapp 42f: navet växte till 9 poster för en redaktör (Sök, Hem, Anslag, Kliniskt,
   // Logistik, Regler, Nyheter, Godkänn, Admin) – för många för att alla ska rymmas synligt på

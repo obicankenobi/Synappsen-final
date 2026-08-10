@@ -6,18 +6,18 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.90.0** – **INTE ÄNNU DEPLOYAD** (senaste
+**Senast uppdaterad:** 2026-08-10, version **5.91.0** – **INTE ÄNNU DEPLOYAD** (senaste
 bekräftade produktionsdeploy är fortfarande v5.89.0, körning #73, commit `63f15d7`).
 `ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning till en kund som växer") är den AKTIVA
 planen, **ANTAGEN 2026-08-10** (ersatte `ETAPPLAN10.md`, som är HELT KLAR utom Etapp 52 –
-pilotpaketet, kräver bokad tid, inte kod). **HELA Etapp 53 (53a–53d), Etapp 54a–54b OCH
-Etapp 56 (56a–56d) är nu KLARA:** e-post som kanal, en utredning + huvudmannagruppering, och
-ett rejält utökat startbibliotek (fler rutinmallar över alla tre områdena, förråds-/kontakt-/
-introduktionsspår-/kompetenskravsmallar, samt "Kom igång"-checklistan omgjord till att mäta
-verkligt läge istället för självrapporterade kryssrutor). 54c/54d (högrisk/väntar på en
-konkret andra enhet) och Etapp 55/57b–c/58 kvarstår, se `OPPNA-PUNKTER.md`.
-`ETAPPLAN9.md`/`ETAPPLAN8.md` fortsatt HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs
-sektionerna "Uppföljning 2026-08-10" (a/b/c/d, sedan 56) längst ner.**
+pilotpaketet, kräver bokad tid, inte kod). **HELA Etapp 53 (53a–53d), Etapp 54a–54b, Etapp 56
+(56a–56d) OCH Etapp 55 (55a–55c) är nu KLARA:** e-post som kanal, en utredning +
+huvudmannagruppering, ett rejält utökat startbibliotek, och ett nytt kioskläge för delade
+enheter (ny roll `kiosk`, blockerad från allt identitetsbundet, PIN-låst UI). 54c/54d
+(högrisk/väntar på en konkret andra enhet) och Etapp 57b–c/58 kvarstår, se
+`OPPNA-PUNKTER.md`. `ETAPPLAN9.md`/`ETAPPLAN8.md` fortsatt HELT KLARA OCH DEPLOYADE sedan
+tidigare. **Läs sektionerna "Uppföljning 2026-08-10" (a/b/c/d, sedan 56, sedan 55) längst
+ner.**
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1999,4 +1999,54 @@ isolerade omkörningar av den tidigare flakiga testen). Version bumpad 5.89.0 �
 **Med detta är HELA Etapp 53, Etapp 54a–54b och HELA Etapp 56 i `ETAPPLAN11.md` klara och
 testade – men INTE deployade** (senaste produktionsdeploy är fortfarande v5.89.0). Nästa
 steg: deploya, eller fortsätta med Etapp 55 (kioskläge) eller 57b–c (säljmaterialets
+underhållsregel + ärlighetsstycke).
+
+## Uppföljning 2026-08-10 (Etapp 55 klar: kioskläge, v5.91.0)
+
+Byggde hela Etapp 55 (55a–55c) i en session: ett nytt delat enhetskonto för en väggmonterad/
+delad platta, med en ny roll `kiosk` som `firestore.rules` (`arKiosk()`) och tre Cloud
+Functions (`skapaKommentar`/`skickaFeedback`/`svaraPersonalpuls`) blockerar från allt
+identitetsbundet (kvittering, kommentar, ändringsförslag, bristanmälan, skiftrapport,
+personalpuls). Kontot skapas genom att återanvända det BEFINTLIGA inbjudningsflödet (`kiosk`
+tillagd i `GILTIGA_ROLLER`/`BJUDBARA_ROLLER`) – ingen ny funktion behövdes för
+kontoskapandet i sig.
+
+**Ett verkligt regelfel hittat och rättat under bygget, inte bara på papper:** ett första
+försök att stänga `organisationer/{orgId}/installningar/kioskPin` (PIN-hashen) med ett eget,
+snävare match-block bredvid det befintliga wildcard-blocket byggde på ett felaktigt antagande
+om "mest specifika block vinner". Firestore Security Rules kombinerar ALLA matchande block
+med ELLER – det snävare blocket stängde ingenting. Ett regeltest (skrivet FÖRE detta
+upptäcktes, inte i efterhand) visade att en superadmin fortfarande kunde läsa/skriva hashen
+direkt. Rättat genom att explicit undanta `dokId == 'kioskPin'` i själva wildcard-villkoren –
+den enda metod som faktiskt fungerar. Se `SAKERHETSRAPPORT.md`s tillägg (2026-08-10,
+v5.91.0) för den fullständiga lärdomen. Ingen produktionsdata någonsin exponerad.
+
+PIN-verifiering sker helt server-side (`satKioskPin`/`verifieraKioskPin`, SHA-256-hash,
+hastighetsbegränsad) – klienten ser aldrig hashen eller rätt PIN under några omständigheter.
+UI: `KioskBevakning.jsx` (route-vitlista + auto-återgång till startsidan efter 3 minuters
+inaktivitet, ALDRIG utloggning), en egen `BottomNav`-gren för kiosk-rollen
+(Sök/Hem/Akutläge direkt, resten i Mer-menyn), `KioskPinModal.jsx` för att lämna kioskläget,
+`KioskPinSektion.jsx` i `/admin` för att sätta PIN-koden.
+
+**55c fullgjord i samma commit:** `INCIDENT-CHECKLISTA.md` (steg 3-tabell, steg 4,
+snabbreferensen), `avtal/INCIDENTRESPONSPLAN.md` v1.4 → v1.5 (avsnitt 4 + versionshistorik),
+`avtal/IT-FAKTABLAD.md` avsnitt 2, `SAKERHETSRAPPORT.md` (nytt tillägg).
+
+Testat: `tests/rules/kioskrestriktioner.test.mjs` (8 tester) + `tests/functions/
+kioskrestriktioner.test.cjs` (9 tester, inkl. att verifieraKioskPin-svaret aldrig läcker
+hashen). Full testsvep grön: lint, build, vitest (130/130), rules (kioskrestriktioner ingår),
+functions (kioskrestriktioner ingår), storage (21/21). e2e: 10/11 i första körningen –
+`rökprov (sektionsledare)` föll på ett `ERR_CONNECTION_REFUSED`-konsolfel mot `/admin`, en
+roll och sida kiosk-ändringarna inte rör. Körd isolerat (1 worker) direkt efter: grön,
+30.9s – samma redan dokumenterade sandlåde-flak som i Etapp 56:s uppföljning, inte en
+regression. **Sidoanteckning om testmiljön:** den förinstallerade Playwright-webbläsaren låg
+på en annan revision (`chromium-1194`) än vad den pinnade `@playwright/test`-versionen
+förväntade sig (`chromium_headless_shell-1234`) – löst genom att sätta
+`PLAYWRIGHT_CHROMIUM_PATH=/opt/pw-browsers/chromium` innan `npm run test:e2e`, exakt den
+work-around miljöns egen dokumentation redan beskriver. Version bumpad 5.90.0 → **5.91.0**.
+`ETAPPLAN11.md` §55 (55a–55c) markerad ✅ HELT KLAR.
+
+**Med detta är Etapp 53, 54a–54b, 55 OCH 56 i `ETAPPLAN11.md` alla klara och testade – men
+INTE deployade** (senaste produktionsdeploy fortfarande v5.89.0). Nästa steg: deploya, eller
+fortsätta med 54c/54d (väntar på en konkret andra enhet) eller 57b–c (säljmaterialets
 underhållsregel + ärlighetsstycke).

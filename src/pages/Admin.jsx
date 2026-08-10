@@ -60,6 +60,7 @@ import DubbletterSektion from "../components/admin/DubbletterSektion";
 import PersonalpulsResultatSektion from "../components/admin/PersonalpulsResultatSektion";
 import RaderaOrganisationSektion from "../components/admin/RaderaOrganisationSektion";
 import SupportatkomstSektion from "../components/admin/SupportatkomstSektion";
+import KioskPinSektion from "../components/admin/KioskPinSektion";
 import "./Admin.css";
 
 // Vilket område en icke-superadmin-redaktörsroll ansvarar för, för den områdesscopade statistiken
@@ -537,6 +538,8 @@ export default function Admin() {
           <InbjudanFormular />
         </details>
       )}
+
+      {arSuperadmin && <KioskPinSektion />}
 
       {arSuperadmin && (
         <AnvandareRollerSektion

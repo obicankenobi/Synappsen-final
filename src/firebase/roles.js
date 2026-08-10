@@ -6,6 +6,9 @@ export const ROLES = {
   VEC: "vec",
   FORRADSANSVARIG: "forradesansvarig",
   PERSONAL: "personal",
+  // Etapp 55: delat enhetskonto (t.ex. en foajé-platta), inte en person – se arKiosk() i
+  // firestore.rules för den fullständiga motiveringen och listan över uteslutna handlingar.
+  KIOSK: "kiosk",
 };
 
 export const ROLE_LABELS = {
@@ -15,6 +18,7 @@ export const ROLE_LABELS = {
   [ROLES.VEC]: "VEC",
   [ROLES.FORRADSANSVARIG]: "Förrådsansvarig",
   [ROLES.PERSONAL]: "Personal",
+  [ROLES.KIOSK]: "Kioskläge (delad enhet)",
 };
 
 // Föreslagen standardroll när en superadmin bjuder in ett nytt konto (Etapp 6c) – inte

@@ -389,3 +389,39 @@ rapporteringen, se `INCIDENT-CHECKLISTA.md` steg 4).
 `supportAtkomstAnledning`) innehåller själva bara en tidsstämpel, ett uid och en fritextad
 anledning som kunden själv skriver (samma mönster som redan gällde raderingsanledningen,
 Etapp 49a).
+
+## Tillägg (2026-08-10, version 5.91.0): Etapp 55 – kioskläge, ett nytt regelmönster-fel upptäckt under bygget
+
+**Ny roll: `kiosk`.** Ett delat enhetskonto (t.ex. en foajé-platta), inte en person. Läser
+godkänt innehåll, söker och kör checklistor precis som `personal`, men en ny hjälpfunktion
+`arKiosk()` i `firestore.rules` blockerar alla identitetsbundna skrivningar: rutin-/
+anslagskvittering, bristanmälan, ändringsförslag, skiftrapport – samt (server-side, i
+`functions/index.js`, eftersom de collections redan bara skrivs via Admin SDK)
+`skapaKommentar`, `skickaFeedback` och `svaraPersonalpuls`. Motivet är genomgående krav 19: en
+handling som inte går att knyta till en identifierbar person får inte vara möjlig, annars blir
+t.ex. kvitteringsgraden en missvisande siffra.
+
+**Ett verkligt regelfel hittat och rättat under byggandet, inte bara en design på papper.**
+Den första implementationen antog att ett eget, litet match-block med en LITERAL sista
+sökväg (`match /installningar/kioskPin { allow read, write: if false; }`) skulle ta
+företräde framför det befintliga wildcard-blocket (`match /installningar/{dokId} { allow
+read: if arInloggad() && ... }`) för just den dokumentsökvägen – ett antagande om
+"mest specifika block vinner". **Det stämmer inte.** Firestore Security Rules kombinerar ALLA
+matchande block med ELLER: om NÅGOT matchande block beviljar åtkomst beviljas den, oavsett om
+ett annat matchande block nekar. Ett regeltest (`tests/rules/kioskrestriktioner.test.mjs`,
+skrivet innan felet upptäcktes – inte i efterhand) visade att en superadmin FORTFARANDE kunde
+läsa och skriva PIN-hashen direkt, trots det tillsynes stängande blocket. Rättat genom att
+explicit undanta `dokId == 'kioskPin'` i själva wildcard-villkoren istället – den enda metod
+som faktiskt fungerar med Firestores OR-semantik. Ingen produktionsdata var någonsin exponerad
+(felet hittades av testet innan release), men det är värt att skriva in här som en allmän
+lärdom om regelfilen: **ett nytt, snävare match-block bredvid ett befintligt, bredare
+match-block för SAMMA sökväg stänger ingenting – det befintliga blocket måste själv
+uteslutas.**
+
+**PIN-verifiering:** `satKioskPin` (superadmin, hashar med SHA-256 server-side) och
+`verifieraKioskPin` (valfri inloggad i organisationen, hastighetsbegränsad till 10
+försök/timme via samma `kontrolleraOchOkaHastighet`-mönster som redan användes för
+klinikstöd/kommentarer/feedback, returnerar ENDAST en boolean – aldrig hashen eller PIN-koden)
+– klienten känner aldrig till rätt kod under några omständigheter. 8 regeltester
+(`tests/rules/kioskrestriktioner.test.mjs`) + 9 functions-tester
+(`tests/functions/kioskrestriktioner.test.cjs`).

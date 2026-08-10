@@ -1,0 +1,50 @@
+.kiosk-pin-overlag {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 20px;
+}
+
+.kiosk-pin {
+  background: var(--yta);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+}
+
+.kiosk-pin h3 {
+  margin: 0 0 10px;
+}
+
+.kiosk-pin p {
+  color: var(--text-svag);
+  margin: 0 0 16px;
+}
+
+.kiosk-pin input {
+  width: 100%;
+  font-size: 1.5rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--kant);
+  margin-bottom: 12px;
+}
+
+.kiosk-pin__fel {
+  color: #c0392b;
+  margin: 0 0 12px;
+}
+
+.kiosk-pin__knappar {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}

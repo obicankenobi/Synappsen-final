@@ -55,12 +55,30 @@ export default function MerMeny({ poster, onStang }) {
         <div className="mer-meny__handtag" aria-hidden="true" />
         <p className="mer-meny__rubrik">Mer</p>
         <div className="mer-meny__rutnat">
-          {poster.map((post) => (
-            <NavLink key={post.till} to={post.till} className="mer-meny__post" onClick={onStang}>
-              <span className="mer-meny__ikon" aria-hidden="true">{post.ikon}</span>
-              <span>{post.namn}</span>
-            </NavLink>
-          ))}
+          {poster.map((post) =>
+            // Etapp 55b: kioskläget behöver en post som öppnar en PIN-dialog istället för att
+            // navigera till en länk ("Lämna kioskläge") – samma post-form, bara en klickbar
+            // knapp istället för en NavLink när onKlick anges.
+            post.onKlick ? (
+              <button
+                key={post.namn}
+                type="button"
+                className="mer-meny__post"
+                onClick={() => {
+                  onStang();
+                  post.onKlick();
+                }}
+              >
+                <span className="mer-meny__ikon" aria-hidden="true">{post.ikon}</span>
+                <span>{post.namn}</span>
+              </button>
+            ) : (
+              <NavLink key={post.till} to={post.till} className="mer-meny__post" onClick={onStang}>
+                <span className="mer-meny__ikon" aria-hidden="true">{post.ikon}</span>
+                <span>{post.namn}</span>
+              </NavLink>
+            )
+          )}
         </div>
       </div>
     </div>

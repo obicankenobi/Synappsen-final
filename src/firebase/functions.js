@@ -242,3 +242,15 @@ export function exporteraReferensunderlag(samtycke) {
   const fn = httpsCallable(functions, "exporteraReferensunderlag");
   return fn({ samtycke });
 }
+
+// Etapp 55 – kiosk-PIN. Klienten skickar/får aldrig hashen, bara ett booleskt svar från
+// verifieraKioskPin (se functions/index.js för hela motiveringen).
+export function satKioskPin(pin) {
+  const fn = httpsCallable(functions, "satKioskPin");
+  return fn({ pin });
+}
+
+export function verifieraKioskPin(pin) {
+  const fn = httpsCallable(functions, "verifieraKioskPin");
+  return fn({ pin });
+}

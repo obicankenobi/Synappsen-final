@@ -3,7 +3,7 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-10 · **Motsvarar kodläge:** v5.87.0 (Etapp 53a-c)
+**Senast uppdaterad:** 2026-08-10 · **Motsvarar kodläge:** v5.91.0 (Etapp 55, kioskläge)
 
 > **Ägarbeslut 2026-08-01:** jourkontakt utanför kontorstid ifylld (se tabellen nedan).
 > Backup-retention 90 dagar, gallringslogiken byggd och testad (se `ETAPPLAN5.md` Etapp 33c).
@@ -118,6 +118,7 @@ loggen. Skriv ned det och gå vidare med största försiktighet.
 | Hela organisationen är komprometterad | **Pausa organisationen** | `/leverantor` | **HÖG – hela avdelningen förlorar åtkomst.** Sista utvägen. Ring kunden först |
 | Ett kapat superadmin-konto har begärt permanent radering (Etapp 49a, Sentry-tagg `radering_schemalagd`) | **Avbryt raderingen** – 48-timmarsfönstret ger tid, ingen brådska på sekunder | `/leverantor` (raden med ⚠️-varningen) | Ingen om det avbryts i tid – radering sker INTE förrän fönstret gått ut |
 | En aktiv supportåtkomst ser fel ut (fel tidpunkt, ingen som känns igen som anledning) | **Avsluta åtkomsten** direkt – går att bevilja igen om den var legitim | `/leverantor` (raden med 🔓-varningen) eller `/admin` (kunden själv) | Låg – fönstret ger bara läsrätt, ingen skrivrätt |
+| En kiosk-enhet (delad platta) är stulen/borttappad, eller PIN-koden misstänks känd av fel person (Etapp 55) | **Tvinga utloggning** på kiosk-kontot **+** sätt en **ny PIN-kod** direkt | `/admin` → Användare & roller (tvinga utloggning) + `/admin` → **Kioskläge – PIN-kod** (ny PIN) | Låg – kiosk-rollen kan aldrig kvittera/kommentera/föreslå ändring/bristanmäla, så en kapad enhet kan läsa godkänt innehåll men inte skriva något identitetsbundet |
 | Läckt API-nyckel (Gemini/sökmotor/Brevo) | Rotera nyckeln i Secret Manager, deploya om | GitHub Secrets + deploy-workflow | Ingen |
 | Utgående e-post missbrukas eller beter sig oväntat (Etapp 53a) | **Stäng av allt utgående e-post globalt** – kräver ingen deploy, gäller alla organisationer omedelbart | `/leverantor` → "✉️ Utgående e-post" | Ingen – rent tekniskt en avsändningsspärr, ingen som mister åtkomst till innehåll |
 | Ditt eget plattformsadminkonto | Återkalla direkt, utan tvekan | Firebase-konsolen | Ingen – det är bara du |
@@ -152,8 +153,15 @@ Besvara i denna ordning och skriv ned svaren:
   loggas inte, bara att fönstret var öppet och varför.
 
 **Påminnelse om isoleringen:** organisationsgränsen är hårt kontrollerad i `firestore.rules`
-och bevisad med 149 regeltester. Att en användare i org A skulle ha sett org B:s data är
+och bevisad med regeltester. Att en användare i org A skulle ha sett org B:s data är
 osannolikt – men *verifiera* det, anta det inte.
+
+**Om det berörda kontot är kiosk-rollen (Etapp 55):** exponeringen är av naturen smalare än
+för en person – `firestore.rules` (`arKiosk()`) blockerar rutin-/anslagskvittering,
+bristanmälan, ändringsförslag, skiftrapport, kommentar, feedback och personalpuls oavsett vad
+som görs mot kontot. Det som ändå kan ha exponerats är LÄSNING av godkänt innehåll (rutiner,
+förrådsartiklar, administration) inom kiosk-enhetens egen organisation – samma
+läsnings-begränsning som ovan gäller.
 
 ---
 
@@ -282,6 +290,7 @@ användare. Sakligt, kort, verifierat.
 | Schemalagd radering (begära/avbryta) | `/admin` → **Radera organisationen permanent** (kunden), `/leverantor` (avbryt-knapp) – Etapp 49a |
 | Tillfällig supportåtkomst (bevilja/avsluta) | `/admin` → **Tillfällig supportåtkomst** (kunden), `/leverantor` (varningsraden, "Avsluta åtkomsten") – Etapp 50b |
 | Utgående e-post – globalt nödstopp (av/på) | `/leverantor` → **✉️ Utgående e-post** – Etapp 53a |
+| Kiosk-enhetens PIN-kod (sätt en ny) | `/admin` → **Kioskläge – PIN-kod** – Etapp 55 |
 | Konton, inloggningar | Firebase-konsolen → Authentication |
 | Läs-/skrivvolym | Firebase-konsolen → Firestore → Usage |
 | Backupfiler (fullständig lista, inte bara senaste) | Firebase Storage → `backups/{orgId}/` |

@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.91.0",
+    datum: "2026-08-10",
+    andringar: [
+      "Nytt kioskläge för en delad enhet (t.ex. en surfplatta i förrådet eller akutrummet) – ett eget kontotyp som kan läsa godkänt innehåll, söka och köra checklistor, men aldrig kvittera, kommentera eller skriva något i en persons namn. Låses upp med en PIN-kod, återgår automatiskt till startsidan efter en kort stunds inaktivitet",
+    ],
+  },
+  {
     version: "5.90.0",
     datum: "2026-08-10",
     andringar: [

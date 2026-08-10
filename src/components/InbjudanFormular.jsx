@@ -10,6 +10,9 @@ const BJUDBARA_ROLLER = [
   ROLES.VEC,
   ROLES.VOL,
   ROLES.SUPERADMIN,
+  // Etapp 55: samma inbjudningsflöde återanvänds för att skapa ett delat kiosk-enhetskonto –
+  // e-postadressen blir i praktiken enhetens/foajéns egen, inte en persons.
+  ROLES.KIOSK,
 ];
 
 // Etapp 6c: ersätter den gamla öppna självbetjänings-registreringen. En superadmin bjuder in

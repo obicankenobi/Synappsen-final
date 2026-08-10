@@ -347,7 +347,7 @@ imponerande. Gör inte det. 54b är tråkig, riskfri och löser det mesta.
 
 ---
 
-# Etapp 55 – Kioskläge: appen på väggen
+# Etapp 55 – ✅ KLAR (2026-08-10) – Kioskläge: appen på väggen
 
 **Varför:** premisskontroll 3. Sista obyggda Operations-punkten, och det mest självklara
 fysiska användningsfallet i en akutmottagning: en surfplatta i akutrummet, i förrådet eller i
@@ -355,27 +355,57 @@ personalrummet, som ingen loggar in på personligen.
 
 **Modul:** Operations (`FEATURE.KIOSK_MODE` finns redan reserverad).
 
-- **55a – Enhetskonto med kraftigt beskuren behörighet.** En organisation kan skapa ett
-  *enhetskonto* (t.ex. "Surfplatta akutrum 2") som loggas in en gång och sedan står kvar.
-  Kontot ska ha en egen roll, inte en befintlig: **läsa godkänt innehåll, söka, öppna
-  akutläget och köra en checklista – ingenting annat.** Uttryckligen omöjligt: kvittera,
-  kommentera, ändringsförslag, bristanmälan, profil, personalpuls, allt som skriver något
-  som är knutet till en person. Genomgående krav 19 är hela poängen med delmålet.
-  Revisionsloggen skriver `kiosk:<enhetsnamn>` som aktör.
-- **55b – Kioskbeteendet i gränssnittet.** Automatisk återgång till startvyn efter kort
-  inaktivitet (kortare än den vanliga `useInaktivitetsUtloggning`, och den ska INTE logga ut –
-  en utloggad surfplatta i ett akutrum är värdelös), ingen personlig navigation, akutläget en
-  tryckning bort, och en PIN-kod för att lämna kioskläget. Återanvänd `AkutlagePrefetch` och
-  offline-cachen – en väggmonterad platta har sämre nät än en telefon i en ficka, inte bättre.
-- **55c – Dokumentera den nya inloggningsvägen.** Ett stående inloggat konto är en ny
-  angreppsyta och en ny sak att stänga av under en incident. `INCIDENT-CHECKLISTA.md`s steg
-  3-tabell (hur återkallas alla kioskkonton?), steg 4 och snabbreferensen "Var saker finns"
-  ska uppdateras i **samma commit**, och `SAKERHETSRAPPORT.md` få ett tillägg om avvägningen.
-  `avtal/IT-FAKTABLAD.md` bör också nämna det – en IT-avdelning kommer att fråga.
+- **55a – ✅ Enhetskonto med kraftigt beskuren behörighet.** Ny roll `kiosk` (`ROLES.KIOSK` i
+  `src/firebase/roles.js`, tillagd i `GILTIGA_ROLLER`). Skapas genom att återanvända det
+  BEFINTLIGA inbjudningsflödet (`kiosk` tillagd i `BJUDBARA_ROLLER`,
+  `InbjudanFormular.jsx`) – ingen ny Cloud Function behövdes för själva kontoskapandet.
+  Ny regelfunktion `arKiosk()` i `firestore.rules`, applicerad som `&& !arKiosk()` på varje
+  identitetsbunden skrivning som tidigare var öppen för "vem som helst inloggad i
+  organisationen": rutin-/anslagskvittering (`lasteAv`), bristanmälan, ändringsförslag,
+  skiftrapport. `skapaKommentar`/`skickaFeedback`/`svaraPersonalpuls` (redan
+  Cloud-Function-medierade sedan tidigare etapper) blockerar kiosk-rollen server-side av
+  samma skäl. Uttryckligen omöjligt, precis som planerat: kvittera, kommentera,
+  ändringsförslag, bristanmälan, personalpuls. Genomgående krav 19 är hela poängen.
+  **Avvikelse från planens ordalydelse, medvetet:** "revisionsloggen skriver
+  `kiosk:<enhetsnamn>` som aktör" gick inte att bygga meningsfullt – varje handling som
+  triggar `loggaRevision()` någonstans i kodbasen är EXAKT en av de identitetsbundna
+  handlingarna kiosk nu är blockerad från. Det finns i praktiken ingenting kvar för
+  kiosk-rollen att göra som någonsin skulle nå revisionsloggen. Skrivet in här istället för
+  att tystas ned, i linje med premisskontroll-disciplinen.
+- **55b – ✅ Kioskbeteendet i gränssnittet.** Ny komponent `KioskBevakning.jsx` (monterad i
+  `App.jsx` inuti `BrowserRouter`): begränsar kiosk-rollen till ett vitlistat vägnät (`/`,
+  `/kliniskt-stod`, `/logistik(/:forradSlug)`, `/administration`, `/akutlage`,
+  `/checklista/:rutinId`) och studsar allt annat till `/` – täcker även direkt URL-navigering
+  och kommandopalettens sökträffar, inte bara BottomNav. Återanvänder den redan generiska
+  `useInaktivitetsUtloggning`-hooken med en icke-utloggande callback
+  (`navigate("/")`) och en kortare tid (3 minuter, mot ordinarie 20) – kiosk-rollen loggas
+  ALDRIG ut av inaktivitet, den återgår bara till startsidan. `BottomNav.jsx` fick en egen
+  gren för `role === ROLES.KIOSK`: Sök/Hem/Akutläge synligt direkt (akutläget en tryckning
+  bort, enligt planens ordalydelse), Kliniskt/Logistik/Regler/"Lämna kioskläge" i
+  Mer-menyn (`MerMeny.jsx` fick stöd för en `onKlick`-post utöver `till`-länkar). "Lämna
+  kioskläge" öppnar `KioskPinModal.jsx`, som verifierar PIN:en mot `verifieraKioskPin`
+  (server-side, se 55a) och därefter loggar ut kontot. Ny adminsektion
+  `KioskPinSektion.jsx` (`/admin`, superadmin) sätter PIN-koden via `satKioskPin`.
+- **55c – ✅ Dokumenterat den nya inloggningsvägen.** `INCIDENT-CHECKLISTA.md`: ny rad i
+  steg 3-tabellen (stulen/borttappad enhet → tvinga utloggning + ny PIN), tillägg i steg 4
+  om kiosk-rollens naturligt smalare exponering, ny rad i "Var saker finns".
+  `avtal/INCIDENTRESPONSPLAN.md` v1.4 → v1.5, ny kompenserande-kontroll-punkt i avsnitt 4 +
+  versionshistorik. `avtal/IT-FAKTABLAD.md` avsnitt 2 nämner den sjunde rollen och
+  PIN-mekanismen. `SAKERHETSRAPPORT.md` fick ett tillägg – inklusive ett verkligt regelfel
+  som hittades och rättades UNDER bygget (se tillägget för detaljer): ett första försök att
+  låsa `installningar/kioskPin` med ett eget, snävare match-block bredvid det befintliga
+  wildcard-blocket fungerade INTE, eftersom Firestore Security Rules kombinerar matchande
+  block med ELLER, inte "mest specifika block vinner" – fångat av ett regeltest innan
+  release, aldrig i produktion.
+
+**Testat:** `tests/rules/kioskrestriktioner.test.mjs` (8 tester: kvittering/bristanmälan/
+ändringsförslag/skiftrapport blockerat, kiosk-PIN helt stängd för alla klienter inkl.
+superadmin) + `tests/functions/kioskrestriktioner.test.cjs` (9 tester: satKioskPin/
+verifieraKioskPin, kiosk blockerat från skapaKommentar/skickaFeedback/svaraPersonalpuls).
 
 **Klart när:** en surfplatta kan sitta på väggen i en vecka, visa rätt sak, inte kunna
 missbrukas för att skriva något i någon annans namn, och kunna spärras på tio sekunder från
-adminpanelen.
+adminpanelen. **Uppnått 2026-08-10.**
 
 ---
 
@@ -538,7 +568,7 @@ till invändningen.
 | **53** | E-post som kanal (inbjudan, påminnelser, månadsrapport) | Låg–medel | Medel | ✅ **HELT KLAR (2026-08-10), v5.85.0–5.88.0** – 53a–53d alla byggda och testade |
 | **54a–54b** | Utred enhetsmodellen + huvudmannanivå | Låg | Låg | ✅ **KLAR (2026-08-10), v5.89.0** – 54a visade att 54d är avgränsad, inte en omskrivning; 54b byggd |
 | **56** | Startbiblioteket: fler mallar, mallar för icke-rutiner | Ingen | Låg–medel | ✅ **HELT KLAR (2026-08-10), v5.90.0** – 56a–56d alla byggda |
-| **55** | Kioskläge (delad surfplatta) | Medel | Medel | När som helst |
+| **55** | Kioskläge (delad surfplatta) | Medel | Medel | ✅ **HELT KLAR (2026-08-10)** – 55a–55c alla byggda |
 | **57b–57c** | Händelsestyrd `PITCH.md`-regel + ärlighetsstycke | Ingen | Låg | Ihop med 57a |
 | **54c–54d** | Gemensamma rutiner, användare i flera enheter | **Hög** | Hög | Först efter 54a:s utfall, och helst mot en riktig andra enhet |
 | **58** | SSO/Entra ID | Medel | Hög | Beslut nu, bygge när en kund kräver det |

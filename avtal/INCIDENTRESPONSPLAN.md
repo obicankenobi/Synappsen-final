@@ -2,7 +2,7 @@
 
 **Dokumenttyp:** Policy (extern – får delas med kund, kundens IT-säkerhetsfunktion och vid
 upphandling)
-**Version:** 1.4
+**Version:** 1.5
 **Fastställd:** 2026-08-10
 **Gäller från:** 2026-08-10
 **Nästa översyn:** vid varje större release, dock minst var sjätte månad (se avsnitt 12)
@@ -95,6 +95,11 @@ så att kunden **aldrig är utlämnad till leverantörens tillgänglighet** i et
   kontrolleras server-side).
 - Kundens superadmin kan omedelbart ändra roller och därmed begränsa behörighet.
 - Kundens superadmin kan aktivera tvingande tvåfaktorsautentisering för valda roller.
+- Kundens superadmin kan omedelbart byta PIN-koden till ett delat kiosk-enhetskonto (infört
+  2026-08-10) – en förlorad eller stulen delad enhet kan spärras ut på egen hand, utan
+  leverantörens medverkan. Ett sådant konto kan i grunden aldrig utföra en identitetsbunden
+  handling (kvittera, kommentera, föreslå ändring, bristanmäla), vilket i sig begränsar vad en
+  kapad enhet kan orsaka.
 
 Kunden uppmanas att i sin egen incidentrutin ange vem hos dem som får använda dessa
 funktioner, och rekommenderas att göra det **utan att invänta leverantören** vid misstänkt
@@ -280,3 +285,4 @@ ingen plan alls.
 | 1.2 | 2026-08-08 | Avsnitt 5.2 (Begränsa): en begärd permanent radering av en organisation kan nu genomföras av kundens egen superadmin, men verkställs aldrig direkt – ett 48-timmarsfönster medger att Biträdet stoppar en obehörig eller felaktig begäran (Etapp 49a). |
 | 1.3 | 2026-08-09 | Avsnitt 5.2 (Begränsa): kunden kan nu själv, tillfälligt och avbrytbart, öppna ett läsfönster (högst 6 timmar) för att ge Biträdet tillgång till organisationens innehåll vid en supportfråga – tidigare hade Biträdet ingen sådan åtkomst alls (Etapp 50b). |
 | 1.4 | 2026-08-10 | Avsnitt 5.2 (Begränsa): utgående e-post (ny kanal, infrastrukturen byggd men ännu inte kopplad till någon produktfunktion) kan stängas av globalt utan driftsättning, om kanalen någonsin missbrukas. Ett nytt underbiträde (Brevo, EU-baserat) tillkommer, se `avtal/UNDERBITRADEN.md` (Etapp 53a). |
+| 1.5 | 2026-08-10 | Avsnitt 4 (Kompenserande kontroller): ett nytt inloggningssätt tillkommer – ett delat kiosk-enhetskonto för en gemensam platta, låst upp med en PIN-kod istället för ett personligt lösenord. Kundens superadmin kan omedelbart byta PIN-koden vid förlust/stöld. Kontot kan i grunden aldrig kvittera, kommentera, föreslå ändring eller bristanmäla (Etapp 55). |
