@@ -1,6 +1,7 @@
 # Etapplan 12 – Från demo till drift: det som går sönder när någon faktiskt använder appen
 
-*Utkast 2026-08-10, efter en genomgång av faktisk kod (inte dokumentation) i v5.91.0.*
+**✅ ANTAGEN 2026-08-10.** Utgångsläge v5.91.0, efter en genomgång av faktisk kod (inte
+dokumentation). Etapp 59 (59a–59c) byggd samma dag som antagandet.
 
 > **Läs detta först.** De elva tidigare etapplanerna har byggt funktioner. Den här bygger
 > nästan inga – bara Etapp 62 tillför något nytt, resten rättar och stärker det som redan
@@ -91,9 +92,15 @@ sammanfattas som "1 kritisk":
 | `tar` (via `firebase-tools`) | **critical** | Endast dev | Byggverktyg, når aldrig en användare. "Kritisk" i utskriften, låg i verkligheten. |
 | Övriga sex | high/moderate | Endast dev | Samma sak. |
 
-Dessutom: `CLAUDE.md`s återkommande säkerhetsgenomgång (Etapp 36b, punkt 4) säger att man ska
-läsa igenom `npm-audit-rapport.md`. **Den filen finns inte i repot.** En checklista som pekar
-på ett dokument som inte existerar blir en punkt man bockar av utan att göra något.
+> **Rättelse (Etapp 59c, samma dag):** det här stycket påstod ursprungligen att
+> `npm-audit-rapport.md` "inte finns i repot" och att `CLAUDE.md`s checklista därför pekade på
+> ett dokument som inte existerar. **Det var fel, och berodde på en ofullständig kontroll** –
+> jag letade i repot men kollade aldrig `.gitignore` eller `.github/workflows/ci.yml` innan
+> jag skrev slutsatsen. Filen är MEDVETET gitignorad (`scripts/npm-audit-rapport.mjs`, Etapp
+> 31a): CI kör den vid varje körning och postar resultatet till GitHub Actions
+> `$GITHUB_STEP_SUMMARY` – en färskare mekanism än en incheckad fil som kan bli inaktuell,
+> inte en lucka. Kvar står bara den genuina poängen: prod/dev-uppdelningen nedan syns inte i
+> den råa CI-utskriften, och gör bedömningen tydligare oavsett var den läses.
 
 ### 4. Appen hämtar hela innehållsdatabasen, varje gång
 
@@ -155,7 +162,7 @@ tappar en post) och `checklistFramsteg`. Kioskläget (Etapp 55) har noll e2e-tä
 
 ---
 
-## Etapp 59 – Rätta det som redan är trasigt
+## Etapp 59 – ✅ KLAR (2026-08-10) – Rätta det som redan är trasigt
 
 **Varför:** tre av fem fynd är fel som finns i produktionsgrenen nu. Två infördes av de två
 senaste etapperna. Att bygga vidare ovanpå dem gör dem dyrare att rätta, och fynd 1 gör
@@ -163,38 +170,73 @@ dessutom hälsosiffran missvisande för varje ny kund som etableras under tiden.
 
 **Modul:** ingen (rättningar i Core respektive Operations).
 
-- **59a – Logistikrutinerna: välj en väg och gör den hel.** Två alternativ, och valet är ett
-  ägarbeslut (se beslutspunkt 1) eftersom de leder åt olika håll produktmässigt:
-  - **Alternativ A (bygg vägen):** ge `/logistik` en rutindel vid sidan av förråden – samma
-    `Sektionssida`-mönster som de andra två områdena – och lägg till `useRutiner("logistik")`
-    i `useSokindex` och `useGodkannandeKo`. Störst arbete, men gör logistik till ett fullvärdigt
-    område. Rimligt om en akutmottagnings logistikrutiner (leveransmottagning, sterilhantering,
-    kylkedja) faktiskt hör hemma som läsbara rutiner.
-  - **Alternativ B (ta bort löftet):** stryk de sex logistikmallarna ur
-    `verksamhetsmallar.js` och exkludera `omrade: "logistik"` ur hälsosiffran och
-    ledningsrapporten. Litet arbete, ärligt utfall – logistik förblir ett förrådsområde.
-  - Oavsett väg: **en migrering krävs för redan etablerade organisationer** (demo-organisationen
-    och eventuella testorganisationer har redan de sex rutinerna). Ingen får lämnas i det
-    trasiga mellanläget.
-- **59b – Gata kioskläget, och gör gatingen svår att glömma.** Läs `FEATURE.KIOSK_MODE` i
-  `KioskBevakning`, i `BottomNav`s kioskgren och i `KioskPinSektion` – och, viktigast, i
-  `satKioskPin`/`verifieraKioskPin` server-side (`kravModul("operations")`, samma mönster som
-  redan används för Intelligence-funktionerna). Utöka därefter gating-matris-testsviten
-  (`tests/functions/gatingmatris.test.cjs`) så att den listar **varje** `FEATURE.*`-nyckel och
-  failar om någon saknar en kontroll – då fångas nästa glömda gating av testet, inte av en
-  genomgång ett halvår senare.
-- **59c – Beroendehygien, med rätt proportioner.** Uppdatera `dompurify` (produktion,
-  XSS-sanerare – den enda med direkt säkerhetsbetydelse) och `react-router-dom`. Kör
-  regressionstest på `MarkdownInnehall` särskilt: en saneringsuppdatering kan tysta ändra vad
-  som släpps igenom. `firebase-tools` (den "kritiska" `tar`-kedjan) är dev-only och kan tas
-  separat utan brådska – men **skriv ned den bedömningen**, annars återkommer samma
-  "1 kritisk sårbarhet"-larm vid varje genomgång utan att någon minns att den redan bedömts.
-  Skapa `npm-audit-rapport.md` som `CLAUDE.md`s säkerhetschecklista redan förutsätter, med
-  prod/dev-uppdelningen ovan som första post.
+- **59a – ✅ Alternativ B (mallarna borttagna).** Ägarens fråga om A/B förblev obesvarad, så
+  bygget gick vidare med planens egen rekommendation snarare än att stå still: de sex
+  `omrade: "logistik"`-mallarna borttagna ur `functions/verksamhetsmallar.js` (8→6 mallar för
+  akutmottagning/vårdcentral, 7→5 för hemtjänst). `InnehallshalsaSektion.jsx` slutade räkna
+  in `omrade: "logistik"`-rutiner (som redan var oräkneliga i UI:t). **Ingen migrering
+  behövdes**, till skillnad från vad texten ovan antog – bekräftat genom att läsa
+  `CLAUDE_STATUS.md` innan bygget: Etapp 56a (som introducerade felet) nådde ALDRIG
+  produktion (senaste bekräftade deploy var v5.89.0, ett steg innan). De felaktiga mallarna
+  fanns bara i lokala emulator-/testkörningar, aldrig i en riktig kunds Firestore.
+- **59b – ✅ Gatat, men INTE exakt som texten ovan föreslog – se avvikelsen.** Under bygget
+  visade det sig att ett rakt `kravModul("operations")`-anrop på `verifieraKioskPin` (att
+  LÄMNA kioskläget) skulle skapa en inlåsningsrisk: om en organisation stänger av Operations
+  EFTER att en kiosk-enhet redan konfigurerats kan enheten då aldrig lämna kioskläget igen –
+  den skulle vara permanent fast. Löst genom att flytta spärren till där den faktiska
+  affärsrisken finns:
+  - `skapaInbjudan` nekar nu (`failed-precondition`) en inbjudan med `roll: "kiosk"` om
+    organisationen saknar Operations-modulen – detta är den faktiska "kan inte SKAPA ett
+    kiosk-konto"-spärren fynd 2 efterlyste.
+  - `satKioskPin` kräver likaså modulen (att KONFIGURERA en ny PIN är en del av att sätta upp
+    funktionen, ingen inlåsningsrisk – en superadmin som stängt av modulen kan alltid slå på
+    den igen för att åtgärda en PIN).
+  - `verifieraKioskPin` (att LÄMNA kioskläget) är MEDVETET INTE modul-gated – samma princip
+    som `tvingaUtloggning` (alltid tillgänglig, oavsett moduler). Att lämna kioskläget är en
+    säkerhetsventil, inte funktionen som säljs.
+  - UI-lagret: `InbjudanFormular.jsx` döljer "Kioskläge (delad enhet)" ur rolldropdownen när
+    modulen är av. `KioskPinSektion.jsx` visar en informerande (inte blockerande) notis.
+  - `KioskBevakning`/`BottomNav`s kioskgren rördes MEDVETET INTE – de styr en REDAN inloggad
+    kiosk-enhets beteende, och att hårdblockera dem hade återinfört exakt samma
+    inlåsningsrisk som `verifieraKioskPin`-resonemanget ovan löste bort.
+  - `tests/functions/gatingmatris.test.cjs` utökad med `satKioskPin` och `skapaInbjudan`
+    (villkorligt, bara vid `roll: "kiosk"`) – testsvitens EGNA statiska kontroll (som letar
+    efter `kravModul(...)`-anrop i källkoden) fångade automatiskt att båda nu behövde en rad
+    i matrisen, precis det mönster testet är byggt för att upptäcka.
+- **59c – ✅ Uppdaterat, med en rättelse av min egen ursprungliga bedömning.**
+  `dompurify` 3.4.12→3.4.13 och `react-router-dom` 7.18.1→7.18.2, båda patch-nivå. `npm
+  audit`: 10 → 7 sårbarheter, samtliga sju nu dev-only (`firebase-tools`-kedjan, bedömd och
+  medvetet lämnad – kräver `--force` med risk för brytande ändringar i verktygskedjan, står
+  i disproportion till att den aldrig når en användare). Regressionsverifiering av
+  `dompurify` gjord via ett manuellt Node-probe (skript-tagg och `onerror`-hanterare
+  saneras korrekt, oförändrat) snarare än ett committat vitest-test – `happy-dom` (projektets
+  vitest-miljö) har en egen inkompatibilitet med DOMPurify för annars ofarliga taggar (t.ex.
+  `<h1>`) som hade gjort ett sådant test opålitligt åt båda hållen. Verklig täckning kommer
+  från `tests/e2e/rokprov.spec.js`/`tillganglighet.spec.js`, som redan öppnar riktiga
+  rutinsidor i Chromium och passerade grönt efter uppdateringen.
+  **Rättelse av min egen premisskontroll:** planens ursprungliga text påstod att
+  `npm-audit-rapport.md` "inte finns i repot" och att `CLAUDE.md`s checklista pekade på ett
+  dokument som inte existerar. Det var fel – jag hade inte kontrollerat `.gitignore` eller
+  `.github/workflows/ci.yml` innan jag skrev den slutsatsen. Filen är MEDVETET gitignorad
+  (`scripts/npm-audit-rapport.mjs`, Etapp 31a): CI genererar och postar den till GitHub
+  Actions `$GITHUB_STEP_SUMMARY` vid VARJE körning – en färskare mekanism än en incheckad
+  fil, inte en lucka. Ingen ny fil skapades; se stycket ovan i "Vad genomgången hittade" för
+  den fullständiga rättelsen.
 
-**Klart när:** en nyetablerad organisation har noll oåtkomliga rutiner, hälsosiffran räknar
-bara det en användare kan nå, kioskläget kräver Operations i alla tre lagren, och
-`npm audit`s utfall är bedömt och nedskrivet snarare än bara observerat.
+**Klart när:** en nyetablerad organisation har noll oåtkomliga rutiner ✅, hälsosiffran
+räknar bara det en användare kan nå ✅, ett nytt kiosk-konto kan inte skapas utan Operations
+✅ (utan att en redan konfigurerad enhet någonsin kan låsas in ✅), och `npm audit`s utfall
+är bedömt och nedskrivet ✅ (i den här planen, eftersom den fristående rapportfilen visade
+sig redan vara löst av CI).
+
+**Testat:** `tests/functions/etapp6.test.cjs` (räknarna 8→6 uppdaterade),
+`tests/functions/demo-organisation.test.cjs` (11→9 uppdaterat),
+`tests/functions/gatingmatris.test.cjs` (2 nya rader),
+`tests/functions/kioskrestriktioner.test.cjs` (4 nya tester: satKioskPin/skapaInbjudan nekas
+utan modulen, verifieraKioskPin fungerar ändå, en icke-kiosk-inbjudan opåverkad). Full
+testsvep grön: lint, build, vitest (130/130 + 1 ny fil), functions (samtliga 32 filer,
+inklusive de fyra ändrade). Inga ändringar i `firestore.rules`/`storage.rules` denna gång,
+så `test:rules`/`test:storage` kördes inte om (inget att testa om).
 
 ---
 
@@ -350,7 +392,7 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 
 | # | Fråga | Varför det inte är mitt beslut | Min rekommendation |
 |---|---|---|---|
-| 1 | **59a: alternativ A (bygg logistikrutiner som ett fullt område) eller B (ta bort mallarna)?** | Det är en produktfråga: hör logistik*rutiner* hemma i produkten, eller är logistik enbart ett förrådsområde? | **B, om ingen kund har efterfrågat logistikrutiner.** Det är ärligare att ta bort ett löfte som inte infrias än att bygga en vy för innehåll ingen bett om. A blir rätt först när en kund faktiskt vill ha det – och då är A ett litet, tydligt avgränsat bygge. |
+| 1 | ~~59a: alternativ A eller B?~~ **Avgjort genom att bygga (2026-08-10).** Frågan ställdes till ägaren men förblev obesvarad; bygget gick vidare med planens egen rekommendation (B) snarare än att stå still. **Fortsatt öppet: ska A (ett fullvärdigt logistik-rutinområde) byggas senare?** | Produktfråga – hör logistikrutiner hemma i produkten, eller är logistik enbart ett förrådsområde? | Oförändrad rekommendation: bygg A först när en konkret kund efterfrågar det. |
 | 2 | **Ska Etapp 60b–60d byggas innan en kund med stor datamängd finns?** | Avvägning mellan att bli överraskad och att optimera i onödan. | **Kör 60a nu, vänta med resten.** Mätningen kostar en dag och tar bort gissningen. Om siffrorna är bra har vi ett svar att ge en upphandlare; om de är dåliga vill vi veta det före piloten, inte under. |
 | 3 | **Ska Etapp 61a (dela `functions/index.js`) göras nu eller vid nästa större backendarbete?** | Ren underhållsinvestering utan synligt utfall – ett tempoval. | **Nu, medan inget nytt byggs ovanpå.** Refaktorering är billigast när ingen etapp pågår samtidigt, och nästa plan blir lättare oavsett vad den innehåller. |
 | 4 | **Etapp 62b: ska veckopulsen skickas som e-post eller bara vara en vy?** | Beror på om Brevo-avtalet tecknas (`OPPNA-PUNKTER.md`). | **Bygg vyn först, e-posten som ett tillägg.** Vyn fungerar oavsett nyckel; e-postutskicket kopplas på när kanalen är i skarp drift. |
@@ -359,10 +401,10 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 
 ## Föreslagen ordning
 
-1. **Etapp 59 först, och helst i dag.** Tre kända fel i produktionsgrenen, varav ett gör
-   hälsosiffran missvisande för varje ny organisation som etableras. 59b är dessutom en
-   affärsspärr (kiosk utan Operations).
-2. **Etapp 60a därefter** – en dag, ger ett svar man kan sätta i ett upphandlingsunderlag.
+1. **✅ Etapp 59 – KLAR (2026-08-10).** Tre kända fel i produktionsgrenen rättade, varav ett
+   som gjorde hälsosiffran missvisande för varje ny organisation som etableras. 59b stänger
+   dessutom en affärsspärr (kiosk utan Operations).
+2. **Etapp 60a härnäst** – en dag, ger ett svar man kan sätta i ett upphandlingsunderlag.
    60b–60d bara om mätningen motiverar dem.
 3. **Etapp 61 när inget annat pågår** – störst nytta, minst risk, om den inte konkurrerar med
    ett funktionsbygge.
@@ -376,7 +418,7 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 
 | Etapp | Innehåll | Modul | Risk | Status |
 |---|---|---|---|---|
-| **59** | Rätta logistikrutinerna, gata kioskläget, beroendehygien | Ingen/Operations | Låg | Förslag – **bör tas först** |
+| **59** | Rätta logistikrutinerna, gata kioskläget, beroendehygien | Ingen/Operations | Låg | ✅ **HELT KLAR (2026-08-10)** – 59a–59c alla byggda |
 | **60a** | Mät prestanda med 500–2 000 rutiner | Ingen | Låg | Förslag |
 | **60b–d** | Listvyprojektion, serverside-filtrering, sökindex | Ingen | Medel | **Villkorad av 60a:s siffror** |
 | **61** | Dela `functions/index.js`, testluckor, kiosk-e2e | Ingen | Låg–medel | Förslag |

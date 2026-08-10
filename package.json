@@ -1,7 +1,7 @@
 {
   "name": "synappsen-final",
   "private": true,
-  "version": "5.91.0",
+  "version": "5.92.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -20,7 +20,7 @@
   "dependencies": {
     "@sentry/browser": "^10.68.0",
     "@sentry/react": "^10.68.0",
-    "dompurify": "^3.4.11",
+    "dompurify": "^3.4.13",
     "firebase": "^12.15.0",
     "fuse.js": "^7.4.2",
     "jsqr": "^1.4.0",
@@ -28,7 +28,7 @@
     "qrcode": "^1.5.4",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-router-dom": "^7.18.0",
+    "react-router-dom": "^7.18.2",
     "workbox-precaching": "^7.4.1"
   },
   "devDependencies": {

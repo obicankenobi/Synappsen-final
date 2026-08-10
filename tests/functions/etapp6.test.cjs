@@ -182,13 +182,16 @@ async function main() {
       auth: { uid: "vanligSuperadmin" },
     });
     // Etapp 56a: utökat från 2 till 8 startmallar för akutmottagning (spridda över kliniskt-
-    // stod/logistik/administration) – se functions/verksamhetsmallar.js.
-    vantaSig(resultat.antalMallrutiner === 8, `förväntade 8 mallrutiner, fick ${resultat.antalMallrutiner}`);
+    // stod/logistik/administration) – se functions/verksamhetsmallar.js. Etapp 59a
+    // (ETAPPLAN12.md, bugfynd): de 2 logistik-mallarna togs bort igen samma dag (ingen vy,
+    // ingen sökning, ingen godkännandekö kunde nå dem – men de räknades in i hälsosiffran).
+    // 8 → 6.
+    vantaSig(resultat.antalMallrutiner === 6, `förväntade 6 mallrutiner, fick ${resultat.antalMallrutiner}`);
     const rutinSnap = await db
       .collection("rutiner")
       .where("organisationId", "==", resultat.orgId)
       .get();
-    vantaSig(rutinSnap.size === 8, `förväntade 8 sparade rutiner, fick ${rutinSnap.size}`);
+    vantaSig(rutinSnap.size === 6, `förväntade 6 sparade rutiner, fick ${rutinSnap.size}`);
     rutinSnap.forEach((doc) => {
       vantaSig(doc.data().status === "godkand", "mallrutiner ska vara direkt godkända/synliga");
       vantaSig(doc.data().titel.includes("(mall)"), "mallrutinens titel ska vara märkt som mall");

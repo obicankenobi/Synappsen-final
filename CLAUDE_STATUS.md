@@ -6,20 +6,23 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.91.0** (ingen appkod ändrad i den senaste
-sessionen, bara dokumentation – ingen ny versionsbump behövdes, se skälet i uppföljningen
-längst ner) – **INTE ÄNNU DEPLOYAD** (senaste bekräftade produktionsdeploy är fortfarande
-v5.89.0, körning #73, commit `63f15d7`). `ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning
-till en kund som växer") är den AKTIVA planen, **ANTAGEN 2026-08-10** (ersatte
-`ETAPPLAN10.md`, som är HELT KLAR utom Etapp 52 – pilotpaketet, kräver bokad tid, inte kod).
-**HELA Etapp 53 (53a–53d), Etapp 54a–54b, Etapp 55 (55a–55c), Etapp 56 (56a–56d) OCH Etapp 57
-(57a–57c) är nu KLARA:** e-post som kanal, en utredning + huvudmannagruppering, ett nytt
-kioskläge för delade enheter, ett rejält utökat startbibliotek, och säljmaterialet (`PITCH.md`)
-nu både korrekt och skyddat av en händelsestyrd underhållsregel i `CLAUDE.md`. Bara 54c/54d
-(högrisk/väntar på en konkret andra enhet) och Etapp 58 (SSO, väntar på en kund som kräver
-det) kvarstår i `ETAPPLAN11.md` – se `OPPNA-PUNKTER.md`. `ETAPPLAN9.md`/`ETAPPLAN8.md`
-fortsatt HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs sektionerna "Uppföljning 2026-08-10"
-(a/b/c/d, sedan 56, sedan 55, sedan 57b–c) längst ner.**
+**Senast uppdaterad:** 2026-08-10, version **5.92.0** – **INTE ÄNNU DEPLOYAD** (senaste
+bekräftade produktionsdeploy är fortfarande v5.89.0, körning #73, commit `63f15d7`).
+`ETAPPLAN11.md` (Etapp 53–58) är nu **HELT KLAR utom 54c/54d och Etapp 58** – båda väntar
+medvetet på en extern förutsättning (konkret andra enhet respektive en kund som kräver SSO),
+inte på kapacitet, se `OPPNA-PUNKTER.md`. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
+drift") är den nya AKTIVA planen, ANTAGEN 2026-08-10** direkt efter en kodgenomgång (inte en
+dokumentgenomgång) av v5.91.0 – till skillnad från tidigare planer bygger den nästan inga nya
+funktioner, bara hållfasthet: den genomgången hittade tre fel som redan fanns i
+produktionsgrenen, varav två infördes av de två senaste etapperna (Etapp 55/56).
+**Etapp 59 (59a–59c) är redan KLAR**, byggd samma session som antagandet. Ett fristående,
+separat förslag (Etapp 64, ett "baspaket" av nationella referenser) hölls medvetet UTANFÖR
+den aktiva planen, i en egen fil `ETAPPLAN13.md` – den kräver en extern juridisk MDR-
+bedömning innan den ens är byggbar, till skillnad från allt annat. `ETAPPLAN9.md`/
+`ETAPPLAN8.md`/`ETAPPLAN10.md` fortsatt HELT KLARA OCH DEPLOYADE (utom 10:s Etapp 52, väntar
+på en bokning). **Läs sektionen "Uppföljning 2026-08-10 (Etapp 59 klar)" längst ner för vad
+som faktiskt byggdes** – tidigare uppföljningar för Etapp 53–57 finns kvar nedanför den, i
+kronologisk ordning.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -2085,3 +2088,58 @@ relevanta eftersom ingen kod under `firestore.rules`, `storage.rules`, `function
 **Med detta har `ETAPPLAN11.md` bara två öppna punkter kvar: 54c/54d (väntar på en konkret
 andra enhet hos en kund) och Etapp 58 (SSO, väntar på en kund som kräver det) – båda
 medvetet väntande på en extern förutsättning, inte på kapacitet.**
+
+## Uppföljning 2026-08-10 (`ETAPPLAN12.md` antagen, Etapp 59 klar: rättningar, v5.92.0)
+
+`ETAPPLAN11.md` var vid det här laget helt klar utom två externt villkorade punkter (se
+ovan) – dags för en ny plan. Gjorde en genomgång av FAKTISK kod (inte dokumentation) i
+v5.91.0, vilket resulterade i två nya planfiler:
+
+- **`ETAPPLAN12.md`** (Etapp 59–63, "Från demo till drift") – **ANTAGEN samma dag.**
+  Genomgången hittade tre fel i produktionsgrenen, varav två infördes av de senaste två
+  etapperna: sex `omrade: "logistik"`-mallrutiner (Etapp 56a) som ingen vy kunde visa/söka/
+  godkänna men som ändå räknades i hälsosiffran, kioskläget (Etapp 55a) som inte gatades av
+  `FEATURE.KIOSK_MODE` i något lager, och en föråldrad `dompurify`-version (produktionens
+  enda XSS-sanerare). Planen är medvetet tyngre på hållfasthet än på nya funktioner.
+- **`ETAPPLAN13.md`** (Etapp 64) – ett fristående, EJ byggbart förslag om ett "baspaket" av
+  nationella referenser (ägarens fråga under genomgången), hållet i en egen fil eftersom det
+  väntar på en extern juridisk MDR-bedömning, inte på kod. Blockerar inget annat.
+
+**Etapp 59 (59a–59c) byggd direkt, samma session:**
+
+- **59a:** de sex logistik-mallrutinerna borttagna ur `functions/verksamhetsmallar.js`
+  (8→6/6/5 mallar per verksamhetstyp), `InnehallshalsaSektion.jsx` slutade räkna in dem.
+  **Ingen migrering behövdes** – kontrollerat innan bygget att Etapp 56a (som introducerade
+  felet) aldrig nådde produktion (senaste deploy v5.89.0, ett steg innan). Ägarens fråga om
+  att bygga logistik som ett fullt rutinområde istället (alternativ A) förblev obesvarad;
+  gick vidare med planens egen rekommendation (B) snarare än att stå still.
+- **59b:** kioskläget kräver nu Operations. **Avvek medvetet från planens ursprungliga
+  ordalydelse** efter att ha upptäckt en inlåsningsrisk under bygget: att gata
+  `verifieraKioskPin` (lämna kioskläget) hade kunnat permanent låsa in en redan konfigurerad
+  enhet om Operations stängdes av i efterhand. Löste det genom att flytta spärren dit den
+  faktiska affärsrisken finns istället: `skapaInbjudan` (kan inte skapa ett NYTT kiosk-konto
+  utan modulen) och `satKioskPin` (kan inte konfigurera en ny PIN utan den) – medan
+  `verifieraKioskPin` förblir öppen, samma princip som `tvingaUtloggning`. UI-lagret
+  (`InbjudanFormular.jsx` döljer kiosk-alternativet, `KioskPinSektion.jsx` visar en
+  informerande notis) uppdaterat i linje med det. `tests/functions/gatingmatris.test.cjs`
+  utökad – dess EGEN statiska kontroll fångade automatiskt att de två nya gatade
+  funktionerna behövde en rad i matrisen.
+- **59c:** `dompurify` 3.4.12→3.4.13, `react-router-dom` 7.18.1→7.18.2 (båda patch-nivå).
+  `npm audit`: 10→7 sårbarheter, alla sju nu dev-only. **En egen premisskontroll visade sig
+  fel och rättades i samma session:** planens ursprungliga text påstod att
+  `npm-audit-rapport.md` "inte fanns i repot" – det stämde inte, filen är MEDVETET
+  gitignorad (`scripts/npm-audit-rapport.mjs`, Etapp 31a) och genereras av CI vid varje
+  körning till `$GITHUB_STEP_SUMMARY`. Ingen ny fil skapades; se `ETAPPLAN12.md`s rättelse
+  för hela resonemanget.
+
+Testat: `tests/functions/etapp6.test.cjs`/`demo-organisation.test.cjs` (räknarna
+uppdaterade), `tests/functions/gatingmatris.test.cjs` (2 nya rader),
+`tests/functions/kioskrestriktioner.test.cjs` (4 nya tester, inkl. att verifieraKioskPin
+ALDRIG blockeras). Full testsvep grön: lint, build, vitest (130/130), functions (alla 32
+filer). Inga ändringar i `firestore.rules`/`storage.rules`, så `test:rules`/`test:storage`
+kördes inte om. Version bumpad 5.91.0 → **5.92.0**. `ETAPPLAN12.md` §59 (59a–59c) markerad
+✅ HELT KLAR.
+
+**Med detta är Etapp 59 klar och testad – men INTE deployad** (senaste produktionsdeploy
+fortfarande v5.89.0). Nästa steg: deploya, eller fortsätta med Etapp 60a (mät prestanda mot
+en realistisk rutinmängd innan något optimeras).

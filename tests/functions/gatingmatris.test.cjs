@@ -97,6 +97,29 @@ const MATRIS = [
         auth: { uid },
       }),
   },
+  // Etapp 59b (ETAPPLAN12.md, bugfynd): kioskläget (Etapp 55) hade ingen modulkontroll alls
+  // förrän nu, trots att gating-matrisens EGEN statiska check redan fanns och skulle ha
+  // kunnat fånga det – matrisen fångar bara funktioner som REDAN anropar kravModul(...),
+  // inte funktioner som helt saknar det. satKioskPin kräver superadmin-roll, se
+  // uppringaren nedan (satt till "superadmin" istället för radens övriga "vol").
+  {
+    namn: "satKioskPin",
+    modul: "operations",
+    roll: "superadmin",
+    anropa: (uid) => funcs.satKioskPin.run({ data: { pin: "1234" }, auth: { uid } }),
+  },
+  // skapaInbjudan är bara villkorligt gated (bara när roll === "kiosk", övriga roller kräver
+  // ingen modul) – anropet nedan MÅSTE begära just den rollen för att träffa kontrollen.
+  {
+    namn: "skapaInbjudan",
+    modul: "operations",
+    roll: "superadmin",
+    anropa: (uid) =>
+      funcs.skapaInbjudan.run({
+        data: { epost: "kiosk-test@exempel.se", roll: "kiosk" },
+        auth: { uid },
+      }),
+  },
 ];
 
 // Statiskt check: hitta varje `exports.X = onCall(` i källkoden vars kropp innehåller ett
@@ -136,7 +159,7 @@ async function main() {
       namn: `Saknar ${rad.modul}`,
       moduler: { [rad.modul]: false },
     });
-    await db.collection("users").doc(uid).set({ role: "vol", organisationId: orgId });
+    await db.collection("users").doc(uid).set({ role: rad.roll ?? "vol", organisationId: orgId });
 
     console.log(`\n${rad.namn} (kräver ${rad.modul})`);
     await test(

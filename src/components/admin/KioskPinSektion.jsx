@@ -4,9 +4,17 @@
 import { useState } from "react";
 import { satKioskPin } from "../../firebase/functions";
 import { useDialog } from "../../hooks/useDialog";
+import { useFeatures } from "../../hooks/useFeatures";
+import { FEATURE } from "../../config/features";
 
+// Etapp 59b (ETAPPLAN12.md, bugfynd): kioskläget hör till Operations. Sektionen döljs INTE
+// helt utan modulen (samma mönster som ModulerSektion – en superadmin ska kunna förbereda en
+// PIN-kod i förväg, precis som andra Operations-inställningar går att se/förbereda oavsett
+// modulstatus), men satKioskPin nekar ändå server-side om modulen faktiskt är avstängd –
+// detta är bara den informerande UI-lagret av samma gating.
 export default function KioskPinSektion() {
   const { visaMeddelande } = useDialog();
+  const { hasFeature } = useFeatures();
   const [pin, setPin] = useState("");
   const [sparar, setSparar] = useState(false);
 
@@ -33,6 +41,13 @@ export default function KioskPinSektion() {
         med rollen "Kioskläge (delad enhet)". PIN-koden delas separat med den som sköter
         enheten – den sparas bara hashad och går inte att läsa tillbaka här.
       </p>
+      {!hasFeature(FEATURE.KIOSK_MODE) && (
+        <p className="sida__beskrivning">
+          ⚠️ Kioskläge ingår i Operations-modulen, som inte är aktiverad för er organisation
+          just nu. Ni kan förbereda en PIN-kod här, men inbjudan till ett kiosk-konto går inte
+          att skapa förrän modulen är påslagen (adminpanelen → Moduler).
+        </p>
+      )}
       <form className="leverantor__form" onSubmit={hanteraSubmit}>
         <label>
           Ny PIN-kod (4–8 siffror)

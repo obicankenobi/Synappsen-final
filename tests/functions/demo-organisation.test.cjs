@@ -131,10 +131,11 @@ async function main() {
   await test("dubblerar INTE rutinerna vid ett andra anrop (städas innan omseedning)", async () => {
     await funcs.nollstallDemoOrganisation.run({ data: {}, auth: { uid: "lev51" } });
     const snap = await db.collection("rutiner").where("organisationId", "==", "_demo").get();
-    // Etapp 56a utökade VERKSAMHETSMALLAR.akutmottagning från 2 till 8 mallar – 11 rutiner
-    // seedas nu varje gång (8 mallar + 1 utkast + 1 checklista + 1 granskningsdemo, se
+    // Etapp 56a utökade VERKSAMHETSMALLAR.akutmottagning från 2 till 8 mallar, Etapp 59a
+    // (ETAPPLAN12.md, bugfynd) tog bort de 2 logistik-mallarna igen (8 → 6) – 9 rutiner
+    // seedas nu varje gång (6 mallar + 1 utkast + 1 checklista + 1 granskningsdemo, se
     // froSaDemoOrganisationensInnehall) – oavsett antal ska det INTE dubbleras av ett andra anrop.
-    vantaSig(snap.size === 11, `förväntade exakt 11 rutiner efter ett andra anrop, fick ${snap.size}`);
+    vantaSig(snap.size === 9, `förväntade exakt 9 rutiner efter ett andra anrop, fick ${snap.size}`);
   });
 
   console.log("\nnollstallDemoOrganisation – loggar till '_plattform'-revisionsloggen");

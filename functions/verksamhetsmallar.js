@@ -10,6 +10,17 @@
 // vilket lämnade Logistik och Administration helt tomma dag ett). Samma strukturella
 // skelett-disciplin som originalmallarna – rubriker och frågor att besvara, aldrig påhittat
 // sakinnehåll.
+//
+// Etapp 59a (ETAPPLAN12.md, bugfynd): 56a:s logistik-mallar (omrade: "logistik") togs bort
+// igen samma dag de infördes. /logistik-sidan visar bara förråd (SektionsKort per förråd),
+// inte en Sektionssida som kliniskt-stod/administration – det fanns alltså ingen vy där en
+// logistik-rutin kunde läsas, den var inte sökbar (useSokindex monterar bara
+// useRutiner("kliniskt-stod"/"administration")) och kunde inte godkännas
+// (useGodkannandeKo() slår ihop samma två områden). Ändå räknades den in i hälsosiffran och
+// ledningsrapporten (InnehallshalsaSektion/Ledningsrapport läser useRutiner("logistik")
+// explicit) – en ny organisation fick alltså osynliga rutiner som drog ned sin egen
+// hälsosiffra. Tas bort tills logistik faktiskt blir ett läsbart rutinområde (se
+// ETAPPLAN12.md §59a alternativ A) eller en konkret kund efterfrågar det.
 const MALL_ANMARKNING =
   "\n\n---\n_Detta är en startmall, inte en färdig rutin. Ersätt innehållet med er egen " +
   "verksamhets faktiska rutin och låt den granskas/godkännas enligt er vanliga process " +
@@ -50,24 +61,6 @@ const VERKSAMHETSMALLAR = {
         "# Syfte\n\nBeskriv er lokala rutin för smittskyddsåtgärder och isolering.\n\n" +
         "# Handläggning\n\n1. Kriterier för misstänkt smitta\n2. Skyddsutrustning som ska användas\n" +
         "3. Rengöring/sanering efter vård av en isolerad patient" +
-        MALL_ANMARKNING,
-    },
-    {
-      titel: "Beställning av sjukvårdsmaterial (mall)",
-      omrade: "logistik",
-      innehall:
-        "# Syfte\n\nBeskriv er rutin för beställning och påfyllning av förbrukningsmaterial.\n\n" +
-        "# Handläggning\n\n1. Vem får beställa och från vilken leverantör\n" +
-        "2. Hur ofta inventeras lagret\n3. Vad gäller vid akut brist" +
-        MALL_ANMARKNING,
-    },
-    {
-      titel: "Kontroll av akututrustning (mall)",
-      omrade: "logistik",
-      innehall:
-        "# Syfte\n\nBeskriv er rutin för daglig/veckovis kontroll av akutvagn och akututrustning.\n\n" +
-        "# Handläggning\n\n1. Vad ska kontrolleras och hur ofta\n2. Var kontrollen dokumenteras\n" +
-        "3. Vem åtgärdar en upptäckt brist" +
         MALL_ANMARKNING,
     },
     {
@@ -127,24 +120,6 @@ const VERKSAMHETSMALLAR = {
         MALL_ANMARKNING,
     },
     {
-      titel: "Beställning av förbrukningsmaterial (mall)",
-      omrade: "logistik",
-      innehall:
-        "# Syfte\n\nBeskriv er rutin för beställning av mottagningens förbrukningsmaterial.\n\n" +
-        "# Handläggning\n\n1. Vem får beställa och från vilken leverantör\n" +
-        "2. Hur ofta inventeras lagret\n3. Vad gäller vid akut brist" +
-        MALL_ANMARKNING,
-    },
-    {
-      titel: "Kylkedjekontroll för vaccin (mall)",
-      omrade: "logistik",
-      innehall:
-        "# Syfte\n\nBeskriv er rutin för temperaturkontroll av kylskåp med vaccin/läkemedel.\n\n" +
-        "# Handläggning\n\n1. Hur ofta och av vem temperaturen loggas\n" +
-        "2. Vad som gäller vid ett avvikande värde\n3. Var loggen sparas" +
-        MALL_ANMARKNING,
-    },
-    {
       titel: "Bokningsöverbelastning (mall)",
       omrade: "administration",
       innehall:
@@ -188,24 +163,6 @@ const VERKSAMHETSMALLAR = {
         "# Syfte\n\nBeskriv er rutin för basala hygienrutiner vid besök hos brukare.\n\n" +
         "# Handläggning\n\n1. Skyddsutrustning som ska bäras\n2. Handhygien före/efter besök\n" +
         "3. Extra åtgärder vid känd smitta hos brukaren" +
-        MALL_ANMARKNING,
-    },
-    {
-      titel: "Nyckelhantering (mall)",
-      omrade: "logistik",
-      innehall:
-        "# Syfte\n\nBeskriv er rutin för hantering av brukares nycklar/passersystem.\n\n" +
-        "# Handläggning\n\n1. Hur nycklar kvitteras ut och in\n2. Var nycklar förvaras mellan pass\n" +
-        "3. Vad som gäller vid en förlorad nyckel" +
-        MALL_ANMARKNING,
-    },
-    {
-      titel: "Beställning av förbrukningsmaterial (mall)",
-      omrade: "logistik",
-      innehall:
-        "# Syfte\n\nBeskriv er rutin för beställning av hygienartiklar och förbrukningsmaterial.\n\n" +
-        "# Handläggning\n\n1. Vem får beställa och från vilken leverantör\n" +
-        "2. Hur ofta inventeras förrådet\n3. Vad gäller vid akut brist" +
         MALL_ANMARKNING,
     },
     {

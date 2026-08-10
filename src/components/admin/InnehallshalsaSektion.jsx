@@ -30,15 +30,16 @@ function Nedbrytning({ nedbrytning, total }) {
 // lasteAv, kallVarning, utgångsdatum) – ingen ny insamling. Hälsosiffran visas ALDRIG utan sin
 // nedbrytning i samma vy (se ETAPPLAN6.md Etapp 37a) – annars blir den ett mål i sig i stället
 // för ett diagnosverktyg.
+// Etapp 59a (ETAPPLAN12.md, bugfynd): "logistik" är INTE ett rutinområde – /logistik visar
+// bara förråd, ingen Sektionssida finns för att läsa en rutin där. Att ändå räkna in
+// omrade:"logistik"-rutiner här (kvarlevor från Etapp 56a:s seedning, sedan borttagen) gav en
+// hälsosiffra som räknade rutiner ingen användare någonsin kunde nå. Se genomgående krav 23.
 export default function InnehallshalsaSektion({ endastOmrade }) {
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
-  const { rutiner: logistikRutiner } = useRutiner("logistik");
   const { rutiner: adminRutiner } = useRutiner("administration");
   const allaRutiner = endastOmrade
-    ? { "kliniskt-stod": klinisktRutiner, logistik: logistikRutiner, administration: adminRutiner }[
-        endastOmrade
-      ] ?? []
-    : [...klinisktRutiner, ...logistikRutiner, ...adminRutiner];
+    ? { "kliniskt-stod": klinisktRutiner, administration: adminRutiner }[endastOmrade] ?? []
+    : [...klinisktRutiner, ...adminRutiner];
 
   const { total, halsosiffra, nedbrytning, poster } = sammanstallHalsa(allaRutiner);
   const sjukaPoster = poster.filter((p) => p.antalFlaggor > 0).slice(0, 20);

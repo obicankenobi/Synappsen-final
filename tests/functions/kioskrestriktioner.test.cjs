@@ -49,7 +49,9 @@ async function vantaSigKastar(lofte, meddelande) {
 
 async function main() {
   const orgId = "orgKiosk55";
-  await db.collection("organisationer").doc(orgId).set({ namn: "Kiosk-org" });
+  // Etapp 59b (ETAPPLAN12.md, bugfynd): kioskläget hör till Operations – satKioskPin
+  // (och en kiosk-inbjudan) kräver nu modulen aktiv, se moduler.operations nedan.
+  await db.collection("organisationer").doc(orgId).set({ namn: "Kiosk-org", moduler: { operations: true } });
   await db.collection("users").doc("superadminKiosk").set({ organisationId: orgId, role: "superadmin" });
   await db.collection("users").doc("kioskEnhet").set({ organisationId: orgId, role: "kiosk" });
 
@@ -115,6 +117,43 @@ async function main() {
       "borde ha kastat permission-denied"
     )
   );
+
+  console.log("\nEtapp 59b (ETAPPLAN12.md, bugfynd): kioskläget kräver Operations-modulen");
+  const orgUtanOperations = "orgKioskUtanOperations";
+  await db.collection("organisationer").doc(orgUtanOperations).set({ namn: "Ingen Operations-org" });
+  await db.collection("users").doc("superadminUtanOps").set({ organisationId: orgUtanOperations, role: "superadmin" });
+  await db.collection("users").doc("kioskUtanOps").set({ organisationId: orgUtanOperations, role: "kiosk" });
+
+  await test("satKioskPin nekas utan Operations-modulen (kan inte KONFIGURERA en ny PIN)", () =>
+    vantaSigKastar(
+      funcs.satKioskPin.run({ data: { pin: "9999" }, auth: { uid: "superadminUtanOps" } }),
+      "borde ha kastat failed-precondition"
+    )
+  );
+  await test("skapaInbjudan med roll=kiosk nekas utan Operations-modulen", () =>
+    vantaSigKastar(
+      funcs.skapaInbjudan.run({
+        data: { epost: "ny-kiosk@exempel.se", roll: "kiosk" },
+        auth: { uid: "superadminUtanOps" },
+      }),
+      "borde ha kastat failed-precondition"
+    )
+  );
+  await test("skapaInbjudan med en ANNAN roll fungerar ändå utan Operations (bara kiosk är gated)", async () => {
+    const { token } = await funcs.skapaInbjudan.run({
+      data: { epost: "vanlig-personal@exempel.se", roll: "personal" },
+      auth: { uid: "superadminUtanOps" },
+    });
+    vantaSig(!!token, "en vanlig inbjudan ska fungera oavsett moduler");
+  });
+  await test("verifieraKioskPin fungerar ÄNDÅ utan Operations-modulen (kan alltid LÄMNA kioskläget – ingen inlåsning)", async () => {
+    // Ingen PIN är satt i den här organisationen ännu (satKioskPin ovan nekades), så en
+    // godtycklig PIN ska ge giltig:false – men anropet i sig får INTE kastas som
+    // failed-precondition, det vore en inlåsningsrisk om en organisation stänger av
+    // Operations EFTER att en kiosk-enhet redan är konfigurerad.
+    const resultat = await funcs.verifieraKioskPin.run({ data: { pin: "0000" }, auth: { uid: "kioskUtanOps" } });
+    vantaSig(resultat.giltig === false, "förväntade giltig:false (ingen PIN satt än)");
+  });
 
   console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);
   if (antalMisslyckade > 0) {

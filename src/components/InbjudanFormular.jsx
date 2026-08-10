@@ -1,18 +1,17 @@
 import { useState } from "react";
 import { skapaInbjudan } from "../firebase/functions";
 import { ROLES, ROLE_LABELS } from "../firebase/roles";
+import { useFeatures } from "../hooks/useFeatures";
+import { FEATURE } from "../config/features";
 import "./InbjudanFormular.css";
 
-const BJUDBARA_ROLLER = [
+const BJUDBARA_ROLLER_UTAN_KIOSK = [
   ROLES.PERSONAL,
   ROLES.FORRADSANSVARIG,
   ROLES.SEKTIONSLEDARE,
   ROLES.VEC,
   ROLES.VOL,
   ROLES.SUPERADMIN,
-  // Etapp 55: samma inbjudningsflöde återanvänds för att skapa ett delat kiosk-enhetskonto –
-  // e-postadressen blir i praktiken enhetens/foajéns egen, inte en persons.
-  ROLES.KIOSK,
 ];
 
 // Etapp 6c: ersätter den gamla öppna självbetjänings-registreringen. En superadmin bjuder in
@@ -22,6 +21,14 @@ const BJUDBARA_ROLLER = [
 // Länken visas ändå alltid – ett mejl kan fastna i ett spamfilter, och den ger en garanterad
 // reservväg om utskicket av någon anledning uteblir.
 export default function InbjudanFormular() {
+  const { hasFeature } = useFeatures();
+  // Etapp 59b (ETAPPLAN12.md, bugfynd): kiosk-rollen (Etapp 55) hör till Operations
+  // (FEATURE.KIOSK_MODE) och ska inte gå att bjuda in utan den – UI-lagret av samma
+  // trelagersgating som redan gäller AI-import/klinikstöd (se skapaInbjudan i
+  // functions/index.js för den faktiska spärren; det här döljer bara valet).
+  const bjudbaraRoller = hasFeature(FEATURE.KIOSK_MODE)
+    ? [...BJUDBARA_ROLLER_UTAN_KIOSK, ROLES.KIOSK]
+    : BJUDBARA_ROLLER_UTAN_KIOSK;
   const [epost, setEpost] = useState("");
   const [roll, setRoll] = useState(ROLES.PERSONAL);
   const [skapar, setSkapar] = useState(false);
@@ -60,7 +67,7 @@ export default function InbjudanFormular() {
         <label>
           Roll
           <select value={roll} onChange={(e) => setRoll(e.target.value)}>
-            {BJUDBARA_ROLLER.map((r) => (
+            {bjudbaraRoller.map((r) => (
               <option key={r} value={r}>
                 {ROLE_LABELS[r]}
               </option>

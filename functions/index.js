@@ -1352,6 +1352,10 @@ exports.satKioskPin = onCall({ region: "europe-west1" }, async (request) => {
   if (uppringare.roll !== "superadmin") {
     throw new HttpsError("permission-denied", "Endast superadmin kan sätta kiosk-PIN-koden.");
   }
+  // Etapp 59b (ETAPPLAN12.md, bugfynd): kioskläget hör till Operations (FEATURE.KIOSK_MODE),
+  // men ingenstans kontrollerades det förrän nu – varken här eller i klienten. Samma mönster
+  // som redan används för Intelligence-funktionerna (fragaKlinisktStod m.fl.) ovan.
+  await kravModul(uppringare.organisationId, "operations", "Kioskläge kräver Operations-modulen.");
   const pin = String(request.data?.pin ?? "");
   if (!/^\d{4,8}$/.test(pin)) {
     throw new HttpsError("invalid-argument", "PIN-koden måste vara 4–8 siffror.");
@@ -1381,6 +1385,12 @@ exports.verifieraKioskPin = onCall({ region: "europe-west1" }, async (request) =
 
   const pin = String(request.data?.pin ?? "");
   const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  // Etapp 59b (ETAPPLAN12.md): MEDVETET INTE kravModul-gated, till skillnad från satKioskPin.
+  // Att LÄMNA kioskläget är en säkerhetsventil, inte funktionen som säljs – om en organisation
+  // stänger av Operations EFTER att en kiosk-enhet redan konfigurerats får den enheten aldrig
+  // bli permanent inlåst utan väg ut. Samma princip som tvingaUtloggning (alltid tillgänglig,
+  // oavsett moduler). Den faktiska affärsspärren sitter i skapaInbjudan (kan inte skapa ETT
+  // nytt kioskkonto utan modulen) och satKioskPin (kan inte konfigurera EN ny PIN utan den).
   const dokSnap = await db
     .collection("organisationer")
     .doc(uppringare.organisationId)
@@ -4486,6 +4496,13 @@ exports.skapaInbjudan = onCall({ region: "europe-west1", secrets: [BREVO_API_KEY
   }
   if (!GILTIGA_ROLLER.includes(roll)) {
     throw new HttpsError("invalid-argument", "En giltig roll krävs.");
+  }
+  // Etapp 59b (ETAPPLAN12.md, bugfynd): kiosk-rollen (Etapp 55) hör till Operations
+  // (FEATURE.KIOSK_MODE) men gick tidigare att bjuda in oavsett moduler – detta är den
+  // faktiska affärsspärren (se motiveringen i verifieraKioskPin ovan för varför den INTE
+  // sitter på att lämna kioskläget, bara på att skapa ett nytt konto).
+  if (roll === "kiosk") {
+    await kravModul(organisationId, "operations", "Kioskläge kräver Operations-modulen.");
   }
 
   const token = await skapaInbjudanIntern({ organisationId, epost, roll, skapadAv: request.auth.uid });
