@@ -1,6 +1,6 @@
 # Synappsen – rätt information, direkt i handen, när det är bråttom
 
-*Beslutsunderlag för verksamhetsledning · Version 5.84.0 · 2026-08-10*
+*Beslutsunderlag för verksamhetsledning · Version 5.90.0 · 2026-08-10*
 
 ---
 
@@ -121,6 +121,15 @@ personalpulsen (minst fem svarande innan ett områdesresultat visas) är avsiktl
 betyder att en ny, liten pilot kan behöva vänta ett tag innan den siffran syns alls – det är
 rätt avvägning, inte en bugg. Vi säger detta rakt ut eftersom det är precis den sortens
 detalj vi själva skulle vilja veta innan vi köpte något liknande.
+
+## Ni börjar inte från ett tomt system
+
+Väljer ni en verksamhetstyp (t.ex. akutmottagning, vårdcentral, kommunal hemtjänst) vid
+etablering fylls organisationen automatiskt med ett startbibliotek: strukturella rutinmallar
+över Kliniskt stöd, Logistik och Administration, ett förrådsförslag att döpa om, generella
+kontaktkategorier, ett introduktionsspår för en nyanställd och ett kompetenskrav – redo att
+justeras till er verkliga verksamhet istället för att skrivas från noll. Varje mall är
+tydligt märkt som just en mall, aldrig påstådd färdig klinisk vägledning.
 
 ## Förslag på nästa steg
 

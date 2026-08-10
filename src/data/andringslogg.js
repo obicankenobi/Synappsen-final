@@ -11,6 +11,14 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.90.0",
+    datum: "2026-08-10",
+    andringar: [
+      "Mycket mer startinnehåll för en nyetablerad organisation – fler rutinmallar per verksamhetstyp (nu även för Logistik och Administration, inte bara Kliniskt stöd), samt ett startförslag för förråd, kontakter, ett introduktionsspår och ett kompetenskrav",
+      "'Kom igång'-checklistan på startsidan visar nu verkligt läge – varje steg bockas av automatiskt när handlingen faktiskt utförs, inte längre en egen kryssruta",
+    ],
+  },
+  {
     version: "5.89.0",
     datum: "2026-08-10",
     andringar: [

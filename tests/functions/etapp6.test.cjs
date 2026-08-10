@@ -181,12 +181,14 @@ async function main() {
       data: { namn: "Akutmottagning Test", verksamhetstyp: "akutmottagning" },
       auth: { uid: "vanligSuperadmin" },
     });
-    vantaSig(resultat.antalMallrutiner === 2, `förväntade 2 mallrutiner, fick ${resultat.antalMallrutiner}`);
+    // Etapp 56a: utökat från 2 till 8 startmallar för akutmottagning (spridda över kliniskt-
+    // stod/logistik/administration) – se functions/verksamhetsmallar.js.
+    vantaSig(resultat.antalMallrutiner === 8, `förväntade 8 mallrutiner, fick ${resultat.antalMallrutiner}`);
     const rutinSnap = await db
       .collection("rutiner")
       .where("organisationId", "==", resultat.orgId)
       .get();
-    vantaSig(rutinSnap.size === 2, `förväntade 2 sparade rutiner, fick ${rutinSnap.size}`);
+    vantaSig(rutinSnap.size === 8, `förväntade 8 sparade rutiner, fick ${rutinSnap.size}`);
     rutinSnap.forEach((doc) => {
       vantaSig(doc.data().status === "godkand", "mallrutiner ska vara direkt godkända/synliga");
       vantaSig(doc.data().titel.includes("(mall)"), "mallrutinens titel ska vara märkt som mall");
@@ -205,6 +207,54 @@ async function main() {
       auth: { uid: "vanligSuperadmin" },
     });
     vantaSig(resultat.antalMallrutiner === 0, "förväntade 0 mallrutiner för okänd verksamhetstyp");
+  });
+
+  console.log("\nskapaOrganisation – Etapp 56b startbibliotek för allt som INTE är en rutin");
+  let etapp56bResultat;
+  await test("en organisation med verksamhetstyp får förråd/kontakter/introduktionsspår/kompetenskrav", async () => {
+    etapp56bResultat = await funcs.skapaOrganisation.run({
+      data: { namn: "Etapp56b Test", verksamhetstyp: "akutmottagning" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    vantaSig(etapp56bResultat.antalForradsartiklar === 3, `förväntade 3 förrådsartiklar, fick ${etapp56bResultat.antalForradsartiklar}`);
+    vantaSig(etapp56bResultat.antalKontakter === 5, `förväntade 5 kontakter, fick ${etapp56bResultat.antalKontakter}`);
+    vantaSig(!!etapp56bResultat.introduktionssparId, "inget introduktionsspår skapades");
+    vantaSig(!!etapp56bResultat.kompetenskravId, "inget kompetenskrav skapades");
+  });
+  await test("de seedade förrådsartiklarna är direkt godkända/synliga", async () => {
+    const snap = await db
+      .collection("forradsartiklar")
+      .where("organisationId", "==", etapp56bResultat.orgId)
+      .get();
+    vantaSig(snap.size === 3, `förväntade 3 sparade förrådsartiklar, fick ${snap.size}`);
+    snap.forEach((doc) => vantaSig(doc.data().status === "godkand", "förrådsartikeln ska vara direkt godkänd"));
+  });
+  await test("introduktionsspåret pekar på RIKTIGA rutin-id:n bland de nyss seedade mallrutinerna", async () => {
+    const sparSnap = await db.collection("introduktionsspar").doc(etapp56bResultat.introduktionssparId).get();
+    const data = sparSnap.data();
+    vantaSig(data.malRoll === "personal", "fel målroll");
+    vantaSig(data.etapper.length >= 1, "inga etapper i spåret");
+    const forstaRutinId = data.etapper[0].poster[0].id;
+    const rutinSnap = await db.collection("rutiner").doc(forstaRutinId).get();
+    vantaSig(rutinSnap.exists, "introduktionsspårets referens pekar på en rutin som inte finns");
+    vantaSig(rutinSnap.data().organisationId === etapp56bResultat.orgId, "rutinen tillhör fel organisation");
+  });
+  await test("kompetenskravet pekar på en riktig kliniskt-stod-rutin", async () => {
+    const kravSnap = await db.collection("kompetenskrav").doc(etapp56bResultat.kompetenskravId).get();
+    const data = kravSnap.data();
+    vantaSig(data.omrade === "kliniskt-stod", "fel område på kompetenskravet");
+    const rutinSnap = await db.collection("rutiner").doc(data.rutinId).get();
+    vantaSig(rutinSnap.exists && rutinSnap.data().omrade === "kliniskt-stod", "kompetenskravets rutinreferens stämmer inte");
+  });
+  await test("en organisation UTAN verksamhetstyp får INGET av 56b:s icke-rutininnehåll", async () => {
+    const resultat = await funcs.skapaOrganisation.run({
+      data: { namn: "Utan Mall 56b Test" },
+      auth: { uid: "vanligSuperadmin" },
+    });
+    vantaSig(resultat.antalForradsartiklar === 0, "förväntade 0 förrådsartiklar utan verksamhetstyp");
+    vantaSig(resultat.antalKontakter === 0, "förväntade 0 kontakter utan verksamhetstyp");
+    vantaSig(resultat.introduktionssparId === null, "förväntade inget introduktionsspår utan verksamhetstyp");
+    vantaSig(resultat.kompetenskravId === null, "förväntade inget kompetenskrav utan verksamhetstyp");
   });
 
   console.log("\nlistaOrganisationer – Etapp 6a leverantörsöversikt");

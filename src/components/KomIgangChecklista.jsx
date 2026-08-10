@@ -5,8 +5,12 @@ import "./KomIgangChecklista.css";
 // Etapp 15b: guidad uppstart. Visas bara för superadmin (avgörs av den anropande sidan) och
 // bara medan checklistan finns och inte redan är helt avklarad – en etablerad, i drift-satt
 // organisation ska inte mötas av en påminnelse om steg den redan tagit.
+//
+// Etapp 56c: varje steg härleds nu ur faktisk data (se useValkomstchecklista.js) istället för
+// att vara en självrapporterad checkbox – därför bara en statusindikator, inte en interaktiv
+// ruta att klicka i. Steget blir avbockat av sig själv när handlingen faktiskt utförs.
 export default function KomIgangChecklista() {
-  const { steg, markeraSteg, antalKlara, totalt, alltKlart } = useValkomstchecklista();
+  const { steg, antalKlara, totalt, alltKlart } = useValkomstchecklista();
 
   if (steg == null || alltKlart) {
     return null;
@@ -28,20 +32,16 @@ export default function KomIgangChecklista() {
           const klar = Boolean(steg[s.nyckel]);
           return (
             <li key={s.nyckel} className="kom-igang__steg">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={klar}
-                  onChange={(e) => markeraSteg(s.nyckel, e.target.checked)}
-                />
-                <span className={klar ? "kom-igang__titel kom-igang__titel--klar" : "kom-igang__titel"}>
-                  {s.titel}
-                </span>
-              </label>
+              <span aria-hidden="true">{klar ? "✅" : "⬜"}</span>{" "}
+              <span className={klar ? "kom-igang__titel kom-igang__titel--klar" : "kom-igang__titel"}>
+                {s.titel}
+              </span>
               <p className="kom-igang__beskrivning">{s.beskrivning}</p>
-              <Link to={s.lank} className="kom-igang__lank">
-                Gå till sidan →
-              </Link>
+              {!klar && (
+                <Link to={s.lank} className="kom-igang__lank">
+                  Gå till sidan →
+                </Link>
+              )}
             </li>
           );
         })}

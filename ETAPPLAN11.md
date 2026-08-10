@@ -388,29 +388,43 @@ lättast att göra klart snabbt.
 
 **Modul:** ingen (Core, del av etableringen).
 
-- **56a – Fler och bättre rutinmallar per verksamhetstyp.** Behåll `MALL_ANMARKNING`-
-  disciplinen exakt som den är: mallarna ska vara **strukturella skelett med rubriker och
-  frågor att besvara**, aldrig påhittad klinisk vägledning. Filens egen motivering är helt
-  rätt och ska citeras i varje ny mall. Sikta på 8–12 per verksamhetstyp, fördelade över
-  Kliniskt stöd / Logistik / Administration, så att alla tre områdena har innehåll dag ett.
-- **56b – Mallar för allt som inte är rutiner.** En ny organisation får i dag tomma listor
-  för förråd, kontakter, introduktionsspår och kompetenskrav. Ett förslag på förrådsstruktur
-  (skåp/hylla-skelett att döpa om), fem kontaktkategorier, ett introduktionsspår för en
-  nyanställd och två–tre kompetenskrav gör skillnaden mellan "ett tomt system vi måste fylla"
-  och "ett system som är nästan rätt och behöver justeras". Den psykologiska skillnaden vid
-  ett införande är svår att överdriva.
-- **56c – Låt kom igång-flödet mäta verkligt läge.** *Verifiera först:*
-  `KomIgangChecklista`/`useValkomstchecklista` finns redan och räknar steg. Kontrollera om
-  stegen markeras manuellt eller härleds ur faktisk data. Härleds de ur data är delmålet
-  klart och ska strykas; markeras de manuellt är en checklista som säger "klart" om en tom
-  organisation värre än ingen checklista.
-- **56d – Gör mallbiblioteket till ett säljargument, inte en dold detalj.** Om 56a–56b görs:
-  en rad i `PITCH.md` och en skärmbild. Ett startbibliotek som ingen köpare känner till har
-  noll kommersiellt värde.
+- **56a – ✅ KLAR (2026-08-10) – Fler och bättre rutinmallar per verksamhetstyp.**
+  `functions/verksamhetsmallar.js` utökad från 2 till 8–9 mallar per verksamhetstyp (8 för
+  akutmottagning, 8 för vårdcentral, 7 för hemtjänst), nu spridda över alla tre områdena
+  (tidigare bara kliniskt-stod – Logistik och Administration hade noll). `MALL_ANMARKNING`-
+  disciplinen (strukturella skelett, aldrig påhittad klinisk vägledning) bibehållen exakt
+  oförändrad och citerad i varje ny mall.
+- **56b – ✅ KLAR (2026-08-10) – Mallar för allt som inte är rutiner.** `skapaOrganisation`
+  seedar nu även (när ett verksamhetstyp-värde anges): 3 förrådsartiklar att döpa om
+  (`FORRADSMALLAR`), 5 generella kontaktkategorier (`KONTAKTMALLAR`), ETT introduktionsspår
+  för rollen "personal" vars etapper pekar på RIKTIGA id:n bland de nyss seedade
+  mallrutinerna (inte platshållar-id:n), och ETT kompetenskrav kopplat till en riktig
+  kliniskt-stod-mallrutin. Ingen ny collection, samma mönster som redan gäller för
+  `introduktionsspar`/`kompetenskrav` när en redaktör skapar dem manuellt.
+- **56c – ✅ KLAR (2026-08-10) – Kom igång-flödet mäter nu verkligt läge.**
+  *Verifiera först* (utfört): `useValkomstchecklista` lagrade tidigare varje stegs status
+  som en manuellt ikryssad boolean – en superadmin kunde bocka av "Bjud in kollegor" utan att
+  någonsin ha bjudit in någon. Enligt planens egen regel var delmålet därför INTE klart och
+  skulle byggas, inte strykas. Byggt: varje steg härleds nu ur faktisk data (ny, testbar ren
+  funktion `harledStegStatus` i `src/utils/valkomstchecklista.js`) – t.ex. "Importera de
+  första rutinerna" kräver en rutin vars `kalla` INTE är `"verksamhetsmall"` (dvs. att
+  startbibliotekets egna mallar inte räknas som en riktig import), "Ta ställning till
+  tvåfaktorskrav" kräver att `organisationer/{orgId}.sakerhet`-fältet existerar (skrivs
+  ENDAST av `uppdateraMfaPolicy`, aldrig av etableringen). `KomIgangChecklista.jsx` blev en
+  läs-only statusindikator (✅/⬜) istället för interaktiva checkboxar. **Prestandafix under
+  bygget:** de fyra härledningskällornas Firestore-lyssnare gated bakom att checklistan
+  faktiskt finns – annars hade VARJE superadmins startsida abonnerat på fyra extra
+  lyssnare (org/budget/rutiner/användare) även för väletablerade organisationer som aldrig
+  visar checklistan. Testat: `src/utils/valkomstchecklista.test.js` (6 tester, ren logik,
+  ingen Firestore-mockning behövs).
+- **56d – ✅ KLAR (2026-08-10) – Mallbiblioteket i `PITCH.md`.** Nytt stycke "Ni börjar inte
+  från ett tomt system" tillagt.
 
 **Klart när:** en nyetablerad organisation kan visas upp i ett säljmöte direkt efter
-`skapaOrganisation`, utan att någon först fyllt den manuellt – och demomiljön från Etapp 51
-kan seedas från samma källa istället för sin egen kopia.
+`skapaOrganisation`, utan att någon först fyllt den manuellt. **Uppnått 2026-08-10.**
+Kvarstår (utanför 56:s ursprungliga omfattning): demomiljön från Etapp 51 seedar fortfarande
+sin egen, separata kopia snarare än att återanvända 56b:s källa – en rimlig framtida
+förenkling, inte ett krav för att räkna Etapp 56 som klar.
 
 ---
 
@@ -523,7 +537,7 @@ till invändningen.
 | **57a** | Rätta det felaktiga påståendet i `PITCH.md` | Ingen | Minuter | ✅ **KLAR (2026-08-10)** |
 | **53** | E-post som kanal (inbjudan, påminnelser, månadsrapport) | Låg–medel | Medel | ✅ **HELT KLAR (2026-08-10), v5.85.0–5.88.0** – 53a–53d alla byggda och testade |
 | **54a–54b** | Utred enhetsmodellen + huvudmannanivå | Låg | Låg | ✅ **KLAR (2026-08-10), v5.89.0** – 54a visade att 54d är avgränsad, inte en omskrivning; 54b byggd |
-| **56** | Startbiblioteket: fler mallar, mallar för icke-rutiner | Ingen | Låg–medel | När som helst |
+| **56** | Startbiblioteket: fler mallar, mallar för icke-rutiner | Ingen | Låg–medel | ✅ **HELT KLAR (2026-08-10), v5.90.0** – 56a–56d alla byggda |
 | **55** | Kioskläge (delad surfplatta) | Medel | Medel | När som helst |
 | **57b–57c** | Händelsestyrd `PITCH.md`-regel + ärlighetsstycke | Ingen | Låg | Ihop med 57a |
 | **54c–54d** | Gemensamma rutiner, användare i flera enheter | **Hög** | Hög | Först efter 54a:s utfall, och helst mot en riktig andra enhet |

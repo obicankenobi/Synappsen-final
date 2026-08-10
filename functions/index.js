@@ -6,7 +6,7 @@ const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
 const crypto = require("node:crypto");
-const { VERKSAMHETSMALLAR } = require("./verksamhetsmallar");
+const { VERKSAMHETSMALLAR, FORRADSMALLAR, KONTAKTMALLAR } = require("./verksamhetsmallar");
 const Sentry = require("@sentry/node");
 
 // Ingen SENTRY_DSN i miljön (lokala emulatorer, tester) → Sentry.init() no-opar tyst.
@@ -3247,10 +3247,12 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
   const verksamhetstyp = request.data?.verksamhetstyp;
   const mallar = VERKSAMHETSMALLAR[verksamhetstyp];
   let antalMallrutiner = 0;
+  const skapadeRutiner = [];
   if (mallar) {
     const batch = db.batch();
     for (const mall of mallar) {
-      batch.set(db.collection("rutiner").doc(), {
+      const ref = db.collection("rutiner").doc();
+      batch.set(ref, {
         titel: mall.titel,
         innehall: mall.innehall,
         omrade: mall.omrade,
@@ -3260,9 +3262,76 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
         skapadAv: request.auth.uid,
         skapad: admin.firestore.FieldValue.serverTimestamp(),
       });
+      skapadeRutiner.push({ id: ref.id, omrade: mall.omrade, titel: mall.titel });
       antalMallrutiner += 1;
     }
     await batch.commit();
+  }
+
+  // Etapp 56b: startbibliotek för allt som INTE är en rutin – utan detta möter en ny
+  // organisation tomma listor för förråd/kontakter/introduktionsspår/kompetenskrav, se
+  // ETAPPLAN11.md §56b. Körs bara när det finns ett verksamhetstyp-värde (samma villkor som
+  // rutinmallarna) – utan verksamhetstyp finns inget rimligt underlag att seeda från.
+  let antalForradsartiklar = 0;
+  let antalKontakter = 0;
+  let introduktionssparId = null;
+  let kompetenskravId = null;
+  if (verksamhetstyp) {
+    const ickeRutinBatch = db.batch();
+    const forradsmallar = FORRADSMALLAR[verksamhetstyp] ?? [];
+    for (const artikel of forradsmallar) {
+      ickeRutinBatch.set(db.collection("forradsartiklar").doc(), {
+        ...artikel,
+        status: "godkand",
+        organisationId: orgRef.id,
+        skapadAv: request.auth.uid,
+        skapad: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      antalForradsartiklar += 1;
+    }
+    for (const kontakt of KONTAKTMALLAR) {
+      ickeRutinBatch.set(db.collection("kontakter").doc(), {
+        ...kontakt,
+        akutnummer: Boolean(kontakt.akutnummer),
+        organisationId: orgRef.id,
+        skapad: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      antalKontakter += 1;
+    }
+    await ickeRutinBatch.commit();
+
+    // Introduktionsspår och kompetenskrav pekar på RIKTIGA rutin-id:n – kan därför bara
+    // byggas om det faktiskt seedades några rutiner ovan att peka på (annars finns inget
+    // meningsfullt exempel, se genomgående krav 8/premisskontroll i ETAPPLAN11.md §56).
+    const klinisktStodRutin = skapadeRutiner.find((r) => r.omrade === "kliniskt-stod");
+    const enAnnanRutin = skapadeRutiner.find((r) => r.id !== klinisktStodRutin?.id);
+    if (klinisktStodRutin) {
+      const sparRef = db.collection("introduktionsspar").doc();
+      const etapper = [{ namn: "Dag 1", poster: [{ typ: "rutin", id: klinisktStodRutin.id, rekommenderadDag: 1 }] }];
+      if (enAnnanRutin) {
+        etapper.push({ namn: "Vecka 1", poster: [{ typ: "rutin", id: enAnnanRutin.id, rekommenderadDag: 5 }] });
+      }
+      await sparRef.set({
+        namn: "Introduktion för ny personal (mall, anpassa)",
+        malRoll: "personal",
+        etapper,
+        organisationId: orgRef.id,
+        skapad: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      introduktionssparId = sparRef.id;
+
+      const kravRef = db.collection("kompetenskrav").doc();
+      await kravRef.set({
+        roll: "personal",
+        rutinId: klinisktStodRutin.id,
+        rutinTitel: klinisktStodRutin.titel,
+        omrade: "kliniskt-stod",
+        frekvensManader: 12,
+        organisationId: orgRef.id,
+        skapad: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      kompetenskravId = kravRef.id;
+    }
   }
 
   await loggaRevision({
@@ -3275,7 +3344,15 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
     sammanfattning: `Organisationen "${namn}" etablerad`,
   });
 
-  return { orgId: orgRef.id, antalMallrutiner, inbjudanToken };
+  return {
+    orgId: orgRef.id,
+    antalMallrutiner,
+    antalForradsartiklar,
+    antalKontakter,
+    introduktionssparId,
+    kompetenskravId,
+    inbjudanToken,
+  };
 });
 
 // Etapp 6a: översikt åt leverantörsadmin – en rad per kundorganisation med moduler, antal

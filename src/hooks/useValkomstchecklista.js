@@ -1,14 +1,26 @@
-// Etapp 15b: guidad uppstart för en ny kunds superadmin. Läser/skriver samma dokument som
-// Etapp 15a skapade (organisationer/{orgId}/installningar/valkomstchecklista) – rules tillåter
-// redan en superadmin i egen organisation att skriva dit direkt (samma mönster som
-// useGeminiBudget), så ingen Cloud Function behövs för att bocka av ett steg.
+// Etapp 15b: guidad uppstart för en ny kunds superadmin. Läser samma dokument som Etapp 15a
+// skapade (organisationer/{orgId}/installningar/valkomstchecklista) för att avgöra OM
+// checklistan ska visas alls (organisationer etablerade före Etapp 15a saknar dokumentet).
+//
+// Etapp 56c (premisskontroll): fram till 2026-08-10 lagrades varje stegs status som en
+// manuellt ikryssad boolean (`steg.<nyckel>`, skriven av en checkbox i KomIgangChecklista.jsx)
+// – en superadmin kunde bocka av "Bjud in kollegor" utan att någonsin ha bjudit in någon.
+// Enligt planens egen regel ("härleds stegen ur data är delmålet klart, markeras de manuellt
+// är en checklista som säger 'klart' om en tom organisation värre än ingen checklista") är
+// varje steg nu HÄRLETT ur faktisk data istället – ingen längre skrivbar av användaren.
+//
+// De fyra härledningskällorna (organisationsdokumentet, AI-budgeten, rutiner, användare)
+// abonneras BARA när checklistaFinns är sant – de allra flesta organisationer (etablerade
+// före Etapp 15a, eller som redan blivit klara) saknar dokumentet helt och ska inte betala
+// fyra extra Firestore-lyssnare på varje besök på startsidan för en checklista som ändå
+// aldrig visas.
 import { useEffect, useState } from "react";
-import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { rapporteraNekadListning } from "../firebase/felrapportering";
+import { harledStegStatus } from "../utils/valkomstchecklista";
 
-// Nycklarna måste matcha VALKOMSTCHECKLISTA_STEG i functions/index.js (skapaOrganisation).
 export const CHECKLISTA_STEG = [
   {
     nyckel: "bjud_in_kollegor",
@@ -43,21 +55,21 @@ export const CHECKLISTA_STEG = [
 ];
 
 // undefined = laddar, null = ingen checklista finns (organisationen etablerades före Etapp
-// 15a, eller alla steg redan avbockade och komponenten ska inte visas), annars stegobjektet.
+// 15a, eller är annars inte relevant), annars ett härlett stegobjekt.
 export function useValkomstchecklista() {
-  const { organisationId, role } = useAuth();
-  const [steg, setSteg] = useState(undefined);
+  const { currentUser, organisationId, role } = useAuth();
+  const [checklistaFinns, setChecklistaFinns] = useState(undefined);
+  const [orgData, setOrgData] = useState(null);
+  const [budgetData, setBudgetData] = useState(null);
+  const [rutiner, setRutiner] = useState([]);
+  const [anvandare, setAnvandare] = useState([]);
   const [fel, setFel] = useState(null);
 
   useEffect(() => {
     if (!organisationId) return undefined;
-    const ref = doc(db, "organisationer", organisationId, "installningar", "valkomstchecklista");
     return onSnapshot(
-      ref,
-      (snap) => {
-        setSteg(snap.exists() ? snap.data().steg ?? {} : null);
-        setFel(null);
-      },
+      doc(db, "organisationer", organisationId, "installningar", "valkomstchecklista"),
+      (snap) => setChecklistaFinns(snap.exists()),
       (error) => {
         setFel(error);
         rapporteraNekadListning({ collection: "organisationer", roll: role, organisationId, sokvag: "valkomstchecklista", fel: error });
@@ -65,14 +77,65 @@ export function useValkomstchecklista() {
     );
   }, [organisationId, role]);
 
-  async function markeraSteg(nyckel, klar) {
-    if (!organisationId) return;
-    const ref = doc(db, "organisationer", organisationId, "installningar", "valkomstchecklista");
-    await updateDoc(ref, { [`steg.${nyckel}`]: klar });
-  }
+  useEffect(() => {
+    if (!organisationId || checklistaFinns !== true) return undefined;
+    return onSnapshot(
+      doc(db, "organisationer", organisationId),
+      (snap) => setOrgData(snap.exists() ? snap.data() : null),
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "organisationer", roll: role, organisationId, fel: error });
+      },
+    );
+  }, [organisationId, role, checklistaFinns]);
+
+  useEffect(() => {
+    if (!organisationId || checklistaFinns !== true) return undefined;
+    return onSnapshot(
+      doc(db, "organisationer", organisationId, "installningar", "geminiBudget"),
+      (snap) => setBudgetData(snap.exists() ? snap.data() : null),
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "organisationer", roll: role, organisationId, sokvag: "geminiBudget", fel: error });
+      },
+    );
+  }, [organisationId, role, checklistaFinns]);
+
+  useEffect(() => {
+    if (!organisationId || checklistaFinns !== true) return undefined;
+    const q = query(collection(db, "rutiner"), where("organisationId", "==", organisationId));
+    return onSnapshot(
+      q,
+      (snap) => setRutiner(snap.docs.map((d) => d.data())),
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "rutiner", roll: role, organisationId, fel: error });
+      },
+    );
+  }, [organisationId, role, checklistaFinns]);
+
+  useEffect(() => {
+    if (!organisationId || checklistaFinns !== true) return undefined;
+    const q = query(collection(db, "users"), where("organisationId", "==", organisationId));
+    return onSnapshot(
+      q,
+      (snap) => setAnvandare(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (error) => {
+        setFel(error);
+        rapporteraNekadListning({ collection: "users", roll: role, organisationId, fel: error });
+      },
+    );
+  }, [organisationId, role, checklistaFinns]);
+
+  const steg =
+    checklistaFinns === false
+      ? null
+      : checklistaFinns === undefined
+        ? undefined
+        : harledStegStatus({ anvandare, egetUid: currentUser?.uid, rutiner, orgData, budgetData });
 
   const antalKlara = steg ? CHECKLISTA_STEG.filter((s) => steg[s.nyckel]).length : 0;
   const alltKlart = steg != null && antalKlara === CHECKLISTA_STEG.length;
 
-  return { steg, markeraSteg, antalKlara, totalt: CHECKLISTA_STEG.length, alltKlart, fel };
+  return { steg, antalKlara, totalt: CHECKLISTA_STEG.length, alltKlart, fel };
 }

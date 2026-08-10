@@ -6,20 +6,18 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.89.0** – **DEPLOYAD TILL PRODUKTION** (körning
-#73, commit `63f15d7`, asset-hash `assets/index-D_ReJBIJ.js`, bekräftad live på
-`https://synappsen-final-build.web.app/`). `ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning
-till en kund som växer") är den AKTIVA planen, **ANTAGEN 2026-08-10** (ersatte
-`ETAPPLAN10.md`, som är HELT KLAR utom Etapp 52 – pilotpaketet, kräver bokad tid, inte kod).
-**HELA Etapp 53 (53a–53d) OCH Etapp 54a–54b är nu KLARA:** e-post som kanal (inbjudan,
-dagliga påminnelser, månatlig sammanfattning – alla med opt-out, ingen skarp `BREVO_API_KEY`
-satt än så inget mejl går faktiskt ut förrän ägaren gör det, se `OPPNA-PUNKTER.md`), plus en
-utredning som visade att "flera enheter, en användare" är en avgränsad uppgift snarare än en
-omskrivning av behörighetsmodellen, och en huvudmannagruppering i `/leverantor` (54b) byggd
-på det. 54c (delade rutiner, högrisk) och 54d (växla enhet utan utloggning) väntar
-fortfarande på en konkret andra enhet hos en kund, se `OPPNA-PUNKTER.md`.
+**Senast uppdaterad:** 2026-08-10, version **5.90.0** – **INTE ÄNNU DEPLOYAD** (senaste
+bekräftade produktionsdeploy är fortfarande v5.89.0, körning #73, commit `63f15d7`).
+`ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning till en kund som växer") är den AKTIVA
+planen, **ANTAGEN 2026-08-10** (ersatte `ETAPPLAN10.md`, som är HELT KLAR utom Etapp 52 –
+pilotpaketet, kräver bokad tid, inte kod). **HELA Etapp 53 (53a–53d), Etapp 54a–54b OCH
+Etapp 56 (56a–56d) är nu KLARA:** e-post som kanal, en utredning + huvudmannagruppering, och
+ett rejält utökat startbibliotek (fler rutinmallar över alla tre områdena, förråds-/kontakt-/
+introduktionsspår-/kompetenskravsmallar, samt "Kom igång"-checklistan omgjord till att mäta
+verkligt läge istället för självrapporterade kryssrutor). 54c/54d (högrisk/väntar på en
+konkret andra enhet) och Etapp 55/57b–c/58 kvarstår, se `OPPNA-PUNKTER.md`.
 `ETAPPLAN9.md`/`ETAPPLAN8.md` fortsatt HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs
-sektionerna "Uppföljning 2026-08-10" (a/b/c/d, i tur och ordning) längst ner.**
+sektionerna "Uppföljning 2026-08-10" (a/b/c/d, sedan 56) längst ner.**
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1954,3 +1952,51 @@ alltså live i koden men no-oppar tyst tills ägaren tecknar avtal med Brevo och
 nyckeln (se `OPPNA-PUNKTER.md`). Nästa steg i planen: 54c/54d (väntar på en konkret andra
 enhet hos en kund) eller Etapp 55–58 (kioskläge, startbiblioteket, säljmaterialets
 `57b`/`57c`, SSO-beslut).
+
+## Uppföljning 2026-08-10 (Etapp 56 (56a–56d) klar: startbiblioteket, v5.90.0)
+
+Byggde hela Etapp 56 i en session, "startbiblioteket" – den enda etappen i planen där
+merparten av arbetet var innehåll snarare än kod.
+
+**56a:** `functions/verksamhetsmallar.js` utökad från 2 till 8–9 rutinmallar per
+verksamhetstyp, nu spridda över alla tre områdena (Kliniskt stöd/Logistik/Administration –
+tidigare bara kliniskt-stod). `MALL_ANMARKNING`-disciplinen (strukturella skelett, aldrig
+påhittad klinisk vägledning) oförändrad.
+
+**56b:** `skapaOrganisation` seedar nu även förrådsartiklar (`FORRADSMALLAR`), kontakter
+(`KONTAKTMALLAR`), ett introduktionsspår och ett kompetenskrav – de senare två pekar på
+RIKTIGA rutin-id:n bland de nyss seedade mallrutinerna, inte platshållar-referenser.
+
+**56c – premisskontroll (utfört, planens egen instruktion):** `useValkomstchecklista`
+lagrade tidigare varje stegs status som en manuellt ikryssad checkbox – kunde bockas av utan
+att handlingen någonsin utförts. Enligt planens egen regel var delmålet därför INTE klart
+och skulle byggas. Byggt: en ny, ren, testbar funktion `harledStegStatus`
+(`src/utils/valkomstchecklista.js`) härleder varje steg ur faktisk Firestore-data (t.ex.
+"importera rutiner" kräver en rutin vars `kalla` INTE är `"verksamhetsmall"`).
+`KomIgangChecklista.jsx` blev en läs-only statusindikator. **Prestandafix upptäckt under
+bygget:** de fyra härledningskällornas lyssnare gated bakom att checklistan faktiskt finns –
+annars hade VARJE superadmins startsida fått fyra extra Firestore-lyssnare, även etablerade
+organisationer som aldrig visar checklistan.
+
+**56d:** nytt stycke "Ni börjar inte från ett tomt system" i `PITCH.md`.
+
+**E2E-flak utrett noggrant under sessionen:** en isolerad enstaka körning av
+`rökprov (superadmin)` misslyckades en gång (efter min första version av 56c, INNAN
+prestandafixen ovan), men gick grönt igen både före och efter fixen i flera upprepade
+isolerade körningar (1 worker) – alltså inte deterministiskt kopplat till min ändring, och
+konsekvent med det redan dokumenterade sandlåde-flaket. Prestandafixen behölls ändå (korrekt
+oavsett flakets orsak).
+
+Testat: `src/utils/valkomstchecklista.test.js` (6 nya vitest-tester). `tests/functions/
+etapp6.test.cjs` utökad med 5 nya tester för 56b, plus uppdaterade hårdkodade räknare (8
+mallrutiner istället för 2). `tests/functions/demo-organisation.test.cjs` uppdaterad (11
+rutiner istället för 5, eftersom demomiljön återanvänder samma `VERKSAMHETSMALLAR.
+akutmottagning`). Full testsvep grön: lint, build, vitest (130/130, 20 filer), rules,
+functions (31 testblock, 67/67 i etapp6.test.cjs), storage, e2e (11/11, plus 3 extra
+isolerade omkörningar av den tidigare flakiga testen). Version bumpad 5.89.0 → **5.90.0**.
+`ETAPPLAN11.md` §56 (56a–56d) markerad ✅ HELT KLAR.
+
+**Med detta är HELA Etapp 53, Etapp 54a–54b och HELA Etapp 56 i `ETAPPLAN11.md` klara och
+testade – men INTE deployade** (senaste produktionsdeploy är fortfarande v5.89.0). Nästa
+steg: deploya, eller fortsätta med Etapp 55 (kioskläge) eller 57b–c (säljmaterialets
+underhållsregel + ärlighetsstycke).

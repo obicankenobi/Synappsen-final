@@ -168,6 +168,18 @@ export default function Leverantor() {
       if (data.antalMallrutiner > 0) {
         meddelanden.push(`${data.antalMallrutiner} startmall-rutiner`);
       }
+      if (data.antalForradsartiklar > 0) {
+        meddelanden.push(`${data.antalForradsartiklar} förrådsartiklar`);
+      }
+      if (data.antalKontakter > 0) {
+        meddelanden.push(`${data.antalKontakter} kontakter`);
+      }
+      if (data.introduktionssparId) {
+        meddelanden.push("ett introduktionsspår");
+      }
+      if (data.kompetenskravId) {
+        meddelanden.push("ett kompetenskrav");
+      }
       setSkapadInfo(meddelanden.length > 0 ? `Organisationen skapades med ${meddelanden.join(", ")}.` : "Organisationen skapades.");
       if (data.inbjudanToken) {
         setInbjudanLank(`${window.location.origin}/registrera?bjudan=${data.inbjudanToken}`);
