@@ -6,20 +6,23 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.87.0** – **INTE ÄNNU DEPLOYAD** (senaste
+**Senast uppdaterad:** 2026-08-10, version **5.88.0** – **INTE ÄNNU DEPLOYAD** (senaste
 bekräftade produktionsdeploy är fortfarande v5.84.0, körning #72, commit `545e958`).
 `ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning till en kund som växer") är den AKTIVA
 planen, **ANTAGEN 2026-08-10** (ersatte `ETAPPLAN10.md`, som är HELT KLAR utom Etapp 52 –
-pilotpaketet, kräver bokad tid, inte kod). **Etapp 53a, 53b OCH 53c är nu KLARA:** en ny
+pilotpaketet, kräver bokad tid, inte kod). **HELA Etapp 53 (53a–53d) är nu KLAR:** en ny
 intern e-posthjälpare (`skickaEpost()`, Brevo som nytt EU-baserat underbiträde) med ett
 globalt nödstopp styrbart från `/leverantor`; inbjudningar (nya konton, nya organisationer,
-demomiljön) skickas nu automatiskt via e-post med den kopierbara länken kvar som reserv;
-och en användare med en tilldelad uppgift (ett anslag att kvittera, ett ändringsförslag som
-väntat en vecka) får nu ett sammanslaget dagligt påminnelsemejl, opt-out i `Profil.jsx`.
-**Ingen skarp `BREVO_API_KEY` är satt än** (ägarens att göra, se `OPPNA-PUNKTER.md`), så
-inget mejl går faktiskt ut förrän dess – koden no-oppar tyst genomgående.
-`ETAPPLAN9.md`/`ETAPPLAN8.md` fortsatt HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs
-sektionerna "Uppföljning 2026-08-10" (a/b/c, i tur och ordning) längst ner.**
+demomiljön) skickas automatiskt via e-post med den kopierbara länken kvar som reserv; en
+användare med en tilldelad uppgift (anslag att kvittera, ändringsförslag som väntat en
+vecka) får ett sammanslaget dagligt påminnelsemejl; och superadmin får nu en månatlig
+sammanfattning (kvitteringsgrad, innehållshälsa, obesvarade förslag, länk till
+ledningsrapporten – aldrig organisationens namn). Båda de nya mejltyperna har egna,
+oberoende opt-out-kryssrutor i `Profil.jsx`. **Ingen skarp `BREVO_API_KEY` är satt än**
+(ägarens att göra, se `OPPNA-PUNKTER.md`), så inget mejl går faktiskt ut förrän dess – koden
+no-oppar tyst genomgående. `ETAPPLAN9.md`/`ETAPPLAN8.md` fortsatt HELT KLARA OCH DEPLOYADE
+sedan tidigare. **Läs sektionerna "Uppföljning 2026-08-10" (a/b/c/d, i tur och ordning)
+längst ner.**
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1875,3 +1878,34 @@ personuppgiftstyp – e-post) och header uppdaterad till v5.87.0.
 
 **Nästa steg i `ETAPPLAN11.md`:** 53d (kundvänd månadssammanfattning till chefen, länk in i
 `/ledningsrapport`) – sista delmålet i Etapp 53.
+
+## Uppföljning 2026-08-10 (Etapp 53d klar: kundvänd månadssammanfattning, v5.88.0 – HELA Etapp 53 KLAR)
+
+Byggt ovanpå det redan existerande `matvardenSnapshots` (Etapp 39a) – ingen ny mätpunkt,
+bara en ny mottagare för en siffra som redan räknades ut veckovis. Ny schemalagd funktion
+`skickaManadssammanfattningarSchemalagt` (1:a varje månad, 09:00) skickar till
+organisationens superadmin(ar): senaste kvitteringsgrad/innehållshälsa per område och
+antalet obesvarade ändringsförslag, plus en länk till `/ledningsrapport`. Demo- och pausade
+organisationer, samt organisationer utan ett mätvärde ännu, hoppas medvetet över.
+
+**Strängare tolkning av genomgående krav 18 än 53b:** organisationens namn nämns ALDRIG i
+det här mejlet, varken i ämnesrad eller text – 53b:s namn-undantag gäller uttryckligen bara
+inbjudningsmejlet, ingenting annat. Egen, oberoende opt-out
+(`epostInstallningar.manadsrapport`, skild från 53c:s `paminnelser`) – att stänga av dagliga
+påminnelser ska inte tysta månadsrapporten och tvärtom. Ny kryssruta i `Profil.jsx`, synlig
+bara för superadmin. `hamtaAnvandareForEpostPaminnelse` generaliserades med en tredje
+parameter (`installningsNyckel`) för att kunna återanvändas för båda opt-out-kategorierna
+utan kodduplicering.
+
+Testat: nytt `tests/functions/manadssammanfattning.test.cjs` (8 tester – demo/pausad/
+mätvärdeslös utesluts, bara superadmin når fram (aldrig andra roller), senaste snapshotet
+används inte ett äldre, bara `status: "ny"`-förslag räknas, organisationsnamnet läcker
+aldrig, länken till ledningsrapporten finns, de två opt-out-fälten är helt oberoende av
+varandra). Full testsvep grön: lint, build, vitest (124/124), rules, functions (31
+testblock), storage, e2e (11/11). Version bumpad 5.87.0 → **5.88.0**.
+
+**Med detta är HELA Etapp 53 (53a–53d) i `ETAPPLAN11.md` klar och testad – men INTE
+deployad** (senaste produktionsdeploy är fortfarande v5.84.0). Nästa steg: antingen deploya
+(kräver att ägaren först satt en riktig `BREVO_API_KEY`, annars går inget mejl ut skarpt –
+se `OPPNA-PUNKTER.md`) eller fortsätta med Etapp 54 (utredning + huvudmannafält, lågrisk,
+kan köras parallellt/oberoende av 53).

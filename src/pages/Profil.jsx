@@ -220,15 +220,18 @@ function PushNotisSektion({ uid, role, pushTokens, pushInstallningar }) {
   );
 }
 
-// Etapp 53c: motsatt förval av push-sektionen ovan, med avsikt – en tilldelad uppgift
-// (mitt anslag väntar, mitt ändringsförslag har väntat en vecka) är inte brus, så
-// e-postpåminnelser är förvalt PÅ. Ingen ruta att kryssa i, bara EN opt-out-kryssruta.
-function EpostPaminnelseSektion({ uid, epostInstallningar }) {
-  const avstangd = epostInstallningar?.paminnelser === false;
+// Etapp 53c/53d: motsatt förval av push-sektionen ovan, med avsikt – en tilldelad uppgift
+// (mitt anslag väntar, mitt ändringsförslag har väntat en vecka) eller en sammanfattning
+// riktad specifikt till mig är inte brus, så e-post är förvalt PÅ för båda. Två SEPARATA
+// opt-out-fält (`paminnelser`, `manadsrapport`) – att stänga av den ena ska inte tysta den
+// andra.
+function EpostPaminnelseSektion({ uid, role, epostInstallningar }) {
+  const paminnelserAvstangda = epostInstallningar?.paminnelser === false;
+  const manadsrapportAvstangd = epostInstallningar?.manadsrapport === false;
 
-  function vaxla() {
+  function vaxla(nyckel, nuvarandeVarde) {
     updateDoc(doc(db, "users", uid), {
-      epostInstallningar: { ...epostInstallningar, paminnelser: avstangd },
+      epostInstallningar: { ...epostInstallningar, [nyckel]: nuvarandeVarde },
     });
   }
 
@@ -241,9 +244,30 @@ function EpostPaminnelseSektion({ uid, epostInstallningar }) {
         händelse. Påslaget som förval, eftersom det handlar om uppgifter tilldelade just dig.
       </p>
       <label className="profil-snabblankar__rad">
-        <input type="checkbox" checked={avstangd} onChange={vaxla} />
+        <input
+          type="checkbox"
+          checked={paminnelserAvstangda}
+          onChange={() => vaxla("paminnelser", !paminnelserAvstangda)}
+        />
         Skicka INGA e-postpåminnelser till mig
       </label>
+      {role === "superadmin" && (
+        <>
+          <p className="sida__beskrivning">
+            En gång i månaden: kvitteringsgrad, innehållshälsa och antalet obesvarade
+            ändringsförslag, med en länk till ledningsrapporten. Aldrig något innehåll, bara
+            siffror.
+          </p>
+          <label className="profil-snabblankar__rad">
+            <input
+              type="checkbox"
+              checked={manadsrapportAvstangd}
+              onChange={() => vaxla("manadsrapport", !manadsrapportAvstangd)}
+            />
+            Skicka INGEN månadssammanfattning till mig
+          </label>
+        </>
+      )}
     </section>
   );
 }
@@ -353,7 +377,7 @@ export default function Profil() {
         pushInstallningar={pushInstallningar}
       />
 
-      <EpostPaminnelseSektion uid={currentUser.uid} epostInstallningar={epostInstallningar} />
+      <EpostPaminnelseSektion uid={currentUser.uid} role={role} epostInstallningar={epostInstallningar} />
 
       <section className="profil-sektion">
         <h2>🎨 Utseende</h2>

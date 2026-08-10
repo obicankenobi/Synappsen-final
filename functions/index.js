@@ -2187,16 +2187,19 @@ async function hamtaAnvandareMedPushPreferens(organisationId, installningsNyckel
 }
 exports.hamtaAnvandareMedPushPreferens = hamtaAnvandareMedPushPreferens;
 
-// Etapp 53c: MOTSATT förval av push ovan, med avsikt. En tilldelad arbetsuppgift (mitt
-// anslag, mitt ändringsförslag) är inte brus – förvalet är PÅ, med opt-out i Profil.jsx
-// (`epostInstallningar.paminnelser`). En Firestore-likhetsfråga kan inte matcha "fältet
-// saknas ELLER är true", så alla organisationsmedlemmar hämtas och de som uttryckligen
-// stängt av filtreras bort i JS istället för i frågan.
-async function hamtaAnvandareForEpostPaminnelse(organisationId, extraFilter) {
+// Etapp 53c/53d: MOTSATT förval av push ovan, med avsikt. En tilldelad arbetsuppgift (mitt
+// anslag, mitt ändringsförslag) eller en periodisk sammanfattning riktad till mig är inte
+// brus – förvalet är PÅ, med opt-out i Profil.jsx (`epostInstallningar.<installningsNyckel>`,
+// t.ex. `paminnelser` för 53c, `manadsrapport` för 53d – EGNA fält, en avstängd
+// dagspåminnelse ska inte tysta månadssammanfattningen och tvärtom). En Firestore-
+// likhetsfråga kan inte matcha "fältet saknas ELLER är true", så alla
+// organisationsmedlemmar hämtas och de som uttryckligen stängt av just DEN kategorin
+// filtreras bort i JS istället för i frågan.
+async function hamtaAnvandareForEpostPaminnelse(organisationId, extraFilter, installningsNyckel = "paminnelser") {
   const snap = await db.collection("users").where("organisationId", "==", organisationId).get();
   const anvandare = snap.docs
     .map((d) => ({ id: d.id, ...d.data() }))
-    .filter((a) => a.epostInstallningar?.paminnelser !== false && !!a.email);
+    .filter((a) => a.epostInstallningar?.[installningsNyckel] !== false && !!a.email);
   return extraFilter ? anvandare.filter(extraFilter) : anvandare;
 }
 exports.hamtaAnvandareForEpostPaminnelse = hamtaAnvandareForEpostPaminnelse;
@@ -2663,6 +2666,84 @@ exports.skapaMatvardenSnapshot = skapaMatvardenSnapshot;
 exports.matvardenSnapshotSchemalagt = onSchedule(
   { schedule: "every monday 02:00", timeZone: "Europe/Stockholm", region: "europe-west1", timeoutSeconds: 300 },
   skapaMatvardenSnapshot
+);
+
+// Etapp 53d: en kundvänd månadssammanfattning, byggd ovanpå de befintliga veckovisa
+// matvardenSnapshots (Etapp 39a) – ingen ny mätpunkt, bara en ny mottagare för en siffra som
+// redan räknas ut. Skickas till organisationens superadmin(ar). Innehåller ENDAST aggregerade
+// procenttal/antal, aldrig ett organisationsnamn (genomgående krav 18 – 53b:s namn-undantag
+// gäller uttryckligen bara inbjudningsmejlet, inget annat), aldrig en rutintitel eller annat
+// verksamhetsinnehåll.
+async function skickaManadssammanfattningar() {
+  const orgSnap = await db.collection("organisationer").get();
+  for (const orgDoc of orgSnap.docs) {
+    const data = orgDoc.data();
+    // Etapp 51: en demo-organisation är aldrig en riktig kund. En pausad organisation har
+    // redan tackat nej till fortsatt drift – att ändå mejla den vore fel signal.
+    if (data.arDemo === true || data.status === "pausad") continue;
+    try {
+      const [snapshotSnap, forslagSnap] = await Promise.all([
+        orgDoc.ref.collection("matvardenSnapshots").orderBy("datum", "desc").limit(1).get(),
+        db
+          .collection("andringsforslag")
+          .where("organisationId", "==", orgDoc.id)
+          .where("status", "==", "ny")
+          .get(),
+      ]);
+      if (snapshotSnap.empty) continue; // inget mätvärde ännu – inget att sammanfatta
+
+      const mottagare = await hamtaAnvandareForEpostPaminnelse(
+        orgDoc.id,
+        (a) => a.role === "superadmin",
+        "manadsrapport"
+      );
+      if (mottagare.length === 0) continue;
+
+      const snapshot = snapshotSnap.docs[0].data();
+      const rader = [];
+      if (snapshot.kvitteringsgradKlinisktStod != null) {
+        rader.push(`Kvitteringsgrad, Kliniskt stöd: ${snapshot.kvitteringsgradKlinisktStod}%`);
+      }
+      if (snapshot.kvitteringsgradAdministration != null) {
+        rader.push(`Kvitteringsgrad, Administration: ${snapshot.kvitteringsgradAdministration}%`);
+      }
+      if (snapshot.innehallshalsaKlinisktStod != null) {
+        rader.push(`Innehållshälsa, Kliniskt stöd: ${snapshot.innehallshalsaKlinisktStod}%`);
+      }
+      if (snapshot.innehallshalsaAdministration != null) {
+        rader.push(`Innehållshälsa, Administration: ${snapshot.innehallshalsaAdministration}%`);
+      }
+      rader.push(`Obesvarade ändringsförslag: ${forslagSnap.size}`);
+
+      for (const mottagarInfo of mottagare) {
+        try {
+          await skickaEpost({
+            till: mottagarInfo.email,
+            amne: "Din månadssammanfattning från Synappsen",
+            text: `${rader.join("\n")}\n\nSe hela ledningsrapporten: ${APP_URL}/ledningsrapport`,
+            organisationId: orgDoc.id,
+          });
+        } catch (fel) {
+          console.warn(`Månadssammanfattning till ${mottagarInfo.email} kunde inte skickas:`, fel.message ?? fel);
+        }
+      }
+    } catch (fel) {
+      console.error(`Månadssammanfattning misslyckades för organisation ${orgDoc.id}:`, fel);
+      Sentry.captureException(fel);
+    }
+  }
+}
+exports.skickaManadssammanfattningar = skickaManadssammanfattningar;
+
+exports.skickaManadssammanfattningarSchemalagt = onSchedule(
+  {
+    schedule: "1 of month 09:00",
+    timeZone: "Europe/Stockholm",
+    region: "europe-west1",
+    timeoutSeconds: 300,
+    secrets: [BREVO_API_KEY],
+  },
+  skickaManadssammanfattningar
 );
 
 // Etapp 39c: anonym personalpuls. "Anonym" bygger på att INGET enskilt svar någonsin skrivs

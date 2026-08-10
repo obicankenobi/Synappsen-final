@@ -221,16 +221,27 @@ ja, Brevo (EU-baserat, Frankrike).
   misstag). Ny rules-test i `tests/rules/systemstatus.test.mjs` (total avstängning för
   klienten) och `tests/rules/organisationsisolering.test.mjs` (självuppdatering tillåten,
   andras inte). v5.87.0.
-- **53d – Månadsrapporten kommer till chefen av sig själv.** `manadsrapportOrganisationer`
-  finns redan, men bara som leverantörens fakturaunderlag. En kundvänd variant – "så såg
-  förra månaden ut", med kvitteringsgrad, innehållshälsa och antalet obesvarade
-  ändringsförslag, som en länk in i den befintliga `/ledningsrapport` – gör att en chef som
-  aldrig loggar in ändå ser värdet. Det är också det billigaste sättet att göra en
-  omförhandling enklare.
+- **53d – ✅ KLAR (2026-08-10) – Månadsrapporten kommer till chefen av sig själv.** Byggd
+  ovanpå det redan existerande `matvardenSnapshots` (Etapp 39a) – ingen ny mätpunkt, bara en
+  ny mottagare för en siffra som redan räknades ut varje vecka. En ny schemalagd funktion,
+  `skickaManadssammanfattningarSchemalagt` (den 1:a varje månad, 09:00), skickar till
+  organisationens superadmin(ar): senaste kvitteringsgrad och innehållshälsa per område samt
+  antalet obesvarade ändringsförslag, plus en länk till `/ledningsrapport`. Demo- och pausade
+  organisationer hoppas medvetet över, liksom organisationer utan ett mätvärde ännu.
+  **Strängare tolkning av genomgående krav 18 än 53b:** organisationens namn nämns ALDRIG,
+  varken i ämnesrad eller text – 53b:s namn-undantag gäller uttryckligen bara
+  inbjudningsmejlet. Egen opt-out (`epostInstallningar.manadsrapport`), skild från 53c:s
+  `paminnelser` – att stänga av dagliga påminnelser ska inte tysta månadsrapporten och
+  tvärtom, ny kryssruta i `Profil.jsx`, synlig bara för superadmin. Testat:
+  `tests/functions/manadssammanfattning.test.cjs` (8 tester – demo/pausad/mätvärdeslös
+  utesluts, bara superadmin når fram, senaste snapshotet används (inte ett äldre), rätt
+  antal `status: "ny"`-förslag räknas, organisationsnamnet läcker aldrig, länken finns, de
+  två opt-out-fälten är oberoende av varandra). v5.88.0.
 
 **Klart när:** en person som aldrig öppnat appen kan bjudas in, påminnas om en tilldelad
 uppgift och få en månadssammanfattning – utan att någon människa manuellt kopierar något,
-och utan att en enda rad verksamhetsinnehåll lämnar systemet.
+och utan att en enda rad verksamhetsinnehåll lämnar systemet. **Uppnått 2026-08-10 – hela
+Etapp 53 (53a–53d) är nu klar.**
 
 **Underhållsregler som triggas:** nytt underbiträde → `avtal/UNDERBITRADEN.md` +
 incidentresponsplanens avsnitt 1-tabell. Ny utgående kanal → checklistans steg 3
@@ -462,8 +473,8 @@ till invändningen.
 
 | Etapp | Vad | Risk | Insats | Rekommenderad ordning |
 |---|---|---|---|---|
-| **57a** | Rätta det felaktiga påståendet i `PITCH.md` | Ingen | Minuter | **Nu, oavsett om planen antas** |
-| **53** | E-post som kanal (inbjudan, påminnelser, månadsrapport) | Låg–medel | Medel | Efter beslutspunkt 1 |
+| **57a** | Rätta det felaktiga påståendet i `PITCH.md` | Ingen | Minuter | ✅ **KLAR (2026-08-10)** |
+| **53** | E-post som kanal (inbjudan, påminnelser, månadsrapport) | Låg–medel | Medel | ✅ **HELT KLAR (2026-08-10), v5.85.0–5.88.0** – 53a–53d alla byggda och testade |
 | **54a–54b** | Utred enhetsmodellen + huvudmannanivå | Låg | Låg | Parallellt med 53 |
 | **56** | Startbiblioteket: fler mallar, mallar för icke-rutiner | Ingen | Låg–medel | När som helst |
 | **55** | Kioskläge (delad surfplatta) | Medel | Medel | När som helst |
