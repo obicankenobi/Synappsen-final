@@ -542,12 +542,17 @@ något åt någon annanstans. Att stänga den loopen är billigt, eftersom all m
 
 **Modul:** Operations.
 
-- **62a – "Skapa rutin från en sökning utan träff".** Den starkaste signalen appen har om en
-  kunskapslucka är någon som sökte och inte hittade. I dag är det en rad i
-  `SokningarUtanTraffarSektion`. Lägg till en knapp som öppnar rutinformuläret med sökordet
-  som förifylld titel och området förvalt – och som, när rutinen publiceras, markerar
-  sökluckan som åtgärdad. Det gör "Ni sa, vi gjorde"-tanken från Etapp 41a sann även för
-  sökningar, inte bara för ändringsförslag.
+- **62a – ✅ KLAR (2026-08-10). "Skapa rutin från en sökning utan träff".** Den starkaste
+  signalen appen har om en kunskapslucka är någon som sökte och inte hittade. Var en rad i
+  `SokningarUtanTraffarSektion` utan någon åtgärd. Byggt: en "Skapa rutin"-länk per rad (ett
+  val per stödda område – Kliniskt stöd/Administration, de två som delar
+  Sektionssida/RutinFormular-koden; förråd och akutläge har egna skapandeflöden och lämnades
+  medvetet utanför), som via router-state öppnar målsidans rutinformulär med sökordet
+  förifyllt som titel. När rutinen sedan sparas markeras `sokloggar`-posten `atgardad: true`
+  (`markeraSokloggAtgardad`, ny `update`-regel i `firestore.rules` begränsad till superadmin +
+  egen organisation + exakt dessa två fält, verifierad med tre nya regeltester). Det gör
+  "Ni sa, vi gjorde"-tanken från Etapp 41a sann även för sökningar, inte bara för
+  ändringsförslag.
 - **62b – En veckopuls som faktiskt är en handlingslista.** `ETAPPLAN3.md` Etapp 16
   ("veckopuls") har stått öppen sedan den skrevs, blockerad på ett ägarbeslut om omfattning.
   Fatta beslutet genom att göra den minsta meningsfulla versionen: **inget nytt mätvärde**,

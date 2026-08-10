@@ -146,6 +146,22 @@
   color: var(--primar);
 }
 
+/* Etapp 62a: "Skapa rutin"-genvägarna på en sökning-utan-träff-rad */
+.admin-feedback-rad__atgarder {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.admin-feedback-rad__atgard-klar {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--success, #1a7f37);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
 .admin-statistik-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

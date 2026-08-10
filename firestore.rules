@@ -757,6 +757,10 @@ service cloud.firestore {
     match /sokloggar/{loggId} {
       allow read: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));
       allow create: if arInloggad() && request.resource.data.get('organisationId', 'default') == minOrganisation();
+      // Etapp 62a: en redaktör kan skapa en rutin direkt från en sökning-utan-träff-rad i
+      // adminpanelen – markeringen rör bara två fält, aldrig söktermen/organisationen själv.
+      allow update: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'))
+                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['atgardad', 'atgardadRutinId']);
     }
 
     // soksstatistik/{orgId} – Etapp 4: enkla räknare (totaltAntalSokningar,

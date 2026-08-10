@@ -1,4 +1,14 @@
+import { Link } from "react-router-dom";
 import { formateraTid } from "./adminHjalp";
+
+// Etapp 62a: "Skapa rutin" öppnar rätt områdes sida med söktermen förifylld i formuläret
+// (se Sektionssida.jsx) – bara de två områden som använder den gemensamma
+// Sektionssida/RutinFormular-koden stöds (kliniskt stöd, administration). Förråd och
+// akutläge har egna skapandeflöden och lämnas medvetet utanför den här genvägen.
+const MALOMRADEN = [
+  { sokvag: "/kliniskt-stod", etikett: "Kliniskt stöd" },
+  { sokvag: "/administration", etikett: "Administration" },
+];
 
 export default function SokningarUtanTraffarSektion({ sokloggar, sokningarPerDag, maxPerDag }) {
   return (
@@ -30,6 +40,22 @@ export default function SokningarUtanTraffarSektion({ sokloggar, sokningarPerDag
               <span>"{s.term}"</span>
               <span>{formateraTid(s.tidpunkt)}</span>
             </div>
+            {s.atgardad ? (
+              <span className="admin-feedback-rad__atgard-klar">✓ Rutin skapad</span>
+            ) : (
+              <div className="admin-feedback-rad__atgarder">
+                {MALOMRADEN.map((m) => (
+                  <Link
+                    key={m.sokvag}
+                    className="knapp knapp--liten knapp--sekundar"
+                    to={m.sokvag}
+                    state={{ sokloggTitel: s.term, sokloggId: s.id }}
+                  >
+                    Skapa rutin – {m.etikett}
+                  </Link>
+                ))}
+              </div>
+            )}
           </li>
         ))}
       </ul>

@@ -1,7 +1,7 @@
 // Loggar sökningar som gav noll träffar, så att ledningen ser vilket innehåll som saknas.
 // Endast superadmin kan läsa listan (se firestore.rules).
 import { useEffect, useState } from "react";
-import { collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, query, where, orderBy, limit, onSnapshot, addDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { STANDARD_ORG } from "../firebase/organisation";
@@ -44,4 +44,15 @@ export function useSokloggar(laddaLista) {
   }
 
   return { sokloggar, fel, loggaNollTraff };
+}
+
+// Etapp 62a: markerar en sökning-utan-träff som åtgärdad när en redaktör skapar en rutin
+// direkt från raden i adminpanelen – fristående från hooken ovan (behöver ingen prenumeration
+// på hela listan, bara skriva en enda post) så den kan anropas från Sektionssida.jsx utan att
+// dra in en extra onSnapshot-lyssnare där.
+export async function markeraSokloggAtgardad(loggId, rutinId) {
+  return updateDoc(doc(db, "sokloggar", loggId), {
+    atgardad: true,
+    atgardadRutinId: rutinId,
+  });
 }

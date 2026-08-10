@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { serverTimestamp } from "firebase/firestore";
 import { useAuth } from "../hooks/useAuth";
 import { useAnvandare } from "../hooks/useAnvandare";
 import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
+import { markeraSokloggAtgardad } from "../hooks/useSokloggar";
 import { laddaUppRutinBilagor, laddaUppRutinBild } from "../firebase/storage";
 import RutinFormular from "./RutinFormular";
 import RutinKort from "./RutinKort";
@@ -40,6 +42,8 @@ export default function Sektionssida({
   extra,
 }) {
   const { currentUser, role, namn } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   // Etapp 22a: eget visningsnamn istället för e-post i kvitterings-/godkännandespår, med
   // e-post som fallback för konton som saknar ett satt namn.
   const mittNamn = namn || currentUser?.email;
@@ -59,6 +63,25 @@ export default function Sektionssida({
   const { anvandare } = useAnvandare();
   const [redigerar, setRedigerar] = useState(null);
   const [visaFormular, setVisaFormular] = useState(false);
+  // Etapp 62a: "Skapa rutin"-genvägen från en sökning-utan-träff-rad i adminpanelen
+  // (SokningarUtanTraffarSektion.jsx) skickar med söktermen och loggpostens id via
+  // router-state – öppnas här som en FÖRIFYLLD ny rutin, inte en redigering (redigerar
+  // förblir null så hanteraSpara tar rätt gren). sokloggId hålls kvar tills sparningen
+  // faktiskt lyckas, då markeras sökluckan åtgärdad (se hanteraSpara nedan).
+  const [forifylldSokning, setForifylldSokning] = useState(null);
+  useEffect(() => {
+    if (!location.state?.sokloggTitel) return;
+    /* eslint-disable react-hooks/set-state-in-effect -- reagerar på en EXTERN händelse (en
+       Link-navigering med router-state från SokningarUtanTraffarSektion.jsx), inte på
+       härledbart render-data. Rensar router-state i samma veva så en sidladdning inte öppnar
+       formuläret igen. */
+    setRedigerar(null);
+    setForifylldSokning({ titel: location.state.sokloggTitel, sokloggId: location.state.sokloggId });
+    setVisaFormular(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+    navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ska bara köras när location.state faktiskt bär en ny sokloggTitel
+  }, [location.state]);
   // Etapp 26b: förslaget som just nu redigeras via "Inför" – null när formuläret öppnats på
   // vanligt sätt. Sätts bara till "infört" i Firestore EFTER en faktisk sparning (se
   // hanteraSpara), aldrig bara av att öppna formuläret – annars skulle ett avbrutet
@@ -237,9 +260,13 @@ export default function Sektionssida({
         kviss,
         externaKallor,
       });
+      if (forifylldSokning?.sokloggId) {
+        await markeraSokloggAtgardad(forifylldSokning.sokloggId, ref.id);
+      }
     }
     setVisaFormular(false);
     setRedigerar(null);
+    setForifylldSokning(null);
   }
 
   function oppnaRedigering(rutin) {
@@ -267,6 +294,7 @@ export default function Sektionssida({
 
   function oppnaNyRutin() {
     setRedigerar(null);
+    setForifylldSokning(null);
     setVisaFormular(true);
   }
 
@@ -406,7 +434,7 @@ export default function Sektionssida({
 
       {visaFormular && (
         <RutinFormular
-          initialaVarden={redigerar}
+          initialaVarden={redigerar ?? (forifylldSokning ? { titel: forifylldSokning.titel } : null)}
           ovrigaRutiner={rutiner.filter((r) => r.status === RUTIN_STATUS.GODKAND)}
           anvandare={anvandare}
           farKureraAkutlage={farKureraAkutlage && Boolean(redigerar)}
@@ -415,6 +443,7 @@ export default function Sektionssida({
             setVisaFormular(false);
             setRedigerar(null);
             setHanterasForslag(null);
+            setForifylldSokning(null);
           }}
         />
       )}

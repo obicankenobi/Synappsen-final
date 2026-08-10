@@ -471,6 +471,12 @@ async function main() {
   await test("superadminB kan INTE läsa org A:s söklogg", () =>
     assertFails(getDoc(doc(superB, "sokloggar", "sokloggA")))
   );
+  await test("superadminB kan INTE markera org A:s söklogg som åtgärdad (Etapp 62a)", () =>
+    assertFails(updateDoc(doc(superB, "sokloggar", "sokloggA"), { atgardad: true, atgardadRutinId: "x" }))
+  );
+  await test("superadminA KAN markera org A:s egen söklogg som åtgärdad (Etapp 62a)", () =>
+    assertSucceeds(updateDoc(doc(superA, "sokloggar", "sokloggA"), { atgardad: true, atgardadRutinId: "rutinX" }))
+  );
 
   console.log("\nauditlogg/{handelseId} – organisationsisolering");
   await test("superadminB kan INTE läsa org A:s auditlogg", () =>
