@@ -3,11 +3,14 @@
 *Utkast 2026-08-10, efter en genomgång av faktisk kod (inte dokumentation) i v5.91.0.*
 
 > **Läs detta först.** De elva tidigare etapplanerna har byggt funktioner. Den här bygger
-> nästan inga. Den utgår från ett obekvämt konstaterande: **appen har aldrig mött en verklig
-> datamängd, en verklig kund eller en verklig arbetsdag** – och den här genomgången hittade
-> tre saker som redan är trasiga just nu, varav två infördes av de två senaste etapperna.
-> Det är inte ett argument mot tempot hittills. Det är ett argument för att nästa etapp ska
-> handla om hållfasthet snarare än om ännu en funktion.
+> nästan inga – två av sex etapper (62, 64) tillför något nytt, resten rättar och stärker det
+> som redan finns. Den utgår från ett obekvämt konstaterande: **appen har aldrig mött en
+> verklig datamängd, en verklig kund eller en verklig arbetsdag** – och den här genomgången
+> hittade tre saker som redan är trasiga just nu, varav två infördes av de två senaste
+> etapperna. Det är inte ett argument mot tempot hittills. Det är ett argument för att nästa
+> etapp ska handla om hållfasthet snarare än om ännu en funktion – och för att den enda
+> genuint nya produktidén som tillkommit under genomgången (Etapp 64) hanteras med samma
+> försiktighet som allt annat nära en regulatorisk gräns i det här projektet.
 
 ---
 
@@ -146,6 +149,14 @@ tappar en post) och `checklistFramsteg`. Kioskläget (Etapp 55) har noll e2e-tä
 
 24. **Ingen refaktorering utan grönt testsvep före och efter.** Etapp 61 flyttar kod som
     styr radering, behörighet och betalning. Diffen ska vara läsbar som ren flytt.
+
+25. **Innehåll som Synappsen själv curerar (inte en enskild kunds redaktör) får ALDRIG
+    beräkna, poängsätta eller rekommendera en åtgärd – bara referera, citera och länka,
+    med samma domänbegränsning och källbevakning som klinikstödet redan bevisat fungerar.**
+    Gäller specifikt Etapp 64. Det är samma linje som redan finns i "Vad jag INTE
+    föreslår" i `ETAPPLAN11.md` (dosberäkning ⇒ medicinteknisk produkt under MDR) – bara
+    uttryckt som ett stående krav istället för en enskild avslagen idé, eftersom den här
+    planen föreslår en ny funktion som ligger nära gränsen.
 
 ---
 
@@ -340,6 +351,83 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 
 ---
 
+## Etapp 64 – Baspaket: nationella referenser, inte kliniskt beslutsstöd (ny idé, ej granskad juridiskt)
+
+**Varför:** en fråga från ägaren under den här genomgången. Idén: erbjuda ett gemensamt
+"baspaket" av nationella/generella riktlinjer och bedömningsinstrument (ägaren nämnde t.ex.
+VÄST-A som exempel – jag har ingen egen verifierad kunskap om det specifika instrumentets
+innehåll eller omfattning, och gissar inte på det här) som är **samma för alla kunder**,
+till skillnad från Etapp 56:s mallar (som är strukturella skelett en enskild kund fyller i
+själv). Det är en genuint annorlunda produktidé, inte en variant av startbiblioteket – och
+den ligger nära en gräns som redan är dragen i `ETAPPLAN11.md`: *"Dos-/läkemedelsberäkning
+eller kliniskt beslutsstöd som räknar … kan klassa hela produkten som en medicinteknisk
+produkt under MDR."*
+
+**Min bedömning, kort (se motivering nedan för den fulla resonemangskedjan): en försiktig
+version är sannolikt görbar utan att korsa MDR-gränsen, OM den byggs som ren
+referens/länkning – inte som en interaktiv poängräknare.** Den skillnaden avgör allt, och
+den går inte att göra halvvägs.
+
+### Var gränsen faktiskt går (verifierat mot vad appen redan gör, inte mot en gissning)
+
+Klinikstödet (byggt, i drift sedan 2026-07-14) löser redan en näraliggande fråga och har
+gjort det utan att klassas som medicinteknisk produkt:
+
+- **Domänbegränsning:** `functions/index.js`s `GODKANDA_KALLDOMANER` + `firestore.rules`s
+  `arGodkandaKallor()` tillåter bara sju namngivna, auktoritativa svenska källor
+  (internetmedicin.se, 1177.se, Nationella kliniska kunskapsstödet, FASS, Läkemedelsverket,
+  Vårdhandboken, Folkhälsomyndigheten). Detta är redan enforcementat i BÅDA lagren – server
+  och regler – inte bara en instruktion till en AI-modell.
+- **Ingen beräkning, bara sammanfattning + citat:** Gemini sammanfattar de faktiska
+  träffarnas utdrag och redovisar alltid källänken. Den räknar aldrig ut något (ingen dos,
+  ingen poäng, ingen "gör X").
+- **Källbevakning finns redan** (`kontrolleraKallbevakning`, Etapp 21a): en veckovis
+  automatisk kontroll av varje `rutin.externaKallor`-länk, hashjämförelse mot tidigare
+  innehåll, larm till rutinägaren vid ändring eller trasig länk.
+
+Det här är exakt den infrastruktur ett baspaket skulle behöva – och den finns redan, testad
+och i drift. Ett baspaket är alltså inte "bygg något nytt och osäkert", det är "återanvänd
+ett mönster som redan bevisat sig hålla sig innanför gränsen".
+
+### Hur ett baspaket SKA byggas, om det byggs
+
+- **64a – Referensposter, inte innehåll Synappsen äger.** Varje post i baspaketet är en
+  strukturerad referens (titel, källa, utgivare, datum, länk) till den FAKTISKA nationella
+  källan – aldrig en kopia eller omskrivning av innehållet. Samma disciplin som
+  `MALL_ANMARKNING` i Etapp 56, men strängare: en mall säger "fyll i det här", en
+  baspaket-post säger "det här är vad [utgivaren] själv publicerat, se länken – vi har inte
+  skrivit om det". Ingen tolkning, ingen sammanfattning av Synappsen självt.
+- **64b – Utökad källbevakning, inte ett nytt system.** Baspaketets poster registreras i
+  samma `externaKallor`-mekanism källbevakningen redan läser. Ändras eller försvinner
+  källan upptäcks det automatiskt, precis som för en enskild kunds egna referenser idag –
+  bara att larmet går till en central ansvarig (leverantören) snarare än en enskild
+  rutinägare, eftersom posten delas av alla kunder.
+- **64c – Ett UTTRYCKLIGT tekniskt tak mot att det glider mot beräkning.** Ingen
+  baspaket-post får någonsin ha ett fält som lagrar ett tröskelvärde, en poängsumma eller
+  en "om X då Y"-logik som appen kör. Om en framtida session frestas att bygga t.ex. en
+  interaktiv poängräknare ovanpå en bedömningsskala – **stanna, det är exakt steget som
+  korsar linjen.** En skala presenterad som en läsbar tabell (samma sak som en bok) är
+  sannolikt okej; samma skala med ett formulär som summerar poäng och ger en rekommendation
+  är sannolikt inte det (jämför MDR Annex VIII regel 11 om programvara som behandlar data
+  för att ge information i diagnos-/behandlingssyfte).
+- **64d – Opt-in, inte förval.** En organisation väljer att lägga till baspaketet, precis
+  som moduler idag (`organisationer/{orgId}.moduler`). Det håller ansvarsfrågan tydlig:
+  ingen kund får ett vårdinnehåll de inte aktivt bett om.
+
+### Vad som INTE ingår, oavsett hur långt idén drivs
+
+Poängberäknade bedömningsskalor (NEWS2-liknande, RETTS-liknande eller det instrument
+ägaren nämnde, om det visar sig vara en beräknande skala snarare än en läsbar checklista),
+allt som föreslår en åtgärd baserat på inmatade patientvärden, och allt som skulle kräva
+att Synappsen *skriver om* eller *tolkar* en nationell källa snarare än att länka till den.
+Dessa hör hemma i samma "rör inte"-kategori som dosberäkning redan gör i `ETAPPLAN11.md`.
+
+**Klart när, OM etappen antas:** en extern juridisk bedömning (inte en kodgenomgång) har
+bekräftat att 64a–64d håller sig utanför MDR:s programvarudefinition, och den bedömningen
+är skriven in i `SAKERHETSRAPPORT.md` innan något publiceras för en kund.
+
+---
+
 ## Beslutspunkter som kräver ägaren
 
 | # | Fråga | Varför det inte är mitt beslut | Min rekommendation |
@@ -348,6 +436,7 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 | 2 | **Ska Etapp 60b–60d byggas innan en kund med stor datamängd finns?** | Avvägning mellan att bli överraskad och att optimera i onödan. | **Kör 60a nu, vänta med resten.** Mätningen kostar en dag och tar bort gissningen. Om siffrorna är bra har vi ett svar att ge en upphandlare; om de är dåliga vill vi veta det före piloten, inte under. |
 | 3 | **Ska Etapp 61a (dela `functions/index.js`) göras nu eller vid nästa större backendarbete?** | Ren underhållsinvestering utan synligt utfall – ett tempoval. | **Nu, medan inget nytt byggs ovanpå.** Refaktorering är billigast när ingen etapp pågår samtidigt, och nästa plan blir lättare oavsett vad den innehåller. |
 | 4 | **Etapp 62b: ska veckopulsen skickas som e-post eller bara vara en vy?** | Beror på om Brevo-avtalet tecknas (`OPPNA-PUNKTER.md`). | **Bygg vyn först, e-posten som ett tillägg.** Vyn fungerar oavsett nyckel; e-postutskicket kopplas på när kanalen är i skarp drift. |
+| 5 | **Etapp 64: ska baspaketet drivas vidare, och i så fall – vem gör MDR-bedömningen innan något byggs?** | Regulatorisk risk (medicinteknisk produkt under MDR) är en juridisk fråga, inte en teknisk – jag kan visa VAR gränsen sannolikt går utifrån hur klinikstödet redan är byggt, men jag kan inte lämna ett juridiskt bindande svar. | **Beställ en kort extern juridisk bedömning av 64a–64d INNAN kod skrivs**, snarare än att bygga först och fråga sedan. Om bedömningen är positiv är det sedan ett litet, välavgränsat bygge (samma mönster som klinikstödets domänbegränsning + källbevakning) – men den ordningen (juridik → kod) är viktigare än vilken vecka det byggs. |
 
 ---
 
@@ -363,6 +452,9 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 4. **Etapp 62 när 59 är stängd.** Det är den enda etappen som ger en kund något nytt att se,
    men den bygger på mätvärden som måste räkna rätt först (krav 23) – därför efter 59a.
 5. **Etapp 63 löpande**, parallellt med allt annat. Den kräver ingen kodkapacitet.
+6. **Etapp 64 väntar på beslutspunkt 5** – ingen kodrad skrivs innan en extern juridisk
+   bedömning av MDR-gränsen finns. Oberoende av 59–63 i övrigt; kan drivas parallellt av
+   ägaren (beställa bedömningen) medan resten byggs.
 
 ---
 
@@ -376,6 +468,7 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 | **61** | Dela `functions/index.js`, testluckor, kiosk-e2e | Ingen | Låg–medel | Förslag |
 | **62** | Sökluckor → rutin, veckopuls, åtgärdbar hälsosiffra | Operations | Låg | Förslag |
 | **63** | Gruppera öppna punkter, förbered pilot, tre beslut | Ingen | Ingen | Förslag – kräver ägaren |
+| **64** | Baspaket: nationella referenser (rena länkar/citat, aldrig beräkning) | Ny (ej namngiven) | **Regulatorisk – MDR** | Idé, **ej byggbar förrän juridisk bedömning finns** (beslutspunkt 5) |
 
 ---
 
