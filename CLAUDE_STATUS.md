@@ -6,8 +6,9 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.89.0** – **DEPLOYAD TILL PRODUKTION**, se
-längst ned för körningsnummer/commit-hash. `ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning
+**Senast uppdaterad:** 2026-08-10, version **5.89.0** – **DEPLOYAD TILL PRODUKTION** (körning
+#73, commit `63f15d7`, asset-hash `assets/index-D_ReJBIJ.js`, bekräftad live på
+`https://synappsen-final-build.web.app/`). `ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning
 till en kund som växer") är den AKTIVA planen, **ANTAGEN 2026-08-10** (ersatte
 `ETAPPLAN10.md`, som är HELT KLAR utom Etapp 52 – pilotpaketet, kräver bokad tid, inte kod).
 **HELA Etapp 53 (53a–53d) OCH Etapp 54a–54b är nu KLARA:** e-post som kanal (inbjudan,
@@ -1937,3 +1938,19 @@ testsvep grön: lint, build, vitest (124/124), rules, functions (31 testblock, s
 etapp6.test.cjs), storage, e2e (11/11). Version bumpad 5.88.0 → **5.89.0**. `ETAPPLAN11.md`
 §54a/§54b markerade ✅ KLARA. `OPPNA-PUNKTER.md`s Etapp 54-rad omskriven till att bara gälla
 54c/54d (54a/54b är nu avklarade, inte längre en öppen fråga).
+
+## Uppföljning 2026-08-10 (deploy: v5.89.0 live)
+
+Användaren bad "deploya den" efter Etapp 54a–54b. Triggade `deploy.yml`
+(`workflow_dispatch`) mot `claude/compassionate-euler-rho0q5`, commit `63f15d7` (Etapp 53a–d
++ 54a–b i sin helhet, v5.85.0 → 5.89.0). Körning **#73**, `conclusion: success`. Bekräftade
+genom att läsa av asset-hashen på startsidan: `assets/index-D_ReJBIJ.js` på
+`https://synappsen-final-build.web.app/`. Ingen kodändring i denna uppföljning.
+
+**Med detta är HELA `ETAPPLAN11.md` Etapp 53 (53a–53d) OCH Etapp 54a–54b HELT KLARA OCH
+DEPLOYADE i produktion.** Observera: `BREVO_API_KEY` är fortfarande INTE satt som en riktig
+GitHub-hemlighet – all e-postinfrastruktur (inbjudan, dagliga påminnelser, månadsrapport) är
+alltså live i koden men no-oppar tyst tills ägaren tecknar avtal med Brevo och sätter
+nyckeln (se `OPPNA-PUNKTER.md`). Nästa steg i planen: 54c/54d (väntar på en konkret andra
+enhet hos en kund) eller Etapp 55–58 (kioskläge, startbiblioteket, säljmaterialets
+`57b`/`57c`, SSO-beslut).
