@@ -57,6 +57,10 @@ export default async function globalSetup() {
     status: "godkand",
     innehall: "Detta innehåll ska ENDAST synas för organisation A.",
     organisationId: ORG_A,
+    // Etapp 60c (ETAPPLAN12.md): useRutiner.js frågar nu server-side på
+    // where("borttagen", "==", false) – utan fältet här skulle rutinen bli osynlig i UI:t
+    // och tysta ut hela e2e-svitens poäng.
+    borttagen: false,
     skapad: admin.firestore.FieldValue.serverTimestamp(),
   });
 

@@ -36,9 +36,18 @@ export function useRutiner(omrade) {
 
   useEffect(() => {
     if (!organisationId) return undefined;
+    // Etapp 60c (ETAPPLAN12.md): mjukraderade rutiner filtrerades tidigare bort HÄR i
+    // JavaScript, efter att ha hämtats över nätet i onödan – server-side filtrering
+    // (where("borttagen", "==", false)) kräver att fältet ALLTID finns (en ojämlikhetsfråga
+    // "!= true" hade uteslutit varje dokument som saknar fältet helt, se
+    // functions/index.js:kontrolleraKvitteringsfrister för samma dokumenterade fälla).
+    // Förutsätter därför att backfillaBorttagenFalt körts OCH att varje skapande av en rutin
+    // (skapaRutin nedan, tolkaDokument/skapaOrganisation/froSaDemoOrganisationensInnehall i
+    // functions/index.js) sätter fältet explicit.
     const villkor = [
       where("organisationId", "==", organisationId),
       where("omrade", "==", omrade),
+      where("borttagen", "==", false),
       ...(redaktor ? [] : [where("status", "==", RUTIN_STATUS.GODKAND)]),
       orderBy("skapad", "desc"),
     ];
@@ -46,8 +55,7 @@ export function useRutiner(omrade) {
     const unsubscribe = onSnapshot(
       q,
       (snap) => {
-        // Mjukraderade rutiner (papperskorg) filtreras bort ur den vanliga listan
-        setRutiner(snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => !r.borttagen));
+        setRutiner(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setLaddar(false);
         setFel(null);
       },
@@ -76,6 +84,7 @@ export function useRutiner(omrade) {
       organisationId: organisationId ?? STANDARD_ORG,
       granskadDatum: serverTimestamp(),
       status: kraverGodkannande ? RUTIN_STATUS.UTKAST : RUTIN_STATUS.GODKAND,
+      borttagen: false,
       skapadAv,
       skapad: serverTimestamp(),
     });

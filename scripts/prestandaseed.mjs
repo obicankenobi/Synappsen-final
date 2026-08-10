@@ -129,6 +129,9 @@ async function main() {
       status: "godkand",
       organisationId: ORG_ID,
       kalla: "prestandaseed",
+      // Etapp 60c: useRutiner.js frågar nu server-side på borttagen==false, utan detta
+      // fält skulle ingen av de seedade rutinerna synas i mätningarna längre.
+      borttagen: false,
       skapadAv: "prestandaUser0",
       skapad: admin.firestore.FieldValue.serverTimestamp(),
       granskadDatum: admin.firestore.Timestamp.fromMillis(Date.now() - Math.floor(Math.random() * 400) * 86400000),

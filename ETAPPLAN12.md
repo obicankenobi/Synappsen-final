@@ -306,13 +306,45 @@ scenario som aldrig testats. Det vore ett dåligt sätt att upptäcka en flaskha
   faktiskt är byggd. Om bandbredden vid en verklig pilotorganisations volym fortfarande är
   ett problem efter 60c, är rätt nästa fråga "ska Sektionssida pagineras/virtualiseras" –
   ett UX-beslut för ägaren, inte en teknisk detalj att besluta i en kodsession.
-- **60c – Filtrera bort papperskorg och arkiv i frågan, inte i klienten.** `useRutiner`
-  hämtar mjukraderade och arkiverade rutiner och kastar dem i JavaScript. Med
-  `where("borttagen", "!=", true)` finns en känd fälla: **Firestore utesluter dokument som
-  saknar fältet helt** (samma sak som redan är dokumenterad i `kontrolleraKvitteringsfrister`).
-  Kräver alltså att fältet backfillas till `false` på alla befintliga rutiner först – ett
-  migreringssteg, inte en enradsändring. Skriv ut det i planen så att nästa session inte
-  faller i fällan.
+- **60c – ✅ KLAR (2026-08-10), en delmängd av det ursprungligen skrivna.** Endast
+  papperskorgen (`borttagen`), INTE arkivet (`arkiverad`) – se "Vad genomgången hittade"
+  nedan för varför de två inte är samma sorts fix.
+
+  **Vad som byggdes:** `useRutiner.js`s fråga filtrerar nu server-side med
+  `where("borttagen", "==", false)` istället för att hämta alla (inklusive papperskorgen) och
+  kasta bort de borttagna i JavaScript. Exakt fällan planen varnade för undveks: en
+  ojämlikhetsfråga (`!= true`) hade uteslutit varje rutin som saknar fältet helt, inte bara de
+  som är borttagna – samma dokumenterade fälla som `kontrolleraKvitteringsfrister`. Löst med:
+  - En ny migrering, `backfillaBorttagenFalt` (plattformsadmin-gated, dry-run som standard,
+    idempotent, batchat om 500 – samma mönster som `migreraTillOrganisation`), som sätter
+    `borttagen: false` på varje befintlig rutin som saknar fältet.
+  - `borttagen: false` läggs nu till explicit vid VARJE plats en rutin skapas, så inget nytt
+    dokument någonsin saknar fältet framöver: `useRutiner.js`s `skapaRutin` (klient),
+    `tolkaDokument` (AI-import), `skapaOrganisation`s mallseedning, och de fyra
+    rutin-skrivningarna i `froSaDemoOrganisationensInnehall`.
+  - Verifierat MOT en riktig emulator (inte bara antaget) att den nya frågan – tre eller fyra
+    likhetsfilter (`organisationId`, `omrade`, `borttagen`, ibland `status`) plus en
+    `orderBy` – fungerar utan en ny post i `firestore.indexes.json`: Firestore native mode
+    indexerar automatiskt kombinationer av likhetsfilter + en enda `orderBy`, det befintliga
+    indexet (organisationId, omrade, skapad) täcker redan `status`-varianten idag utan egen
+    post, så mönstret var redan bevisat att fungera – bara utökat med ett fält till.
+
+  **Vad genomgången hittade (varför bara papperskorgen, inte arkivet):** planens text nämnde
+  "papperskorg OCH arkiv" i samma andetag, som om de vore samma sorts fix. De är inte det.
+  `arkiverad`-rutiner ska MEDVETET stanna kvar i redaktörers lista (Etapp 37d: "en arkiverad
+  rutin raderas inte och lämnar inte listan för redaktörer") – bara uteslutas ur särskilda
+  beräkningar (kvittering/hälsopanel/granskningsrundor). Att filtrera `arkiverad` i FRÅGAN
+  hade tyst ändrat vad en redaktör ser i sin lista – en beteendeförändring, inte bara en
+  optimering. `borttagen` (papperskorgen) är däremot redan MENAT att vara osynligt för alla,
+  precis som innan – bara flyttat från klienten till frågan. Samma sorts premisskontroll som
+  59a/60b: läs vad koden faktiskt gör innan planens ordval tas för givet.
+
+  **Testat:** ny testfil `tests/functions/backfillborttagen.test.cjs` (behörighet, dry-run,
+  idempotens, rör INTE en redan satt `true`/`false`), tillagd i `test:functions`-kedjan.
+  `etapp6.test.cjs` utökad med en kontroll att mallrutiner får `borttagen: false`. Verifierat
+  manuellt mot emulatorn i en riktig webbläsare (Playwright) – både som redaktör (superadmin)
+  och icke-redaktör (personal, som lägger till ETT extra likhetsfilter på `status`) – inga
+  konsolfel, listan renderar korrekt. `npm run lint`/`build`/`npx vitest run` gröna.
 - **60d – Sökindexet.** *Villkorat av 60a.* Om Fuse-bygget är den dyra delen: bygg indexet en
   gång och dela det (kontext/`useRef`) i stället för per konsument, alternativt flytta det
   till en Web Worker så att huvudtråden inte fryser. Rör inte träffkvaliteten – sökningen är
@@ -394,11 +426,15 @@ faktiska rutinantal).
 
 **Klart när:** samma tre mätvärden som i 60a är körda igen mot 2 000 rutiner och ligger inom
 en gräns som skrivits ned i planen i förväg – eller när 60a visat att inget behövde göras.
-**✅ Uppfyllt för tid-till-interaktiv/Fuse-byggtid/Firestore-kostnad (inget behövde göras).**
-**Överförd datamängd delvis åtgärdad av 60b** (77,3→36,0 MB, se §60b) – 60c kvarstår som
-rekommenderat, ej byggt, lågriskkomplement. En fullständig lösning (paginering/
-virtualisering av Sektionssida) är struken som fel omfattning för den här etappen, se 60b:s
-egen slutsats.
+**✅ Etapp 60 (60a–60c) är HELT KLAR (2026-08-10).** Tid-till-interaktiv/Fuse-byggtid/
+Firestore-kostnad uppfyllda utan åtgärd (60a). Överförd datamängd delvis åtgärdad av 60b
+(77,3→36,0 MB, −53 %) och kompletterad av 60c (mjukraderade rutiner hämtas inte längre alls,
+tidigare bara filtrerade bort efter att ha skickats över nätet). 60d struket, bekräftat
+onödigt av mätningen. En fullständig listvyprojektion/paginering (60b:s ursprungliga idé) och
+serverside-filtrering av ARKIVET (inte bara papperskorgen, 60c:s ursprungliga omfattning) är
+medvetet struket ur den här etappen – båda visade sig vara genuina produktbeslut snarare än
+tekniska optimeringar när de kontrollerades mot faktisk kod, se respektive delmåls egen
+"Vad genomgången hittade".
 
 ---
 
@@ -523,9 +559,9 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 1. **✅ Etapp 59 – KLAR (2026-08-10).** Tre kända fel i produktionsgrenen rättade, varav ett
    som gjorde hälsosiffran missvisande för varje ny organisation som etableras. 59b stänger
    dessutom en affärsspärr (kiosk utan Operations).
-2. **✅ Etapp 60a – KLAR (2026-08-10).** Mätningen visade att 60d inte behövs (Fuse-byggtid
-   <2 ms även vid 2 000 rutiner) men att 60b/60c är motiverade (77 MB vid en kall
-   förstagångsinloggning med 2 000 rutiner). 60b/60c rekommenderade men INTE byggda ännu.
+2. **✅ Etapp 60 (60a–60c) – HELT KLAR (2026-08-10).** Mätt, sedan åtgärdat: 77,3 MB → 36,0 MB
+   (60b, −53 %) → mjukraderade rutiner hämtas inte längre alls (60c). 60d struket, bekräftat
+   onödigt av mätningen.
 3. **Etapp 61 när inget annat pågår** – störst nytta, minst risk, om den inte konkurrerar med
    ett funktionsbygge.
 4. **Etapp 62 när 59 är stängd.** Det är den enda etappen som ger en kund något nytt att se,
@@ -541,7 +577,7 @@ borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
 | **59** | Rätta logistikrutinerna, gata kioskläget, beroendehygien | Ingen/Operations | Låg | ✅ **HELT KLAR (2026-08-10)** – 59a–59c alla byggda |
 | **60a** | Mät prestanda med 500–2 000 rutiner | Ingen | Låg | ✅ **KLAR (2026-08-10)** |
 | **60b** | Krympa `lasteAv` (tog `namn` bort) | Ingen | Låg | ✅ **KLAR (2026-08-10)** – 77,3→36,0 MB (−53 %). Full listvyprojektion struken, se §60b |
-| **60c** | Serverside-filtrering (papperskorg/arkiv) | Ingen | Medel | Rekommenderat, ej byggt |
+| **60c** | Serverside-filtrering av papperskorgen (`borttagen`) | Ingen | Medel | ✅ **KLAR (2026-08-10)** – arkivet (`arkiverad`) medvetet UTE, se §60c |
 | ~~**60d**~~ | ~~Sökindex i webbworker~~ | – | – | **Struket – 60a mätte Fuse-byggtid till <2 ms, inte den dyra delen** |
 | **61** | Dela `functions/index.js`, testluckor, kiosk-e2e | Ingen | Låg–medel | Förslag |
 | **62** | Sökluckor → rutin, veckopuls, åtgärdbar hälsosiffra | Operations | Låg | Förslag |

@@ -692,6 +692,7 @@ exports.tolkaDokument = onCall(
         status: "utkast",
         kalla: "gemini",
         organisationId,
+        borttagen: false,
         skapadAv: request.auth.uid,
         skapad: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -3171,6 +3172,42 @@ exports.migreraTillOrganisation = onCall(
   }
 );
 
+// Etapp 60c (ETAPPLAN12.md): engångsmigrering inför att useRutiner.js:s klientfråga bytte
+// från att hämta ALLA rutiner (inkl. papperskorgen) och filtrera bort de borttagna i
+// JavaScript, till att filtrera server-side med where("borttagen", "==", false). En
+// ojämlikhetsfråga (where("borttagen", "!=", true)) hade varit fel här av precis samma skäl
+// som redan är dokumenterat i kontrolleraKvitteringsfrister ovan: Firestore utesluter
+// dokument som saknar fältet HELT, inte bara de som har det satt till true – och `borttagen`
+// har hittills bara satts VID radering, aldrig till `false` vid skapande. En likhetsfråga
+// (`== false`) kräver därför att ALLA befintliga rutiner backfillas till `borttagen: false`
+// INNAN klienten börjar fråga så, annars försvinner tyst varje rutin som skapades före det
+// här datumet ur alla listor. Idempotent (hoppar dokument som redan har fältet) och kör
+// ALLTID med dryRun (standard) först, samma mönster som migreraTillOrganisation ovan.
+exports.backfillaBorttagenFalt = onCall(
+  { region: "europe-west1", timeoutSeconds: 540 },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+    }
+    await kravPlattformsadmin(request.auth.uid);
+
+    const dryRun = request.data?.dryRun !== false;
+
+    const snap = await db.collection("rutiner").select("borttagen").get();
+    const attSkriva = snap.docs.filter((d) => d.data().borttagen === undefined).map((d) => d.ref);
+
+    if (!dryRun) {
+      for (let i = 0; i < attSkriva.length; i += 500) {
+        const batch = db.batch();
+        attSkriva.slice(i, i + 500).forEach((ref) => batch.set(ref, { borttagen: false }, { merge: true }));
+        await batch.commit();
+      }
+    }
+
+    return { dryRun, totaltAntalRutiner: snap.size, saknarBorttagenFalt: attSkriva.length };
+  }
+);
+
 // ---------------------------------------------------------------------------------------
 // Etapp 6 (kund nummer två): leverantörsadmin, organisationsetablering och ett
 // inbjudningsflöde som ersätter den tidigare öppna självbetjänings-registreringen.
@@ -3339,6 +3376,7 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
         status: "godkand",
         organisationId: orgRef.id,
         kalla: "verksamhetsmall",
+        borttagen: false,
         skapadAv: request.auth.uid,
         skapad: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -3568,6 +3606,7 @@ async function froSaDemoOrganisationensInnehall() {
       status: "godkand",
       organisationId: DEMO_ORG_ID,
       kalla: "demo",
+      borttagen: false,
       granskadDatum: admin.firestore.FieldValue.serverTimestamp(),
       skapad: admin.firestore.FieldValue.serverTimestamp(),
     });
@@ -3580,6 +3619,7 @@ async function froSaDemoOrganisationensInnehall() {
     status: "utkast",
     organisationId: DEMO_ORG_ID,
     kalla: "demo",
+    borttagen: false,
     skapad: admin.firestore.FieldValue.serverTimestamp(),
   });
 
@@ -3596,6 +3636,7 @@ async function froSaDemoOrganisationensInnehall() {
     ],
     organisationId: DEMO_ORG_ID,
     kalla: "demo",
+    borttagen: false,
     granskadDatum: admin.firestore.FieldValue.serverTimestamp(),
     skapad: admin.firestore.FieldValue.serverTimestamp(),
   });
@@ -3609,6 +3650,7 @@ async function froSaDemoOrganisationensInnehall() {
     status: "godkand",
     organisationId: DEMO_ORG_ID,
     kalla: "demo",
+    borttagen: false,
     granskadDatum: admin.firestore.Timestamp.fromDate(gransDatum),
     skapad: admin.firestore.FieldValue.serverTimestamp(),
   });

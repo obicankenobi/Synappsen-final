@@ -195,6 +195,8 @@ async function main() {
     rutinSnap.forEach((doc) => {
       vantaSig(doc.data().status === "godkand", "mallrutiner ska vara direkt godkända/synliga");
       vantaSig(doc.data().titel.includes("(mall)"), "mallrutinens titel ska vara märkt som mall");
+      // Etapp 60c: krävs för att useRutiner.js:s where("borttagen", "==", false) ska hitta dem.
+      vantaSig(doc.data().borttagen === false, "mallrutiner ska ha borttagen:false explicit satt");
     });
   });
   await test("en organisation UTAN verksamhetstyp får inga mallrutiner (bakåtkompatibelt)", async () => {

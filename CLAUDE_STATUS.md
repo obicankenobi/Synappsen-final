@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.93.0** – **INTE ÄNNU DEPLOYAD** (senaste
+**Senast uppdaterad:** 2026-08-10, version **5.94.0** – **INTE ÄNNU DEPLOYAD** (senaste
 bekräftade produktionsdeploy är fortfarande v5.89.0, körning #73, commit `63f15d7`).
 `ETAPPLAN11.md` (Etapp 53–58) är nu **HELT KLAR utom 54c/54d och Etapp 58** – båda väntar
 medvetet på en extern förutsättning (konkret andra enhet respektive en kund som kräver SSO),
@@ -15,22 +15,22 @@ drift") är den nya AKTIVA planen, ANTAGEN 2026-08-10** direkt efter en kodgenom
 dokumentgenomgång) av v5.91.0 – till skillnad från tidigare planer bygger den nästan inga nya
 funktioner, bara hållfasthet: den genomgången hittade tre fel som redan fanns i
 produktionsgrenen, varav två infördes av de två senaste etapperna (Etapp 55/56).
-**Etapp 59 och 60a–60b är nu KLARA.** Etapp 60a mätte appen mot en realistisk rutinmängd
-(500/1 000/2 000 rutiner, emulator) – tid-till-interaktiv och Fuse-sökindexbygge helt
-oproblematiska (60d struket, onödigt), men en kall förstagångsinloggning drog 77 MB vid
-2 000 rutiner. Etapp 60b undersökte den ursprungligen skrivna lösningen (en
-listvyprojektion) och fann att PREMISSEN INTE HÖLL – `Sektionssida.jsx` renderar redan hela
-innehållet för varje rutin samtidigt (ingen separat "öppna"-vy att spara in på), så en
-projektion hade inte sparat något alls utan en genuin UX-ombyggnad (paginering). Byggde
-istället en mindre, egentligen upptäckt-under-vägen fix: `namn` togs bort ur varje
-`lasteAv`-post (ren duplicering, löses upp från den redan laddade användarlistan istället) –
-77,3→36,0 MB, −53 %, utan ny collection/migrering/regeländring. Ett fristående, separat
-förslag (Etapp 64, ett "baspaket" av nationella referenser) hölls medvetet UTANFÖR den
-aktiva planen, i en egen fil `ETAPPLAN13.md` – den kräver en extern juridisk MDR-bedömning
-innan den ens är byggbar. `ETAPPLAN9.md`/`ETAPPLAN8.md`/`ETAPPLAN10.md` fortsatt HELT KLARA
-OCH DEPLOYADE (utom 10:s Etapp 52, väntar på en bokning). **Läs sektionen "Uppföljning
-2026-08-10 (Etapp 60b klar)" längst ner** – tidigare uppföljningar (60a, 59, 53–57) finns
-kvar nedanför den, i kronologisk ordning.
+**Etapp 59 och HELA Etapp 60 (60a–60c, 60d struket) är nu KLARA.** Etapp 60a mätte appen mot
+en realistisk rutinmängd (500/1 000/2 000 rutiner) – tid-till-interaktiv och
+Fuse-sökindexbygge helt oproblematiska, men en kall förstagångsinloggning drog 77 MB vid
+2 000 rutiner. 60b och 60c undersökte den ursprungligen skrivna lösningen och fann i BÅDA
+fallen att premissen inte höll fullt ut mot faktisk kod – 60b (en listvyprojektion hade
+sparat noll, `Sektionssida.jsx` renderar redan allt direkt) och 60c (planen blandade ihop
+papperskorgen och arkivet, men bara den förra ska döljas – arkivet ska medvetet stanna kvar
+för redaktörer). Byggde ändå riktiga, mindre träffsäkra fixar för båda: 60b tog bort ren
+datadublett (`namn` ur `lasteAv`), 60c flyttade papperskorgsfiltreringen server-side (med en
+egen migrering, `backfillaBorttagenFalt`). Tillsammans: 77,3 MB → 36,0 MB (60b) plus att
+mjukraderade rutiner inte längre hämtas alls (60c). Ett fristående, separat förslag
+(Etapp 64, ett "baspaket" av nationella referenser) hölls medvetet UTANFÖR den aktiva planen,
+i en egen fil `ETAPPLAN13.md`. `ETAPPLAN9.md`/`ETAPPLAN8.md`/`ETAPPLAN10.md` fortsatt HELT
+KLARA OCH DEPLOYADE (utom 10:s Etapp 52, väntar på en bokning). **Läs sektionen "Uppföljning
+2026-08-10 (Etapp 60c klar, Etapp 60 helt klar)" längst ner** – tidigare uppföljningar (60b,
+60a, 59, 53–57) finns kvar nedanför den, i kronologisk ordning.
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -2240,3 +2240,46 @@ sedan 5.91.0). `ETAPPLAN12.md` §60b markerad ✅ KLAR med hela resonemanget.
 **Nästa steg:** 60c (serverside-filtrering av papperskorg/arkiv) kvarstår som rekommenderat,
 ej byggt. Etapp 61 (underhållbarhet/testluckor) är inte villkorat av något och kan tas när
 som helst.
+
+## Uppföljning 2026-08-10 (Etapp 60c klar, hela Etapp 60 nu KLAR, v5.94.0)
+
+Ombads köra "60c". Kontrollerade planens premiss mot faktisk kod innan bygget (samma
+disciplin som 59a/60b) och fann att den blandade ihop två olika saker: papperskorgen
+(`borttagen`) och arkivet (`arkiverad`). De är inte samma sorts fix – en arkiverad rutin ska
+MEDVETET stanna kvar i redaktörers lista (Etapp 37d), bara uteslutas ur särskilda
+beräkningar. Att filtrera `arkiverad` i frågan hade tyst ändrat vad en redaktör ser, en
+beteendeförändring, inte en optimering. Byggde därför bara papperskorgsdelen.
+
+`useRutiner.js`s fråga filtrerar nu server-side med `where("borttagen", "==", false)`
+istället för att hämta allt (inkl. papperskorgen) och kasta bort i JavaScript. Den
+dokumenterade fällan (`!= true` hade uteslutit varje rutin som saknar fältet helt, inte bara
+de borttagna – samma som `kontrolleraKvitteringsfrister`) undveks genom:
+
+- En ny migrering, `backfillaBorttagenFalt` (plattformsadmin, dry-run som standard,
+  idempotent, batchat – samma mönster som `migreraTillOrganisation`), som backfillar
+  `borttagen: false` på alla befintliga rutiner som saknar fältet.
+- `borttagen: false` läggs nu till explicit vid VARJE plats en rutin skapas (klientens
+  `skapaRutin`, AI-importens `tolkaDokument`, `skapaOrganisation`s mallseedning, alla fyra
+  rutin-skrivningarna i `froSaDemoOrganisationensInnehall`) – inget nytt dokument saknar
+  någonsin fältet framöver.
+- Verifierat MOT en riktig emulator (inte antaget) att frågan – tre eller fyra likhetsfilter
+  plus en `orderBy` – fungerar utan en ny `firestore.indexes.json`-post, både som redaktör
+  och icke-redaktör.
+
+Ett eget testmisstag hittades och rättades under bygget: mitt första test antog att
+`rutiner`-collectionen var tom vid testets start, men `test:functions` delar EN
+emulatorinstans mellan ~32 testfiler – räknade om till en nollpunkts-delta istället för ett
+absolut tal, och insåg (efter ett andra fel) att den skarpa migreringskörningen KORREKT
+fixar HELA collectionen, inte bara testets egna poster – rättade testets förväntan till 0,
+inte "tillbaka till nollpunkten".
+
+**Med detta är hela Etapp 60 (60a–60c) klar, 60d struket.** Testat: ny testfil
+`tests/functions/backfillborttagen.test.cjs` (behörighet, dry-run, idempotens, rör inte en
+redan satt true/false – MÅSTE stå sist i test:functions-kedjan, se filens egen kommentar om
+varför), `etapp6.test.cjs` utökad. Full testsvep grön (lint, build, vitest 130/130, alla 32
+functions-testfiler). Version bumpad 5.93.0 → **5.94.0**. `ETAPPLAN12.md` §60c markerad
+✅ KLAR, hela Etapp 60 markerad HELT KLAR.
+
+**Nästa steg:** Etapp 61 (underhållbarhet/testluckor) är inte villkorat av något och kan tas
+när som helst. Etapp 60 helt klart innebär att `ETAPPLAN12.md` nu bara har 61–63 kvar (plus
+det fristående, ej byggbara Etapp 64 i `ETAPPLAN13.md`).
