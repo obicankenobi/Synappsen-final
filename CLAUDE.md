@@ -261,3 +261,23 @@ följande inträffar:
 
 Håll motiveringskolumnen kort – en mening, inte en sammanfattning av hela resonemanget (det
 hör hemma i `CLAUDE_STATUS.md`s uppföljningssektion för den sessionen).
+
+### Obligatorisk underhållsregel: PITCH.md
+
+Skapad 2026-08-10 (Etapp 57b), efter fjärde–femte gången ett dokument i det här projektet
+visat sig ligga efter koden (`SAKERHETSRAPPORT.md` 46–51 releaser, `FRAMTIDSPLAN.md`/
+`MODULPLAN.md` 38–43, `src/version.js` 19, `CLAUDE_STATUS.md` två). Varje gång har lösningen
+varit densamma och den har fungerat: gör regeln händelsestyrd, inte minnesstyrd.
+`PITCH.md` hade fram till Etapp 57 bara en mjuk uppmaning ("kontrollera versionsnumret vid
+större releaser") – exakt den sortens formulering som redan bevisligen inte håller.
+**Uppdatera `PITCH.md` i SAMMA commit** när något av följande inträffar:
+
+| Om du … | Uppdatera |
+|---|---|
+| Gör en kundvänd funktion synlig, tillgänglig eller väsentligt ändrad (ny etapp klar) | Lägg till/uppdatera raden i rätt avsnitt ("Vad ledningen får", "Byggd för vårdens krav" osv.) |
+| Stänger av eller tar bort en funktion `PITCH.md` nämner | Ta bort eller skriv om påståendet – ett dokument som lovar något som inte längre finns är värre än att inte nämna det alls |
+| Upptäcker att en lucka i "Vad som inte finns än"-stycket (57c) faktiskt byggts, eller att en ny lucka öppnats | Flytta raden till huvudtexten respektive lägg till den i stycket |
+| Bumpear versionen vid en STÖRRE release (ny etapp, inte en ren bugfix) | Uppdatera versionsraden i rubriken |
+
+Samma "aldrig lova mer än vad koden faktiskt gör"-princip som redan gäller
+"Ärlighet om vad som faktiskt är mätt"-stycket lägre ner i dokumentet.

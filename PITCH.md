@@ -1,6 +1,6 @@
 # Synappsen – rätt information, direkt i handen, när det är bråttom
 
-*Beslutsunderlag för verksamhetsledning · Version 5.90.0 · 2026-08-10*
+*Beslutsunderlag för verksamhetsledning · Version 5.91.0 · 2026-08-10*
 
 ---
 
@@ -102,6 +102,10 @@ det blir gammalt utan att någon märker det. Synappsen har en egen innehållsh�
 - **Upphandlingsklart:** PUB-avtalsmall, underbiträdesförteckning, DPIA-underlag och ett
   tekniskt faktablad till IT-avdelningen finns färdiga (se avtal/-katalogen), så ett
   inköpsbeslut inte behöver vänta på att någon skriver dessa från grunden.
+- **Kioskläge för en delad enhet:** en surfplatta i förrådet eller akutrummet kan låsas till
+  ett eget kontotyp – läser godkänt innehåll, söker, kör checklistor och når akutläget direkt,
+  men kan aldrig kvittera, kommentera eller skriva något i en persons namn. Låses upp med en
+  PIN-kod, inget personligt lösenord på den delade skärmen.
 
 ## Nyttan i siffror (uppskattning att validera i pilot)
 
@@ -121,6 +125,27 @@ personalpulsen (minst fem svarande innan ett områdesresultat visas) är avsiktl
 betyder att en ny, liten pilot kan behöva vänta ett tag innan den siffran syns alls – det är
 rätt avvägning, inte en bugg. Vi säger detta rakt ut eftersom det är precis den sortens
 detalj vi själva skulle vilja veta innan vi köpte något liknande.
+
+## Vad som inte finns än
+
+Samma princip som "Ärlighet om vad som faktiskt är mätt" ovan, tillämpad på funktionalitet
+istället för mätdata – en IT-avdelning som upptäcker en lucka själv drar slutsatsen att det
+finns fler; en som får den berättad öppet drar inte det.
+
+- **Enkel inloggning (SSO/Microsoft Entra ID):** inte byggt ännu. Beslutat som teknisk
+  inriktning (OIDC) men väntar på att en faktisk kund kräver det innan det byggs – att bygga
+  det spekulativt riskerar att inte matcha den verkliga uppsättningen.
+- **Flera enheter under samma huvudman, med gemensam överblick:** ren gruppering
+  (leverantörens vy) finns. Delad rutindata och en jämförande ledningsrapport MELLAN egna
+  enheter finns inte – det kräver samma rigör som organisationsisoleringen i övrigt, och
+  byggs när en konkret kund med flera enheter faktiskt behöver det.
+- **Integration mot journalsystem (Cosmic, Melior, TakeCare) eller HR-system:** finns inte,
+  och är ett medvetet avstånd – Synappsen spärrar aktivt patientuppgifter i tre lager (se
+  "Byggd för vårdens krav" ovan), en journalintegration skulle vara en annan produkt med en
+  helt annan riskklass.
+- **Dos- eller läkemedelsberäkning:** klinikstödet sammanfattar källor och visar alltid
+  varifrån, men räknar aldrig ut en dos. En funktion som gör det skulle klassa hela produkten
+  som en medicinteknisk produkt under MDR – medvetet avstått.
 
 ## Ni börjar inte från ett tomt system
 

@@ -6,18 +6,20 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.91.0** – **INTE ÄNNU DEPLOYAD** (senaste
-bekräftade produktionsdeploy är fortfarande v5.89.0, körning #73, commit `63f15d7`).
-`ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning till en kund som växer") är den AKTIVA
-planen, **ANTAGEN 2026-08-10** (ersatte `ETAPPLAN10.md`, som är HELT KLAR utom Etapp 52 –
-pilotpaketet, kräver bokad tid, inte kod). **HELA Etapp 53 (53a–53d), Etapp 54a–54b, Etapp 56
-(56a–56d) OCH Etapp 55 (55a–55c) är nu KLARA:** e-post som kanal, en utredning +
-huvudmannagruppering, ett rejält utökat startbibliotek, och ett nytt kioskläge för delade
-enheter (ny roll `kiosk`, blockerad från allt identitetsbundet, PIN-låst UI). 54c/54d
-(högrisk/väntar på en konkret andra enhet) och Etapp 57b–c/58 kvarstår, se
-`OPPNA-PUNKTER.md`. `ETAPPLAN9.md`/`ETAPPLAN8.md` fortsatt HELT KLARA OCH DEPLOYADE sedan
-tidigare. **Läs sektionerna "Uppföljning 2026-08-10" (a/b/c/d, sedan 56, sedan 55) längst
-ner.**
+**Senast uppdaterad:** 2026-08-10, version **5.91.0** (ingen appkod ändrad i den senaste
+sessionen, bara dokumentation – ingen ny versionsbump behövdes, se skälet i uppföljningen
+längst ner) – **INTE ÄNNU DEPLOYAD** (senaste bekräftade produktionsdeploy är fortfarande
+v5.89.0, körning #73, commit `63f15d7`). `ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning
+till en kund som växer") är den AKTIVA planen, **ANTAGEN 2026-08-10** (ersatte
+`ETAPPLAN10.md`, som är HELT KLAR utom Etapp 52 – pilotpaketet, kräver bokad tid, inte kod).
+**HELA Etapp 53 (53a–53d), Etapp 54a–54b, Etapp 55 (55a–55c), Etapp 56 (56a–56d) OCH Etapp 57
+(57a–57c) är nu KLARA:** e-post som kanal, en utredning + huvudmannagruppering, ett nytt
+kioskläge för delade enheter, ett rejält utökat startbibliotek, och säljmaterialet (`PITCH.md`)
+nu både korrekt och skyddat av en händelsestyrd underhållsregel i `CLAUDE.md`. Bara 54c/54d
+(högrisk/väntar på en konkret andra enhet) och Etapp 58 (SSO, väntar på en kund som kräver
+det) kvarstår i `ETAPPLAN11.md` – se `OPPNA-PUNKTER.md`. `ETAPPLAN9.md`/`ETAPPLAN8.md`
+fortsatt HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs sektionerna "Uppföljning 2026-08-10"
+(a/b/c/d, sedan 56, sedan 55, sedan 57b–c) längst ner.**
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -2050,3 +2052,36 @@ work-around miljöns egen dokumentation redan beskriver. Version bumpad 5.90.0 �
 INTE deployade** (senaste produktionsdeploy fortfarande v5.89.0). Nästa steg: deploya, eller
 fortsätta med 54c/54d (väntar på en konkret andra enhet) eller 57b–c (säljmaterialets
 underhållsregel + ärlighetsstycke).
+
+## Uppföljning 2026-08-10 (Etapp 57b–c klara: PITCH.md-regeln + ärlighetsstycke)
+
+Byggde de två sista delmålen i Etapp 57 – rent dokumentationsarbete, ingen appkod ändrad.
+
+**57b:** ny sektion "Obligatorisk underhållsregel: PITCH.md" i `CLAUDE.md`, i exakt samma
+tabellformat som de fyra befintliga levande-dokument-reglerna. Triggas av: en kundvänd
+funktion blir synlig/avstängd/väsentligt ändrad, en lucka i 57c:s stycke stängs eller öppnas,
+eller en större release.
+
+**57c:** nytt stycke "Vad som inte finns än" i `PITCH.md` (SSO, delad data mellan enheter
+under samma huvudman, journal-/HR-integration, dosberäkning – samma ärlighetsprincip som det
+redan befintliga "Ärlighet om vad som faktiskt är mätt"-stycket).
+
+**Sidofynd, åtgärdat i samma commit:** när 57b-regeln skrevs blev det synligt att Etapp 55
+(kioskläget, förra sessionen) redan hade brutit mot den regel som just skulle skrivas in –
+`PITCH.md` nämnde aldrig kioskläget trots att det är en ny, kundvänd funktion. Lade till en
+kort bullet om det under "Byggd för vårdens krav", och höll det DÄRFÖR utanför listan över
+luckor i 57c (det är inte längre en lucka). Ett litet, konkret exempel på att den nya regeln
+löser ett verkligt, redan inträffat fall, inte bara ett hypotetiskt.
+
+**Ingen versionsbump:** varken `package.json` eller `andringslogg.js` rördes – enbart
+`CLAUDE.md` (interna instruktioner) och `PITCH.md` (säljmaterial) ändrades, ingenting i den
+faktiska appen. `PITCH.md`s egen versionsrad justerades till att peka på den redan gällande
+appversionen (5.91.0) istället för att skapa en egen, separat siffra.
+
+Testsvep: lint, build, vitest (130/130) – inga rules-/functions-/storage-/e2e-tester
+relevanta eftersom ingen kod under `firestore.rules`, `storage.rules`, `functions/` eller
+`tests/` ändrades. `ETAPPLAN11.md` §57 (57a–57c) markerad ✅ HELT KLAR.
+
+**Med detta har `ETAPPLAN11.md` bara två öppna punkter kvar: 54c/54d (väntar på en konkret
+andra enhet hos en kund) och Etapp 58 (SSO, väntar på en kund som kräver det) – båda
+medvetet väntande på en extern förutsättning, inte på kapacitet.**

@@ -477,19 +477,26 @@ bevisligen inte håller.
   kommandopaletten, relaterade rutin-förslag och det uppdaterade "Sedan ditt förra pass"
   (Etapp 47a/47b) som saknades helt. 57b (händelsestyrd underhållsregel) och 57c (ärligt
   "vad som inte finns"-stycke) kvarstår som egna delmål.
-- **57b – Händelsestyrd underhållsregel för `PITCH.md`.** Skriv in i `CLAUDE.md`, i samma
-  format som de fyra befintliga obligatoriska reglerna: *om en etapp gör en kundvänd funktion
-  synlig, avstängd eller väsentligt ändrad → uppdatera `PITCH.md` i samma commit.* Ta med
-  motiveringen (den här etappens "varför") så att en framtida session förstår varför regeln
-  finns och inte tar bort den som byråkrati.
-- **57c – Ett ärligt "vad som inte finns"-stycke.** `PITCH.md` har redan ett utmärkt
-  "Ärlighet om vad som faktiskt är mätt". Motsvarande för funktionalitet – SSO saknas i dag,
-  kioskläge saknas tills 55 är byggd, ingen integration mot journal- eller HR-system – gör
-  dokumentet mer trovärdigt, inte mindre. En IT-avdelning som upptäcker en lucka själv drar
-  slutsatsen att det finns fler; en som får den berättad drar inte det.
+- **57b – ✅ KLAR (2026-08-10).** Ny sektion "Obligatorisk underhållsregel: PITCH.md" i
+  `CLAUDE.md`, i exakt samma format (tabell över "om du … → uppdatera") som de fyra
+  befintliga reglerna (incidentdokumenten, `CLAUDE_STATUS.md`, `OPPNA-PUNKTER.md`,
+  `BESLUTSLOGG.md`). Täcker: en kundvänd funktion blir synlig/avstängd/väsentligt ändrad, en
+  lucka i 57c:s "vad som inte finns än"-stycke stängs eller en ny öppnas, och versionsraden
+  vid en större release.
+- **57c – ✅ KLAR (2026-08-10).** Nytt stycke "Vad som inte finns än" i `PITCH.md`, samma
+  ärlighetsprincip som det befintliga "Ärlighet om vad som faktiskt är mätt". Listar SSO
+  (väntar på en kund som kräver det, se Etapp 58), delad rutindata/jämförande
+  ledningsrapport MELLAN egna enheter under samma huvudman (väntar på en konkret andra
+  enhet, se Etapp 54c/54d), journal-/HR-integration (medvetet avstånd, en annan riskklass)
+  och dosberäkning (skulle klassa produkten som medicinteknisk under MDR, medvetet avstått).
+  **Samtidigt upptäckt och åtgärdat:** Etapp 55 (kioskläge) hade gjort en kundvänd funktion
+  tillgänglig utan att `PITCH.md` uppdaterats i samma commit – exakt det mönster den nya
+  57b-regeln finns för att förhindra framöver. Lade till en kort bullet om kioskläget under
+  "Byggd för vårdens krav" som en del av samma commit som regeln, och tog bort kioskläget
+  från listan över luckor (det är inte längre en lucka).
 
 **Klart när:** en köpare kan läsa `PITCH.md` rakt igenom utan att ett enda påstående går att
-motbevisa med appen framför sig.
+motbevisa med appen framför sig. **Uppnått 2026-08-10** (57a–57c alla klara).
 
 ---
 
@@ -569,7 +576,7 @@ till invändningen.
 | **54a–54b** | Utred enhetsmodellen + huvudmannanivå | Låg | Låg | ✅ **KLAR (2026-08-10), v5.89.0** – 54a visade att 54d är avgränsad, inte en omskrivning; 54b byggd |
 | **56** | Startbiblioteket: fler mallar, mallar för icke-rutiner | Ingen | Låg–medel | ✅ **HELT KLAR (2026-08-10), v5.90.0** – 56a–56d alla byggda |
 | **55** | Kioskläge (delad surfplatta) | Medel | Medel | ✅ **HELT KLAR (2026-08-10)** – 55a–55c alla byggda |
-| **57b–57c** | Händelsestyrd `PITCH.md`-regel + ärlighetsstycke | Ingen | Låg | Ihop med 57a |
+| **57b–57c** | Händelsestyrd `PITCH.md`-regel + ärlighetsstycke | Ingen | Låg | ✅ **HELT KLAR (2026-08-10)** |
 | **54c–54d** | Gemensamma rutiner, användare i flera enheter | **Hög** | Hög | Först efter 54a:s utfall, och helst mot en riktig andra enhet |
 | **58** | SSO/Entra ID | Medel | Hög | Beslut nu, bygge när en kund kräver det |
 
