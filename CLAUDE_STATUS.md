@@ -6,8 +6,12 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.94.0** – **INTE ÄNNU DEPLOYAD** (senaste
-bekräftade produktionsdeploy är fortfarande v5.89.0, körning #73, commit `63f15d7`).
+**Senast uppdaterad:** 2026-08-10, version **5.95.0** – **INTE ÄNNU DEPLOYAD** (senaste
+bekräftade produktionsdeploy är fortfarande v5.89.0, körning #73, commit `63f15d7`). Ägaren
+har nu svarat på Etapp 63c:s tre beslutspunkter (SSO = OIDC, påminnelsemejl-förval = planens
+rekommendation, 54c/54d = vänta) – loggat i `BESLUTSLOGG.md`, motsvarande rader borttagna ur
+`OPPNA-PUNKTER.md`. Ingen av de tre låste upp nytt kodningsarbete. Se sektionen "Uppföljning
+2026-08-10 (Etapp 63c-beslutspunkterna avgjorda)" längst ner.
 `ETAPPLAN11.md` (Etapp 53–58) är nu **HELT KLAR utom 54c/54d och Etapp 58** – båda väntar
 medvetet på en extern förutsättning (konkret andra enhet respektive en kund som kräver SSO),
 inte på kapacitet, se `OPPNA-PUNKTER.md`. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
@@ -2368,4 +2372,27 @@ markerad ✅ KLAR – **hela Etapp 61 (61a–61c) är nu HELT KLAR.**
 
 **Nästa steg:** Etapp 62 (mätvärde → åtgärd) är villkorad av att Etapp 59 är stängd, vilket
 den är – inget hindrar att ta den näst. Etapp 63 (gruppera öppna punkter, förbered pilot)
+
+---
+
+## Uppföljning 2026-08-10 (Etapp 63c-beslutspunkterna avgjorda)
+
+Användaren tog ställning till `ETAPPLAN11.md`s tre kvarvarande beslutspunkter (samlade i
+`ETAPPLAN12.md` §63c): "OIDC, på för tilldelade uppgifter, följ din rekommendation för punkt
+2. vänta med 54c/54d".
+
+- **SSO-protokoll (Etapp 58):** OIDC, planens rekommendation.
+- **Påminnelsemejl-förval (Etapp 53c):** följde rekommendationen (på för tilldelade
+  uppgifter, av för allt annat) – ingen kodändring krävdes, det redan byggda 53c (v5.87.0)
+  täcker bara två schemalagda källor som i sak redan ÄR "tilldelade uppgifter".
+- **Etapp 54c/54d:** vänta, samma "bevaka, bygg inte i förväg"-mönster som Etapp 40.
+  Omprövningsvillkor: en konkret kund med en verklig andra enhet blir aktuell.
+
+Alla tre loggade i `BESLUTSLOGG.md`. Motsvarande fyra rader (SSO nämndes dubbelt, en gång
+under Etapp 13f och en gång under Etapp 58, uttryckligen noterat som samma fråga) borttagna
+ur `OPPNA-PUNKTER.md`. Ingen av de tre beslutspunkterna låste upp nytt kodningsarbete idag.
+Ingen versionsbump – ren dokumentationsändring.
+
+`ETAPPLAN12.md` §63c:s "Klart när" (de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`)
+är nu uppfyllt, men Etapp 63 som helhet är INTE klar – 63a och 63b är obyggda.
 kräver ägaren för tre beslut.

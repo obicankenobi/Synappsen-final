@@ -591,14 +591,17 @@ Det här är inte en uppmaning att bygga mer. Det är en etapp för att göra de
   färdigställas i förväg: introduktionsmaterial för en redaktör, ett förslag på
   pilotupplägg med de tre måtten från `PITCH.md`, och en checklista för vad som ska mätas
   före/efter. Då är det som återstår en kalenderbokning, inte ett arbetspass.
-- **63c – Ta ställning till de tre beslutspunkterna som har en färdig rekommendation.**
-  SSO-protokoll (rekommendation: OIDC), påminnelsemejlens förval (rekommendation: på för
-  tilldelade uppgifter, av för övrigt) och 54c/54d. Alla tre har redan ett analyserat svar i
-  `ETAPPLAN11.md` – de behöver bara ett ja eller nej, och sedan en rad i `BESLUTSLOGG.md`.
-  Ett nej är ett lika bra utfall som ett ja; det som kostar är att raden står kvar.
+- **63c – ✅ KLAR (2026-08-10).** Ta ställning till de tre beslutspunkterna som har en färdig
+  rekommendation. SSO-protokoll → **OIDC** (rekommendationen). Påminnelsemejlens förval →
+  **på för tilldelade uppgifter, av för övrigt** (rekommendationen; krävde ingen kodändring
+  – det redan byggda 53c täcker redan bara "tilldelade uppgifter"-fallen). 54c/54d → **vänta**
+  på en konkret andra enhet. Alla tre loggade i `BESLUTSLOGG.md`, motsvarande rader borttagna
+  ur `OPPNA-PUNKTER.md`.
 
 **Klart när:** `OPPNA-PUNKTER.md` är grupperad efter insatstyp, de fyra tiominutersraderna är
-borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`.
+borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`. **Delvis uppfyllt:** de
+tre beslutspunkterna (63c) har nu ett svar. 63a (gruppering efter insatstyp) och 63b
+(pilotpaketets förberedelse) är fortfarande obyggda – Etapp 63 som helhet är INTE klar.
 
 ---
 
