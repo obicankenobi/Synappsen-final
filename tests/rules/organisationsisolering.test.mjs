@@ -259,6 +259,18 @@ async function main() {
     assertFails(updateDoc(doc(volA, "users", "sektionsledareA"), { pushTokens: ["kapad-token"] }))
   );
 
+  console.log("\nusers/{uid}.epostInstallningar – Etapp 53c: e-postpåminnelser (opt-out)");
+  await test("volA KAN sätta sina egna e-postpåminnelseinställningar", () =>
+    assertSucceeds(
+      updateDoc(doc(volA, "users", "volA"), { epostInstallningar: { paminnelser: false } })
+    )
+  );
+  await test("volA kan INTE ändra en ANNAN användares e-postpåminnelseinställningar", () =>
+    assertFails(
+      updateDoc(doc(volA, "users", "sektionsledareA"), { epostInstallningar: { paminnelser: false } })
+    )
+  );
+
   console.log("\norganisationer/{orgId}/installningar/valkomstchecklista – Etapp 15b");
   await test("superadminA KAN bocka av ett eget checklistesteg", () =>
     assertSucceeds(

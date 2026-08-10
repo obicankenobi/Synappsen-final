@@ -3,7 +3,7 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-10 · **Motsvarar kodläge:** v5.84.0 + Etapp 53a (ej släppt än)
+**Senast uppdaterad:** 2026-08-10 · **Motsvarar kodläge:** v5.87.0 (Etapp 53a-c)
 
 > **Ägarbeslut 2026-08-01:** jourkontakt utanför kontorstid ifylld (se tabellen nedan).
 > Backup-retention 90 dagar, gallringslogiken byggd och testad (se `ETAPPLAN5.md` Etapp 33c).
@@ -179,6 +179,12 @@ Vet jag med rimlig visshet att det faktiskt hänt?             JA / NEJ / OKLART
 > Vilka personuppgifter finns i appen? Namn, e-post, roll, organisationstillhörighet,
 > läskvitteringar, kommentarer och profilbilder. **Patientuppgifter ska aldrig finnas** – om du
 > hittar sådana är det en egen incident, oavsett obehörig åtkomst.
+>
+> **Etapp 53c:** en ny, tillfällig collection `epostPaminnelseko/{uid}` innehåller en kopia av
+> en användares e-postadress plus en generisk, innehållslös påminnelsetext (t.ex. "ett anslag
+> väntar på kvittering") – tömd inom ett dygn av `skickaEpostPaminnelserSchemalagt`. Ingen ny
+> kategori av personuppgift (e-post fanns redan i listan ovan), men en ny plats den bor
+> kortvarigt. Helt otillgänglig för alla klienter, se `firestore.rules`.
 
 ---
 

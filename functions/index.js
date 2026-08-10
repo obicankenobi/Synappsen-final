@@ -2187,6 +2187,41 @@ async function hamtaAnvandareMedPushPreferens(organisationId, installningsNyckel
 }
 exports.hamtaAnvandareMedPushPreferens = hamtaAnvandareMedPushPreferens;
 
+// Etapp 53c: MOTSATT förval av push ovan, med avsikt. En tilldelad arbetsuppgift (mitt
+// anslag, mitt ändringsförslag) är inte brus – förvalet är PÅ, med opt-out i Profil.jsx
+// (`epostInstallningar.paminnelser`). En Firestore-likhetsfråga kan inte matcha "fältet
+// saknas ELLER är true", så alla organisationsmedlemmar hämtas och de som uttryckligen
+// stängt av filtreras bort i JS istället för i frågan.
+async function hamtaAnvandareForEpostPaminnelse(organisationId, extraFilter) {
+  const snap = await db.collection("users").where("organisationId", "==", organisationId).get();
+  const anvandare = snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter((a) => a.epostInstallningar?.paminnelser !== false && !!a.email);
+  return extraFilter ? anvandare.filter(extraFilter) : anvandare;
+}
+exports.hamtaAnvandareForEpostPaminnelse = hamtaAnvandareForEpostPaminnelse;
+
+// Etapp 53c: en daglig SAMMANSLAGNING, inte ett mejl per händelse (se ETAPPLAN11.md §53c) –
+// varje källa (kvitteringsfrister, ändringsförslag, framtida källor) köar hit istället för
+// att anropa skickaEpost() direkt. skickaEpostPaminnelserSchemalagt tömmer kön en gång om
+// dagen, efter att båda källjobben (07:00/08:00) hunnit köra.
+async function koaEpostPaminnelse(uid, organisationId, epost, text, url) {
+  if (!epost) return;
+  await db
+    .collection("epostPaminnelseko")
+    .doc(uid)
+    .set(
+      {
+        organisationId,
+        epost,
+        poster: admin.firestore.FieldValue.arrayUnion({ text, url: url ?? null }),
+        uppdaterad: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+}
+exports.koaEpostPaminnelse = koaEpostPaminnelse;
+
 // Kärnlogiken är en egen, direkt anropbar funktion (inte bara triggerns callback) av samma
 // skäl som backupaOrganisation/loggaRevision exporteras separat: `test:functions` kör bara
 // firestore+storage-emulatorerna, INTE functions-emulatorn, så en riktig
@@ -2401,23 +2436,36 @@ async function kontrolleraKvitteringsfrister() {
     if (Number.isNaN(fristTid) || fristTid < nu || fristTid - nu > KVITTERINGSPAMINNELSE_FONSTER_MS) continue;
 
     const lasteAv = new Set((data.lasteAv ?? []).map((l) => l.uid));
+    // Etapp 53c: samma dedupe-fält täcker NU båda kanalerna (push och e-post) – någon som
+    // redan påmints via endera kanalen ska inte påminnas igen via den andra nästa dag.
     const redanPaminda = new Set(data.pushPaminnelseSkickadTill ?? []);
     const organisationId = data.organisationId ?? "default";
 
-    const mottagare = await hamtaAnvandareMedPushPreferens(
-      organisationId,
-      "anslagsfrist",
-      (a) => !lasteAv.has(a.id) && !redanPaminda.has(a.id)
-    );
-    if (mottagare.length === 0) continue;
+    const behoverPaminnas = (a) => !lasteAv.has(a.id) && !redanPaminda.has(a.id);
+    const mottagare = await hamtaAnvandareMedPushPreferens(organisationId, "anslagsfrist", behoverPaminnas);
+    const epostMottagare = await hamtaAnvandareForEpostPaminnelse(organisationId, behoverPaminnas);
+    if (mottagare.length === 0 && epostMottagare.length === 0) continue;
 
-    await skickaPush(mottagare, {
-      titel: "Ett anslag väntar på kvittering",
-      body: `"${data.titel ?? "Ett anslag"}" måste läsas och kvitteras innan fristen går ut.`,
-      url: "/anslag",
-    });
+    if (mottagare.length > 0) {
+      await skickaPush(mottagare, {
+        titel: "Ett anslag väntar på kvittering",
+        body: `"${data.titel ?? "Ett anslag"}" måste läsas och kvitteras innan fristen går ut.`,
+        url: "/anslag",
+      });
+    }
+    for (const a of epostMottagare) {
+      await koaEpostPaminnelse(
+        a.id,
+        organisationId,
+        a.email,
+        `"${data.titel ?? "Ett anslag"}" måste läsas och kvitteras innan fristen går ut.`,
+        "/anslag"
+      );
+    }
+    const alltPaminda = new Set([...mottagare.map((a) => a.id), ...epostMottagare.map((a) => a.id)]);
+    if (alltPaminda.size === 0) continue;
     await anslagDoc.ref.update({
-      pushPaminnelseSkickadTill: admin.firestore.FieldValue.arrayUnion(...mottagare.map((a) => a.id)),
+      pushPaminnelseSkickadTill: admin.firestore.FieldValue.arrayUnion(...alltPaminda),
     });
   }
 }
@@ -2452,19 +2500,29 @@ async function kontrolleraForslagPaminnelser() {
     const agandeRoller = ROLLER_PER_OMRADE[data.omrade];
     if (!agandeRoller) continue;
     const organisationId = data.organisationId ?? "default";
+    const agarFilter = (a) => agandeRoller.includes(a.role);
 
-    const mottagare = await hamtaAnvandareMedPushPreferens(
-      organisationId,
-      "forslagPaminnelse",
-      (a) => agandeRoller.includes(a.role)
-    );
-    if (mottagare.length === 0) continue;
+    const mottagare = await hamtaAnvandareMedPushPreferens(organisationId, "forslagPaminnelse", agarFilter);
+    const epostMottagare = await hamtaAnvandareForEpostPaminnelse(organisationId, agarFilter);
+    if (mottagare.length === 0 && epostMottagare.length === 0) continue;
 
-    await skickaPush(mottagare, {
-      titel: "Ett ändringsförslag väntar sedan över en vecka",
-      body: `Förslaget om "${data.rutinTitel ?? "en rutin"}" har inte hanterats än.`,
-      url: data.omrade === "administration" ? "/administration" : "/kliniskt-stod",
-    });
+    const url = data.omrade === "administration" ? "/administration" : "/kliniskt-stod";
+    if (mottagare.length > 0) {
+      await skickaPush(mottagare, {
+        titel: "Ett ändringsförslag väntar sedan över en vecka",
+        body: `Förslaget om "${data.rutinTitel ?? "en rutin"}" har inte hanterats än.`,
+        url,
+      });
+    }
+    for (const a of epostMottagare) {
+      await koaEpostPaminnelse(
+        a.id,
+        organisationId,
+        a.email,
+        `Förslaget om "${data.rutinTitel ?? "en rutin"}" har inte hanterats än.`,
+        url
+      );
+    }
     await forslagDoc.ref.update({ paminnelseSkickad: true });
   }
 }
@@ -2473,6 +2531,43 @@ exports.kontrolleraForslagPaminnelser = kontrolleraForslagPaminnelser;
 exports.forslagPaminnelserSchemalagt = onSchedule(
   { schedule: "every day 08:00", timeZone: "Europe/Stockholm", region: "europe-west1" },
   kontrolleraForslagPaminnelser
+);
+
+// Etapp 53c: tömmer epostPaminnelseko – EN sammanslagen e-post per användare med alla dagens
+// köade poster, inte ett mejl per händelse. Körs 09:00, efter båda källjobben ovan (07:00/
+// 08:00) hunnit köa klart för dagen. Ett fel för EN användares mejl (Brevo nere, ogiltig
+// adress) får aldrig hindra att övriga användares köer töms.
+async function skickaEpostPaminnelser() {
+  const snap = await db.collection("epostPaminnelseko").get();
+  for (const kodok of snap.docs) {
+    const data = kodok.data();
+    const poster = Array.isArray(data.poster) ? data.poster : [];
+    if (poster.length === 0) {
+      await kodok.ref.delete();
+      continue;
+    }
+    const rader = poster.map((p) => `- ${p.text}${p.url ? ` (${APP_URL}${p.url})` : ""}`).join("\n");
+    try {
+      await skickaEpost({
+        till: data.epost,
+        amne:
+          poster.length === 1
+            ? "Du har en påminnelse i Synappsen"
+            : `Du har ${poster.length} påminnelser i Synappsen`,
+        text: `${rader}\n\nLogga in för att se detaljerna: ${APP_URL}`,
+        organisationId: data.organisationId,
+      });
+    } catch (fel) {
+      console.warn(`Påminnelsemejl till ${data.epost} kunde inte skickas:`, fel.message ?? fel);
+    }
+    await kodok.ref.delete();
+  }
+}
+exports.skickaEpostPaminnelser = skickaEpostPaminnelser;
+
+exports.skickaEpostPaminnelserSchemalagt = onSchedule(
+  { schedule: "every day 09:00", timeZone: "Europe/Stockholm", region: "europe-west1", secrets: [BREVO_API_KEY] },
+  skickaEpostPaminnelser
 );
 
 // Etapp 39a: veckovis ögonblicksbild av nyckeltalen, så en trend kan visas i stället för bara

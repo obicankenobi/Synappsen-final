@@ -220,8 +220,37 @@ function PushNotisSektion({ uid, role, pushTokens, pushInstallningar }) {
   );
 }
 
+// Etapp 53c: motsatt förval av push-sektionen ovan, med avsikt – en tilldelad uppgift
+// (mitt anslag väntar, mitt ändringsförslag har väntat en vecka) är inte brus, så
+// e-postpåminnelser är förvalt PÅ. Ingen ruta att kryssa i, bara EN opt-out-kryssruta.
+function EpostPaminnelseSektion({ uid, epostInstallningar }) {
+  const avstangd = epostInstallningar?.paminnelser === false;
+
+  function vaxla() {
+    updateDoc(doc(db, "users", uid), {
+      epostInstallningar: { ...epostInstallningar, paminnelser: avstangd },
+    });
+  }
+
+  return (
+    <section className="profil-sektion">
+      <h2>✉️ E-postpåminnelser</h2>
+      <p className="sida__beskrivning">
+        Ett anslag som väntar på din kvittering, eller ett ändringsförslag som väntat över en
+        vecka på ditt område – sammanslaget till högst ett mejl per dag, aldrig ett per
+        händelse. Påslaget som förval, eftersom det handlar om uppgifter tilldelade just dig.
+      </p>
+      <label className="profil-snabblankar__rad">
+        <input type="checkbox" checked={avstangd} onChange={vaxla} />
+        Skicka INGA e-postpåminnelser till mig
+      </label>
+    </section>
+  );
+}
+
 export default function Profil() {
-  const { currentUser, role, namn, namnLaddat, profilbildUrl, pushTokens, pushInstallningar } = useAuth();
+  const { currentUser, role, namn, namnLaddat, profilbildUrl, pushTokens, pushInstallningar, epostInstallningar } =
+    useAuth();
   const favoritPoster = useMinaFavoritPoster();
   const { synliga: snabblankar, satValda: satSnabblankar } = useSnabblankar(currentUser.uid);
 
@@ -323,6 +352,8 @@ export default function Profil() {
         pushTokens={pushTokens}
         pushInstallningar={pushInstallningar}
       />
+
+      <EpostPaminnelseSektion uid={currentUser.uid} epostInstallningar={epostInstallningar} />
 
       <section className="profil-sektion">
         <h2>🎨 Utseende</h2>

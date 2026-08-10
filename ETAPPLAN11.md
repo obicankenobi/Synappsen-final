@@ -194,14 +194,33 @@ ja, Brevo (EU-baserat, Frankrike).
   mottagare/organisationsnamn/länk, samt att ett simulerat nätverksfel inte hindrar att
   inbjudan ändå skapas) – 12/12 gröna, plus hela `etapp6.test.cjs`s befintliga
   inbjudningssvit oförändrat grön. v5.86.0.
-- **53c – Påminnelser når ägaren även utanför appen.** Koppla de befintliga schemalagda
-  jobben (`kontrolleraKvitteringsfrister`, `forslagPaminnelserSchemalagt`,
-  granskningspåminnelser till rutinägare) till kanalen. **Opt-out per användare, förvalt
-  PÅ för påminnelser som rör en uppgift användaren fått tilldelad, förvalt AV för allt
-  annat.** Följ mönstret från push-notiserna (som är förvalt av) men notera skillnaden: push
-  är ett brus, en tilldelad arbetsuppgift är inte det. En daglig sammanslagning ("du har 3
-  saker") slår ett mejl per händelse – bygg det så från början, det är svårt att lägga till
-  efteråt.
+- **53c – ✅ KLAR (2026-08-10) – Påminnelser når ägaren även utanför appen.**
+  *Premisskontroll (genomgående krav 8) hittade en felaktighet i utkastet:* det finns
+  **INGET** schemalagt jobb som skickar "granskningspåminnelser till rutinägare" – bara ett
+  klientberäknat värde (`beraknaHalsaServer`/"Mina uppgifter"), aldrig en push. Bara två
+  riktiga schemalagda källor existerar: `kontrolleraKvitteringsfrister` (07:00) och
+  `kontrolleraForslagPaminnelser` (08:00). Byggt mot dessa två, inte tre.
+  Koppling: båda källorna köar nu (utöver sin befintliga push) en post per berörd
+  användare i en ny collection `epostPaminnelseko/{uid}` (helt otillgänglig för klienten,
+  varken läs eller skriv – samma "ren serverbokföring"-kategori som `hastighetsgranser`).
+  En ny schemalagd funktion, `skickaEpostPaminnelserSchemalagt` (09:00, efter båda
+  källorna), tömmer kön en gång per dag och skickar **ett sammanslaget mejl per
+  användare** ("du har 3 påminnelser") – aldrig ett mejl per händelse, byggt så från
+  början precis som föreskrivet. **Opt-OUT, förvalt PÅ** (`hamtaAnvandareForEpostPaminnelse`,
+  motsatsen till push-preferensernas opt-in) – en ny inställning i `Profil.jsx`
+  ("✉️ E-postpåminnelser", en enda kryssruta: "Skicka INGA e-postpåminnelser till mig"),
+  sparat på `users/{uid}.epostInstallningar.paminnelser`, tillagt i `firestore.rules`s
+  självuppdateringsbara fältlista. Samma dedupe-fält (`pushPaminnelseSkickadTill` för
+  anslag, `paminnelseSkickad` för förslag) täcker nu BÅDA kanalerna – en användare som
+  redan påmints via endera kanalen påminns inte igen via den andra. Testat:
+  `tests/functions/epostpaminnelser.test.cjs` (8 tester – opt-out-urval, kö-sammanslagning,
+  digest-utskick, kötömning även vid ett misslyckat utskick, integration mot
+  `kontrolleraKvitteringsfrister`), samt två befintliga testfiler (`pushnotiser.test.cjs`,
+  `forslagpaminnelse.test.cjs`) uppdaterade med explicit e-postopt-out där testfallet krävde
+  "ingen påminnelse alls" (annars hade opt-out-förvalet gjort dem e-postmottagare av
+  misstag). Ny rules-test i `tests/rules/systemstatus.test.mjs` (total avstängning för
+  klienten) och `tests/rules/organisationsisolering.test.mjs` (självuppdatering tillåten,
+  andras inte). v5.87.0.
 - **53d – Månadsrapporten kommer till chefen av sig själv.** `manadsrapportOrganisationer`
   finns redan, men bara som leverantörens fakturaunderlag. En kundvänd variant – "så såg
   förra månaden ut", med kvitteringsgrad, innehållshälsa och antalet obesvarade

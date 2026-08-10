@@ -21,6 +21,7 @@ export function AuthProvider({ children }) {
   const [profilbildUrl, setProfilbildUrl] = useState(null);
   const [pushTokens, setPushTokens] = useState([]);
   const [pushInstallningar, setPushInstallningar] = useState({});
+  const [epostInstallningar, setEpostInstallningar] = useState({});
   const [foregaendeInloggning, setForegaendeInloggning] = useState(null);
   const [personalpulsSenastBesvarad, setPersonalpulsSenastBesvarad] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -77,6 +78,7 @@ export function AuthProvider({ children }) {
         setProfilbildUrl(null);
         setPushTokens([]);
         setPushInstallningar({});
+        setEpostInstallningar({});
         setForegaendeInloggning(null);
         setPersonalpulsSenastBesvarad(null);
       }
@@ -99,6 +101,10 @@ export function AuthProvider({ children }) {
       // en annan flik/enhet) syns direkt utan omladdning.
       setPushTokens(snap.exists() ? (snap.data().pushTokens ?? []) : []);
       setPushInstallningar(snap.exists() ? (snap.data().pushInstallningar ?? {}) : {});
+      // Etapp 53c: e-postpåminnelser, till skillnad från push, är opt-OUT (se motiveringen i
+      // functions/index.js hamtaAnvandareForEpostPaminnelse) – ett tomt/saknat objekt betyder
+      // alltså PÅ, inte AV, och läses därför bara ut här utan en egen defaultning.
+      setEpostInstallningar(snap.exists() ? (snap.data().epostInstallningar ?? {}) : {});
       // Etapp 39c: skrivs bara av Cloud Function svaraPersonalpuls (Admin SDK) – lyssnas live
       // så formuläret försvinner direkt efter ett inskick, utan omladdning.
       setPersonalpulsSenastBesvarad(snap.exists() ? (snap.data().personalpulsSenastBesvarad ?? null) : null);
@@ -116,6 +122,7 @@ export function AuthProvider({ children }) {
     profilbildUrl,
     pushTokens,
     pushInstallningar,
+    epostInstallningar,
     foregaendeInloggning,
     personalpulsSenastBesvarad,
     loading,

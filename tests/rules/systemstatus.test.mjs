@@ -77,6 +77,33 @@ async function main() {
     assertFails(deleteDoc(doc(super1, "systemstatus", "revisionskedja")))
   );
 
+  // Etapp 53c: epostPaminnelseko/{uid} – den interna kön för dagliga e-postpåminnelsers
+  // sammanslagning (kontrolleraKvitteringsfrister/kontrolleraForslagPaminnelser köar,
+  // skickaEpostPaminnelserSchemalagt tömmer). Har medvetet INGET match-block i
+  // firestore.rules – precis som hastighetsgranser (samma "ren serverintern bokföring,
+  // ingen klient ska någonsin röra den"-kategori) – vilket ger implicit total avstängning.
+  // Ett explicit test här (samma "hårt krav, inte en UI-regel"-princip som _demo-isoleringen
+  // i demo-isolering.test.mjs) fångar om någon av misstag lägger till ett öppnare block.
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(context.firestore().doc("epostPaminnelseko/superadminStatus"), {
+      organisationId: "orgStatus",
+      epost: "test@exempel.se",
+      poster: [{ text: "Test", url: "/anslag" }],
+    });
+  });
+  console.log("\nepostPaminnelseko/{uid} – ingen klient har NÅGON åtkomst, inte ens den egna kön");
+  await test("en superadmin kan INTE läsa sin egen kö", () =>
+    assertFails(getDoc(doc(super1, "epostPaminnelseko", "superadminStatus")))
+  );
+  await test("en superadmin kan INTE skapa en post i kön", () =>
+    assertFails(
+      setDoc(doc(super1, "epostPaminnelseko", "forfalskad"), { epost: "kapad@exempel.se", poster: [] })
+    )
+  );
+  await test("en superadmin kan INTE ändra sin egen kö", () =>
+    assertFails(updateDoc(doc(super1, "epostPaminnelseko", "superadminStatus"), { poster: [] }))
+  );
+
   await testEnv.cleanup();
 
   console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);

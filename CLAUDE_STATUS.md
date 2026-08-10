@@ -6,18 +6,20 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.86.0** – **INTE ÄNNU DEPLOYAD** (senaste
+**Senast uppdaterad:** 2026-08-10, version **5.87.0** – **INTE ÄNNU DEPLOYAD** (senaste
 bekräftade produktionsdeploy är fortfarande v5.84.0, körning #72, commit `545e958`).
 `ETAPPLAN11.md` (Etapp 53–58, "Från en avdelning till en kund som växer") är den AKTIVA
 planen, **ANTAGEN 2026-08-10** (ersatte `ETAPPLAN10.md`, som är HELT KLAR utom Etapp 52 –
-pilotpaketet, kräver bokad tid, inte kod). **Etapp 53a och 53b är nu KLARA:** en ny intern
-e-posthjälpare (`skickaEpost()`, Brevo som nytt EU-baserat underbiträde) med ett globalt
-nödstopp styrbart från `/leverantor`, och sedan 53b skickas inbjudningar (till nya konton,
-nya organisationer och demomiljön) nu automatiskt via e-post – den kopierbara länken finns
-kvar som reserv. **Ingen skarp `BREVO_API_KEY` är satt än** (ägarens att göra, se
-`OPPNA-PUNKTER.md`), så inget mejl går faktiskt ut förrän dess – koden no-oppar tyst.
+pilotpaketet, kräver bokad tid, inte kod). **Etapp 53a, 53b OCH 53c är nu KLARA:** en ny
+intern e-posthjälpare (`skickaEpost()`, Brevo som nytt EU-baserat underbiträde) med ett
+globalt nödstopp styrbart från `/leverantor`; inbjudningar (nya konton, nya organisationer,
+demomiljön) skickas nu automatiskt via e-post med den kopierbara länken kvar som reserv;
+och en användare med en tilldelad uppgift (ett anslag att kvittera, ett ändringsförslag som
+väntat en vecka) får nu ett sammanslaget dagligt påminnelsemejl, opt-out i `Profil.jsx`.
+**Ingen skarp `BREVO_API_KEY` är satt än** (ägarens att göra, se `OPPNA-PUNKTER.md`), så
+inget mejl går faktiskt ut förrän dess – koden no-oppar tyst genomgående.
 `ETAPPLAN9.md`/`ETAPPLAN8.md` fortsatt HELT KLARA OCH DEPLOYADE sedan tidigare. **Läs
-sektionerna "Uppföljning 2026-08-10 (Etapp 53a klar…)" och "(Etapp 53b klar…)" längst ner.**
+sektionerna "Uppföljning 2026-08-10" (a/b/c, i tur och ordning) längst ner.**
 
 > **Denna fil ska uppdateras VARJE session där kod committas/pushas, ett ägarbeslut tas,
 > eller en etapp blir klar – se den nya obligatoriska underhållsregeln i `CLAUDE.md` ("Regel:
@@ -1840,3 +1842,36 @@ att spegla att koden nu faktiskt använder underbiträdet (fast fortfarande inge
 
 **Nästa steg i `ETAPPLAN11.md`:** 53c (påminnelser till rutinägare, förvalt på för tilldelade
 uppgifter/av för allt annat, daglig sammanslagning) och 53d (kundvänd månadssammanfattning).
+
+## Uppföljning 2026-08-10 (Etapp 53c klar: dagliga e-postpåminnelser, v5.87.0)
+
+**Premisskontroll (genomgående krav 8) hittade en felaktighet i planens egen 53c-text:**
+utkastet nämnde "granskningspåminnelser till rutinägare" som en tredje befintlig källa att
+koppla in – den finns INTE som ett schemalagt jobb (bara ett klientberäknat värde). Byggde
+mot de två som faktiskt finns: `kontrolleraKvitteringsfrister` (07:00) och
+`kontrolleraForslagPaminnelser` (08:00).
+
+Byggt: båda källorna köar nu (utöver sin befintliga push) en post per berörd användare i en
+ny collection `epostPaminnelseko/{uid}` – helt otillgänglig för klienten (varken läs eller
+skriv, samma kategori som `hastighetsgranser`). En ny schemalagd funktion
+`skickaEpostPaminnelserSchemalagt` (09:00, efter båda källorna) tömmer kön en gång per dag
+och skickar ETT sammanslaget mejl per användare, aldrig ett per händelse – byggt som en
+digest från början, inte tillagt i efterhand. **Opt-OUT, förvalt PÅ** (motsatt förval av
+push-notiserna, med avsikt – en tilldelad uppgift är inte brus): ny sektion i `Profil.jsx`
+("✉️ E-postpåminnelser"), sparat på `users/{uid}.epostInstallningar.paminnelser`, tillagt i
+`firestore.rules`s självuppdateringsbara fältlista för `users/{userId}`. Samma dedupe-fält
+(`pushPaminnelseSkickadTill`/`paminnelseSkickad`) täcker nu båda kanalerna.
+
+Testat: nytt `tests/functions/epostpaminnelser.test.cjs` (8 tester). Två befintliga testfiler
+(`pushnotiser.test.cjs`, `forslagpaminnelse.test.cjs`) uppdaterade – opt-out-förvalet hade
+annars gjort några testanvändare oavsiktligt till e-postmottagare och brutit deras "ingen
+påminnelse alls"-assertion. Nya rules-tester: `tests/rules/systemstatus.test.mjs` (total
+klientavstängning för `epostPaminnelseko`) och `tests/rules/organisationsisolering.test.mjs`
+(självuppdatering av `epostInstallningar` tillåten, andras användares inte). Full testsvep
+grön: lint, build, vitest (124/124), rules, functions (alla 30 testblock), storage, e2e
+(11/11). Version bumpad 5.86.0 → **5.87.0**. `ETAPPLAN11.md` §53c markerad ✅ KLAR.
+`INCIDENT-CHECKLISTA.md` steg 5 utökad (ny, tillfällig plats för en redan listad
+personuppgiftstyp – e-post) och header uppdaterad till v5.87.0.
+
+**Nästa steg i `ETAPPLAN11.md`:** 53d (kundvänd månadssammanfattning till chefen, länk in i
+`/ledningsrapport`) – sista delmålet i Etapp 53.

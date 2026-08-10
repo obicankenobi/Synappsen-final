@@ -398,15 +398,18 @@ service cloud.firestore {
       // profilbilds-URL (Etapp 22e, filen själv skyddas av storage.rules – fältet här pekar
       // bara på en redan validerad, egen uppladdning), sina egna push-enhetstokens och
       // push-notisinställningar (Etapp 24a/24c – opaka tokens och booleaner, inte fritext,
-      // kräver ingen PII-spärr). bararForandrarFalt utesluter redan organisationId från den
-      // listan, så en användare kan aldrig byta organisation själv.
+      // kräver ingen PII-spärr), samt sina egna e-postpåminnelseinställningar (Etapp 53c –
+      // opt-out, samma booleana mönster som pushInstallningar). bararForandrarFalt utesluter
+      // redan organisationId från den listan, så en användare kan aldrig byta organisation
+      // själv.
       allow update: if (arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation()
                         && mfaKravUppfylld()
                         && resource.data.get('role', null) == request.resource.data.get('role', null))
                      || (request.auth.uid == userId
                          && bararForandrarFalt(['favoriter', 'senasteNotisBesok', 'snabblankar',
                                                 'senasteInloggning', 'senastBesokta', 'namn',
-                                                'profilbildUrl', 'pushTokens', 'pushInstallningar'])
+                                                'profilbildUrl', 'pushTokens', 'pushInstallningar',
+                                                'epostInstallningar'])
                          && !harTroligtPersonnummer(request.resource.data.get('namn', '')));
       allow delete: if arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation();
     }

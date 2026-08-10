@@ -139,6 +139,9 @@ async function main() {
       organisationId: orgUtanPreferens,
       role: "vol",
       pushInstallningar: { forslagPaminnelse: false },
+      // Etapp 53c: annars vore den här användaren ändå e-postmottagare (opt-out-förval) och
+      // förslaget skulle felaktigt markeras påmint.
+      epostInstallningar: { paminnelser: false },
     });
     await db.collection("andringsforslag").doc("forslagIngenMottagare").set({
       organisationId: orgUtanPreferens,

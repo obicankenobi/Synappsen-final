@@ -104,6 +104,9 @@ async function main() {
       organisationId,
       role: "personal",
       pushInstallningar: { anslagsfrist: false },
+      // Etapp 53c: e-post är opt-OUT (motsatt förval av push) – utan denna rad skulle pushD2
+      // bli e-postmottagare trots att push är avstängt, och alltså ändå markeras påmind.
+      epostInstallningar: { paminnelser: false },
     });
     const imorgon = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     await db.collection("anslag").doc("anslagFrist1").set({
