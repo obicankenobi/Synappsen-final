@@ -553,13 +553,16 @@ något åt någon annanstans. Att stänga den loopen är billigt, eftersom all m
   egen organisation + exakt dessa två fält, verifierad med tre nya regeltester). Det gör
   "Ni sa, vi gjorde"-tanken från Etapp 41a sann även för sökningar, inte bara för
   ändringsförslag.
-- **62b – En veckopuls som faktiskt är en handlingslista.** `ETAPPLAN3.md` Etapp 16
-  ("veckopuls") har stått öppen sedan den skrevs, blockerad på ett ägarbeslut om omfattning.
-  Fatta beslutet genom att göra den minsta meningsfulla versionen: **inget nytt mätvärde**,
-  bara de befintliga signalerna sorterade efter vad som är värt att göra först
-  (utgångna rutiner före obesvarade förslag före sökluckor), med en direktlänk per rad. Om
-  Brevo-nyckeln finns kan den skickas som e-post; annars är den en vy. Det avslutar en punkt
-  som stått öppen i månader utan att bygga något nytt att underhålla.
+- **62b – ✅ KLAR (2026-08-11). En veckopuls som faktiskt är en handlingslista.**
+  `ETAPPLAN3.md` Etapp 16 ("veckopuls") stod öppen sedan den skrevs, blockerad på ett
+  ägarbeslut om omfattning. Byggt: `VeckopulsSektion.jsx`, en ny sektion högst upp i
+  adminpanelen (öppen som standard) som visar de tre befintliga signalerna – utgångna rutiner,
+  obesvarade ändringsförslag, sökningar utan träffar – i den prioritetsordningen, var och en
+  med en direktlänk (till rutinens `#rutin-{id}`-djuplänk, eller till sökluckesektionen för
+  sökluckor). **Inget nytt mätvärde samlas in.** Medveten avgränsning: e-postutskicket planen
+  nämnde ("om Brevo-nyckeln finns") byggs INTE – det kräver en egen schemalagd funktion och
+  prenumerationshantering, en väsentligt större insats än vyn, och står inte i proportion till
+  "minsta meningsfulla version". Ren vy, som planen själv tillåter som fallback.
 - **62c – Hälsosiffran ska kunna svara "vad gör jag nu?".** `InnehallshalsaSektion` visar
   redan siffran med sin nedbrytning (bra, och medvetet – se `PITCH.md`). Nästa steg är att
   varje rad i nedbrytningen får en åtgärd: "saknar ägare" → tilldela ägare direkt i listan;

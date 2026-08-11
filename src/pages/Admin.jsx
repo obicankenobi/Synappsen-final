@@ -8,6 +8,7 @@ import { useGeminiBudget } from "../hooks/useGeminiBudget";
 import { useKostnadshistorik } from "../hooks/useKostnadshistorik";
 import { useFeedback } from "../hooks/useFeedback";
 import { useSokloggar } from "../hooks/useSokloggar";
+import { useAndringsforslag, FORSLAG_STATUS } from "../hooks/useAndringsforslag";
 import { useAuditlogg } from "../hooks/useAuditlogg";
 import { useRevisionslogg } from "../hooks/useRevisionslogg";
 import { useRutiner } from "../hooks/useRutiner";
@@ -29,6 +30,7 @@ import {
 } from "../firebase/functions";
 import { Link } from "react-router-dom";
 import { ROLES } from "../firebase/roles";
+import { arUtgangen, arArkiverad } from "../utils/rutinHjalp";
 import InbjudanFormular from "../components/InbjudanFormular";
 import { useDialog } from "../hooks/useDialog";
 import SystemstatusSektion from "../components/admin/SystemstatusSektion";
@@ -55,6 +57,7 @@ import StartvyKonfigurationSektion from "../components/admin/StartvyKonfiguratio
 import OrganisationBrandingSektion from "../components/admin/OrganisationBrandingSektion";
 import ChecklistStatistikSektion from "../components/admin/ChecklistStatistikSektion";
 import InnehallshalsaSektion from "../components/admin/InnehallshalsaSektion";
+import VeckopulsSektion from "../components/admin/VeckopulsSektion";
 import GranskningsrundorSektion from "../components/admin/GranskningsrundorSektion";
 import DubbletterSektion from "../components/admin/DubbletterSektion";
 import PersonalpulsResultatSektion from "../components/admin/PersonalpulsResultatSektion";
@@ -119,6 +122,10 @@ export default function Admin() {
   const { historik: halsokontrollhistorik } = useHalsokontrollhistorik(arSuperadmin);
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
+  // Etapp 62b (veckopulsen): samma två-anrops-mönster som useRutiner ovan – hooken är
+  // per-område, admin ser båda de områden som delar Sektionssida/RutinFormular-koden.
+  const { forslag: klinisktForslag } = useAndringsforslag("kliniskt-stod");
+  const { forslag: adminForslag } = useAndringsforslag("administration");
   const { anslag } = useAnslag();
   const { artiklar: forradsartiklar } = useForradsartiklar();
   const { minuter: utloggningMinuter, satMinuter: satUtloggningMinuter } = useUtloggningsinstallning();
@@ -323,6 +330,21 @@ export default function Admin() {
   }, [sokloggar]);
   const maxPerDag = Math.max(1, ...sokningarPerDag.map(([, antal]) => antal));
 
+  // Etapp 62b: veckopulsens tre grupper, i prioritetsordning (utgångna rutiner före
+  // obesvarade förslag före sökluckor) – ingen ny insamling, bara redan hämtad data samlad.
+  const utgangnaRutiner = useMemo(
+    () =>
+      [...klinisktRutiner, ...adminRutiner].filter(
+        (r) => r.status === "godkand" && !arArkiverad(r) && arUtgangen(r)
+      ),
+    [klinisktRutiner, adminRutiner]
+  );
+  const oppnaForslagAlla = useMemo(
+    () => [...klinisktForslag, ...adminForslag].filter((f) => f.status === FORSLAG_STATUS.NY),
+    [klinisktForslag, adminForslag]
+  );
+  const oppnaSokluckor = useMemo(() => sokloggar.filter((s) => !s.atgardad), [sokloggar]);
+
   // Mest aktiva användare, baserat på de senaste 100 loggade händelserna
   const mestAktiva = useMemo(() => {
     const antalPerUid = new Map();
@@ -499,6 +521,14 @@ export default function Admin() {
           utkastIMittOmrade={utkastIMittOmrade}
           senasteArtiklarIMittOmrade={senasteArtiklarIMittOmrade}
           kvitteradeIMittOmrade={kvitteradeIMittOmrade}
+        />
+      )}
+
+      {arSuperadmin && (
+        <VeckopulsSektion
+          utgangnaRutiner={utgangnaRutiner}
+          oppnaForslag={oppnaForslagAlla}
+          oppnaSokluckor={oppnaSokluckor}
         />
       )}
 

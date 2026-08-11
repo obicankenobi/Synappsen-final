@@ -11,6 +11,13 @@ export const OMRADE_NAMN = {
   logistik: "Logistik",
 };
 
+// Samma karta som RutinKort.jsx använder för sin QR-djuplänk – bara de två områden som har en
+// egen sida (Sektionssida) med #rutin-{id}-djuplänkning (se Sektionssida.jsx).
+export const OMRADE_SOKVAG = {
+  "kliniskt-stod": "/kliniskt-stod",
+  administration: "/administration",
+};
+
 // Text skriven för en admin som inte nödvändigtvis är tekniker – "fungerar/långsamt/fungerar
 // inte" istället för tekniska termer som "OK/degraderad/fel".
 export const STATUS_IKON = { ok: "🟢", degraderad: "🟡", fel: "🔴" };

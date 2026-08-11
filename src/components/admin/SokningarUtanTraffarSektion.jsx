@@ -12,7 +12,7 @@ const MALOMRADEN = [
 
 export default function SokningarUtanTraffarSektion({ sokloggar, sokningarPerDag, maxPerDag }) {
   return (
-    <details className="admin-sektion admin-sektion--hopfallbar">
+    <details className="admin-sektion admin-sektion--hopfallbar" id="sokningar-utan-traffar">
       <summary><h2>Sökningar utan träffar</h2></summary>
       {sokloggar.length === 0 && (
         <p className="sida__beskrivning">Inga nolleträffar loggade ännu.</p>
