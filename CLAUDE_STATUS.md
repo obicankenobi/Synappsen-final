@@ -2396,4 +2396,46 @@ Ingen versionsbump – ren dokumentationsändring.
 
 `ETAPPLAN12.md` §63c:s "Klart när" (de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`)
 är nu uppfyllt, men Etapp 63 som helhet är INTE klar – 63a och 63b är obyggda.
-kräver ägaren för tre beslut.
+
+---
+
+## Uppföljning 2026-08-11 (ETAPPLAN12.md helt klar, v5.96.0, deploy #74 live)
+
+Genomförde hela den återstående delen av `ETAPPLAN12.md` (Etapp 62 och 63) i ett
+sammanhängande pass, efter att ett tidigare försök att pausa/sprida arbetet över natten med
+schemalagda återuppväckningar (`ScheduleWakeup`) inte levererade – sessionen återupptogs
+aldrig automatiskt, och ingen kod byggdes mellan 62a (committad 2026-08-10 kväll) och när
+användaren själv påpekade att tidsfristen redan passerat. Lärdom: lita inte på schemalagda
+återuppväckningar för flerstegs kodningsarbete i den här miljön – kör i ett sammanhang eller
+invänta explicit uppföljning från användaren istället.
+
+- **62a** (redan committad föregående kväll): "Skapa rutin"-genväg från en sökning utan träff.
+- **62b:** ny `VeckopulsSektion.jsx` – utgångna rutiner, obesvarade förslag och sökluckor i
+  prioritetsordning med direktlänk, högst upp i adminpanelen. Löste samtidigt en kvarstående
+  rad i `OPPNA-PUNKTER.md` (Etapp 16/veckopuls) som stått öppen sedan `ETAPPLAN3.md`.
+- **62c:** `InnehallshalsaSektion.jsx` fick åtgärdsknappar – starta en granskningsrunda för
+  exakt de rutiner som flaggats "bör granskas", tilldela ägare inline i tabellen.
+  `useGranskningsrundor` fick en `aktiv`-parameter för att inte prenumerera i onödan i
+  icke-superadmin-vyn (permission-denied-brus).
+- **63a:** `OPPNA-PUNKTER.md` omgrupperad i fem rubriker efter insatstyp istället för en enda
+  tabell – tillkom en femte kategori ("väntar på en extern förutsättning") som planens
+  ursprungliga tre-vägs uppdelning inte rymde ärligt.
+- **63b:** två nya root-dokument, `REDAKTORSGUIDE.md` och `PILOTUPPLAGG.md`, förberedelse för
+  Etapp 52-piloten (`ETAPPLAN10.md`) utan att en pilot är bokad. Registrerade i `CLAUDE.md`s
+  dokumentkarta.
+- **63c:** redan avgjort och loggat föregående kväll (se sektionen ovan).
+
+**Hela `ETAPPLAN12.md` (Etapp 59–63) är nu KLAR.**
+
+Släppt som v5.96.0. Fullt testsvep grönt: lint, build, vitest (175/175), `test:rules` (18/18),
+`test:functions` (samtliga ~33 filer), `test:storage` (21/21), `test:e2e` (17/17 – en första
+körning gav en enskild `/admin`-rökprovsmiss för superadmin, `ERR_CONNECTION_REFUSED`;
+en omkörning av hela sviten gav 17/17 gröna, bekräftat en transient flake, inte en regression
+från Etapp 62c:s ändringar).
+
+**Deployad:** körning #74, commit `91091be`, klar 2026-08-11 04:58 UTC. Ny asset-hash
+`assets/index-CQA-Qbjq.js` bekräftad live på `https://synappsen-final-build.web.app/`.
+
+**Nästa steg:** ingen aktiv plan pekas ut ännu – `ETAPPLAN12.md` är den senast antagna och nu
+helt klar. Läs `OPPNA-PUNKTER.md` för vad som väntar på en människa/ett beslut, eller vänta på
+ny instruktion från ägaren om vad nästa etapp ska vara.
