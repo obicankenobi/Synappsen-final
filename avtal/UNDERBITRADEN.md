@@ -5,7 +5,7 @@ byts eller tas bort. Refereras från `avtal/PUB-AVTAL-MALL.md` (Etapp 13a), punk
 
 **Upprättat:** 2026-07-26, som en del av Etapp 13b (`ETAPPLAN3.md`).
 
-**Metod:** varje rad nedan är verifierad direkt mot koden (`functions/index.js`,
+**Metod:** varje rad nedan är verifierad direkt mot koden (`functions/`-modulerna,
 `.github/workflows/deploy.yml`, `src/sentry.js`), inte antagen – i enlighet med genomgående
 krav 8 i `ETAPPLAN3.md`. Rader markerade "[FYLLS I]"/"[EJ VERIFIERAT]" kräver en åtgärd av
 ägaren (vanligen en kontroll i ett moln-konsol som inte syns i koden).
@@ -37,7 +37,7 @@ krav 8 i `ETAPPLAN3.md`. Rader markerade "[FYLLS I]"/"[EJ VERIFIERAT]" kräver e
 Firebase används för fem separata tjänster i produkten: Authentication, Firestore, Cloud
 Storage, Cloud Functions och Hosting. Samtliga körs under samma GCP-projekt.
 
-- **Cloud Functions:** verifierat direkt i `functions/index.js` – varje funktion anger
+- **Cloud Functions:** verifierat direkt i `functions/`-modulerna – varje funktion anger
   explicit `region: "europe-west1"` (Belgien), konsekvent genom hela filen, ingen avvikelse.
 - **Firestore-databasen och Storage-bucketen:** regionen för dessa sätts vid
   projektskapande i Firebase-konsolen, inte i kodens funktionsdefinitioner, och kan därför
@@ -59,7 +59,7 @@ Storage, Cloud Functions och Hosting. Samtliga körs under samma GCP-projekt.
 ### Google Generative AI (Gemini API)
 
 Används av `tolkaForradsbild`/`tolkaDokument` (bildtolkning) för att skapa utkast till
-rutiner/förrådsartiklar (`functions/index.js`, modell `gemini-2.5-flash`).
+rutiner/förrådsartiklar (`functions/ai-import.js`, modell `gemini-2.5-flash`).
 
 - **Vad som skickas:** bilder/dokument som en redaktör själv laddar upp, avsett att
   uteslutande innehålla verksamhetsinformation (whiteboard-anteckningar,
@@ -75,7 +75,7 @@ rutiner/förrådsartiklar (`functions/index.js`, modell `gemini-2.5-flash`).
 ### Google Programmerbara sökmotorn (Custom Search JSON API)
 
 Används av klinikstöd-sökningens källbegränsade verifiering (`SOKMOTOR_API_KEY`,
-`googleapis.com/customsearch/v1`, se `functions/index.js`). Skickar användarens fritextfråga
+`googleapis.com/customsearch/v1`, se `functions/klinikstod.js`). Skickar användarens fritextfråga
 till Google för att hitta träffar begränsade till fem godkända medicinska källdomäner.
 **Funktionen är pausad i användargränssnittet** sedan v5.3.5 (se `SAKERHETSRAPPORT.md`,
 "Pausad funktion") – underbiträdet är tekniskt aktivt (schemalagd verifiering körs
@@ -84,7 +84,7 @@ dagligen) men tar inte emot skarpa användarfrågor för närvarande.
 ### Sentry (Functional Software, Inc., d/b/a Sentry)
 
 Tar emot felmeddelanden och stacktraces vid oväntade fel, från både frontend
-(`src/sentry.js`) och Cloud Functions (`functions/index.js`s `onCall`-wrapper).
+(`src/sentry.js`) och Cloud Functions (`functions/gemensamt.js`s `onCall`-wrapper).
 
 - **Region:** verifierat i `.github/workflows/deploy.yml` – båda DSN:erna pekar mot
   `ingest.de.sentry.io` (Sentrys EU-region, Frankfurt).
