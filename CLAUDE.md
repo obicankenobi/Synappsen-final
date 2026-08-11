@@ -128,6 +128,7 @@ finns i en `ETAPPLANx.md`, skriv en pekare istället för att kopiera – det va
 |---|---|---|
 | `avtal/INCIDENTRESPONSPLAN.md` | Policy: klassificering, roller, faser, tidskrav, patientsäkerhetsprincipen, kommunikation | **Extern** – delas med kund och vid upphandling |
 | `INCIDENT-CHECKLISTA.md` | Operativ steg-för-steg-hantering, skriven för att följas under press | **Internt** – delas ALDRIG externt |
+| `JURIDISK-GRANSKNING.md` | Juridisk kartläggning (v2, 2026-08-11): GDPR, MDR, AI-förordningen, produktansvar, NIS2, upphandling/jäv/bisyssla, riskregister, åtgärdsplan, frågor till anlitad jurist | **Internt** – delas ALDRIG externt i sin helhet (innehåller bolags-, bisyssle- och jävsbedömningar). Avsnitt 21.4 listar vad som kan omarbetas till kundmaterial |
 
 Dessa två är de enda dokumenten i projektet vars felaktighet kan få juridiska följder
 (72-timmarsfristen i `avtal/PUB-AVTAL-MALL.md` p. 8). De hanteras därför strängare än

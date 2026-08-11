@@ -15,7 +15,11 @@ gröna** (267/267 respektive 17/17) – granskningens sandbox saknade IPv6 helt,
 Firebase-emulatorn att hänga tyst; rotorsaken var att `firebase-tools` hårdkodar att
 `localhost` slår upp till både `127.0.0.1` och `::1` oavsett systemets faktiska nätverk,
 fixat genom att peka emulatorerna på `127.0.0.1` explicit i `firebase.json`. Se samma
-uppföljningssektion för detaljer. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
+uppföljningssektion för detaljer. **Samma dag tillkom `JURIDISK-GRANSKNING.md`** (internt
+dokument, delas aldrig externt i sin helhet) och dess fem tekniska premisser är verifierade mot
+kod – tre bekräftade brister, varav en (AI-transparens enligt artikel 50) är ett krav som
+redan gäller. Se sektionen "Uppföljning 2026-08-11 (juridisk granskning + kodverifiering)"
+längst ner. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
 drift") är HELT KLAR OCH DEPLOYAD** (v5.96.0, körning #74) – se sektionen
 "Uppföljning 2026-08-11 (ETAPPLAN12.md helt klar, v5.96.0)" längst ner.
 **`ETAPPLAN13.md` (Etapp 64, baspaketet) är nu DEN ANTAGNA PLANEN.** Ägaren beslutade
@@ -2645,3 +2649,51 @@ körning lämnade en föräldralös Vite-devserverprocess som orsakade `ERR_CONN
 två mellanliggande försök – bekräftat vara en miljöartefakt, inte en kodbugg, genom att
 isolera och köra om det enskilda testet rent). Denna gren är alltså fullt testverifierad.
 Ingen deploy gjord ännu.
+
+## Uppföljning 2026-08-11 (juridisk granskning + kodverifiering av dess premisser)
+
+En extern juridisk kartläggning (v2) tillfördes projektet och ligger nu i repot som
+`JURIDISK-GRANSKNING.md` – **internt dokument, delas ALDRIG externt i sin helhet** (innehåller
+bolags-, bisyssle- och jävsbedömningar; avsnitt 21.4 listar vad som kan omarbetas till
+kundmaterial). Registrerad i `CLAUDE.md`s dokumentkarta bland incidentdokumenten, eftersom den
+har samma interna/externa hantering som `INCIDENT-CHECKLISTA.md`.
+
+Rapporten markerade fyra tekniska premisser som **[PK]** – slutsatser som hängde på ett
+tekniskt faktum den inte kunnat kontrollera. Samtliga är nu verifierade mot faktisk kod, och
+resultatet är inarbetat på plats i rapporten:
+
+- **Artikel 50 (AI-transparens) – brist bekräftad.** `kalla: "gemini"` sätts i
+  `functions/ai-import.js:263`, överlever publicering (`useRutiner.js:117` rör inte fältet),
+  men läses av **ingen** läsarvänd komponent. En medarbetare kan alltså inte se att en rutin
+  ursprungligen tolkades fram av AI. Kravet gäller sedan 2026-08-02. Liten kodändring, inget
+  data saknas.
+- **"Beslutsstöd" i kundvänt material – bekräftad**, men bara på EN rad
+  (`KlinikfragaSok.jsx:92`). Förekomsten i `functions/klinikstod.js:356` är en instruktion till
+  modellen, inte kundvänd, och påverkar inte MDR-kvalificeringen.
+- **Referensunderlagets anonymisering – farhågan avfärdad.**
+  `functions/matvarden.js:299` exporterar sju aggregat utan roll- eller områdesuppdelning, så
+  den befarade återidentifieringsvägen finns inte. **Men:** ingen minsta-n-spärr, till skillnad
+  från personalpulsens tröskel på fem.
+- **Revisionsloggens pseudonymisering – rapportens egen rekommendation var felaktig.**
+  `raknaHash()` hashar posten inklusive `aktorUid` och `verifieraRevisionskedja()` bygger om
+  hashen från innehållet, så pseudonymisering i efterhand upptäcks som manipulation. Hade
+  rekommendationen följts hade nattjobbet larmat varje natt för varje drabbad organisation.
+  Gallring kräver **segmentering** av kedjan med ankarposter.
+
+**En femte premiss kontrollerades trots att den inte var markerad, och visade sig vara den
+allvarligaste:** rapportens MDR-argument för checklistläget bygger på att ett steg är
+"strukturellt begränsat till `{text, bild, varning, timerSekunder}` – spärren sitter i
+datamodellen, inte i en policy". Det stämmer inte. `firestore.rules` spärrar antal steg (max
+12) och personnummer i `text`, men **ingen regel begränsar vilka nycklar ett stegobjekt får
+ha** – `hasOnly` används på sex ställen i filen, inget av dem för `rutiner`. Fältuppsättningen
+upprätthålls av `RutinFormular.jsx:79`, alltså av gränssnittet. Det är en verklig teknisk
+avvägning (regelspråket saknar loopar, budgeten på 1 000 deluttryck har tagit slut två gånger
+förut), men påståendet som det är formulerat går inte att styrka.
+
+**Ägarbeslut loggat samma dag:** bisysslan har fått skriftligt godkännande, se
+`BESLUTSLOGG.md`. Det låser upp granskningens åtgärdspunkt A1 men avgör INTE jäv- och
+upphandlingsfrågorna, som är separata.
+
+**Två nya rader i `OPPNA-PUNKTER.md`** (båda ägarbeslut, inte kapacitet): revisionsloggens
+gallringstid, och om checklistestegens spärr ska flyttas till servern eller bara formuleras
+om. Ingen kod ändrad i den här sessionen – bara dokument.
