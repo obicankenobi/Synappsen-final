@@ -6,14 +6,18 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-11, version **5.96.0**. **`ETAPPLAN12.md` (Etapp 59–63, "Från
+**Senast uppdaterad:** 2026-08-11, version **5.97.0** – INTE ÄNNU DEPLOYAD (senaste bekräftade
+produktionsdeploy är fortfarande v5.96.0, körning #74). **`ETAPPLAN12.md` (Etapp 59–63, "Från
 demo till drift") är HELT KLAR OCH DEPLOYAD** (v5.96.0, körning #74) – se sektionen
 "Uppföljning 2026-08-11 (ETAPPLAN12.md helt klar, v5.96.0)" längst ner.
-**`ETAPPLAN13.md` (Etapp 64, baspaketet) är nu DEN ANTAGNA PLANEN** – ägaren beslutade
-2026-08-11 att idén ska drivas vidare (se `BESLUTSLOGG.md`), men den har **inget byggbart
-steg än**: kvarvarande uppgift är att kommissionera en extern juridisk bedömning (MDR +
-upphovsrätt), se `OPPNA-PUNKTER.md`. Planen granskades två gånger samma dag och fick sju fel
-rättade totalt. Se sektionen "Uppföljning 2026-08-11 (ETAPPLAN13 antagen)" längst ner.
+**`ETAPPLAN13.md` (Etapp 64, baspaketet) är nu DEN ANTAGNA PLANEN.** Ägaren beslutade
+2026-08-11 att idén ska drivas vidare (se `BESLUTSLOGG.md`), och samma dag att en
+**scaffolding-fas ska byggas nu** – struktur och gränssnitt, men utan riktigt
+instrumentinnehåll och osynlig för alla kunder (bara plattformsadmin) – i väntan på den
+externa juridiska bedömningen (MDR + upphovsrätt), som fortfarande behöver kommissioneras,
+se `OPPNA-PUNKTER.md`. Scaffoldingen är nu byggd (v5.97.0). Planen granskades två gånger
+2026-08-11 och fick sju fel rättade totalt. Se sektionen "Uppföljning 2026-08-11 (ETAPPLAN13
+scaffolding klar, v5.97.0)" längst ner.
 `ETAPPLAN11.md` (Etapp 53–58) är nu **HELT KLAR utom 54c/54d och Etapp 58** – båda väntar
 medvetet på en extern förutsättning (konkret andra enhet respektive en kund som kräver SSO),
 inte på kapacitet, se `OPPNA-PUNKTER.md`. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
@@ -2502,3 +2506,34 @@ Uppdaterade i samma commit: `ETAPPLAN13.md` (statusbanner, "Klart när"-beslutsp
 föreslagen ordning, sammanfattningstabell), `CLAUDE.md` (läsordning punkt 3–4 bytte plats och
 innehåll, dokumentkartans två rader), `BESLUTSLOGG.md` (ny rad), `OPPNA-PUNKTER.md` (ny rad).
 Ingen kod, ingen versionsbump, ingen deploy.
+
+---
+
+## Uppföljning 2026-08-11 (ETAPPLAN13 scaffolding klar, v5.97.0)
+
+Direkt efter antagandet frågade ägaren om första etappen kunde påbörjas. Svarade att planens
+egen spärr (ingen kod förrän juridisk bedömning finns) fortfarande gällde och frågade om
+bedömningen redan var klar. Ägaren föreslog istället att bygga strukturen NU men hålla
+funktionen avstängd tills juridiken är klar, med motiveringen att en jurist lättare bedömer
+en konkret produkt än ett rent koncept. Gav min syn (delvis instämmande, men flaggade att
+planen själv varnar för sunk-cost-risken av att bygga "provisoriskt") och föreslog en
+avgränsning: bygg scaffolding med fiktiv testdata och en hård spärr, vänta med riktigt
+innehåll. Ägaren godkände den avgränsningen. Beslutet loggat i `BESLUTSLOGG.md`.
+
+**Byggt (v5.97.0):**
+- Ny collection `baspaketreferenser`, HELT begränsad till plattformsadmin i `firestore.rules`
+  – ingen kundorganisation kan läsa eller skriva den, oavsett roll. Schemat tillåter bara
+  referensmetadata (titel/utgivare/kalldatum/url/kategori) – inget innehållsfält går att
+  skriva, en strukturell spärr, inte bara en konvention.
+- 12 nya regeltester (`tests/rules/baspaketreferenser.test.mjs`), alla gröna.
+- `useBaspaketreferenser.js` (hook) och `BaspaketreferenserSektion.jsx` (ny sektion i
+  leverantörsvyn, `/leverantor`) – syns ENDAST för plattformsadmin, aldrig för en kund.
+- `ETAPPLAN13.md` fick en ny "Scaffolding-fasen – ✅ KLAR"-sektion.
+
+**Vad som INTE byggdes, medvetet:** riktigt namngivet instrumentinnehåll, 64b:s centrala
+källbevakningslarm, och ingen per-organisation-modulflagga (kunder kan alltså inte ens
+teoretiskt aktivera något). De väntar fortfarande på den externa juridiska bedömningen.
+
+Testat: lint, build, vitest (175/175), test:rules (260/260, inkl. de 12 nya). Ingen deploy
+gjord ännu – ren backend-/leverantörsfunktion, ingen brådska. Nästa steg: kommissionera den
+juridiska bedömningen (fortfarande i `OPPNA-PUNKTER.md`), eller vänta på ägarens instruktion.

@@ -23,6 +23,7 @@ import {
 } from "../firebase/functions";
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
 import ManadsrapportSektion from "../components/ManadsrapportSektion";
+import BaspaketreferenserSektion from "../components/BaspaketreferenserSektion";
 import "./Leverantor.css";
 
 // Etapp 50b: läses direkt av leverantörens klient mot Firestore (inte via en Cloud Function) –
@@ -980,6 +981,8 @@ export default function Leverantor() {
           ))}
         </ul>
       </section>
+
+      <BaspaketreferenserSektion />
 
       <ManadsrapportSektion />
     </div>

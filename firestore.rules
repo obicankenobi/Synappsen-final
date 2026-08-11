@@ -643,6 +643,36 @@ service cloud.firestore {
       allow delete: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));
     }
 
+    // baspaketreferenser/{refId} – Etapp 64 (ETAPPLAN13.md), scaffolding-fasen (ägarbeslut
+    // 2026-08-11: idén är ANTAGEN, men INTE byggbar förrän en extern juridisk bedömning av
+    // MDR-kvalificering och upphovsrätt finns). Detta ÄR den "hårda spärren" mot att något
+    // läcker till en kund innan dess: HELT begränsad till plattformsadmin (leverantören) –
+    // ingen kundorganisations superadmin, oavsett roll, kan läsa eller skriva collectionen
+    // alls. Ingen per-organisation-modulflagga finns än; den läggs till i en SENARE commit,
+    // efter den juridiska bedömningen, tillsammans med det faktiska kundgränssnittet.
+    // Schemat är strikt referensmetadata (titel, utgivare, källdatum, url, kategori) – det
+    // finns MEDVETET inget innehållsfält, en strukturell spärr mot att någonsin lagra ett
+    // instruments faktiska innehåll (genomgående krav 26). url valideras mot samma godkända
+    // källdomäner som klinikstödet (se urlHarGodkandDoman ovan).
+    match /baspaketreferenser/{refId} {
+      allow read: if arPlattformsadmin();
+      allow create: if arPlattformsadmin()
+                     && request.resource.data.keys().hasOnly(['titel', 'utgivare', 'kalldatum', 'url', 'kategori', 'tillagd', 'tillagdAv'])
+                     && request.resource.data.titel is string && request.resource.data.titel.size() > 0
+                     && request.resource.data.utgivare is string && request.resource.data.utgivare.size() > 0
+                     && urlHarGodkandDoman(request.resource.data.url)
+                     && request.resource.data.tillagdAv == request.auth.uid
+                     && !harTroligtPersonnummer(request.resource.data.titel)
+                     && !harTroligtPersonnummer(request.resource.data.get('kategori', ''));
+      allow update: if arPlattformsadmin()
+                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['titel', 'utgivare', 'kalldatum', 'url', 'kategori'])
+                     && request.resource.data.titel is string && request.resource.data.titel.size() > 0
+                     && urlHarGodkandDoman(request.resource.data.url)
+                     && !harTroligtPersonnummer(request.resource.data.titel)
+                     && !harTroligtPersonnummer(request.resource.data.get('kategori', ''));
+      allow delete: if arPlattformsadmin();
+    }
+
     // dubblettdismissningar/{dismissId} – Etapp 37c: en redaktör har tittat på ett
     // misstänkt dubblettpar (mekanisk likhetsjämförelse, körs bara klientsidan) och avfärdat
     // det som INTE en dubblett, så det inte flaggas igen vid varje besök. Ingen automatisk

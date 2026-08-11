@@ -5,17 +5,21 @@
 *ANTAGEN 2026-08-11 – ägaren har beslutat att idén ska drivas vidare (beslutspunkt 1:s första
 hälft). Se `BESLUTSLOGG.md` för beslutet ordagrant och `OPPNA-PUNKTER.md` för vad som
 konkret återstår.*
+*Scaffolding-fasen byggd 2026-08-11 (v5.97.0) – se "Scaffolding-fasen" nedan för den exakta
+gränsen mellan vad som är byggt och vad som fortfarande väntar.*
 
 > **Läs detta först, ÄVEN efter antagandet.** Den här planen innehåller EN enda etapp (64),
 > och den skiljer sig från alla andra antagna planer i projektet på ett sätt som är värt att
-> säga rakt ut: **"antagen" betyder INTE "byggbar av en kodsession".** Idén rör två
+> säga rakt ut: **"antagen" betyder INTE "byggbar av riktigt innehåll".** Idén rör två
 > regulatoriska gränser (medicinteknisk produkt under MDR, och upphovsrätt till nationella
-> instrument) som kräver juridiska svar innan någon rad kod skrivs – inte bara en
-> premisskontroll mot koden, som resten av projektets etapper klarar sig med. Antagandet
-> betyder bara att ägaren vill att idén drivs vidare och att den juridiska bedömningen
-> kommissioneras – INTE att bygget kan påbörjas. Beslutspunkt 1:s andra hälft (vem gör
-> bedömningen) är fortfarande öppen, se `OPPNA-PUNKTER.md`. Blanda inte ihop "antagen som
-> nästa prioritet" med "byggbar".
+> instrument) som kräver juridiska svar innan ETT ENDA riktigt namngivet instrument läggs
+> in eller något blir synligt för en kund. En avgränsad scaffolding-fas ÄR byggd (ny
+> ägarbestämd avvägning 2026-08-11, se "Scaffolding-fasen" nedan) – rent struktur och
+> gränssnitt, utan riktigt innehåll, osynligt för alla kunder. Den gränsen är skarp och
+> medveten, inte en glidning: **64a:s riktiga referensposter, 64b:s centrala källbevakning
+> och varje per-organisation-toggle väntar fortfarande på den juridiska bedömningen.**
+> Beslutspunkt 1:s andra hälft (vem gör bedömningen) är fortfarande öppen, se
+> `OPPNA-PUNKTER.md`.
 
 ---
 
@@ -168,7 +172,33 @@ vem som äger posten, och kvarstår alltså oavsett leveransmodell:
 | 3 | **Domänlistan saknar de mest sannolika utgivarna.** Socialstyrelsen och SBU finns INTE bland de sju godkända domänerna. | `functions/klinikstod.js:34`, `src/config/kalldomaner.js:4`, `firestore.rules` (`urlHarGodkandDoman`) | **A och B** | Nationella riktlinjer och bedömningsunderlag bor ofta just där. Domänallowlistan är gemensam för hela appen – att utöka den är en ändring av en säkerhetsgräns i tre synkade lager plus regeltest, oavsett vem som äger den enskilda posten. |
 | 4 | **Var baspaketet lever är obesvarat.** `externaKallor` är ett fält på rutindokument, och rutiner är per organisation. | `firestore.rules:469–497`, `functions/backup.js:36` (`BACKUP_COLLECTIONS`) | **Bara A** | Under A får varje kund kopior (en fan-out-uppdatering, och kopiorna hamnar i backup, export och radering som om de vore kundens eget innehåll) ELLER paketet ligger centralt (då fungerar inte den befintliga källbevakningen alls, se rad 1). Under B är frågan redan besvarad: posterna ligger på kundens egna rutiner från start. |
 
-### Hur ett baspaket SKA byggas, om det byggs
+### Scaffolding-fasen – ✅ KLAR (2026-08-11)
+
+Ägarbeslut samma dag som antagandet: bygg strukturen NU (utan riktigt instrumentinnehåll),
+eftersom ett konkret gränssnitt är lättare för en jurist att bedöma än ett rent koncept. Se
+`BESLUTSLOGG.md`. Byggt:
+
+- **Ny collection `baspaketreferenser`**, HÅRT begränsad till plattformsadmin (leverantören) –
+  verifierat med sju nya regeltester (`tests/rules/baspaketreferenser.test.mjs`): ingen
+  kundorganisation, inte ens en egen superadmin, kan läsa eller skriva collectionen alls.
+  Ingen per-organisation-modulflagga finns än – den läggs till i en SENARE commit, efter den
+  juridiska bedömningen, tillsammans med det faktiska kundgränssnittet (64d).
+- **Schemat är strukturellt begränsat till referensmetadata**: `titel`, `utgivare`,
+  `kalldatum`, `url`, `kategori`. Reglerna avvisar varje skrivning som innehåller ett fält
+  utanför den listan (`request.resource.data.keys().hasOnly([...])`) – ett `innehall`-fält
+  går alltså inte att smyga in ens av misstag, en strukturell spärr mot 64c/krav 26, inte
+  bara en konvention.
+- **`url` valideras mot samma godkända källdomäner som klinikstödet** (`urlHarGodkandDoman`) –
+  ingen ny domän lades till (tekniska förutsättning 3 kvarstår, se ovan).
+- **Gränssnitt**: `BaspaketreferenserSektion.jsx`, en ny sektion i leverantörsvyn
+  (`/leverantor`, plattformsadmin-bara route sedan tidigare) – syns aldrig för en kund. Har
+  en varningstext som uttryckligen säger att sektionen inte är byggd färdig och att bara
+  FIKTIVA exempelposter ska läggas in tills den juridiska bedömningen finns.
+- **Vad som INTE byggdes, medvetet:** 64b:s centrala källbevakningslarm (tekniska
+  förutsättning 1) och riktigt namngivet instrumentinnehåll. Se "Vad som INTE ingår" nedan –
+  det gäller fortfarande fullt ut, scaffoldingen ändrar ingenting där.
+
+### Hur ett baspaket SKA byggas, om det byggs (efter juridisk bedömning)
 
 - **64a – Referensposter, inte innehåll Synappsen äger.** Varje post i baspaketet är en
   strukturerad referens (titel, källa, utgivare, datum, länk) till den FAKTISKA nationella
@@ -272,7 +302,7 @@ kodsession kan börja bygga 64a–64d.
 
 | Etapp | Innehåll | Modul | Risk | Status |
 |---|---|---|---|---|
-| **64** | Baspaket: nationella referenser (rena länkar/metadata, aldrig beräkning eller reproduktion) | Ny (ej namngiven) – se 64d om ringarna på vattnet | **Regulatorisk – MDR + upphovsrätt** | **ANTAGEN 2026-08-11** (drivs vidare), men **ej byggbar förrän juridisk bedömning finns** (beslutspunkt 1:s andra hälft – vem kommissionerar). Leveransmodell ej vald (beslutspunkt 2). Förvaltning ej prissatt (beslutspunkt 3). |
+| **64** | Baspaket: nationella referenser (rena länkar/metadata, aldrig beräkning eller reproduktion) | Ny (ej namngiven) – se 64d om ringarna på vattnet | **Regulatorisk – MDR + upphovsrätt** | **ANTAGEN 2026-08-11.** Scaffolding-fasen (struktur/gränssnitt, inget riktigt innehåll, plattformsadmin-bara) BYGGD 2026-08-11 (v5.97.0). Riktigt innehåll och 64b:s källbevakningslarm **ej byggbara förrän juridisk bedömning finns** (beslutspunkt 1:s andra hälft – vem kommissionerar). Leveransmodell ej vald (beslutspunkt 2). Förvaltning ej prissatt (beslutspunkt 3). |
 
 ---
 
