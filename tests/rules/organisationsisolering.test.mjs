@@ -477,6 +477,24 @@ async function main() {
   await test("superadminA KAN markera org A:s egen söklogg som åtgärdad (Etapp 62a)", () =>
     assertSucceeds(updateDoc(doc(superA, "sokloggar", "sokloggA"), { atgardad: true, atgardadRutinId: "rutinX" }))
   );
+  await test("volA kan INTE skapa en söklogg vars term innehåller ett personnummer (säkerhetsgranskning 2026-08-11)", () =>
+    assertFails(
+      setDoc(doc(volA, "sokloggar", "sokloggPersonnummer"), {
+        organisationId: ORG_A,
+        term: "journal för patient 900101-0017",
+        antalTraffar: 0,
+      })
+    )
+  );
+  await test("volA KAN fortfarande skapa en vanlig söklogg utan personnummer", () =>
+    assertSucceeds(
+      setDoc(doc(volA, "sokloggar", "sokloggVanlig"), {
+        organisationId: ORG_A,
+        term: "kateterisering",
+        antalTraffar: 0,
+      })
+    )
+  );
 
   console.log("\nauditlogg/{handelseId} – organisationsisolering");
   await test("superadminB kan INTE läsa org A:s auditlogg", () =>
