@@ -41,10 +41,15 @@ service firebase.storage {
 
     // Etapp 35c: innan detta fanns INGA begränsningar på filstorlek eller innehållstyp
     // (verifierat – noll förekomster av request.resource.size/contentType). Konsekvenser:
-    // en godtyckligt stor fil (kostnad/utrymme) och en godtycklig filtyp – SVG/HTML är den
-    // klassiska vägen till lagrad XSS från en lagringsdomän. Gränserna nedan matchar vad
-    // klientens egna <input accept> redan begränsar till (se RutinFormular.jsx/LaddaUpp.jsx/
-    // storage.js) – det här är bara serverbekräftelsen av samma regel, inte en ny.
+    // en godtyckligt stor fil (kostnad/utrymme) och en godtycklig filtyp. Gränserna nedan
+    // matchar vad klientens egna <input accept> redan begränsar till (se
+    // RutinFormular.jsx/LaddaUpp.jsx/storage.js) – det här är bara serverbekräftelsen av
+    // samma regel, inte en ny.
+    // Säkerhetsgranskning 2026-08-11: `arBild()` (image/.*) matchar ÄVEN image/svg+xml, som
+    // fortfarande är den klassiska vägen till lagrad XSS från en lagringsdomän – en tidigare
+    // version av den här kommentaren gav intrycket att SVG var stängt, vilket inte stämmer.
+    // Kvarstår som ett ÖPPET produktbeslut (organisationslogotypen kan rimligen vilja tillåta
+    // SVG), se OPPNA-PUNKTER.md.
     function arBildEllerPdf() {
       return request.resource.contentType.matches('image/.*') || request.resource.contentType == 'application/pdf';
     }

@@ -30,6 +30,7 @@ och "väntar, bevaka bara" kräver ingen förberedelse; "ägarbeslut", "bokad m�
 | Vad | Var det står beskrivet | Öppet sedan | Blockerat av | Nästa konkreta handling |
 |---|---|---|---|---|
 | Etapp 32b – tre kvarvarande larmtyper (avvikande läsvolym, upprepade `permission-denied`, ovanliga inloggningar) **+ Etapp 48c – täckningsbidrag per kund** (bekräftat 2026-08-06: samma blockering) | `ETAPPLAN5.md` §32b, `ETAPPLAN10.md` §48c | 2026-07-31 | Ägarbeslut: aktivera GCP-faktureringsexport till BigQuery (GCP-konsolen, inte en kodändring)? | Ägaren avgör om exporten ska aktiveras – låser upp båda punkterna på en gång |
+| `storage.rules` tillåter SVG i alla bilduppladdningsvägar (`arBild()` matchar `image/svg+xml`), inklusive organisationslogotypen – en SVG kan bära inbäddad JavaScript och är den klassiska vägen till lagrad XSS från en lagringsdomän | `storage.rules` (kommentar vid `arBild()`), `SAKERHETSRAPPORT.md` tillägg 2026-08-11 | 2026-08-11 (granskning) | Ägarbeslut: behövs SVG för organisationslogotypen, eller räcker PNG/JPEG? | Om SVG inte behövs: byt `arBild()` till en allowlist utan `svg`. Om det behövs: sanera SVG:n server-side (t.ex. strippa `<script>`/event-attribut) innan den serveras |
 
 ## Kräver en bokad människa
 

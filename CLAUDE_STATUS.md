@@ -6,9 +6,15 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-11, version **5.97.0** – INTE ÄNNU DEPLOYAD (senaste bekräftade
-produktionsdeploy är fortfarande v5.96.0, körning #74). **`ETAPPLAN12.md` (Etapp 59–63, "Från
-demo till drift") är HELT KLAR OCH DEPLOYAD** (v5.96.0, körning #74) – se sektionen
+**Senast uppdaterad:** 2026-08-11, version **5.98.0** – INTE ÄNNU DEPLOYAD (senaste bekräftade
+produktionsdeploy är fortfarande v5.96.0, körning #74). v5.98.0 är resultatet av en **bred
+säkerhets- och kvalitetsgranskning** (inte en `ETAPPLANx.md`-etapp) – se sektionen
+"Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)" längst ner för vad som
+åtgärdades och vad som återstår. **Kör `npm run test:rules` och `npm run test:e2e` innan denna
+gren deployas eller mergas** – de gick inte att köra i granskningens sandbox (Firebase-
+emulatorn kräver att `::1` går att binda, saknas där), och tre av regeländringarna är bara
+manuellt granskade, inte emulatorverifierade. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
+drift") är HELT KLAR OCH DEPLOYAD** (v5.96.0, körning #74) – se sektionen
 "Uppföljning 2026-08-11 (ETAPPLAN12.md helt klar, v5.96.0)" längst ner.
 **`ETAPPLAN13.md` (Etapp 64, baspaketet) är nu DEN ANTAGNA PLANEN.** Ägaren beslutade
 2026-08-11 att idén ska drivas vidare (se `BESLUTSLOGG.md`), och samma dag att en
@@ -2563,3 +2569,58 @@ bedömningen) är fortfarande den enda blockeringen mot att bygga något med rik
 MDR-kvalificeringsfrågan och upphovsrättsfrågan är oförändrade av att urvalet nu är
 kundspecifikt snarare än universellt. Ingen kod ändrades i den här sessionen, ingen
 versionsbump, ingen deploy.
+
+## Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)
+
+En fristående granskningssession (INTE en `ETAPPLANx.md`-etapp) gick igenom hela kodbasen med
+åtta parallella genomgångar på disjunkta filområden: Firestore-/Storage-regler, Cloud
+Functions, frontend, de stora formulär-/adminfilerna, tillgänglighet (WCAG 2.1 AA), offline/
+PWA-livscykel, test-/byggkedja och dokumentens sanningshalt. Full detaljerad rapport i
+`GRANSKNING-2026-08-11.md` (arbetet) och ett nytt tillägg i `SAKERHETSRAPPORT.md` (fynden,
+prioriterade). Gren: `claude/synappsen-final-review-slzcxe`, PR #15.
+
+**Allvarligast åtgärdat:**
+- Firestores IndexedDB-cache tömdes ALDRIG vid utloggning – på en delad akutdator läste nästa
+  person föregående persons cachade rutiner/kontakter. Ny `rensaLokalaAnvandardata()` i
+  `src/firebase/config.js` (terminate + clearIndexedDbPersistence + bildcache + localStorage),
+  hård omladdning efteråt, flerflikfallet hanterat.
+- `deploy.yml` körde `firebase deploy --force` (inklusive reglerna) utan att köra ETT enda
+  test först. Lint, vitest och regeltester körs nu före bygget.
+- `firestore.rules` `organisationer/{orgId}`: fältspärren var en tom sanning vid create/delete
+  (villkorad av `resource != null && request.resource != null`) – en superadmin i en pausad
+  org kunde radera dokumentet och häva sin egen avetablering.
+- `firestore.rules` `anteckningar/{dokId}`: skrivning kontrollerade `uid`, läsning
+  kontrollerade dokId-prefixet – en användare kunde plantera en anteckning under en annan
+  användares prefix.
+- `sokloggar` saknade personnummerspärr på fältet `term`, till skillnad från varje annat
+  fritextfält – en nollträffssökning på ett personnummer skrevs i klartext och visades för
+  superadmin.
+- `skickaPush` bröt FCM:s 500-tokengräns utan try/catch i de schemalagda jobbens loop – en
+  organisation med fler tokens kunde avbryta dygnets påminnelser för ALLA organisationer.
+- `AuthContext.jsx`: `getDoc` utan try/catch kunde ge en permanent vit skärm för hela appen.
+- Fyra ställen med e-postadresser i klartext i Cloud Logging.
+- Tillgänglighet: kommandopaletten (Ctrl/Cmd+K, appens primära sökväg) saknade fokusfälla/Esc/
+  fokusåterlämning; `VersionsHistorik` var nakna div utan `role`; fokusindikatorn på input/
+  select hade 1,06:1 kontrast mot kravet 3:1; ingen global `prefers-reduced-motion`. Tre av
+  dessa motsäger `TILLGANGLIGHETSREDOGORELSE.md` direkt (se nedan).
+- Flera tysta felhanteringsluckor i `RutinFormular.jsx`/`LaddaUpp.jsx`/`Profil.jsx`/
+  `Admin.jsx` (bl.a. 2FA-policyns spara-knapp kunde se sparad ut medan anropet fallit), en
+  blob-URL-läcka, saknad klientvalidering av bilagor mot `storage.rules`s gränser.
+
+**Kvar att göra, i prioritetsordning** (fullständig lista med motivering i
+`SAKERHETSRAPPORT.md`s tillägg):
+1. **Kör `npm run test:rules` och `npm run test:e2e` mot en riktig emulator** innan merge/
+   deploy – tre regeländringar är overifierade.
+2. `functions/backup.js` `aterstallOrganisation` saknar allowlist mot collection-namn.
+3. `storage.rules` `arBild()` tillåter SVG överallt, inklusive organisationslogotypen – ett
+   öppet ägarbeslut, nu i `OPPNA-PUNKTER.md`.
+4. Ingen samtidighetshantering vid redigering av samma rutin (rak `updateDoc`, ingen
+   version/transaktion) – två redaktörer som sparar överskriver varandra spårlöst.
+5. `TILLGANGLIGHETSREDOGORELSE.md` är INTE rättad mot de tre WCAG-fynden som motsäger den.
+
+npm audit: 7 sårbarheter, men `npm audit --omit=dev` och en separat körning i `functions/` ger
+båda noll – samtliga är dev-only. Den kritiska kräver en planerad major-uppgradering av
+`firebase-tools` (v13→v15), inte `--force`.
+
+Testat i granskningen: lint rent, build OK, `npx vitest run` 175/175 (25 filer). Regeltester
+och e2e INTE körda (se ovan). Ingen deploy gjord.
