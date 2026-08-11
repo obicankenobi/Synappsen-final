@@ -425,3 +425,164 @@ klinikstöd/kommentarer/feedback, returnerar ENDAST en boolean – aldrig hashen
 – klienten känner aldrig till rätt kod under några omständigheter. 8 regeltester
 (`tests/rules/kioskrestriktioner.test.mjs`) + 9 functions-tester
 (`tests/functions/kioskrestriktioner.test.cjs`).
+
+## Tillägg (2026-08-11, v5.97.0): bred kodgranskning
+
+En bred granskning av hela kodbasen (regelfiler, Cloud Functions, klient, CI, tillgänglighet)
+genomförd 2026-08-11 mot v5.97.0. Åtgärderna nedan är committade på grenen
+`claude/synappsen-final-review-slzcxe`. Detta tillägg följer den återkommande
+säkerhetsgenomgången i `CLAUDE.md` – dess fem punkter besvaras sist i blocket.
+
+### Åtgärdat: två faktiska behörighetshål i `firestore.rules`
+
+**1. Avetablering kunde hävas av den som avetablerats.** `organisationer/{orgId}` hade en
+`allow write` vars fältspärr var villkorad av `resource != null && request.resource != null`.
+Villkoret är **tomt sant vid create och vid delete** – bara update träffades. En superadmin i
+en PAUSAD organisation kunde därmed radera organisationsdokumentet, varpå
+`organisationenArAktiv()` fail-openar (dokumentet saknas ⇒ ingen paus hittas) och hela
+avetableringen hävs. Samtidigt försvann 2FA-kravet, som låg i samma fältspärr. Rättat genom
+uppdelning: `allow create, delete: if false` + en ovillkorlig `allow update`. Detta är samma
+familj av fel som kioskblocket i tillägget 2026-08-10 – ett villkor som *ser* heltäckande ut
+men inte utvärderas för alla operationer.
+
+**2. Anteckningar kunde blockeras av annan användare.** Skrivregeln för `anteckningar/{dokId}`
+kontrollerade fältet `uid` i dokumentet, medan läsregeln kontrollerar dokId-prefixet. En
+användare kunde skapa ett dokument under en annan användares prefix och därmed **permanent
+blockera den användarens egen anteckning** (dokId var upptaget, och skaparen kunde själv inte
+läsa det). Ingen läsning av andras data, men en varaktig funktionsförlust. Rättat till samma
+kontroll på båda sidor.
+
+### Åtgärdat: driftstabilitet i Cloud Functions
+
+- `gemensamt.js skickaPush` bröt mot FCM:s gräns på 500 tokens per anrop. En organisation som
+  passerade gränsen fick hela dygnets påminnelsejobb att avbrytas – **för samtliga
+  organisationer**, inte bara sin egen. Nu chunkat.
+- `ai-import.js` saknade längdgräns på `innehall` (nu 50 000 tecken). Eftersom
+  `reserveraBudget()` drar en **fast** kostnad medan Gemini debiteras per token motsvarade
+  budgettaket inte faktisk kostnad – ett obegränsat fält gjorde taket verkningslöst.
+
+### Åtgärdat: personuppgifter i Cloud Logging
+
+Mottagares e-postadresser skrevs till loggen på fyra ställen (`gemensamt.js`,
+`inbjudningar.js`, `matvarden.js`, `notiser.js`). Ersatta med organisations-id/uid. Cloud
+Logging är inte täckt av samma åtkomstmodell som Firestore och ska enligt principen i
+incidentdokumenten aldrig innehålla identifierbara personuppgifter.
+
+### Åtgärdat: fyra fel som kunde ta appen ur bruk
+
+- `src/context/AuthContext.jsx`: ett `getDoc` utan try/catch hoppade över `setLoading(false)`
+  – ett nätverksfel gav **permanent vit skärm för hela appen**.
+- `src/hooks/useOfflineKo.js`: `catch { break; }` innebar att en post som permanent nekas
+  blockerar hela offlinekön för alltid (head-of-line blocking).
+- `src/hooks/useAppUppdatering.js`: uppdateringskontroll skedde bara vid sidladdning. En PWA i
+  kioskläge startas sällan om – en tavla kunde alltså köra en månadsgammal build av en
+  **medicinsk rutindatabas** utan att uppdateringsbannern någonsin visades. Nu periodisk.
+- Tre e2e-tester kunde bli gröna utan att bevisa något (sväljd `goto`-catch plus rent negativa
+  assertions). Ett test som inte kan misslyckas är sämre än inget test – det ger falsk trygghet.
+
+### Åtgärdat: tillgänglighet (WCAG 2.1 AA – lagkrav) och CSP
+
+Kommandopaletten saknade fokusfälla, Esc och fokusåterlämning; `VersionsHistorik` var nakna
+`div`ar utan `role`/Esc; fokusindikatorn på input/select hade 1,06:1 kontrast mot kravets 3:1;
+ingen global `prefers-reduced-motion`. Se `TILLGANGLIGHETSREDOGORELSE.md` för punktstatus.
+CSP:n saknade `report-uri`, vilket gjorde den observationsperiod `ETAPPLAN5.md` 35b kräver före
+skärpning omöjlig att genomföra. Tillagd.
+
+### Två punkter som var öppna när tillägget skrevs, men åtgärdades i samma granskning
+
+Rapporten skrevs parallellt med att fixarna byggdes, och listade därför båda som öppna.
+Verifierat i grenen efteråt:
+
+- **Firestores IndexedDB-cache töms nu vid utloggning.** `loggaUt()` var enbart `signOut`,
+  och `persistentLocalCache` är inte nycklad per användare – på en **delad akutdator** låg
+  föregående användares cachade rutiner och kontaktuppgifter kvar läsbara efter utloggning.
+  Det var granskningens allvarligaste fynd, eftersom den delade datorn är det typiska
+  installationsscenariot och luckan bryter mot samma isoleringsförväntan som hela
+  organisationsmodellen vilar på. `rensaLokalaAnvandardata()` i `src/firebase/config.js` gör
+  nu `terminate` + `clearIndexedDbPersistence`, tömmer bildcachen och `offlineCenter_*`-
+  nycklarna, följt av hård omladdning. Flerflikfallet (`failed-precondition`) fångas, så
+  städningen aldrig kan få utloggningen att hänga eller misslyckas. **Kvarstår:** cachen kan
+  inte tömmas förrän sista fliken stängts – en Firestore-begränsning, inte något som går runt.
+- **Deployen körs inte längre utan tester.** `deploy.yml` körde `firebase deploy --force` utan
+  föregående lint, `vitest` eller regeltester, och eftersom deployen inkluderar
+  `firestore.rules` kunde ett regelfel av exakt den typ som rättats ovan nå produktion helt
+  otestat. Lint, enhetstester och regeltester körs nu före bygget och failar jobbet.
+
+### Ej åtgärdat – prioriterat
+
+**Hög – bör tas härnäst:**
+
+1. **`aterstallOrganisation` saknar allowlist** (`functions/backup.js`, återställningsloopen).
+   Backupfilens nycklar används verbatim som collection-namn, och org-spärren
+   (`if (falt.organisationId && falt.organisationId !== orgId) continue;`) löser **inte** ut för
+   dokument som saknar `organisationId` – verifierat i koden. Djupförsvar, eftersom angreppet
+   kräver både plattformsadmin och skrivåtkomst till backupbucketen, men konsekvensen (skrivning
+   till godtycklig collection) motiverar en allowlist mot `BACKUP_COLLECTIONS` +
+   `BACKUP_SUBCOLLECTIONS` + `revisionsloggHuvud`.
+
+**Medel:**
+
+4. **Uppströms felmeddelanden vidarebefordras ordagrant** (`klinikstod.js` sök- och
+   Gemini-anropen, `ai-import.js`) – verifierat: `throw new HttpsError("internal",
+   ...${fel.message})`. Googles råa felkropp kan innehålla projektnummer och
+   tjänstekontodetaljer och når en vanlig `personal`-användare. Logga fullt, returnera generiskt.
+5. **Fem schemalagda loopar saknar try/catch per varv** (`notiser.js` ×3,
+   `avtalslivscykel.js`, `revisionslogg.js`). Ett enda trasigt dokument stoppar batchen för alla
+   återstående organisationer – samma felmönster som push-buggen ovan, som redan visat sig i
+   praktiken.
+6. **Ingen samtidighetshantering vid redigering av samma rutin.** Rak `updateDoc` utan
+   versionskontroll: två redaktörer som sparar överskriver varandra spårlöst. I en
+   rutindatabas för akutsjukvård är en tyst borttappad ändring ett innehållsintegritetsproblem,
+   inte bara en olägenhet.
+7. **Föräldralösa filer i Storage.** `inkommande/{uid}/…` raderas aldrig efter tolkning, och en
+   borttagen bilaga tas bara ur `bilagor`-arrayen – aldrig ur Storage. Det senare är det
+   allvarligare: en bilaga tas ibland bort just för att den innehöll patientuppgifter, och då
+   ligger den kvar åtkomlig via sin sökväg.
+8. **`arBild()` matchar `image/svg+xml`** (`storage.rules` – verifierat: `matches('image/.*')`)
+   trots att kommentaren intill påstår att SVG-vägen till lagrad XSS är stängd. Ägaren har
+   bedömt att en logotyp i SVG är ett rimligt användningsfall, så regeln behålls – men
+   **kommentaren är felaktig och ska rättas**, annars läser nästa granskare den som ett skydd
+   som inte finns. Ett dokumenterat, medvetet accepterat läge är i sig godtagbart; ett felaktigt
+   påstående om ett skydd är det inte.
+
+**Låg (skalning och användarupplevelse, inga säkerhetskonsekvenser):**
+
+9. Saknad `.limit()`/paginering – hela `anslag` läses varje natt tvärs alla kunder, och
+   `hamtaAnvandareForEpostPaminnelse` gör N×M-läsningar. Ofarligt i dagens datamängd, kostsamt
+   vid tillväxt.
+10. `tolkaForradsbild` gör `batch.set` per artikel utan tak mot Firestores gräns på 500
+    skrivningar per batch – en tillräckligt innehållsrik förrådsbild misslyckas.
+11. Halvskrivet rutinformulär kan förloras utan varning – ingen `beforeunload`-vakt och ingen
+    utkastsparning.
+
+### Verifieringslucka – läs detta innan regeländringarna litas på
+
+**Regeltesterna gick inte att köra i sandboxen.** Firebase CLI:s emulator kräver att `::1`
+binds, och miljön saknar IPv6. Regeländringarna i `firestore.rules` är därför **manuellt
+granskade men inte emulatorverifierade**, och e2e-testerna endast syntaxkontrollerade.
+Det är samma sorts risk som tillägget 2026-08-10 handlade om: där var det just ett *körande*
+regeltest som avslöjade att en resonemangsmässigt riktig regel inte fungerade. Kör
+`npm run test:rules` och `npm run test:e2e` i en miljö med IPv6 innan grenen mergas – de två
+regelrättelserna ovan ska inte betraktas som bekräftade förrän det är gjort.
+
+### Den obligatoriska femstegskontrollen (`CLAUDE.md`)
+
+1. **Ny collection med regeltester?** Ingen ny collection i denna granskning. Två *ändrade*
+   regelblock (`organisationer`, `anteckningar`) – befintliga testfiler täcker dem, men se
+   verifieringsluckan ovan: de är inte körda.
+2. **Ny uppladdningsväg med storleks-/innehållstypsbegränsning?** Ingen ny väg. Befintliga
+   vägar har begränsningar, med den kända avvikelsen att `arBild()` släpper igenom SVG
+   (punkt 8).
+3. **Läcker en ny loggpunkt personuppgifter eller dokumentinnehåll?** Ja – fyra *befintliga*
+   loggpunkter läckte mottagares e-postadresser och är åtgärdade. Inga nya loggpunkter tillförda.
+4. **npm audit genomläst?** Ja. 7 sårbarheter i den fullständiga trädet, men både
+   `npm audit --omit=dev` och `functions/` ger **noll** – samtliga sju är alltså rent
+   utvecklingsberoenden och når aldrig produktionsartefakten. Den kritiska (`tar` via
+   `firebase-tools@13`) kräver en major-uppgradering till v15, inte `--force`;
+   `npm audit fix` utan `--force` löser 5 av 7 säkert och kan göras när som helst. Ingen
+   åtgärd är brådskande, men `firebase-tools`-hoppet bör planeras in som ett eget arbete
+   snarare än klämmas in i en release.
+5. **~6 månader sedan senaste återställningsövning?** Nej. Riktmärket i `avtal/IT-FAKTABLAD.md`
+   p. 6 är inte passerat sedan förra kontrollen, och ingen ny övning behöver bokas i denna
+   omgång. Notera dock att punkt 3 ovan rör återställningsfunktionen: om allowlisten byggs bör
+   nästa övning uttryckligen inkludera ett återställningsprov, eftersom koden då ändrats.
