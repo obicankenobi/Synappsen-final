@@ -22,10 +22,45 @@ export default function KommandopalettInnehall({ onStang }) {
   const populara = usePopularaste(5);
   const navigate = useNavigate();
   const inputRef = useRef(null);
+  const rutaRef = useRef(null);
+  const senasteFokusRef = useRef(null);
   const [sokterm, setSokterm] = useState("");
 
+  // Tillgänglighet: paletten är `role="dialog" aria-modal="true"` men saknade det
+  // Esc/fokusfångst/återlämning-mönster som DialogProvider.jsx (Etapp 13g) och MerMeny.jsx
+  // (Etapp 45c) redan använder. Esc fanns bara på sökfältet och på träfflistans knappar –
+  // knapparna under "Senast besökta"/"Populärast" saknade den helt, och Tab kunde vandra ut
+  // i bakgrundsinnehållet bakom en dialog som påstår sig vara modal (WCAG 2.1.2, 2.4.3).
   useEffect(() => {
+    senasteFokusRef.current = document.activeElement;
     inputRef.current?.focus();
+
+    function hanteraTangent(e) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onStang();
+        return;
+      }
+      if (e.key !== "Tab" || !rutaRef.current) return;
+      const fokuserbara = rutaRef.current.querySelectorAll("a, button, input, select, textarea");
+      if (fokuserbara.length === 0) return;
+      const forsta = fokuserbara[0];
+      const sista = fokuserbara[fokuserbara.length - 1];
+      if (e.shiftKey && document.activeElement === forsta) {
+        e.preventDefault();
+        sista.focus();
+      } else if (!e.shiftKey && document.activeElement === sista) {
+        e.preventDefault();
+        forsta.focus();
+      }
+    }
+
+    document.addEventListener("keydown", hanteraTangent);
+    return () => {
+      document.removeEventListener("keydown", hanteraTangent);
+      senasteFokusRef.current?.focus?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ska bara köras vid montering/avmontering
   }, []);
 
   function stang() {
@@ -68,6 +103,7 @@ export default function KommandopalettInnehall({ onStang }) {
     <div className="kommandopalett__bakgrund" onClick={stang}>
       <div
         className="kommandopalett"
+        ref={rutaRef}
         role="dialog"
         aria-modal="true"
         aria-label="Kommandopalett"
@@ -83,6 +119,12 @@ export default function KommandopalettInnehall({ onStang }) {
           onKeyDown={hanteraFaltTangent}
           aria-label="Sök i kunskapsbanken eller kör en åtgärd"
         />
+
+        {/* Sökresultaten byttes ut tyst medan fokus låg kvar i fältet – en skärmläsare fick
+            ingen signal om att antalet träffar ändrats (WCAG 4.1.3 Statusmeddelanden). */}
+        <p className="sr-only" role="status" aria-live="polite">
+          {sokterm.trim() ? `${traffar.length} träffar` : ""}
+        </p>
 
         {sokterm.trim() ? (
           <ul className="kommandopalett__resultat" role="listbox">

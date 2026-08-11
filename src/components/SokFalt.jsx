@@ -146,6 +146,11 @@ export default function SokFalt() {
           ))}
         </div>
       )}
+      {/* Sökträffarna uppdateras medan fokus ligger kvar i fältet – utan en live-region får en
+          skärmläsaranvändare ingen signal om att listan ändrats (WCAG 4.1.3). */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {resultat.length > 0 ? `${resultat.length} träffar` : ""}
+      </p>
       {resultat.length > 0 && (
         <ul className="sok-falt__resultat" role="listbox">
           {resultat.map((post, i) => (

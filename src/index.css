@@ -457,8 +457,13 @@ h1 {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
+/* Fokusmarkeringen byggde tidigare enbart på `box-shadow: 0 0 0 3px var(--primar-ljus)` –
+   #eff6ff mot vit fältbakgrund är ca 1,06:1, alltså långt under de 3:1 WCAG 1.4.11 kräver av
+   en fokusindikator. Halon behålls (den läser som ett "glow"), men en riktig outline i
+   --primar-mork (#1d4ed8, 7,0:1 mot vitt) läggs till så indikatorn faktiskt går att se. */
 .auth-form input:focus {
-  outline: none;
+  outline: 2px solid var(--primar-mork);
+  outline-offset: 1px;
   border-color: var(--primar);
   box-shadow: 0 0 0 3px var(--primar-ljus);
 }
@@ -485,7 +490,8 @@ select {
 }
 
 select:focus {
-  outline: none;
+  outline: 2px solid var(--primar-mork);
+  outline-offset: 1px;
   border-color: var(--primar);
   box-shadow: 0 0 0 3px var(--primar-ljus);
 }
@@ -733,4 +739,22 @@ select:focus {
 .badge--status-avvisad {
   background: var(--farlig-ljus);
   color: var(--farlig-mork);
+}
+
+/* Tillgänglighet (WCAG 2.3.3 / 2.2.2): appen animerar på flera ställen – skelettladdarens
+   puls (Skelett.css, som redan hade en egen regel), checklistlägets övergångar (Korvy.css),
+   knapparnas `transform`-tryck och samtliga färg-/skuggövergångar här i index.css. Bara
+   Skelett.css respekterade användarens systeminställning "minska rörelse". Den här globala
+   regeln stänger av resten – för personer med vestibulär yrsel är rörelse inte en kosmetisk
+   fråga utan något som gör verktyget oanvändbart. `!important` behövs eftersom regeln måste
+   väga tyngre än varje enskild komponents egen animation/transition. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
