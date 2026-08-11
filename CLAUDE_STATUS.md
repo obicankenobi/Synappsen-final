@@ -7,12 +7,13 @@
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
 **Senast uppdaterad:** 2026-08-11, version **5.96.0**. **`ETAPPLAN12.md` (Etapp 59–63, "Från
-demo till drift") är nu HELT KLAR** – 62a (skapa rutin från en sökluck), 62b (veckopulsen),
-62c (åtgärdsbara rader i hälsosiffran), 63a (`OPPNA-PUNKTER.md` grupperad efter insatstyp),
-63b (`REDAKTORSGUIDE.md`/`PILOTUPPLAGG.md`, pilotpaketet förberett utan en pilot) och 63c (de
-tre ägarbesluten, se `BESLUTSLOGG.md`) byggda i ett sammanhängande pass. Se sektionen
-"Uppföljning 2026-08-11 (ETAPPLAN12.md helt klar, v5.96.0)" längst ner för detaljer och
-deploy-status.
+demo till drift") är HELT KLAR OCH DEPLOYAD** (v5.96.0, körning #74) – se sektionen
+"Uppföljning 2026-08-11 (ETAPPLAN12.md helt klar, v5.96.0)" längst ner.
+**`ETAPPLAN13.md` (Etapp 64, baspaketet) är nu DEN ANTAGNA PLANEN** – ägaren beslutade
+2026-08-11 att idén ska drivas vidare (se `BESLUTSLOGG.md`), men den har **inget byggbart
+steg än**: kvarvarande uppgift är att kommissionera en extern juridisk bedömning (MDR +
+upphovsrätt), se `OPPNA-PUNKTER.md`. Planen granskades två gånger samma dag och fick sju fel
+rättade totalt. Se sektionen "Uppföljning 2026-08-11 (ETAPPLAN13 antagen)" längst ner.
 `ETAPPLAN11.md` (Etapp 53–58) är nu **HELT KLAR utom 54c/54d och Etapp 58** – båda väntar
 medvetet på en extern förutsättning (konkret andra enhet respektive en kund som kräver SSO),
 inte på kapacitet, se `OPPNA-PUNKTER.md`. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
@@ -2481,3 +2482,23 @@ förbi. Se planens egen "Granskning"-sektion, punkt 6–7. Samma slutsats som ti
 `ETAPPLAN13.md` är fortfarande inte byggbar utan en extern juridisk bedömning – det här ändrar
 inte SLUTSATSEN, bara kvaliteten på underlaget som når juristen. Ingen versionsbump, ingen
 deploy.
+
+---
+
+## Uppföljning 2026-08-11 (ETAPPLAN13 antagen)
+
+Ägaren beslutade att baspaketsidén (Etapp 64) ska drivas vidare – beslutet loggat i
+`BESLUTSLOGG.md`. `ETAPPLAN13.md` är därmed formellt **ANTAGEN**, precis som `ETAPPLAN11.md`
+och `ETAPPLAN12.md` var den dag de antogs, och står nu överst i `CLAUDE.md`s läsordning.
+
+**Viktig distinktion, upprepad på flera ställen i dokumenten för att den inte ska missas:**
+"antagen" betyder INTE "byggbar". Planens centrala risk är regulatorisk (MDR-kvalificering +
+upphovsrätt), och beslutspunkt 1:s andra hälft – vem kommissionerar den externa juridiska
+bedömningen – är fortfarande öppen. Den raden finns nu i `OPPNA-PUNKTER.md` under "Kräver en
+bokad människa" (en betald extern juridisk genomgång, samma bokningskategori men inte ett
+internt möte). Ingen kod ska skrivas för Etapp 64 förrän den bedömningen finns.
+
+Uppdaterade i samma commit: `ETAPPLAN13.md` (statusbanner, "Klart när"-beslutspunkt 1,
+föreslagen ordning, sammanfattningstabell), `CLAUDE.md` (läsordning punkt 3–4 bytte plats och
+innehåll, dokumentkartans två rader), `BESLUTSLOGG.md` (ny rad), `OPPNA-PUNKTER.md` (ny rad).
+Ingen kod, ingen versionsbump, ingen deploy.

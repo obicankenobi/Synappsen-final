@@ -1,16 +1,21 @@
 # Etapplan 13 – Baspaket: nationella referenser, inte kliniskt beslutsstöd
 
 *Utkast 2026-08-10, samma genomgång som `ETAPPLAN12.md`, men medvetet en egen fil.*
-*Granskad och korrigerad 2026-08-11 – se "Granskning" nedan.*
+*Granskad och korrigerad 2026-08-11, andra genomläsning samma dag – se "Granskning" nedan.*
+*ANTAGEN 2026-08-11 – ägaren har beslutat att idén ska drivas vidare (beslutspunkt 1:s första
+hälft). Se `BESLUTSLOGG.md` för beslutet ordagrant och `OPPNA-PUNKTER.md` för vad som
+konkret återstår.*
 
-> **Läs detta först.** Den här planen innehåller EN enda etapp (64), och den skiljer sig från
-> alla andra planer i projektet på ett sätt som är värt att säga rakt ut: **den är inte
-> byggbar av en kodsession.** Idén rör två regulatoriska gränser (medicinteknisk produkt
-> under MDR, och upphovsrätt till nationella instrument) som kräver juridiska svar innan
-> någon rad kod skrivs – inte bara en premisskontroll mot koden, som resten av projektets
-> etapper klarar sig med. Den hölls därför utanför `ETAPPLAN12.md` istället för att blandas
-> in bland dess rättningar, som ALLA är byggbara direkt. Blanda inte ihop de två planernas
-> mognadsgrad.
+> **Läs detta först, ÄVEN efter antagandet.** Den här planen innehåller EN enda etapp (64),
+> och den skiljer sig från alla andra antagna planer i projektet på ett sätt som är värt att
+> säga rakt ut: **"antagen" betyder INTE "byggbar av en kodsession".** Idén rör två
+> regulatoriska gränser (medicinteknisk produkt under MDR, och upphovsrätt till nationella
+> instrument) som kräver juridiska svar innan någon rad kod skrivs – inte bara en
+> premisskontroll mot koden, som resten av projektets etapper klarar sig med. Antagandet
+> betyder bara att ägaren vill att idén drivs vidare och att den juridiska bedömningen
+> kommissioneras – INTE att bygget kan påbörjas. Beslutspunkt 1:s andra hälft (vem gör
+> bedömningen) är fortfarande öppen, se `OPPNA-PUNKTER.md`. Blanda inte ihop "antagen som
+> nästa prioritet" med "byggbar".
 
 ---
 
@@ -219,7 +224,7 @@ och då ska det gå att se vad som fortfarande är byggbart:
 
 | # | Fråga | Varför det inte är mitt beslut | Min rekommendation |
 |---|---|---|---|
-| 1 | **Ska baspaketet drivas vidare, och i så fall – vem gör den juridiska bedömningen innan något byggs?** | Regulatorisk risk (MDR) och upphovsrätt är juridiska frågor, inte tekniska – jag kan visa VAR gränsen sannolikt går utifrån hur klinikstödet redan är byggt, men jag kan inte lämna ett juridiskt bindande svar. | **Beställ en kort extern bedömning av de fyra frågorna i "Klart när" INNAN kod skrivs**, snarare än att bygga först och fråga sedan. Ordningen (juridik → kod) är viktigare än vilken vecka det byggs. |
+| 1 | ~~Ska baspaketet drivas vidare?~~ **Avgjort 2026-08-11, se `BESLUTSLOGG.md`: ja.** **Fortsatt öppet: vem gör den juridiska bedömningen innan något byggs?** | Regulatorisk risk (MDR) och upphovsrätt är juridiska frågor, inte tekniska – jag kan visa VAR gränsen sannolikt går utifrån hur klinikstödet redan är byggt, men jag kan inte lämna ett juridiskt bindande svar. | **Beställ en kort extern bedömning av de fyra frågorna i "Klart när" INNAN kod skrivs**, snarare än att bygga först och fråga sedan. Ordningen (juridik → kod) är viktigare än vilken vecka det byggs. Se `OPPNA-PUNKTER.md` för den konkreta öppna raden. |
 | 2 | **Vilken leveransmodell: centralt kurerat paket (A) eller engångsimport till kundens eget innehåll (B)?** | Det är ett produkt- och ansvarsval, inte ett tekniskt. A och B ger olika löften till kunden. | **Utred B först.** Se jämförelsen nedan – B löser två av de fyra tekniska förutsättningarna gratis (den centrala larmvägen och frågan var paketet lever) och flyttar utgivaransvaret, men de två andra (fyrakällorstaket, domänlistan) kvarstår oavsett modell, och löftet "alltid aktuellt, samma för alla" försvinner. Vilket pris som är värt att betala är ditt beslut, inte mitt. |
 | 3 | **Vem förvaltar baspaketet, och vad får det kosta per månad?** | En löpande redaktörskostnad för leverantören är en affärsfråga. | **Prissätt det innan bygget, inte efter.** Ett kurerat delat bibliotek är ett åtagande för alla kunder, för alltid – strukturellt olikt allt annat i produkten, där innehållsansvaret ligger hos kunden. Om ingen har tid att förvalta det är B (eller inget alls) rätt svar oavsett vad juristen säger. |
 
@@ -255,9 +260,11 @@ utredas innan A byggs.
 
 ## Föreslagen ordning
 
-Ingen – planen har bara en etapp, och den är helt villkorad av beslutspunkt 1. Den blockerar
-inget annat: `ETAPPLAN12.md`s Etapp 59–63 är numera helt klara och deployade, och inget i den
-här planen behövde vänta på dem.
+Ingen – planen har bara en etapp, och den är fortfarande villkorad av beslutspunkt 1:s andra
+hälft (vem kommissionerar bedömningen). Den blockerar inget annat: `ETAPPLAN12.md`s Etapp
+59–63 är helt klara och deployade, och inget i den här planen behövde vänta på dem. Att
+planen är ANTAGEN betyder att den är prioriterad framför en ny okänd idé – inte att en
+kodsession kan börja bygga 64a–64d.
 
 ---
 
@@ -265,7 +272,7 @@ här planen behövde vänta på dem.
 
 | Etapp | Innehåll | Modul | Risk | Status |
 |---|---|---|---|---|
-| **64** | Baspaket: nationella referenser (rena länkar/metadata, aldrig beräkning eller reproduktion) | Ny (ej namngiven) – se 64d om ringarna på vattnet | **Regulatorisk – MDR + upphovsrätt** | Idé, **ej byggbar förrän juridisk bedömning finns** (beslutspunkt 1). Leveransmodell ej vald (beslutspunkt 2). Förvaltning ej prissatt (beslutspunkt 3). |
+| **64** | Baspaket: nationella referenser (rena länkar/metadata, aldrig beräkning eller reproduktion) | Ny (ej namngiven) – se 64d om ringarna på vattnet | **Regulatorisk – MDR + upphovsrätt** | **ANTAGEN 2026-08-11** (drivs vidare), men **ej byggbar förrän juridisk bedömning finns** (beslutspunkt 1:s andra hälft – vem kommissionerar). Leveransmodell ej vald (beslutspunkt 2). Förvaltning ej prissatt (beslutspunkt 3). |
 
 ---
 
