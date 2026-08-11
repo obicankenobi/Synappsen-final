@@ -31,10 +31,14 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
    skrivs (se planens tre beslutspunkter). Ägaren har beslutat att idén ska drivas vidare
    (se `BESLUTSLOGG.md` 2026-08-11) – kvarvarande steg är att kommissionera bedömningen, se
    `OPPNA-PUNKTER.md`. Granskad två gånger 2026-08-11, båda genomgångarna hittade riktiga fel;
-   läs planens egen "Granskning"-sektion innan du litar på en tidigare version. Om användaren
-   ber om fortsatt arbete utan att specificera vad: det här är den antagna planen, men den har
-   inget byggbart steg förrän juridiken är klar – fråga vad nästa etapp ska vara under tiden,
-   eller läs `OPPNA-PUNKTER.md`.
+   läs planens egen "Granskning"-sektion innan du litar på en tidigare version. En
+   **scaffolding-fas ÄR byggd** (v5.97.0, ägarbeslut 2026-08-11): collectionen
+   `baspaketreferenser` i `firestore.rules`, `src/hooks/useBaspaketreferenser.js` och en
+   sektion i leverantörsvyn – helt utan instrumentinnehåll och åtkomlig ENBART för
+   plattformsadmin. Riktigt innehåll (64a) och centrala källbevakningslarm (64b) är
+   fortfarande juridiskt blockerade. Om användaren ber om fortsatt arbete utan att specificera
+   vad: det här är den antagna planen, men inget ytterligare steg är byggbart förrän juridiken
+   är klar – fråga vad nästa etapp ska vara under tiden, eller läs `OPPNA-PUNKTER.md`.
 4. **`ETAPPLAN12.md`** – **HELT KLAR OCH DEPLOYAD** (Etapp 59–63: "Från demo till drift" –
    hållfasthet snarare än nya funktioner). Antagen 2026-08-10 efter en kodgenomgång (inte en
    dokumentgenomgång) av v5.91.0, helt avslutad 2026-08-11 i v5.96.0 (körning #74). Historisk
@@ -76,7 +80,7 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 | `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv men ej stängd.** I det närmaste klar – kvarvarande punkter listade i `OPPNA-PUNKTER.md` istället för att dupliceras här. |
 | `ETAPPLAN11.md` | Etapp 53–58: e-post som kanal, flera enheter under samma huvudman, kioskläge, startbiblioteket, säljmaterialets sanning, SSO | **HELT KLAR utom 54c/54d och Etapp 58** – båda villkorade av en extern förutsättning, inte kapacitet, och sedan 2026-08-10 avgjorda som beslut med omprövningsvillkor (se `BESLUTSLOGG.md`, inte `OPPNA-PUNKTER.md`). Sex premisser verifierade mot faktisk kod innan antagande. |
 | `ETAPPLAN12.md` | Etapp 59–63: "Från demo till drift" – rätta kända fel, mäta prestanda mot en realistisk datamängd, underhållbarhet, göra befintlig mätning åtgärdbar, förenkla de öppna punkterna | **HELT KLAR OCH DEPLOYAD** (antagen 2026-08-10, avslutad 2026-08-11, v5.96.0, körning #74). Historisk men korrekt. |
-| `ETAPPLAN13.md` | Etapp 64: ett "baspaket" av nationella referenser (t.ex. bedömningsinstrument) | **ANTAGEN 2026-08-11** (se `BESLUTSLOGG.md`) – men INTE byggbar av en kodsession förrän en extern juridisk bedömning finns, MDR **och** upphovsrätt (se planens tre beslutspunkter). Kvarvarande steg: kommissionera bedömningen, se `OPPNA-PUNKTER.md`. Granskad två gånger 2026-08-11 (sju fel hittade sammanlagt, fem i utkastet + två i den första omskrivningen), se planens egen "Granskning". |
+| `ETAPPLAN13.md` | Etapp 64: ett "baspaket" av nationella referenser (t.ex. bedömningsinstrument) | **ANTAGEN 2026-08-11** (se `BESLUTSLOGG.md`). Beslutspunkt 2 (leveransmodell) och 3 (förvaltning/pris) är avgjorda 2026-08-11; **beslutspunkt 1 (MDR + upphovsrätt) är kvar och blockerar allt riktigt innehåll**. En scaffolding-fas är byggd i v5.97.0 (`baspaketreferenser`, plattformsadmin-bara, inget innehållsfält). Kvarvarande steg: kommissionera bedömningen, se `OPPNA-PUNKTER.md`. Granskad två gånger 2026-08-11 (sju fel hittade sammanlagt, fem i utkastet + två i den första omskrivningen), se planens egen "Granskning". |
 | `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast som INTE antogs när `ETAPPLAN6.md` valdes | **Utkast, ej antagna.** Arkiverade – se `FRAMTIDSPLAN.md` för omprövningsvillkor per alternativ. |
 | `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv, LEVANDE** – händelsestyrd underhållsregel, se "Obligatorisk underhållsregel: CLAUDE_STATUS.md" under arbetsmönstren nedan. |
 | `src/data/andringslogg.js` | Användarvänd ändringslogg, visas i appen (`/nyheter`) | **Aktiv** – lägg till en post vid VARJE release. |
@@ -135,7 +139,7 @@ Dessa två är de enda dokumenten i projektet vars felaktighet kan få juridiska
 |---|---|
 | `SAKERHETSRAPPORT.md` | Säkerhetsgranskning av multi-tenant-lagret. |
 | `TILLGANGLIGHETSREDOGORELSE.md` | WCAG-status per punkt (lagkrav för offentlig sektor). |
-| `PITCH.md` | Säljmaterial/beslutsunderlag för verksamhetsledning. **Kontrollera versionsnumret i rubriken** vid större releaser (Etapp 22–25s "wow"-funktioner är t.ex. inte omnämnda ännu). |
+| `PITCH.md` | Säljmaterial/beslutsunderlag för verksamhetsledning. Har sedan 2026-08-10 en egen **händelsestyrd** underhållsregel längre ner i det här dokumentet – den gäller före den gamla mjuka "kontrollera versionsnumret"-uppmaningen. (Parentesen som stod här tidigare, "Etapp 22–25s wow-funktioner är inte omnämnda ännu", var själv stale: kommandopaletten, skanning i förrådet och "Sedan ditt förra pass" står numera i dokumentet.) |
 | `avtal/PUB-AVTAL-MALL.md`, `avtal/UNDERBITRADEN.md`, `avtal/DPIA-UNDERLAG.md`, `avtal/IT-FAKTABLAD.md` | GDPR-/upphandlingsunderlag, se `ETAPPLAN3.md` Etapp 13a–13d. |
 | `REDAKTORSGUIDE.md` | Fördjupad guide för redaktörsrollerna (utöver `src/pages/Hjalp.jsx`s allmänna hjälp), skriven 2026-08-11 (Etapp 63b) som förberedelse inför Etapp 52:s pilot. |
 | `PILOTUPPLAGG.md` | Konkret pilotupplägg (4–6 veckor, de tre måtten från `PITCH.md`, checklistor före/efter), skriven 2026-08-11 (Etapp 63b) – förberedelse, ingen pilot är bokad än. |
@@ -156,8 +160,17 @@ Dessa två är de enda dokumenten i projektet vars felaktighet kan få juridiska
 - **Fullt testsvep före commit:** `npm run lint`, `npm run build`, `npx vitest run`,
   `npm run test:rules`, `npm run test:functions`, `npm run test:storage`, `npm run test:e2e`
   (kräver `PLAYWRIGHT_CHROMIUM_PATH` lokalt i den här sandboxen, se `playwright.config.js`).
-- **Git-gren:** allt arbete sker på `claude/compassionate-euler-rho0q5`. Skapa inte en PR om
-  inte användaren explicit ber om det.
+- **Git-gren:** **kontrollera alltid med `git branch --show-current` – anta ingen gren.**
+  Fram till v5.80.0 skedde allt arbete på `claude/compassionate-euler-rho0q5`, och den här
+  raden namngav den grenen som ett faktum. Det stämmer inte längre: den grenen står kvar på
+  v5.80.0 (commit `a8319e5`) medan allt arbete från v5.81.0 och framåt, inklusive v5.97.0,
+  ligger på senare sessionsgrenar (2026-08-11: `claude/synappsen-final-review-slzcxe`).
+  Samma stale-mönster som resten av det här dokumentet varnar för, fast i en instruktion –
+  en session som litade på namnet skulle pusha och deploya från en gren 17 releaser efter
+  verkligheten. **Obs:** `.claude/skills/synappsen-release/SKILL.md` hårdkodar fortfarande
+  det gamla grennamnet i både `git push` och deploy-workflowens `ref` – ersätt det med den
+  faktiska grenen när du följer skillen. Skapa inte en PR om inte användaren explicit ber
+  om det.
 - **Genomgående krav 8 (premisskontroll):** verifiera en etapps antaganden mot FAKTISK kod
   innan bygget påbörjas – flera tidigare etapper visade sig bygga på antaganden som inte
   stämde. Se `ETAPPLAN3.md`/`ETAPPLAN4.md` för konkreta exempel.

@@ -26,7 +26,7 @@ krav 8 i `ETAPPLAN3.md`. Rader markerade "[FYLLS I]"/"[EJ VERIFIERAT]" kräver e
 | Sentry (Functional Software, Inc.) | Felmeddelanden och stacktraces vid krascher/undantag | EU (Frankfurt, `ingest.de.sentry.io` – verifierat) | I drift |
 | Google reCAPTCHA (App Check) | Enhets-/webbläsarsignaler för att avgöra äkta klientanrop | Global Google-infrastruktur | I drift (mätläge, se Etapp 12c) |
 | Linear | Interna utvecklingsärenden (backlogg) | [FYLLS I – rör inte kunddata, se not nedan] | Internt leverantörsverktyg |
-| Brevo (Sendinblue SAS) | E-postadresser + en innehållslös notistext (aldrig verksamhetsinnehåll, se Etapp 53 genomgående krav 18) | Frankrike/EU (verifierat, EU-baserat bolag) | **Infrastruktur byggd (Etapp 53a, 2026-08-10), INTE i drift** – kräver att ägaren sätter en riktig `BREVO_API_KEY` som GitHub-hemlighet innan något faktiskt skickas. Utan nyckeln no-oppar `skickaEpost()` tyst (se `functions/index.js`). Ersätter den tidigare planerade "E-postleverantör (veckopuls)"-raden – samma infrastruktur täcker både Etapp 53 och en eventuell framtida Etapp 16 |
+| Brevo (Sendinblue SAS) | E-postadresser + en innehållslös notistext (aldrig verksamhetsinnehåll, se Etapp 53 genomgående krav 18) | Frankrike/EU (verifierat, EU-baserat bolag) | **Infrastruktur byggd (Etapp 53a, 2026-08-10), INTE i drift** – kräver att ägaren sätter en riktig `BREVO_API_KEY` som GitHub-hemlighet innan något faktiskt skickas. Utan nyckeln no-oppar `skickaEpost()` tyst (se `functions/gemensamt.js` – funktionen flyttades dit när `functions/index.js` delades upp, sökvägen rättad 2026-08-11). Ersätter den tidigare planerade "E-postleverantör (veckopuls)"-raden – samma infrastruktur täcker både Etapp 53 och en eventuell framtida Etapp 16 |
 
 ---
 

@@ -27,9 +27,18 @@ test("en vanlig roll (ingen redaktörsroll alls) får inga permission-denied vid
 
   // Sidor som prenumererar på andringsforslag/bristanmalningar i bakgrunden (notiser, m.m.)
   // eller direkt (Logistik/ForradVy) – navigera runt som en helt vanlig medarbetare gör.
-  await page.goto("/kliniskt-stod");
-  await page.goto("/logistik");
-  await page.goto("/logistik/sterilforradet");
+  // Positivkontroll: assertionen nedan är rent negativ ("inga permission-denied") och
+  // passerar därför också om appen aldrig monterade – ett trasigt bygge eller en misslyckad
+  // inloggning ger noll konsolfel av just den sorten och ser ut som ett godkänt test.
+  // Kontrollera därför att varje sida verkligen laddades och inte kraschade.
+  for (const vag of ["/kliniskt-stod", "/logistik", "/logistik/sterilforradet"]) {
+    await page.goto(vag, { waitUntil: "load", timeout: 15_000 });
+    expect(
+      new URL(page.url()).pathname,
+      `hamnade inte på ${vag} – lyssnarna hann aldrig köra, testet bevisar ingenting`
+    ).toBe(vag);
+    await expect(page.locator(".error-boundary"), `${vag}: sidan kraschade (ErrorBoundary)`).toHaveCount(0);
+  }
   await page.waitForTimeout(1500); // ge onSnapshot-lyssnare tid att hinna felmeddela om de nekas
 
   expect(permissionDenied, `Oväntade permission-denied-fel:\n${permissionDenied.join("\n")}`).toHaveLength(0);

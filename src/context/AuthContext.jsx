@@ -54,21 +54,35 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        setRole(snap.exists() ? snap.data().role : null);
-        // Fallback till STANDARD_ORG för konton skapade innan organisationId infördes
-        // (Etapp 1) – matchar samma fallback som firestore.rules använder.
-        setOrganisationId(snap.exists() ? snap.data().organisationId ?? STANDARD_ORG : null);
-        // Etapp 25a: fångar förra inloggningens tidpunkt INNAN den skrivs över nedan – det är
-        // den "sedan ditt förra pass"-sammanställningen (useSedanForraPasset.js) utgår från.
-        // Sparas en gång per session (skrivs aldrig om av notisbesök e.dyl. under sessionen).
-        setForegaendeInloggning(snap.exists() ? (snap.data().senasteInloggning ?? null) : null);
-        // Spårar senaste inloggning så adminpanelen kan visa inaktiva konton.
-        // Får inte blockera inloggningsflödet om skrivningen misslyckas.
-        if (snap.exists()) {
-          updateDoc(doc(db, "users", user.uid), { senasteInloggning: serverTimestamp() }).catch(
-            () => {}
-          );
+        // Bugfix: getDoc SAKNADE tidigare felhantering här. Ett avvisat löfte (offline på en
+        // enhet utan cachat users-dokument, en nekad regel, ett nätverksavbrott) hoppade då
+        // över setLoading(false) längst ned – och eftersom providern renderar
+        // `{!loading && children}` blev HELA appen en permanent vit skärm utan felmeddelande,
+        // inte ens en inloggningssida. Extra allvarligt i en PWA som ska fungera i drift.
+        // Rollen/organisationen lämnas null vid fel, vilket är det säkra utfallet: SkyddadRoute
+        // /RollSkyddadRoute släpper då inte igenom något innehåll.
+        try {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          setRole(snap.exists() ? snap.data().role : null);
+          // Fallback till STANDARD_ORG för konton skapade innan organisationId infördes
+          // (Etapp 1) – matchar samma fallback som firestore.rules använder.
+          setOrganisationId(snap.exists() ? snap.data().organisationId ?? STANDARD_ORG : null);
+          // Etapp 25a: fångar förra inloggningens tidpunkt INNAN den skrivs över nedan – det är
+          // den "sedan ditt förra pass"-sammanställningen (useSedanForraPasset.js) utgår från.
+          // Sparas en gång per session (skrivs aldrig om av notisbesök e.dyl. under sessionen).
+          setForegaendeInloggning(snap.exists() ? (snap.data().senasteInloggning ?? null) : null);
+          // Spårar senaste inloggning så adminpanelen kan visa inaktiva konton.
+          // Får inte blockera inloggningsflödet om skrivningen misslyckas.
+          if (snap.exists()) {
+            updateDoc(doc(db, "users", user.uid), { senasteInloggning: serverTimestamp() }).catch(
+              () => {}
+            );
+          }
+        } catch (fel) {
+          console.error("Kunde inte läsa användarprofilen:", fel);
+          setRole(null);
+          setOrganisationId(null);
+          setForegaendeInloggning(null);
         }
       } else {
         setRole(null);

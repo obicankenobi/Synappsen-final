@@ -66,7 +66,10 @@ async function skapaInbjudanIntern({ organisationId, epost, roll, skapadAv }) {
     });
   } catch (fel) {
     // Se motiveringen ovan: inbjudan är redan skapad och giltig även om mejlet uteblir.
-    console.warn(`Inbjudningsmejl till ${epost} kunde inte skickas:`, fel.message ?? fel);
+    // Adressen utelämnas medvetet ur loggen – se motiveringen i skickaEpost (gemensamt.js):
+    // en e-postadress är en personuppgift och Cloud Logging är inte organisationsskopat.
+    // Vilken inbjudan det gäller går att se på inbjudningar/{token} i Firestore.
+    console.warn(`Inbjudningsmejl kunde inte skickas (org ${organisationId}):`, fel.message ?? fel);
   }
   return token;
 }

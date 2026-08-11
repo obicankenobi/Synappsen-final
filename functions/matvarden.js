@@ -174,7 +174,8 @@ async function skickaManadssammanfattningar() {
             organisationId: orgDoc.id,
           });
         } catch (fel) {
-          console.warn(`Månadssammanfattning till ${mottagarInfo.email} kunde inte skickas:`, fel.message ?? fel);
+          // Adressen utelämnas medvetet ur loggen – se motiveringen i skickaEpost (gemensamt.js).
+          console.warn(`Månadssammanfattning kunde inte skickas (org ${orgDoc.id}):`, fel.message ?? fel);
         }
       }
     } catch (fel) {

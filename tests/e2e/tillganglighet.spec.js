@@ -33,7 +33,18 @@ for (const { roll, epost } of ROLLER) {
     await loggaIn(page, epost);
 
     for (const route of ALLA_ROUTES) {
-      await page.goto(route, { waitUntil: "load", timeout: 15_000 }).catch(() => {});
+      // En sväljd navigeringsfel (tidigare `.catch(() => {})`) gjorde testet falskt grönt:
+      // misslyckades navigeringen kördes axe-core mot FÖREGÅENDE sida (eller about:blank),
+      // hittade noll överträdelser, och sviten passerade utan att någon route granskats.
+      // Samma hantering som rökprovssviten (45b) redan har – lyft felet till `problem`.
+      const navigeringsfel = await page
+        .goto(route, { waitUntil: "load", timeout: 15_000 })
+        .then(() => null)
+        .catch((fel) => fel.message);
+      if (navigeringsfel) {
+        problem.push(`${route}: navigering misslyckades (${navigeringsfel}) – ingen axe-granskning gjord`);
+        continue;
+      }
       // Längre väntan än i rökprovssviten (45b) – ett verkligt fynd under bygget var att en
       // för kort väntan gav ett falskt "page-has-heading-one" på Hem eftersom sidan (lazy-
       // laddad) inte hunnit rendera klart innan axe-core kördes, inte en riktig bugg.
