@@ -2537,3 +2537,26 @@ teoretiskt aktivera något). De väntar fortfarande på den externa juridiska be
 Testat: lint, build, vitest (175/175), test:rules (260/260, inkl. de 12 nya). Ingen deploy
 gjord ännu – ren backend-/leverantörsfunktion, ingen brådska. Nästa steg: kommissionera den
 juridiska bedömningen (fortfarande i `OPPNA-PUNKTER.md`), eller vänta på ägarens instruktion.
+
+---
+
+## Uppföljning 2026-08-11 (ETAPPLAN13 beslutspunkt 2 och 3 avgjorda)
+
+Ägaren svarade på beslutspunkt 2 och 3 direkt (utan att fråga om status först denna gång).
+Loggat i `BESLUTSLOGG.md`, `ETAPPLAN13.md` uppdaterad genomgående (beslutspunktstabellen, ny
+"Leveransmodellen"-sektion, 64d omskriven, tekniska förutsättning 4 markerad avgjord,
+"Klart när"-tabellens fråga 2/4 justerade, sammanfattningstabellen).
+
+**Beslutspunkt 2:** inte ren Alternativ A (identiskt för alla) eller ren B (kundägt) – en
+tredje variant: Synappsen äger och curerar innehållet centralt, organiserat i namngivna paket
+(ägaren nämnde RETTS och VÄST-A som exempel, INTE en bekräftelse på att just de är juridiskt
+klarerade), och leverantören väljer per kund vilket/vilka paket som aktiveras.
+
+**Beslutspunkt 3:** ägaren förvaltar/kuraterar själv, monetiserat som en fast engångsavgift
+för grundkonfigurering per kund – ingen löpande avgift, ingen kundens egen självbetjäning.
+
+**Vad detta INTE gör:** låser inte upp kodningsarbete. Beslutspunkt 1 (den externa juridiska
+bedömningen) är fortfarande den enda blockeringen mot att bygga något med riktigt innehåll –
+MDR-kvalificeringsfrågan och upphovsrättsfrågan är oförändrade av att urvalet nu är
+kundspecifikt snarare än universellt. Ingen kod ändrades i den här sessionen, ingen
+versionsbump, ingen deploy.

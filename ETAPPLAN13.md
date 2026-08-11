@@ -170,7 +170,7 @@ vem som äger posten, och kvarstår alltså oavsett leveransmodell:
 | 1 | **Ingen central larmväg till leverantören.** Källbevakningen sätter `kallVarning` på ett rutindokument, och notisen går till rutinens ägare inom organisationen (`agare.uid`/`agare.roll`). | `functions/klinikstod.js:125–146`, `functions/notiser.js:77–79` | **Bara A** | 64b:s "bara att larmet går till en central ansvarig" är inte en parameter – det är ett nytt notifieringsspår som ska byggas och testas. Under B äger kunden posten, så det befintliga larmet till rutinägaren räcker. |
 | 2 | **Tak på fyra externa källor per rutin, enforcementat i reglerna.** | `firestore.rules:279` (`arKortKallLista`), `arGodkandaKallorN` manuellt utrullad för index 0–3 | **A och B** | Taket finns för att hålla nere antalet utvärderade deluttryck (Firestores gräns på 1000 per regelanrop), inte av godtycke. Gäller varje rutin oavsett ägare – ett baspaket med fler referenser per post kräver en genomtänkt regeländring oavsett leveransmodell. |
 | 3 | **Domänlistan saknar de mest sannolika utgivarna.** Socialstyrelsen och SBU finns INTE bland de sju godkända domänerna. | `functions/klinikstod.js:34`, `src/config/kalldomaner.js:4`, `firestore.rules` (`urlHarGodkandDoman`) | **A och B** | Nationella riktlinjer och bedömningsunderlag bor ofta just där. Domänallowlistan är gemensam för hela appen – att utöka den är en ändring av en säkerhetsgräns i tre synkade lager plus regeltest, oavsett vem som äger den enskilda posten. |
-| 4 | **Var baspaketet lever är obesvarat.** `externaKallor` är ett fält på rutindokument, och rutiner är per organisation. | `firestore.rules:469–497`, `functions/backup.js:36` (`BACKUP_COLLECTIONS`) | **Bara A** | Under A får varje kund kopior (en fan-out-uppdatering, och kopiorna hamnar i backup, export och radering som om de vore kundens eget innehåll) ELLER paketet ligger centralt (då fungerar inte den befintliga källbevakningen alls, se rad 1). Under B är frågan redan besvarad: posterna ligger på kundens egna rutiner från start. |
+| 4 | ~~Var baspaketet lever är obesvarat.~~ **Avgjort 2026-08-11** (se "Leveransmodellen" nedan): centralt i `baspaketreferenser`, organiserat i namngivna paket, med en leverantörsstyrd per-kund urvalslista på `organisationer/{orgId}` – inte fan-out-kopior, inte kundägt innehåll. | `firestore.rules:469–497`, `functions/backup.js:36` (`BACKUP_COLLECTIONS`) | **Gäller den avgjorda modellen** | Löser tvetydigheten ren A hade (fan-out-kopior i backup/export/radering) utan att ge upp centralt ägarskap som B hade gjort. Kräver ändå den centrala larmvägen i rad 1, eftersom innehållet fortsatt är leverantörsägt. |
 
 ### Scaffolding-fasen – ✅ KLAR (2026-08-11)
 
@@ -219,12 +219,15 @@ eftersom ett konkret gränssnitt är lättare för en jurist att bedöma än ett
   skalan som en läsbar tabell – **stanna. Det första korsar sannolikt MDR-gränsen, det andra
   sannolikt upphovsrätten.** Utkastet tillät uttryckligen det andra; det var ett misstag,
   se "Granskning" ovan.
-- **64d – Opt-in, inte förval.** En organisation väljer att lägga till baspaketet, precis
-  som moduler idag (`organisationer/{orgId}.moduler`). Det håller ansvarsfrågan tydlig:
-  ingen kund får ett vårdinnehåll de inte aktivt bett om. Notera ringarna på vattnet: en ny
-  modul betyder också en post i `PACKAGE_FEATURES` (`src/config/features.js`), en rad i
-  gating-matristestet (`tests/functions/gatingmatris.test.cjs`) och ett prissättningsbeslut
-  i `MODULPLAN.md`.
+- **64d – Leverantörsstyrd tilldelning, inte kundens självbetjäning (reviderat 2026-08-11).**
+  Ursprungligen skisserad som en kund-toggle likt `organisationer/{orgId}.moduler` – ändrat
+  efter beslutspunkt 2/3: ingen kund väljer eller aktiverar baspaketet själv. Leverantören
+  väljer per kund vilket/vilka namngivna paket (t.ex. "RETTS", "VÄST-A") som gäller, som en
+  del av den betalda grundkonfigureringen (beslutspunkt 3) – ett fält plattformsadmin sätter,
+  inte en `PACKAGE_FEATURES`-modul en kund kan slå på/av själv i sin egen adminpanel.
+  Ansvarsfrågan hålls ändå tydlig: ingen kund får ett vårdinnehåll de inte beställt, bara att
+  beställningen sker som en tjänst, inte ett självbetjäningsklick. Om ett kundfacing
+  gränssnitt (visa det tilldelade paketet) byggs senare är det skrivskyddat för kunden.
 
 ### Vad som INTE ingår, oavsett hur långt idén drivs
 
@@ -244,47 +247,50 @@ och då ska det gå att se vad som fortfarande är byggbart:
 | # | Fråga till juristen | Om svaret är ja | Om svaret är nej |
 |---|---|---|---|
 | 1 | Kvalificerar ett rent referensbibliotek (metadata + länk, ingen bearbetning) som medicinteknisk programvara enligt MDR art. 2(1) / MDCG 2019-11? | **Ja, det kvalificerar** → A faller i sin nuvarande lätta form: full MDR-efterlevnad (klinisk utvärdering, CE-märkning, kvalitetsledningssystem) är sannolikt inte proportionerligt för ett litet baspaket. Gå till fråga 2 – ändrar B bilden? | **Nej, det kvalificerar inte** → 64a–64d är byggbara som beskrivet, ren referensfunktion utan MDR-börda |
-| 2 | Ändras svaret på fråga 1 av vem som står som utgivare – Synappsen centralt, eller kunden själv efter en engångsimport? | Beslutspunkt 2 blir ett rent affärsval | Beslutspunkt 2 är avgjord av juridiken, inte av oss |
+| 2 | Ändras svaret på fråga 1 av vem som står som utgivare? *(Delvis inaktuell sedan beslutspunkt 2 avgjordes 2026-08-11 – Synappsen är utgivare oavsett, "kundägt innehåll" (B) är inte längre ett alternativ. Fortfarande värt att fråga: spelar det roll att urvalet är kundspecifikt, även om ägarskapet är centralt?)* | Beslutspunkt 2:s arkitektur (leverantörsstyrt urval per kund) kan behöva en egen bedömning, inte bara "samma som ren A" | Ren A-bedömningen (fråga 1) täcker den avgjorda modellen fullt ut |
 | 3 | Får instrumentets innehåll återges i produkten, eller bara länkas? (Per instrument – svaret kan skilja sig åt.) | 64c kan mjukas upp för just de instrumenten | 64c står som skriven, ren länkning |
-| 4 | Ändrar opt-in (64d) ansvarsbilden på ett sätt som är värt att behålla även om 1–3 är gröna? | Behåll opt-in | Ompröva om baspaketet kan ingå i Core |
+| 4 | Ändrar den leverantörsstyrda tilldelningen (64d) ansvarsbilden på ett sätt som är värt att behålla även om 1–3 är gröna? | Behåll modellen som beskriven | Ompröva om baspaketet kan ingå i Core istället |
 
 ---
 
 ## Beslutspunkter som kräver ägaren
 
-| # | Fråga | Varför det inte är mitt beslut | Min rekommendation |
-|---|---|---|---|
-| 1 | ~~Ska baspaketet drivas vidare?~~ **Avgjort 2026-08-11, se `BESLUTSLOGG.md`: ja.** **Fortsatt öppet: vem gör den juridiska bedömningen innan något byggs?** | Regulatorisk risk (MDR) och upphovsrätt är juridiska frågor, inte tekniska – jag kan visa VAR gränsen sannolikt går utifrån hur klinikstödet redan är byggt, men jag kan inte lämna ett juridiskt bindande svar. | **Beställ en kort extern bedömning av de fyra frågorna i "Klart när" INNAN kod skrivs**, snarare än att bygga först och fråga sedan. Ordningen (juridik → kod) är viktigare än vilken vecka det byggs. Se `OPPNA-PUNKTER.md` för den konkreta öppna raden. |
-| 2 | **Vilken leveransmodell: centralt kurerat paket (A) eller engångsimport till kundens eget innehåll (B)?** | Det är ett produkt- och ansvarsval, inte ett tekniskt. A och B ger olika löften till kunden. | **Utred B först.** Se jämförelsen nedan – B löser två av de fyra tekniska förutsättningarna gratis (den centrala larmvägen och frågan var paketet lever) och flyttar utgivaransvaret, men de två andra (fyrakällorstaket, domänlistan) kvarstår oavsett modell, och löftet "alltid aktuellt, samma för alla" försvinner. Vilket pris som är värt att betala är ditt beslut, inte mitt. |
-| 3 | **Vem förvaltar baspaketet, och vad får det kosta per månad?** | En löpande redaktörskostnad för leverantören är en affärsfråga. | **Prissätt det innan bygget, inte efter.** Ett kurerat delat bibliotek är ett åtagande för alla kunder, för alltid – strukturellt olikt allt annat i produkten, där innehållsansvaret ligger hos kunden. Om ingen har tid att förvalta det är B (eller inget alls) rätt svar oavsett vad juristen säger. |
+| # | Fråga | Status |
+|---|---|---|
+| 1 | ~~Ska baspaketet drivas vidare?~~ | **Avgjort 2026-08-11, se `BESLUTSLOGG.md`: ja.** **Fortsatt öppet: vem gör den juridiska bedömningen innan något byggs?** Se `OPPNA-PUNKTER.md` för den konkreta öppna raden – det är den enda återstående blockeringen. |
+| 2 | ~~Vilken leveransmodell?~~ | **Avgjort 2026-08-11, se `BESLUTSLOGG.md`: Alternativ A med kundspecifikt urval.** Se "Leveransmodellen" nedan för den fullständiga arkitekturen. |
+| 3 | ~~Vem förvaltar baspaketet, och vad får det kosta?~~ | **Avgjort 2026-08-11, se `BESLUTSLOGG.md`: ägaren själv, som en fast engångsavgift för grundkonfigurering per kund.** Ingen löpande avgift, ingen kundens egen självbetjäning. |
 
-### Beslutspunkt 2 i detalj: A eller B
+### Leveransmodellen: Alternativ A med kundspecifikt urval (avgjort 2026-08-11)
 
-**Alternativ A – centralt kurerat paket** (utkastets ursprungliga idé). Synappsen äger
-posterna, de är samma för alla kunder, uppdateringar slår igenom överallt.
-*Kräver:* alla fyra tekniska förutsättningar ovan, en ny central larmväg, löpande förvaltning,
-och att juristens svar på fråga 1 är **nej** (kvalificerar inte som medicinteknisk
-programvara) – annars kräver A full MDR-efterlevnad, se tabellen ovan.
-*Ger:* det starkaste kundlöftet – "ni får ett underhållet nationellt referensbibliotek".
+**Inte** ren Alternativ A (identiskt innehåll för alla kunder) och **inte** Alternativ B
+(kundägt innehåll, se `BESLUTSLOGG.md` för de två ursprungliga alternativen). Den avgjorda
+modellen är en tredje variant, närmare släkt med A än B eftersom Synappsen fortsatt äger och
+curerar innehållet centralt:
 
-**Alternativ B – engångsimport till kundens eget innehåll.** Baspaketet levereras vid
-etablering som referensposter i kundens egna rutiner, exakt som Etapp 56:s startbibliotek
-redan gör. Kunden blir utgivare och ägare från sekund ett.
-*Kräver:* att seedningsmekanismen från Etapp 56 utökas, PLUS de två universella
-förutsättningarna (2 och 3 i tabellen ovan) – domänlistan och fyrakällorstaket är oberoende av
-vem som äger posten. Men **den befintliga källbevakningen fungerar oförändrat** (posterna
-ligger på kundens rutiner, larmet går till kundens rutinägare, precis som idag – dock bara för
-kunder som själva har Källbevakning-modulen aktiverad, samma begränsning som gäller allt annat
-`externaKallor`-innehåll redan idag), ingen central larmväg, ingen fan-out, ingen central
-förvaltning.
-*Ger:* ett svagare löfte – innehållet divergerar per kund och blir inte automatiskt uppdaterat
-centralt. *Men:* det flyttar utgivaransvaret till kunden, vilket sannolikt är den viktigaste
-skillnaden i juristens ögon (se fråga 2 ovan).
-
-Utkastet nämnde Etapp 56 men bara för att kontrastera mot den ("mallar är skelett, baspaketet
-är kurerat innehåll"). Det missade att Etapp 56:s *leveransmekanism* är ett färdigt svar på
-64:s svåraste frågor. Det är inte samma sak som att B är rätt val – bara att det borde
-utredas innan A byggs.
+- **Innehållet organiseras i namngivna paket** (t.ex. "RETTS", "VÄST-A" – exempel ägaren gav,
+  INTE en bekräftelse på att de är juridiskt klarerade, se "Klart när"). Varje referenspost
+  i `baspaketreferenser` hör till exakt ett paket.
+- **Leverantören väljer per kund vilket/vilka paket som aktiveras** – inte kundens eget val
+  och inte en universell på/av-växel. Det är ägarens roll som förvaltare (beslutspunkt 3) som
+  gör urvalet, som en del av den betalda grundkonfigureringen.
+- **Praktisk konsekvens för datamodellen** (att bygga EFTER juridisk bedömning, inte nu):
+  `baspaketreferenser` behöver en `paket`-nyckel (kategori-/gruppfält) utöver
+  scaffolding-fasens redan byggda metadatafält. Aktivering blir ett leverantörsstyrt fält på
+  `organisationer/{orgId}` (en lista av paket-nycklar, satt av plattformsadmin – samma mönster
+  som `huvudman`/`avtalsstatus` redan använder), INTE en kundfacing modul-toggle i
+  `ModulerSektion.jsx` som 64d ursprungligen skisserade. En kund ser (om/när ett
+  kundgränssnitt byggs, se 64d nedan) bara det paket leverantören tilldelat, ingen
+  självbetjäning.
+- **Vad som INTE ändras av den här beslutet:** tekniska förutsättningarna 1–3 i tabellen ovan
+  gäller precis som för ren Alternativ A – innehållet är fortsatt centralt curerat, så den
+  centrala larmvägen (64b) behövs fortfarande, domänlistan och fyrakällorstaket gäller
+  fortfarande. Förutsättning 4 ("var baspaketet lever") är nu besvarad: centralt, med en
+  per-kund urvalslista – inte fan-out-kopior som ren A, inte kundägt som B.
+- **Juridiken avgör fortfarande allt.** Att innehållet är uppdelat i paket och urvalet är
+  kundspecifikt ändrar INTE MDR-kvalificeringsfrågan (samma centralt curerade innehåll,
+  samma "Klart när"-fråga 1) och INTE upphovsrättsfrågan (samma "bara metadata + länk,
+  aldrig reproduktion"-princip i 64a/64c/krav 26). Ordningen juridik → kod gäller oförändrat.
 
 ---
 
@@ -302,7 +308,7 @@ kodsession kan börja bygga 64a–64d.
 
 | Etapp | Innehåll | Modul | Risk | Status |
 |---|---|---|---|---|
-| **64** | Baspaket: nationella referenser (rena länkar/metadata, aldrig beräkning eller reproduktion) | Ny (ej namngiven) – se 64d om ringarna på vattnet | **Regulatorisk – MDR + upphovsrätt** | **ANTAGEN 2026-08-11.** Scaffolding-fasen (struktur/gränssnitt, inget riktigt innehåll, plattformsadmin-bara) BYGGD 2026-08-11 (v5.97.0). Riktigt innehåll och 64b:s källbevakningslarm **ej byggbara förrän juridisk bedömning finns** (beslutspunkt 1:s andra hälft – vem kommissionerar). Leveransmodell ej vald (beslutspunkt 2). Förvaltning ej prissatt (beslutspunkt 3). |
+| **64** | Baspaket: nationella referenser (rena länkar/metadata, aldrig beräkning eller reproduktion), organiserat i namngivna paket med leverantörsstyrd per-kund-tilldelning | Ny (ej namngiven) – se 64d om ringarna på vattnet | **Regulatorisk – MDR + upphovsrätt** | **ANTAGEN 2026-08-11.** Scaffolding-fasen BYGGD (v5.97.0). Leveransmodell (beslutspunkt 2) och förvaltning/prissättning (beslutspunkt 3) **AVGJORDA 2026-08-11**, se `BESLUTSLOGG.md`. **Enda kvarvarande blockering:** riktigt innehåll och 64b:s källbevakningslarm är ej byggbara förrän den juridiska bedömningen finns (beslutspunkt 1:s andra hälft – vem kommissionerar), se `OPPNA-PUNKTER.md`. |
 
 ---
 
