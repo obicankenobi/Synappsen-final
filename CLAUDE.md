@@ -24,20 +24,24 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 2. **`OPPNA-PUNKTER.md`** – läs ANDRA. Ett samlat register över allt som väntar på en människa
    eller ett beslut (inte på kapacitet), tvärs över alla planfiler. Ersätter behovet av att
    läsa statusblocken i punkt 4–6 nedan var för sig.
-3. **`ETAPPLAN12.md`** – den AKTIVA utvecklingsplanen (Etapp 59–63: "Från demo till drift" –
-   hållfasthet snarare än nya funktioner, se planens egen inledning för varför). Antagen
-   2026-08-10, direkt efter en kodgenomgång (inte en dokumentgenomgång) av v5.91.0. Etapp 59
-   (rättningar) redan klar. Om användaren ber om fortsatt arbete utan att specificera vad:
-   det är här nästa punkt finns. Se även `ETAPPLAN13.md` (fristående, inte del av den aktiva
-   ordningen – se nedan).
+3. **`ETAPPLAN12.md`** – **HELT KLAR OCH DEPLOYAD** (Etapp 59–63: "Från demo till drift" –
+   hållfasthet snarare än nya funktioner). Antagen 2026-08-10 efter en kodgenomgång (inte en
+   dokumentgenomgång) av v5.91.0, helt avslutad 2026-08-11 i v5.96.0 (körning #74). Historisk
+   men korrekt. **Det finns just nu INGEN aktiv utvecklingsplan** – om användaren ber om
+   fortsatt arbete utan att specificera vad, finns inget självklart "nästa punkt" att ta:
+   läs `OPPNA-PUNKTER.md` för vad som väntar på en människa, eller fråga vad nästa etapp ska
+   vara. Skriv en ny `ETAPPLAN14.md` när en ny plan antas, skriv inte om den här.
 4. **`ETAPPLAN13.md`** – ETT enda, fristående förslag (Etapp 64: ett "baspaket" av nationella
    referenser). Skiljer sig från alla andra planfiler: den är INTE byggbar av en kodsession
-   alls förrän en extern juridisk MDR-bedömning finns (se planens egen "Beslutspunkt"). Läs
-   den bara om ägaren specifikt frågar om baspaketet – den blockerar inget annat arbete.
+   alls förrän en extern juridisk bedömning finns – både MDR och upphovsrätt (se planens tre
+   beslutspunkter). Granskad och korrigerad 2026-08-11; läs dess "Granskning"-sektion först om
+   du sett en tidigare version. Läs den bara om ägaren specifikt frågar om baspaketet – den
+   blockerar inget annat arbete.
 5. **`ETAPPLAN11.md`** – HELT KLAR utom 54c/54d (väntar på en konkret andra enhet hos en
-   kund) och Etapp 58 (SSO, väntar på en kund som kräver det) – båda medvetet väntande på en
-   extern förutsättning, se `OPPNA-PUNKTER.md`. Etapp 53/54a-b/55/56/57 alla klara och
-   deployade.
+   kund) och Etapp 58 (SSO – protokollet är avgjort, OIDC, men bygget väntar på en kund som
+   kräver det). Båda är sedan 2026-08-10 **beslut med omprövningsvillkor, se
+   `BESLUTSLOGG.md`** – inte längre öppna punkter, och alltså inte i `OPPNA-PUNKTER.md`.
+   Etapp 53/54a-b/55/56/57 alla klara och deployade.
 6. **`ETAPPLAN10.md`** – HELT KLAR utom Etapp 52 (pilotpaketet, kräver bokad tid med riktiga
    människor, inte kod – se planens egen "Beslutspunkter som kräver ägaren"). Etapp 48–51
    HELT KLARA OCH DEPLOYADE.
@@ -68,9 +72,9 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 | `ETAPPLAN7.md` | Etapp 42 + Etapp 43: gränssnittsförnyelse | **HELT KLAR OCH DEPLOYAD** (2026-08-03). Etapp 42a–42f och Etapp 43a–43e klara, v5.72.0 live i produktion (körning #66). Historisk men korrekt. |
 | `ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag, bevisad effekt, import, synlighet | **Aktiv men ej stängd.** Etapp 37–39 och 41 klara. Kvarvarande punkt (Etapp 40) listad i `OPPNA-PUNKTER.md`. |
 | `ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap | **Aktiv men ej stängd.** I det närmaste klar – kvarvarande punkter listade i `OPPNA-PUNKTER.md` istället för att dupliceras här. |
-| `ETAPPLAN11.md` | Etapp 53–58: e-post som kanal, flera enheter under samma huvudman, kioskläge, startbiblioteket, säljmaterialets sanning, SSO | **HELT KLAR utom 54c/54d och Etapp 58** – båda villkorade av en extern förutsättning (se `OPPNA-PUNKTER.md`), inte kapacitet. Sex premisser verifierade mot faktisk kod innan antagande. |
-| `ETAPPLAN12.md` | Etapp 59–63: "Från demo till drift" – rätta kända fel, mäta prestanda mot en realistisk datamängd, underhållbarhet, göra befintlig mätning åtgärdbar, förenkla de öppna punkterna | **Aktiv, ANTAGEN 2026-08-10** direkt efter en kodgenomgång (inte en dokumentgenomgång) av v5.91.0. Etapp 59 (rättningar) redan KLAR samma dag. Det här är DEN aktiva planen för nytt arbete. |
-| `ETAPPLAN13.md` | Etapp 64: ett "baspaket" av nationella referenser (t.ex. bedömningsinstrument) | **Fristående utkast, INTE del av den aktiva ordningen.** Skiljer sig från alla andra planfiler: inte byggbar av en kodsession förrän en extern juridisk MDR-bedömning finns. Läs bara vid en uttrycklig fråga om baspaketet. |
+| `ETAPPLAN11.md` | Etapp 53–58: e-post som kanal, flera enheter under samma huvudman, kioskläge, startbiblioteket, säljmaterialets sanning, SSO | **HELT KLAR utom 54c/54d och Etapp 58** – båda villkorade av en extern förutsättning, inte kapacitet, och sedan 2026-08-10 avgjorda som beslut med omprövningsvillkor (se `BESLUTSLOGG.md`, inte `OPPNA-PUNKTER.md`). Sex premisser verifierade mot faktisk kod innan antagande. |
+| `ETAPPLAN12.md` | Etapp 59–63: "Från demo till drift" – rätta kända fel, mäta prestanda mot en realistisk datamängd, underhållbarhet, göra befintlig mätning åtgärdbar, förenkla de öppna punkterna | **HELT KLAR OCH DEPLOYAD** (antagen 2026-08-10, avslutad 2026-08-11, v5.96.0, körning #74). Historisk men korrekt. **Ingen aktiv plan finns just nu** – skriv en ny `ETAPPLAN14.md` när nästa antas. |
+| `ETAPPLAN13.md` | Etapp 64: ett "baspaket" av nationella referenser (t.ex. bedömningsinstrument) | **Fristående utkast, INTE del av den aktiva ordningen.** Skiljer sig från alla andra planfiler: inte byggbar av en kodsession förrän en extern juridisk bedömning finns – MDR **och** upphovsrätt. Granskad/korrigerad 2026-08-11 (fem fel i utkastet, se planens "Granskning"). Läs bara vid en uttrycklig fråga om baspaketet. |
 | `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast som INTE antogs när `ETAPPLAN6.md` valdes | **Utkast, ej antagna.** Arkiverade – se `FRAMTIDSPLAN.md` för omprövningsvillkor per alternativ. |
 | `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv, LEVANDE** – händelsestyrd underhållsregel, se "Obligatorisk underhållsregel: CLAUDE_STATUS.md" under arbetsmönstren nedan. |
 | `src/data/andringslogg.js` | Användarvänd ändringslogg, visas i appen (`/nyheter`) | **Aktiv** – lägg till en post vid VARJE release. |

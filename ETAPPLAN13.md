@@ -1,14 +1,41 @@
 # Etapplan 13 – Baspaket: nationella referenser, inte kliniskt beslutsstöd
 
 *Utkast 2026-08-10, samma genomgång som `ETAPPLAN12.md`, men medvetet en egen fil.*
+*Granskad och korrigerad 2026-08-11 – se "Granskning" nedan.*
 
 > **Läs detta först.** Den här planen innehåller EN enda etapp (64), och den skiljer sig från
 > alla andra planer i projektet på ett sätt som är värt att säga rakt ut: **den är inte
-> byggbar av en kodsession.** Idén rör en regulatorisk gräns (medicinteknisk produkt under
-> MDR) som kräver ett juridiskt svar innan någon rad kod skrivs – inte bara en
-> premisskontroll mot koden, som resten av projektets etapper klarar sig med. Den hölls
-> därför utanför `ETAPPLAN12.md` istället för att blandas in bland dess rättningar, som ALLA
-> är byggbara direkt. Blanda inte ihop de två planernas mognadsgrad.
+> byggbar av en kodsession.** Idén rör två regulatoriska gränser (medicinteknisk produkt
+> under MDR, och upphovsrätt till nationella instrument) som kräver juridiska svar innan
+> någon rad kod skrivs – inte bara en premisskontroll mot koden, som resten av projektets
+> etapper klarar sig med. Den hölls därför utanför `ETAPPLAN12.md` istället för att blandas
+> in bland dess rättningar, som ALLA är byggbara direkt. Blanda inte ihop de två planernas
+> mognadsgrad.
+
+---
+
+## Granskning 2026-08-11
+
+Utkastet granskades mot faktisk kod (genomgående krav 8, tillämpat på planen självt) innan
+det skickas vidare till en jurist. Fem saker rättades, och de är värda att känna till om man
+läser den ursprungliga versionen i git-historiken:
+
+1. **En intern motsägelse.** 64a förbjöd varje kopia av källans innehåll, medan 64c samtidigt
+   öppnade för "en skala presenterad som en läsbar tabell". En läsbar tabell av en skala ÄR en
+   kopia. Motsägelsen är löst åt referenshållet (se 64a/64c nedan) – dels för att det är
+   planens egen strängare linje, dels för att den andra tolkningen utlöser en upphovsrättslig
+   fråga planen inte hade tänkt på alls.
+2. **Fel juridiskt instrument.** Utkastet hänvisade till MDR Annex VIII regel 11. Den regeln
+   *klassificerar* en produkt som redan bedömts vara medicinteknisk – den svarar inte på
+   planens faktiska fråga, som är kvalificeringsfrågan. Rättat nedan.
+3. **Upphovsrätt saknades helt.** Hela utkastet handlade om MDR. Se nytt genomgående krav 26.
+4. **64b var underskattad.** "Utökad källbevakning, inte ett nytt system" stämmer inte – den
+   centrala larmvägen finns inte, verifierat mot koden. Se "Tekniska förutsättningar" nedan.
+5. **Beslutspunkten var falskt binär.** Den saknade ett tredje alternativ som löser flera av
+   planens svåraste problem på en gång, och som redan är byggt i Etapp 56. Se beslutspunkt 2.
+
+Dessutom rättades en stale sökväg: `GODKANDA_KALLDOMANER` ligger sedan Etapp 61a (samma dag
+utkastet skrevs, men senare) i `functions/klinikstod.js`, inte i `functions/index.js`.
 
 ---
 
@@ -45,6 +72,14 @@ som en medicinteknisk produkt under MDR."*
     enskild avslagen idé, eftersom den här planen föreslår en funktion som ligger nära
     gränsen snarare än att avstå helt.
 
+26. **Synappsen reproducerar aldrig innehållet i ett instrument som någon annan äger eller
+    licensierar – bara metadata och en länk till originalet.** Nytt 2026-08-11. Krav 25 skyddar mot MDR;
+    det här skyddar mot en helt annan risk som utkastet missade. Bedömningsinstrument är ofta
+    upphovsrättsskyddade eller licensbelagda, och flera av de mest kända kräver uttryckligt
+    tillstånd för användning i en kommersiell produkt. Argumentet "det är ju samma sak som en
+    bok" är just här precis fel: en bok är köpt eller licensierad. De två kraven pekar åt
+    samma håll – ren referens – men av olika skäl, och båda måste hålla.
+
 ---
 
 ## Etapp 64 – Baspaket: nationella referenser, inte kliniskt beslutsstöd (ny idé, ej granskad juridiskt)
@@ -53,8 +88,8 @@ som en medicinteknisk produkt under MDR."*
 
 **Min bedömning, kort (se motivering nedan för den fulla resonemangskedjan): en försiktig
 version är sannolikt görbar utan att korsa MDR-gränsen, OM den byggs som ren
-referens/länkning – inte som en interaktiv poängräknare.** Den skillnaden avgör allt, och
-den går inte att göra halvvägs.
+referens/länkning – inte som en interaktiv poängräknare och inte som en reproduktion av
+instrumentets innehåll.** Den skillnaden avgör allt, och den går inte att göra halvvägs.
 
 Jag har ingen egen verifierad kunskap om innehållet eller omfattningen i det specifika
 instrumentet ägaren nämnde (VÄST-A) och gissar inte på det här – i en produkt som redan har
@@ -62,12 +97,31 @@ en dokumenterad, medveten disciplin kring att aldrig påstå mer än vad som är
 (se `PITCH.md`s "Ärlighet om vad som faktiskt är mätt"), skulle det vara fel att göra ett
 undantag just här.
 
+### Vilken juridisk fråga som faktiskt ska ställas
+
+Utkastet hänvisade till **MDR Annex VIII regel 11**. Det är fel instrument för planens fråga,
+och skillnaden är inte akademisk:
+
+- **Regel 11 klassificerar.** Den avgör vilken riskklass en produkt hamnar i – men bara efter
+  att den redan bedömts VARA en medicinteknisk produkt.
+- **Planens fråga är kvalificering:** är det här en medicinteknisk produkt över huvud taget?
+  Det avgörs av definitionen i MDR artikel 2(1) tillsammans med MDCG:s vägledning om
+  kvalificering och klassificering av programvara (MDCG 2019-11, kontrollera att juristen
+  använder den senaste revisionen).
+
+Att rikta frågan rätt spelar roll, för **planens bästa argument ligger i kvalificeringsledet
+och utkastet missade det**: vägledningen behandlar programvara vars funktion är att lagra,
+arkivera, kommunicera eller utföra enkel sökning och visning av befintliga dokument som
+något som normalt inte kvalificerar som medicinteknisk programvara. Det är exakt vad 64a
+beskriver – ett elektroniskt referensbibliotek, inte något som bearbetar patientdata. Det ska
+juristen få pröva, inte jag; men frågan ska ställas i rätt led.
+
 ### Var gränsen faktiskt går (verifierat mot vad appen redan gör, inte mot en gissning)
 
 Klinikstödet (byggt, i drift sedan 2026-07-14) löser redan en näraliggande fråga och har
 gjort det utan att klassas som medicinteknisk produkt:
 
-- **Domänbegränsning:** `functions/index.js`s `GODKANDA_KALLDOMANER` + `firestore.rules`s
+- **Domänbegränsning:** `functions/klinikstod.js`s `GODKANDA_KALLDOMANER` + `firestore.rules`s
   `arGodkandaKallor()` tillåter bara sju namngivna, auktoritativa svenska källor
   (internetmedicin.se, 1177.se, Nationella kliniska kunskapsstödet, FASS, Läkemedelsverket,
   Vårdhandboken, Folkhälsomyndigheten). Detta är redan enforcementat i BÅDA lagren – server
@@ -79,9 +133,20 @@ gjort det utan att klassas som medicinteknisk produkt:
   automatisk kontroll av varje `rutin.externaKallor`-länk, hashjämförelse mot tidigare
   innehåll, larm till rutinägaren vid ändring eller trasig länk.
 
-Det här är exakt den infrastruktur ett baspaket skulle behöva – och den finns redan, testad
-och i drift. Ett baspaket är alltså inte "bygg något nytt och osäkert", det är "återanvänd
-ett mönster som redan bevisat sig hålla sig innanför gränsen".
+Det här är i grunden rätt mönster för ett baspaket – men "det finns redan, återanvänd det"
+är en överdrift som utkastet gjorde och som inte håller. Se nästa avsnitt.
+
+### Tekniska förutsättningar som INTE finns idag (nytt 2026-08-11)
+
+Verifierat mot koden. Alla fyra måste lösas innan 64 kan byggas, och de påverkar
+tidsuppskattningen:
+
+| # | Vad som saknas | Var det syns i koden | Varför det spelar roll |
+|---|---|---|---|
+| 1 | **Ingen central larmväg till leverantören.** Källbevakningen sätter `kallVarning` på ett rutindokument, och notisen går till rutinens ägare inom organisationen (`agare.uid`/`agare.roll`). | `functions/klinikstod.js:125–146`, `functions/notiser.js:77–79` | 64b:s "bara att larmet går till en central ansvarig" är inte en parameter – det är ett nytt notifieringsspår som ska byggas och testas. |
+| 2 | **Tak på fyra externa källor per rutin, enforcementat i reglerna.** | `firestore.rules:279` (`arKortKallLista`), `arGodkandaKallorN` manuellt utrullad för index 0–3 | Taket finns för att hålla nere antalet utvärderade deluttryck (Firestores gräns på 1000 per regelanrop), inte av godtycke. Ett baspaket med fler referenser per post kräver en genomtänkt regeländring. |
+| 3 | **Domänlistan saknar de mest sannolika utgivarna.** Socialstyrelsen och SBU finns INTE bland de sju godkända domänerna. | `functions/klinikstod.js:34`, `src/config/kalldomaner.js:4`, `firestore.rules` (`urlHarGodkandDoman`) | Nationella riktlinjer och bedömningsunderlag bor ofta just där. Att utöka listan är en ändring av en säkerhetsgräns i tre synkade lager plus regeltest – görbar, men inte en detalj. |
+| 4 | **Var baspaketet lever är obesvarat.** `externaKallor` är ett fält på rutindokument, och rutiner är per organisation. | `firestore.rules:469–497`, `functions/backup.js:36` (`BACKUP_COLLECTIONS`) | Antingen får varje kund kopior (då blir "samma för alla kunder" en fan-out-uppdatering, och kopiorna hamnar i backup, export och radering som om de vore kundens eget innehåll), eller så ligger paketet centralt (då fungerar inte den befintliga källbevakningen alls, se rad 1). Valet styr allt annat och hör ihop med beslutspunkt 2. |
 
 ### Hur ett baspaket SKA byggas, om det byggs
 
@@ -91,50 +156,89 @@ ett mönster som redan bevisat sig hålla sig innanför gränsen".
   `MALL_ANMARKNING` i Etapp 56, men strängare: en mall säger "fyll i det här", en
   baspaket-post säger "det här är vad [utgivaren] själv publicerat, se länken – vi har inte
   skrivit om det". Ingen tolkning, ingen sammanfattning av Synappsen självt.
-- **64b – Utökad källbevakning, inte ett nytt system.** Baspaketets poster registreras i
-  samma `externaKallor`-mekanism källbevakningen redan läser. Ändras eller försvinner
-  källan upptäcks det automatiskt, precis som för en enskild kunds egna referenser idag –
-  bara att larmet går till en central ansvarig (leverantören) snarare än en enskild
-  rutinägare, eftersom posten delas av alla kunder.
-- **64c – Ett UTTRYCKLIGT tekniskt tak mot att det glider mot beräkning.** Ingen
-  baspaket-post får någonsin ha ett fält som lagrar ett tröskelvärde, en poängsumma eller
-  en "om X då Y"-logik som appen kör. Om en framtida session frestas att bygga t.ex. en
-  interaktiv poängräknare ovanpå en bedömningsskala – **stanna, det är exakt steget som
-  korsar linjen.** En skala presenterad som en läsbar tabell (samma sak som en bok) är
-  sannolikt okej; samma skala med ett formulär som summerar poäng och ger en rekommendation
-  är sannolikt inte det (jämför MDR Annex VIII regel 11 om programvara som behandlar data
-  för att ge information i diagnos-/behandlingssyfte).
+- **64b – Källbevakning med en NY central larmväg.** Baspaketets poster ska bevakas med samma
+  hash-jämförelsemönster som `kontrolleraKallbevakning` redan använder, men larmet måste nå
+  leverantören, inte en rutinägare hos en enskild kund – och den vägen finns inte idag
+  (se tabellen ovan, rad 1). Utkastet kallade det här "utökad källbevakning, inte ett nytt
+  system"; halva påståendet stämmer (mönstret återanvänds), men larmvägen är ny kod.
+- **64c – Ett UTTRYCKLIGT tak mot att det glider mot beräkning ELLER reproduktion.** Ingen
+  baspaket-post får någonsin ha ett fält som lagrar ett tröskelvärde, en poängsumma eller en
+  "om X då Y"-logik som appen kör – och ingen post får innehålla instrumentets faktiska
+  innehåll, vare sig som text, tabell eller formulär. Om en framtida session frestas att
+  bygga t.ex. en interaktiv poängräknare ovanpå en bedömningsskala, eller att "bara" återge
+  skalan som en läsbar tabell – **stanna. Det första korsar sannolikt MDR-gränsen, det andra
+  sannolikt upphovsrätten.** Utkastet tillät uttryckligen det andra; det var ett misstag,
+  se "Granskning" ovan.
 - **64d – Opt-in, inte förval.** En organisation väljer att lägga till baspaketet, precis
   som moduler idag (`organisationer/{orgId}.moduler`). Det håller ansvarsfrågan tydlig:
-  ingen kund får ett vårdinnehåll de inte aktivt bett om.
+  ingen kund får ett vårdinnehåll de inte aktivt bett om. Notera ringarna på vattnet: en ny
+  modul betyder också en post i `PACKAGE_FEATURES` (`src/config/features.js`), en rad i
+  gating-matristestet (`tests/functions/gatingmatris.test.cjs`) och ett prissättningsbeslut
+  i `MODULPLAN.md`.
 
 ### Vad som INTE ingår, oavsett hur långt idén drivs
 
 Poängberäknade bedömningsskalor (NEWS2-liknande, RETTS-liknande eller det instrument
 ägaren nämnde, om det visar sig vara en beräknande skala snarare än en läsbar checklista),
-allt som föreslår en åtgärd baserat på inmatade patientvärden, och allt som skulle kräva
-att Synappsen *skriver om* eller *tolkar* en nationell källa snarare än att länka till den.
-Dessa hör hemma i samma "rör inte"-kategori som dosberäkning redan gör i `ETAPPLAN11.md`.
+allt som föreslår en åtgärd baserat på inmatade patientvärden, allt som skulle kräva
+att Synappsen *skriver om* eller *tolkar* en nationell källa snarare än att länka till den,
+och allt som reproducerar ett licensbelagt instruments innehåll. Dessa hör hemma i samma
+"rör inte"-kategori som dosberäkning redan gör i `ETAPPLAN11.md`.
 
-**Klart när:** en extern juridisk bedömning (inte en kodgenomgång) har bekräftat att
-64a–64d håller sig utanför MDR:s programvarudefinition, och den bedömningen är skriven in i
-`SAKERHETSRAPPORT.md` innan något publiceras för en kund.
+**Klart när:** en extern juridisk bedömning (inte en kodgenomgång) har besvarat frågorna
+nedan, och svaren är inskrivna i `SAKERHETSRAPPORT.md` innan något publiceras för en kund.
+Utkastet formulerade det här som ett binärt utfall ("bedömningen bekräftar att 64a–64d
+håller"), vilket verkligheten sällan levererar – ett delvis ja är det mest sannolika svaret,
+och då ska det gå att se vad som fortfarande är byggbart:
+
+| # | Fråga till juristen | Om svaret är ja | Om svaret är nej |
+|---|---|---|---|
+| 1 | Kvalificerar ett rent referensbibliotek (metadata + länk, ingen bearbetning) som medicinteknisk programvara enligt MDR art. 2(1) / MDCG 2019-11? | 64a–64d är byggbara som beskrivet | Hela idén faller i den centrala formen – gå till beslutspunkt 2, alternativ B |
+| 2 | Ändras svaret på fråga 1 av vem som står som utgivare – Synappsen centralt, eller kunden själv efter en engångsimport? | Beslutspunkt 2 blir ett rent affärsval | Beslutspunkt 2 är avgjord av juridiken, inte av oss |
+| 3 | Får instrumentets innehåll återges i produkten, eller bara länkas? (Per instrument – svaret kan skilja sig åt.) | 64c kan mjukas upp för just de instrumenten | 64c står som skriven, ren länkning |
+| 4 | Ändrar opt-in (64d) ansvarsbilden på ett sätt som är värt att behålla även om 1–3 är gröna? | Behåll opt-in | Ompröva om baspaketet kan ingå i Core |
 
 ---
 
-## Beslutspunkt som kräver ägaren
+## Beslutspunkter som kräver ägaren
 
 | # | Fråga | Varför det inte är mitt beslut | Min rekommendation |
 |---|---|---|---|
-| 1 | **Ska baspaketet drivas vidare, och i så fall – vem gör MDR-bedömningen innan något byggs?** | Regulatorisk risk (medicinteknisk produkt under MDR) är en juridisk fråga, inte en teknisk – jag kan visa VAR gränsen sannolikt går utifrån hur klinikstödet redan är byggt, men jag kan inte lämna ett juridiskt bindande svar. | **Beställ en kort extern juridisk bedömning av 64a–64d INNAN kod skrivs**, snarare än att bygga först och fråga sedan. Om bedömningen är positiv är det sedan ett litet, välavgränsat bygge (samma mönster som klinikstödets domänbegränsning + källbevakning) – men den ordningen (juridik → kod) är viktigare än vilken vecka det byggs. |
+| 1 | **Ska baspaketet drivas vidare, och i så fall – vem gör den juridiska bedömningen innan något byggs?** | Regulatorisk risk (MDR) och upphovsrätt är juridiska frågor, inte tekniska – jag kan visa VAR gränsen sannolikt går utifrån hur klinikstödet redan är byggt, men jag kan inte lämna ett juridiskt bindande svar. | **Beställ en kort extern bedömning av de fyra frågorna i "Klart när" INNAN kod skrivs**, snarare än att bygga först och fråga sedan. Ordningen (juridik → kod) är viktigare än vilken vecka det byggs. |
+| 2 | **Vilken leveransmodell: centralt kurerat paket (A) eller engångsimport till kundens eget innehåll (B)?** | Det är ett produkt- och ansvarsval, inte ett tekniskt. A och B ger olika löften till kunden. | **Utred B först.** Se jämförelsen nedan – B löser tre av de fyra tekniska förutsättningarna gratis och flyttar utgivaransvaret, men priset är att löftet "alltid aktuellt, samma för alla" försvinner. Vilket pris som är värt att betala är ditt beslut, inte mitt. |
+| 3 | **Vem förvaltar baspaketet, och vad får det kosta per månad?** | En löpande redaktörskostnad för leverantören är en affärsfråga. | **Prissätt det innan bygget, inte efter.** Ett kurerat delat bibliotek är ett åtagande för alla kunder, för alltid – strukturellt olikt allt annat i produkten, där innehållsansvaret ligger hos kunden. Om ingen har tid att förvalta det är B (eller inget alls) rätt svar oavsett vad juristen säger. |
+
+### Beslutspunkt 2 i detalj: A eller B
+
+**Alternativ A – centralt kurerat paket** (utkastets ursprungliga idé). Synappsen äger
+posterna, de är samma för alla kunder, uppdateringar slår igenom överallt.
+*Kräver:* alla fyra tekniska förutsättningar ovan, en ny central larmväg, löpande förvaltning,
+och att juristens svar på fråga 1 är ja.
+*Ger:* det starkaste kundlöftet – "ni får ett underhållet nationellt referensbibliotek".
+
+**Alternativ B – engångsimport till kundens eget innehåll.** Baspaketet levereras vid
+etablering som referensposter i kundens egna rutiner, exakt som Etapp 56:s startbibliotek
+redan gör. Kunden blir utgivare och ägare från sekund ett.
+*Kräver:* i praktiken bara att seedningsmekanismen från Etapp 56 utökas – **den befintliga
+källbevakningen fungerar oförändrat** (posterna ligger på kundens rutiner, larmet går till
+kundens rutinägare, precis som idag), ingen central larmväg, ingen fan-out, ingen central
+förvaltning.
+*Ger:* ett svagare löfte – innehållet divergerar per kund och blir inte automatiskt uppdaterat
+centralt. *Men:* det flyttar utgivaransvaret till kunden, vilket sannolikt är den viktigaste
+skillnaden i juristens ögon (se fråga 2 ovan).
+
+Utkastet nämnde Etapp 56 men bara för att kontrastera mot den ("mallar är skelett, baspaketet
+är kurerat innehåll"). Det missade att Etapp 56:s *leveransmekanism* är ett färdigt svar på
+64:s svåraste frågor. Det är inte samma sak som att B är rätt val – bara att det borde
+utredas innan A byggs.
 
 ---
 
 ## Föreslagen ordning
 
 Ingen – planen har bara en etapp, och den är helt villkorad av beslutspunkt 1. Den blockerar
-inget annat: `ETAPPLAN12.md`s Etapp 59–63 kan byggas oberoende, i valfri ordning, medan
-ägaren tar ställning till om en juridisk bedömning ska beställas.
+inget annat: `ETAPPLAN12.md`s Etapp 59–63 är numera helt klara och deployade, och inget i den
+här planen behövde vänta på dem.
 
 ---
 
@@ -142,7 +246,7 @@ inget annat: `ETAPPLAN12.md`s Etapp 59–63 kan byggas oberoende, i valfri ordni
 
 | Etapp | Innehåll | Modul | Risk | Status |
 |---|---|---|---|---|
-| **64** | Baspaket: nationella referenser (rena länkar/citat, aldrig beräkning) | Ny (ej namngiven) | **Regulatorisk – MDR** | Idé, **ej byggbar förrän juridisk bedömning finns** (beslutspunkt 1) |
+| **64** | Baspaket: nationella referenser (rena länkar/metadata, aldrig beräkning eller reproduktion) | Ny (ej namngiven) – se 64d om ringarna på vattnet | **Regulatorisk – MDR + upphovsrätt** | Idé, **ej byggbar förrän juridisk bedömning finns** (beslutspunkt 1). Leveransmodell ej vald (beslutspunkt 2). Förvaltning ej prissatt (beslutspunkt 3). |
 
 ---
 
@@ -154,3 +258,5 @@ inget annat: `ETAPPLAN12.md`s Etapp 59–63 kan byggas oberoende, i valfri ordni
   vid ändring – den skriver aldrig om posten automatiskt. Samma "alltid en människa innan
   publicering"-princip som gäller allt annat AI-genererat i produkten.
 - **Att baspaketet blir förvalt.** Se 64d – opt-in är en förutsättning, inte en detalj.
+- **Att bygga A "provisoriskt" i väntan på juristens svar.** Det är exakt den ordningen
+  beslutspunkt 1 finns för att förhindra.
