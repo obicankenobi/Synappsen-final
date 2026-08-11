@@ -1,5 +1,5 @@
-// Etapp 61b (ETAPPLAN12.md): beraknaKvartal finns duplicerad i functions/index.js (medvetet,
-// inte importerad – se den filens egen kommentar om ESM/CommonJS-gränsen). En drift mellan de
+// Etapp 61b (ETAPPLAN12.md): beraknaKvartal finns duplicerad i functions/matvarden.js
+// (medvetet, inte importerad – se kvartal.js:s egen kommentar om ESM/CommonJS-gränsen). En drift mellan de
 // två skulle inte synas som ett fel, bara som fel kvartalsnyckel i statistik – testar
 // klientversionen mot samtliga månadsgränser så en framtida ändring av endera sidan upptäcks.
 import { describe, it, expect } from "vitest";
