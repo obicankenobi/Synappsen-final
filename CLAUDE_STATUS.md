@@ -2465,3 +2465,19 @@ INTERNA symboler som aldrig exporterats är äkta återvändsgränder, och fyra 
 Rättade. Historiska planfiler och append-only-sektionerna här och i `SAKERHETSRAPPORT.md`
 lämnades medvetet orörda – de var korrekta när de skrevs. Ingen versionsbump (kommentarer och
 dokument), ingen deploy: v5.96.0/körning #74 är fortfarande det som kör i produktion.
+
+---
+
+## Uppföljning 2026-08-11 (andra genomläsning av ETAPPLAN13 – två egna fel rättade)
+
+Ägaren bad om en andra genomläsning av `ETAPPLAN13.md` efter den första omskrivningen. Hittade
+två substantiella fel jag själv införde (inte i det ursprungliga utkastet): ja/nej var
+omkastade i "Klart när"-tabellens fråga 1 (ett ja-svar – "det kvalificerar som medicinteknisk
+programvara" – är det DÅLIGA utfallet, jag hade skrivit det som "byggbart"), och ett räknefel
+i beslutspunkt 2 ("B löser tre av de fyra tekniska förutsättningarna" – rätt svar är två,
+fyrakällorstaket och domänlistan gäller oavsett leveransmodell). Båda rättade, plus en
+kvarleven av samma ja/nej-inversion i alternativ A:s "Kräver"-rad som annars hade smugit
+förbi. Se planens egen "Granskning"-sektion, punkt 6–7. Samma slutsats som tidigare:
+`ETAPPLAN13.md` är fortfarande inte byggbar utan en extern juridisk bedömning – det här ändrar
+inte SLUTSATSEN, bara kvaliteten på underlaget som når juristen. Ingen versionsbump, ingen
+deploy.

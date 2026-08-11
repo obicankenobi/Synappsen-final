@@ -37,6 +37,20 @@ läser den ursprungliga versionen i git-historiken:
 Dessutom rättades en stale sökväg: `GODKANDA_KALLDOMANER` ligger sedan Etapp 61a (samma dag
 utkastet skrevs, men senare) i `functions/klinikstod.js`, inte i `functions/index.js`.
 
+**Rättelse av den egna omskrivningen (samma dag, andra genomläsningen).** Två fel smög sig in
+i själva omskrivningen ovan, inte i det ursprungliga utkastet – värt att säga rakt ut eftersom
+det är precis den sortens fel en jurist inte får ärva:
+
+6. **Ja/nej var omkastade i "Klart när"-tabellens fråga 1.** Ett ja-svar på "kvalificerar det
+   som medicinteknisk programvara?" är det DÅLIGA utfallet (full MDR-börda) – jag hade skrivit
+   det som om ja betydde "byggbart". Rättat i tabellen och i alternativ A:s "Kräver"-rad, som
+   hade samma inversion.
+7. **Räknefel i beslutspunkt 2.** Skrev att alternativ B löser "tre av de fyra" tekniska
+   förutsättningarna. B löser bara två (den centrala larmvägen och var paketet lever) –
+   fyrakällorstaket och domänlistan gäller `externaKallor`-mekanismen oavsett ägare och
+   kvarstår under B. Förutsättningstabellen fick en ny kolumn som visar vilka rader som är
+   A-specifika kontra universella.
+
 ---
 
 ## Bakgrund
@@ -138,15 +152,16 @@ Det här är i grunden rätt mönster för ett baspaket – men "det finns redan
 
 ### Tekniska förutsättningar som INTE finns idag (nytt 2026-08-11)
 
-Verifierat mot koden. Alla fyra måste lösas innan 64 kan byggas, och de påverkar
-tidsuppskattningen:
+Verifierat mot koden. **Två av de fyra gäller bara alternativ A** (se beslutspunkt 2 nedan) –
+markerat i sista kolumnen. De andra två gäller `externaKallor`-mekanismen som sådan, oavsett
+vem som äger posten, och kvarstår alltså oavsett leveransmodell:
 
-| # | Vad som saknas | Var det syns i koden | Varför det spelar roll |
-|---|---|---|---|
-| 1 | **Ingen central larmväg till leverantören.** Källbevakningen sätter `kallVarning` på ett rutindokument, och notisen går till rutinens ägare inom organisationen (`agare.uid`/`agare.roll`). | `functions/klinikstod.js:125–146`, `functions/notiser.js:77–79` | 64b:s "bara att larmet går till en central ansvarig" är inte en parameter – det är ett nytt notifieringsspår som ska byggas och testas. |
-| 2 | **Tak på fyra externa källor per rutin, enforcementat i reglerna.** | `firestore.rules:279` (`arKortKallLista`), `arGodkandaKallorN` manuellt utrullad för index 0–3 | Taket finns för att hålla nere antalet utvärderade deluttryck (Firestores gräns på 1000 per regelanrop), inte av godtycke. Ett baspaket med fler referenser per post kräver en genomtänkt regeländring. |
-| 3 | **Domänlistan saknar de mest sannolika utgivarna.** Socialstyrelsen och SBU finns INTE bland de sju godkända domänerna. | `functions/klinikstod.js:34`, `src/config/kalldomaner.js:4`, `firestore.rules` (`urlHarGodkandDoman`) | Nationella riktlinjer och bedömningsunderlag bor ofta just där. Att utöka listan är en ändring av en säkerhetsgräns i tre synkade lager plus regeltest – görbar, men inte en detalj. |
-| 4 | **Var baspaketet lever är obesvarat.** `externaKallor` är ett fält på rutindokument, och rutiner är per organisation. | `firestore.rules:469–497`, `functions/backup.js:36` (`BACKUP_COLLECTIONS`) | Antingen får varje kund kopior (då blir "samma för alla kunder" en fan-out-uppdatering, och kopiorna hamnar i backup, export och radering som om de vore kundens eget innehåll), eller så ligger paketet centralt (då fungerar inte den befintliga källbevakningen alls, se rad 1). Valet styr allt annat och hör ihop med beslutspunkt 2. |
+| # | Vad som saknas | Var det syns i koden | Gäller | Varför det spelar roll |
+|---|---|---|---|---|
+| 1 | **Ingen central larmväg till leverantören.** Källbevakningen sätter `kallVarning` på ett rutindokument, och notisen går till rutinens ägare inom organisationen (`agare.uid`/`agare.roll`). | `functions/klinikstod.js:125–146`, `functions/notiser.js:77–79` | **Bara A** | 64b:s "bara att larmet går till en central ansvarig" är inte en parameter – det är ett nytt notifieringsspår som ska byggas och testas. Under B äger kunden posten, så det befintliga larmet till rutinägaren räcker. |
+| 2 | **Tak på fyra externa källor per rutin, enforcementat i reglerna.** | `firestore.rules:279` (`arKortKallLista`), `arGodkandaKallorN` manuellt utrullad för index 0–3 | **A och B** | Taket finns för att hålla nere antalet utvärderade deluttryck (Firestores gräns på 1000 per regelanrop), inte av godtycke. Gäller varje rutin oavsett ägare – ett baspaket med fler referenser per post kräver en genomtänkt regeländring oavsett leveransmodell. |
+| 3 | **Domänlistan saknar de mest sannolika utgivarna.** Socialstyrelsen och SBU finns INTE bland de sju godkända domänerna. | `functions/klinikstod.js:34`, `src/config/kalldomaner.js:4`, `firestore.rules` (`urlHarGodkandDoman`) | **A och B** | Nationella riktlinjer och bedömningsunderlag bor ofta just där. Domänallowlistan är gemensam för hela appen – att utöka den är en ändring av en säkerhetsgräns i tre synkade lager plus regeltest, oavsett vem som äger den enskilda posten. |
+| 4 | **Var baspaketet lever är obesvarat.** `externaKallor` är ett fält på rutindokument, och rutiner är per organisation. | `firestore.rules:469–497`, `functions/backup.js:36` (`BACKUP_COLLECTIONS`) | **Bara A** | Under A får varje kund kopior (en fan-out-uppdatering, och kopiorna hamnar i backup, export och radering som om de vore kundens eget innehåll) ELLER paketet ligger centralt (då fungerar inte den befintliga källbevakningen alls, se rad 1). Under B är frågan redan besvarad: posterna ligger på kundens egna rutiner från start. |
 
 ### Hur ett baspaket SKA byggas, om det byggs
 
@@ -193,7 +208,7 @@ och då ska det gå att se vad som fortfarande är byggbart:
 
 | # | Fråga till juristen | Om svaret är ja | Om svaret är nej |
 |---|---|---|---|
-| 1 | Kvalificerar ett rent referensbibliotek (metadata + länk, ingen bearbetning) som medicinteknisk programvara enligt MDR art. 2(1) / MDCG 2019-11? | 64a–64d är byggbara som beskrivet | Hela idén faller i den centrala formen – gå till beslutspunkt 2, alternativ B |
+| 1 | Kvalificerar ett rent referensbibliotek (metadata + länk, ingen bearbetning) som medicinteknisk programvara enligt MDR art. 2(1) / MDCG 2019-11? | **Ja, det kvalificerar** → A faller i sin nuvarande lätta form: full MDR-efterlevnad (klinisk utvärdering, CE-märkning, kvalitetsledningssystem) är sannolikt inte proportionerligt för ett litet baspaket. Gå till fråga 2 – ändrar B bilden? | **Nej, det kvalificerar inte** → 64a–64d är byggbara som beskrivet, ren referensfunktion utan MDR-börda |
 | 2 | Ändras svaret på fråga 1 av vem som står som utgivare – Synappsen centralt, eller kunden själv efter en engångsimport? | Beslutspunkt 2 blir ett rent affärsval | Beslutspunkt 2 är avgjord av juridiken, inte av oss |
 | 3 | Får instrumentets innehåll återges i produkten, eller bara länkas? (Per instrument – svaret kan skilja sig åt.) | 64c kan mjukas upp för just de instrumenten | 64c står som skriven, ren länkning |
 | 4 | Ändrar opt-in (64d) ansvarsbilden på ett sätt som är värt att behålla även om 1–3 är gröna? | Behåll opt-in | Ompröva om baspaketet kan ingå i Core |
@@ -205,7 +220,7 @@ och då ska det gå att se vad som fortfarande är byggbart:
 | # | Fråga | Varför det inte är mitt beslut | Min rekommendation |
 |---|---|---|---|
 | 1 | **Ska baspaketet drivas vidare, och i så fall – vem gör den juridiska bedömningen innan något byggs?** | Regulatorisk risk (MDR) och upphovsrätt är juridiska frågor, inte tekniska – jag kan visa VAR gränsen sannolikt går utifrån hur klinikstödet redan är byggt, men jag kan inte lämna ett juridiskt bindande svar. | **Beställ en kort extern bedömning av de fyra frågorna i "Klart när" INNAN kod skrivs**, snarare än att bygga först och fråga sedan. Ordningen (juridik → kod) är viktigare än vilken vecka det byggs. |
-| 2 | **Vilken leveransmodell: centralt kurerat paket (A) eller engångsimport till kundens eget innehåll (B)?** | Det är ett produkt- och ansvarsval, inte ett tekniskt. A och B ger olika löften till kunden. | **Utred B först.** Se jämförelsen nedan – B löser tre av de fyra tekniska förutsättningarna gratis och flyttar utgivaransvaret, men priset är att löftet "alltid aktuellt, samma för alla" försvinner. Vilket pris som är värt att betala är ditt beslut, inte mitt. |
+| 2 | **Vilken leveransmodell: centralt kurerat paket (A) eller engångsimport till kundens eget innehåll (B)?** | Det är ett produkt- och ansvarsval, inte ett tekniskt. A och B ger olika löften till kunden. | **Utred B först.** Se jämförelsen nedan – B löser två av de fyra tekniska förutsättningarna gratis (den centrala larmvägen och frågan var paketet lever) och flyttar utgivaransvaret, men de två andra (fyrakällorstaket, domänlistan) kvarstår oavsett modell, och löftet "alltid aktuellt, samma för alla" försvinner. Vilket pris som är värt att betala är ditt beslut, inte mitt. |
 | 3 | **Vem förvaltar baspaketet, och vad får det kosta per månad?** | En löpande redaktörskostnad för leverantören är en affärsfråga. | **Prissätt det innan bygget, inte efter.** Ett kurerat delat bibliotek är ett åtagande för alla kunder, för alltid – strukturellt olikt allt annat i produkten, där innehållsansvaret ligger hos kunden. Om ingen har tid att förvalta det är B (eller inget alls) rätt svar oavsett vad juristen säger. |
 
 ### Beslutspunkt 2 i detalj: A eller B
@@ -213,15 +228,19 @@ och då ska det gå att se vad som fortfarande är byggbart:
 **Alternativ A – centralt kurerat paket** (utkastets ursprungliga idé). Synappsen äger
 posterna, de är samma för alla kunder, uppdateringar slår igenom överallt.
 *Kräver:* alla fyra tekniska förutsättningar ovan, en ny central larmväg, löpande förvaltning,
-och att juristens svar på fråga 1 är ja.
+och att juristens svar på fråga 1 är **nej** (kvalificerar inte som medicinteknisk
+programvara) – annars kräver A full MDR-efterlevnad, se tabellen ovan.
 *Ger:* det starkaste kundlöftet – "ni får ett underhållet nationellt referensbibliotek".
 
 **Alternativ B – engångsimport till kundens eget innehåll.** Baspaketet levereras vid
 etablering som referensposter i kundens egna rutiner, exakt som Etapp 56:s startbibliotek
 redan gör. Kunden blir utgivare och ägare från sekund ett.
-*Kräver:* i praktiken bara att seedningsmekanismen från Etapp 56 utökas – **den befintliga
-källbevakningen fungerar oförändrat** (posterna ligger på kundens rutiner, larmet går till
-kundens rutinägare, precis som idag), ingen central larmväg, ingen fan-out, ingen central
+*Kräver:* att seedningsmekanismen från Etapp 56 utökas, PLUS de två universella
+förutsättningarna (2 och 3 i tabellen ovan) – domänlistan och fyrakällorstaket är oberoende av
+vem som äger posten. Men **den befintliga källbevakningen fungerar oförändrat** (posterna
+ligger på kundens rutiner, larmet går till kundens rutinägare, precis som idag – dock bara för
+kunder som själva har Källbevakning-modulen aktiverad, samma begränsning som gäller allt annat
+`externaKallor`-innehåll redan idag), ingen central larmväg, ingen fan-out, ingen central
 förvaltning.
 *Ger:* ett svagare löfte – innehållet divergerar per kund och blir inte automatiskt uppdaterat
 centralt. *Men:* det flyttar utgivaransvaret till kunden, vilket sannolikt är den viktigaste
