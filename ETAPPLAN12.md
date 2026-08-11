@@ -594,13 +594,16 @@ Det här är inte en uppmaning att bygga mer. Det är en etapp för att göra de
 
 **Modul:** ingen.
 
-- **63a – Skilj på vad som kostar tio minuter och vad som kostar en bokning.** Fyra av tolv
-  rader är rena ifyllnadsuppgifter (`INCIDENT-CHECKLISTA.md`s tre tomma kontaktrader,
-  `TILLGANGLIGHETSREDOGORELSE.md`s datum och juridiska namn). De har stått öppna sedan
-  2026-08-01 trots att registret självt noterar *"Inget – tar tio minuter, ingen blockering"*.
-  Gruppera registret efter **vad som faktiskt krävs** (tio minuter vid tangentbordet / ett
-  beslut / en bokad människa / ett tecknat avtal) i stället för efter planfil. En ägare som
-  har tio minuter ska kunna se vad som ryms i dem.
+- **63a – ✅ KLAR (2026-08-11). Skilj på vad som kostar tio minuter och vad som kostar en
+  bokning.** `OPPNA-PUNKTER.md` grupperad om i fem rubriker istället för en enda lång tabell:
+  "Tio minuter vid tangentbordet", "Kräver ett ägarbeslut", "Kräver en bokad människa",
+  "Kräver ett tecknat avtal", "Väntar på en extern förutsättning (bevaka bara)". Den femte
+  gruppen fanns inte i planens ursprungliga tre-vägs uppdelning (beslut/bokning/avtal) – två
+  rader (Etapp 35e App Check, Etapp 40 import) passade inte ärligt in i någon av de tre, de
+  väntar bara på att ett externt villkor blir sant, ingen människa kan agera på dem förrän
+  dess. Att tvinga in dem i fel kategori hade motverkat hela poängen med grupperingen. Även
+  passat på att ta bort en rad som var löst utan att tas bort (Etapp 16/veckopuls, löst genom
+  att byggas i Etapp 62b) – ned till nio rader från tolv.
 - **63b – Förbered pilotpaketet så långt det går utan en pilot.** `ETAPPLAN10.md` Etapp 52
   har väntat på bokad tid sedan den skrevs. Allt som inte kräver en riktig människa kan
   färdigställas i förväg: introduktionsmaterial för en redaktör, ett förslag på
