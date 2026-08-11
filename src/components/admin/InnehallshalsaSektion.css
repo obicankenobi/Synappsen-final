@@ -9,15 +9,30 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-width: 420px;
+  max-width: 520px;
 }
 
 .innehallshalsa__nedbrytning li {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   font-size: 0.9rem;
   color: var(--text-svag);
+}
+
+.innehallshalsa__nedbrytning li span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Etapp 62c: inline ägar-tilldelning i "behöver uppmärksamhet"-tabellen */
+.innehallshalsa__agare-valjare {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .innehallshalsa__tabell-wrapper {

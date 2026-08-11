@@ -563,14 +563,21 @@ något åt någon annanstans. Att stänga den loopen är billigt, eftersom all m
   nämnde ("om Brevo-nyckeln finns") byggs INTE – det kräver en egen schemalagd funktion och
   prenumerationshantering, en väsentligt större insats än vyn, och står inte i proportion till
   "minsta meningsfulla version". Ren vy, som planen själv tillåter som fallback.
-- **62c – Hälsosiffran ska kunna svara "vad gör jag nu?".** `InnehallshalsaSektion` visar
-  redan siffran med sin nedbrytning (bra, och medvetet – se `PITCH.md`). Nästa steg är att
-  varje rad i nedbrytningen får en åtgärd: "saknar ägare" → tilldela ägare direkt i listan;
-  "bör granskas" → starta en granskningsrunda med exakt de rutinerna förvalda (funktionen
-  finns redan, Etapp 37b).
+- **62c – ✅ KLAR (2026-08-11). Hälsosiffran ska kunna svara "vad gör jag nu?".**
+  `InnehallshalsaSektion` visade redan siffran med sin nedbrytning. Byggt: "bör granskas"
+  (`passeratGranskningsdatum`) har fått en knapp direkt i nedbrytningsraden som startar en
+  granskningsrunda (Etapp 37b) med EXAKT de flaggade rutinerna förvalda, grupperat per område
+  (en runda gäller alltid ett enda område) med 14 dagars deadline. "Saknar ägare" har fått en
+  inline ägarväljare (roll eller person, samma modell som `RutinFormular.jsx`) direkt i
+  "behöver uppmärksamhet"-tabellens nya Åtgärd-kolumn. Granskningsrunde-knappen/prenumerationen
+  är medvetet begränsad till superadmin-vyn (`!endastOmrade`) – `granskningsrundor` är en
+  superadmin-bara collection i `firestore.rules`, och `useGranskningsrundor` fick en ny
+  `aktiv`-parameter för att slippa en onödig permission-denied-prenumeration i
+  per-område-vyn (mittOmrade-redaktörer).
 
 **Klart när:** de tre vanligaste sakerna en redaktör ser i adminpanelen går att åtgärda utan
-att lämna vyn.
+att lämna vyn. **Uppfyllt** – sökluckor (62a), veckopulsen (62b) och nu hälsosiffrans två
+vanligaste flaggor (62c) går alla att åtgärda inline. Hela Etapp 62 (62a–62c) är nu KLAR.
 
 ---
 

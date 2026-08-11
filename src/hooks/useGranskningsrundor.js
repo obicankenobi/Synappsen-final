@@ -8,13 +8,19 @@ import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { rapporteraNekadListning } from "../firebase/felrapportering";
 
-export function useGranskningsrundor() {
+// Etapp 62c: InnehallshalsaSektion.jsx behöver `startaRunda` i sin superadmin-vy men
+// renderas ÄVEN i en per-område-vy för icke-superadmin (mittOmrade) – där saknar kontot
+// läsrättighet till collectionen (se firestore.rules), och en aktiv prenumeration skulle
+// bara generera en permission-denied-felrapport i onödan för varje sådan sidvisning.
+// `aktiv=false` hoppar över listan helt men lämnar fortfarande startaRunda/taBortRunda
+// användbara (de anropas ändå bara från kod som redan vet att kontot är superadmin).
+export function useGranskningsrundor(aktiv = true) {
   const { organisationId, role } = useAuth();
   const [rundor, setRundor] = useState([]);
   const [laddar, setLaddar] = useState(true);
 
   useEffect(() => {
-    if (!organisationId) return undefined;
+    if (!aktiv || !organisationId) return undefined;
     const q = query(collection(db, "granskningsrundor"), where("organisationId", "==", organisationId));
     const unsubscribe = onSnapshot(
       q,
@@ -28,7 +34,7 @@ export function useGranskningsrundor() {
       },
     );
     return unsubscribe;
-  }, [organisationId, role]);
+  }, [aktiv, organisationId, role]);
 
   async function startaRunda({ omrade, trosallDagar, deadline, rutinIds, uid, namn }) {
     return addDoc(collection(db, "granskningsrundor"), {
