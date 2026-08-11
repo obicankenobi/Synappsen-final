@@ -10,10 +10,12 @@
 produktionsdeploy är fortfarande v5.96.0, körning #74). v5.98.0 är resultatet av en **bred
 säkerhets- och kvalitetsgranskning** (inte en `ETAPPLANx.md`-etapp) – se sektionen
 "Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)" längst ner för vad som
-åtgärdades och vad som återstår. **Kör `npm run test:rules` och `npm run test:e2e` innan denna
-gren deployas eller mergas** – de gick inte att köra i granskningens sandbox (Firebase-
-emulatorn kräver att `::1` går att binda, saknas där), och tre av regeländringarna är bara
-manuellt granskade, inte emulatorverifierade. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
+åtgärdades och vad som återstår. **`npm run test:rules` och `npm run test:e2e` är nu körda och
+gröna** (267/267 respektive 17/17) – granskningens sandbox saknade IPv6 helt, vilket fick
+Firebase-emulatorn att hänga tyst; rotorsaken var att `firebase-tools` hårdkodar att
+`localhost` slår upp till både `127.0.0.1` och `::1` oavsett systemets faktiska nätverk,
+fixat genom att peka emulatorerna på `127.0.0.1` explicit i `firebase.json`. Se samma
+uppföljningssektion för detaljer. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
 drift") är HELT KLAR OCH DEPLOYAD** (v5.96.0, körning #74) – se sektionen
 "Uppföljning 2026-08-11 (ETAPPLAN12.md helt klar, v5.96.0)" längst ner.
 **`ETAPPLAN13.md` (Etapp 64, baspaketet) är nu DEN ANTAGNA PLANEN.** Ägaren beslutade
@@ -2609,18 +2611,37 @@ prioriterade). Gren: `claude/synappsen-final-review-slzcxe`, PR #15.
 
 **Kvar att göra, i prioritetsordning** (fullständig lista med motivering i
 `SAKERHETSRAPPORT.md`s tillägg):
-1. **Kör `npm run test:rules` och `npm run test:e2e` mot en riktig emulator** innan merge/
-   deploy – tre regeländringar är overifierade.
-2. `functions/backup.js` `aterstallOrganisation` saknar allowlist mot collection-namn.
-3. `storage.rules` `arBild()` tillåter SVG överallt, inklusive organisationslogotypen – ett
+1. `functions/backup.js` `aterstallOrganisation` saknar allowlist mot collection-namn.
+2. `storage.rules` `arBild()` tillåter SVG överallt, inklusive organisationslogotypen – ett
    öppet ägarbeslut, nu i `OPPNA-PUNKTER.md`.
-4. Ingen samtidighetshantering vid redigering av samma rutin (rak `updateDoc`, ingen
+3. Ingen samtidighetshantering vid redigering av samma rutin (rak `updateDoc`, ingen
    version/transaktion) – två redaktörer som sparar överskriver varandra spårlöst.
-5. `TILLGANGLIGHETSREDOGORELSE.md` är INTE rättad mot de tre WCAG-fynden som motsäger den.
+4. `TILLGANGLIGHETSREDOGORELSE.md` är INTE rättad mot de tre WCAG-fynden som motsäger den.
 
 npm audit: 7 sårbarheter, men `npm audit --omit=dev` och en separat körning i `functions/` ger
 båda noll – samtliga är dev-only. Den kritiska kräver en planerad major-uppgradering av
 `firebase-tools` (v13→v15), inte `--force`.
 
-Testat i granskningen: lint rent, build OK, `npx vitest run` 175/175 (25 filer). Regeltester
-och e2e INTE körda (se ovan). Ingen deploy gjord.
+Testat i granskningen: lint rent, build OK, `npx vitest run` 175/175 (25 filer).
+
+**Uppdatering samma dag: `test:rules` och `test:e2e` verifierade i efterhand.** Regeltesterna
+gick inte att köra i granskningens ursprungliga sandbox – Firebase-emulatorn hängde tyst utan
+felmeddelande vid start. Rotorsaken: `firebase-tools`s interna DNS-resolver
+(`node_modules/firebase-tools/lib/emulator/dns.js`) hårdkodar att hostnamnet `localhost` slår
+upp till BÅDE `127.0.0.1` och `::1`, oavsett systemets faktiska nätverkskonfiguration, och
+testar sedan att binda till båda adresserna innan emulatorn startar. I en container helt utan
+IPv6-stack (inget `/proc/net/if_inet6`) hänger just det bindningsförsöket för evigt istället
+för att felmeddela. En första fjärrsession i en annan molnmiljö träffade samma problem. Fixen:
+`firebase.json`s `emulators`-block satte `"host": "127.0.0.1"` explicit för varje emulator
+(auth/firestore/functions/storage) istället för standardvärdet `localhost` – det kringgår
+resolverns `isIP()`-kortslutning helt, oavsett om miljön har IPv6 eller inte. Detta är alltså
+en riktig fix, inte en sandbox-specifik workaround.
+
+Med fixen: **`npm run test:rules` → 267/267 gröna** (11 testfiler, inklusive nya
+regressionstester för de tre regeländringarna: organisationer create/delete, anteckningar
+dokId-prefix, och två nya tester för sokloggar-personnummerspärren som tidigare saknade
+täckning). **`npm run test:e2e` → 17/17 gröna** på en ren körning (en tidigare avbruten
+körning lämnade en föräldralös Vite-devserverprocess som orsakade `ERR_CONNECTION_REFUSED` i
+två mellanliggande försök – bekräftat vara en miljöartefakt, inte en kodbugg, genom att
+isolera och köra om det enskilda testet rent). Denna gren är alltså fullt testverifierad.
+Ingen deploy gjord ännu.
