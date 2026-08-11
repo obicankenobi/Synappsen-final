@@ -2439,3 +2439,29 @@ från Etapp 62c:s ändringar).
 **Nästa steg:** ingen aktiv plan pekas ut ännu – `ETAPPLAN12.md` är den senast antagna och nu
 helt klar. Läs `OPPNA-PUNKTER.md` för vad som väntar på en människa/ett beslut, eller vänta på
 ny instruktion från ägaren om vad nästa etapp ska vara.
+
+---
+
+## Uppföljning 2026-08-11 (granskning av ETAPPLAN13 + fyra döda sökvägar efter 61a)
+
+Ägaren bad om en granskning av baspaketsförslaget. `ETAPPLAN13.md` är omskriven – fem fel i
+utkastet, varav två är värda att känna till även om man inte läser planen: den citerade MDR
+Annex VIII regel 11 (en KLASSIFICERINGS-regel) för vad som i själva verket är en
+kvalificeringsfråga, och den saknade upphovsrätten helt trots att bedömningsinstrument ofta
+är licensbelagda. Planen har nu tre beslutspunkter i stället för en, inklusive ett
+alternativ B som återanvänder Etapp 56:s seedningsmekanism och flyttar utgivaransvaret till
+kunden. Se planens egen "Granskning"-sektion. **Fortfarande ej byggbar** – nu av två
+juridiska skäl i stället för ett.
+
+`CLAUDE.md`s dokumentkarta uppdaterad: `ETAPPLAN12.md` står inte längre som den aktiva planen,
+och `ETAPPLAN11.md`s 54c/54d + Etapp 58 pekade fortfarande mot `OPPNA-PUNKTER.md` trots att de
+flyttades till `BESLUTSLOGG.md` 2026-08-10.
+
+**Ett fynd om Etapp 61a värt att komma ihåg:** delningen av `functions/index.js` gjorde ~86
+kommentarsreferenser i levande kod inaktuella. De flesta är ofarliga – skarven re-exporterar
+alla 93 Cloud Functions, så referensen leder rätt via ett extra hopp. Men referenser till
+INTERNA symboler som aldrig exporterats är äkta återvändsgränder, och fyra sådana fanns
+(`GODKANDA_KALLDOMANER`, `STANDARD_TAK_ORE`, `aktuellManadNyckel`, `personalpulsResultat`).
+Rättade. Historiska planfiler och append-only-sektionerna här och i `SAKERHETSRAPPORT.md`
+lämnades medvetet orörda – de var korrekta när de skrevs. Ingen versionsbump (kommentarer och
+dokument), ingen deploy: v5.96.0/körning #74 är fortfarande det som kör i produktion.
