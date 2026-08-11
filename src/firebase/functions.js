@@ -230,7 +230,7 @@ export function losInInbjudan(token, namn) {
 }
 
 // Etapp 39c – anonym personalpuls. Inget enskilt svar skickas till klienten någonsin, bara
-// aggregat (se personalpulsResultat i firestore.rules/functions/index.js).
+// aggregat (se personalpulsResultat i firestore.rules/functions/matvarden.js).
 export function svaraPersonalpuls(omrade, svar1, svar2, svar3) {
   const fn = httpsCallable(functions, "svaraPersonalpuls");
   return fn({ omrade, svar1, svar2, svar3 });

@@ -2,7 +2,7 @@
 // självrapporterad checkbox. Ren funktion, separerad från useValkomstchecklista.js för att
 // vara testbar utan att mocka Firestore-lyssnare (samma mönster som kompetensStatus.js).
 //
-// Måste matcha functions/index.js STANDARD_TAK_ORE (200 kr) – samma dupliceringsmönster som
+// Måste matcha functions/gemensamt.js STANDARD_TAK_ORE (200 kr) – samma dupliceringsmönster som
 // andra klient/server-konstantpar i projektet (t.ex. KAN_HANTERA_FORRAD).
 export const STANDARD_TAK_ORE = 20000;
 

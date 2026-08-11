@@ -39,7 +39,7 @@ function vantaSig(villkor, meddelande) {
   }
 }
 
-// Samma format som functions/index.js:s aktuellManadNyckel() (inte exporterad för test) –
+// Samma format som functions/gemensamt.js:s aktuellManadNyckel() (inte exporterad för test) –
 // måste beräknas dynamiskt, inte hårdkodas, annars går testet sönder varje månadsskifte
 // (vilket hände: skrivet i juli 2026, klockan har sedan gått in i augusti).
 const nu = new Date();
