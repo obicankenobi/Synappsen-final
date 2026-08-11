@@ -7,6 +7,7 @@ import { loggaSokning, loggaTidTillKlick } from "../hooks/useSokstatistik";
 import { useAuth } from "../hooks/useAuth";
 import { DomanBadge } from "./Badge";
 import { domanNyckelForEtikett } from "../utils/badge";
+import { hittaPersonnummer } from "../utils/piiFilter";
 import "./SokFalt.css";
 
 // Egen liten wrapper runt Date.now(), definierad UTANFÖR komponenten – react-hooks/purity
@@ -62,8 +63,13 @@ export default function SokFalt() {
     if (term.length < 3) return;
     const timer = setTimeout(() => {
       const gavTraff = allaTraffar.length > 0;
-      if (!gavTraff) {
-        loggaNollTraff(term, currentUser?.uid);
+      // Söker någon på ett personnummer får det aldrig hamna i sökloggen (genomgående krav 1).
+      // firestore.rules avvisar det också, men filtret här gör att skrivningen inte ens försöks.
+      // Räknaren loggaSokning nedan påverkas inte – den innehåller ingen fritext.
+      if (!gavTraff && hittaPersonnummer(term).length === 0) {
+        // Fire-and-forget: en nollträffslogg som inte skrivs (t.ex. avvisad av reglerna eller
+        // offline) är oviktig för användaren – svälj felet tyst istället för en ohanterad rejection.
+        loggaNollTraff(term, currentUser?.uid).catch(() => {});
       }
       loggaSokning(organisationId, gavTraff);
     }, 800);

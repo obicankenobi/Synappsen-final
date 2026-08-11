@@ -7,7 +7,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { doc, getDoc, onSnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "../firebase/config";
+import { auth, db, rensaLokalaAnvandardata } from "../firebase/config";
 import { STANDARD_ORG } from "../firebase/organisation";
 import { losInInbjudan } from "../firebase/functions";
 import { AuthContext } from "./authContextDef";
@@ -46,8 +46,31 @@ export function AuthProvider({ children }) {
     return signInWithEmailAndPassword(auth, email, losenord);
   }
 
-  function loggaUt() {
-    return signOut(auth);
+  // Säkerhetsfix: enbart signOut() lämnade Firestores IndexedDB-cache orörd – på en delad
+  // dator kunde nästa person läsa föregående användares rutiner/kontakter/förrådsartiklar ur
+  // webbläsarens lagring, och en offline-query efter ett organisationsbyte kunde serveras ur
+  // fel organisations cache. Städningen sker därför i tur och ordning: signOut → tömning av
+  // lokal data (rensaLokalaAnvandardata) → HÅRD omladdning, eftersom en terminerad
+  // Firestore-instans inte går att återanvända i samma sidlivstid.
+  //
+  // Inget steg får kunna hindra utloggningen: signOut-fel loggas (auth-tillståndet rensas
+  // ändå lokalt), städningen sväljer sina egna fel (t.ex. `failed-precondition` när en annan
+  // flik håller Firestore-instansen öppen), och omladdningen ligger i ett finally så den
+  // körs även om något oväntat kastar. Omladdningen ersätter historikposten
+  // (location.replace) så bakåtknappen inte tar nästa person tillbaka in i appen.
+  async function loggaUt() {
+    try {
+      await signOut(auth);
+    } catch (fel) {
+      console.error("Utloggningen mot Firebase Auth misslyckades:", fel);
+    }
+    try {
+      await rensaLokalaAnvandardata();
+    } finally {
+      if (typeof window !== "undefined") {
+        window.location.replace("/logga-in");
+      }
+    }
   }
 
   useEffect(() => {

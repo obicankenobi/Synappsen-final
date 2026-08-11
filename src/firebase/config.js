@@ -6,6 +6,8 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
   connectFirestoreEmulator,
+  terminate,
+  clearIndexedDbPersistence,
 } from "firebase/firestore";
 import { connectAuthEmulator } from "firebase/auth";
 
@@ -44,6 +46,52 @@ export const auth = getAuth(app);
 export const db = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
 });
+
+// Cache Storage-cachen där offline-centret sparar bilder (useOfflineCenter.js). Namnet bor
+// här, inte i hooken, så att utloggningsstädningen nedan kan tömma den utan att importera en
+// React-hook (och riskera en cirkulär import via useAuth).
+export const BILDCACHE_NAMN = "synappsen-offline-bilder";
+
+// Säkerhetsfix: Firestores persistenta cache (IndexedDB ovan) är INTE nycklad per användare.
+// På en delad akutmottagningsdator låg därför allt en tidigare inloggad person läst –
+// rutiner, kontakter, förrådsartiklar – kvar läsbart för nästa person efter en utloggning,
+// och en offline-query efter ett organisationsbyte kunde serveras ur fel organisations
+// cachade dokument. Städas därför explicit vid utloggning.
+//
+// Ordningen är tvingande: terminate() först (annars vägrar clearIndexedDbPersistence), och
+// EFTERÅT går instansen inte att återanvända i samma sidlivstid – anroparen måste därför
+// ladda om sidan hårt (se loggaUt i AuthContext.jsx).
+//
+// Varje steg har egen felhantering och sväljer sitt fel: en utloggning får ALDRIG misslyckas
+// eller hänga för att städningen gör det. Vanligaste fallet är `failed-precondition` – en
+// annan flik har samma Firestore-instans öppen, och då kan cachen helt enkelt inte tömmas.
+// Den efterföljande hårda omladdningen gör ändå att ingenting av föregående användares data
+// ligger kvar i minnet i den här fliken.
+export async function rensaLokalaAnvandardata() {
+  try {
+    await terminate(db);
+    await clearIndexedDbPersistence(db);
+  } catch (fel) {
+    console.warn("Kunde inte tömma den lokala Firestore-cachen vid utloggning:", fel?.code ?? fel);
+  }
+
+  try {
+    if (typeof caches !== "undefined") {
+      await caches.delete(BILDCACHE_NAMN);
+    }
+  } catch (fel) {
+    console.warn("Kunde inte tömma bildcachen vid utloggning:", fel);
+  }
+
+  try {
+    const nycklar = Object.keys(localStorage).filter((n) => n.startsWith("offlineCenter_"));
+    for (const nyckel of nycklar) {
+      localStorage.removeItem(nyckel);
+    }
+  } catch (fel) {
+    console.warn("Kunde inte rensa offline-centrets lokala nycklar vid utloggning:", fel);
+  }
+}
 
 // Endast för lokal utveckling/manuell verifiering mot emulatorerna (t.ex. Etapp 1:s
 // organisationsisolering) – av som standard, kräver ett explicit .env.local-flagga så det
