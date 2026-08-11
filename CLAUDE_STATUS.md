@@ -293,9 +293,9 @@ Etapp 15–21.
    ["--no-sandbox"] })`) för att manuellt bevisa att UI-ändringar faktiskt
    fungerar i en riktig webbläsare, inte bara att testsviter är gröna.
 7. **Git-gren:** kontrollera alltid med `git branch --show-current` – anta ingen
-   gren. `claude/compassionate-euler-rho0q5` (som denna rad tidigare namngav som
-   den enda arbetsgrenen) står kvar på v5.80.0; allt arbete från v5.81.0 och framåt
-   ligger på senare sessionsgrenar, 2026-08-11 `claude/synappsen-final-review-slzcxe`.
+   gren. `claude/compassionate-euler-rho0q5` är default-grenen och är aktuell
+   (v5.97.0), men en session kan startas på en egen sessionsgren – 2026-08-11
+   t.ex. `claude/synappsen-final-review-slzcxe`.
    Se `CLAUDE.md`s arbetsmönster. Skapa inte PR om inte användaren explicit ber om det
    (gäller detta repo/denna arbetsmiljö specifikt – kan skilja sig i andra kontext).
 

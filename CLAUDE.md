@@ -161,16 +161,15 @@ Dessa två är de enda dokumenten i projektet vars felaktighet kan få juridiska
   `npm run test:rules`, `npm run test:functions`, `npm run test:storage`, `npm run test:e2e`
   (kräver `PLAYWRIGHT_CHROMIUM_PATH` lokalt i den här sandboxen, se `playwright.config.js`).
 - **Git-gren:** **kontrollera alltid med `git branch --show-current` – anta ingen gren.**
-  Fram till v5.80.0 skedde allt arbete på `claude/compassionate-euler-rho0q5`, och den här
-  raden namngav den grenen som ett faktum. Det stämmer inte längre: den grenen står kvar på
-  v5.80.0 (commit `a8319e5`) medan allt arbete från v5.81.0 och framåt, inklusive v5.97.0,
-  ligger på senare sessionsgrenar (2026-08-11: `claude/synappsen-final-review-slzcxe`).
-  Samma stale-mönster som resten av det här dokumentet varnar för, fast i en instruktion –
-  en session som litade på namnet skulle pusha och deploya från en gren 17 releaser efter
-  verkligheten. **Obs:** `.claude/skills/synappsen-release/SKILL.md` hårdkodar fortfarande
-  det gamla grennamnet i både `git push` och deploy-workflowens `ref` – ersätt det med den
-  faktiska grenen när du följer skillen. Skapa inte en PR om inte användaren explicit ber
-  om det.
+  `claude/compassionate-euler-rho0q5` är repots **default-gren** och är aktuell (v5.97.0,
+  commit `f6d289d` per 2026-08-11) – huvuddelen av arbetet har skett där. Men en session kan
+  startas på en egen sessionsgren (2026-08-11 t.ex. `claude/synappsen-final-review-slzcxe`),
+  och då är det den grenen som gäller. Anta därför aldrig grennamnet från den här raden –
+  det är exakt det stale-mönster resten av dokumentet varnar för, fast i en instruktion.
+  **Obs:** `.claude/skills/synappsen-release/SKILL.md` hårdkodar `claude/compassionate-euler-rho0q5`
+  i både `git push` och deploy-workflowens `ref` – det är rätt när du står på default-grenen,
+  men måste bytas mot den faktiska grenen om du står någon annanstans. Skapa inte en PR om
+  inte användaren explicit ber om det.
 - **Genomgående krav 8 (premisskontroll):** verifiera en etapps antaganden mot FAKTISK kod
   innan bygget påbörjas – flera tidigare etapper visade sig bygga på antaganden som inte
   stämde. Se `ETAPPLAN3.md`/`ETAPPLAN4.md` för konkreta exempel.
