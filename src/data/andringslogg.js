@@ -11,6 +11,15 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.96.0",
+    datum: "2026-08-11",
+    andringar: [
+      "Skapa en rutin direkt från en sökning som inte gav träff, med sökordet redan ifyllt",
+      "Ny 'Veckopuls' i adminpanelen – de mest angelägna sakerna att göra just nu, samlade på ett ställe",
+      "Innehållshälsan går nu att åtgärda direkt: tilldela ägare eller starta en granskningsrunda utan att lämna listan",
+    ],
+  },
+  {
     version: "5.95.0",
     datum: "2026-08-10",
     andringar: [

@@ -6,12 +6,13 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-10, version **5.95.0** – **INTE ÄNNU DEPLOYAD** (senaste
-bekräftade produktionsdeploy är fortfarande v5.89.0, körning #73, commit `63f15d7`). Ägaren
-har nu svarat på Etapp 63c:s tre beslutspunkter (SSO = OIDC, påminnelsemejl-förval = planens
-rekommendation, 54c/54d = vänta) – loggat i `BESLUTSLOGG.md`, motsvarande rader borttagna ur
-`OPPNA-PUNKTER.md`. Ingen av de tre låste upp nytt kodningsarbete. Se sektionen "Uppföljning
-2026-08-10 (Etapp 63c-beslutspunkterna avgjorda)" längst ner.
+**Senast uppdaterad:** 2026-08-11, version **5.96.0**. **`ETAPPLAN12.md` (Etapp 59–63, "Från
+demo till drift") är nu HELT KLAR** – 62a (skapa rutin från en sökluck), 62b (veckopulsen),
+62c (åtgärdsbara rader i hälsosiffran), 63a (`OPPNA-PUNKTER.md` grupperad efter insatstyp),
+63b (`REDAKTORSGUIDE.md`/`PILOTUPPLAGG.md`, pilotpaketet förberett utan en pilot) och 63c (de
+tre ägarbesluten, se `BESLUTSLOGG.md`) byggda i ett sammanhängande pass. Se sektionen
+"Uppföljning 2026-08-11 (ETAPPLAN12.md helt klar, v5.96.0)" längst ner för detaljer och
+deploy-status.
 `ETAPPLAN11.md` (Etapp 53–58) är nu **HELT KLAR utom 54c/54d och Etapp 58** – båda väntar
 medvetet på en extern förutsättning (konkret andra enhet respektive en kund som kräver SSO),
 inte på kapacitet, se `OPPNA-PUNKTER.md`. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
