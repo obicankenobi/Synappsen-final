@@ -85,7 +85,14 @@ export default function Admin() {
 
   async function vaxlaModul(modul, paslagen) {
     if (!organisationId) return;
-    await uppdateraModuler(modul, paslagen);
+    try {
+      await uppdateraModuler(modul, paslagen);
+    } catch (fel) {
+      // Ett nekat/misslyckat anrop syntes tidigare bara som att "✓ Sparat" uteblev – och
+      // switchen i ModulerSektion ser påslagen ut tills onSnapshot rättar den.
+      visaMeddelande(`Modulen kunde inte ändras: ${fel?.message ?? "okänt fel"}`);
+      return;
+    }
     setSparadModul(modul);
     setTimeout(() => setSparadModul(null), 2000);
   }
@@ -95,9 +102,15 @@ export default function Admin() {
   const [sakerhetSparad, setSakerhetSparad] = useState(false);
   useEffect(() => {
     if (!organisationId) return undefined;
-    const unsubscribe = onSnapshot(doc(db, "organisationer", organisationId), (snap) => {
-      setKravMfaForRoller(snap.data()?.sakerhet?.kravMfaForRoller ?? []);
-    });
+    const unsubscribe = onSnapshot(
+      doc(db, "organisationer", organisationId),
+      (snap) => {
+        setKravMfaForRoller(snap.data()?.sakerhet?.kravMfaForRoller ?? []);
+      },
+      // Utan felcallback kastar Firestore ett obehandlat fel om läsningen nekas (t.ex. en
+      // redaktörsroll utan läsrätt på organisationsdokumentet) – visa tom policy istället.
+      () => setKravMfaForRoller([])
+    );
     return unsubscribe;
   }, [organisationId]);
 
@@ -106,7 +119,14 @@ export default function Admin() {
     const nyLista = kravs
       ? [...new Set([...kravMfaForRoller, roll])]
       : kravMfaForRoller.filter((r) => r !== roll);
-    await uppdateraMfaPolicy(nyLista);
+    try {
+      await uppdateraMfaPolicy(nyLista);
+    } catch (fel) {
+      // En 2FA-policy som ser sparad ut men inte är det är ett säkerhetsantagande som inte
+      // håller – säg ifrån istället för att bara tappa felet.
+      visaMeddelande(`2FA-policyn kunde inte sparas: ${fel?.message ?? "okänt fel"}`);
+      return;
+    }
     setSakerhetSparad(true);
     setTimeout(() => setSakerhetSparad(false), 2000);
   }

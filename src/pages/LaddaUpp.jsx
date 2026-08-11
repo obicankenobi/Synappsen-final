@@ -33,7 +33,7 @@ function genId() {
 export default function LaddaUpp() {
   const { currentUser, namn } = useAuth();
   const mittNamn = namn || currentUser?.email;
-  const { confirm } = useDialog();
+  const { confirm, visaMeddelande } = useDialog();
   const { laddat: featuresLaddade, hasFeature } = useFeatures();
   const [omrade, setOmrade] = useState(OMRADEN[0].varde);
   const [forrad, setForrad] = useState(FORRAD[0]);
@@ -72,8 +72,25 @@ export default function LaddaUpp() {
     }
   }, [poster]);
 
-  async function valjFilerFranLista(filer, e) {
+  async function valjFilerFranLista(valdaFiler, e) {
     if (e) e.target.value = "";
+    if (valdaFiler.length === 0) return;
+
+    // Spärr för det storage.rules ändå nekar: inkommande/{uid} tillåter bara bilder under
+    // 10 MB. Utan den här kontrollen laddade klienten upp hela filen först och visade sedan
+    // ett rått "storage/unauthorized" i kön – användaren fick vänta ut en uppladdning som
+    // aldrig kunde lyckas, utan att förstå varför.
+    const MAX_FIL_BYTE = 10 * 1024 * 1024;
+    const forStora = valdaFiler.filter((f) => f.size >= MAX_FIL_BYTE);
+    const felTyp = valdaFiler.filter((f) => !f.type.startsWith("image/"));
+    const filer = valdaFiler.filter((f) => f.size < MAX_FIL_BYTE && f.type.startsWith("image/"));
+    if (forStora.length > 0 || felTyp.length > 0) {
+      const rader = [
+        ...forStora.map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(1)} MB) – max 10 MB per bild.`),
+        ...felTyp.map((f) => `${f.name} är inte en bild och kan inte tolkas.`),
+      ];
+      await visaMeddelande(rader.join("\n"));
+    }
     if (filer.length === 0) return;
 
     // Varning (inte spärr) för stora filer – på mobilnät tar en 8 MB-bild märkbar tid att
@@ -124,7 +141,13 @@ export default function LaddaUpp() {
     return valjFilerFranLista(Array.from(e.target.files ?? []), e);
   }
 
-  function rensaFiler() {
+  async function rensaFiler() {
+    // "Rensa" kastar även bort redan uppladdade foton som ännu inte tolkats – de går inte att
+    // få tillbaka från kön efteråt, så fråga först när det finns något otolkat kvar.
+    const otolkade = poster.filter((p) => p.status === STATUS.VANTAR || p.status === STATUS.LADDAR_UPP);
+    if (otolkade.length > 0 && !(await confirm(`Rensa listan? ${otolkade.length} foto(n) har inte tolkats än.`))) {
+      return;
+    }
     setPoster([]);
     sessionStorage.removeItem(SESSION_KEY);
   }
@@ -173,44 +196,45 @@ export default function LaddaUpp() {
     return artiklar.find((a) => a.id === artikelId)?.status ?? null;
   }
 
-  async function godkannPostRutin(post) {
+  // Alla fyra granskningsåtgärder skriver till Firestore. Ett misslyckande (nekad behörighet,
+  // tappat nät) syntes tidigare inte alls – raden blev bara kvar som ogodkänd, och i
+  // "Godkänn alla klara" avbröts hela loopen tyst mitt i. Returnerar true/false så loopen kan
+  // stanna på ett medvetet sätt istället för att kastas ur.
+  async function korGranskningsatgard(post, atgard) {
     setHanterar(post.id);
     try {
-      await godkannRutin(post.resultat.rutinId, currentUser.uid, mittNamn);
+      await atgard();
+      return true;
+    } catch (fel) {
+      await visaMeddelande(`${post.namn}: åtgärden misslyckades – ${fel?.message ?? "okänt fel"}`);
+      return false;
     } finally {
       setHanterar(null);
     }
   }
 
-  async function nekaPostRutin(post) {
-    setHanterar(post.id);
-    try {
-      await taBortRutin(post.resultat.rutinId, currentUser.uid);
-    } finally {
-      setHanterar(null);
-    }
+  function godkannPostRutin(post) {
+    return korGranskningsatgard(post, () => godkannRutin(post.resultat.rutinId, currentUser.uid, mittNamn));
   }
 
-  async function godkannPostArtiklar(post) {
-    setHanterar(post.id);
-    try {
+  function nekaPostRutin(post) {
+    return korGranskningsatgard(post, () => taBortRutin(post.resultat.rutinId, currentUser.uid));
+  }
+
+  function godkannPostArtiklar(post) {
+    return korGranskningsatgard(post, async () => {
       for (const a of post.resultat.artiklar) {
         await godkannArtikel(a.id);
       }
-    } finally {
-      setHanterar(null);
-    }
+    });
   }
 
-  async function nekaPostArtiklar(post) {
-    setHanterar(post.id);
-    try {
+  function nekaPostArtiklar(post) {
+    return korGranskningsatgard(post, async () => {
       for (const a of post.resultat.artiklar) {
         await taBortArtikel(a.id, currentUser.uid);
       }
-    } finally {
-      setHanterar(null);
-    }
+    });
   }
 
   // Ett foto räknas som "obehandlat" tills alla poster det skapade är antingen godkända eller
@@ -229,11 +253,9 @@ export default function LaddaUpp() {
 
   async function godkannAllaKlara() {
     for (const post of obehandladePoster) {
-      if (omrade === "logistik") {
-        await godkannPostArtiklar(post);
-      } else {
-        await godkannPostRutin(post);
-      }
+      const lyckades =
+        omrade === "logistik" ? await godkannPostArtiklar(post) : await godkannPostRutin(post);
+      if (!lyckades) return;
     }
   }
 

@@ -12,6 +12,32 @@ import "./RutinFormular.css";
 
 const MAX_KALLOR = 4;
 
+// Klientkontroll av valda filer INNAN uppladdning. storage.rules nekar redan bilagor
+// >= 20 MB och allt som varken är bild eller PDF, men det felet dyker upp först EFTER att
+// användaren väntat ut hela uppladdningen, och lyder "storage/unauthorized" – obegripligt
+// för en redaktör. Samma gränser, kontrollerade direkt vid filvalet.
+const MAX_BILAGA_BYTE = 20 * 1024 * 1024;
+
+function bilagaProblem(fil) {
+  if (fil.size >= MAX_BILAGA_BYTE) {
+    return `${fil.name} är ${(fil.size / 1024 / 1024).toFixed(1)} MB – max 20 MB per bilaga.`;
+  }
+  if (!fil.type.startsWith("image/") && fil.type !== "application/pdf") {
+    return `${fil.name} är varken en bild eller en PDF och kan inte bifogas.`;
+  }
+  return null;
+}
+
+function stegbildProblem(fil) {
+  if (fil.size >= MAX_BILAGA_BYTE) {
+    return `${fil.name} är ${(fil.size / 1024 / 1024).toFixed(1)} MB – max 20 MB per bild.`;
+  }
+  if (!fil.type.startsWith("image/")) {
+    return `${fil.name} är inte en bild.`;
+  }
+  return null;
+}
+
 // Etapp 21a: "Migrering" enligt planen – hitta URL:er som redan står i den skrivna texten
 // och föreslå dem som strukturerade referenser, istället för att skanna alla rutiner i en
 // separat batchkörning. Föreslår bara godkända källdomäner, aldrig andra.
@@ -54,7 +80,36 @@ export default function RutinFormular({
   }
 
   function taBortSteg(index) {
-    setSteg((s) => s.filter((_, i) => i !== index));
+    setSteg((s) => {
+      const forhandsvisning = s[index]?.nyBildForhandsvisning;
+      if (forhandsvisning) URL.revokeObjectURL(forhandsvisning);
+      return s.filter((_, i) => i !== index);
+    });
+  }
+
+  // En objekt-URL per VALD fil, inte per rendering. Tidigare anropades URL.createObjectURL()
+  // direkt i renderingen av stegbilden, vilket skapade en ny (aldrig frisläppt) blob-URL vid
+  // varje tangenttryck i formuläret – bilden hölls kvar i minnet om och om igen så länge
+  // formuläret var öppet.
+  function valjStegBild(index, fil) {
+    if (fil) {
+      const problem = stegbildProblem(fil);
+      if (problem) {
+        visaMeddelande(problem);
+        return;
+      }
+    }
+    setSteg((s) =>
+      s.map((steget, i) => {
+        if (i !== index) return steget;
+        if (steget.nyBildForhandsvisning) URL.revokeObjectURL(steget.nyBildForhandsvisning);
+        return {
+          ...steget,
+          nyBildFil: fil ?? null,
+          nyBildForhandsvisning: fil ? URL.createObjectURL(fil) : "",
+        };
+      })
+    );
   }
 
   function uppdateraSteg(index, falt, varde) {
@@ -269,6 +324,22 @@ export default function RutinFormular({
       if (kontroll.meddelande) visaMeddelande(kontroll.meddelande);
       return;
     }
+    // En påbörjad men ofullständig kvissfråga filtrerades tidigare bort UTAN ett ord till
+    // redaktören (och en fråga med ett tomt svarsalternativ sparades med det tomma
+    // alternativet kvar, klickbart). Säg ifrån istället – tyst bortfall av något man just
+    // skrivit är dataförlust även när dokumentet i övrigt sparas.
+    const ofullstandigFraga = kviss.findIndex((f) => {
+      const harInnehall = f.fraga.trim() || f.alternativ.some((a) => a.trim());
+      if (!harInnehall) return false;
+      return !f.fraga.trim() || f.alternativ.some((a) => !a.trim());
+    });
+    if (ofullstandigFraga !== -1) {
+      visaMeddelande(
+        `Kvissfråga ${ofullstandigFraga + 1} är ofullständig – fyll i både frågan och alla ` +
+          "svarsalternativ, eller ta bort dem som inte används."
+      );
+      return;
+    }
     const taggar = taggarText
       .split(",")
       .map((t) => t.trim())
@@ -318,6 +389,14 @@ export default function RutinFormular({
         vasentligAndring,
         externaKallor,
       });
+    } catch (fel) {
+      // onSpara skriver till Firestore och laddar upp bilagor. Utan den här grenen försvann
+      // ett misslyckande (nekad behörighet, för stor fil, tappat nät) som en ohanterad
+      // promise-rejection: formuläret blev kvar men redaktören fick ingen som helst signal
+      // om att ingenting sparats.
+      visaMeddelande(
+        `Kunde inte spara: ${fel?.message ?? "okänt fel"}. Formuläret är kvar – prova igen.`
+      );
     } finally {
       setSparar(false);
     }
@@ -481,10 +560,10 @@ export default function RutinFormular({
                     />
                   </label>
                   <div className="rutin-formular__stegbild">
-                    {s.nyBildFil ? (
+                    {s.nyBildForhandsvisning ? (
                       <img
                         className="rutin-formular__stegbild-forhandsvisning"
-                        src={URL.createObjectURL(s.nyBildFil)}
+                        src={s.nyBildForhandsvisning}
                         alt=""
                       />
                     ) : (
@@ -497,7 +576,11 @@ export default function RutinFormular({
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => uppdateraSteg(i, "nyBildFil", e.target.files?.[0] ?? null)}
+                        onChange={(e) => {
+                          const fil = e.target.files?.[0] ?? null;
+                          e.target.value = "";
+                          if (fil) valjStegBild(i, fil);
+                        }}
                       />
                     </label>
                     {(s.bild || s.nyBildFil) && (
@@ -506,7 +589,7 @@ export default function RutinFormular({
                         className="knapp--lank"
                         onClick={() => {
                           uppdateraSteg(i, "bild", "");
-                          uppdateraSteg(i, "nyBildFil", null);
+                          valjStegBild(i, null);
                         }}
                       >
                         Ta bort bild
@@ -794,7 +877,14 @@ export default function RutinFormular({
           type="file"
           accept="image/*,.pdf"
           multiple
-          onChange={(e) => setNyaFiler((f) => [...f, ...Array.from(e.target.files ?? [])])}
+          onChange={(e) => {
+            const valda = Array.from(e.target.files ?? []);
+            e.target.value = "";
+            const problem = valda.map(bilagaProblem).filter(Boolean);
+            const godkanda = valda.filter((f) => !bilagaProblem(f));
+            if (godkanda.length > 0) setNyaFiler((f) => [...f, ...godkanda]);
+            if (problem.length > 0) visaMeddelande(problem.join("\n"));
+          }}
         />
       </label>
 
@@ -820,7 +910,7 @@ export default function RutinFormular({
       )}
 
       <div className="rutin-formular__knappar">
-        <button type="button" className="knapp knapp--sekundar" onClick={onAvbryt}>
+        <button type="button" className="knapp knapp--sekundar" disabled={sparar} onClick={onAvbryt}>
           Avbryt
         </button>
         <button type="submit" className="knapp" disabled={sparar}>
