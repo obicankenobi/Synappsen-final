@@ -131,6 +131,8 @@ Dessa två är de enda dokumenten i projektet vars felaktighet kan få juridiska
 | `TILLGANGLIGHETSREDOGORELSE.md` | WCAG-status per punkt (lagkrav för offentlig sektor). |
 | `PITCH.md` | Säljmaterial/beslutsunderlag för verksamhetsledning. **Kontrollera versionsnumret i rubriken** vid större releaser (Etapp 22–25s "wow"-funktioner är t.ex. inte omnämnda ännu). |
 | `avtal/PUB-AVTAL-MALL.md`, `avtal/UNDERBITRADEN.md`, `avtal/DPIA-UNDERLAG.md`, `avtal/IT-FAKTABLAD.md` | GDPR-/upphandlingsunderlag, se `ETAPPLAN3.md` Etapp 13a–13d. |
+| `REDAKTORSGUIDE.md` | Fördjupad guide för redaktörsrollerna (utöver `src/pages/Hjalp.jsx`s allmänna hjälp), skriven 2026-08-11 (Etapp 63b) som förberedelse inför Etapp 52:s pilot. |
+| `PILOTUPPLAGG.md` | Konkret pilotupplägg (4–6 veckor, de tre måtten från `PITCH.md`, checklistor före/efter), skriven 2026-08-11 (Etapp 63b) – förberedelse, ingen pilot är bokad än. |
 
 ## Etablerade arbetsmönster (se `CLAUDE_STATUS.md` för den fullständiga, levande listan)
 

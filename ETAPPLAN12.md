@@ -604,11 +604,18 @@ Det här är inte en uppmaning att bygga mer. Det är en etapp för att göra de
   dess. Att tvinga in dem i fel kategori hade motverkat hela poängen med grupperingen. Även
   passat på att ta bort en rad som var löst utan att tas bort (Etapp 16/veckopuls, löst genom
   att byggas i Etapp 62b) – ned till nio rader från tolv.
-- **63b – Förbered pilotpaketet så långt det går utan en pilot.** `ETAPPLAN10.md` Etapp 52
-  har väntat på bokad tid sedan den skrevs. Allt som inte kräver en riktig människa kan
-  färdigställas i förväg: introduktionsmaterial för en redaktör, ett förslag på
-  pilotupplägg med de tre måtten från `PITCH.md`, och en checklista för vad som ska mätas
-  före/efter. Då är det som återstår en kalenderbokning, inte ett arbetspass.
+- **63b – ✅ KLAR (2026-08-11). Förbered pilotpaketet så långt det går utan en pilot.**
+  `ETAPPLAN10.md` Etapp 52 har väntat på bokad tid sedan den skrevs. Byggt: två nya
+  root-dokument. `REDAKTORSGUIDE.md` – fördjupar `src/pages/Hjalp.jsx`s allmänna hjälp med
+  redaktörsspecifikt innehåll (skapa/redigera/godkänna/arkivera, ändringsförslag,
+  läskvittering, de nya Etapp 62-genvägarna, vanliga misstag) – tänkt att en pilotredaktör
+  läser INNAN sitt första pass. `PILOTUPPLAGG.md` – ett konkret 4–6-veckorsupplägg byggt på
+  `PITCH.md`s "Förslag på nästa steg" och tre mått (tid-att-hitta, kvitteringsgrad, upplevd
+  nytta – alla redan mätbara, ingen ny insamling), med en Checklista FÖRE och en Checklista
+  EFTER. Registrerade i `CLAUDE.md`s dokumentkarta. Detta är förberedelse, INTE ett genomfört
+  resultat – ingen pilot är bokad, `PITCH.md`s "Ärlighet om vad som faktiskt är mätt" gäller
+  fortfarande. Det som återstår är en kalenderbokning (se `OPPNA-PUNKTER.md`), inte ett
+  arbetspass.
 - **63c – ✅ KLAR (2026-08-10).** Ta ställning till de tre beslutspunkterna som har en färdig
   rekommendation. SSO-protokoll → **OIDC** (rekommendationen). Påminnelsemejlens förval →
   **på för tilldelade uppgifter, av för övrigt** (rekommendationen; krävde ingen kodändring
@@ -617,9 +624,8 @@ Det här är inte en uppmaning att bygga mer. Det är en etapp för att göra de
   ur `OPPNA-PUNKTER.md`.
 
 **Klart när:** `OPPNA-PUNKTER.md` är grupperad efter insatstyp, de fyra tiominutersraderna är
-borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`. **Delvis uppfyllt:** de
-tre beslutspunkterna (63c) har nu ett svar. 63a (gruppering efter insatstyp) och 63b
-(pilotpaketets förberedelse) är fortfarande obyggda – Etapp 63 som helhet är INTE klar.
+borta, och de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`. **Uppfyllt.** Hela Etapp
+63 (63a–63c) är nu KLAR. **Hela ETAPPLAN12.md (Etapp 59–63) är nu KLAR.**
 
 ---
 
