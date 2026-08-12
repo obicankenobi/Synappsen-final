@@ -6,8 +6,10 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-11, version **5.98.0** – INTE ÄNNU DEPLOYAD (senaste bekräftade
-produktionsdeploy är fortfarande v5.96.0, körning #74). v5.98.0 är resultatet av en **bred
+**Senast uppdaterad:** 2026-08-12, version **5.98.0** – **DEPLOYAD** (körning #75, commit
+`9d71d87`, deploy.yml på `claude/compassionate-euler-rho0q5`, ny asset-hash
+`assets/index-D-LL-p_d.js` bekräftad på `synappsen-final-build.web.app`). PR #15 (den breda
+granskningen) mergad 2026-08-12. v5.98.0 är resultatet av en **bred
 säkerhets- och kvalitetsgranskning** (inte en `ETAPPLANx.md`-etapp) – se sektionen
 "Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)" längst ner för vad som
 åtgärdades och vad som återstår. **`npm run test:rules` och `npm run test:e2e` är nu körda och
