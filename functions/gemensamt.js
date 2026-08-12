@@ -213,13 +213,18 @@ async function skickaEpost({ till, amne, text, organisationId = null }) {
       "E-postinnehållet verkar innehålla ett personnummer och skickades inte."
     );
   }
+  // Mottagaradressen skrivs MEDVETET inte ut i loggen. En e-postadress är en personuppgift,
+  // och Cloud Logging är varken organisationsskopat eller täckt av appens egna
+  // åtkomstkontroller – samma princip som redan gäller revisionsloggens larm ("aldrig
+  // dokumentinnehåll i larmet") och push-notisernas ordfattighet. Anledningen räcker för
+  // felsökning; VEM som inte fick mejlet går att härleda ur kön/inbjudan i Firestore.
   if (await epostArAvstangdGlobalt()) {
-    console.warn(`E-post till ${till} skippad: utgående e-post är globalt avstängd.`);
+    console.warn("E-post skippad: utgående e-post är globalt avstängd.");
     return { skickat: false, anledning: "epost_avstangd_globalt" };
   }
   const apiNyckel = BREVO_API_KEY.value();
   if (!apiNyckel) {
-    console.warn(`E-post till ${till} skippad: BREVO_API_KEY är inte konfigurerad än.`);
+    console.warn("E-post skippad: BREVO_API_KEY är inte konfigurerad än.");
     return { skickat: false, anledning: "epost_ej_konfigurerad" };
   }
   const svar = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -554,22 +559,32 @@ async function skickaPush(anvandarLista, { titel, body, url }) {
   }
   if (tokens.length === 0) return;
 
-  const resp = await admin.messaging().sendEachForMulticast({
-    data: { title: titel, body: body ?? "", url: url ?? "/" },
-    tokens,
-  });
-
+  // Säkerhetsgranskning 2026-08-11: sendEachForMulticast tar HÖGST 500 tokens per anrop och
+  // kastar annars ett fel för hela anropet. De schemalagda jobben (kontrolleraKvitteringsfrister,
+  // kontrolleraForslagPaminnelser) anropar skickaPush i en loop UTAN try/catch per varv – en
+  // organisation med fler än 500 registrerade pushtokens (fullt realistiskt: en token per
+  // enhet/webbläsare, inte per person) hade alltså inte bara missat sin egen notis utan
+  // avbrutit hela dygnets påminnelsejobb för SAMTLIGA organisationer. Skickas därför i
+  // omgångar om 500.
+  const FCM_MAX_TOKENS_PER_ANROP = 500;
   const dodaTokensPerUid = new Map();
-  resp.responses.forEach((r, i) => {
-    if (r.success) return;
-    const kod = r.error?.code;
-    if (kod !== "messaging/registration-token-not-registered" && kod !== "messaging/invalid-registration-token") {
-      return;
-    }
-    const uid = tokenTillUid.get(tokens[i]);
-    if (!dodaTokensPerUid.has(uid)) dodaTokensPerUid.set(uid, []);
-    dodaTokensPerUid.get(uid).push(tokens[i]);
-  });
+  for (let i = 0; i < tokens.length; i += FCM_MAX_TOKENS_PER_ANROP) {
+    const omgang = tokens.slice(i, i + FCM_MAX_TOKENS_PER_ANROP);
+    const resp = await admin.messaging().sendEachForMulticast({
+      data: { title: titel, body: body ?? "", url: url ?? "/" },
+      tokens: omgang,
+    });
+    resp.responses.forEach((r, j) => {
+      if (r.success) return;
+      const kod = r.error?.code;
+      if (kod !== "messaging/registration-token-not-registered" && kod !== "messaging/invalid-registration-token") {
+        return;
+      }
+      const uid = tokenTillUid.get(omgang[j]);
+      if (!dodaTokensPerUid.has(uid)) dodaTokensPerUid.set(uid, []);
+      dodaTokensPerUid.get(uid).push(omgang[j]);
+    });
+  }
   await Promise.all(
     Array.from(dodaTokensPerUid.entries()).map(([uid, dodaTokens]) =>
       db

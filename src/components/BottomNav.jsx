@@ -19,21 +19,21 @@ export default function BottomNav() {
       <>
         <nav className="bottom-nav" aria-label="Huvudnavigering">
           <button type="button" className="bottom-nav__lank" onClick={oppnaKommandopalett}>
-            <span className="bottom-nav__ikon">🔎</span>
+            <span className="bottom-nav__ikon" aria-hidden="true">🔎</span>
             <span>Sök</span>
           </button>
           <NavLink to="/" end className="bottom-nav__lank">
-            <span className="bottom-nav__ikon">🏠</span>
+            <span className="bottom-nav__ikon" aria-hidden="true">🏠</span>
             <span>Hem</span>
           </NavLink>
           {/* Etapp 55b: akutläget ska vara en tryckning bort på en kiosk-enhet, inte gömt i
               "Mer" som för övriga roller. */}
           <NavLink to="/akutlage" className="bottom-nav__lank">
-            <span className="bottom-nav__ikon">🚨</span>
+            <span className="bottom-nav__ikon" aria-hidden="true">🚨</span>
             <span>Akutläge</span>
           </NavLink>
           <button type="button" className="bottom-nav__lank" onClick={() => setMerOppen(true)}>
-            <span className="bottom-nav__ikon">⋯</span>
+            <span className="bottom-nav__ikon" aria-hidden="true">⋯</span>
             <span>Mer</span>
           </button>
         </nav>
@@ -81,23 +81,23 @@ export default function BottomNav() {
         {/* Etapp 23a: samma kommandopalett som Ctrl/Cmd+K på ett tangentbord – mobilen har
             inget tangentbord, så den behöver en egen ingång. */}
         <button type="button" className="bottom-nav__lank" onClick={oppnaKommandopalett}>
-          <span className="bottom-nav__ikon">🔎</span>
+          <span className="bottom-nav__ikon" aria-hidden="true">🔎</span>
           <span>Sök</span>
         </button>
         <NavLink to="/" end className="bottom-nav__lank">
-          <span className="bottom-nav__ikon">🏠</span>
+          <span className="bottom-nav__ikon" aria-hidden="true">🏠</span>
           <span>Hem</span>
         </NavLink>
         <NavLink to="/kliniskt-stod" className="bottom-nav__lank">
-          <span className="bottom-nav__ikon">🩺</span>
+          <span className="bottom-nav__ikon" aria-hidden="true">🩺</span>
           <span>Kliniskt</span>
         </NavLink>
         <NavLink to="/logistik" className="bottom-nav__lank">
-          <span className="bottom-nav__ikon">📦</span>
+          <span className="bottom-nav__ikon" aria-hidden="true">📦</span>
           <span>Logistik</span>
         </NavLink>
         <button type="button" className="bottom-nav__lank" onClick={() => setMerOppen(true)}>
-          <span className="bottom-nav__ikon">⋯</span>
+          <span className="bottom-nav__ikon" aria-hidden="true">⋯</span>
           <span>Mer</span>
         </button>
       </nav>

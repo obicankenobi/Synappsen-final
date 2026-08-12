@@ -99,7 +99,7 @@ aktiverats.**
 
 - **Automatisk veckovis backup** av hela organisationens Firestore-data, schemalagt
   varje måndag 03:00 (svensk tid), verifierat direkt i koden
-  (`functions/index.js`, `veckovisBackupSchemalagt`). Omfattar 13 collections plus
+  (`functions/backup.js`, `veckovisBackupSchemalagt`). Omfattar 13 collections plus
   mätvärdeshistoriken (en underkollektion) och revisionsloggens hashkedje-huvud – utökad
   2026-08-06 (Etapp 49d) från en tidigare ofullständig lista på 7. Omfattar MEDVETET INTE
   delad plattforminfrastruktur (t.ex. den globalt delade sökkvoten) som inte är

@@ -328,15 +328,32 @@ som beskriver EN handling.`;
   return JSON.parse(result.response.text()).steg;
 }
 
+// Säkerhetsgranskning 2026-08-11: `innehall` saknade helt en övre gräns, till skillnad från
+// varje annan fritextingång i projektet (fraga max 500, kommentar/feedback max 2000). Det är
+// en verklig kostnadslucka, inte bara en formalitet: reserveraBudget() drar en FAST
+// uppskattad kostnad (UPPSKATTAD_KOSTNAD_ORE, 50 öre) per anrop oavsett promptens storlek,
+// medan Gemini debiteras per token – en klient som skickar en flera megabyte stor sträng
+// (callable-gränsen är 10 MB) betalar alltså 50 öre av budgeten för ett anrop som kostar
+// storleksordningar mer i verkligheten, och kan upprepa det tills månadstaket "tar slut" utan
+// att taket motsvarat den faktiska kostnaden. Gränsen är satt rundligt över vad en verklig
+// rutintext är, så inget befintligt flöde påverkas.
+const MAX_INNEHALL_TECKEN = 50000;
+
 exports.foreslaChecklistSteg = onCall(
   { secrets: [GEMINI_API_KEY], region: "europe-west1", timeoutSeconds: 60 },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
     }
-    const innehall = (request.data?.innehall ?? "").trim();
+    const innehall = typeof request.data?.innehall === "string" ? request.data.innehall.trim() : "";
     if (!innehall) {
       throw new HttpsError("invalid-argument", "innehall krävs.");
+    }
+    if (innehall.length > MAX_INNEHALL_TECKEN) {
+      throw new HttpsError(
+        "invalid-argument",
+        `Texten är för lång (max ${MAX_INNEHALL_TECKEN} tecken). Dela upp rutinen i flera delar.`
+      );
     }
     if (innehallerPersonnummer(innehall)) {
       throw new HttpsError(
@@ -423,9 +440,16 @@ exports.foreslaKvissfragor = onCall(
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
     }
-    const innehall = (request.data?.innehall ?? "").trim();
+    const innehall = typeof request.data?.innehall === "string" ? request.data.innehall.trim() : "";
     if (!innehall) {
       throw new HttpsError("invalid-argument", "innehall krävs.");
+    }
+    // Se MAX_INNEHALL_TECKEN ovan (samma kostnadslucka, samma gräns).
+    if (innehall.length > MAX_INNEHALL_TECKEN) {
+      throw new HttpsError(
+        "invalid-argument",
+        `Texten är för lång (max ${MAX_INNEHALL_TECKEN} tecken). Dela upp rutinen i flera delar.`
+      );
     }
     if (innehallerPersonnummer(innehall)) {
       throw new HttpsError(

@@ -477,6 +477,24 @@ async function main() {
   await test("superadminA KAN markera org A:s egen söklogg som åtgärdad (Etapp 62a)", () =>
     assertSucceeds(updateDoc(doc(superA, "sokloggar", "sokloggA"), { atgardad: true, atgardadRutinId: "rutinX" }))
   );
+  await test("volA kan INTE skapa en söklogg vars term innehåller ett personnummer (säkerhetsgranskning 2026-08-11)", () =>
+    assertFails(
+      setDoc(doc(volA, "sokloggar", "sokloggPersonnummer"), {
+        organisationId: ORG_A,
+        term: "journal för patient 900101-0017",
+        antalTraffar: 0,
+      })
+    )
+  );
+  await test("volA KAN fortfarande skapa en vanlig söklogg utan personnummer", () =>
+    assertSucceeds(
+      setDoc(doc(volA, "sokloggar", "sokloggVanlig"), {
+        organisationId: ORG_A,
+        term: "kateterisering",
+        antalTraffar: 0,
+      })
+    )
+  );
 
   console.log("\nauditlogg/{handelseId} – organisationsisolering");
   await test("superadminB kan INTE läsa org A:s auditlogg", () =>
@@ -526,6 +544,29 @@ async function main() {
   );
   await test("superB kan INTE läsa volA:s (ännu ej skapade) anteckning", () =>
     assertFails(getDoc(doc(superB, "anteckningar", "volA_rutinA")))
+  );
+  // Granskning 2026-08-11: create/update kontrollerade tidigare bara FÄLTET uid, medan
+  // read/delete kontrollerar dokId-PREFIXET. Utan prefixkontroll även på skrivning kunde
+  // personalA skapa anteckningar/volA_rutinB med uid=personalA – volA hade då läst en
+  // planterad anteckning i sin privata ruta och kunde aldrig skriva sin egen (update kräver
+  // resource.data.uid == volA).
+  await test("personalA kan INTE plantera en anteckning under volA:s dokId-prefix", () =>
+    assertFails(
+      setDoc(doc(personalA, "anteckningar", "volA_rutinB"), {
+        uid: "personalA",
+        rutinId: "rutinB",
+        text: "Planterad text",
+      })
+    )
+  );
+  await test("volA kan skapa sin EGEN anteckning (prefix och uid stämmer)", () =>
+    assertSucceeds(
+      setDoc(doc(volA, "anteckningar", "volA_rutinB"), {
+        uid: "volA",
+        rutinId: "rutinB",
+        text: "Min egen anteckning",
+      })
+    )
   );
 
   console.log("\nsoksstatistik/{orgId} – Etapp 4 mätvärden");
@@ -1328,6 +1369,39 @@ async function main() {
   await test("volA kan fortfarande läsa organisationer/{orgId} själv (ser att den är pausad)", () =>
     assertSucceeds(getDoc(doc(volA, "organisationer", ORG_A)))
   );
+  // Granskning 2026-08-11: `allow write` täckte create/update/delete, och fältspärren var
+  // villkorad av `resource != null && request.resource != null` – dvs. tom vid create (resource
+  // är null) och vid delete (request.resource är null). En superadmin i en PAUSAD organisation
+  // kunde därför radera organisationer/{orgId}, varpå organisationenArAktiv() svarar "aktiv"
+  // (fail-open när dokumentet saknas) och pausningen var hävd, tillsammans med 2FA-policyn.
+  await test("superadminA kan INTE radera organisationer/{orgId} (skulle häva pausningen)", () =>
+    assertFails(deleteDoc(doc(superA, "organisationer", ORG_A)))
+  );
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "organisationer", ORG_A), { status: "aktiv" }, { merge: true });
+  });
+  await test("superadminA kan INTE radera organisationer/{orgId} ens när organisationen är aktiv", () =>
+    assertFails(deleteDoc(doc(superA, "organisationer", ORG_A)))
+  );
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await deleteDoc(doc(context.firestore(), "organisationer", "orgUtanDokument"));
+    await setDoc(doc(context.firestore(), "users", "superUtanOrgdok"), {
+      role: "superadmin",
+      organisationId: "orgUtanDokument",
+    });
+  });
+  const superUtanOrgdok = testEnv.authenticatedContext("superUtanOrgdok").firestore();
+  await test("en superadmin vars organisation saknar dokument kan INTE skapa det med egna moduler", () =>
+    assertFails(
+      setDoc(doc(superUtanOrgdok, "organisationer", "orgUtanDokument"), {
+        namn: "Egen organisation",
+        moduler: { intelligence: true, operations: true },
+      })
+    )
+  );
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "organisationer", ORG_A), { status: "pausad" }, { merge: true });
+  });
   await testEnv.withSecurityRulesDisabled(async (context) => {
     await setDoc(doc(context.firestore(), "organisationer", ORG_A), { status: "aktiv" }, { merge: true });
   });

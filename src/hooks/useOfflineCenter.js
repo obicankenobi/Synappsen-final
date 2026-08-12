@@ -10,12 +10,13 @@
 // hanterar Firestore-dokument – bilder ligger i Cloud Storage).
 import { useEffect, useState } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../firebase/config";
+import { db, BILDCACHE_NAMN } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { RUTIN_STATUS } from "./useRutiner";
 import { ARTIKEL_STATUS } from "./useForradsartiklar";
 
-const BILDCACHE_NAMN = "synappsen-offline-bilder";
+// BILDCACHE_NAMN bor numera i firebase/config.js – utloggningsstädningen där måste kunna
+// tömma samma cache utan att importera den här hooken (cirkulär import via useAuth).
 const INNEHALLSTYPER = ["rutiner", "kontakter", "forradsartiklar"];
 
 // Nyckeln inkluderar uid – annars visar en delad/kiosk-dator fel "senast nedladdad"-tid för

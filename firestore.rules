@@ -312,13 +312,30 @@ service cloud.firestore {
       // begarRaderingAvOrganisation/avbrytRaderingAvOrganisation – annars skulle en superadmin
       // kunna schemalägga (eller tysta ångra) en radering direkt mot Firestore, förbi hela
       // dubbel-bekräftelse-/loggningsflödet krav 17 kräver.
-      allow write: if arSuperadmin() && orgId == minOrganisation() && mfaKravUppfylld()
-                    && !(resource != null && request.resource != null
-                         && request.resource.data.diff(resource.data).affectedKeys().hasAny([
-                              'moduler', 'sakerhet',
-                              'raderingSchemalagdTill', 'raderingBegardAv', 'raderingAnledning',
-                              'supportAtkomstTill', 'supportAtkomstBeviljadAv', 'supportAtkomstAnledning'
-                            ]));
+      // SÄKERHETSFIX (granskning 2026-08-11): regeln var tidigare ett enda `allow write` med
+      // fältspärren villkorad av `resource != null && request.resource != null`. Eftersom
+      // `write` täcker create/update/delete, och `resource` är null vid CREATE medan
+      // `request.resource` är null vid DELETE, blev hela fältspärren en tom sanning i just de
+      // två fallen. Konkret gick två saker att göra som ingen av kommentarerna ovan tillåter:
+      //   1. DELETE av organisationer/{orgId} – organisationenArAktiv() svarar "aktiv" när
+      //      dokumentet SAKNAS (medveten fail-open vid frånvaro av data), så en superadmin i
+      //      en PAUSAD (avetablerad) organisation kunde radera dokumentet och därmed häva sin
+      //      egen pausning, samtidigt som sakerhet.kravMfaForRoller (2FA-kravet) och
+      //      raderingSchemalagdTill försvann.
+      //   2. CREATE av ett saknat organisationer/{orgId} – en superadmin vars organisation
+      //      ännu inte har något dokument (t.ex. 'default'-fallbacken) kunde skapa det med
+      //      godtyckliga `moduler`/`sakerhet`/`supportAtkomstTill`, förbi uppdateraModuler/
+      //      uppdateraMfaPolicy och därmed förbi revisionsloggen.
+      // Klienten skapar/raderar aldrig dokumentet själv (bara updateDoc i
+      // useOrganisationBranding.js) – skapande/radering sker via Admin SDK
+      // (skapaOrganisation/raderaOrganisation), som kringgår dessa regler.
+      allow create, delete: if false;
+      allow update: if arSuperadmin() && orgId == minOrganisation() && mfaKravUppfylld()
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+                         'moduler', 'sakerhet',
+                         'raderingSchemalagdTill', 'raderingBegardAv', 'raderingAnledning',
+                         'supportAtkomstTill', 'supportAtkomstBeviljadAv', 'supportAtkomstAnledning'
+                       ]);
 
       // organisationer/{orgId}/installningar/kioskPin – Etapp 55: hashad PIN-kod som låser upp
       // kioskläget. VIKTIGT (bugfynd under byggandet): Firestore-regler kombinerar flera
@@ -786,7 +803,13 @@ service cloud.firestore {
     // organisations loggar.
     match /sokloggar/{loggId} {
       allow read: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));
-      allow create: if arInloggad() && request.resource.data.get('organisationId', 'default') == minOrganisation();
+      // Söktermen är fritext och skrivs hit automatiskt vid nollträff (useSokloggar.loggaNollTraff)
+      // – utan spärren hamnar en sökning på ett personnummer i klartext i databasen och visas
+      // sedan för superadmin i adminpanelen. Samma genomgående krav 1 som övriga fritextfält.
+      // Klienten filtrerar redan bort sådana termer (SokFalt.jsx), detta är den hårda spärren.
+      allow create: if arInloggad()
+                    && request.resource.data.get('organisationId', 'default') == minOrganisation()
+                    && !harTroligtPersonnummer(request.resource.data.get('term', ''));
       // Etapp 62a: en redaktör kan skapa en rutin direkt från en sökning-utan-träff-rad i
       // adminpanelen – markeringen rör bara två fält, aldrig söktermen/organisationen själv.
       allow update: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'))
@@ -940,10 +963,21 @@ service cloud.firestore {
     // ett rules-evaluationsfel (upptäckt via manuell UI-verifiering mot emulatorn) istället
     // för en tom, giltig "inget skrivet än"-läsning.
     match /anteckningar/{dokId} {
+      // SÄKERHETSFIX (granskning 2026-08-11): create/update kontrollerade tidigare BARA
+      // fältet uid, medan read/delete kontrollerar dokId-PREFIXET. De två måste stämma
+      // överens, annars kan A skriva anteckningar/{B_rutinId} med uid = A:
+      //   - B läser då (read-regeln tittar på prefixet) en anteckning A planterat i B:s
+      //     privata anteckningsruta, och
+      //   - B kan aldrig skriva sin egen (update kräver resource.data.uid == B), dvs. A kan
+      //     permanent blockera B:s anteckning för den rutinen.
+      // Klienten skriver alltid `${egenUid}_${rutinId}` (usePrivatAnteckning.js), så
+      // prefixkontrollen är en no-op för legitima skrivningar.
       allow read, delete: if arInloggad() && dokId.split('_')[0] == request.auth.uid;
-      allow update: if arInloggad() && resource.data.uid == request.auth.uid
+      allow update: if arInloggad() && dokId.split('_')[0] == request.auth.uid
+                     && resource.data.uid == request.auth.uid
                      && !harTroligtPersonnummer(request.resource.data.get('text', ''));
-      allow create: if arInloggad() && request.resource.data.uid == request.auth.uid
+      allow create: if arInloggad() && dokId.split('_')[0] == request.auth.uid
+                     && request.resource.data.uid == request.auth.uid
                      && !harTroligtPersonnummer(request.resource.data.get('text', ''));
     }
   }

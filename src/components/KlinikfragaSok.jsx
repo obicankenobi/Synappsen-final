@@ -114,7 +114,10 @@ export default function KlinikfragaSok() {
           <div className="klinikfraga__kallor">
             <strong>Källor:</strong>
             <ul>
-              {svar.kallor.map((k, i) => (
+              {/* `?? []` – ett svar utan kallor (t.ex. ett äldre cachat dokument från innan
+                  fältet fanns, se functions/klinikstod.js:304) kraschade annars hela vyn på
+                  `undefined.map` istället för att bara visa svaret utan källista. */}
+              {(svar.kallor ?? []).map((k, i) => (
                 <li key={i}>
                   <a href={k.url} target="_blank" rel="noreferrer">
                     {k.titel}

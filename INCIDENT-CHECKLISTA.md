@@ -3,7 +3,11 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-10 · **Motsvarar kodläge:** v5.91.0 (Etapp 55, kioskläge)
+**Senast uppdaterad:** 2026-08-11 · **Motsvarar kodläge:** v5.97.0 (Etapp 64, scaffolding för
+baspaketreferenser). Kontrollerat 2026-08-11 mot faktisk kod: den enda ändringen i
+`firestore.rules` sedan v5.91.0 är `baspaketreferenser`-blocket (plus en tvåfältsuppdatering
+på sökningar-utan-träff, Etapp 62a) – ingen detektions-, begränsnings- eller
+återställningsförmåga har tillkommit eller försvunnit däremellan.
 
 > **Ägarbeslut 2026-08-01:** jourkontakt utanför kontorstid ifylld (se tabellen nedan).
 > Backup-retention 90 dagar, gallringslogiken byggd och testad (se `ETAPPLAN5.md` Etapp 33c).
@@ -193,6 +197,15 @@ Vet jag med rimlig visshet att det faktiskt hänt?             JA / NEJ / OKLART
 > väntar på kvittering") – tömd inom ett dygn av `skickaEpostPaminnelserSchemalagt`. Ingen ny
 > kategori av personuppgift (e-post fanns redan i listan ovan), men en ny plats den bor
 > kortvarigt. Helt otillgänglig för alla klienter, se `firestore.rules`.
+>
+> **Etapp 64 (v5.97.0):** collectionen `baspaketreferenser/{refId}` finns nu. Verifierat mot
+> `firestore.rules` och `src/hooks/useBaspaketreferenser.js` 2026-08-11: den är läs- och
+> skrivbar ENBART för plattformsadmin (leverantören) – ingen kundorganisation, oavsett roll,
+> når den – och schemat är begränsat till `titel`, `utgivare`, `kalldatum`, `url`, `kategori`,
+> `tillagd`, `tillagdAv`. Enda personuppgiften är `tillagdAv` (leverantörens egen admin-uid);
+> ingen kunddata, ingen ny kategori av personuppgift, och medvetet inget innehållsfält. Vid en
+> incident som rör den här collectionen: den berör leverantören, inte en kund – men den är
+> ändå åtkomstkontrollerad på samma sätt som övriga plattformsadmin-data.
 
 ---
 

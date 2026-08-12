@@ -44,6 +44,10 @@ function NamnFormular({ uid, aktuelltNamn }) {
     try {
       await updateDoc(doc(db, "users", uid), { namn: nyttNamn.trim() });
       setSparat(true);
+    } catch (fel) {
+      // Utan den här grenen blev ett misslyckat namnbyte helt osynligt: knappen slutade bara
+      // säga "Sparar..." och "✓ Sparat" uteblev, utan förklaring.
+      visaMeddelande(`Kunde inte spara namnet: ${fel?.message ?? "okänt fel"}`);
     } finally {
       setSparasNamn(false);
     }
@@ -77,6 +81,7 @@ function NamnFormular({ uid, aktuelltNamn }) {
 // Etapp 22e: valfri profilbild, samma "vänta tills det verkliga värdet finns"-mönster som
 // NamnFormular ovan.
 function ProfilbildFormular({ uid, aktuellBildUrl }) {
+  const { visaMeddelande } = useDialog();
   const [bildUrl, setBildUrl] = useState(aktuellBildUrl);
   const [laddarUpp, setLaddarUpp] = useState(false);
 
@@ -84,19 +89,35 @@ function ProfilbildFormular({ uid, aktuellBildUrl }) {
     const fil = e.target.files?.[0];
     e.target.value = "";
     if (!fil) return;
+    // Samma gränser som storage.rules för avatarer/{uid} (bild, < 5 MB) – kontrollerade före
+    // uppladdningen, annars laddas hela filen upp bara för att nekas med "storage/unauthorized".
+    if (!fil.type.startsWith("image/")) {
+      visaMeddelande("Profilbilden måste vara en bildfil.");
+      return;
+    }
+    if (fil.size >= 5 * 1024 * 1024) {
+      visaMeddelande(`Bilden är ${(fil.size / 1024 / 1024).toFixed(1)} MB – max 5 MB.`);
+      return;
+    }
     setLaddarUpp(true);
     try {
       const url = await laddaUppAvatar(uid, fil);
       await updateDoc(doc(db, "users", uid), { profilbildUrl: url });
       setBildUrl(url);
+    } catch (fel) {
+      visaMeddelande(`Kunde inte spara profilbilden: ${fel?.message ?? "okänt fel"}`);
     } finally {
       setLaddarUpp(false);
     }
   }
 
   async function hanteraTaBort() {
-    await updateDoc(doc(db, "users", uid), { profilbildUrl: null });
-    setBildUrl(null);
+    try {
+      await updateDoc(doc(db, "users", uid), { profilbildUrl: null });
+      setBildUrl(null);
+    } catch (fel) {
+      visaMeddelande(`Kunde inte ta bort profilbilden: ${fel?.message ?? "okänt fel"}`);
+    }
   }
 
   return (
@@ -167,7 +188,9 @@ function PushNotisSektion({ uid, role, pushTokens, pushInstallningar }) {
 
   function vaxlaTyp(nyckel) {
     const nya = { ...pushInstallningar, [nyckel]: !pushInstallningar?.[nyckel] };
-    updateDoc(doc(db, "users", uid), { pushInstallningar: nya });
+    updateDoc(doc(db, "users", uid), { pushInstallningar: nya }).catch((fel) =>
+      visaMeddelande(`Inställningen kunde inte sparas: ${fel?.message ?? "okänt fel"}`)
+    );
   }
 
   return (
@@ -226,13 +249,14 @@ function PushNotisSektion({ uid, role, pushTokens, pushInstallningar }) {
 // opt-out-fält (`paminnelser`, `manadsrapport`) – att stänga av den ena ska inte tysta den
 // andra.
 function EpostPaminnelseSektion({ uid, role, epostInstallningar }) {
+  const { visaMeddelande } = useDialog();
   const paminnelserAvstangda = epostInstallningar?.paminnelser === false;
   const manadsrapportAvstangd = epostInstallningar?.manadsrapport === false;
 
   function vaxla(nyckel, nuvarandeVarde) {
     updateDoc(doc(db, "users", uid), {
       epostInstallningar: { ...epostInstallningar, [nyckel]: nuvarandeVarde },
-    });
+    }).catch((fel) => visaMeddelande(`Inställningen kunde inte sparas: ${fel?.message ?? "okänt fel"}`));
   }
 
   return (

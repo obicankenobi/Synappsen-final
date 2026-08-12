@@ -30,6 +30,21 @@ jobs:
       - name: Installera frontend-beroenden
         run: npm ci
 
+      # Deployen körs manuellt (workflow_dispatch) och kan därför startas från en commit där
+      # CI är röd – ci.yml är en helt separat workflow utan koppling hit. Eftersom
+      # "firebase deploy --force" nedan även skickar med firestore.rules/storage.rules kan ett
+      # regelfel annars nå produktion utan att regeltesterna någonsin körts. Stegen nedan är
+      # samma kommandon som ci.yml kör, i samma ordning, och får jobbet att faila – då hoppas
+      # alla efterföljande steg (inklusive deployen) över.
+      - name: Lint
+        run: npm run lint
+
+      - name: Enhetstester
+        run: npx vitest run
+
+      - name: Regeltester (Firestore-emulator)
+        run: npm run test:rules
+
       - name: Bygg frontend
         run: npm run build
 

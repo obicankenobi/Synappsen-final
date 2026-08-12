@@ -361,7 +361,10 @@ async function skickaEpostPaminnelser() {
         organisationId: data.organisationId,
       });
     } catch (fel) {
-      console.warn(`Påminnelsemejl till ${data.epost} kunde inte skickas:`, fel.message ?? fel);
+      // Adressen utelämnas medvetet ur loggen – se motiveringen i skickaEpost (gemensamt.js).
+      // Ködokumentets id ÄR mottagarens uid, vilket räcker för att felsöka utan att skriva
+      // en personuppgift till Cloud Logging.
+      console.warn(`Påminnelsemejl kunde inte skickas (uid ${kodok.id}):`, fel.message ?? fel);
     }
     await kodok.ref.delete();
   }

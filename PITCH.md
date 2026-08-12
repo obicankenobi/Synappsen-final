@@ -1,6 +1,6 @@
 # Synappsen – rätt information, direkt i handen, när det är bråttom
 
-*Beslutsunderlag för verksamhetsledning · Version 5.91.0 · 2026-08-10*
+*Beslutsunderlag för verksamhetsledning · Version 5.97.0 · 2026-08-11*
 
 ---
 
@@ -52,6 +52,9 @@ nät) som samlar mottagningens hela praktiska kunskap på ett ställe – sökba
 - **Ledningsrapport:** en utskriftsvänlig sida byggd specifikt för det en chef vill kunna
   visa uppåt – kvitteringsgrad per område, trend, och (frivilligt) en anonym
   personalpuls-sammanställning per område, inte bara operativa detaljer.
+- **En veckopuls i adminpanelen:** de mest angelägna sakerna att göra just nu – väntande
+  godkännanden, rutiner som behöver ses över, sökningar utan träff – samlade på ett ställe
+  istället för utspridda över flera vyer.
 - **Kommunikation som når fram:** anslagstavla med prioritet, skiftrapport för driftinfo
   (aldrig patientdata), notiser och @omnämnanden.
 - **Hittar det du inte visste fanns:** global kommandopalett (Ctrl/Cmd+K), föreslagna
@@ -68,6 +71,9 @@ det blir gammalt utan att någon märker det. Synappsen har en egen innehållsh�
   eller är utgångna. En siffra utan orsak går att runda av; en siffra med lista går inte.
 - **Riktade granskningsrundor:** en redaktör kan starta en tidsbestämd genomgång av ett urval
   äldre rutiner inom ett område, med automatisk påminnelse till varje berörd ägare.
+- **Hälsosiffran går att åtgärda direkt:** tilldela en ägare eller starta en granskningsrunda
+  för exakt de flaggade rutinerna utan att lämna listan – och en sökning som inte gav träff
+  kan bli en ny rutin med sökordet redan ifyllt, istället för att bara bli statistik.
 - **Möjliga dubbletter flaggas** (under pilotutvärdering i Kliniskt stöd) – två rutiner som
   liknar varandra för mycket upptäcks automatiskt istället för att upptäckas av en
   sammanträffande läsning.

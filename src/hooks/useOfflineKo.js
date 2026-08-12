@@ -7,6 +7,16 @@ import { useBristanmalningar } from "./useBristanmalningar";
 import { kvitteraLast, kvitteraLastAnslag } from "./useLaskvittering";
 import { lasKo, tabortUrKo } from "../utils/offlineKo";
 
+// Firestore-felkoder som aldrig blir bättre av ett nytt försök. Allt annat (unavailable,
+// deadline-exceeded, internal, aborted …) behandlas som tillfälligt.
+const PERMANENTA_FELKODER = new Set([
+  "permission-denied",
+  "unauthenticated",
+  "invalid-argument",
+  "not-found",
+  "failed-precondition",
+]);
+
 export function useOfflineKo() {
   const { currentUser, namn } = useAuth();
   const mittNamn = namn || currentUser?.email;
@@ -17,6 +27,7 @@ export function useOfflineKo() {
   // för att räknas upp (se firestore.rules-kommentaren för bristanmalningar, Etapp 29c).
   const { skapaBristanmalning, laddar: bristanmalningarLaddar } = useBristanmalningar();
   const [antalIKo, setAntalIKo] = useState(() => (uid ? lasKo(uid).length : 0));
+  const [antalMisslyckade, setAntalMisslyckade] = useState(0);
   const skickarRef = useRef(false);
 
   const uppdateraAntal = useCallback(() => {
@@ -40,9 +51,18 @@ export function useOfflineKo() {
             await skapaBristanmalning({ ...post.data, uid, namn: post.data.namn ?? mittNamn });
           }
           tabortUrKo(uid, post.id);
-        } catch {
-          // Nätet kan ha försvunnit igen mitt i sändningen – låt resten ligga kvar, försök
-          // igen nästa gång "online" utlöses.
+        } catch (fel) {
+          // Skilj på tillfälliga och permanenta fel. Ett tillfälligt fel (nätet försvann
+          // igen mitt i sändningen) ska lämna kön orörd och försöka igen nästa gång
+          // "online" utlöses. Ett PERMANENT fel (regeln nekar posten, användaren har
+          // förlorat behörigheten, artikeln är borttagen) kommer aldrig att lyckas – låg
+          // den kvar blockerade den dessutom ALLA efterföljande poster i kön för evigt,
+          // eftersom slingan bryts här. Ta bort den och fortsätt med resten.
+          if (PERMANENTA_FELKODER.has(fel?.code)) {
+            tabortUrKo(uid, post.id);
+            setAntalMisslyckade((n) => n + 1);
+            continue;
+          }
           break;
         }
       }
@@ -62,5 +82,8 @@ export function useOfflineKo() {
     return () => window.removeEventListener("online", hanteraOnline);
   }, [uid, skickaKo]);
 
-  return { antalIKo };
+  // antalMisslyckade: poster som kastades permanent under den här sessionen. Ännu inte
+  // visad i något gränssnitt (OfflineKoLyssnare.jsx) – men värdet finns här så att en
+  // tyst bortkastad läskvittering/bristanmälan går att synliggöra för användaren.
+  return { antalIKo, antalMisslyckade };
 }

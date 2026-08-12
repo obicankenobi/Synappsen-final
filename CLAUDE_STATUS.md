@@ -6,9 +6,21 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-11, version **5.97.0** – INTE ÄNNU DEPLOYAD (senaste bekräftade
-produktionsdeploy är fortfarande v5.96.0, körning #74). **`ETAPPLAN12.md` (Etapp 59–63, "Från
-demo till drift") är HELT KLAR OCH DEPLOYAD** (v5.96.0, körning #74) – se sektionen
+**Senast uppdaterad:** 2026-08-11, version **5.98.0** – INTE ÄNNU DEPLOYAD (senaste bekräftade
+produktionsdeploy är fortfarande v5.96.0, körning #74). v5.98.0 är resultatet av en **bred
+säkerhets- och kvalitetsgranskning** (inte en `ETAPPLANx.md`-etapp) – se sektionen
+"Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)" längst ner för vad som
+åtgärdades och vad som återstår. **`npm run test:rules` och `npm run test:e2e` är nu körda och
+gröna** (267/267 respektive 17/17) – granskningens sandbox saknade IPv6 helt, vilket fick
+Firebase-emulatorn att hänga tyst; rotorsaken var att `firebase-tools` hårdkodar att
+`localhost` slår upp till både `127.0.0.1` och `::1` oavsett systemets faktiska nätverk,
+fixat genom att peka emulatorerna på `127.0.0.1` explicit i `firebase.json`. Se samma
+uppföljningssektion för detaljer. **Samma dag tillkom `JURIDISK-GRANSKNING.md`** (internt
+dokument, delas aldrig externt i sin helhet) och dess fem tekniska premisser är verifierade mot
+kod – tre bekräftade brister, varav en (AI-transparens enligt artikel 50) är ett krav som
+redan gäller. Se sektionen "Uppföljning 2026-08-11 (juridisk granskning + kodverifiering)"
+längst ner. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
+drift") är HELT KLAR OCH DEPLOYAD** (v5.96.0, körning #74) – se sektionen
 "Uppföljning 2026-08-11 (ETAPPLAN12.md helt klar, v5.96.0)" längst ner.
 **`ETAPPLAN13.md` (Etapp 64, baspaketet) är nu DEN ANTAGNA PLANEN.** Ägaren beslutade
 2026-08-11 att idén ska drivas vidare (se `BESLUTSLOGG.md`), och samma dag att en
@@ -292,9 +304,12 @@ Etapp 15–21.
    "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args:
    ["--no-sandbox"] })`) för att manuellt bevisa att UI-ändringar faktiskt
    fungerar i en riktig webbläsare, inte bara att testsviter är gröna.
-7. **Git-gren:** allt arbete sker på `claude/compassionate-euler-rho0q5`,
-   pushas dit. Skapa inte PR om inte användaren explicit ber om det (gäller
-   detta repo/denna arbetsmiljö specifikt – kan skilja sig i andra kontext).
+7. **Git-gren:** kontrollera alltid med `git branch --show-current` – anta ingen
+   gren. `claude/compassionate-euler-rho0q5` är default-grenen och är aktuell
+   (v5.97.0), men en session kan startas på en egen sessionsgren – 2026-08-11
+   t.ex. `claude/synappsen-final-review-slzcxe`.
+   Se `CLAUDE.md`s arbetsmönster. Skapa inte PR om inte användaren explicit ber om det
+   (gäller detta repo/denna arbetsmiljö specifikt – kan skilja sig i andra kontext).
 
 ## Nyckelfiler att känna till
 
@@ -2560,3 +2575,125 @@ bedömningen) är fortfarande den enda blockeringen mot att bygga något med rik
 MDR-kvalificeringsfrågan och upphovsrättsfrågan är oförändrade av att urvalet nu är
 kundspecifikt snarare än universellt. Ingen kod ändrades i den här sessionen, ingen
 versionsbump, ingen deploy.
+
+## Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)
+
+En fristående granskningssession (INTE en `ETAPPLANx.md`-etapp) gick igenom hela kodbasen med
+åtta parallella genomgångar på disjunkta filområden: Firestore-/Storage-regler, Cloud
+Functions, frontend, de stora formulär-/adminfilerna, tillgänglighet (WCAG 2.1 AA), offline/
+PWA-livscykel, test-/byggkedja och dokumentens sanningshalt. Full detaljerad rapport i
+`GRANSKNING-2026-08-11.md` (arbetet) och ett nytt tillägg i `SAKERHETSRAPPORT.md` (fynden,
+prioriterade). Gren: `claude/synappsen-final-review-slzcxe`, PR #15.
+
+**Allvarligast åtgärdat:**
+- Firestores IndexedDB-cache tömdes ALDRIG vid utloggning – på en delad akutdator läste nästa
+  person föregående persons cachade rutiner/kontakter. Ny `rensaLokalaAnvandardata()` i
+  `src/firebase/config.js` (terminate + clearIndexedDbPersistence + bildcache + localStorage),
+  hård omladdning efteråt, flerflikfallet hanterat.
+- `deploy.yml` körde `firebase deploy --force` (inklusive reglerna) utan att köra ETT enda
+  test först. Lint, vitest och regeltester körs nu före bygget.
+- `firestore.rules` `organisationer/{orgId}`: fältspärren var en tom sanning vid create/delete
+  (villkorad av `resource != null && request.resource != null`) – en superadmin i en pausad
+  org kunde radera dokumentet och häva sin egen avetablering.
+- `firestore.rules` `anteckningar/{dokId}`: skrivning kontrollerade `uid`, läsning
+  kontrollerade dokId-prefixet – en användare kunde plantera en anteckning under en annan
+  användares prefix.
+- `sokloggar` saknade personnummerspärr på fältet `term`, till skillnad från varje annat
+  fritextfält – en nollträffssökning på ett personnummer skrevs i klartext och visades för
+  superadmin.
+- `skickaPush` bröt FCM:s 500-tokengräns utan try/catch i de schemalagda jobbens loop – en
+  organisation med fler tokens kunde avbryta dygnets påminnelser för ALLA organisationer.
+- `AuthContext.jsx`: `getDoc` utan try/catch kunde ge en permanent vit skärm för hela appen.
+- Fyra ställen med e-postadresser i klartext i Cloud Logging.
+- Tillgänglighet: kommandopaletten (Ctrl/Cmd+K, appens primära sökväg) saknade fokusfälla/Esc/
+  fokusåterlämning; `VersionsHistorik` var nakna div utan `role`; fokusindikatorn på input/
+  select hade 1,06:1 kontrast mot kravet 3:1; ingen global `prefers-reduced-motion`. Tre av
+  dessa motsäger `TILLGANGLIGHETSREDOGORELSE.md` direkt (se nedan).
+- Flera tysta felhanteringsluckor i `RutinFormular.jsx`/`LaddaUpp.jsx`/`Profil.jsx`/
+  `Admin.jsx` (bl.a. 2FA-policyns spara-knapp kunde se sparad ut medan anropet fallit), en
+  blob-URL-läcka, saknad klientvalidering av bilagor mot `storage.rules`s gränser.
+
+**Kvar att göra, i prioritetsordning** (fullständig lista med motivering i
+`SAKERHETSRAPPORT.md`s tillägg):
+1. `functions/backup.js` `aterstallOrganisation` saknar allowlist mot collection-namn.
+2. `storage.rules` `arBild()` tillåter SVG överallt, inklusive organisationslogotypen – ett
+   öppet ägarbeslut, nu i `OPPNA-PUNKTER.md`.
+3. Ingen samtidighetshantering vid redigering av samma rutin (rak `updateDoc`, ingen
+   version/transaktion) – två redaktörer som sparar överskriver varandra spårlöst.
+4. `TILLGANGLIGHETSREDOGORELSE.md` är INTE rättad mot de tre WCAG-fynden som motsäger den.
+
+npm audit: 7 sårbarheter, men `npm audit --omit=dev` och en separat körning i `functions/` ger
+båda noll – samtliga är dev-only. Den kritiska kräver en planerad major-uppgradering av
+`firebase-tools` (v13→v15), inte `--force`.
+
+Testat i granskningen: lint rent, build OK, `npx vitest run` 175/175 (25 filer).
+
+**Uppdatering samma dag: `test:rules` och `test:e2e` verifierade i efterhand.** Regeltesterna
+gick inte att köra i granskningens ursprungliga sandbox – Firebase-emulatorn hängde tyst utan
+felmeddelande vid start. Rotorsaken: `firebase-tools`s interna DNS-resolver
+(`node_modules/firebase-tools/lib/emulator/dns.js`) hårdkodar att hostnamnet `localhost` slår
+upp till BÅDE `127.0.0.1` och `::1`, oavsett systemets faktiska nätverkskonfiguration, och
+testar sedan att binda till båda adresserna innan emulatorn startar. I en container helt utan
+IPv6-stack (inget `/proc/net/if_inet6`) hänger just det bindningsförsöket för evigt istället
+för att felmeddela. En första fjärrsession i en annan molnmiljö träffade samma problem. Fixen:
+`firebase.json`s `emulators`-block satte `"host": "127.0.0.1"` explicit för varje emulator
+(auth/firestore/functions/storage) istället för standardvärdet `localhost` – det kringgår
+resolverns `isIP()`-kortslutning helt, oavsett om miljön har IPv6 eller inte. Detta är alltså
+en riktig fix, inte en sandbox-specifik workaround.
+
+Med fixen: **`npm run test:rules` → 267/267 gröna** (11 testfiler, inklusive nya
+regressionstester för de tre regeländringarna: organisationer create/delete, anteckningar
+dokId-prefix, och två nya tester för sokloggar-personnummerspärren som tidigare saknade
+täckning). **`npm run test:e2e` → 17/17 gröna** på en ren körning (en tidigare avbruten
+körning lämnade en föräldralös Vite-devserverprocess som orsakade `ERR_CONNECTION_REFUSED` i
+två mellanliggande försök – bekräftat vara en miljöartefakt, inte en kodbugg, genom att
+isolera och köra om det enskilda testet rent). Denna gren är alltså fullt testverifierad.
+Ingen deploy gjord ännu.
+
+## Uppföljning 2026-08-11 (juridisk granskning + kodverifiering av dess premisser)
+
+En extern juridisk kartläggning (v2) tillfördes projektet och ligger nu i repot som
+`JURIDISK-GRANSKNING.md` – **internt dokument, delas ALDRIG externt i sin helhet** (innehåller
+bolags-, bisyssle- och jävsbedömningar; avsnitt 21.4 listar vad som kan omarbetas till
+kundmaterial). Registrerad i `CLAUDE.md`s dokumentkarta bland incidentdokumenten, eftersom den
+har samma interna/externa hantering som `INCIDENT-CHECKLISTA.md`.
+
+Rapporten markerade fyra tekniska premisser som **[PK]** – slutsatser som hängde på ett
+tekniskt faktum den inte kunnat kontrollera. Samtliga är nu verifierade mot faktisk kod, och
+resultatet är inarbetat på plats i rapporten:
+
+- **Artikel 50 (AI-transparens) – brist bekräftad.** `kalla: "gemini"` sätts i
+  `functions/ai-import.js:263`, överlever publicering (`useRutiner.js:117` rör inte fältet),
+  men läses av **ingen** läsarvänd komponent. En medarbetare kan alltså inte se att en rutin
+  ursprungligen tolkades fram av AI. Kravet gäller sedan 2026-08-02. Liten kodändring, inget
+  data saknas.
+- **"Beslutsstöd" i kundvänt material – bekräftad**, men bara på EN rad
+  (`KlinikfragaSok.jsx:92`). Förekomsten i `functions/klinikstod.js:356` är en instruktion till
+  modellen, inte kundvänd, och påverkar inte MDR-kvalificeringen.
+- **Referensunderlagets anonymisering – farhågan avfärdad.**
+  `functions/matvarden.js:299` exporterar sju aggregat utan roll- eller områdesuppdelning, så
+  den befarade återidentifieringsvägen finns inte. **Men:** ingen minsta-n-spärr, till skillnad
+  från personalpulsens tröskel på fem.
+- **Revisionsloggens pseudonymisering – rapportens egen rekommendation var felaktig.**
+  `raknaHash()` hashar posten inklusive `aktorUid` och `verifieraRevisionskedja()` bygger om
+  hashen från innehållet, så pseudonymisering i efterhand upptäcks som manipulation. Hade
+  rekommendationen följts hade nattjobbet larmat varje natt för varje drabbad organisation.
+  Gallring kräver **segmentering** av kedjan med ankarposter.
+
+**En femte premiss kontrollerades trots att den inte var markerad, och visade sig vara den
+allvarligaste:** rapportens MDR-argument för checklistläget bygger på att ett steg är
+"strukturellt begränsat till `{text, bild, varning, timerSekunder}` – spärren sitter i
+datamodellen, inte i en policy". Det stämmer inte. `firestore.rules` spärrar antal steg (max
+12) och personnummer i `text`, men **ingen regel begränsar vilka nycklar ett stegobjekt får
+ha** – `hasOnly` används på sex ställen i filen, inget av dem för `rutiner`. Fältuppsättningen
+upprätthålls av `RutinFormular.jsx:79`, alltså av gränssnittet. Det är en verklig teknisk
+avvägning (regelspråket saknar loopar, budgeten på 1 000 deluttryck har tagit slut två gånger
+förut), men påståendet som det är formulerat går inte att styrka.
+
+**Ägarbeslut loggat samma dag:** bisysslan har fått skriftligt godkännande, se
+`BESLUTSLOGG.md`. Det låser upp granskningens åtgärdspunkt A1 men avgör INTE jäv- och
+upphandlingsfrågorna, som är separata.
+
+**Två nya rader i `OPPNA-PUNKTER.md`** (båda ägarbeslut, inte kapacitet): revisionsloggens
+gallringstid, och om checklistestegens spärr ska flyttas till servern eller bara formuleras
+om. Ingen kod ändrad i den här sessionen – bara dokument.

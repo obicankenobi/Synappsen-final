@@ -36,3 +36,6 @@ blob-report
 *.njsproj
 *.sln
 *.sw?
+
+# Emulatorns temporära konfigfil (skapas av tests/rules-körningar, ska aldrig versioneras)
+.firebase-emul-tmp.json
