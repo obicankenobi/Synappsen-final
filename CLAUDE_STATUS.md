@@ -2699,3 +2699,32 @@ upphandlingsfrågorna, som är separata.
 **Två nya rader i `OPPNA-PUNKTER.md`** (båda ägarbeslut, inte kapacitet): revisionsloggens
 gallringstid, och om checklistestegens spärr ska flyttas till servern eller bara formuleras
 om. Ingen kod ändrad i den här sessionen – bara dokument.
+
+---
+
+## Uppföljning 2026-08-12 (ETAPPLAN13 avstämd mot JURIDISK-GRANSKNING.md)
+
+Sessionen upptäckte att den lokala arbetskopian låg 14 commits efter fjärrgrenen – en annan
+session hade under tiden pushat den breda granskningen (v5.98.0) och `JURIDISK-GRANSKNING.md`.
+Synkade upp med `git merge --ff-only`, sedan stämde jag av om den nya, bredare juridiska
+granskningen redan täcker `ETAPPLAN13.md`s (Etapp 64) fyra "Klart när"-frågor.
+
+**Svar: ja, med god marginal.** `JURIDISK-GRANSKNING.md` §18 ("Frågor att ställa till anlitad
+jurist") är en färdig, bredare frågelista – dess frågor 1–6 täcker och överträffar planens
+egna fyra. En kommission bör gå efter §18, inte `ETAPPLAN13.md`s egen lista.
+
+**Två saker granskningen hittade som `ETAPPLAN13.md` saknade helt, nu inarbetade:**
+- **Nytt genomgående krav 27:** varumärkesrätt för instrumentnamn ("RETTS", "VÄST-A") är en
+  tredje juridisk risk, skild från MDR och upphovsrätt – aktualiserad av beslutet 2026-08-11
+  att namnge och sälja paket. Ingen marknadsföring av namngivna paket förrän juridiken svarat.
+- **En reservation, INTE en omprövning**, i "Leveransmodellen"-sektionen: granskningen menar
+  att den leverantörsstyrda tilldelningen (64d) kan peka MOT MDR-icke-kvalificering istället
+  för för den, tvärtemot ansvarstydlighets-motiveringen bakom beslutet. Beslutet i
+  `BESLUTSLOGG.md` står kvar oförändrat – det här är en flagga inför juristsamtalet, inte en
+  ändring jag gjort på egen hand.
+
+Uppdaterade `ETAPPLAN13.md` (nytt krav 27, reservationstext, omskriven "Klart när"-tabell med
+fem frågor istället för fyra, tredje granskningsrunda dokumenterad), `CLAUDE.md` (läsordning
++ dokumentkarta, "två" → "tre" regulatoriska gränser) och `OPPNA-PUNKTER.md` (Etapp 64-raden
+pekar nu på §18 och föreslår att samma uppdrag kan omfatta hela den bredare granskningen).
+Ingen kod, ingen versionsbump, ingen deploy.

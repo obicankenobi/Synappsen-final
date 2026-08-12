@@ -60,6 +60,21 @@ det är precis den sortens fel en jurist inte får ärva:
    kvarstår under B. Förutsättningstabellen fick en ny kolumn som visar vilka rader som är
    A-specifika kontra universella.
 
+**Tredje genomgången (2026-08-12), mot `JURIDISK-GRANSKNING.md` §18.** Den bredare juridiska
+granskningen (ett separat dokument, inte en granskning av den här planen specifikt) täckte
+och överträffade planens fyra "Klart när"-frågor, och hittade två saker planen missat helt:
+
+8. **En tredje juridisk risk: varumärkesrätt för instrumentnamn.** Varken utkastet eller de
+   två första genomgångarna identifierade att namn som "RETTS"/"VÄST-A" kan vara registrerade
+   varumärken, skilt från både MDR och upphovsrätt. Nytt genomgående krav 27.
+9. **En reservation mot leveransmodellens ansvarslogik.** Beslutet om leverantörsstyrd
+   tilldelning (64d, beslutspunkt 2) motiverades med ansvarstydlighet. Granskningen pekar på
+   att det juridiskt kan tala för MOTSATT slutsats – se reservationen under "Leveransmodellen".
+   Beslutet omprövas INTE här, bara flaggat inför juristsamtalet.
+
+"Klart när"-tabellen pekar nu på `JURIDISK-GRANSKNING.md` §18 som den faktiska frågelistan
+att skicka till juristen, snarare än planens egen (nu delvis inaktuella) fyra frågor.
+
 ---
 
 ## Bakgrund
@@ -102,6 +117,16 @@ som en medicinteknisk produkt under MDR."*
     tillstånd för användning i en kommersiell produkt. Argumentet "det är ju samma sak som en
     bok" är just här precis fel: en bok är köpt eller licensierad. De två kraven pekar åt
     samma håll – ren referens – men av olika skäl, och båda måste hålla.
+
+27. **Instrumentens NAMN behandlas som en egen juridisk risk, skild från MDR och
+    upphovsrätt.** Nytt 2026-08-12, från `JURIDISK-GRANSKNING.md` §10.3 (en tredje risk
+    varken utkastet eller den första granskningen identifierade). Namn som "RETTS" eller
+    "VÄST-A" kan vara registrerade varumärken. Att lagra ett namn i en metadatapost och länka
+    till originalet är sannolikt tillåtet – men att MARKNADSFÖRA namngivna paket som en
+    produktegenskap ("Synappsen med RETTS") kan vara varumärkesanvändning som kräver
+    tillstånd. Blir särskilt aktuellt eftersom beslutet 2026-08-11 (se "Leveransmodellen"
+    nedan) uttryckligen namnger paket och gör dem till en betald tjänst. Ingen marknadsföring
+    av ett namngivet paket förrän juridiken svarat på fråga 5 i `JURIDISK-GRANSKNING.md` §18.
 
 ---
 
@@ -242,14 +267,24 @@ och allt som reproducerar ett licensbelagt instruments innehåll. Dessa hör hem
 nedan, och svaren är inskrivna i `SAKERHETSRAPPORT.md` innan något publiceras för en kund.
 Utkastet formulerade det här som ett binärt utfall ("bedömningen bekräftar att 64a–64d
 håller"), vilket verkligheten sällan levererar – ett delvis ja är det mest sannolika svaret,
-och då ska det gå att se vad som fortfarande är byggbart:
+och då ska det gå att se vad som fortfarande är byggbart.
 
-| # | Fråga till juristen | Om svaret är ja | Om svaret är nej |
+**Uppdaterat 2026-08-12: kommissionera efter `JURIDISK-GRANSKNING.md` §18, inte listan
+nedan.** Den bredare granskningen (samma dag den kommenterade dokumentet, se dess §21) har
+redan formulerat en fylligare, mer precis frågelista – "Frågor att ställa till anlitad
+jurist", färdig att klistras in i ett uppdragsbrev. Dess frågor 1–6 (MDR, upphovsrätt,
+varumärke) täcker och överträffar de fyra frågorna nedan, inklusive en risk (varumärkesrätt
+för instrumentnamn, krav 27 ovan) som inte fanns här. Tabellen nedan står kvar som
+bakgrundsresonemang för VARFÖR frågorna ställs, inte som det som faktiskt skickas till
+juristen.
+
+| # | Fråga till juristen (bakgrund – se §18 för den faktiska frågelistan) | Om svaret är ja | Om svaret är nej |
 |---|---|---|---|
 | 1 | Kvalificerar ett rent referensbibliotek (metadata + länk, ingen bearbetning) som medicinteknisk programvara enligt MDR art. 2(1) / MDCG 2019-11? | **Ja, det kvalificerar** → A faller i sin nuvarande lätta form: full MDR-efterlevnad (klinisk utvärdering, CE-märkning, kvalitetsledningssystem) är sannolikt inte proportionerligt för ett litet baspaket. Gå till fråga 2 – ändrar B bilden? | **Nej, det kvalificerar inte** → 64a–64d är byggbara som beskrivet, ren referensfunktion utan MDR-börda |
-| 2 | Ändras svaret på fråga 1 av vem som står som utgivare? *(Delvis inaktuell sedan beslutspunkt 2 avgjordes 2026-08-11 – Synappsen är utgivare oavsett, "kundägt innehåll" (B) är inte längre ett alternativ. Fortfarande värt att fråga: spelar det roll att urvalet är kundspecifikt, även om ägarskapet är centralt?)* | Beslutspunkt 2:s arkitektur (leverantörsstyrt urval per kund) kan behöva en egen bedömning, inte bara "samma som ren A" | Ren A-bedömningen (fråga 1) täcker den avgjorda modellen fullt ut |
+| 2 | Ändras svaret på fråga 1 av vem som står som utgivare, ELLER av att urvalet är leverantörsstyrt snarare än kundvalt? *(Se reservationen under "Leveransmodellen" – `JURIDISK-GRANSKNING.md` §10.3 menar att leverantörsstyrd tilldelning kan peka MOT kvalificering, tvärtemot vad ansvarstydlighets-motiveringen antog.)* | Beslutspunkt 2:s arkitektur (leverantörsstyrt urval per kund) kan behöva en egen bedömning, inte bara "samma som ren A" – ompröva mot kundstyrd aktivering om svaret är negativt | Ren A-bedömningen (fråga 1) täcker den avgjorda modellen fullt ut |
 | 3 | Får instrumentets innehåll återges i produkten, eller bara länkas? (Per instrument – svaret kan skilja sig åt.) | 64c kan mjukas upp för just de instrumenten | 64c står som skriven, ren länkning |
-| 4 | Ändrar den leverantörsstyrda tilldelningen (64d) ansvarsbilden på ett sätt som är värt att behålla även om 1–3 är gröna? | Behåll modellen som beskriven | Ompröva om baspaketet kan ingå i Core istället |
+| 4 | Utgör användning av instrumentens NAMN (t.ex. "RETTS", "VÄST-A") i marknadsföring eller produktsammanhang varumärkesintrång? (Nytt, krav 27, från §10.3.) | Namnge paket fritt i marknadsföring | Marknadsför paketen generiskt ("bedömningsstöd A"), namnge bara internt/i avtal |
+| 5 | Ändrar den leverantörsstyrda tilldelningen (64d) ansvarsbilden på ett sätt som är värt att behålla även om 1–4 är gröna? | Behåll modellen som beskriven | Byt till kundstyrd aktivering – enkel ändring av vem som skriver urvalsfältet, ingen omstart |
 
 ---
 
@@ -292,6 +327,20 @@ curerar innehållet centralt:
   samma "Klart när"-fråga 1) och INTE upphovsrättsfrågan (samma "bara metadata + länk,
   aldrig reproduktion"-princip i 64a/64c/krav 26). Ordningen juridik → kod gäller oförändrat.
 
+> **Reservation från `JURIDISK-GRANSKNING.md` §10.3 (2026-08-12) – INTE en omprövning av
+> beslutet, en flagga inför juristsamtalet.** Beslutet ovan motiverades med ansvarstydlighet:
+> leverantören väljer åt kunden, så ingen kund får vårdinnehåll den inte beställt. Granskningen
+> pekar på att det juridiskt kan peka åt MOTSATT håll: ju mer leverantören själv utövar ett
+> omdöme om vilket kliniskt referensinnehåll som är relevant för en specifik vårdverksamhet,
+> desto mer liknar agerandet just det kliniska omdöme som talar FÖR MDR-kvalificering. En kund
+> som själv aktiverar ett namngivet paket (självbetjäning, som 64d ursprungligen skisserade)
+> är enligt granskningen en juridiskt säkrare konstruktion än att leverantören tilldelar det.
+> Detta är inte en slutsats – det är fråga 2 i `JURIDISK-GRANSKNING.md` §18, uttryckligen
+> formulerad för att ställas till juristen. Beslutet om leverantörsstyrd tilldelning STÅR KVAR
+> tills svaret finns (se `BESLUTSLOGG.md` 2026-08-11); om svaret talar för kundstyrd
+> aktivering istället är det en enkel ändring (samma datamodell, bara vem som får skriva
+> urvalsfältet) – inte ett omstart av arkitekturen.
+
 ---
 
 ## Föreslagen ordning
@@ -308,7 +357,7 @@ kodsession kan börja bygga 64a–64d.
 
 | Etapp | Innehåll | Modul | Risk | Status |
 |---|---|---|---|---|
-| **64** | Baspaket: nationella referenser (rena länkar/metadata, aldrig beräkning eller reproduktion), organiserat i namngivna paket med leverantörsstyrd per-kund-tilldelning | Ny (ej namngiven) – se 64d om ringarna på vattnet | **Regulatorisk – MDR + upphovsrätt** | **ANTAGEN 2026-08-11.** Scaffolding-fasen BYGGD (v5.97.0). Leveransmodell (beslutspunkt 2) och förvaltning/prissättning (beslutspunkt 3) **AVGJORDA 2026-08-11**, se `BESLUTSLOGG.md`. **Enda kvarvarande blockering:** riktigt innehåll och 64b:s källbevakningslarm är ej byggbara förrän den juridiska bedömningen finns (beslutspunkt 1:s andra hälft – vem kommissionerar), se `OPPNA-PUNKTER.md`. |
+| **64** | Baspaket: nationella referenser (rena länkar/metadata, aldrig beräkning eller reproduktion), organiserat i namngivna paket med leverantörsstyrd per-kund-tilldelning | Ny (ej namngiven) – se 64d om ringarna på vattnet | **Regulatorisk – MDR, upphovsrätt och varumärke** (den tredje tillagd 2026-08-12, se krav 27) | **ANTAGEN 2026-08-11.** Scaffolding-fasen BYGGD (v5.97.0). Leveransmodell (beslutspunkt 2) och förvaltning/prissättning (beslutspunkt 3) **AVGJORDA 2026-08-11**, se `BESLUTSLOGG.md` (leveransmodellen har en juridisk reservation från 2026-08-12, se "Leveransmodellen"). **Enda kvarvarande blockering:** riktigt innehåll och 64b:s källbevakningslarm är ej byggbara förrän den juridiska bedömningen finns (beslutspunkt 1:s andra hälft – vem kommissionerar, kommissionera efter `JURIDISK-GRANSKNING.md` §18), se `OPPNA-PUNKTER.md`. |
 
 ---
 
