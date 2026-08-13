@@ -24,7 +24,15 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 2. **`OPPNA-PUNKTER.md`** – läs ANDRA. Ett samlat register över allt som väntar på en människa
    eller ett beslut (inte på kapacitet), tvärs över alla planfiler. Ersätter behovet av att
    läsa statusblocken i punkt 4–6 nedan var för sig.
-3. **`ETAPPLAN13.md`** – **ANTAGEN 2026-08-11** (Etapp 64: ett "baspaket" av nationella
+3. **`ETAPPLAN14.md`** – **FÖRESLAGEN 2026-08-13, EJ ANTAGEN** (Etapp 65: fyra
+   vardagsfunktioner med wow-faktor – uppläsning, "ändrat sedan du läste", synonymsökning,
+   öva-läge). Till skillnad från `ETAPPLAN13.md` nedan är ingen del av den här planen
+   juridiskt eller externt blockerad – "ej antagen" betyder bara att ägaren inte formellt
+   bett om byggstart än. Alla fyra delmål är oberoende av varandra och av Etapp 64. Ett
+   konkret fynd värt att känna till: 65b kräver en regeländring
+   (`rutiner/{id}/versioner`s läsrätt är idag redaktörsbara, måste vidgas till alla
+   organisationsmedlemmar för att funktionen ska fungera för "vanliga" användare).
+4. **`ETAPPLAN13.md`** – **ANTAGEN 2026-08-11** (Etapp 64: ett "baspaket" av nationella
    referenser). Skiljer sig från alla andra antagna planfiler på ett sätt värt att säga rakt
    ut: **"antagen" betyder INTE "byggbar av en kodsession".** Idén rör tre regulatoriska
    gränser (MDR, upphovsrätt och sedan 2026-08-12 varumärkesrätt för instrumentnamn) som
@@ -41,30 +49,30 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
    fortfarande juridiskt blockerade. Om användaren ber om fortsatt arbete utan att specificera
    vad: det här är den antagna planen, men inget ytterligare steg är byggbart förrän juridiken
    är klar – fråga vad nästa etapp ska vara under tiden, eller läs `OPPNA-PUNKTER.md`.
-4. **`ETAPPLAN12.md`** – **HELT KLAR OCH DEPLOYAD** (Etapp 59–63: "Från demo till drift" –
+5. **`ETAPPLAN12.md`** – **HELT KLAR OCH DEPLOYAD** (Etapp 59–63: "Från demo till drift" –
    hållfasthet snarare än nya funktioner). Antagen 2026-08-10 efter en kodgenomgång (inte en
    dokumentgenomgång) av v5.91.0, helt avslutad 2026-08-11 i v5.96.0 (körning #74). Historisk
    men korrekt.
-5. **`ETAPPLAN11.md`** – HELT KLAR utom 54c/54d (väntar på en konkret andra enhet hos en
+6. **`ETAPPLAN11.md`** – HELT KLAR utom 54c/54d (väntar på en konkret andra enhet hos en
    kund) och Etapp 58 (SSO – protokollet är avgjort, OIDC, men bygget väntar på en kund som
    kräver det). Båda är sedan 2026-08-10 **beslut med omprövningsvillkor, se
    `BESLUTSLOGG.md`** – inte längre öppna punkter, och alltså inte i `OPPNA-PUNKTER.md`.
    Etapp 53/54a-b/55/56/57 alla klara och deployade.
-6. **`ETAPPLAN10.md`** – HELT KLAR utom Etapp 52 (pilotpaketet, kräver bokad tid med riktiga
+7. **`ETAPPLAN10.md`** – HELT KLAR utom Etapp 52 (pilotpaketet, kräver bokad tid med riktiga
    människor, inte kod – se planens egen "Beslutspunkter som kräver ägaren"). Etapp 48–51
    HELT KLARA OCH DEPLOYADE.
-7. **`ETAPPLAN9.md`** – HELT KLAR (Etapp 45: kvalitetsmaskineriet riktas utåt). Historisk men
+8. **`ETAPPLAN9.md`** – HELT KLAR (Etapp 45: kvalitetsmaskineriet riktas utåt). Historisk men
    korrekt, inget kvar att göra där.
-8. **`ETAPPLAN8.md`** – Etapp 44, 46 och 47 HELT KLARA OCH DEPLOYADE. Ingen etapp väntar
+9. **`ETAPPLAN8.md`** – Etapp 44, 46 och 47 HELT KLARA OCH DEPLOYADE. Ingen etapp väntar
    ogjord i den här filen just nu.
-9. **`ETAPPLAN7.md`** – HELT KLAR OCH DEPLOYAD (Etapp 42+43, gränssnittsförnyelse). Historisk
-   men korrekt, inget kvar att göra där.
-10. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkt (Etapp 40, villkorad av en
+10. **`ETAPPLAN7.md`** – HELT KLAR OCH DEPLOYAD (Etapp 42+43, gränssnittsförnyelse). Historisk
+    men korrekt, inget kvar att göra där.
+11. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkt (Etapp 40, villkorad av en
     konkret ny kund) är inte blockerad av kapacitet, bara av att komma i tur. Ta den när som
     helst.
-11. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter listas nu i `OPPNA-PUNKTER.md`
+12. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter listas nu i `OPPNA-PUNKTER.md`
     istället för att behöva läsas härifrån.
-12. Övriga dokument nedan, efter behov.
+13. Övriga dokument nedan, efter behov.
 
 ## Dokumentkarta
 
@@ -83,6 +91,7 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 | `ETAPPLAN11.md` | Etapp 53–58: e-post som kanal, flera enheter under samma huvudman, kioskläge, startbiblioteket, säljmaterialets sanning, SSO | **HELT KLAR utom 54c/54d och Etapp 58** – båda villkorade av en extern förutsättning, inte kapacitet, och sedan 2026-08-10 avgjorda som beslut med omprövningsvillkor (se `BESLUTSLOGG.md`, inte `OPPNA-PUNKTER.md`). Sex premisser verifierade mot faktisk kod innan antagande. |
 | `ETAPPLAN12.md` | Etapp 59–63: "Från demo till drift" – rätta kända fel, mäta prestanda mot en realistisk datamängd, underhållbarhet, göra befintlig mätning åtgärdbar, förenkla de öppna punkterna | **HELT KLAR OCH DEPLOYAD** (antagen 2026-08-10, avslutad 2026-08-11, v5.96.0, körning #74). Historisk men korrekt. |
 | `ETAPPLAN13.md` | Etapp 64: ett "baspaket" av nationella referenser (t.ex. bedömningsinstrument) | **ANTAGEN 2026-08-11** (se `BESLUTSLOGG.md`). Beslutspunkt 2 (leveransmodell) och 3 (förvaltning/pris) är avgjorda 2026-08-11; **beslutspunkt 1 (MDR, upphovsrätt och sedan 2026-08-12 varumärke) är kvar och blockerar allt riktigt innehåll**. En scaffolding-fas är byggd i v5.97.0 (`baspaketreferenser`, plattformsadmin-bara, inget innehållsfält). Kvarvarande steg: kommissionera bedömningen efter `JURIDISK-GRANSKNING.md` §18:s frågelista (inte planens egen kortare lista), se `OPPNA-PUNKTER.md`. Granskad tre gånger (2026-08-11 × 2, 2026-08-12 mot den bredare juridiska granskningen), se planens egen "Granskning". |
+| `ETAPPLAN14.md` | Etapp 65: fyra vardagsfunktioner med wow-faktor – uppläsning (65a), "ändrat sedan du läste" (65b), synonymsökning (65c), öva-läge (65d) | **FÖRESLAGEN 2026-08-13, EJ ANTAGEN.** Ingen del juridiskt blockerad (till skillnad från Etapp 64) – väntar bara på ett ägarbeslut om byggstart/prioritetsordning. 65b kräver en regeländring (`versioner`-läsrätt vidgas från redaktörsbara till alla organisationsmedlemmar), se planens egen "Premisskontroll". |
 | `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast som INTE antogs när `ETAPPLAN6.md` valdes | **Utkast, ej antagna.** Arkiverade – se `FRAMTIDSPLAN.md` för omprövningsvillkor per alternativ. |
 | `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv, LEVANDE** – händelsestyrd underhållsregel, se "Obligatorisk underhållsregel: CLAUDE_STATUS.md" under arbetsmönstren nedan. |
 | `src/data/andringslogg.js` | Användarvänd ändringslogg, visas i appen (`/nyheter`) | **Aktiv** – lägg till en post vid VARJE release. |

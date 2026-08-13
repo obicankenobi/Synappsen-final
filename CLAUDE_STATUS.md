@@ -6,10 +6,13 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-12, version **5.98.0** – **DEPLOYAD** (körning #75, commit
-`9d71d87`, deploy.yml på `claude/compassionate-euler-rho0q5`, ny asset-hash
-`assets/index-D-LL-p_d.js` bekräftad på `synappsen-final-build.web.app`). PR #15 (den breda
-granskningen) mergad 2026-08-12. v5.98.0 är resultatet av en **bred
+**Senast uppdaterad:** 2026-08-13 – rent planeringsarbete, ingen ny release (koden är
+fortfarande **5.98.0**, DEPLOYAD, körning #75, commit `9d71d87`). Ny föreslagen (ej antagen)
+plan **`ETAPPLAN14.md` (Etapp 65: fyra vardagsfunktioner med wow-faktor)** tillkom denna dag
+– se sektionen "Uppföljning 2026-08-13 (ny plan: ETAPPLAN14.md, Etapp 65 – fyra
+vardagsfunktioner)" längst ner. deploy.yml på `claude/compassionate-euler-rho0q5`, ny
+asset-hash `assets/index-D-LL-p_d.js` bekräftad på `synappsen-final-build.web.app`. PR #15
+(den breda granskningen) mergad 2026-08-12. v5.98.0 är resultatet av en **bred
 säkerhets- och kvalitetsgranskning** (inte en `ETAPPLANx.md`-etapp) – se sektionen
 "Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)" längst ner för vad som
 åtgärdades och vad som återstår. **`npm run test:rules` och `npm run test:e2e` är nu körda och
@@ -2728,3 +2731,28 @@ fem frågor istället för fyra, tredje granskningsrunda dokumenterad), `CLAUDE.
 + dokumentkarta, "två" → "tre" regulatoriska gränser) och `OPPNA-PUNKTER.md` (Etapp 64-raden
 pekar nu på §18 och föreslår att samma uppdrag kan omfatta hela den bredare granskningen).
 Ingen kod, ingen versionsbump, ingen deploy.
+
+## Uppföljning 2026-08-13 (ny plan: ETAPPLAN14.md, Etapp 65 – fyra vardagsfunktioner)
+
+Ägaren efterfrågade nya funktioner för "vanliga" användare med wow-faktor, uttryckligen
+INTE snabbare svarstider. Gjorde en fullständig genomgång av faktisk kod (samtliga sidor,
+komponenter, hooks) och grepade samtliga `ETAPPLANx.md`-filer för att skilja på genuint nya
+förslag och sådant som redan är byggt eller redan medvetet avfärdat – röstsökning (23d) och
+gamification (poäng/märken/topplistor, `ETAPPLAN12.md`) var redan avfärdade av goda skäl och
+återuppfanns inte.
+
+Lade fram åtta förslag; ägaren valde fyra för en ny plan: uppläsning, "ändrat sedan du
+läste", synonymsökning, öva-läge. Skrev `ETAPPLAN14.md` (Etapp 65, delmål 65a–65d) –
+**FÖRESLAGEN, EJ ANTAGEN**. Till skillnad från `ETAPPLAN13.md` är ingen del juridiskt
+blockerad; väntar bara på ett ägarbeslut om byggstart.
+
+**Ett konkret premisskontroll-fynd (krav 8) värt att komma ihåg:** 65b ("ändrat sedan du
+läste") kräver en regeländring – `rutiner/{id}/versioner`s läsrätt i `firestore.rules` är
+idag begränsad till redaktörer (`farRedigeraOmrade`), vilket utestänger exakt den
+användargrupp funktionen är byggd för. Måste vidgas till alla organisationsmedlemmar
+(samma krets som redan läser den LIVE rutinen) innan 65b kan byggas. Diff-logiken i sig
+kräver ingen ny kod – `utils/diff.js`s `diffRader()` återanvänds oförändrat.
+
+Uppdaterade `CLAUDE.md` (läsordning omnumrerad, ny rad i dokumentkartan för
+`ETAPPLAN14.md`). Ingen kod, ingen versionsbump, ingen deploy – rent planeringsarbete.
+Nästa steg: invänta ägarens besked om byggstart.
