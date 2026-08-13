@@ -37,6 +37,17 @@
   color: var(--text-svag);
 }
 
+.korvy__ljud {
+  background: transparent;
+  cursor: pointer;
+}
+
+.korvy__ljud[aria-pressed="true"] {
+  background: var(--primar);
+  border-color: var(--primar);
+  color: #fff;
+}
+
 .korvy__progressbar {
   width: 100%;
   height: 10px;

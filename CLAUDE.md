@@ -24,12 +24,11 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 2. **`OPPNA-PUNKTER.md`** – läs ANDRA. Ett samlat register över allt som väntar på en människa
    eller ett beslut (inte på kapacitet), tvärs över alla planfiler. Ersätter behovet av att
    läsa statusblocken i punkt 4–6 nedan var för sig.
-3. **`ETAPPLAN14.md`** – **FÖRESLAGEN 2026-08-13, EJ ANTAGEN** (Etapp 65: fyra
-   vardagsfunktioner med wow-faktor – uppläsning, "ändrat sedan du läste", synonymsökning,
-   öva-läge). Till skillnad från `ETAPPLAN13.md` nedan är ingen del av den här planen
-   juridiskt eller externt blockerad – "ej antagen" betyder bara att ägaren inte formellt
-   bett om byggstart än. Alla fyra delmål är oberoende av varandra och av Etapp 64. Ett
-   konkret fynd värt att känna till: 65b kräver en regeländring
+3. **`ETAPPLAN14.md`** – **DELVIS BYGGD** (Etapp 65: fyra vardagsfunktioner med wow-faktor –
+   uppläsning, "ändrat sedan du läste", synonymsökning, öva-läge). **65a (uppläsning) är
+   KLAR (2026-08-13, v5.99.0).** 65b–65d är fortfarande bara föreslagna, ej antagna. Till
+   skillnad från `ETAPPLAN13.md` nedan är ingen del av den här planen juridiskt eller
+   externt blockerad. Ett konkret fynd värt att känna till: 65b kräver en regeländring
    (`rutiner/{id}/versioner`s läsrätt är idag redaktörsbara, måste vidgas till alla
    organisationsmedlemmar för att funktionen ska fungera för "vanliga" användare).
 4. **`ETAPPLAN13.md`** – **ANTAGEN 2026-08-11** (Etapp 64: ett "baspaket" av nationella
@@ -91,7 +90,7 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 | `ETAPPLAN11.md` | Etapp 53–58: e-post som kanal, flera enheter under samma huvudman, kioskläge, startbiblioteket, säljmaterialets sanning, SSO | **HELT KLAR utom 54c/54d och Etapp 58** – båda villkorade av en extern förutsättning, inte kapacitet, och sedan 2026-08-10 avgjorda som beslut med omprövningsvillkor (se `BESLUTSLOGG.md`, inte `OPPNA-PUNKTER.md`). Sex premisser verifierade mot faktisk kod innan antagande. |
 | `ETAPPLAN12.md` | Etapp 59–63: "Från demo till drift" – rätta kända fel, mäta prestanda mot en realistisk datamängd, underhållbarhet, göra befintlig mätning åtgärdbar, förenkla de öppna punkterna | **HELT KLAR OCH DEPLOYAD** (antagen 2026-08-10, avslutad 2026-08-11, v5.96.0, körning #74). Historisk men korrekt. |
 | `ETAPPLAN13.md` | Etapp 64: ett "baspaket" av nationella referenser (t.ex. bedömningsinstrument) | **ANTAGEN 2026-08-11** (se `BESLUTSLOGG.md`). Beslutspunkt 2 (leveransmodell) och 3 (förvaltning/pris) är avgjorda 2026-08-11; **beslutspunkt 1 (MDR, upphovsrätt och sedan 2026-08-12 varumärke) är kvar och blockerar allt riktigt innehåll**. En scaffolding-fas är byggd i v5.97.0 (`baspaketreferenser`, plattformsadmin-bara, inget innehållsfält). Kvarvarande steg: kommissionera bedömningen efter `JURIDISK-GRANSKNING.md` §18:s frågelista (inte planens egen kortare lista), se `OPPNA-PUNKTER.md`. Granskad tre gånger (2026-08-11 × 2, 2026-08-12 mot den bredare juridiska granskningen), se planens egen "Granskning". |
-| `ETAPPLAN14.md` | Etapp 65: fyra vardagsfunktioner med wow-faktor – uppläsning (65a), "ändrat sedan du läste" (65b), synonymsökning (65c), öva-läge (65d) | **FÖRESLAGEN 2026-08-13, EJ ANTAGEN.** Ingen del juridiskt blockerad (till skillnad från Etapp 64) – väntar bara på ett ägarbeslut om byggstart/prioritetsordning. 65b kräver en regeländring (`versioner`-läsrätt vidgas från redaktörsbara till alla organisationsmedlemmar), se planens egen "Premisskontroll". |
+| `ETAPPLAN14.md` | Etapp 65: fyra vardagsfunktioner med wow-faktor – uppläsning (65a), "ändrat sedan du läste" (65b), synonymsökning (65c), öva-läge (65d) | **DELVIS BYGGD.** 65a KLAR 2026-08-13 (v5.99.0). 65b–65d föreslagna, ej antagna, inte juridiskt blockerade (till skillnad från Etapp 64). 65b kräver en regeländring (`versioner`-läsrätt vidgas från redaktörsbara till alla organisationsmedlemmar), se planens egen "Premisskontroll". |
 | `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast som INTE antogs när `ETAPPLAN6.md` valdes | **Utkast, ej antagna.** Arkiverade – se `FRAMTIDSPLAN.md` för omprövningsvillkor per alternativ. |
 | `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv, LEVANDE** – händelsestyrd underhållsregel, se "Obligatorisk underhållsregel: CLAUDE_STATUS.md" under arbetsmönstren nedan. |
 | `src/data/andringslogg.js` | Användarvänd ändringslogg, visas i appen (`/nyheter`) | **Aktiv** – lägg till en post vid VARJE release. |

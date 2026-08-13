@@ -6,6 +6,8 @@ import { useAuth } from "../hooks/useAuth";
 import { kvitteraLastMedKo } from "../hooks/useLaskvittering";
 import { borGranskas, arUtgangen, arArkiverad } from "../utils/rutinHjalp";
 import { formateraDatum } from "../utils/datum";
+import { talText } from "../utils/talText";
+import { useTalsyntes } from "../hooks/useTalsyntes";
 import { ROLE_LABELS } from "../firebase/roles";
 import FavoritKnapp from "./FavoritKnapp";
 import Kommentarer from "./Kommentarer";
@@ -52,6 +54,7 @@ export default function RutinKort({
 }) {
   const { currentUser, namn, organisationId } = useAuth();
   const mittNamn = namn || currentUser?.email;
+  const { stods: talstods, laserUpp, vaxla } = useTalsyntes();
   const [visaHistorik, setVisaHistorik] = useState(false);
   const [visaOlasta, setVisaOlasta] = useState(false);
   const [qrUrl, setQrUrl] = useState(null);
@@ -305,6 +308,15 @@ export default function RutinKort({
         <button type="button" className="knapp knapp--sekundar knapp--liten" onClick={hanteraVisaQr}>
           🔳 QR-kod
         </button>
+        {talstods && (
+          <button
+            type="button"
+            className="knapp knapp--sekundar knapp--liten"
+            onClick={() => vaxla(talText(rutin.innehall))}
+          >
+            {laserUpp ? "⏹️ Sluta lyssna" : "🔊 Lyssna"}
+          </button>
+        )}
         {!arUtkast && (
           <button
             type="button"

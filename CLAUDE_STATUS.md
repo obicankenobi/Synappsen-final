@@ -6,13 +6,15 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-13 – rent planeringsarbete, ingen ny release (koden är
-fortfarande **5.98.0**, DEPLOYAD, körning #75, commit `9d71d87`). Ny föreslagen (ej antagen)
-plan **`ETAPPLAN14.md` (Etapp 65: fyra vardagsfunktioner med wow-faktor)** tillkom denna dag
-– se sektionen "Uppföljning 2026-08-13 (ny plan: ETAPPLAN14.md, Etapp 65 – fyra
-vardagsfunktioner)" längst ner. deploy.yml på `claude/compassionate-euler-rho0q5`, ny
-asset-hash `assets/index-D-LL-p_d.js` bekräftad på `synappsen-final-build.web.app`. PR #15
-(den breda granskningen) mergad 2026-08-12. v5.98.0 är resultatet av en **bred
+**Senast uppdaterad:** 2026-08-13, version **5.99.0** – byggd och pushad, **ÄNNU INTE
+DEPLOYAD** (ingen deploy begärd i den här sessionen; senaste bekräftade deploy är fortfarande
+v5.98.0, körning #75, commit `9d71d87`, asset-hash `assets/index-D-LL-p_d.js`,
+`synappsen-final-build.web.app`). v5.99.0 = **Etapp 65a (`ETAPPLAN14.md`) – uppläsning av
+rutiner/checklistesteg – KLAR.** Ny plan **`ETAPPLAN14.md` (Etapp 65: fyra
+vardagsfunktioner med wow-faktor)** föreslogs 2026-08-13; ägaren bad direkt om byggstart för
+delmål 65a samma dag. Se sektionerna "Uppföljning 2026-08-13 (ny plan: ETAPPLAN14.md, Etapp
+65 – fyra vardagsfunktioner)" och "Uppföljning 2026-08-13 (Etapp 65a klar, v5.99.0)" längst
+ner. PR #15 (den breda granskningen) mergad 2026-08-12. v5.98.0 är resultatet av en **bred
 säkerhets- och kvalitetsgranskning** (inte en `ETAPPLANx.md`-etapp) – se sektionen
 "Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)" längst ner för vad som
 åtgärdades och vad som återstår. **`npm run test:rules` och `npm run test:e2e` är nu körda och
@@ -2756,3 +2758,30 @@ kräver ingen ny kod – `utils/diff.js`s `diffRader()` återanvänds oförändr
 Uppdaterade `CLAUDE.md` (läsordning omnumrerad, ny rad i dokumentkartan för
 `ETAPPLAN14.md`). Ingen kod, ingen versionsbump, ingen deploy – rent planeringsarbete.
 Nästa steg: invänta ägarens besked om byggstart.
+
+## Uppföljning 2026-08-13 (Etapp 65a klar, v5.99.0)
+
+Ägaren bad direkt om byggstart för `ETAPPLAN14.md`s delmål 65a (uppläsning) – samma dag
+planen föreslogs. Byggt och klart samma session:
+
+- `src/utils/talText.js` (+ 8 enhetstester): saniterar rå Markdown-text till talbar text –
+  tar bort rubrik-/fetstils-/länksyntax och emoji, normaliserar whitespace.
+- `src/hooks/useTalsyntes.js`: delad wrapper runt webbläsarens `speechSynthesis`, används av
+  både `RutinKort.jsx` (🔊-knapp bredvid QR-koden) och `Korvy.jsx` (🔊-knapp i headern, med
+  "sticky" läge – läser om automatiskt vid stegbyte om uppläsning redan var aktiv).
+  Avbryter alltid vid avmontering/navigering, plus explicit vid checklistans "Klar"-övergång
+  (samma komponentinstans lever kvar där, ett unmount sker inte).
+- Bekräftat att invändningen mot röstsökning (23d, avfärdad i `ETAPPLAN4.md` – ljud som
+  skickas till en tredje part) inte gäller talsyntes: `speechSynthesis` är utdata, inget
+  spelas in, inget lämnar enheten.
+
+Två avvikelser från ursprungsplanen (dokumenterade i `ETAPPLAN14.md`s "Genomfört"-avsnitt):
+rösturvalet blev `voice.lang.startsWith("sv")` istället för `voice.localService` (språk är
+den egenskap som faktiskt avgör begriplighet), och talsyntesen delades i en egen hook
+istället för att dupliceras i två komponenter.
+
+Ingen ändring i `firestore.rules`/`storage.rules`/Cloud Functions – bara `lint`/`build`/
+`vitest run` (182/182) körda, alla gröna. Version 5.98.0 → **5.99.0**, `andringslogg.js`
+uppdaterad, `ETAPPLAN14.md` (65a markerad klar + "Genomfört"-avsnitt), `CLAUDE.md`
+(läsordning + dokumentkarta, "föreslagen" → "delvis byggd"). Committat och pushat.
+**Ingen deploy gjord** – inte begärd i den här sessionen.

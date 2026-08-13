@@ -1,8 +1,10 @@
 # Etapplan 14 – Fyra vardagsfunktioner med wow-faktor, inte snabbare svarstider
 
-*Utkast 2026-08-13. FÖRESLAGEN, EJ ANTAGEN – till skillnad från `ETAPPLAN13.md` är ingen av
-etapperna här juridiskt eller på annat sätt blockerad; adoptionssteget är bara ett normalt
-ägarbeslut om prioritetsordning, inte ett svar på en extern förutsättning.*
+*Utkast 2026-08-13. FÖRESLAGEN, EJ FORMELLT ANTAGEN SOM HELHET – till skillnad från
+`ETAPPLAN13.md` är ingen av etapperna här juridiskt eller på annat sätt blockerad;
+adoptionssteget är bara ett normalt ägarbeslut om prioritetsordning, inte ett svar på en
+extern förutsättning. Ägaren bad direkt om byggstart för 65a (2026-08-13), som nu är KLAR –
+se delmålet nedan. 65b–65d är fortfarande bara föreslagna.*
 
 **Bakgrund:** ägaren efterfrågade explicit nya funktioner som "vanliga" användare möter och
 som ger en wow-känsla – inte prestandaförbättringar, inte administratörsverktyg. En genomgång
@@ -23,7 +25,7 @@ gränsdragning som redan blockerar `ETAPPLAN13.md`, se motiveringen nedan.
 Fyra oberoende delmål, byggbara i valfri ordning och var för sig releasebara – ingen av dem
 förutsätter någon av de andra.
 
-### 65a – Lyssna på rutinen (uppläsning)
+### 65a – ✅ KLAR (2026-08-13) – Lyssna på rutinen (uppläsning)
 
 **Idé:** en högtalarknapp på rutinkortet och i körvyn som läser upp texten via webbläsarens
 inbyggda `speechSynthesis`. Tänkt användning: händerna är fulla eller handskade, telefonen
@@ -71,6 +73,32 @@ den egenskap som gjorde 23d till en integritetsfråga.
 **Klart när:** en användare kan trycka 🔊 på valfri godkänd rutin och på valfritt
 checklistesteg och höra texten läsas upp på svenska, utan att Markdown-syntax eller
 emojinamn hörs, och utan att uppläsningen fortsätter efter att sidan lämnats.
+
+**Genomfört (avvikelser från ursprungsplanen ovan, mindre justeringar vid byggstart):**
+- Rösturvalet blev `voice.lang.toLowerCase().startsWith("sv")`, inte
+  `voice.localService`. Skälet: `localService` filtrerar bort MOLNRÖSTER men säger inget om
+  SPRÅK – att bara filtrera på den hade kunnat ge en engelsk on-device-röst istället för en
+  svensk molnröst. `lang.startsWith("sv")` är den egenskap som faktiskt avgör om texten låter
+  begriplig, och de flesta webbläsares svenska röster råkar ändå vara on-device redan.
+- Talsynteslogiken lades i en delad hook, `src/hooks/useTalsyntes.js`, i stället för att
+  upprepas i både `RutinKort.jsx` och `Korvy.jsx` – samma
+  motivering som redan styr resten av kodbasen (`useSokindex.js`s egen kommentar om att
+  undvika en parallell sökmotor).
+- Körvyns "läser om automatiskt vid stegbyte" implementerades som ett eget
+  `upplasningPa`-tillstånd i `Korvy.jsx` (skilt från hookens `laserUpp`, som bara speglar om
+  ljud faktiskt spelas just nu) – annars hade uppläsningen tystnat vid varje stegbyte i
+  stället för att fortsätta automatiskt på nästa steg.
+- `speechSynthesis.cancel()`-städningen ligger på tre ställen, inte ett: hookens egen
+  unmount-cleanup (täcker navigering bort från sidan), samt explicit i `Korvy.jsx`s
+  `nastaSteg()` när checklistan avslutas (samma komponentinstans lever kvar in i
+  "Klar"-vyn – ett unmount sker inte där, så cleanup-effekten hade missat det fallet).
+
+**Testat:** `talText.js` har 8 enhetstester (Markdown-syntax, emoji, whitespace,
+tomt/saknat innehåll). `npm run lint`, `npm run build`, `npx vitest run` (182/182) gröna.
+Ingen ändring i `firestore.rules`/`storage.rules`/Cloud Functions, så `test:rules`/
+`test:functions`/`test:storage` är inte relevanta för den här releasen. Manuell
+webbläsarverifiering (talsyntes kräver riktiga röster, går inte att headless-testa
+meningsfullt) rekommenderas innan nästa deploy, men är inte gjord i den här sessionen.
 
 ---
 
@@ -246,12 +274,12 @@ ursprungliga åttadelade förslaget men valdes uttryckligen bort av ägaren för
 
 ## Sammanfattning
 
-| Delmål | Vad | Ny regeländring? | Ny datamodell? | Wow |
-|---|---|---|---|---|
-| 65a | Lyssna på rutinen (talsyntes) | Nej | Nej | ⭐⭐⭐ |
-| 65b | Ändrat sedan du läste (diff mot egen kvittering) | **Ja** (`versioner`-läsrätt vidgas) | Nej | ⭐⭐⭐ |
-| 65c | Synonymsökning (vårdens vokabulär) | Nej | Nej (statisk datafil) | ⭐⭐ |
-| 65d | Öva-läge (flera rutiner, ett pass) | Nej | Nej | ⭐⭐⭐ |
+| Delmål | Vad | Ny regeländring? | Ny datamodell? | Wow | Status |
+|---|---|---|---|---|---|
+| 65a | Lyssna på rutinen (talsyntes) | Nej | Nej | ⭐⭐⭐ | ✅ KLAR 2026-08-13 (v5.99.0) |
+| 65b | Ändrat sedan du läste (diff mot egen kvittering) | **Ja** (`versioner`-läsrätt vidgas) | Nej | ⭐⭐⭐ | Föreslagen |
+| 65c | Synonymsökning (vårdens vokabulär) | Nej | Nej (statisk datafil) | ⭐⭐ | Föreslagen |
+| 65d | Öva-läge (flera rutiner, ett pass) | Nej | Nej | ⭐⭐⭐ | Föreslagen |
 
 Alla fyra är Core-funktionalitet (ingen feature-gating), byggbara oberoende av varandra och
 oberoende av `ETAPPLAN13.md`s juridiska blockering.

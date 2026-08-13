@@ -12,6 +12,8 @@ import {
   registreraChecklistaSlutford,
   registreraChecklistaAvbruten,
 } from "../hooks/useChecklistStatistik";
+import { talText } from "../utils/talText";
+import { useTalsyntes } from "../hooks/useTalsyntes";
 import "./Korvy.css";
 
 // Enkel hörbar signal via Web Audio API – inget externt ljudfilsberoende. Körs bara på
@@ -40,6 +42,8 @@ export default function Korvy() {
   const { rutinId } = useParams();
   const { currentUser, organisationId } = useAuth();
   const { rutin, laddar } = useRutin(rutinId);
+  const { stods: talstods, lasUpp, stoppa } = useTalsyntes();
+  const [upplasningPa, setUpplasningPa] = useState(false);
 
   // Lazy init (körs bara vid montering) istället för ett useEffect+setState – "fortsätt där
   // du var" är bara ett engångsläsning av lokalt sparad position, ingen extern prenumeration.
@@ -80,6 +84,23 @@ export default function Korvy() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kvarSekunder === 0]);
 
+  // Etapp 65a: "sticky" uppläsning – om användaren slog på uppläsning läses varje nytt
+  // steg upp automatiskt, utan att behöva trycka igen per steg.
+  useEffect(() => {
+    if (!upplasningPa || !aktivtSteg) return;
+    lasUpp(talText(aktivtSteg.text));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lasUpp är stabil, aktivtSteg/upplasningPa är de faktiska triggerna
+  }, [upplasningPa, aktivtSteg]);
+
+  function vaxlaUpplasning() {
+    if (upplasningPa) {
+      stoppa();
+      setUpplasningPa(false);
+    } else {
+      setUpplasningPa(true);
+    }
+  }
+
   useEffect(() => {
     if (!currentUser?.uid || !rutinId || paborjadRegistreradRef.current || !organisationId) return;
     paborjadRegistreradRef.current = true;
@@ -109,6 +130,8 @@ export default function Korvy() {
       setSekunderPaSteg(0);
     } else {
       slutfordRef.current = true;
+      stoppa();
+      setUpplasningPa(false);
       const tidMs = Date.now() - startTid;
       if (organisationId) {
         registreraChecklistaSlutford(rutinId, organisationId, tidMs).catch(() => {});
@@ -166,6 +189,17 @@ export default function Korvy() {
         <div className="korvy__progress">
           Steg {index + 1} av {steg.length}
         </div>
+        {talstods && (
+          <button
+            type="button"
+            className="korvy__stang korvy__ljud"
+            aria-label={upplasningPa ? "Sluta lyssna" : "Lyssna på stegen"}
+            aria-pressed={upplasningPa}
+            onClick={vaxlaUpplasning}
+          >
+            {upplasningPa ? "⏹️" : "🔊"}
+          </button>
+        )}
       </header>
       <div className="korvy__progressbar">
         <div className="korvy__progressbar-fyllnad" style={{ width: `${((index + 1) / steg.length) * 100}%` }} />
