@@ -6,16 +6,17 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-13, version **5.101.0** – byggd och pushad, **ÄNNU INTE
+**Senast uppdaterad:** 2026-08-13, version **5.102.0** – byggd och pushad, **ÄNNU INTE
 DEPLOYAD** (ingen deploy begärd sedan v5.99.0; senaste bekräftade produktionsdeploy är
-v5.99.0, körning #76, commit `3eefd17`, asset-hash `assets/index-VSVjfc_t.js`). v5.101.0 =
-**Etapp 65c (`ETAPPLAN14.md`) – synonymsökning – KLAR**. Tillsammans med v5.99.0/v5.100.0
-betyder det att **65a, 65b och 65c i Etapp 65 nu alla är klara** – bara 65d (öva-läge)
-återstår, fortfarande bara föreslaget. Se sektionerna "Uppföljning 2026-08-13 (ny plan:
-ETAPPLAN14.md, Etapp 65 – fyra vardagsfunktioner)", "Uppföljning 2026-08-13 (Etapp 65a klar,
-v5.99.0)", "Uppföljning 2026-08-13 (Etapp 65b klar, v5.100.0)" och "Uppföljning 2026-08-13
-(Etapp 65c klar, v5.101.0)" längst ner. PR #15 (den breda granskningen) mergad 2026-08-12.
-v5.98.0 var resultatet av en **bred
+fortfarande v5.99.0, körning #76, commit `3eefd17`, asset-hash `assets/index-VSVjfc_t.js`).
+v5.102.0 = **Etapp 65d (`ETAPPLAN14.md`) – öva-läge – KLAR. Med det är HELA Etapp 65 (alla
+fyra delmål 65a–65d) byggd**, ett delmål i taget samma dag på ägarens uttryckliga begäran.
+`ETAPPLAN14.md` väntar nu bara på nästa deploy för att komma i produktion. Se sektionerna
+"Uppföljning 2026-08-13 (ny plan: ETAPPLAN14.md, Etapp 65 – fyra vardagsfunktioner)",
+"Uppföljning 2026-08-13 (Etapp 65a klar, v5.99.0)", "Uppföljning 2026-08-13 (Etapp 65b klar,
+v5.100.0)", "Uppföljning 2026-08-13 (Etapp 65c klar, v5.101.0)" och "Uppföljning 2026-08-13
+(Etapp 65d klar, v5.102.0 – Etapp 65 helt byggd)" längst ner. PR #15 (den breda granskningen)
+mergad 2026-08-12. v5.98.0 var resultatet av en **bred
 säkerhets- och kvalitetsgranskning** (inte en `ETAPPLANx.md`-etapp) – se sektionen
 "Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)" längst ner för vad som
 åtgärdades och vad som återstår. **`npm run test:rules` och `npm run test:e2e` är nu körda och
@@ -2848,3 +2849,30 @@ uppdaterad, `ETAPPLAN14.md` (65c markerad klar + "Genomfört"-avsnitt), `CLAUDE.
 (dokumentkarta). `lint`/`build`/`vitest run` (193/193) gröna. Committat och pushat.
 **Ingen deploy gjord** – inte begärd i den här sessionen. Med detta är tre av fyra delmål
 i Etapp 65 klara (65a/65b/65c) – bara 65d (öva-läge) återstår.
+
+## Uppföljning 2026-08-13 (Etapp 65d klar, v5.102.0 – Etapp 65 helt byggd)
+
+Ägaren bad direkt om byggstart för `ETAPPLAN14.md`s sista delmål, 65d (öva-läge). Byggt och
+klart samma session:
+
+- `src/utils/ovaLage.js`: `byggFragepool()` + `slumpaFragor()` (Fisher-Yates), 11
+  enhetstester. Samma filtreringsprincip som `veckansRepetition.js`s `valjVeckansFraga()`
+  (godkänd, ej arkiverad, `kviss.length > 0`) men utan det veckostabila hash-urvalet.
+- Ny sida `src/pages/OvaLage.jsx` på `/ova`: välj område → slumpad frågeserie (8 frågor) →
+  klar-skärm. Återanvänder `useAllaGodkandaRutiner()` (redan byggd för kompetensmatrisen,
+  Etapp 19c) istället för planens ursprungliga skiss med två separata `useRutiner()`-anrop –
+  billigare och redan filtrerad server-side på godkänd status över alla områden.
+- **Ett medvetet strängare val än planens bokstav:** ingen "X av Y rätt"-sammanfattning visas
+  ens vid passets slut, trots att "Klart när"-kriteriet bara förbjöd att SPARA/DELA ett
+  resultat. Bedömning: även en aldrig sparad siffra kan läsas som ett betyg av användaren
+  själv – samma "förståelse, inte betyg"-princip som redan gäller `KvissModal.jsx`.
+- Sökbar åtgärd ("Öva") i `useSokindex.js` + post i `BottomNav.jsx`s "Mer"-meny.
+
+Ingen ändring i `firestore.rules`/`storage.rules`/Cloud Functions – ingen ny collection,
+ren klientlogik. Version 5.101.0 → **5.102.0**, `andringslogg.js` uppdaterad,
+`ETAPPLAN14.md` (65d markerad klar + "Genomfört"-avsnitt, plus toppstycket omskrivet: HELA
+Etapp 65 är nu klar), `CLAUDE.md` (läsordning + dokumentkarta, "delvis byggd" →
+"helt byggd, inte ännu deployad"). `lint`/`build`/`vitest run` (204/204) gröna – ny lazy
+chunk `OvaLage-*.js` bekräftad i byggutdata. Committat och pushat. **Ingen deploy gjord** –
+inte begärd i den här sessionen. Nästa steg: en deploy skulle ta med sig 65b/65c/65d (65a är
+redan i produktion sedan v5.99.0).

@@ -37,6 +37,8 @@ const STATISKA_ATGARDER = [
   { titel: "Min kompetensstatus", kategori: "Åtgärd", sokvag: "/kompetensmatris", nyckelord: ["kompetens", "matris"] },
   { titel: "Introduktion", kategori: "Åtgärd", sokvag: "/introduktion", nyckelord: ["ny", "nyanställd"] },
   { titel: "Kontakter", kategori: "Åtgärd", sokvag: "/kontakter", nyckelord: ["telefon", "ringa"] },
+  // Etapp 65d: övningspasset, sökbart precis som de andra åtgärderna ovan.
+  { titel: "Öva", kategori: "Åtgärd", sokvag: "/ova", nyckelord: ["kviss", "träna", "repetera", "quiz"] },
 ];
 
 export function useSokindex() {

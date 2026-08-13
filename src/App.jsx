@@ -73,6 +73,7 @@ const Godkannanden = lazy(() => import("./pages/Godkannanden"));
 const Akutlage = lazy(() => import("./pages/Akutlage"));
 const Korvy = lazy(() => import("./pages/Korvy"));
 const SedanForraPasset = lazy(() => import("./pages/SedanForraPasset"));
+const OvaLage = lazy(() => import("./pages/OvaLage"));
 
 function SidLaddare() {
   return <div className="sida sida--laddar">Laddar...</div>;
@@ -266,6 +267,14 @@ export default function App() {
             element={
               <SkyddatLayout>
                 <Kompetensmatris />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/ova"
+            element={
+              <SkyddatLayout>
+                <OvaLage />
               </SkyddatLayout>
             }
           />

@@ -1,0 +1,80 @@
+.sida--ova-lage {
+  max-width: 640px;
+}
+
+.ova-lage__omradesval {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ova-lage__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ova-lage__progress {
+  font-size: 0.85rem;
+  color: var(--text-svag);
+  margin: 4px 0 16px;
+}
+
+.ova-lage__fraga-kort {
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  border-radius: var(--radius, 14px);
+  padding: 20px;
+  box-shadow: var(--skugga);
+}
+
+.ova-lage__alternativ {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.ova-lage__alternativ-rad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--kant);
+  border-radius: var(--radius-liten, 10px);
+  cursor: pointer;
+}
+
+.ova-lage__facit {
+  padding: 12px;
+  border-radius: var(--radius-liten, 10px);
+  margin: 12px 0;
+}
+
+.ova-lage__facit--ratt {
+  background: var(--primar-ljus);
+  color: var(--success);
+}
+
+.ova-lage__facit--fel {
+  background: var(--amber-ljus);
+  color: var(--amber-text);
+}
+
+.ova-lage__hanvisning {
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
+.ova-lage__knappar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ova-lage__slutknappar {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}

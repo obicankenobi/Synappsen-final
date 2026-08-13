@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.102.0",
+    datum: "2026-08-13",
+    andringar: [
+      "Ny funktion: Öva – ett kort övningspass med slumpade frågor från flera rutiner i följd, hittas under 'Mer' eller genom att söka på 'Öva'. Inget svar sparas eller syns för någon annan, det är bara till för dig",
+    ],
+  },
+  {
     version: "5.101.0",
     datum: "2026-08-13",
     andringar: [

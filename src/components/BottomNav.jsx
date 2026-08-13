@@ -71,6 +71,8 @@ export default function BottomNav() {
     { till: "/anslag", ikon: "📢", namn: "Anslag" },
     { till: "/administration", ikon: "📋", namn: "Regler" },
     { till: "/nyheter", ikon: "📰", namn: "Nyheter" },
+    // Etapp 65d: övningspasset – hör hemma i "Mer" precis som övriga sällan-varje-dag-poster.
+    { till: "/ova", ikon: "🎓", namn: "Öva" },
     ...(arRedaktor(role) ? [{ till: "/godkannanden", ikon: "✅", namn: "Godkänn" }] : []),
     ...(arRedaktor(role) ? [{ till: "/admin", ikon: "⚙️", namn: "Admin" }] : []),
   ];

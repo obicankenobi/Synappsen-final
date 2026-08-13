@@ -1,10 +1,8 @@
 # Etapplan 14 – Fyra vardagsfunktioner med wow-faktor, inte snabbare svarstider
 
-*Utkast 2026-08-13. FÖRESLAGEN, EJ FORMELLT ANTAGEN SOM HELHET – till skillnad från
-`ETAPPLAN13.md` är ingen av etapperna här juridiskt eller på annat sätt blockerad;
-adoptionssteget är bara ett normalt ägarbeslut om prioritetsordning, inte ett svar på en
-extern förutsättning. Ägaren bad direkt om byggstart för 65a, 65b och 65c (2026-08-13), alla
-tre nu KLARA – se respektive delmål nedan. 65d är fortfarande bara föreslaget.*
+*Utkast 2026-08-13. Samtliga fyra delmål (65a–65d) är nu KLARA, byggda ett i taget samma dag
+på ägarens uttryckliga begäran – se respektive delmål nedan för vad som genomfördes och
+eventuella avvikelser mot ursprungsskisserna.*
 
 **Bakgrund:** ägaren efterfrågade explicit nya funktioner som "vanliga" användare möter och
 som ger en wow-känsla – inte prestandaförbättringar, inte administratörsverktyg. En genomgång
@@ -246,7 +244,7 @@ inte gjord i den här sessionen.
 
 ---
 
-### 65d – Öva-läge
+### 65d – ✅ KLAR (2026-08-13) – Öva-läge
 
 **Idé:** ett kort övningspass – ett scenario i taget, en fråga ur en relevant rutins
 `kviss`-bank, svara och få veta om det var rätt. Skiljer sig från kvissen (testar EN redan
@@ -291,6 +289,36 @@ kvar är det en träningsfunktion; byggs den bort är det gamification under ett
 ur flera olika rutiner i följd, och lämna passet utan att något resultat sparats eller blivit
 synligt för någon annan.
 
+**Genomfört (avvikelser/tillägg mot ursprungsplanen):**
+- `useAllaGodkandaRutiner()` (redan byggd för Etapp 19c:s kompetensmatris) återanvändes
+  istället för att kombinera två `useRutiner("kliniskt-stod")`/`useRutiner("administration")`-
+  anrop – frågan filtrerar redan server-side på `status == "godkand"` över ALLA områden i ett
+  enda anrop, vilket är precis vad ett övningspass behöver och är billigare än planens
+  ursprungliga skiss.
+- Ny testad hjälpmodul `src/utils/ovaLage.js` (`byggFragepool`, `slumpaFragor`, 11
+  enhetstester) i stället för att lägga logiken direkt i sidkomponenten – matchar mönstret
+  från `veckansRepetition.js`s `valjVeckansFraga()`.
+- UI:t hölls MEDVETET separat från `KvissModal.jsx` snarare än att dela en komponent (den
+  öppna frågan i planen) – `KvissModal` är en modal tätt kopplad till "kvittera EN rutin"-
+  flödet (`onKlar`/`onAvbryt` mot `RutinKort.jsx`), medan öva-läget är en egen sida med ett
+  eget flöde (områdesval → frågeserie → klar). Duplicerar en liten mängd radioknapp-JSX,
+  men undviker att göra `KvissModal` generisk för ett användningsfall den inte är byggd för.
+- **Ett medvetet strängare val än planens bokstav:** ingen sammanfattning ("X av Y rätt")
+  visas ens vid passets slut, trots att planens "Klart när"-kriterium bara förbjöd att
+  SPARA/DELA ett resultat. Bedömning: även en aldrig sparad, aldrig delad siffra riskerar
+  att LÄSAS som ett betyg av användaren själv, vilket underminerar samma "förståelse, inte
+  betyg"-princip `KvissModal.jsx` och `veckansRepetition.js` redan vilar på. Slutskärmen
+  visar bara "Bra jobbat" och en genväg att öva igen eller gå hem.
+- Ny sökbar åtgärd ("Öva") i `useSokindex.js`s `STATISKA_ATGARDER`, samt en post i
+  `BottomNav.jsx`s "Mer"-meny, exakt som planerat.
+
+**Testat:** 11 nya enhetstester (`ovaLage.test.js`). `npm run lint`, `npm run build`
+(ny lazy chunk `OvaLage-*.js` bekräftad – laddas bara för den som faktiskt öppnar sidan),
+`npx vitest run` (204/204) gröna. Ingen ändring i `firestore.rules`/`storage.rules`/Cloud
+Functions – ingen ny collection, inget nytt fält, ren klientlogik ovanpå redan existerande
+data. Manuell webbläsarverifiering av det fulla flödet (starta pass → svara → nästa fråga →
+klart-skärm) är inte gjord i den här sessionen.
+
 ---
 
 ## Vad jag INTE föreslår, och varför
@@ -325,7 +353,7 @@ ursprungliga åttadelade förslaget men valdes uttryckligen bort av ägaren för
 | 65a | Lyssna på rutinen (talsyntes) | Nej | Nej | ⭐⭐⭐ | ✅ KLAR 2026-08-13 (v5.99.0) |
 | 65b | Ändrat sedan du läste (diff mot egen kvittering) | **Ja** (`versioner`-läsrätt vidgas) | Nej | ⭐⭐⭐ | ✅ KLAR 2026-08-13 (v5.100.0) |
 | 65c | Synonymsökning (vårdens vokabulär) | Nej | Nej (statisk datafil) | ⭐⭐ | ✅ KLAR 2026-08-13 (v5.101.0) |
-| 65d | Öva-läge (flera rutiner, ett pass) | Nej | Nej | ⭐⭐⭐ | Föreslagen |
+| 65d | Öva-läge (flera rutiner, ett pass) | Nej | Nej | ⭐⭐⭐ | ✅ KLAR 2026-08-13 (v5.102.0) |
 
 Alla fyra är Core-funktionalitet (ingen feature-gating), byggbara oberoende av varandra och
 oberoende av `ETAPPLAN13.md`s juridiska blockering.
