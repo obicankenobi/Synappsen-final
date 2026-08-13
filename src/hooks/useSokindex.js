@@ -9,6 +9,7 @@ import { useRutiner, RUTIN_STATUS } from "./useRutiner";
 import { useKontakter } from "./useKontakter";
 import { useLankbibliotek } from "./useLankbibliotek";
 import { forradTillSlug } from "../firebase/forrad";
+import { expanderaNyckelord } from "../utils/synonymer";
 
 export const OMRADE_LABELS = {
   "kliniskt-stod": "Kliniskt stöd",
@@ -52,7 +53,9 @@ export function useSokindex() {
         titel: a.namn,
         kategori: "Logistik",
         sokvag: `/logistik/${forradTillSlug(a.forrad)}`,
-        nyckelord: [a.forrad, a.skap, a.hylla, ...(a.sokord ?? [])].filter(Boolean),
+        // Etapp 65c: expanderar med vårdens synonymer (t.ex. "PVK" hittar en artikel som
+        // heter "Venflon") – matchas mot artikelns eget NAMN, motsvarande en rutins innehåll.
+        nyckelord: expanderaNyckelord([a.forrad, a.skap, a.hylla, ...(a.sokord ?? [])].filter(Boolean), a.namn),
         plats: platsBeskrivning(a),
       }));
 
@@ -66,7 +69,9 @@ export function useSokindex() {
       titel: r.titel,
       kategori: r.arkiverad === true ? `${OMRADE_LABELS[r.omrade] ?? r.omrade} (arkiverad)` : OMRADE_LABELS[r.omrade] ?? r.omrade,
       sokvag: `${OMRADE_SOKVAG[r.omrade] ?? "/"}#rutin-${r.id}`,
-      nyckelord: (r.innehall ?? "").split(/\s+/).slice(0, 60),
+      // Etapp 65c: expanderad med vårdens synonymer, så en sökning på "PVK" hittar en rutin
+      // som bara skriver "perifer venkateter" och vice versa – se utils/synonymer.js.
+      nyckelord: expanderaNyckelord((r.innehall ?? "").split(/\s+/).slice(0, 60), r.innehall),
     }));
 
     // Etapp 23b: en sökbar genväg direkt till körvyn för varje rutin som faktiskt HAR steg

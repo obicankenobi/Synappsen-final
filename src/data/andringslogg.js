@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.101.0",
+    datum: "2026-08-13",
+    andringar: [
+      "Sökningen förstår nu fler av vårdens vanliga förkortningar och synonymer – en sökning på till exempel 'PVK' hittar även innehåll som bara skriver 'perifer venkateter', och tvärtom",
+    ],
+  },
+  {
     version: "5.100.0",
     datum: "2026-08-13",
     andringar: [

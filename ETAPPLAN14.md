@@ -3,8 +3,8 @@
 *Utkast 2026-08-13. FÖRESLAGEN, EJ FORMELLT ANTAGEN SOM HELHET – till skillnad från
 `ETAPPLAN13.md` är ingen av etapperna här juridiskt eller på annat sätt blockerad;
 adoptionssteget är bara ett normalt ägarbeslut om prioritetsordning, inte ett svar på en
-extern förutsättning. Ägaren bad direkt om byggstart för 65a och 65b (2026-08-13), båda nu
-KLARA – se respektive delmål nedan. 65c och 65d är fortfarande bara föreslagna.*
+extern förutsättning. Ägaren bad direkt om byggstart för 65a, 65b och 65c (2026-08-13), alla
+tre nu KLARA – se respektive delmål nedan. 65d är fortfarande bara föreslaget.*
 
 **Bakgrund:** ägaren efterfrågade explicit nya funktioner som "vanliga" användare möter och
 som ger en wow-känsla – inte prestandaförbättringar, inte administratörsverktyg. En genomgång
@@ -195,7 +195,7 @@ badgen → expandera diffen) är inte gjord i den här sessionen.
 
 ---
 
-### 65c – Sökningen som förstår vårdens synonymer
+### 65c – ✅ KLAR (2026-08-13) – Sökningen som förstår vårdens synonymer
 
 **Idé:** `useSokindex.js`s Fuse.js-konfiguration (`threshold: 0.4`) klarar felstavningar men
 inte synonymer – "PVK" och "perifer venkateter" är för Fuse.js två helt olika ord, inte en
@@ -225,6 +225,24 @@ princip som redan styr `ETAPPLAN12.md`s hållning till fler mätvärden.
 
 **Klart när:** en sökning på "PVK" hittar en rutin vars text bara innehåller "perifer
 venkateter", och vice versa, för samtliga ordpar i den initiala listan.
+
+**Genomfört:**
+- `src/data/synonymer.js`: 17 synonymgrupper – allmänna kliniska förkortningar/termer
+  (PVK/venflon, KAD/foley-kateter, EKG, BT, saturation, HLR, defib, intubation m.fl.).
+  Medvetet INGA namngivna varumärkesskyddade instrument, för att inte röra vid samma
+  gränsdragning som `ETAPPLAN13.md` genomgående krav 27 flaggar för Etapp 64.
+- `src/utils/synonymer.js`: `expanderaNyckelord(nyckelord, innehall)`, exakt som planerat –
+  ren funktion, muterar inte sina argument, 7 enhetstester.
+- `useSokindex.js`: anropas för både `rutinposter` (mot `r.innehall`) OCH `forradsposter`
+  (mot `a.namn`, artikelns namn – motsvarande en rutins innehåll för en förrådsartikel, ett
+  litet tillägg utöver planens ursprungliga text eftersom samma nytta – "PVK" hittar en
+  artikel som heter "Venflon" – gäller lika mycket i förrådet som i kliniskt stöd).
+
+**Testat:** 7 nya enhetstester (`synonymer.test.js`). `npm run lint`, `npm run build`,
+`npx vitest run` (193/193) gröna. Ingen ändring i `firestore.rules`/`storage.rules`/Cloud
+Functions – statisk klientsidig datafil, ingen ny fråga. Manuell verifiering i en riktig
+sökning (att "PVK" faktiskt ger träff på en rutin som bara skriver "perifer venkateter") är
+inte gjord i den här sessionen.
 
 ---
 
@@ -306,7 +324,7 @@ ursprungliga åttadelade förslaget men valdes uttryckligen bort av ägaren för
 |---|---|---|---|---|---|
 | 65a | Lyssna på rutinen (talsyntes) | Nej | Nej | ⭐⭐⭐ | ✅ KLAR 2026-08-13 (v5.99.0) |
 | 65b | Ändrat sedan du läste (diff mot egen kvittering) | **Ja** (`versioner`-läsrätt vidgas) | Nej | ⭐⭐⭐ | ✅ KLAR 2026-08-13 (v5.100.0) |
-| 65c | Synonymsökning (vårdens vokabulär) | Nej | Nej (statisk datafil) | ⭐⭐ | Föreslagen |
+| 65c | Synonymsökning (vårdens vokabulär) | Nej | Nej (statisk datafil) | ⭐⭐ | ✅ KLAR 2026-08-13 (v5.101.0) |
 | 65d | Öva-läge (flera rutiner, ett pass) | Nej | Nej | ⭐⭐⭐ | Föreslagen |
 
 Alla fyra är Core-funktionalitet (ingen feature-gating), byggbara oberoende av varandra och

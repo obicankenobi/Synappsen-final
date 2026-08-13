@@ -6,18 +6,16 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-13, version **5.100.0** – byggd och pushad, **ÄNNU INTE
-DEPLOYAD** (ingen deploy begärd sedan v5.100.0-bygget; senaste bekräftade produktionsdeploy
-är v5.99.0, körning #76, commit `3eefd17`, asset-hash `assets/index-VSVjfc_t.js`). v5.100.0 =
-**Etapp 65b (`ETAPPLAN14.md`) – "ändrat sedan du läste" – KLAR**, inklusive en
-regeländring (`rutiner/{id}/versioner`s läsrätt vidgad från redaktörsbara till alla
-organisationsmedlemmar, `farLasaVersioner()` i `firestore.rules`, ny testfil
-`versionerlasratt.test.mjs`). Ny plan **`ETAPPLAN14.md` (Etapp 65: fyra vardagsfunktioner
-med wow-faktor)** föreslogs 2026-08-13; ägaren bad direkt om byggstart för delmål 65a och
-65b samma dag, båda nu klara. Se sektionerna "Uppföljning 2026-08-13 (ny plan:
+**Senast uppdaterad:** 2026-08-13, version **5.101.0** – byggd och pushad, **ÄNNU INTE
+DEPLOYAD** (ingen deploy begärd sedan v5.99.0; senaste bekräftade produktionsdeploy är
+v5.99.0, körning #76, commit `3eefd17`, asset-hash `assets/index-VSVjfc_t.js`). v5.101.0 =
+**Etapp 65c (`ETAPPLAN14.md`) – synonymsökning – KLAR**. Tillsammans med v5.99.0/v5.100.0
+betyder det att **65a, 65b och 65c i Etapp 65 nu alla är klara** – bara 65d (öva-läge)
+återstår, fortfarande bara föreslaget. Se sektionerna "Uppföljning 2026-08-13 (ny plan:
 ETAPPLAN14.md, Etapp 65 – fyra vardagsfunktioner)", "Uppföljning 2026-08-13 (Etapp 65a klar,
-v5.99.0)" och "Uppföljning 2026-08-13 (Etapp 65b klar, v5.100.0)" längst ner. PR #15 (den
-breda granskningen) mergad 2026-08-12. v5.98.0 var resultatet av en **bred
+v5.99.0)", "Uppföljning 2026-08-13 (Etapp 65b klar, v5.100.0)" och "Uppföljning 2026-08-13
+(Etapp 65c klar, v5.101.0)" längst ner. PR #15 (den breda granskningen) mergad 2026-08-12.
+v5.98.0 var resultatet av en **bred
 säkerhets- och kvalitetsgranskning** (inte en `ETAPPLANx.md`-etapp) – se sektionen
 "Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)" längst ner för vad som
 åtgärdades och vad som återstår. **`npm run test:rules` och `npm run test:e2e` är nu körda och
@@ -2828,3 +2826,25 @@ Ingen ändring i `storage.rules`/Cloud Functions. Version 5.99.0 → **5.100.0**
 `CLAUDE.md` (dokumentkarta). `lint`/`build`/`vitest run` (186/186)/`test:rules` (samtliga
 sviter, inklusive den nya) alla gröna. Committat och pushat. **Ingen deploy gjord** – inte
 begärd i den här sessionen.
+
+## Uppföljning 2026-08-13 (Etapp 65c klar, v5.101.0)
+
+Ägaren bad direkt om byggstart för `ETAPPLAN14.md`s delmål 65c (synonymsökning). Byggt och
+klart samma session:
+
+- `src/data/synonymer.js`: 17 synonymgrupper med allmänna kliniska förkortningar (PVK,
+  KAD, EKG, BT, HLR m.fl.). Medvetet INGA namngivna varumärkesskyddade instrument – samma
+  gräns som `ETAPPLAN13.md` genomgående krav 27 flaggar för Etapp 64, hölls även här trots
+  att den etappen är juridiskt blockerad och den här inte är det.
+- `src/utils/synonymer.js`: `expanderaNyckelord(nyckelord, innehall)`, ren funktion, 7
+  enhetstester.
+- `useSokindex.js`: anropas för både `rutinposter` OCH `forradsposter` (mot artikelns namn)
+  – en liten utökning utöver planens text, eftersom samma nytta gäller lika mycket i
+  förrådet ("PVK" ska hitta en artikel som heter "Venflon").
+
+Ingen ändring i `firestore.rules`/`storage.rules`/Cloud Functions – ren klientsidig
+datafil, ingen ny Firestore-fråga. Version 5.100.0 → **5.101.0**, `andringslogg.js`
+uppdaterad, `ETAPPLAN14.md` (65c markerad klar + "Genomfört"-avsnitt), `CLAUDE.md`
+(dokumentkarta). `lint`/`build`/`vitest run` (193/193) gröna. Committat och pushat.
+**Ingen deploy gjord** – inte begärd i den här sessionen. Med detta är tre av fyra delmål
+i Etapp 65 klara (65a/65b/65c) – bara 65d (öva-läge) återstår.
