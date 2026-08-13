@@ -6,17 +6,16 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-13, version **5.102.0** – byggd och pushad, **ÄNNU INTE
-DEPLOYAD** (ingen deploy begärd sedan v5.99.0; senaste bekräftade produktionsdeploy är
-fortfarande v5.99.0, körning #76, commit `3eefd17`, asset-hash `assets/index-VSVjfc_t.js`).
-v5.102.0 = **Etapp 65d (`ETAPPLAN14.md`) – öva-läge – KLAR. Med det är HELA Etapp 65 (alla
-fyra delmål 65a–65d) byggd**, ett delmål i taget samma dag på ägarens uttryckliga begäran.
-`ETAPPLAN14.md` väntar nu bara på nästa deploy för att komma i produktion. Se sektionerna
-"Uppföljning 2026-08-13 (ny plan: ETAPPLAN14.md, Etapp 65 – fyra vardagsfunktioner)",
-"Uppföljning 2026-08-13 (Etapp 65a klar, v5.99.0)", "Uppföljning 2026-08-13 (Etapp 65b klar,
-v5.100.0)", "Uppföljning 2026-08-13 (Etapp 65c klar, v5.101.0)" och "Uppföljning 2026-08-13
-(Etapp 65d klar, v5.102.0 – Etapp 65 helt byggd)" längst ner. PR #15 (den breda granskningen)
-mergad 2026-08-12. v5.98.0 var resultatet av en **bred
+**Senast uppdaterad:** 2026-08-13, version **5.102.0** – **DEPLOYAD** (körning #77, commit
+`2addfef`, deploy.yml på `claude/compassionate-euler-rho0q5`, ny asset-hash
+`assets/index-QGEvHg37.js` bekräftad på `synappsen-final-build.web.app`). v5.102.0 = **Etapp
+65d (`ETAPPLAN14.md`) – öva-läge – KLAR. Med det är HELA Etapp 65 (alla fyra delmål 65a–65d)
+byggd OCH nu i produktion**, ett delmål i taget samma dag på ägarens uttryckliga begäran. Se
+sektionerna "Uppföljning 2026-08-13 (ny plan: ETAPPLAN14.md, Etapp 65 – fyra
+vardagsfunktioner)", "Uppföljning 2026-08-13 (Etapp 65a klar, v5.99.0)", "Uppföljning
+2026-08-13 (Etapp 65b klar, v5.100.0)", "Uppföljning 2026-08-13 (Etapp 65c klar, v5.101.0)"
+och "Uppföljning 2026-08-13 (Etapp 65d klar, v5.102.0 – Etapp 65 helt byggd)" längst ner. PR
+#15 (den breda granskningen) mergad 2026-08-12. v5.98.0 var resultatet av en **bred
 säkerhets- och kvalitetsgranskning** (inte en `ETAPPLANx.md`-etapp) – se sektionen
 "Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)" längst ner för vad som
 åtgärdades och vad som återstår. **`npm run test:rules` och `npm run test:e2e` är nu körda och
@@ -2873,6 +2872,6 @@ ren klientlogik. Version 5.101.0 → **5.102.0**, `andringslogg.js` uppdaterad,
 `ETAPPLAN14.md` (65d markerad klar + "Genomfört"-avsnitt, plus toppstycket omskrivet: HELA
 Etapp 65 är nu klar), `CLAUDE.md` (läsordning + dokumentkarta, "delvis byggd" →
 "helt byggd, inte ännu deployad"). `lint`/`build`/`vitest run` (204/204) gröna – ny lazy
-chunk `OvaLage-*.js` bekräftad i byggutdata. Committat och pushat. **Ingen deploy gjord** –
-inte begärd i den här sessionen. Nästa steg: en deploy skulle ta med sig 65b/65c/65d (65a är
-redan i produktion sedan v5.99.0).
+chunk `OvaLage-*.js` bekräftad i byggutdata. Committat och pushat. **Deployad samma session**
+(körning #77, commit `2addfef`, ny asset-hash `assets/index-QGEvHg37.js` bekräftad på
+`synappsen-final-build.web.app`) – med detta är hela Etapp 65 (65a–65d) i produktion.
