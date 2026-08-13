@@ -56,6 +56,20 @@
   color: var(--farlig-mork);
 }
 
+.rutin-kort__badge--knapp {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+.rutin-kort__andrat-diff {
+  border: 1px solid var(--kant);
+  border-radius: var(--radius-liten, 10px);
+  padding: 12px;
+  font-size: 0.9rem;
+}
+
 .rutin-kort__signatur {
   display: flex;
   flex-direction: column;

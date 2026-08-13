@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { borGranskas, narmarSigGranskning, arUtgangen, arArkiverad } from "./rutinHjalp";
+import { borGranskas, narmarSigGranskning, arUtgangen, arArkiverad, andradSedanLasning } from "./rutinHjalp";
 
 function tidsstampel(datum) {
   return { toDate: () => datum };
@@ -79,5 +79,25 @@ describe("arArkiverad", () => {
   it("hanterar ett odefinierat/null-rutin utan att kasta", () => {
     expect(arArkiverad(null)).toBe(false);
     expect(arArkiverad(undefined)).toBe(false);
+  });
+});
+
+describe("andradSedanLasning", () => {
+  it("är falskt utan senasteVasentligaAndring", () => {
+    expect(andradSedanLasning({}, tidsstampel(dagarSedan(10)))).toBe(false);
+  });
+
+  it("är falskt utan en egen kvitteringstidpunkt", () => {
+    expect(andradSedanLasning({ senasteVasentligaAndring: tidsstampel(dagarSedan(1)) }, undefined)).toBe(false);
+  });
+
+  it("är sant när den väsentliga ändringen är EFTER min kvittering", () => {
+    const rutin = { senasteVasentligaAndring: tidsstampel(dagarSedan(1)) };
+    expect(andradSedanLasning(rutin, tidsstampel(dagarSedan(10)))).toBe(true);
+  });
+
+  it("är falskt när den väsentliga ändringen är FÖRE min kvittering", () => {
+    const rutin = { senasteVasentligaAndring: tidsstampel(dagarSedan(10)) };
+    expect(andradSedanLasning(rutin, tidsstampel(dagarSedan(1)))).toBe(false);
   });
 });

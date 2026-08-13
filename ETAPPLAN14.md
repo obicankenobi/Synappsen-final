@@ -3,8 +3,8 @@
 *Utkast 2026-08-13. FÖRESLAGEN, EJ FORMELLT ANTAGEN SOM HELHET – till skillnad från
 `ETAPPLAN13.md` är ingen av etapperna här juridiskt eller på annat sätt blockerad;
 adoptionssteget är bara ett normalt ägarbeslut om prioritetsordning, inte ett svar på en
-extern förutsättning. Ägaren bad direkt om byggstart för 65a (2026-08-13), som nu är KLAR –
-se delmålet nedan. 65b–65d är fortfarande bara föreslagna.*
+extern förutsättning. Ägaren bad direkt om byggstart för 65a och 65b (2026-08-13), båda nu
+KLARA – se respektive delmål nedan. 65c och 65d är fortfarande bara föreslagna.*
 
 **Bakgrund:** ägaren efterfrågade explicit nya funktioner som "vanliga" användare möter och
 som ger en wow-känsla – inte prestandaförbättringar, inte administratörsverktyg. En genomgång
@@ -102,7 +102,7 @@ meningsfullt) rekommenderas innan nästa deploy, men är inte gjord i den här s
 
 ---
 
-### 65b – "Det här har ändrats sedan du läste den"
+### 65b – ✅ KLAR (2026-08-13) – "Det här har ändrats sedan du läste den"
 
 **Idé:** när en rutin du redan kvitterat har uppdaterats, visa EXAKT vilka stycken som
 ändrats sedan din egen kvitteringstidpunkt – inte bara att den ändrats (det gör redan
@@ -164,6 +164,34 @@ användaren uttryckligen expanderar "Visa vad som ändrats" på just det kortet.
 **Klart när:** en medarbetare som kvitterade en rutin i mars och öppnar den idag, efter en
 väsentlig ändring i maj, ser exakt vilka rader som lagts till/tagits bort sedan mars – utan
 att behöva läsa om hela rutinen för att hitta det.
+
+**Genomfört:**
+- `firestore.rules`: ny funktion `farLasaVersioner(rutinId)` (en `let`-bindning, ett enda
+  `get()`-anrop mot föräldradokumentet, samma budget-medvetna mönster som `farUppdateraRutin()`
+  redan använder) speglar den LIVE rutinens egen läsregel exakt – org-matchning OCH
+  (godkänd-status ELLER redigeringsrätt ELLER en aktiv supportsession). `create` oförändrat
+  redaktörsbart. Ny testfil `tests/rules/versionerlasratt.test.mjs` (7 tester, alla gröna):
+  bekräftar att en vanlig medarbetare nu kommer in på en GODKÄND rutins historik men
+  fortfarande INTE på en UTKAST-rutins, att redaktörers och organisationsisoleringens
+  beteende är oförändrat, och att `create` fortfarande är stängt för icke-redaktörer.
+- `src/utils/rutinHjalp.js`: ny `andradSedanLasning(rutin, minKvitteringTidpunkt)` – ren
+  klientjämförelse av `senasteVasentligaAndring` mot användarens egen `lasteAv`-tidsstämpel,
+  ingen ny Firestore-fråga för badge-synligheten (4 nya enhetstester).
+- `src/hooks/useRutinDiffSedanLast.js`: on-demand `getDocs`-fråga (`where sparadVersionTidpunkt
+  > minTidpunkt, orderBy asc, limit(1)`) som hittar exakt den versionspost som motsvarar
+  innehållet vid läsningstillfället, och diffar den mot `rutin.innehall` med den redan
+  befintliga `diffRader()` – ingen ny diff-logik skrevs, precis som planerat.
+- `src/components/RutinKort.jsx`: ny klickbar badge "Uppdaterad sedan du läste den" (samma
+  varning-stil som "Bör granskas"/"Källan har uppdaterats"), expanderar en `DiffVy`-panel
+  (samma delade komponent `VersionsHistorik.jsx` redan använder) vid första klick, cachar
+  resultatet så efterföljande toggle inte gör om frågan.
+
+**Testat:** 4 nya enhetstester (`rutinHjalp.test.js`) + 7 nya regeltester
+(`versionerlasratt.test.mjs`, körda mot Firestore-emulatorn, alla gröna). `npm run lint`,
+`npm run build`, `npx vitest run` (186/186) och `npm run test:rules` (samtliga svit-filer,
+inklusive den nya) gröna. Ingen ändring i `storage.rules`/Cloud Functions. Manuell
+webbläsarverifiering av den fulla flödet (kvittera → vänta på en väsentlig ändring → se
+badgen → expandera diffen) är inte gjord i den här sessionen.
 
 ---
 
@@ -277,7 +305,7 @@ ursprungliga åttadelade förslaget men valdes uttryckligen bort av ägaren för
 | Delmål | Vad | Ny regeländring? | Ny datamodell? | Wow | Status |
 |---|---|---|---|---|---|
 | 65a | Lyssna på rutinen (talsyntes) | Nej | Nej | ⭐⭐⭐ | ✅ KLAR 2026-08-13 (v5.99.0) |
-| 65b | Ändrat sedan du läste (diff mot egen kvittering) | **Ja** (`versioner`-läsrätt vidgas) | Nej | ⭐⭐⭐ | Föreslagen |
+| 65b | Ändrat sedan du läste (diff mot egen kvittering) | **Ja** (`versioner`-läsrätt vidgas) | Nej | ⭐⭐⭐ | ✅ KLAR 2026-08-13 (v5.100.0) |
 | 65c | Synonymsökning (vårdens vokabulär) | Nej | Nej (statisk datafil) | ⭐⭐ | Föreslagen |
 | 65d | Öva-läge (flera rutiner, ett pass) | Nej | Nej | ⭐⭐⭐ | Föreslagen |
 

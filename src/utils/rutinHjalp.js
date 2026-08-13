@@ -33,3 +33,22 @@ export function arUtgangen(rutin) {
 export function arArkiverad(rutin) {
   return rutin?.arkiverad === true;
 }
+
+function tillMillis(tidstampel) {
+  if (!tidstampel) return null;
+  if (tidstampel.toMillis) return tidstampel.toMillis();
+  if (tidstampel.toDate) return tidstampel.toDate().getTime();
+  return new Date(tidstampel).getTime();
+}
+
+// Etapp 65b: badge-synlighet för "ändrat sedan du läste den" – ren klientberäkning på redan
+// laddad data (rutin.senasteVasentligaAndring finns redan på varje rutinobjekt), ingen ny
+// Firestore-fråga. Återanvänder samma "väsentlig ändring"-signal Etapp 47b redan etablerade
+// för "Sedan ditt förra pass" – inte varje redigering, bara sådana en redaktör uttryckligen
+// flaggat som betydelsefulla.
+export function andradSedanLasning(rutin, minKvitteringTidpunkt) {
+  const andringMs = tillMillis(rutin?.senasteVasentligaAndring);
+  const kvitteringMs = tillMillis(minKvitteringTidpunkt);
+  if (!andringMs || !kvitteringMs) return false;
+  return andringMs > kvitteringMs;
+}

@@ -6,15 +6,18 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-13, version **5.99.0** – **DEPLOYAD** (körning #76, commit
-`3eefd17`, deploy.yml på `claude/compassionate-euler-rho0q5`, ny asset-hash
-`assets/index-VSVjfc_t.js` bekräftad på `synappsen-final-build.web.app`). v5.99.0 = **Etapp
-65a (`ETAPPLAN14.md`) – uppläsning av rutiner/checklistesteg – KLAR.** Ny plan
-**`ETAPPLAN14.md` (Etapp 65: fyra vardagsfunktioner med wow-faktor)** föreslogs 2026-08-13;
-ägaren bad direkt om byggstart för delmål 65a samma dag. Se sektionerna "Uppföljning
-2026-08-13 (ny plan: ETAPPLAN14.md, Etapp 65 – fyra vardagsfunktioner)" och "Uppföljning
-2026-08-13 (Etapp 65a klar, v5.99.0)" längst ner. PR #15 (den breda granskningen) mergad
-2026-08-12. v5.98.0 är resultatet av en **bred
+**Senast uppdaterad:** 2026-08-13, version **5.100.0** – byggd och pushad, **ÄNNU INTE
+DEPLOYAD** (ingen deploy begärd sedan v5.100.0-bygget; senaste bekräftade produktionsdeploy
+är v5.99.0, körning #76, commit `3eefd17`, asset-hash `assets/index-VSVjfc_t.js`). v5.100.0 =
+**Etapp 65b (`ETAPPLAN14.md`) – "ändrat sedan du läste" – KLAR**, inklusive en
+regeländring (`rutiner/{id}/versioner`s läsrätt vidgad från redaktörsbara till alla
+organisationsmedlemmar, `farLasaVersioner()` i `firestore.rules`, ny testfil
+`versionerlasratt.test.mjs`). Ny plan **`ETAPPLAN14.md` (Etapp 65: fyra vardagsfunktioner
+med wow-faktor)** föreslogs 2026-08-13; ägaren bad direkt om byggstart för delmål 65a och
+65b samma dag, båda nu klara. Se sektionerna "Uppföljning 2026-08-13 (ny plan:
+ETAPPLAN14.md, Etapp 65 – fyra vardagsfunktioner)", "Uppföljning 2026-08-13 (Etapp 65a klar,
+v5.99.0)" och "Uppföljning 2026-08-13 (Etapp 65b klar, v5.100.0)" längst ner. PR #15 (den
+breda granskningen) mergad 2026-08-12. v5.98.0 var resultatet av en **bred
 säkerhets- och kvalitetsgranskning** (inte en `ETAPPLANx.md`-etapp) – se sektionen
 "Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)" längst ner för vad som
 åtgärdades och vad som återstår. **`npm run test:rules` och `npm run test:e2e` är nu körda och
@@ -2786,3 +2789,42 @@ uppdaterad, `ETAPPLAN14.md` (65a markerad klar + "Genomfört"-avsnitt), `CLAUDE.
 (läsordning + dokumentkarta, "föreslagen" → "delvis byggd"). Committat och pushat.
 **Deployad samma session** (körning #76, commit `3eefd17`, ny asset-hash
 `assets/index-VSVjfc_t.js` bekräftad på `synappsen-final-build.web.app`).
+
+## Uppföljning 2026-08-13 (Etapp 65b klar, v5.100.0)
+
+Ägaren bad direkt om byggstart för `ETAPPLAN14.md`s delmål 65b ("ändrat sedan du läste").
+Byggt och klart samma session, inklusive den regeländring planen redan hade flaggat som en
+förutsättning:
+
+- **`firestore.rules`:** ny funktion `farLasaVersioner(rutinId)` – speglar rutin-dokumentets
+  egen läsregel (org-matchning OCH (godkänd-status ELLER redigeringsrätt ELLER en aktiv
+  supportsession)) i en `let`-bindning, samma budget-medvetna mönster som `farUppdateraRutin()`
+  redan använder. `rutiner/{id}/versioner`s läsrätt är alltså inte längre begränsad till
+  redaktörer – `create` förblir oförändrat redaktörsbart. Ny testfil
+  `tests/rules/versionerlasratt.test.mjs` (7 tester, körda mot emulatorn, alla gröna):
+  bekräftar att en vanlig medarbetare nu läser en GODKÄND rutins historik men fortfarande
+  INTE en UTKAST-rutins, och att organisationsisoleringen samt redaktörers/skrivrättens
+  beteende är oförändrat.
+- **`src/utils/rutinHjalp.js`:** ny `andradSedanLasning()` – badge-synlighet utan någon ny
+  Firestore-fråga, återanvänder `senasteVasentligaAndring` (samma signal Etapp 47b redan
+  etablerade).
+- **`src/hooks/useRutinDiffSedanLast.js`:** on-demand fråga som hittar exakt den
+  versionspost som motsvarar innehållet vid läsningstillfället, diffar den mot nuvarande
+  innehåll med den REDAN BEFINTLIGA `utils/diff.js`s `diffRader()` – ingen ny diff-logik
+  skrevs, precis som planen förutsåg.
+- **`src/components/RutinKort.jsx`:** ny klickbar badge + expanderbar `DiffVy`-panel.
+
+**Övervägde men rörde inte incidentdokumenten.** `CLAUDE.md`s underhållsregel flaggar
+regeländringar för granskning mot `INCIDENT-CHECKLISTA.md` steg 4 och
+`avtal/INCIDENTRESPONSPLAN.md` avsnitt 4. Bedömning: den här ändringen vidgar bara LÄSNING av
+äldre versioner av innehåll som redan var läsbart i sin nuvarande form (samma organisation,
+samma rutin) – den ändrar varken vilka roller som kan begränsas/återkallas (avsnitt 4:s
+kompenserande kontroller handlar om kontokapning, inte innehållsläsning) eller hur en
+exponering kartläggs (checklistans steg 4 räknar redan generiskt "allt som personens roll och
+organisation gav åtkomst till"). Inget att uppdatera där.
+
+Ingen ändring i `storage.rules`/Cloud Functions. Version 5.99.0 → **5.100.0**,
+`andringslogg.js` uppdaterad, `ETAPPLAN14.md` (65b markerad klar + "Genomfört"-avsnitt),
+`CLAUDE.md` (dokumentkarta). `lint`/`build`/`vitest run` (186/186)/`test:rules` (samtliga
+sviter, inklusive den nya) alla gröna. Committat och pushat. **Ingen deploy gjord** – inte
+begärd i den här sessionen.

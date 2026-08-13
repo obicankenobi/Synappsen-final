@@ -4,14 +4,16 @@ import QRCode from "qrcode";
 import { RUTIN_STATUS } from "../hooks/useRutiner";
 import { useAuth } from "../hooks/useAuth";
 import { kvitteraLastMedKo } from "../hooks/useLaskvittering";
-import { borGranskas, arUtgangen, arArkiverad } from "../utils/rutinHjalp";
+import { borGranskas, arUtgangen, arArkiverad, andradSedanLasning } from "../utils/rutinHjalp";
 import { formateraDatum } from "../utils/datum";
 import { talText } from "../utils/talText";
 import { useTalsyntes } from "../hooks/useTalsyntes";
+import { useRutinDiffSedanLast } from "../hooks/useRutinDiffSedanLast";
 import { ROLE_LABELS } from "../firebase/roles";
 import FavoritKnapp from "./FavoritKnapp";
 import Kommentarer from "./Kommentarer";
 import VersionsHistorik from "./VersionsHistorik";
+import DiffVy from "./DiffVy";
 import MarkdownInnehall from "./MarkdownInnehall";
 import PrivatAnteckning from "./PrivatAnteckning";
 import KvissModal from "./KvissModal";
@@ -61,12 +63,16 @@ export default function RutinKort({
   const [visaKviss, setVisaKviss] = useState(false);
   const [visaForeslaAndring, setVisaForeslaAndring] = useState(false);
   const [forvaldMarkeratStycke, setForvaldMarkeratStycke] = useState("");
+  const [visaAndratDiff, setVisaAndratDiff] = useState(false);
   const arUtkast = rutin.status === RUTIN_STATUS.UTKAST;
   const flaggadForGranskning = farRedigera && borGranskas(rutin.granskadDatum);
   const utgangen = farRedigera && arUtgangen(rutin);
   const arkiverad = arArkiverad(rutin);
   const lasteAv = rutin.lasteAv ?? [];
   const jagHarLast = lasteAv.some((l) => l.uid === currentUser?.uid);
+  const minKvitteringTidpunkt = lasteAv.find((l) => l.uid === currentUser?.uid)?.tidpunkt;
+  const visaAndratBadge = jagHarLast && andradSedanLasning(rutin, minKvitteringTidpunkt);
+  const { laddar: diffLaddar, fel: diffFel, rader: diffRader, hamtaDiff } = useRutinDiffSedanLast(rutin.id);
   const relaterade = (rutin.relateradeRutiner ?? [])
     .map((id) => allaRutiner.find((r) => r.id === id))
     .filter(Boolean);
@@ -87,6 +93,21 @@ export default function RutinKort({
         <h3>{rutin.titel}</h3>
         <div className="rutin-kort__badgar">
           {arUtkast && <StatusBadge status="vantar" />}
+          {visaAndratBadge && (
+            <button
+              type="button"
+              className="rutin-kort__badge rutin-kort__badge--varning rutin-kort__badge--knapp"
+              onClick={() => {
+                const nastaVisning = !visaAndratDiff;
+                setVisaAndratDiff(nastaVisning);
+                if (nastaVisning && diffRader === null) {
+                  hamtaDiff(minKvitteringTidpunkt, rutin.innehall);
+                }
+              }}
+            >
+              Uppdaterad sedan du läste den
+            </button>
+          )}
           {flaggadForGranskning && (
             <span className="rutin-kort__badge rutin-kort__badge--varning">Bör granskas</span>
           )}
@@ -137,6 +158,15 @@ export default function RutinKort({
       {rutin.senastForslagAvNamn && rutin.senastForslagSynligt !== false && (
         <div className="rutin-kort__signatur">
           <span>Innehåller ett infört förslag från {rutin.senastForslagAvNamn}</span>
+        </div>
+      )}
+
+      {visaAndratDiff && (
+        <div className="rutin-kort__andrat-diff">
+          {diffLaddar && <p>Hämtar vad som ändrats...</p>}
+          {diffFel && <p className="rutin-kort__badge--varning">{diffFel}</p>}
+          {diffRader?.length === 0 && <p>Inget innehåll har ändrats sedan din kvittering.</p>}
+          {diffRader?.length > 0 && <DiffVy rader={diffRader} />}
         </div>
       )}
 

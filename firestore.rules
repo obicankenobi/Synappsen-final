@@ -151,6 +151,20 @@ service cloud.firestore {
       return arSuperadmin() || arVec();
     }
 
+    // Etapp 65b: läsrätt till en rutins versionshistorik (rutiner/{id}/versioner), vidgad
+    // 2026-08-13 till samma krets som redan läser den LIVE rutinen – en äldre version av en
+    // godkänd rutin är inte känsligare än den aktuella versionen av samma rutin, bara äldre.
+    // Speglar rutin-dokumentets egen read-regel exakt (status godkand ELLER redigeringsrätt
+    // för området, ELLER en aktiv supportsession), i en egen funktion med en `let`-bindning
+    // så det upprepade get()-anropet mot föräldradokumentet bara görs en gång – samma mönster
+    // som farUppdateraRutin() redan använder för att hålla regelbudgeten nere.
+    function farLasaVersioner(rutinId) {
+      let rutin = get(/databases/$(database)/documents/rutiner/$(rutinId)).data;
+      let orgId = rutin.get('organisationId', 'default');
+      return (matcharMinOrg(orgId) && (rutin.get('status', 'godkand') == 'godkand' || farRedigeraOmrade(rutin.omrade)))
+        || farSupportlasa(orgId);
+    }
+
     // Har någon redaktörsroll (används t.ex. för att moderera andras kommentarer)
     function arRedaktor() {
       return arSuperadmin() || arVol() || arSektionsledare() || arVec() || arForradsansvarig();
@@ -533,9 +547,13 @@ service cloud.firestore {
       allow delete: if farRedigeraOmrade(resource.data.omrade)
                      && matcharMinOrg(resource.data.get('organisationId', 'default'));
 
-      // Versionshistorik – sparas automatiskt vid varje redigering
+      // Versionshistorik – sparas automatiskt vid varje redigering. Läsrätten (farLasaVersioner)
+      // vidgad i Etapp 65b till samma krets som läser den LIVE rutinen; create förblir
+      // redaktörsbart eftersom bara uppdateraRutin() i useRutiner.js skriver hit.
       match /versioner/{versionId} {
-        allow read, create: if farRedigeraOmrade(
+        allow read: if farLasaVersioner(rutinId);
+
+        allow create: if farRedigeraOmrade(
           get(/databases/$(database)/documents/rutiner/$(rutinId)).data.omrade
         ) && matcharMinOrg(
           get(/databases/$(database)/documents/rutiner/$(rutinId)).data.get('organisationId', 'default')
