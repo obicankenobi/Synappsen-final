@@ -6,15 +6,15 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-13, version **5.99.0** – byggd och pushad, **ÄNNU INTE
-DEPLOYAD** (ingen deploy begärd i den här sessionen; senaste bekräftade deploy är fortfarande
-v5.98.0, körning #75, commit `9d71d87`, asset-hash `assets/index-D-LL-p_d.js`,
-`synappsen-final-build.web.app`). v5.99.0 = **Etapp 65a (`ETAPPLAN14.md`) – uppläsning av
-rutiner/checklistesteg – KLAR.** Ny plan **`ETAPPLAN14.md` (Etapp 65: fyra
-vardagsfunktioner med wow-faktor)** föreslogs 2026-08-13; ägaren bad direkt om byggstart för
-delmål 65a samma dag. Se sektionerna "Uppföljning 2026-08-13 (ny plan: ETAPPLAN14.md, Etapp
-65 – fyra vardagsfunktioner)" och "Uppföljning 2026-08-13 (Etapp 65a klar, v5.99.0)" längst
-ner. PR #15 (den breda granskningen) mergad 2026-08-12. v5.98.0 är resultatet av en **bred
+**Senast uppdaterad:** 2026-08-13, version **5.99.0** – **DEPLOYAD** (körning #76, commit
+`3eefd17`, deploy.yml på `claude/compassionate-euler-rho0q5`, ny asset-hash
+`assets/index-VSVjfc_t.js` bekräftad på `synappsen-final-build.web.app`). v5.99.0 = **Etapp
+65a (`ETAPPLAN14.md`) – uppläsning av rutiner/checklistesteg – KLAR.** Ny plan
+**`ETAPPLAN14.md` (Etapp 65: fyra vardagsfunktioner med wow-faktor)** föreslogs 2026-08-13;
+ägaren bad direkt om byggstart för delmål 65a samma dag. Se sektionerna "Uppföljning
+2026-08-13 (ny plan: ETAPPLAN14.md, Etapp 65 – fyra vardagsfunktioner)" och "Uppföljning
+2026-08-13 (Etapp 65a klar, v5.99.0)" längst ner. PR #15 (den breda granskningen) mergad
+2026-08-12. v5.98.0 är resultatet av en **bred
 säkerhets- och kvalitetsgranskning** (inte en `ETAPPLANx.md`-etapp) – se sektionen
 "Uppföljning 2026-08-11 (bred säkerhets-/kvalitetsgranskning, v5.98.0)" längst ner för vad som
 åtgärdades och vad som återstår. **`npm run test:rules` och `npm run test:e2e` är nu körda och
@@ -2784,4 +2784,5 @@ Ingen ändring i `firestore.rules`/`storage.rules`/Cloud Functions – bara `lin
 `vitest run` (182/182) körda, alla gröna. Version 5.98.0 → **5.99.0**, `andringslogg.js`
 uppdaterad, `ETAPPLAN14.md` (65a markerad klar + "Genomfört"-avsnitt), `CLAUDE.md`
 (läsordning + dokumentkarta, "föreslagen" → "delvis byggd"). Committat och pushat.
-**Ingen deploy gjord** – inte begärd i den här sessionen.
+**Deployad samma session** (körning #76, commit `3eefd17`, ny asset-hash
+`assets/index-VSVjfc_t.js` bekräftad på `synappsen-final-build.web.app`).
