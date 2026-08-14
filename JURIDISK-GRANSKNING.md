@@ -875,6 +875,14 @@ Formulerade för att kunna klippas in i ett uppdragsbrev. De sex första är de 
 18. Omfattas leverantören av cybersäkerhetslagen (2025:1506), och vilka leverantörskrav bör förväntas från en kund som omfattas?
 19. Är riskklassificeringen enligt AI-förordningen — inte högrisk — korrekt, och uppfylls art. 50 av dagens märkning och godkännandeflöde?
 
+**Planerade funktioner som ännu inte byggts** *(tillagt 2026-08-14, se `ETAPPLAN15.md`s
+"Vad jag INTE föreslår". Tas med här i stället för att beställas som ett separat uppdrag
+senare — det är samma rättsområden som frågorna 1–6 redan rör.)*
+
+20. Får ett nationellt eller regionalt kunskapsstöd bearbetas till en **lokalt anpassad sammanfattning, checklista eller översikt** inom produkten? Frågan har två led som bör besvaras var för sig: (a) utgör en sådan sammanfattning ett bearbetat verk enligt URL, och räcker det att ange källan? (b) påverkas svaret av att bearbetningen sker med AI-stöd, och av att en människa granskar och godkänner före publicering — eller är mänsklig granskning irrelevant för den upphovsrättsliga bedömningen? Samma funktion bör också bedömas mot MDR-kvalificering enligt fråga 1, eftersom en lokalt anpassad checklista ligger närmare ett omdöme än en ren länksamling.
+21. Får produkten användas för att ta fram **patientriktad information** (broschyrer, eftervårdsinstruktioner)? Skilj på (a) generell, i förväg godkänd information och (b) individanpassad information — påverkar den skillnaden MDR-kvalificeringen? Vem bär ansvaret för innehållet när det lämnat vårdorganisationen till en patient, och vilka krav ställs på möjligheten att återkalla felaktig information som redan delats ut?
+22. Ett verktyg för att rita **flödesscheman** för kundens egna rutiner: spelar det roll för MDR-bedömningen om leverantören tillhandahåller ritverktyget medan kunden själv författar och godkänner innehållet? Och skiljer sig svaret mellan ett statiskt diagram och en interaktiv vy som leder användaren gren för gren utifrån svar om patientens tillstånd?
+
 ---
 
 ## 19. Vad jag inte har kunnat bedöma

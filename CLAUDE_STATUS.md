@@ -6,11 +6,14 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-13, version **5.102.0** – **DEPLOYAD** (körning #77, commit
+**Senast uppdaterad:** 2026-08-14 – **ny föreslagen (ej antagen) plan `ETAPPLAN15.md`
+(Etapp 66: fyra tillägg på redan byggd grund)**, se sektionen "Uppföljning 2026-08-14
+(ETAPPLAN15 föreslagen, Etapp 66)" längst ner. Ingen kod, ingen versionsbump, ingen deploy i
+den omgången. Koden är fortfarande **5.102.0 – DEPLOYAD** (körning #77, commit
 `2addfef`, deploy.yml på `claude/compassionate-euler-rho0q5`, ny asset-hash
 `assets/index-QGEvHg37.js` bekräftad på `synappsen-final-build.web.app`). v5.102.0 = **Etapp
 65d (`ETAPPLAN14.md`) – öva-läge – KLAR. Med det är HELA Etapp 65 (alla fyra delmål 65a–65d)
-byggd OCH nu i produktion**, ett delmål i taget samma dag på ägarens uttryckliga begäran. Se
+byggd OCH i produktion**, ett delmål i taget 2026-08-13 på ägarens uttryckliga begäran. Se
 sektionerna "Uppföljning 2026-08-13 (ny plan: ETAPPLAN14.md, Etapp 65 – fyra
 vardagsfunktioner)", "Uppföljning 2026-08-13 (Etapp 65a klar, v5.99.0)", "Uppföljning
 2026-08-13 (Etapp 65b klar, v5.100.0)", "Uppföljning 2026-08-13 (Etapp 65c klar, v5.101.0)"
@@ -2875,3 +2878,45 @@ Etapp 65 är nu klar), `CLAUDE.md` (läsordning + dokumentkarta, "delvis byggd" 
 chunk `OvaLage-*.js` bekräftad i byggutdata. Committat och pushat. **Deployad samma session**
 (körning #77, commit `2addfef`, ny asset-hash `assets/index-QGEvHg37.js` bekräftad på
 `synappsen-final-build.web.app`) – med detta är hela Etapp 65 (65a–65d) i produktion.
+
+## Uppföljning 2026-08-14 (ETAPPLAN15 föreslagen, Etapp 66)
+
+Ägaren lade fram nio funktionsidéer och bad om synpunkter, en ny plan för det som bör byggas
+nu, och att de uppskjutna skulle loggas. En premisskontroll (krav 8) mot faktisk kod gjordes
+innan planen skrevs och **strök fem av de nio**:
+
+- **Tre var redan byggda.** "Rutinhål-detektorn" finns helt (`sokloggar` + `loggaNollTraff` i
+  `SokFalt.jsx`). "Förbättringsförslag" är ~80 % byggt (allt utom notisen till ansvarig).
+  "Incident-/driftstörningslogg" finns delvis som `skiftrapporter`.
+- **En byggde på en premiss som inte stämmer.** Idén "utöka ansvarsområden utöver
+  medicinteknik" förutsatte en befintlig medicinteknikpanel – ordet finns **inte en enda gång**
+  i `src/` eller `functions/`. Det är ett nybygge, inte en utökning.
+- **Tre bör inte byggas nu**, se nedan.
+
+**`ETAPPLAN15.md` (Etapp 66) skrevs med fyra delmål**, alla tillägg på existerande
+datamodeller: 66a förslag når rutinens `agare` (notis), 66b handledarsignering i
+introduktionen, 66c ansvarsområden på personen, 66d driftstörning kopplad till rutin/kategori.
+**Nytt genomgående krav 28:** en signatur om en annan människa får aldrig kunna sättas av
+personen själv, och spärren ska ligga i `firestore.rules` (`request.auth.uid != uid`), inte i
+gränssnittet.
+
+**Tre idéer medvetet uppskjutna, loggade i planens "Vad jag INTE föreslår":**
+- **Bemanning/scheman – avråds.** Redan avfärdad en gång (`ETAPPLAN4.md` rad 1030). Två skäl
+  till: schemadata är en helt ny GDPR-yta om anställda, och regionen har redan ett system.
+  Om det verkliga behovet är "vem ansvarar för vad" är det 66c som löser det.
+- **Rutin-/flödesschemaverktyg – för stort och blandat för en punkt.** Bryt ner: grafiska
+  mallar är rimligt och kan tas separat; AI-författande och flödesscheman bör vänta.
+- **AI-sammanfattning av kunskapsstöd + patientinformation – juridiskt blockerade**, av samma
+  skäl som Etapp 64 redan är det. Viktigt att notera rakt ut: *"alltid med mänsklig kontroll"
+  löser inte upphovsrättsfrågan* – mänsklig granskning gör inte ett bearbetat verk till ett
+  icke-intrång.
+
+**Tillagt i `JURIDISK-GRANSKNING.md` §18: frågorna 20–22** (AI-sammanfattning, patientriktad
+information, flödesschemaverktyg) – så att de kommer med i SAMMA juridiska uppdrag som Etapp
+64 i stället för att kräva ett andra uppdrag senare. `OPPNA-PUNKTER.md`s Etapp 64-rad pekar
+nu på det.
+
+Uppdaterade `CLAUDE.md` (läsordningen omnumrerad, ny rad i dokumentkartan). Ingen kod, ingen
+versionsbump, ingen deploy – rent planeringsarbete. Nästa steg: ägarens besked om Etapp 66
+ska antas och i vilken ordning (66a är billigast, 66b har störst nytta men bär den enda nya
+rättsliga vikten – dess gallringsfråga bör avgöras före bygget).
