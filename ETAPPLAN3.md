@@ -1,4 +1,4 @@
-# ETAPPLAN3 – Etapp 13–21
+# Etapplan 3 – Etapp 13–21
 
 *Fortsättning på `ETAPPLAN.md` (Etapp 0–5) och `ETAPPLAN2.md` (Etapp 6–12).
 Utgångsläge: v5.25.0, fas 40 avslutad. Nästa fas att skriva i `UTVECKLINGSLOGG.md` är fas 41.*

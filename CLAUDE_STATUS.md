@@ -2920,3 +2920,18 @@ Uppdaterade `CLAUDE.md` (läsordningen omnumrerad, ny rad i dokumentkartan). Ing
 versionsbump, ingen deploy – rent planeringsarbete. Nästa steg: ägarens besked om Etapp 66
 ska antas och i vilken ordning (66a är billigast, 66b har störst nytta men bär den enda nya
 rättsliga vikten – dess gallringsfråga bör avgöras före bygget).
+
+**Rubriknormalisering samma dag (uttryckligt ägarbeslut).** Planfilernas H1-rubriker var
+inkonsekventa i fyra olika varianter (`# ETAPPLAN 5`, `# ETAPPLAN3`, `# Synappsen –
+etappindelad utvecklingsplan`, `# Etapplan 12`). Ägaren bad om formen **`Etapplan N`** rakt
+igenom, och uttryckligen om att hela serien skulle normaliseras – inte bara den nya filen.
+13 filer ändrade, **enbart rad 1 i varje** (verifierat: `13 files changed, 13 insertions(+),
+13 deletions(-)`), inget sakinnehåll rört. `ETAPPLAN.md` och `ETAPPLAN2.md` hade inget
+nummer alls i rubriken och fick 1 respektive 2.
+
+Detta är värt att notera eftersom `CLAUDE.md` säger att de historiska planfilerna inte ska
+redigeras. **Regeln är inte bruten av misstag** – den gäller planernas substans, och
+ändringen var en uttrycklig instruktion. En förklarande ruta är inlagd i `CLAUDE.md` direkt
+ovanför "Varför inte slå ihop dessa till en fil?", så att en framtida session inte tolkar
+git-historiken som en regelöverträdelse. **Filnamnen är avsiktligt oförändrade** – varje
+korsreferens i projektet pekar på filnamnet, inte på rubriken.

@@ -1,4 +1,4 @@
-# Synappsen – etappplan del 2 (Etapp 6–11)
+# Etapplan 2 – Etapp 6–11
 
 *Fortsättning på ETAPPLAN.md, som tog appen från enkundsapp (v5.10.0) till en tekniskt
 flerkundskapabel produkt (v5.15.1). Den planen är i allt väsentligt genomförd. Denna plan

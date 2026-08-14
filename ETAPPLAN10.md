@@ -1,4 +1,4 @@
-# ETAPPLAN 10 – "Redo att drivas": från byggd produkt till driftbar tjänst
+# Etapplan 10 – "Redo att drivas": från byggd produkt till driftbar tjänst
 
 *Antagen 2026-08-06, utgångsläge v5.76.0, efter att Etapp 44–47 blivit klara och deployade
 (körning #68). Etapp 48–52. Ursprungligen ett externt utkast, granskat och skärpt innan

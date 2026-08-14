@@ -1,4 +1,4 @@
-# ETAPPLAN4 – Etapp 22–30 ✅ ANTAGEN (2026-07-28)
+# Etapplan 4 – Etapp 22–30 ✅ ANTAGEN (2026-07-28)
 
 *Fortsättning på `ETAPPLAN.md` (Etapp 0–5), `ETAPPLAN2.md` (Etapp 6–12) och `ETAPPLAN3.md`
 (Etapp 13–21). Utgångsläge: v5.39.0, Etapp 13–21 byggda utom 13f (SSO) och 16 (veckopuls),

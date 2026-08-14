@@ -1,4 +1,4 @@
-# ETAPPLAN 9 – Kvalitetsmaskineriet riktas utåt
+# Etapplan 9 – Kvalitetsmaskineriet riktas utåt
 
 **✅ ANTAGEN 2026-08-04.** Utgångsläge v5.73.0, direkt efter att `ETAPPLAN8.md` Etapp 44
 (mobilappskänsla) blev klar och deployad. **Detta är den AKTIVA planen för nytt arbete.**

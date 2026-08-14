@@ -1,4 +1,4 @@
-# ETAPPLAN 5 – Säkerhet, upptäckt och incidentberedskap
+# Etapplan 5 – Säkerhet, upptäckt och incidentberedskap
 
 *Skriven 2026-07-31, utgångsläge v5.50.0, efter att Etapp 22–31 avslutats.*
 

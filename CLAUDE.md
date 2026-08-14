@@ -114,6 +114,16 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 | `ETAPPLAN4.md` | Etapp 22–31: medarbetarnära funktioner (namn/bilder, kommandopalett, push, "sedan ditt förra pass", ändringsförslag, skanning i förrådet, kundprofil, offline, snabbhet/WCAG) + uppföljning på en extern kodgranskning. Klart utom 30b (fysiskt akutlägestest) och 31c/12c-ii (App Check-enforcement) – båda väntar på ägaren. |
 | `ETAPP1-ARBETSUPPGIFTER.md` | Detaljerad uppgiftslista för allra första etappen. Rent historiskt. |
 
+> **Rubriknormalisering 2026-08-14 (uttryckligt ägarbeslut).** Samtliga planfilers
+> H1-rubrik följer nu formen `# Etapplan N – Titel`. Serien var tidigare inkonsekvent
+> (`# ETAPPLAN 5`, `# ETAPPLAN3`, `# Synappsen – etappindelad utvecklingsplan`,
+> `# Etapplan 12`). **Detta är den enda gång de historiska planfilerna har redigerats**, och
+> det skedde på ägarens uttryckliga instruktion – ENDAST rad 1 i varje fil, inget
+> sakinnehåll. "Rör inte innehållet"-regeln nedan gäller alltså oförändrat: den handlar om
+> planernas substans, inte om att en rubrik aldrig får normaliseras på begäran. Filnamnen är
+> INTE ändrade (`ETAPPLAN.md` heter fortfarande så, trots rubriken "Etapplan 1"), eftersom
+> varje korsreferens i projektet pekar på filnamnet.
+
 **Varför inte slå ihop dessa till en fil?** Varje fil representerar en avslutad fas av
 planeringsarbete – att slå ihop dem skulle förlora den kronologiska bilden av hur planen
 utvecklats och göra det svårare att se VILKEN etapp som hörde till VILKEN release. Håll dem

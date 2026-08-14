@@ -1,4 +1,4 @@
-# ETAPPLAN 6 – Innehållet som håller: redaktionell kvalitet och bevisad nytta
+# Etapplan 6 – Innehållet som håller: redaktionell kvalitet och bevisad nytta
 
 **✅ ANTAGEN 2026-08-01.** Utgångsläge v5.56.0, efter Etapp 22–31 och med `ETAPPLAN5.md`
 (Etapp 32–36) i det närmaste avslutad. Etapp 37–41.

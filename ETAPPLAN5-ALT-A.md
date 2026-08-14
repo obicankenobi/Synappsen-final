@@ -1,4 +1,4 @@
-# ETAPPLAN 5 – UTKAST A: "Från byggd produkt till såld produkt"
+# Etapplan 5 – UTKAST A: "Från byggd produkt till såld produkt"
 
 > **Detta är ett UTKAST, inte en antagen plan.** Det finns två alternativa utkast till
 > Etapplan 5 – detta (spår A) och `ETAPPLAN5-ALT-B.md` (spår B). Meningen är att ETT av dem

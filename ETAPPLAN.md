@@ -1,4 +1,4 @@
-# Synappsen – etappindelad utvecklingsplan
+# Etapplan 1 – Etappindelad utvecklingsplan
 
 *Körschema från fungerande app (v5.10.0) till flerkundsprodukt. Bygger på MODULPLAN.md.*
 

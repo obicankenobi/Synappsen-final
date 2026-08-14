@@ -1,4 +1,4 @@
-# ETAPPLAN 11 – "Från en avdelning till en kund som växer"
+# Etapplan 11 – "Från en avdelning till en kund som växer"
 
 *Skrivet 2026-08-10, utgångsläge v5.84.0, efter att Etapp 48–51 blivit klara och deployade
 (körning #72). Omfattning: Etapp 53–58. **ANTAGEN 2026-08-10** – ägaren godkände planens

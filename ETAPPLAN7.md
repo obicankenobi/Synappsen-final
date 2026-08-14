@@ -1,4 +1,4 @@
-# ETAPPLAN 7 – Gränssnittsförnyelse
+# Etapplan 7 – Gränssnittsförnyelse
 
 **✅ ANTAGEN 2026-08-02.** Utgångsläge v5.63.0, efter att Etapp 37–39 (`ETAPPLAN6.md`) blivit
 klara. Etapp 42 (a–f) är HELT KLAR (2026-08-03), v5.67.0, deployad. **Etapp 43 (tillagd

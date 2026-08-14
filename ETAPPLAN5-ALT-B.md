@@ -1,4 +1,4 @@
-# ETAPPLAN 5 – UTKAST B: "Förtjäna förtroendet – tyst fel får inte finnas"
+# Etapplan 5 – UTKAST B: "Förtjäna förtroendet – tyst fel får inte finnas"
 
 > **Detta är ett UTKAST, inte en antagen plan.** Det finns två alternativa utkast till
 > Etapplan 5 – detta (spår B) och `ETAPPLAN5-ALT-A.md` (spår A). Meningen är att ETT av dem

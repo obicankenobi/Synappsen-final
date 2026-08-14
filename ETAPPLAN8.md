@@ -1,4 +1,4 @@
-# ETAPPLAN 8 – Mobilappskänsla och installationsbarhet
+# Etapplan 8 – Mobilappskänsla och installationsbarhet
 
 **✅ ANTAGEN 2026-08-04.** Utgångsläge v5.72.0, efter att `ETAPPLAN7.md` (Etapp 42+43,
 gränssnittsförnyelsen) blev helt klar och deployad. **Detta är den AKTIVA planen för nytt
