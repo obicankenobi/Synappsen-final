@@ -1,7 +1,7 @@
 # Etapplan 15 – Ansvar som når fram: fyra tillägg på redan byggd grund
 
 *Utkast 2026-08-14, utifrån en idélista från ägaren (nio punkter). Ägaren bad om byggstart för
-66a och 66b samma dag, båda nu KLARA – 66c–66d är fortfarande bara föreslagna.*
+66a, 66b och 66c samma dag, alla tre nu KLARA – bara 66d är fortfarande föreslaget.*
 
 **Bakgrund:** ägaren lade fram nio funktionsidéer. En premisskontroll mot faktisk kod
 (genomgående krav 8) gjordes innan planen skrevs, och den flyttade gränsen mellan idéerna
@@ -219,7 +219,7 @@ sessionen.
 
 ---
 
-### 66c – Ansvarsområden på personen, inte bara på rutinen
+### 66c – ✅ KLAR (2026-08-14) – Ansvarsområden på personen, inte bara på rutinen
 
 **Idé:** kunna se vem som ansvarar för vad, och kunna lista sina egna ansvarsområden i
 profilen.
@@ -255,6 +255,46 @@ aldrig på "vem arbetar just nu".
 
 **Klart när:** en superadmin kan tilldela ansvarsområden, en användare ser sina egna i
 profilen, och det går att slå upp vem som ansvarar för ett givet område.
+
+**Genomfört (2026-08-14):**
+
+- **Fältet:** `users/{uid}.ansvarsomraden: string[]`, kommaseparerad textinmatning
+  (`"medicinteknik, brandskydd"` → `["medicinteknik", "brandskydd"]`), exakt samma
+  split/trim/filter-mönster som `taggar` redan använder i `RutinFormular.jsx`. Ingen ny
+  PII-spärr lades till – matchar precedenset att `taggar` (skrivbart av redaktörer, en bredare
+  krets) inte heller har en regelbaserad PII-kontroll; `ansvarsomraden` är dessutom bara
+  skrivbart av superadmin, en smalare och mer betrodd krets.
+- **Ingen regeländring behövdes**, precis som planen förutsåg – `users/{userId}`s befintliga
+  superadmin-gren tillåter redan varje fält utom `role` direkt. **Låst fast med ett NYTT
+  regeltest ändå** (`tests/rules/ansvarsomraden.test.mjs`, 4 tester): bekräftar explicit att
+  fältet INTE råkat hamna i självbetjäningsvitlistan (`bararForandrarFalt`-listan på
+  `request.auth.uid == userId`-grenen) – planens egna designbeslut ("ansvarsomraden får INTE
+  läggas i självbetjäningsvitlistan") är annars precis den sortens invariant som kan glida in
+  av misstag i en senare ändring utan att synas i diffen.
+- **UI:** `AnvandareRollerSektion.jsx` (adminpanelens befintliga "Användare och roller")
+  fick ett nytt fält per rad, med en egen liten `AnsvarsomradenFalt`-subkomponent (samma skäl
+  som `PagagendeTilldelning` i 66b: varje rad behöver sin egen lokala inputtext). `Profil.jsx`
+  visar den inloggades egna områden, läst via en ny `ansvarsomraden`-nyckel i `AuthContext`s
+  redan existerande live-prenumeration på det egna användardokumentet (samma mönster som
+  `pushInstallningar`/`epostInstallningar`).
+- **Den operativa vyn** blev en ny, egen adminsektion `AnsvarsomradenOversiktSektion.jsx`
+  ("Vem ansvarar för vad") snarare än att byggas in i `AnvandareRollerSektion`, för att hålla
+  redigeringsvyn och läsvyn isär. Den slår ihop `ansvarsomraden` med de rutiner en person äger
+  – och återanvänder `arAnsvarigForRutin()` (Etapp 66a) med `farRedigeraOmradet: false` för
+  det, istället för att skriva en tredje kopia av samma agare-matchningslogik.
+- **Medvetet INTE byggt: kopplingen till 66a** ("om ett förslag rör ett område någon ansvarar
+  för kan notisen gå dit"). Skälet: `ansvarsomraden` är fri text utan någon naturlig
+  koppling till en specifik rutin eller till `rutin.omrade` (som är en fast enum:
+  kliniskt-stod/administration/logistik, ett annat begrepp). Att uppfinna en matchningsregel
+  mellan fri text och rutiner hade riskerat att bygga fel sak. Det här stod som en
+  "Bygge"-punkt i planen men var inte en del av "Klart när"-kriteriet, så det lämnas kvar som
+  en möjlig, inte garanterad, framtida utökning.
+- Ingen VEC-utökning byggd – kvar som superadmin-bara, precis som planens designbeslut sa.
+
+**Testat:** 4 nya regeltester (`ansvarsomraden.test.mjs`, körda mot emulatorn, alla gröna) –
+hela `test:rules`-sviten fortsatt grön. `npm run lint`, `npm run build`, `npx vitest run`
+(212/212) gröna. Ingen ny collection. Manuell webbläsarverifiering av flödet (tilldela →
+se i profilen → se i översikten) är inte gjord i den här sessionen.
 
 ---
 
@@ -389,7 +429,7 @@ verksamheten, hur återkallas en felaktig broschyr som redan delats ut).
 |---|---|---|---|---|
 | 66a | Förslag når rutinens ägare (notis) | Nej (alt. a) | Nej | Liten – ✅ **KLAR 2026-08-14 (v5.103.0)** |
 | 66b | Handledarsignering i introduktionen | **Ja** (ny subcollection + självsigneringsspärr) | Ja (subcollection) | Medel – ✅ **KLAR 2026-08-14 (v5.104.0)** |
-| 66c | Ansvarsområden på personen | Kanske (om VEC ska få tilldela) | Nytt fält på `users` | Medel |
+| 66c | Ansvarsområden på personen | Nej (superadmin fick redan skriva fältet) | Nytt fält på `users` | Medel – ✅ **KLAR 2026-08-14 (v5.105.0)** |
 | 66d | Driftstörning → kategori + rutinkoppling | **Ja** (`bararForandrarFalt` utökas) | Nya fält på `skiftrapporter` | Liten–medel |
 
 Alla fyra är Core-funktionalitet (ingen feature-gating) och oberoende av `ETAPPLAN13.md`s

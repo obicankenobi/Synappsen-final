@@ -24,6 +24,10 @@ export function AuthProvider({ children }) {
   const [epostInstallningar, setEpostInstallningar] = useState({});
   const [foregaendeInloggning, setForegaendeInloggning] = useState(null);
   const [personalpulsSenastBesvarad, setPersonalpulsSenastBesvarad] = useState(null);
+  // Etapp 66c: skrivs bara av superadmin (adminvyn), aldrig av ägaren själv – se
+  // firestore.rules. Lyssnas live så en tilldelning syns direkt i Profil.jsx utan omladdning,
+  // samma mönster som pushInstallningar/epostInstallningar nedan.
+  const [ansvarsomraden, setAnsvarsomraden] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Etapp 6c: registrering kräver numera alltid en giltig inbjudan – öppen självbetjänings-
@@ -118,6 +122,7 @@ export function AuthProvider({ children }) {
         setEpostInstallningar({});
         setForegaendeInloggning(null);
         setPersonalpulsSenastBesvarad(null);
+        setAnsvarsomraden([]);
       }
       setLoading(false);
     });
@@ -145,6 +150,7 @@ export function AuthProvider({ children }) {
       // Etapp 39c: skrivs bara av Cloud Function svaraPersonalpuls (Admin SDK) – lyssnas live
       // så formuläret försvinner direkt efter ett inskick, utan omladdning.
       setPersonalpulsSenastBesvarad(snap.exists() ? (snap.data().personalpulsSenastBesvarad ?? null) : null);
+      setAnsvarsomraden(snap.exists() ? (snap.data().ansvarsomraden ?? []) : []);
       setNamnLaddat(true);
     });
     return unsubscribe;
@@ -162,6 +168,7 @@ export function AuthProvider({ children }) {
     epostInstallningar,
     foregaendeInloggning,
     personalpulsSenastBesvarad,
+    ansvarsomraden,
     loading,
     registrera,
     loggaIn,

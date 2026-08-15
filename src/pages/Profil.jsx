@@ -297,8 +297,17 @@ function EpostPaminnelseSektion({ uid, role, epostInstallningar }) {
 }
 
 export default function Profil() {
-  const { currentUser, role, namn, namnLaddat, profilbildUrl, pushTokens, pushInstallningar, epostInstallningar } =
-    useAuth();
+  const {
+    currentUser,
+    role,
+    namn,
+    namnLaddat,
+    profilbildUrl,
+    pushTokens,
+    pushInstallningar,
+    epostInstallningar,
+    ansvarsomraden,
+  } = useAuth();
   const favoritPoster = useMinaFavoritPoster();
   const { synliga: snabblankar, satValda: satSnabblankar } = useSnabblankar(currentUser.uid);
 
@@ -345,6 +354,11 @@ export default function Profil() {
         <p>
           <strong>Roll:</strong> {ROLE_LABELS[role] ?? role}
         </p>
+        {ansvarsomraden?.length > 0 && (
+          <p>
+            <strong>Ansvarsområden:</strong> {ansvarsomraden.join(", ")}
+          </p>
+        )}
       </section>
 
       <section className="profil-sektion">

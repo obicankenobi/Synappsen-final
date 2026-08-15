@@ -6,14 +6,15 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-14, version **5.104.0** – byggd och pushad, **ÄNNU INTE
-DEPLOYAD**. v5.104.0 = **Etapp 66b (`ETAPPLAN15.md`) – handledarsignering i introduktionen –
-KLAR** (ny subcollection `introduktionstilldelningar/{uid}/signeringar`, genomgående krav 28
-uttryckt i `firestore.rules`), se sektionen "Uppföljning 2026-08-14 (Etapp 66b klar,
-v5.104.0)" längst ner. v5.103.0 = Etapp 66a (förslag når rutinens ägare) – KLAR, se
-"Uppföljning 2026-08-14 (Etapp 66a klar, v5.103.0)". Planen `ETAPPLAN15.md` (Etapp 66)
-föreslogs samma dag, se "Uppföljning 2026-08-14 (ETAPPLAN15 föreslagen, Etapp 66)". Senaste
-bekräftade produktionsdeploy är fortfarande **5.102.0** (körning #77, commit
+**Senast uppdaterad:** 2026-08-14, version **5.105.0** – byggd och pushad, **ÄNNU INTE
+DEPLOYAD**. v5.105.0 = **Etapp 66c (`ETAPPLAN15.md`) – ansvarsområden på personen – KLAR**
+(nytt fält `users/{uid}.ansvarsomraden`, ny adminvy "Vem ansvarar för vad"), se sektionen
+"Uppföljning 2026-08-14 (Etapp 66c klar, v5.105.0)" längst ner. v5.104.0 = Etapp 66b
+(handledarsignering) – KLAR, se "Uppföljning 2026-08-14 (Etapp 66b klar, v5.104.0)".
+v5.103.0 = Etapp 66a (förslag når rutinens ägare) – KLAR, se "Uppföljning 2026-08-14 (Etapp
+66a klar, v5.103.0)". Planen `ETAPPLAN15.md` (Etapp 66) föreslogs samma dag, se "Uppföljning
+2026-08-14 (ETAPPLAN15 föreslagen, Etapp 66)". Senaste bekräftade produktionsdeploy är
+fortfarande **5.102.0** (körning #77, commit
 `2addfef`, deploy.yml på `claude/compassionate-euler-rho0q5`, ny asset-hash
 `assets/index-QGEvHg37.js` bekräftad på `synappsen-final-build.web.app`). v5.102.0 = **Etapp
 65d (`ETAPPLAN14.md`) – öva-läge – KLAR. Med det är HELA Etapp 65 (alla fyra delmål 65a–65d)
@@ -3011,3 +3012,36 @@ emulatorn: 11/11 gröna, hela `test:rules`-sviten fortsatt grön. Version 5.103.
 (läsordning + dokumentkarta), `OPPNA-PUNKTER.md` (gallringsraden utökad).
 `lint`/`build`/`vitest run` (212/212) gröna. Committat och pushat. **Ingen deploy gjord** –
 inte begärd i den här sessionen.
+
+## Uppföljning 2026-08-14 (Etapp 66c klar, v5.105.0)
+
+Ägaren bad om byggstart för `ETAPPLAN15.md`s delmål 66c (ansvarsområden på personen). Byggt
+och klart samma session.
+
+- **Nytt fält `users/{uid}.ansvarsomraden: string[]`**, samma kommaseparerade
+  split/trim/filter-mönster som `taggar` redan har i `RutinFormular.jsx`. **Ingen
+  regeländring behövdes** – superadmin fick redan skriva vilket fält som helst utom `role`
+  direkt. Låst fast med ett NYTT regeltest ändå (`ansvarsomraden.test.mjs`, 4 tester): en
+  vanlig användare kan varken sätta sina egna eller andras ansvarsområden – planens egna
+  designbeslut ("får inte läggas i självbetjäningsvitlistan") är annars precis den sortens
+  invariant som kan glida in av misstag senare utan att synas i diffen.
+- `AnvandareRollerSektion.jsx` fick ett nytt fält per rad; `Profil.jsx` visar den inloggades
+  egna områden via en ny nyckel i `AuthContext`s befintliga live-prenumeration.
+- Ny adminsektion `AnsvarsomradenOversiktSektion.jsx` ("Vem ansvarar för vad") – slår ihop
+  `ansvarsomraden` med de rutiner en person äger, genom att återanvända `arAnsvarigForRutin()`
+  (Etapp 66a) istället för en tredje kopia av samma agare-matchningslogik.
+- **Medvetet INTE byggt: kopplingen till 66a-notisen.** Planen nämnde att ett förslag skulle
+  kunna nå någon via `ansvarsomraden` också, inte bara `rutin.agare`. Fri text har ingen
+  naturlig koppling till en specifik rutin eller till `rutin.omrade` (en fast enum, ett annat
+  begrepp) – att uppfinna en matchningsregel hade riskerat att bygga fel sak. Var en
+  "Bygge"-punkt i planen, inte en del av "Klart när"-kriteriet.
+- Ny personuppgift (`ansvarsomraden` på en redan existerande collection) tillagd i
+  `INCIDENT-CHECKLISTA.md` steg 5:s inventeringsruta. `avtal/INCIDENTRESPONSPLAN.md` rördes
+  INTE – ingen ny collection, ingen regeländring, ingen detektions-/begränsningsförmåga
+  ändrad.
+
+Ingen ändring i `storage.rules`/Cloud Functions. Version 5.104.0 → **5.105.0**,
+`andringslogg.js` uppdaterad, `ETAPPLAN15.md` (66c klar + "Genomfört"), `CLAUDE.md`
+(läsordning + dokumentkarta). 4 nya regeltester gröna, hela `test:rules`-sviten fortsatt
+grön. `lint`/`build`/`vitest run` (212/212) gröna. Committat och pushat. **Ingen deploy
+gjord** – inte begärd i den här sessionen. Bara 66d (driftstörningslogg) återstår i Etapp 66.

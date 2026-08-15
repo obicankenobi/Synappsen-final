@@ -12,6 +12,7 @@ import { useAndringsforslag, FORSLAG_STATUS } from "../hooks/useAndringsforslag"
 import { useAuditlogg } from "../hooks/useAuditlogg";
 import { useRevisionslogg } from "../hooks/useRevisionslogg";
 import { useRutiner } from "../hooks/useRutiner";
+import { useAllaGodkandaRutiner } from "../hooks/useAllaGodkandaRutiner";
 import { useAnslag } from "../hooks/useAnslag";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
 import { useUtloggningsinstallning } from "../hooks/useUtloggningsinstallning";
@@ -47,6 +48,7 @@ import BudgetSektion from "../components/admin/BudgetSektion";
 import KostnadsuppfoljningSektion from "../components/admin/KostnadsuppfoljningSektion";
 import AutoUtloggningSektion from "../components/admin/AutoUtloggningSektion";
 import AnvandareRollerSektion from "../components/admin/AnvandareRollerSektion";
+import AnsvarsomradenOversiktSektion from "../components/admin/AnsvarsomradenOversiktSektion";
 import InaktivaKontonSektion from "../components/admin/InaktivaKontonSektion";
 import StatistikAllaOmradenSektion from "../components/admin/StatistikAllaOmradenSektion";
 import FeedbackSektion from "../components/admin/FeedbackSektion";
@@ -77,7 +79,8 @@ const OMRADE_FOR_ROLL = {
 export default function Admin() {
   const { role, organisationId } = useAuth();
   const arSuperadmin = role === ROLES.SUPERADMIN;
-  const { anvandare, laddar, uppdateraRoll } = useAnvandare();
+  const { anvandare, laddar, uppdateraRoll, uppdateraAnsvarsomraden } = useAnvandare();
+  const { rutiner: allaGodkandaRutiner } = useAllaGodkandaRutiner();
   const { currentUser } = useAuth();
   const { confirm, visaMeddelande } = useDialog();
   const { moduler, laddat: modulerLaddade } = useFeatures();
@@ -596,10 +599,16 @@ export default function Admin() {
           anvandare={anvandare}
           laddar={laddar}
           currentUser={currentUser}
+          organisationId={organisationId}
           uppdateraRoll={uppdateraRoll}
+          uppdateraAnsvarsomraden={uppdateraAnsvarsomraden}
           loggarUtAnvandare={loggarUtAnvandare}
           hanteraTvingaUtloggning={hanteraTvingaUtloggning}
         />
+      )}
+
+      {arSuperadmin && (
+        <AnsvarsomradenOversiktSektion anvandare={anvandare} rutiner={allaGodkandaRutiner} />
       )}
 
       {arSuperadmin && inaktivaKonton.length > 0 && (

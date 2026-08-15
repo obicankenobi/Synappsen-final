@@ -189,8 +189,10 @@ Vet jag med rimlig visshet att det faktiskt hänt?             JA / NEJ / OKLART
 - **NEJ** → dokumentera varför. Det räcker inte att tycka; skriv resonemanget.
 
 > Vilka personuppgifter finns i appen? Namn, e-post, roll, organisationstillhörighet,
-> läskvitteringar, kommentarer och profilbilder. **Patientuppgifter ska aldrig finnas** – om du
-> hittar sådana är det en egen incident, oavsett obehörig åtkomst.
+> läskvitteringar, kommentarer, profilbilder och (Etapp 66c) ansvarsområden
+> (`users/{uid}.ansvarsomraden`, satt av superadmin, aldrig av personen själv).
+> **Patientuppgifter ska aldrig finnas** – om du hittar sådana är det en egen incident,
+> oavsett obehörig åtkomst.
 >
 > **Etapp 53c:** en ny, tillfällig collection `epostPaminnelseko/{uid}` innehåller en kopia av
 > en användares e-postadress plus en generisk, innehållslös påminnelsetext (t.ex. "ett anslag

@@ -261,6 +261,21 @@
   border-radius: 8px;
 }
 
+.admin-lista__ansvarsomraden {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.75rem;
+  color: var(--text-svag);
+}
+
+.admin-lista__ansvarsomraden input {
+  padding: 8px 10px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  min-width: 200px;
+}
+
 .admin-feedback-rad__meta select {
   margin-left: auto;
   padding: 4px 8px;

@@ -1,10 +1,11 @@
 // Hämtning och rolladministration av användare – endast för superadmin
 import { useEffect, useState } from "react";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { rapporteraNekadListning } from "../firebase/felrapportering";
 import { uppdateraAnvandarRoll } from "../firebase/functions";
+import { loggaHandelse } from "./useAuditlogg";
 
 export function useAnvandare() {
   const { organisationId, role } = useAuth();
@@ -40,5 +41,21 @@ export function useAnvandare() {
     return uppdateraAnvandarRoll(userId, roll);
   }
 
-  return { anvandare, laddar, fel, uppdateraRoll };
+  // Etapp 66c: till skillnad från roll (Etapp 32c, ovan) kräver ansvarsomraden ingen Cloud
+  // Function – reglerna tillåter redan superadmin att skriva vilket fält som helst utom
+  // role direkt (se firestore.rules users/{userId}), och det här är inte en identitetshöjande
+  // ändring på samma sätt som en rolländring. Loggas ändå i revisionsloggen, samma
+  // ansvarsprincip som resten av adminpanelens skrivningar.
+  async function uppdateraAnsvarsomraden(userId, omraden, uid, organisationId) {
+    await updateDoc(doc(db, "users", userId), { ansvarsomraden: omraden });
+    loggaHandelse({
+      beskrivning: "Ansvarsområden uppdaterade",
+      entitetTyp: "anvandare",
+      entitetId: userId,
+      uid,
+      organisationId,
+    });
+  }
+
+  return { anvandare, laddar, fel, uppdateraRoll, uppdateraAnsvarsomraden };
 }

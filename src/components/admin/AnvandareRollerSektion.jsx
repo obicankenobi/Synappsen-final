@@ -1,10 +1,50 @@
+import { useState } from "react";
 import { ROLES, ROLE_LABELS } from "../../firebase/roles";
+
+// Etapp 66c: eget litet fält för ansvarsområden per rad, samma "kommaseparerad text,
+// split/trim/filter vid spara"-mönster som taggar redan använder i RutinFormular.jsx. Egen
+// komponent eftersom varje rad behöver sin egen lokala inputtext innan den sparas – annars
+// skulle en enda delad state i föräldern skriva om alla rader samtidigt.
+function AnsvarsomradenFalt({ anvandarpost, uppdateraAnsvarsomraden, currentUser, organisationId }) {
+  const [text, setText] = useState((anvandarpost.ansvarsomraden ?? []).join(", "));
+  const [sparar, setSparar] = useState(false);
+
+  async function hanteraSpara() {
+    const omraden = text
+      .split(",")
+      .map((o) => o.trim())
+      .filter(Boolean);
+    setSparar(true);
+    try {
+      await uppdateraAnsvarsomraden(anvandarpost.id, omraden, currentUser.uid, organisationId);
+    } finally {
+      setSparar(false);
+    }
+  }
+
+  return (
+    <label className="admin-lista__ansvarsomraden">
+      Ansvarsområden
+      <input
+        type="text"
+        placeholder="T.ex. medicinteknik, brandskydd"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={hanteraSpara}
+        disabled={sparar}
+        aria-label={`Ansvarsområden för ${anvandarpost.namn || anvandarpost.email || "användare"}`}
+      />
+    </label>
+  );
+}
 
 export default function AnvandareRollerSektion({
   anvandare,
   laddar,
   currentUser,
+  organisationId,
   uppdateraRoll,
+  uppdateraAnsvarsomraden,
   loggarUtAnvandare,
   hanteraTvingaUtloggning,
 }) {
@@ -32,6 +72,12 @@ export default function AnvandareRollerSektion({
                   </option>
                 ))}
               </select>
+              <AnsvarsomradenFalt
+                anvandarpost={anvandarpost}
+                uppdateraAnsvarsomraden={uppdateraAnsvarsomraden}
+                currentUser={currentUser}
+                organisationId={organisationId}
+              />
               {anvandarpost.id !== currentUser.uid && (
                 <button
                   type="button"

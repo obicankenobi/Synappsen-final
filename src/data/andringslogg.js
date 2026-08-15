@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.105.0",
+    datum: "2026-08-14",
+    andringar: [
+      "Ny funktion: superadmin kan nu tilldela ansvarsområden till medarbetare (t.ex. 'medicinteknik', 'brandskydd'), synligt i den egnas profil och samlat i en ny översikt 'Vem ansvarar för vad' i adminpanelen",
+    ],
+  },
+  {
     version: "5.104.0",
     datum: "2026-08-14",
     andringar: [
