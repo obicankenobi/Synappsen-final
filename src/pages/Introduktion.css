@@ -50,6 +50,53 @@
   font-weight: 600;
 }
 
+.introduktion__signerad {
+  font-size: 0.8rem;
+  color: var(--text-svag);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.introduktion__tilldelning {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.introduktion__tilldelning-huvud {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.introduktion__tilldelning-knappar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.introduktion__signeringslista {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--kant);
+}
+
+.introduktion__signeringsrad {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .introduktion__form {
   display: flex;
   flex-direction: column;

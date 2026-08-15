@@ -927,6 +927,36 @@ service cloud.firestore {
                    || (farHanteraAnslag() && matcharMinOrg(resource.data.get('organisationId', 'default')));
       allow create: if farHanteraAnslag() && request.resource.data.get('organisationId', 'default') == minOrganisation();
       allow update, delete: if farHanteraAnslag() && matcharMinOrg(resource.data.get('organisationId', 'default'));
+
+      // signeringar/{postNyckel} – Etapp 66b: en handledares bekräftelse att en
+      // introduktionspunkt faktiskt gåtts igenom med personen, skild från personens egen
+      // lasteAv-kvittering (se introduktionProgress.js). Genomgående krav 28: en signatur om
+      // en annan människa får ALDRIG kunna sättas av personen själv, och den spärren ligger
+      // här i regeln (sista klausulen), inte i gränssnittet – ett gränssnitt kan alltid
+      // kringgås av ett direktanrop.
+      match /signeringar/{postNyckel} {
+        allow read: if (arInloggad() && request.auth.uid == uid)
+                     || (farHanteraAnslag() && matcharMinOrg(
+                          get(/databases/$(database)/documents/introduktionstilldelningar/$(uid)).data.get('organisationId', 'default')
+                        ));
+        // Vem som helst inloggad (utom kiosk) i samma organisation får signera NÅGON ANNANS
+        // punkt – det finns ingen egen "handledare"-roll i systemet, precis som lasteAv inte
+        // kräver en särskild roll för att kvittera sin egen läsning. request.auth.uid != uid
+        // gör det tekniskt omöjligt att signera sin egen introduktion, oavsett vad klienten
+        // skickar.
+        allow create: if arInloggad() && !arKiosk()
+                       && matcharMinOrg(
+                            get(/databases/$(database)/documents/introduktionstilldelningar/$(uid)).data.get('organisationId', 'default')
+                          )
+                       && request.resource.data.signeradAv == request.auth.uid
+                       && request.auth.uid != uid;
+        // En signatur ändras aldrig i efterhand – bara skapas eller (vid ett misstag) tas
+        // bort av den som får hantera anslagstavlan, vilket syns i revisionsloggen.
+        allow update: if false;
+        allow delete: if farHanteraAnslag() && matcharMinOrg(
+                            get(/databases/$(database)/documents/introduktionstilldelningar/$(uid)).data.get('organisationId', 'default')
+                          );
+      }
     }
 
     // kompetenskrav/{kravId} – Etapp 19c: vilka rutiner som är OBLIGATORISKA för en viss roll,

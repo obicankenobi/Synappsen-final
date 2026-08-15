@@ -206,6 +206,18 @@ Vet jag med rimlig visshet att det faktiskt hänt?             JA / NEJ / OKLART
 > ingen kunddata, ingen ny kategori av personuppgift, och medvetet inget innehållsfält. Vid en
 > incident som rör den här collectionen: den berör leverantören, inte en kund – men den är
 > ändå åtkomstkontrollerad på samma sätt som övriga plattformsadmin-data.
+>
+> **Etapp 66b (v5.104.0):** ny subcollection `introduktionstilldelningar/{uid}/signeringar/
+> {postNyckel}` – en kollegas signatur att en introduktionspunkt gåtts igenom med en
+> nyanställd. Personuppgifter om TVÅ personer per post: `signeradAv`/`signeradAvNamn` (den
+> som signerade) och kopplingen via föräldradokumentets `uid` (vem introduktionen gäller).
+> Läsbar av personen själv (sin egen) och av VEC/superadmin i samma organisation
+> (`farHanteraAnslag()`); ingen annan organisation når den. Skrivbar (create) av vem som helst
+> inloggad utom kiosk i samma organisation – MEN aldrig av personen själv om det är dennes
+> egen introduktion (`request.auth.uid != uid` i regeln, se `firestore.rules`). En signatur
+> kan inte ändras i efterhand, bara raderas av VEC/superadmin (syns i revisionsloggen).
+> **Öppen fråga:** ingen gallringstid är beslutad än, se `OPPNA-PUNKTER.md` – samma
+> underliggande fråga som revisionsloggens gallringstid.
 
 ---
 

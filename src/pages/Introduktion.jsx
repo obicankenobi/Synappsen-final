@@ -12,6 +12,13 @@ import {
   taBortIntroduktionstilldelning,
 } from "../hooks/useIntroduktionstilldelningar";
 import { berakraIntroduktionsProgress, dagarSedan, liggerEfter } from "../utils/introduktionProgress";
+import {
+  useIntroduktionssigneringar,
+  signeraIntroduktionspost,
+  taBortSignering,
+  postNyckel,
+} from "../hooks/useIntroduktionssigneringar";
+import { formateraDatum } from "../utils/datum";
 import { ROLES, ROLE_LABELS, KAN_HANTERA_ANSLAG } from "../firebase/roles";
 import "./Introduktion.css";
 
@@ -19,6 +26,90 @@ const ETAPPNAMN = ["Dag 1", "Vecka 1", "Månad 1"];
 
 function tomEtapp(namn) {
   return { namn, poster: [] };
+}
+
+// Etapp 66b: en rad i chefsvyns "Pågående introduktioner", som egen komponent eftersom den
+// behöver sin egen useIntroduktionssigneringar(t.uid)-prenumeration – att anropa en hook
+// inuti allaTilldelningar.map(...) hade brutit hook-reglerna (samma mönster som RutinKort.jsx
+// redan använder: varje rad äger sina egna hooks).
+function PagagendeTilldelning({ tilldelning, progress, efter, currentUser, organisationId, onTaBortTilldelning }) {
+  const { signeringar } = useIntroduktionssigneringar(tilldelning.uid);
+  const [expanderad, setExpanderad] = useState(false);
+  const signeradKarta = new Map(signeringar.map((s) => [s.id, s]));
+
+  async function hanteraSignera(post) {
+    await signeraIntroduktionspost({
+      uid: tilldelning.uid,
+      postTyp: post.typ,
+      postId: post.id,
+      etappNamn: post.etappNamn,
+      signeradAv: currentUser.uid,
+      signeradAvNamn: currentUser.displayName ?? currentUser.email ?? "",
+      organisationId,
+    });
+  }
+
+  async function hanteraTaBortSignering(nyckel, etappNamn) {
+    await taBortSignering({ uid: tilldelning.uid, nyckel, etappNamn, raderadAv: currentUser.uid, organisationId });
+  }
+
+  return (
+    <li className="admin-lista__rad introduktion__tilldelning">
+      <div className="introduktion__tilldelning-huvud">
+        <div>
+          <strong>{tilldelning.namn}</strong> – {tilldelning.sparNamn}
+          {efter && <span className="introduktion__efter-flagga"> ⚠️ Ligger efter</span>}
+          <div className="admin-lista__email">
+            {progress ? `${progress.klara} av ${progress.totalt} klara (${progress.procent}%)` : "Spåret är borttaget"}
+          </div>
+        </div>
+        <div className="introduktion__tilldelning-knappar">
+          {progress && (
+            <button type="button" className="knapp--lank" onClick={() => setExpanderad((v) => !v)}>
+              {expanderad ? "Dölj punkter" : "Signera punkter"}
+            </button>
+          )}
+          <button className="knapp knapp--liten knapp--sekundar" onClick={() => onTaBortTilldelning(tilldelning.uid)}>
+            Ta bort tilldelning
+          </button>
+        </div>
+      </div>
+
+      {expanderad && progress && (
+        <ul className="introduktion__signeringslista">
+          {progress.detaljer.map((p, i) => {
+            const nyckel = postNyckel(p.typ, p.id);
+            const signering = signeradKarta.get(nyckel);
+            return (
+              <li key={i} className="introduktion__signeringsrad">
+                <span className={p.klar ? "introduktion__post introduktion__post--klar" : "introduktion__post"}>
+                  {p.klar ? "✅" : "⬜"} {p.etappNamn}: {p.titel}
+                </span>
+                {signering ? (
+                  <span className="introduktion__signerad">
+                    Signerad av {signering.signeradAvNamn || "okänd"}, {formateraDatum(signering.tidpunkt)}{" "}
+                    <button type="button" className="knapp--lank" onClick={() => hanteraTaBortSignering(nyckel, p.etappNamn)}>
+                      Ta bort
+                    </button>
+                  </span>
+                ) : tilldelning.uid === currentUser?.uid ? (
+                  // Genomgående krav 28: ingen kan signera sin egen introduktion. Reglerna
+                  // stoppar det ändå, men knappen döljs så det aldrig visas som ett
+                  // misslyckat försök – samma "gränssnittet ska inte bjuda in till något
+                  // reglerna ändå avvisar"-princip som gäller på andra ställen i appen.
+                  <span className="introduktion__signerad">Du kan inte signera din egen introduktion</span>
+                ) : (
+                  <button type="button" className="knapp knapp--liten" onClick={() => hanteraSignera(p)}>
+                    Signera
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </li>
+  );
 }
 
 // Etapp 19a: introduktionsspår. Progress beräknas alltid live utifrån befintliga
@@ -61,6 +152,10 @@ export default function Introduktion() {
 
   const mittSpar = spar.find((s) => s.id === minTilldelning?.sparId);
   const minProgress = mittSpar ? berakraIntroduktionsProgress(mittSpar.etapper, currentUser?.uid, innehallMap) : null;
+  // Etapp 66b: mina egna handledarsignaturer, skilda från min egen lasteAv-kvittering ovan –
+  // de två visas separat i listan nedan, aldrig hopslagna till en enda bock.
+  const { signeringar: minaSigneringar } = useIntroduktionssigneringar(currentUser?.uid);
+  const minSigneringsKarta = new Map(minaSigneringar.map((s) => [s.id, s]));
 
   function laggTillEtapp() {
     setNyaEtapper((e) => [...e, tomEtapp(`Etapp ${e.length + 1}`)]);
@@ -136,13 +231,21 @@ export default function Introduktion() {
             <div className="introduktion__stapel-fyllnad" style={{ width: `${minProgress.procent}%` }} />
           </div>
           <ul className="introduktion__lista">
-            {minProgress.detaljer.map((p, i) => (
-              <li key={i} className={p.klar ? "introduktion__post introduktion__post--klar" : "introduktion__post"}>
-                <span>{p.klar ? "✅" : "⬜"}</span>
-                <span className="introduktion__post-etapp">{p.etappNamn}</span>
-                {p.sokvag ? <Link to={p.sokvag}>{p.titel}</Link> : <span>{p.titel}</span>}
-              </li>
-            ))}
+            {minProgress.detaljer.map((p, i) => {
+              const signering = minSigneringsKarta.get(postNyckel(p.typ, p.id));
+              return (
+                <li key={i} className={p.klar ? "introduktion__post introduktion__post--klar" : "introduktion__post"}>
+                  <span>{p.klar ? "✅" : "⬜"}</span>
+                  <span className="introduktion__post-etapp">{p.etappNamn}</span>
+                  {p.sokvag ? <Link to={p.sokvag}>{p.titel}</Link> : <span>{p.titel}</span>}
+                  {signering && (
+                    <span className="introduktion__signerad">
+                      Signerad av {signering.signeradAvNamn || "okänd"}, {formateraDatum(signering.tidpunkt)}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
@@ -163,18 +266,15 @@ export default function Introduktion() {
                   : null;
                 const efter = progress ? liggerEfter(progress.detaljer, dagarSedan(t.tilldelad)) : false;
                 return (
-                  <li key={t.id} className="admin-lista__rad">
-                    <div>
-                      <strong>{t.namn}</strong> – {t.sparNamn}
-                      {efter && <span className="introduktion__efter-flagga"> ⚠️ Ligger efter</span>}
-                      <div className="admin-lista__email">
-                        {progress ? `${progress.klara} av ${progress.totalt} klara (${progress.procent}%)` : "Spåret är borttaget"}
-                      </div>
-                    </div>
-                    <button className="knapp knapp--liten knapp--sekundar" onClick={() => taBortIntroduktionstilldelning(t.uid)}>
-                      Ta bort tilldelning
-                    </button>
-                  </li>
+                  <PagagendeTilldelning
+                    key={t.id}
+                    tilldelning={t}
+                    progress={progress}
+                    efter={efter}
+                    currentUser={currentUser}
+                    organisationId={organisationId}
+                    onTaBortTilldelning={taBortIntroduktionstilldelning}
+                  />
                 );
               })}
               {allaTilldelningar.length === 0 && <li>Inga pågående introduktioner.</li>}

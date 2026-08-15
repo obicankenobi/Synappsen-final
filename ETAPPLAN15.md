@@ -1,7 +1,7 @@
 # Etapplan 15 – Ansvar som når fram: fyra tillägg på redan byggd grund
 
 *Utkast 2026-08-14, utifrån en idélista från ägaren (nio punkter). Ägaren bad om byggstart för
-66a samma dag, som nu är KLAR – 66b–66d är fortfarande bara föreslagna.*
+66a och 66b samma dag, båda nu KLARA – 66c–66d är fortfarande bara föreslagna.*
 
 **Bakgrund:** ägaren lade fram nio funktionsidéer. En premisskontroll mot faktisk kod
 (genomgående krav 8) gjordes innan planen skrevs, och den flyttade gränsen mellan idéerna
@@ -117,7 +117,7 @@ sessionen.
 
 ---
 
-### 66b – Handledarsignering i introduktionen
+### 66b – ✅ KLAR (2026-08-14) – Handledarsignering i introduktionen
 
 **Idé:** digitalisera de pappersblanketter där en handledare signerar att en introduktionspunkt
 faktiskt gåtts igenom med den nyanställde.
@@ -171,6 +171,51 @@ annat håll.
 **Klart när:** en handledare kan signera en genomgången introduktionspunkt för en annan
 person, signaturen syns skild från personens egen kvittering, och ett försök att signera sin
 egen introduktion avvisas av reglerna – inte av gränssnittet.
+
+**Genomfört (2026-08-14):**
+
+- **Regler exakt som skisserat:** `firestore.rules` fick `introduktionstilldelningar/{uid}/
+  signeringar/{postNyckel}` med genomgående krav 28 uttryckt som `request.auth.uid != uid` i
+  `create`. `update` är helt stängd; `delete` kräver `farHanteraAnslag()`. Läsning: personen
+  själv för sina egna, `farHanteraAnslag()` (VEC/superadmin) för andras i samma organisation –
+  en vanlig kollega utan hanteringsrätt kan alltså SKRIVA en signatur men inte fritt LÄSA
+  någon annans, vilket testades explicit (se nedan).
+- **`postNyckel` valdes deterministisk** (`{typ}:{id}`, samma konvention som `innehallMap` i
+  `Introduktion.jsx` redan använder), inte ett auto-id. Det gör dubbelsignering av samma punkt
+  strukturellt omöjlig: ett andra `setDoc`-försök mot en redan signerad nyckel är ur reglernas
+  perspektiv en UPDATE (dokumentet finns redan), och den är stängd – testat explicit.
+- **UI-avvikelse från planens ordval, medveten:** "en handledare" har ingen egen roll i
+  systemet (bekräftat vid premisskontrollen – ingen `ROLES.HANDLEDARE` finns). Signeringsknappen
+  byggdes därför in i chefsvyns befintliga "Pågående introduktioner"-lista (redan gated till
+  `farHanteraAnslag()`), som en ny expanderbar `PagagendeTilldelning`-radkomponent – en egen
+  komponent krävdes eftersom varje rad behöver sin egen `useIntroduktionssigneringar(uid)`-
+  prenumeration, vilket inte går att anropa inuti en `.map()` (samma mönster som `RutinKort.jsx`
+  redan etablerat: varje rad äger sina egna hooks). **Skriv-regeln är ändå bredare** – vem som
+  helst inloggad (utom kiosk) i organisationen kan signera, inte bara VEC/superadmin – så en
+  framtida bredare läsyta (om en riktig handledarroll införs) kräver ingen regeländring, bara
+  en ny UI-ingång.
+- Personens egen vy (`minTilldelning`/`mittSpar`) visar nu signaturen bredvid varje punkt,
+  hämtad via samma `useIntroduktionssigneringar`-hook med det egna uid:t – separat från
+  `✅`/`⬜`-kvitteringen, aldrig hopslagen, exakt som planerat.
+- **Liten UX-detalj utöver planen:** "Signera"-knappen döljs (ersätts av en förklarande text)
+  om raden råkar gälla den inloggades EGEN tilldelning, så att ett dömt-att-misslyckas
+  regelavvisat försök aldrig visas för användaren.
+- **Ägarbeslutet om gallringstid är INTE taget.** Ingen radering/gallring byggdes – bara
+  `taBortSignering()` för att rätta ett misstag (loggat i revisionsloggen). Frågan är
+  tillagd i `OPPNA-PUNKTER.md`s redan öppna rad om revisionsloggens gallringstid, som samma
+  underliggande fråga, i stället för en ny separat rad.
+- **Obligatorisk följdåtgärd fullgjord, delvis.** `INCIDENT-CHECKLISTA.md` steg 5 uppdaterad
+  med den nya collectionen. `avtal/INCIDENTRESPONSPLAN.md` avsnitt 2 (Definitioner) rördes
+  INTE – samma precedent som Etapp 64/65b, som inte heller uppdaterade det avsnittet: det
+  innehåller generiska definitioner, inte en collection-för-collection-inventering, och ingen
+  detektions-/begränsningsförmåga ändras av den här collectionen.
+
+**Testat:** ny testfil `tests/rules/introduktionssigneringar.test.mjs`, 11 tester (skapande,
+läsning, radering – inkl. att självsignering avvisas, att organisationsisoleringen håller, och
+att en dubblettsignering avvisas). Körda mot Firestore-emulatorn: 11/11 gröna, hela
+`test:rules`-sviten fortsatt grön. `npm run lint`, `npm run build`, `npx vitest run` (212/212)
+gröna. Manuell webbläsarverifiering av det fulla signeringsflödet är inte gjord i den här
+sessionen.
 
 ---
 
@@ -343,7 +388,7 @@ verksamheten, hur återkallas en felaktig broschyr som redan delats ut).
 | Delmål | Vad | Ny regeländring? | Ny datamodell? | Insats |
 |---|---|---|---|---|
 | 66a | Förslag når rutinens ägare (notis) | Nej (alt. a) | Nej | Liten – ✅ **KLAR 2026-08-14 (v5.103.0)** |
-| 66b | Handledarsignering i introduktionen | **Ja** (ny subcollection + självsigneringsspärr) | Ja (subcollection) | Medel |
+| 66b | Handledarsignering i introduktionen | **Ja** (ny subcollection + självsigneringsspärr) | Ja (subcollection) | Medel – ✅ **KLAR 2026-08-14 (v5.104.0)** |
 | 66c | Ansvarsområden på personen | Kanske (om VEC ska få tilldela) | Nytt fält på `users` | Medel |
 | 66d | Driftstörning → kategori + rutinkoppling | **Ja** (`bararForandrarFalt` utökas) | Nya fält på `skiftrapporter` | Liten–medel |
 

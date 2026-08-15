@@ -6,11 +6,14 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-14, version **5.103.0** – byggd och pushad, **ÄNNU INTE
-DEPLOYAD**. v5.103.0 = **Etapp 66a (`ETAPPLAN15.md`) – förslag når rutinens ägare – KLAR**,
-se sektionen "Uppföljning 2026-08-14 (Etapp 66a klar, v5.103.0)" längst ner. Planen
-`ETAPPLAN15.md` (Etapp 66) föreslogs samma dag, se "Uppföljning 2026-08-14 (ETAPPLAN15
-föreslagen, Etapp 66)". Senaste bekräftade produktionsdeploy är **5.102.0** (körning #77, commit
+**Senast uppdaterad:** 2026-08-14, version **5.104.0** – byggd och pushad, **ÄNNU INTE
+DEPLOYAD**. v5.104.0 = **Etapp 66b (`ETAPPLAN15.md`) – handledarsignering i introduktionen –
+KLAR** (ny subcollection `introduktionstilldelningar/{uid}/signeringar`, genomgående krav 28
+uttryckt i `firestore.rules`), se sektionen "Uppföljning 2026-08-14 (Etapp 66b klar,
+v5.104.0)" längst ner. v5.103.0 = Etapp 66a (förslag når rutinens ägare) – KLAR, se
+"Uppföljning 2026-08-14 (Etapp 66a klar, v5.103.0)". Planen `ETAPPLAN15.md` (Etapp 66)
+föreslogs samma dag, se "Uppföljning 2026-08-14 (ETAPPLAN15 föreslagen, Etapp 66)". Senaste
+bekräftade produktionsdeploy är fortfarande **5.102.0** (körning #77, commit
 `2addfef`, deploy.yml på `claude/compassionate-euler-rho0q5`, ny asset-hash
 `assets/index-QGEvHg37.js` bekräftad på `synappsen-final-build.web.app`). v5.102.0 = **Etapp
 65d (`ETAPPLAN14.md`) – öva-läge – KLAR. Med det är HELA Etapp 65 (alla fyra delmål 65a–65d)
@@ -2970,3 +2973,41 @@ nytt fält, ingen ny Firestore-fråga. Version 5.102.0 → **5.103.0**, `andring
 uppdaterad, `ETAPPLAN15.md` (66a klar + "Genomfört"), `CLAUDE.md` (läsordning +
 dokumentkarta). `lint`/`build`/`vitest run` (212/212) gröna. Committat och pushat. **Ingen
 deploy gjord** – inte begärd i den här sessionen.
+
+## Uppföljning 2026-08-14 (Etapp 66b klar, v5.104.0)
+
+Ägaren bad om byggstart för `ETAPPLAN15.md`s delmål 66b (handledarsignering i
+introduktionen). Byggt och klart samma session.
+
+- **`firestore.rules`:** ny subcollection `introduktionstilldelningar/{uid}/signeringar/
+  {postNyckel}`. Genomgående krav 28 (en signatur om en annan människa får aldrig sättas av
+  personen själv) uttryckt som `request.auth.uid != uid` i `create`-regeln – testat explicit,
+  inte bara antaget. `update` stängd helt; `delete` kräver `farHanteraAnslag()`.
+- **`postNyckel` = `{typ}:{id}`, deterministiskt** (samma konvention som `innehallMap`
+  redan använder), vilket gör dubbelsignering strukturellt omöjlig: ett andra skrivförsök mot
+  samma nyckel är ur reglernas perspektiv en UPDATE, och den är stängd.
+- **UI-avvikelse från planens ordval, medveten:** ingen egen "handledare"-roll finns i
+  systemet. Signeringsknappen byggdes in i chefsvyns befintliga "Pågående introduktioner"
+  (redan `farHanteraAnslag()`-gated), som en ny radkomponent `PagagendeTilldelning` – krävdes
+  eftersom varje rad behöver sin egen hook-prenumeration, vilket inte går i en `.map()`.
+  Skriv-regeln själv är bredare (vem som helst inloggad utom kiosk), så en bredare läsyta
+  kräver ingen regeländring senare, bara en ny UI-ingång.
+- Personens egen vy visar signaturen separat från sin egen kvittering, exakt som planerat.
+
+**Ägarbeslutet om gallringstid togs INTE.** Ingen radering byggdes utöver att rätta ett
+misstag (`taBortSignering`, loggat i revisionsloggen). Frågan är sammanslagen med
+`OPPNA-PUNKTER.md`s redan öppna rad om revisionsloggens gallringstid, som samma underliggande
+fråga, i stället för en ny separat rad.
+
+**Obligatorisk följdåtgärd (ny personuppgiftscollection):** `INCIDENT-CHECKLISTA.md` steg 5
+uppdaterad. `avtal/INCIDENTRESPONSPLAN.md` avsnitt 2 rördes INTE – samma precedent som Etapp
+64/65b: avsnittet är generiska definitioner, ingen collection-för-collection-inventering, och
+ingen detektions-/begränsningsförmåga ändras.
+
+Ny testfil `tests/rules/introduktionssigneringar.test.mjs`, 11 tester (självsignering avvisas,
+organisationsisolering, dubblettsignering avvisas, läs-/raderingsbehörighet), körda mot
+emulatorn: 11/11 gröna, hela `test:rules`-sviten fortsatt grön. Version 5.103.0 → **5.104.0**,
+`andringslogg.js` uppdaterad, `ETAPPLAN15.md` (66b klar + "Genomfört"), `CLAUDE.md`
+(läsordning + dokumentkarta), `OPPNA-PUNKTER.md` (gallringsraden utökad).
+`lint`/`build`/`vitest run` (212/212) gröna. Committat och pushat. **Ingen deploy gjord** –
+inte begärd i den här sessionen.
