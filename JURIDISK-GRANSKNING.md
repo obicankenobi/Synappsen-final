@@ -356,7 +356,7 @@ MDR-kvalificering görs per funktion och per **avsett ändamål**, inte per prod
 |---|---|---|
 | Rutindatabas, sök, kvittering, versionshistorik | Kvalificerar sannolikt inte | Lagring, kommunikation och sökning i kundens egna dokument |
 | Förråd, kontakter, anslag, skiftrapport | Kvalificerar inte | Ingen koppling till enskild patient |
-| Checklistläge ("kör rutinen") | **Gränsfall, i dag på rätt sida** | Återger kundens eget godkända innehåll i annan layout. Ingen beräkning, ingen rekommendation. Ett steg är strukturellt begränsat till `{text, bild, varning, timerSekunder}` — spärren sitter i datamodellen, inte i en policy. Det är rätt sätt. **⚠️ Se rättelsen nedan — den sista meningen stämmer inte.** |
+| Checklistläge ("kör rutinen") | **Gränsfall, i dag på rätt sida** | Återger kundens eget godkända innehåll i annan layout. Ingen beräkning, ingen rekommendation. Ett steg begränsas i praktiken till `{text, bild, varning, timerSekunder}`, men spärren sitter i klientformuläret (`RutinFormular.jsx`), inte i regellagret — se rättelsen nedan för varför det är en svagare grund än "strukturellt" antyder. |
 
 > **[PK KONTROLLERAD 2026-08-11 — premissen håller INTE, och det här är rapportens
 > allvarligaste sakfel.]**

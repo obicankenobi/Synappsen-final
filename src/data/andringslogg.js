@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.107.0",
+    datum: "2026-08-15",
+    andringar: [
+      "Säkerhetsskärpning: bilduppladdning (rutinbilagor, förrådsbilder, profilbilder, organisationslogotyp) tillåter inte längre SVG-filer, som annars kan bära dolt inbäddad kod",
+    ],
+  },
+  {
     version: "5.106.0",
     datum: "2026-08-14",
     andringar: [

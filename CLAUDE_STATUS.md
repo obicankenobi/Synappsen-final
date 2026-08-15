@@ -6,10 +6,13 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-14, version **5.106.0** – byggd och pushad, **ÄNNU INTE
-DEPLOYAD**. v5.106.0 = **Etapp 66d (`ETAPPLAN15.md`) – driftstörning kopplad till rutin och
-åtgärd – KLAR. Med det är HELA Etapp 66 (alla fyra delmål 66a–66d) byggd**, se sektionen
-"Uppföljning 2026-08-14 (Etapp 66d klar, v5.106.0 – Etapp 66 helt byggd)" längst ner.
+**Senast uppdaterad:** 2026-08-15, version **5.107.0** – byggd, pushad och **DEPLOYAD**
+(körning #78 deployade v5.106.0, commit `ef7c841`, verifierat via asset-hash mot skarp URL;
+v5.107.0 är en efterföljande commit, deploy inte ännu triggad för den – se "Uppföljning
+2026-08-15" längst ner för de fyra ägarbesluten och SVG-säkerhetsfixen). v5.106.0 = **Etapp
+66d (`ETAPPLAN15.md`) – driftstörning kopplad till rutin och åtgärd – KLAR. Med det är HELA
+Etapp 66 (alla fyra delmål 66a–66d) byggd OCH deployad**, se sektionen "Uppföljning 2026-08-14
+(Etapp 66d klar, v5.106.0 – Etapp 66 helt byggd)" längst ner.
 v5.105.0 = Etapp 66c (ansvarsområden) – KLAR, se "Uppföljning 2026-08-14 (Etapp 66c klar,
 v5.105.0)". v5.104.0 = Etapp 66b (handledarsignering) – KLAR, se "Uppföljning 2026-08-14
 (Etapp 66b klar, v5.104.0)". v5.103.0 = Etapp 66a (förslag når rutinens ägare) – KLAR, se
@@ -3083,3 +3086,67 @@ klar), `CLAUDE.md` (läsordning + dokumentkarta, "delvis byggd" → "helt klar, 
 deployad"). `lint`/`build`/`vitest run` (212/212) gröna. Committat och pushat. **Ingen
 deploy gjord** – inte begärd i den här sessionen. Nästa steg: en deploy skulle ta med sig
 hela Etapp 66 (66a–66d) i ett svep.
+
+## Uppföljning 2026-08-15 (deploy bekräftad + fyra ägarbeslut + SVG-säkerhetsfix, v5.107.0)
+
+**Deploy av Etapp 66 bekräftad.** GitHub Actions-workflowen `deploy.yml` triggades och
+avslutades med `conclusion: "success"` (körning #78, id `31914460825`, commit `ef7c841`,
+2026-08-15 23:20–23:24 UTC). Verifierat live via
+`curl -s https://synappsen-final-build.web.app/ | grep -o 'assets/index-[A-Za-z0-9_-]*\.js'`
+mot skarp URL. Med det är HELA Etapp 66 (66a–66d) både byggd och deployad.
+
+**Ägarens fyra svar på de öppna ägarbeslutsfrågorna i `OPPNA-PUNKTER.md`** (ställda direkt
+efter deploy-triggern, besvarade medan deployen kördes) – samtliga fyra loggade i
+`BESLUTSLOGG.md` och borttagna ur `OPPNA-PUNKTER.md`:
+
+1. **GCP-faktureringsexport till BigQuery:** ägaren svarade "ja, aktivera". Aktiveringen sker
+   i GCP-konsolen, inte i kod – ingen bygg gjord, det är ägarens egen åtgärd. Låser upp Etapp
+   32b (tre kvarvarande larmtyper) och 48c (täckningsbidrag per kund) den dag exporten har
+   körts en tid.
+2. **Revisionsloggens/introduktionssigneringarnas gallringstid:** ägaren svarade "följ
+   rekommendationen" → 3 år huvudregel, 5 år för säkerhetsrelevanta händelsetyper, legal hold
+   vid pågående ärende. **Beslutet är taget men INTE byggt** – gallring kräver segmentering av
+   hashkedjan (`raknaHash()`/`verifieraRevisionskedja()` bygger annars om hela kedjan och
+   larmar falskt vid varje gallrad post). Det är ett separat, riktigt bygge som inte startades
+   i den här sessionen – kräver ett eget uttryckligt byggbeslut.
+3. **Checklistestegens fältuppsättning (MDR-formuleringen):** delegerad till mig ("välj det du
+   anser vara bäst"). Valde att bara rätta formuleringen, inte bygga en serverside `hasOnly`-
+   spärr nu. Grep över hela repot efter de aktuella fraserna visade att den felaktiga
+   "strukturellt begränsat"-formuleringen bara fanns på ETT ställe utanför granskningens egen
+   rättelseruta: `JURIDISK-GRANSKNING.md` §6.2:s tabellcell (rad 359). De andra fyra träffarna
+   (`ETAPPLAN3.md`, `ETAPPLAN4.md`, `SAKERHETSRAPPORT.md`, samt gårdagens egen rättelsetext i
+   den här filen) beskriver bara fältformen neutralt utan att påstå regelnivå-enforcement –
+   rördes inte. Tabellcellen skrevs om för att inte längre påstå att spärren "sitter i
+   datamodellen". Ingen kodändring.
+4. **`storage.rules` och SVG:** delegerad till mig (osäker, ville ha rekommendation). Läste
+   igenom alla bilduppladdningsvägar (`arBild()`/`arBildEllerPdf()`) och alla renderingsställen
+   (`grep <img` i hela `src/`) – bekräftade att ALL bildvisning sker via `<img>`-taggar, ingen
+   `<object>`/`<iframe>`/`<embed>`, vilket redan hindrar skriptkörning i normal användning. Men
+   en direkt-navigering till en Storage-nedladdningslänk skulle ändå kunna trigga inbäddad
+   SVG-JavaScript, och ingen bekräftad affärsnytta av SVG fanns (kommentaren i koden
+   spekulerade bara om organisationslogotypen). **Rekommendation: stäng SVG helt**, byggd i
+   samma commit.
+
+**SVG-fixen, i detalj:** `arBild()`/`arBildEllerPdf()` i `storage.rules` utesluter nu
+uttryckligen `image/svg+xml` (tidigare matchade `image/.*` det också). **Ett existerande test
+i `tests/rules/storage.test.mjs` visade sig ha klarat sig av fel anledning** – det använde
+`volA` (roll "vol") mot `forradsartiklar/`-sökvägen, som redan innan den här fixen krävde
+rollen "forradesansvarig"; testet "bevisade" alltså aldrig SVG-spärren, bara att volA saknade
+förrådsbehörighet. Upptäcktes genom att isolera regeln i en minimal testrules-fil och verifiera
+att `image/.*` FAKTISKT matchar `image/svg+xml` i emulatorn (det gör den). Fixat: lade till en
+`forradA`-användare med rätt roll i testuppsättningen och bytte testet till den, plus tre nya
+tester som bevisar SVG-spärren på rutinbilagor, profilbilder och organisationslogotyp.
+`test:storage` 24/24 gröna (tidigare 21/21).
+
+**Övervägde men rörde inte:** `avtal/INCIDENTRESPONSPLAN.md`/`INCIDENT-CHECKLISTA.md` – SVG-
+fixen ändrar inte vem som får agera eller någon detektions-/begränsningsförmåga, bara vilken
+filtyp som accepteras. `avtal/PUB-AVTAL-MALL.md` p. 6:s "raderas ALDRIG"-text för revisionsloggen
+rördes INTE – gallringsbeslutet är taget men inte byggt, så avtalstexten skulle bli osann om den
+ändrades i förväg.
+
+**Genomfört:** `storage.rules`, `tests/rules/storage.test.mjs` (24 tester), `JURIDISK-GRANSKNING.md`
+§6.2, `OPPNA-PUNKTER.md` (fyra rader borttagna), `BESLUTSLOGG.md` (fyra nya rader), `CLAUDE.md`
+(läsordning + dokumentkarta, deploy-status rättad), `ETAPPLAN15.md` (toppstycke, deploy-status
+rättad), `src/data/andringslogg.js`. Version 5.106.0 → **5.107.0**. `test:storage` kört och grönt
+(24/24). `lint`/`build`/`vitest run` körs innan commit. Inte deployat än – v5.107.0 väntar på
+nästa deploy-tillfälle.

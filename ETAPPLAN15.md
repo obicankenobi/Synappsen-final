@@ -1,8 +1,9 @@
 # Etapplan 15 – Ansvar som når fram: fyra tillägg på redan byggd grund
 
 *Utkast 2026-08-14. Samtliga fyra delmål (66a–66d) är nu KLARA, byggda ett i taget samma dag
-på ägarens uttryckliga begäran – se respektive delmål nedan för vad som genomfördes och
-eventuella avvikelser mot ursprungsskisserna.*
+på ägarens uttryckliga begäran, och deployade 2026-08-15 (körning #78, commit `ef7c841`) – se
+respektive delmål nedan för vad som genomfördes och eventuella avvikelser mot
+ursprungsskisserna.*
 
 **Bakgrund:** ägaren lade fram nio funktionsidéer. En premisskontroll mot faktisk kod
 (genomgående krav 8) gjordes innan planen skrevs, och den flyttade gränsen mellan idéerna

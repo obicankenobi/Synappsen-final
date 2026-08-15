@@ -45,16 +45,21 @@ service firebase.storage {
     // matchar vad klientens egna <input accept> redan begränsar till (se
     // RutinFormular.jsx/LaddaUpp.jsx/storage.js) – det här är bara serverbekräftelsen av
     // samma regel, inte en ny.
-    // Säkerhetsgranskning 2026-08-11: `arBild()` (image/.*) matchar ÄVEN image/svg+xml, som
-    // fortfarande är den klassiska vägen till lagrad XSS från en lagringsdomän – en tidigare
-    // version av den här kommentaren gav intrycket att SVG var stängt, vilket inte stämmer.
-    // Kvarstår som ett ÖPPET produktbeslut (organisationslogotypen kan rimligen vilja tillåta
-    // SVG), se OPPNA-PUNKTER.md.
+    // Ägarbeslut 2026-08-15 (se BESLUTSLOGG.md): SVG stängs uttryckligen. `image/.*` matchade
+    // tidigare ÄVEN image/svg+xml, den klassiska vägen till lagrad XSS från en lagringsdomän –
+    // all bildvisning i appen sker via <img>-taggar (verifierat, ingen <object>/<iframe>/
+    // <embed> mot en uppladdad fil), vilket i sig hindrar skriptkörning, men en användare som
+    // navigerar direkt till Storage-nedladdningslänken skulle ändå kunna trigga den. Ingen
+    // bekräftad affärsnytta av SVG vägde upp risken, så den stängs tills en konkret
+    // sanering/vitlistning byggs.
     function arBildEllerPdf() {
-      return request.resource.contentType.matches('image/.*') || request.resource.contentType == 'application/pdf';
+      return (request.resource.contentType.matches('image/.*')
+                && request.resource.contentType != 'image/svg+xml')
+             || request.resource.contentType == 'application/pdf';
     }
     function arBild() {
-      return request.resource.contentType.matches('image/.*');
+      return request.resource.contentType.matches('image/.*')
+              && request.resource.contentType != 'image/svg+xml';
     }
 
     match /rutiner/{omrade}/{rutinId}/{filnamn} {

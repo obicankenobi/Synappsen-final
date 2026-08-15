@@ -50,6 +50,7 @@ async function main() {
     await setDoc(doc(db, "users", "volA"), { role: "vol", organisationId: "orgA" });
     await setDoc(doc(db, "users", "volB"), { role: "vol", organisationId: "orgB" });
     await setDoc(doc(db, "users", "superA"), { role: "superadmin", organisationId: "orgA" });
+    await setDoc(doc(db, "users", "forradA"), { role: "forradesansvarig", organisationId: "orgA" });
     await setDoc(doc(db, "rutiner", "rutinA"), { omrade: "kliniskt-stod", organisationId: "orgA" });
     await setDoc(doc(db, "forradsartiklar", "artikelA"), { forrad: "Engångsförrådet", organisationId: "orgA" });
 
@@ -69,6 +70,7 @@ async function main() {
   const volAStorage = testEnv.authenticatedContext("volA").storage();
   const volBStorage = testEnv.authenticatedContext("volB").storage();
   const superAStorage = testEnv.authenticatedContext("superA").storage();
+  const forradAStorage = testEnv.authenticatedContext("forradA").storage();
 
   console.log("\nrutiner/{omrade}/{rutinId}/{filnamn} – organisationsisolering");
   await test("volA (samma org som rutinen) kan läsa bilden", () =>
@@ -128,10 +130,14 @@ async function main() {
   );
 
   console.log("\nEtapp 35c: innehållstyp och filstorlek begränsas nu server-side");
-  await test("volA kan INTE ladda upp en SVG som en förrådsbild (fel contentType)", () =>
+  // OBS (2026-08-15): det här testet använde tidigare volA (roll "vol", som INTE får skriva
+  // till forradsartiklar/ – kräver "forradesansvarig") och klarade sig därför alltid, men av
+  // fel anledning (obehörig roll, inte contentType). Bytt till forradA, som ÄR behörig för
+  // sökvägen, så att testet faktiskt bevisar SVG-spärren nedan (Ägarbeslut 2026-08-15).
+  await test("forradA (behörig) kan INTE ladda upp en SVG som en förrådsbild (fel contentType)", () =>
     assertFails(
       uploadBytes(
-        ref(volAStorage, "forradsartiklar/Engångsförrådet/artikelA/bild.svg"),
+        ref(forradAStorage, "forradsartiklar/Engångsförrådet/artikelA/bild.svg"),
         new Uint8Array([1, 2, 3]),
         { contentType: "image/svg+xml" }
       )
@@ -179,6 +185,35 @@ async function main() {
         ref(volAStorage, "avatarer/volA/stor.jpg"),
         new Uint8Array(6 * 1024 * 1024),
         { contentType: "image/jpeg" }
+      )
+    )
+  );
+
+  console.log("\nÄgarbeslut 2026-08-15: SVG stängs på alla bilduppladdningsvägar (lagrad XSS)");
+  await test("volA kan INTE ladda upp en SVG som en rutinbilaga", () =>
+    assertFails(
+      uploadBytes(
+        ref(volAStorage, "rutiner/kliniskt-stod/rutinA/bild.svg"),
+        new Uint8Array([1, 2, 3]),
+        { contentType: "image/svg+xml" }
+      )
+    )
+  );
+  await test("volA kan INTE ladda upp en SVG som sin profilbild", () =>
+    assertFails(
+      uploadBytes(
+        ref(volAStorage, "avatarer/volA/bild.svg"),
+        new Uint8Array([1, 2, 3]),
+        { contentType: "image/svg+xml" }
+      )
+    )
+  );
+  await test("superA kan INTE ladda upp en SVG som organisationens logotyp", () =>
+    assertFails(
+      uploadBytes(
+        ref(superAStorage, "organisationer/orgA/logotyp/bild.svg"),
+        new Uint8Array([1, 2, 3]),
+        { contentType: "image/svg+xml" }
       )
     )
   );

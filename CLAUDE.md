@@ -24,14 +24,14 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 2. **`OPPNA-PUNKTER.md`** – läs ANDRA. Ett samlat register över allt som väntar på en människa
    eller ett beslut (inte på kapacitet), tvärs över alla planfiler. Ersätter behovet av att
    läsa statusblocken i punkt 5–7 nedan var för sig.
-3. **`ETAPPLAN15.md`** – **HELT KLAR, INTE ÄNNU DEPLOYAD** (Etapp 66: fyra tillägg på
+3. **`ETAPPLAN15.md`** – **HELT KLAR OCH DEPLOYAD** (Etapp 66: fyra tillägg på
    redan byggd grund – förslag når rutinens ägare, handledarsignering i introduktionen,
    ansvarsområden på personen, driftstörning kopplad till rutin). Alla fyra delmål 66a–66d
-   klara 2026-08-14 (v5.103.0–v5.106.0), byggda ett i taget på ägarens uttryckliga begäran.
-   Ingen del var juridiskt blockerad. 66b lade till en ny personuppgiftscollection
-   (`introduktionstilldelningar/{uid}/signeringar`) och en ny öppen fråga om gallringstid,
-   sammanslagen med revisionsloggens redan öppna rad i `OPPNA-PUNKTER.md` – bygg ingen
-   radering av signaturer förrän den frågan är avgjord. **Läs planens premisskontroll
+   klara 2026-08-14 (v5.103.0–v5.106.0), byggda ett i taget på ägarens uttryckliga begäran, och
+   deployade 2026-08-15 (körning #78, commit `ef7c841`). Ingen del var juridiskt blockerad.
+   66b lade till en ny personuppgiftscollection (`introduktionstilldelningar/{uid}/signeringar`)
+   och en gallringsfråga som sedan 2026-08-15 är avgjord (3/5 år, se `BESLUTSLOGG.md`) – men
+   INTE byggd än (kräver hashkedjesegmentering, ett separat bygge). **Läs planens premisskontroll
    först:** av ägarens nio ursprungliga idéer var tre redan byggda och en byggde på en
    premiss som inte stämde (det finns ingen "medicinteknikpanel" i koden). Planens "Vad jag
    INTE föreslår" innehåller tre idéer som medvetet skjutits upp – två av dem är nu frågor
@@ -102,7 +102,7 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 | `ETAPPLAN12.md` | Etapp 59–63: "Från demo till drift" – rätta kända fel, mäta prestanda mot en realistisk datamängd, underhållbarhet, göra befintlig mätning åtgärdbar, förenkla de öppna punkterna | **HELT KLAR OCH DEPLOYAD** (antagen 2026-08-10, avslutad 2026-08-11, v5.96.0, körning #74). Historisk men korrekt. |
 | `ETAPPLAN13.md` | Etapp 64: ett "baspaket" av nationella referenser (t.ex. bedömningsinstrument) | **ANTAGEN 2026-08-11** (se `BESLUTSLOGG.md`). Beslutspunkt 2 (leveransmodell) och 3 (förvaltning/pris) är avgjorda 2026-08-11; **beslutspunkt 1 (MDR, upphovsrätt och sedan 2026-08-12 varumärke) är kvar och blockerar allt riktigt innehåll**. En scaffolding-fas är byggd i v5.97.0 (`baspaketreferenser`, plattformsadmin-bara, inget innehållsfält). Kvarvarande steg: kommissionera bedömningen efter `JURIDISK-GRANSKNING.md` §18:s frågelista (inte planens egen kortare lista), se `OPPNA-PUNKTER.md`. Granskad tre gånger (2026-08-11 × 2, 2026-08-12 mot den bredare juridiska granskningen), se planens egen "Granskning". |
 | `ETAPPLAN14.md` | Etapp 65: fyra vardagsfunktioner med wow-faktor – uppläsning (65a), "ändrat sedan du läste" (65b), synonymsökning (65c), öva-läge (65d) | **HELT KLAR OCH DEPLOYAD** (antagen och genomförd 2026-08-13, v5.99.0–v5.102.0, körning #77). 65b inkluderade en regeländring (`versioner`-läsrätt vidgad, `farLasaVersioner()`). Historisk men korrekt. |
-| `ETAPPLAN15.md` | Etapp 66: fyra tillägg på redan byggd grund – förslag når rutinens ägare (66a), handledarsignering i introduktionen (66b), ansvarsområden på personen (66c), driftstörning kopplad till rutin (66d) | **HELT KLAR, INTE ÄNNU DEPLOYAD** (v5.103.0–v5.106.0). 66a extraherade ägarroutingen till `arAnsvarigForRutin()` i `utils/rutinHjalp.js`, återanvänd av 66c. 66b: ny subcollection `introduktionstilldelningar/{uid}/signeringar`, genomgående krav 28 (`request.auth.uid != uid`) – gallringstid EJ beslutad, sammanslagen med revisionsloggens öppna rad i `OPPNA-PUNKTER.md`. 66c: nytt fält `users/{uid}.ansvarsomraden`, ny adminvy "Vem ansvarar för vad". 66d: `skiftrapporter` fick `kategori`/`rutinId`, en fast kategorilista validerad server-side, och en ny "hela historiken"-vy. Ingen del var juridiskt blockerad. De uppskjutna idéerna från premisskontrollen finns i planens "Vad jag INTE föreslår" + `JURIDISK-GRANSKNING.md` §18 frågorna 20–22. |
+| `ETAPPLAN15.md` | Etapp 66: fyra tillägg på redan byggd grund – förslag når rutinens ägare (66a), handledarsignering i introduktionen (66b), ansvarsområden på personen (66c), driftstörning kopplad till rutin (66d) | **HELT KLAR OCH DEPLOYAD** (v5.103.0–v5.106.0, deployad 2026-08-15, körning #78). 66a extraherade ägarroutingen till `arAnsvarigForRutin()` i `utils/rutinHjalp.js`, återanvänd av 66c. 66b: ny subcollection `introduktionstilldelningar/{uid}/signeringar`, genomgående krav 28 (`request.auth.uid != uid`) – gallringstid AVGJORD 2026-08-15 (3/5 år, se `BESLUTSLOGG.md`) men inte byggd. 66c: nytt fält `users/{uid}.ansvarsomraden`, ny adminvy "Vem ansvarar för vad". 66d: `skiftrapporter` fick `kategori`/`rutinId`, en fast kategorilista validerad server-side, och en ny "hela historiken"-vy. Ingen del var juridiskt blockerad. De uppskjutna idéerna från premisskontrollen finns i planens "Vad jag INTE föreslår" + `JURIDISK-GRANSKNING.md` §18 frågorna 20–22. |
 | `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast som INTE antogs när `ETAPPLAN6.md` valdes | **Utkast, ej antagna.** Arkiverade – se `FRAMTIDSPLAN.md` för omprövningsvillkor per alternativ. |
 | `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv, LEVANDE** – händelsestyrd underhållsregel, se "Obligatorisk underhållsregel: CLAUDE_STATUS.md" under arbetsmönstren nedan. |
 | `src/data/andringslogg.js` | Användarvänd ändringslogg, visas i appen (`/nyheter`) | **Aktiv** – lägg till en post vid VARJE release. |
