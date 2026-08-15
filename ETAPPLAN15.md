@@ -1,6 +1,7 @@
 # Etapplan 15 – Ansvar som når fram: fyra tillägg på redan byggd grund
 
-*Utkast 2026-08-14, utifrån en idélista från ägaren (nio punkter). FÖRESLAGEN, EJ ANTAGEN.*
+*Utkast 2026-08-14, utifrån en idélista från ägaren (nio punkter). Ägaren bad om byggstart för
+66a samma dag, som nu är KLAR – 66b–66d är fortfarande bara föreslagna.*
 
 **Bakgrund:** ägaren lade fram nio funktionsidéer. En premisskontroll mot faktisk kod
 (genomgående krav 8) gjordes innan planen skrevs, och den flyttade gränsen mellan idéerna
@@ -19,7 +20,7 @@ en gång tidigare, och en tredje är juridiskt blockerad av samma skäl som Etap
 | Idé i ägarens lista | Vad koden faktiskt visar |
 |---|---|
 | "Rutinhål-detektor – behåll funktionen i sin helhet" | ✅ **Redan helt byggd.** `SokFalt.jsx` loggar varje sökning på ≥3 tecken som ger noll träffar till collectionen `sokloggar` (läsbar för superadmin), med `hittaPersonnummer()`-spärr så att ett personnummer aldrig kan hamna där. **Inget att bygga.** Den verkliga frågan är om någon LÄSER datan – samma "gör befintlig mätning åtgärdbar"-tema som `ETAPPLAN12.md` Etapp 62. |
-| "Förbättringsförslag till ansvariga" | ⚠️ **~80 % redan byggt.** `ForeslaAndringModal.jsx` (inkl. markering av ett stycke direkt i texten), `skapaForslag()`, `MinaForslag.jsx`, godkännandekön och "Ni sa, vi gjorde" finns alla. `rutin.agare` finns redan som fält. **Enda genuina luckan: ingen notis går till den ansvariga.** Byggs som 66a. |
+| "Förbättringsförslag till ansvariga" | ⚠️ **~90 % redan byggt** (rättat vid byggstart, se 66a:s "Genomfört" – den första premisskontrollen sa "~80 %" och "ingen notis går till den ansvariga", vilket var oprecist). `ForeslaAndringModal.jsx`, `skapaForslag()`, `MinaForslag.jsx`, godkännandekön och "Ni sa, vi gjorde" finns alla – **och en notis om nya förslag finns redan**, men går till ALLA redaktörer för området i stället för till rutinens `agare`. **Luckan är routingen, inte notisen.** Byggs som 66a. |
 | "Incident- och driftstörningslogg – behåll i sin helhet" | ⚠️ **Delvis byggd.** `skiftrapporter` gör redan precis det (hookens egen kommentar: "vattenläcka i taket", "slut på sutur-set"), plus `bristanmalningar` för förrådet. **Luckan är kopplingen till rutiner och kategorisering.** Byggs som 66d. |
 | "Ansvarsområden – kan utökas för att täcka fler områden än medicinteknik" | ❌ **Premissen stämmer inte.** Ordet "medicinteknik" förekommer **inte en enda gång** i `src/` eller `functions/`. Det finns ingen medicinteknikpanel att utöka. Det som finns är `rutin.agare` – ansvar per RUTIN, inte per OMRÅDE, och inte synligt i användarprofilen. Idén är alltså ett nybygge, inte en utökning. Byggs som 66c, med den skillnaden tydliggjord. |
 
@@ -45,11 +46,10 @@ funktioner.
 
 Fyra oberoende delmål, byggbara i valfri ordning och var för sig releasebara.
 
-### 66a – Ett förbättringsförslag når fram till den som äger rutinen
+### 66a – ✅ KLAR (2026-08-14) – Ett förbättringsförslag når fram till den som äger rutinen
 
-**Idé:** i dag kan vem som helst föreslå en ändring på en rutin, men ingen får veta att
-förslaget kommit in – det ligger och väntar tills en redaktör råkar öppna godkännandekön.
-Lägg till en notis riktad till rutinens `agare`.
+**Idé:** ett förslag på en rutin med en utpekad ansvarig ska nå just den personen, inte
+drunkna i en lista hos alla redaktörer för hela området.
 
 **Premisskontroll (krav 8) – ett fynd som formar designen:**
 - `rutin.agare` finns redan och sätts i `RutinFormular.jsx` som `{ typ: "roll" | "person",
@@ -82,6 +82,38 @@ Lägg till en notis riktad till rutinens `agare`.
 
 **Klart när:** en VÖL som står som `agare` på en rutin ser ett nytt ändringsförslag på den
 rutinen i sin notisklocka, utan att först behöva öppna godkännandekön.
+
+**Genomfört (2026-08-14) – med en rättelse av planens egen premisskontroll:**
+
+- **Premisskontrollen ovan var oprecis och rättades vid byggstart.** Den påstod att "ingen
+  notis går till den ansvariga". I själva verket fanns notisen redan (`forslagposter` i
+  `useNotiser.js`, Etapp 26c) – den gick bara till ALLA redaktörer för området via
+  `farGranskaKlinisktStod`/`farGranskaAdministration`, utan att titta på `rutin.agare`.
+  **Luckan var alltså routingen, inte notisen**, vilket gjorde delmålet mindre än planerat.
+  Rättat i tabellen ovan; noteras här eftersom felet annars ärvs av nästa läsare.
+- **En dubblering upptäcktes och togs bort på köpet.** Exakt samma ägarroutinglogik låg
+  inline-duplicerad på två ställen i `useNotiser.js` (granskningspåminnelser från Etapp 21a,
+  källvarningar från Etapp 21c). När ändringsförslagen blev ett tredje anropsställe
+  extraherades den till `arAnsvarigForRutin()` i `src/utils/rutinHjalp.js` – en plats, 8 nya
+  enhetstester, och de två befintliga anropsställena ersatta med `.filter(arAnsvarig)`. Tre
+  kopior av samma regel hade annars glidit isär förr eller senare.
+- **Två små förbättringar utöver planen:** notisen länkar nu till själva rutinen
+  (`#rutin-{id}`) i stället för bara till områdessidan – samma ankarmönster som
+  granskningsposter/kallvarningposter redan använde – och texten får tillägget
+  "(du är ansvarig)" när notisen beror på ägarskap, precis som granskningspåminnelsen redan
+  gjorde. En `Map` för rutinuppslagning ersätter en `find()` per förslag.
+- **Alternativ (a) valdes**, som planen rekommenderade: ingen regeländring. Begränsningen att
+  en namngiven ägare utan redigeringsrätt inte kan notifieras är dokumenterad som en kommentar
+  direkt i `useNotiser.js`, så att den inte misstas för en bugg.
+- Faller tillbaka på det gamla beteendet (alla redaktörer för området) om rutinen inte hittas
+  i den laddade listan – annars hade notisen kunnat försvinna tyst för alla.
+
+**Testat:** 8 nya enhetstester för `arAnsvarigForRutin` (roll, person, fallback, null-hantering,
+samt att en utpekad ägare EXKLUDERAR andra redaktörer även när de får redigera området).
+`npm run lint`, `npm run build`, `npx vitest run` (212/212) gröna. Ingen ändring i
+`firestore.rules`/`storage.rules`/Cloud Functions, ingen ny collection, inget nytt fält, ingen
+ny Firestore-fråga. Manuell webbläsarverifiering av notisflödet är inte gjord i den här
+sessionen.
 
 ---
 
@@ -310,7 +342,7 @@ verksamheten, hur återkallas en felaktig broschyr som redan delats ut).
 
 | Delmål | Vad | Ny regeländring? | Ny datamodell? | Insats |
 |---|---|---|---|---|
-| 66a | Förslag når rutinens ägare (notis) | Nej (alt. a) | Nej | Liten |
+| 66a | Förslag når rutinens ägare (notis) | Nej (alt. a) | Nej | Liten – ✅ **KLAR 2026-08-14 (v5.103.0)** |
 | 66b | Handledarsignering i introduktionen | **Ja** (ny subcollection + självsigneringsspärr) | Ja (subcollection) | Medel |
 | 66c | Ansvarsområden på personen | Kanske (om VEC ska få tilldela) | Nytt fält på `users` | Medel |
 | 66d | Driftstörning → kategori + rutinkoppling | **Ja** (`bararForandrarFalt` utökas) | Nya fält på `skiftrapporter` | Liten–medel |

@@ -41,6 +41,21 @@ function tillMillis(tidstampel) {
   return new Date(tidstampel).getTime();
 }
 
+// Etapp 66a: vem en rutinbunden påminnelse ska riktas till. Har rutinen en ägare
+// (`agare`-fältet, satt i RutinFormular.jsx) går notisen ENBART dit – en specifik person
+// eller alla med en viss roll. Saknas ägare gäller det äldre beteendet: alla som får
+// redigera rutinens område.
+//
+// Logiken fanns tidigare inlineduplicerad på två ställen i useNotiser.js
+// (granskningspåminnelser, källvarningar). Den extraherades hit när ett TREDJE anropsställe
+// tillkom (ändringsförslag), så att regeln finns på en enda plats och kan enhetstestas –
+// annars är det bara en tidsfråga innan de tre kopiorna glider isär.
+export function arAnsvarigForRutin(rutin, { uid, role, farRedigeraOmradet }) {
+  if (rutin?.agare?.typ === "roll") return role === rutin.agare.roll;
+  if (rutin?.agare?.typ === "person") return uid === rutin.agare.uid;
+  return Boolean(farRedigeraOmradet);
+}
+
 // Etapp 65b: badge-synlighet för "ändrat sedan du läste den" – ren klientberäkning på redan
 // laddad data (rutin.senasteVasentligaAndring finns redan på varje rutinobjekt), ingen ny
 // Firestore-fråga. Återanvänder samma "väsentlig ändring"-signal Etapp 47b redan etablerade

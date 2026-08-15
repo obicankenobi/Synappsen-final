@@ -6,10 +6,11 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-14 – **ny föreslagen (ej antagen) plan `ETAPPLAN15.md`
-(Etapp 66: fyra tillägg på redan byggd grund)**, se sektionen "Uppföljning 2026-08-14
-(ETAPPLAN15 föreslagen, Etapp 66)" längst ner. Ingen kod, ingen versionsbump, ingen deploy i
-den omgången. Koden är fortfarande **5.102.0 – DEPLOYAD** (körning #77, commit
+**Senast uppdaterad:** 2026-08-14, version **5.103.0** – byggd och pushad, **ÄNNU INTE
+DEPLOYAD**. v5.103.0 = **Etapp 66a (`ETAPPLAN15.md`) – förslag når rutinens ägare – KLAR**,
+se sektionen "Uppföljning 2026-08-14 (Etapp 66a klar, v5.103.0)" längst ner. Planen
+`ETAPPLAN15.md` (Etapp 66) föreslogs samma dag, se "Uppföljning 2026-08-14 (ETAPPLAN15
+föreslagen, Etapp 66)". Senaste bekräftade produktionsdeploy är **5.102.0** (körning #77, commit
 `2addfef`, deploy.yml på `claude/compassionate-euler-rho0q5`, ny asset-hash
 `assets/index-QGEvHg37.js` bekräftad på `synappsen-final-build.web.app`). v5.102.0 = **Etapp
 65d (`ETAPPLAN14.md`) – öva-läge – KLAR. Med det är HELA Etapp 65 (alla fyra delmål 65a–65d)
@@ -2935,3 +2936,37 @@ redigeras. **Regeln är inte bruten av misstag** – den gäller planernas subst
 ovanför "Varför inte slå ihop dessa till en fil?", så att en framtida session inte tolkar
 git-historiken som en regelöverträdelse. **Filnamnen är avsiktligt oförändrade** – varje
 korsreferens i projektet pekar på filnamnet, inte på rubriken.
+
+## Uppföljning 2026-08-14 (Etapp 66a klar, v5.103.0)
+
+Ägaren bad om byggstart för `ETAPPLAN15.md`s delmål 66a (förbättringsförslag når rutinens
+ansvariga). Byggt och klart samma session.
+
+**Premisskontrollen vid byggstart rättade planens egen premisskontroll.** Planen påstod att
+"ingen notis går till den ansvariga". Fel: notisen fanns redan (`forslagposter` i
+`useNotiser.js`, Etapp 26c) – den gick bara till ALLA redaktörer för området utan att titta på
+`rutin.agare`. **Luckan var routingen, inte notisen**, vilket gjorde delmålet mindre än
+planerat. Rättat både i planens tabell och i dess "Genomfört"-avsnitt, eftersom ett oprättat
+fel i en premisskontroll annars ärvs av nästa läsare.
+
+**En dubblering hittades och togs bort på köpet.** Exakt samma ägarroutinglogik låg
+inline-duplicerad på TVÅ ställen i `useNotiser.js` (granskningspåminnelser Etapp 21a,
+källvarningar Etapp 21c). När ändringsförslagen skulle bli det tredje anropsstället
+extraherades regeln till `arAnsvarigForRutin()` i `src/utils/rutinHjalp.js` – en plats, 8 nya
+enhetstester, och båda de gamla anropsställena ersatta med `.filter(arAnsvarig)`. Tre kopior
+av samma regel hade glidit isär förr eller senare.
+
+Två små förbättringar utöver planen: notisen länkar nu till själva rutinen (`#rutin-{id}`) i
+stället för bara områdessidan, och texten får "(du är ansvarig)" när den beror på ägarskap –
+båda mönster som granskningspåminnelsen redan använde.
+
+Alternativ (a) valdes som planen rekommenderade: **ingen regeländring**. Begränsningen att en
+namngiven ägare utan redigeringsrätt inte kan notifieras (regelmotorn nekar hela listningen
+för icke-redaktörer) är dokumenterad som en kommentar direkt i `useNotiser.js`, så att den
+inte misstas för en bugg.
+
+Ingen ändring i `firestore.rules`/`storage.rules`/Cloud Functions, ingen ny collection, inget
+nytt fält, ingen ny Firestore-fråga. Version 5.102.0 → **5.103.0**, `andringslogg.js`
+uppdaterad, `ETAPPLAN15.md` (66a klar + "Genomfört"), `CLAUDE.md` (läsordning +
+dokumentkarta). `lint`/`build`/`vitest run` (212/212) gröna. Committat och pushat. **Ingen
+deploy gjord** – inte begärd i den här sessionen.

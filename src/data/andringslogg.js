@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.103.0",
+    datum: "2026-08-14",
+    andringar: [
+      "Ett nytt ändringsförslag på en rutin med utpekad ansvarig går nu till just den personen i notisklockan, i stället för till alla redaktörer för hela området – och notisen tar dig direkt till rutinen",
+    ],
+  },
+  {
     version: "5.102.0",
     datum: "2026-08-13",
     andringar: [

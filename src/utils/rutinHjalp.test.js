@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { borGranskas, narmarSigGranskning, arUtgangen, arArkiverad, andradSedanLasning } from "./rutinHjalp";
+import {
+  borGranskas,
+  narmarSigGranskning,
+  arUtgangen,
+  arArkiverad,
+  andradSedanLasning,
+  arAnsvarigForRutin,
+} from "./rutinHjalp";
 
 function tidsstampel(datum) {
   return { toDate: () => datum };
@@ -99,5 +106,46 @@ describe("andradSedanLasning", () => {
   it("är falskt när den väsentliga ändringen är FÖRE min kvittering", () => {
     const rutin = { senasteVasentligaAndring: tidsstampel(dagarSedan(10)) };
     expect(andradSedanLasning(rutin, tidsstampel(dagarSedan(1)))).toBe(false);
+  });
+});
+
+describe("arAnsvarigForRutin", () => {
+  const jag = { uid: "u1", role: "vol" };
+
+  it("utan ägare faller tillbaka på områdesbehörigheten (sant)", () => {
+    expect(arAnsvarigForRutin({}, { ...jag, farRedigeraOmradet: true })).toBe(true);
+  });
+
+  it("utan ägare faller tillbaka på områdesbehörigheten (falskt)", () => {
+    expect(arAnsvarigForRutin({}, { ...jag, farRedigeraOmradet: false })).toBe(false);
+  });
+
+  it("ägare av typen roll: sant för min roll", () => {
+    const rutin = { agare: { typ: "roll", roll: "vol" } };
+    expect(arAnsvarigForRutin(rutin, { ...jag, farRedigeraOmradet: false })).toBe(true);
+  });
+
+  it("ägare av typen roll: falskt för en annan roll, ÄVEN om jag får redigera området", () => {
+    const rutin = { agare: { typ: "roll", roll: "vec" } };
+    expect(arAnsvarigForRutin(rutin, { ...jag, farRedigeraOmradet: true })).toBe(false);
+  });
+
+  it("ägare av typen person: sant för mitt uid", () => {
+    const rutin = { agare: { typ: "person", uid: "u1" } };
+    expect(arAnsvarigForRutin(rutin, { ...jag, farRedigeraOmradet: false })).toBe(true);
+  });
+
+  it("ägare av typen person: falskt för någon annan, ÄVEN om jag får redigera området", () => {
+    const rutin = { agare: { typ: "person", uid: "u2" } };
+    expect(arAnsvarigForRutin(rutin, { ...jag, farRedigeraOmradet: true })).toBe(false);
+  });
+
+  it("hanterar null/undefined rutin utan att kasta", () => {
+    expect(arAnsvarigForRutin(null, { ...jag, farRedigeraOmradet: true })).toBe(true);
+    expect(arAnsvarigForRutin(undefined, { ...jag, farRedigeraOmradet: false })).toBe(false);
+  });
+
+  it("returnerar alltid en boolean, även när farRedigeraOmradet är undefined", () => {
+    expect(arAnsvarigForRutin({}, { ...jag })).toBe(false);
   });
 });

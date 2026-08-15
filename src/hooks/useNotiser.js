@@ -8,7 +8,7 @@ import { useAuth } from "./useAuth";
 import { useAnvandare } from "./useAnvandare";
 import { useAnslag } from "./useAnslag";
 import { useRutiner, RUTIN_STATUS } from "./useRutiner";
-import { narmarSigGranskning } from "../utils/rutinHjalp";
+import { narmarSigGranskning, arAnsvarigForRutin } from "../utils/rutinHjalp";
 import { ROLES, KAN_HANTERA_FORRAD } from "../firebase/roles";
 import { useFeatures } from "./useFeatures";
 import { FEATURE } from "../config/features";
@@ -125,15 +125,23 @@ export function useNotiser() {
     // för hela området. Utan ägare gäller det gamla beteendet (alla redaktörer för området).
     const farGranskaKlinisktStod = [ROLES.SUPERADMIN, ROLES.VOL, ROLES.SEKTIONSLEDARE].includes(role);
     const farGranskaAdministration = [ROLES.SUPERADMIN, ROLES.VEC].includes(role);
+
+    // Etapp 66a: den gemensamma ägarroutingen, se arAnsvarigForRutin() i utils/rutinHjalp.js.
+    const arAnsvarig = (r) =>
+      arAnsvarigForRutin(r, {
+        uid: currentUser?.uid,
+        role,
+        farRedigeraOmradet: r.omrade === "kliniskt-stod" ? farGranskaKlinisktStod : farGranskaAdministration,
+      });
+
+    // Snabb uppslagning rutinId -> rutin, så förslagsfiltret nedan slipper en find() per
+    // förslag mot hela rutinlistan.
+    const rutinPerId = new Map(allaRutiner.map((r) => [r.id, r]));
     const granskningsposter = !hasFeature(FEATURE.OWNER_REMINDERS)
       ? []
       : allaRutiner
       .filter((r) => r.status === RUTIN_STATUS.GODKAND && r.arkiverad !== true && narmarSigGranskning(r.granskadDatum))
-      .filter((r) => {
-        if (r.agare?.typ === "roll") return role === r.agare.roll;
-        if (r.agare?.typ === "person") return currentUser?.uid === r.agare.uid;
-        return r.omrade === "kliniskt-stod" ? farGranskaKlinisktStod : farGranskaAdministration;
-      })
+      .filter(arAnsvarig)
       .map((r) => ({
         id: `granskning-${r.id}`,
         text: `Rutinen "${r.titel}" behöver granskas snart${r.agare ? " (du är ansvarig)" : ""}`,
@@ -147,11 +155,7 @@ export function useNotiser() {
     // av sig själv när kallVarning rensas via "Granskad, ingen ändring behövs"/redigering).
     const kallvarningposter = allaRutiner
       .filter((r) => r.kallVarning === true)
-      .filter((r) => {
-        if (r.agare?.typ === "roll") return role === r.agare.roll;
-        if (r.agare?.typ === "person") return currentUser?.uid === r.agare.uid;
-        return r.omrade === "kliniskt-stod" ? farGranskaKlinisktStod : farGranskaAdministration;
-      })
+      .filter(arAnsvarig)
       .map((r) => ({
         id: `kallvarning-${r.id}`,
         text:
@@ -195,13 +199,33 @@ export function useNotiser() {
     // Etapp 26c: notis till redaktörer om nya ändringsförslag för deras område (stående
     // tillstånd, samma mönster som bristposter ovan), och kvittens till den som föreslog när
     // förslaget hanterats (engångshändelse, styrd av senasteNotisBesok).
+    //
+    // Etapp 66a: notisen gick tidigare till ALLA redaktörer för området, oavsett vem som
+    // faktiskt äger rutinen – ett förslag på en rutin med en utpekad ansvarig drunknade
+    // därmed i samma lista hos alla andra. Nu används samma ägarrouting som redan gäller
+    // granskningspåminnelser och källvarningar ovan: finns en ägare går notisen dit, annars
+    // till områdets redaktörer som förut.
+    //
+    // Känd begränsning (medveten, se ETAPPLAN15.md 66a): en ägare som är en namngiven person
+    // UTAN redigeringsrätt för området får aldrig förslaget i sin `forslag`-lista alls –
+    // useAndringsforslag() faller för icke-redaktörer tillbaka på "bara mina egna förslag",
+    // eftersom regelmotorn annars nekar hela listningen. En sådan ägare kan alltså inte
+    // notifieras utan en regeländring. Det är inte en bugg här utan en gräns i datalagret.
     const forslagposter = forslag
       .filter((f) => f.status === FORSLAG_STATUS.NY)
-      .filter((f) => (f.omrade === "kliniskt-stod" ? farGranskaKlinisktStod : farGranskaAdministration))
+      .filter((f) => {
+        const rutin = rutinPerId.get(f.rutinId);
+        // Rutinen kan saknas i listan (borttagen, eller ett område som inte laddats) – då
+        // gäller det gamla beteendet, annars skulle notisen tyst försvinna för alla.
+        if (!rutin) return f.omrade === "kliniskt-stod" ? farGranskaKlinisktStod : farGranskaAdministration;
+        return arAnsvarig(rutin);
+      })
       .map((f) => ({
         id: `forslag-${f.id}`,
-        text: `Nytt förslag på "${f.rutinTitel}"`,
-        sokvag: `${OMRADE_SOKVAG[f.omrade] ?? "/"}`,
+        text: `Nytt förslag på "${f.rutinTitel}"${rutinPerId.get(f.rutinId)?.agare ? " (du är ansvarig)" : ""}`,
+        // Länka till själva rutinen, inte bara till områdessidan – samma ankarmönster som
+        // granskningsposter/kallvarningposter redan använder.
+        sokvag: `${OMRADE_SOKVAG[f.omrade] ?? "/"}#rutin-${f.rutinId}`,
         tid: f.tidpunkt,
         omrade: f.omrade,
       }));
