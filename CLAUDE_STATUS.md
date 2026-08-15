@@ -6,14 +6,16 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-14, version **5.105.0** – byggd och pushad, **ÄNNU INTE
-DEPLOYAD**. v5.105.0 = **Etapp 66c (`ETAPPLAN15.md`) – ansvarsområden på personen – KLAR**
-(nytt fält `users/{uid}.ansvarsomraden`, ny adminvy "Vem ansvarar för vad"), se sektionen
-"Uppföljning 2026-08-14 (Etapp 66c klar, v5.105.0)" längst ner. v5.104.0 = Etapp 66b
-(handledarsignering) – KLAR, se "Uppföljning 2026-08-14 (Etapp 66b klar, v5.104.0)".
-v5.103.0 = Etapp 66a (förslag når rutinens ägare) – KLAR, se "Uppföljning 2026-08-14 (Etapp
-66a klar, v5.103.0)". Planen `ETAPPLAN15.md` (Etapp 66) föreslogs samma dag, se "Uppföljning
-2026-08-14 (ETAPPLAN15 föreslagen, Etapp 66)". Senaste bekräftade produktionsdeploy är
+**Senast uppdaterad:** 2026-08-14, version **5.106.0** – byggd och pushad, **ÄNNU INTE
+DEPLOYAD**. v5.106.0 = **Etapp 66d (`ETAPPLAN15.md`) – driftstörning kopplad till rutin och
+åtgärd – KLAR. Med det är HELA Etapp 66 (alla fyra delmål 66a–66d) byggd**, se sektionen
+"Uppföljning 2026-08-14 (Etapp 66d klar, v5.106.0 – Etapp 66 helt byggd)" längst ner.
+v5.105.0 = Etapp 66c (ansvarsområden) – KLAR, se "Uppföljning 2026-08-14 (Etapp 66c klar,
+v5.105.0)". v5.104.0 = Etapp 66b (handledarsignering) – KLAR, se "Uppföljning 2026-08-14
+(Etapp 66b klar, v5.104.0)". v5.103.0 = Etapp 66a (förslag når rutinens ägare) – KLAR, se
+"Uppföljning 2026-08-14 (Etapp 66a klar, v5.103.0)". Planen `ETAPPLAN15.md` (Etapp 66)
+föreslogs samma dag, se "Uppföljning 2026-08-14 (ETAPPLAN15 föreslagen, Etapp 66)".
+`ETAPPLAN15.md` väntar nu bara på nästa deploy. Senaste bekräftade produktionsdeploy är
 fortfarande **5.102.0** (körning #77, commit
 `2addfef`, deploy.yml på `claude/compassionate-euler-rho0q5`, ny asset-hash
 `assets/index-QGEvHg37.js` bekräftad på `synappsen-final-build.web.app`). v5.102.0 = **Etapp
@@ -3045,3 +3047,39 @@ Ingen ändring i `storage.rules`/Cloud Functions. Version 5.104.0 → **5.105.0*
 (läsordning + dokumentkarta). 4 nya regeltester gröna, hela `test:rules`-sviten fortsatt
 grön. `lint`/`build`/`vitest run` (212/212) gröna. Committat och pushat. **Ingen deploy
 gjord** – inte begärd i den här sessionen. Bara 66d (driftstörningslogg) återstår i Etapp 66.
+
+## Uppföljning 2026-08-14 (Etapp 66d klar, v5.106.0 – Etapp 66 helt byggd)
+
+Ägaren bad om byggstart för `ETAPPLAN15.md`s sista delmål, 66d (driftstörningslogg kopplad
+till rutin och åtgärd). Byggt och klart samma session.
+
+- **Två nya fält på `skiftrapporter`:** `kategori` (fast lista – lokal/it/medicinteknik/
+  försörjning/övrigt, validerad server-side i en ny `arGiltigDriftstorningskategori()`) och
+  `rutinId`. Regeländringen exakt som planerad: `update`s `bararForandrarFalt` utökades till
+  att inkludera dem, medan `text` förblir medvetet oföränderlig efter publicering.
+- **Ett fel hittades och rättades UNDER byggets gång:** den första regelversionen avvisade
+  ett försök att RENSA kategorin (`kategori: null`), eftersom `null` inte fanns i den giltiga
+  listan – det hade gjort "ångra kategorisering" trasigt i produktion. Rättat genom att
+  uttryckligen tillåta `null` (samma konvention `rutin.agare` redan använder), låst fast med
+  ett eget testfall.
+- **"Hela historiken"-vyn krävde ingen ny Firestore-fråga.** `useSkiftrapport.js`s fråga
+  saknade redan en tidsbegränsning – `VISNINGSGRANS_TIMMAR` filtrerar bara klientsidan, all
+  historik fanns alltså redan laddad. Exponerade den bara som ett nytt `alla`-fält från
+  hooken.
+- **Namngivningsdistinktionen mot `INCIDENT-CHECKLISTA.md`/`avtal/INCIDENTRESPONSPLAN.md`
+  hölls medvetet isär**, precis som planen krävde – det här är en driftstörningslogg, inte en
+  säkerhetsincident med rättsliga tidsfrister.
+- **Övervägde men rörde inte incidentdokumenten.** Regeländringen vidgar bara vilka FÄLT som
+  får ändras i efterhand, inte vem – ingen ny detektions-/begränsningsförmåga påverkas, och
+  `kategori`/`rutinId` är ingen personuppgift. Samma bedömningsmönster som redan gjordes för
+  Etapp 65b/66b/66c.
+
+Ny testfil `tests/rules/skiftrapportkategorisering.test.mjs`, 9 tester (skapande med/utan/
+ogiltig kategori, kategorisering av en icke-ägare, text oföränderlig, null-rensning,
+organisationsisolering), körda mot emulatorn: 9/9 gröna, hela `test:rules`-sviten (nu 15
+filer) fortsatt grön. Version 5.105.0 → **5.106.0**, `andringslogg.js` uppdaterad,
+`ETAPPLAN15.md` (66d klar + "Genomfört", plus toppstycket omskrivet: HELA Etapp 66 är nu
+klar), `CLAUDE.md` (läsordning + dokumentkarta, "delvis byggd" → "helt klar, inte ännu
+deployad"). `lint`/`build`/`vitest run` (212/212) gröna. Committat och pushat. **Ingen
+deploy gjord** – inte begärd i den här sessionen. Nästa steg: en deploy skulle ta med sig
+hela Etapp 66 (66a–66d) i ett svep.

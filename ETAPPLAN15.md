@@ -1,7 +1,8 @@
 # Etapplan 15 – Ansvar som når fram: fyra tillägg på redan byggd grund
 
-*Utkast 2026-08-14, utifrån en idélista från ägaren (nio punkter). Ägaren bad om byggstart för
-66a, 66b och 66c samma dag, alla tre nu KLARA – bara 66d är fortfarande föreslaget.*
+*Utkast 2026-08-14. Samtliga fyra delmål (66a–66d) är nu KLARA, byggda ett i taget samma dag
+på ägarens uttryckliga begäran – se respektive delmål nedan för vad som genomfördes och
+eventuella avvikelser mot ursprungsskisserna.*
 
 **Bakgrund:** ägaren lade fram nio funktionsidéer. En premisskontroll mot faktisk kod
 (genomgående krav 8) gjordes innan planen skrevs, och den flyttade gränsen mellan idéerna
@@ -298,7 +299,7 @@ se i profilen → se i översikten) är inte gjord i den här sessionen.
 
 ---
 
-### 66d – Driftstörningar kopplade till rutin och åtgärd
+### 66d – ✅ KLAR (2026-08-14) – Driftstörningar kopplade till rutin och åtgärd
 
 **Idé:** kunna kategorisera en driftstörning och länka den till den rutin som gäller.
 
@@ -334,6 +335,40 @@ förväxlar dem letar efter fel checklista.
 **Klart när:** en driftstörning kan kategoriseras och länkas till den rutin som gäller, och
 det går att se historik längre bak än 48 timmar utan att skiftöverlämningens standardvy blir
 plottrig.
+
+**Genomfört (2026-08-14):**
+
+- **Två nya fält:** `skiftrapporter.kategori` (fast lista – `lokal`/`it`/`medicinteknik`/
+  `forsorjning`/`ovrigt`, validerad server-side i en ny `arGiltigDriftstorningskategori()`) och
+  `rutinId` (fri referens, ingen `get()`-validering av att rutinen finns – samma avvägning
+  som `rutin.agare.uid` redan gör, av budgetskäl).
+- **Regeländringen exakt som planerad:** `update`s `bararForandrarFalt` utökades till
+  `['atgardad', 'atgardadAv', 'rutinId', 'kategori']`. `text` förblir MEDVETET oföränderlig
+  efter publicering – oförändrad princip, testat explicit.
+- **Ett fel hittades och rättades UNDER byggets gång, inte efteråt:** den första
+  regelversionen avvisade ett försök att RENSA kategorin (`kategori: null`), eftersom `null`
+  inte fanns i den giltiga listan – det hade gjort "ångra kategorisering" trasigt i
+  produktion. Rättat genom att uttryckligen tillåta `null` (samma "explicit null = inget
+  valt"-konvention `rutin.agare` redan använder), och låst fast med ett eget testfall.
+- **"Hela historiken"-vyn krävde ingen ny Firestore-fråga.** `useSkiftrapport.js`s fråga
+  saknade redan en tidsbegränsning (`VISNINGSGRANS_TIMMAR` filtrerar bara KLIENTSIDAN) – all
+  historik fanns alltså redan laddad. Exponerade den bara som ett nytt `alla`-fält från
+  hooken, med ett kategori-filter i `Skiftrapport.jsx`, helt skilt från standardvyn (som är
+  oförändrad).
+- **Namngivningsdistinktionen hölls medvetet isär**, precis som planen krävde: inget i
+  gränssnittet eller ordvalet blandar ihop den här driftstörningsloggen med
+  `INCIDENT-CHECKLISTA.md`/`avtal/INCIDENTRESPONSPLAN.md`s säkerhetsincidenter.
+- **Övervägde men rörde inte incidentdokumenten.** Regeländringen vidgar bara VILKA FÄLT som
+  får ändras i efterhand, inte VEM som får ändra – ingen ny detektions- eller
+  begränsningsförmåga påverkas, och `kategori`/`rutinId` är ingen personuppgift. Samma
+  bedömningsmönster som redan gjordes för Etapp 65b/66b/66c.
+
+**Testat:** ny testfil `tests/rules/skiftrapportkategorisering.test.mjs`, 9 tester (skapande
+med/utan/ogiltig kategori, kategorisering/länkning i efterhand av en icke-ägare, att `text`
+förblir oföränderlig, att null-rensning fungerar, organisationsisolering). Körda mot
+emulatorn: 9/9 gröna, hela `test:rules`-sviten (nu 15 filer) fortsatt grön. `npm run lint`,
+`npm run build`, `npx vitest run` (212/212) gröna. Manuell webbläsarverifiering av det fulla
+flödet (kategorisera → länka → se i historiken) är inte gjord i den här sessionen.
 
 ---
 
@@ -430,7 +465,7 @@ verksamheten, hur återkallas en felaktig broschyr som redan delats ut).
 | 66a | Förslag når rutinens ägare (notis) | Nej (alt. a) | Nej | Liten – ✅ **KLAR 2026-08-14 (v5.103.0)** |
 | 66b | Handledarsignering i introduktionen | **Ja** (ny subcollection + självsigneringsspärr) | Ja (subcollection) | Medel – ✅ **KLAR 2026-08-14 (v5.104.0)** |
 | 66c | Ansvarsområden på personen | Nej (superadmin fick redan skriva fältet) | Nytt fält på `users` | Medel – ✅ **KLAR 2026-08-14 (v5.105.0)** |
-| 66d | Driftstörning → kategori + rutinkoppling | **Ja** (`bararForandrarFalt` utökas) | Nya fält på `skiftrapporter` | Liten–medel |
+| 66d | Driftstörning → kategori + rutinkoppling | **Ja** (`bararForandrarFalt` utökas) | Nya fält på `skiftrapporter` | Liten–medel – ✅ **KLAR 2026-08-14 (v5.106.0)** |
 
 Alla fyra är Core-funktionalitet (ingen feature-gating) och oberoende av `ETAPPLAN13.md`s
 juridiska blockering. **66a är den billigaste och rekommenderas först**; **66b är den med

@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.106.0",
+    datum: "2026-08-14",
+    andringar: [
+      "Skiftrapporter kan nu kategoriseras (lokal, IT, medicinteknik, försörjning, övrigt) och länkas till en rutin i efterhand, och en ny 'hela historiken'-vy visar poster äldre än 48 timmar utan att ändra standardvyn",
+    ],
+  },
+  {
     version: "5.105.0",
     datum: "2026-08-14",
     andringar: [

@@ -972,14 +972,28 @@ service cloud.firestore {
     // skiftrapporter/{postId} – praktisk drift-info mellan skift (INTE patientdata).
     // Alla inloggade i SAMMA organisation får skapa och markera som åtgärdat. Ägaren eller
     // en redaktörsroll (i samma organisation) får ta bort.
+    // Etapp 66d: giltiga värden för skiftrapporters valfria kategori-fält – en fast lista,
+    // ingen fritext, så fältet aldrig blir en ny PII-yta (till skillnad från `text`). `null`
+    // tillåts uttryckligen (samma "explicit null = inget valt"-konvention som rutin.agare
+    // redan använder, se RutinFormular.jsx) – annars går kategorin inte att rensa igen.
+    function arGiltigDriftstorningskategori(kategori) {
+      return kategori == null || kategori in ['lokal', 'it', 'medicinteknik', 'forsorjning', 'ovrigt'];
+    }
+
     match /skiftrapporter/{postId} {
       allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
       allow create: if arInloggad() && !arKiosk() && request.resource.data.skapadAv == request.auth.uid
                      && request.resource.data.get('organisationId', 'default') == minOrganisation()
-                     && !harTroligtPersonnummer(request.resource.data.get('text', ''));
+                     && !harTroligtPersonnummer(request.resource.data.get('text', ''))
+                     && (!('kategori' in request.resource.data) || arGiltigDriftstorningskategori(request.resource.data.kategori));
+      // Etapp 66d: rutinId/kategori tillagda i den tillåtna fältlistan så en post kan
+      // kategoriseras och länkas till en rutin I EFTERHAND, inte bara vid skapandet – det är
+      // ett medvetet, avgränsat tillägg (samma regel hindrar fortsatt att `text` ändras efter
+      // publicering, vilket är avsiktligt oförändrat).
       allow update: if matcharMinOrg(resource.data.get('organisationId', 'default'))
                      && !arKiosk()
-                     && bararForandrarFalt(['atgardad', 'atgardadAv']);
+                     && bararForandrarFalt(['atgardad', 'atgardadAv', 'rutinId', 'kategori'])
+                     && (!('kategori' in request.resource.data) || arGiltigDriftstorningskategori(request.resource.data.kategori));
       allow delete: if matcharMinOrg(resource.data.get('organisationId', 'default'))
                      && (resource.data.skapadAv == request.auth.uid || arRedaktor());
     }

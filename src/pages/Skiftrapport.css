@@ -61,3 +61,59 @@
   opacity: 0.7;
   margin-top: 10px;
 }
+
+.skiftrapport-rad__kategorisering {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+}
+
+.skiftrapport-rad__kategorisering label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.skiftrapport-rad__kategorisering select {
+  padding: 6px 8px;
+  border: 1px solid var(--kant);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.skiftrapport-rad__rutinlank {
+  align-self: flex-end;
+}
+
+.skiftrapport-avdelare {
+  border: none;
+  border-top: 1px solid var(--kant);
+  margin: 24px 0 12px;
+}
+
+.skiftrapport-historik {
+  margin-top: 10px;
+}
+
+.skiftrapport-historik__filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+  max-width: 260px;
+}
+
+.skiftrapport-historik__filter select {
+  padding: 8px 10px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+}
+
+.skiftrapport-lista--historik {
+  opacity: 0.9;
+}

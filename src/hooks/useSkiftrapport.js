@@ -76,6 +76,21 @@ export function useSkiftrapport() {
     loggaHandelse({ beskrivning: "Skiftrapport åtgärdad", entitetTyp: "skiftrapport", entitetId: id, uid, organisationId });
   }
 
+  // Etapp 66d: kategori/rutinId sätts I EFTERHAND (t.ex. när det blir tydligt vilken rutin som
+  // faktiskt gäller), skilt från skapaPost. `falt` kan innehålla endera eller båda fälten –
+  // reglerna tillåter inget annat att ändras samtidigt (se firestore.rules
+  // skiftrapporter/{postId} allow update).
+  async function kategoriseraPost(id, falt, uid) {
+    await updateDoc(doc(db, "skiftrapporter", id), falt);
+    loggaHandelse({
+      beskrivning: "Skiftrapport kategoriserad/länkad till rutin",
+      entitetTyp: "skiftrapport",
+      entitetId: id,
+      uid,
+      organisationId,
+    });
+  }
+
   async function taBortPost(id, uid) {
     await deleteDoc(doc(db, "skiftrapporter", id));
     loggaHandelse({ beskrivning: "Skiftrapport borttagen", entitetTyp: "skiftrapport", entitetId: id, uid, organisationId });
@@ -87,5 +102,9 @@ export function useSkiftrapport() {
   const aktiva = poster.filter((p) => !p.atgardad && (!p.skapad?.toDate || p.skapad.toDate() >= grans));
   const atgardadeSenaste = poster.filter((p) => p.atgardad && (!p.skapad?.toDate || p.skapad.toDate() >= grans));
 
-  return { aktiva, atgardadeSenaste, laddar, fel, skapaPost, markeraAtgardad, taBortPost };
+  // Etapp 66d: frågan har ingen tidsbegränsning (ingen where/limit på skapad), så `poster`
+  // innehåller redan HELA historiken – standardvyerna ovan filtrerar bara ner den. En
+  // driftstörningslogg som ska gå att följa upp behöver kunna visa mer än 48 timmar, utan att
+  // det kräver en egen Firestore-fråga eller ändrar standardvyns beteende.
+  return { aktiva, atgardadeSenaste, alla: poster, laddar, fel, skapaPost, markeraAtgardad, kategoriseraPost, taBortPost };
 }
