@@ -1,0 +1,27 @@
+.krav-atgard__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.krav-atgard__rad {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid var(--kant);
+  border-radius: var(--radius-liten);
+}
+
+.krav-atgard__lank {
+  font-weight: 600;
+}
+
+.krav-atgard__text {
+  color: var(--text-svag);
+  font-size: 0.9rem;
+}

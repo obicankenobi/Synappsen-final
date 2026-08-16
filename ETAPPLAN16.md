@@ -186,7 +186,7 @@ Cloud Functions rörda – `test:rules`/`test:storage`/`test:functions` kördes 
 
 ---
 
-### 67c – "Kräver åtgärd"-listan ⬜
+### 67c – "Kräver åtgärd"-listan ✅ KLAR (2026-08-16, v5.111.0)
 
 **Idé:** gör vyn styrande i stället för bara beskrivande. I dag måste du själv komma ihåg
 att kolla vilka provperioder som håller på att ta slut – ingenting påminner dig.
@@ -215,6 +215,23 @@ uppmärksamhet just nu") – en tom yta läses som "inte laddat än", inte som "
 
 **Klart när:** varje signal går att provocera fram mot emulatorn, listan är tom med rätt
 text när inget är fel, och ingen signal bygger på ett fält som inte finns.
+
+**Genomfört.** Signalberäkningen (`berakLeverantorSignaler`) byggdes redan i 67b, delad med
+nyckeltalsrutans räkning – se 67b:s "Genomfört". Det här delmålet blev därför en ren
+renderingskomponent, `KraverAtgardSektion.jsx`: en rad per signal med allvarlighetsikon
+(🔴/🟡/🔵), organisationsnamn som en `<a href="#org-{orgId}">`-länk (native ankarlänk räcker –
+67b:s `id="org-{orgId}"` på varje rad gör att webbläsaren skrollar dit utan egen JS), och
+signalens text. Tom lista visar uttryckligen "Inget kräver din uppmärksamhet just nu" istället
+för en tom yta.
+
+**En sjunde signal utöver planens ursprungliga sex, möjliggjord av beslutspunkt 2:**
+"stillastående offert" (`avtalsstatus === "offert"` och ≥30 dagar sedan `avtalsstatusAndrad`,
+med `skapad` som fallback för en offert som aldrig ändrats). 30 dagar är inte hämtat ur någon
+plan-text – ett rimligt förstaval, dokumenterat som sådant i koden, inte en branschnorm.
+
+**Testat:** signalernas logik är redan täckt av 67b:s 14 tester i `leverantorSignaler.test.js`
+(byggda mot den delade utilen, inte mot en UI-komponent). `lint`/`build`/`vitest run`
+(230/230, oförändrat antal eftersom inga nya tester behövdes för en ren renderingskomponent).
 
 ---
 

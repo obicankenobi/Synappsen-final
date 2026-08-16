@@ -6,20 +6,21 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-16, version **5.110.0** – byggd och pushad, **INTE DEPLOYAD**
+**Senast uppdaterad:** 2026-08-16, version **5.111.0** – byggd och pushad, **INTE DEPLOYAD**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
 > **Deployläget just nu, i klartext:** senaste faktiska deploy är körning #78, som tog upp
-> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0–v5.110.0**
+> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0–v5.111.0**
 > ligger alla pushade men odeployade. Ett tidigare deployförsök 2026-08-16 blockerades av att
 > GitHub Actions inte tilldelade någon runner (se "Uppföljning 2026-08-16 (deployförsök
 > BLOCKERAT)") – ägaren bad oss därefter avvakta med deploy oavsett, så det är inte längre det
 > som håller tillbaka nästa försök.
 
 Ägaren bad 2026-08-16 att köra `ETAPPLAN16.md`s kvarvarande delmål (67b–67e) **i följd utan att
-stanna mellan varje**. v5.110.0 = **Etapp 67b (nyckeltalsrad) – KLAR**, se "Uppföljning
-2026-08-16 (Etapp 67b klar, v5.110.0)" längst ner. v5.109.0 = beslutspunkt 2:s serverunderlag –
+stanna mellan varje**. v5.111.0 = **Etapp 67c ("kräver åtgärd"-listan) – KLAR**, se
+"Uppföljning 2026-08-16 (Etapp 67c klar, v5.111.0)" längst ner. v5.110.0 = Etapp 67b
+(nyckeltalsrad) – KLAR. v5.109.0 = beslutspunkt 2:s serverunderlag –
 KLAR, se "Uppföljning 2026-08-16 (avtalsstatusAndrad/skapad)".
 v5.108.0 = **Etapp 67a (`ETAPPLAN16.md`) – leverantörsvyn fick äntligen en väg in från menyn
 och kommandopaletten – KLAR.**
@@ -3372,3 +3373,22 @@ tidigare delmål i den här vyn – en plattformsadmin-gated intern sida, verifi
 enhetstester snarare än en seedad emulatoruppstart).
 
 Version 5.109.0 → **5.110.0**. Fortsätter nu direkt med 67c enligt ägarens instruktion.
+
+## Uppföljning 2026-08-16 (Etapp 67c klar, v5.111.0 – "kräver åtgärd"-listan)
+
+Andra delmålet i den obevakade kedjan (67b–67e).
+
+**Byggt:** `KraverAtgardSektion.jsx`, direkt under nyckeltalen. Ren renderingskomponent – all
+logik satt redan i 67b:s delade `berakLeverantorSignaler`. En rad per signal: allvarlighetsikon,
+organisationsnamn som en native `#org-{orgId}`-ankarlänk (skrollar till raden 67b redan gav ett
+`id`, ingen egen JS behövdes), signalens text. Tom lista visar "Inget kräver din
+uppmärksamhet just nu" istället för en tom yta.
+
+**Sjunde signalen, utöver planens ursprungliga sex:** stillastående offert – möjliggjord av
+gårdagens beslutspunkt 2 (`avtalsstatusAndrad`/`skapad`). Tröskeln (30 dagar) är ett rimligt
+förstaval, dokumenterat i koden som just det, inte en branschnorm eller ett citat ur planen.
+
+**Testat:** ingen ny testfil behövdes – logiken är redan täckt av 67b:s 14 tester mot den
+delade utilen. `lint`/`build`/`vitest run` (230/230, oförändrat) gröna.
+
+Version 5.110.0 → **5.111.0**. Fortsätter nu direkt med 67d enligt ägarens instruktion.

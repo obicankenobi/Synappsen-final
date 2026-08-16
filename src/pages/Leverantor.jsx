@@ -25,6 +25,7 @@ import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
 import ManadsrapportSektion from "../components/ManadsrapportSektion";
 import BaspaketreferenserSektion from "../components/BaspaketreferenserSektion";
 import NyckeltalSektion from "../components/leverantor/NyckeltalSektion";
+import KraverAtgardSektion from "../components/leverantor/KraverAtgardSektion";
 import { berakLeverantorSignaler } from "../utils/leverantorSignaler";
 import "./Leverantor.css";
 
@@ -506,6 +507,8 @@ export default function Leverantor() {
         aktivtFilter={snabbfilter}
         onValjFilter={setSnabbfilter}
       />
+
+      <KraverAtgardSektion signaler={signaler} />
 
       <section className="admin-sektion">
         <h2>✉️ Utgående e-post</h2>
