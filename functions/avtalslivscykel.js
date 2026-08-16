@@ -59,7 +59,14 @@ exports.satAvtalsstatus = onCall({ region: "europe-west1" }, async (request) => 
   if (!orgSnap.exists) {
     throw new HttpsError("not-found", "Organisationen hittades inte.");
   }
-  await orgRef.set({ avtalsstatus }, { merge: true });
+  // Etapp 67 beslutspunkt 2 (ETAPPLAN16.md, ägarbeslut 2026-08-16): väg (a) – framåtriktad
+  // tidsstämpel, ingen historik för byten som redan skett. Alternativet (härleda ur
+  // revisionsloggens organisation_avtalsstatus_andrad-poster) hade krävt en extra läsning PER
+  // organisation i listaOrganisationer nedan, varje gång leverantörsvyn öppnas.
+  await orgRef.set(
+    { avtalsstatus, avtalsstatusAndrad: admin.firestore.FieldValue.serverTimestamp() },
+    { merge: true }
+  );
   await loggaRevision({
     organisationId: orgId,
     aktorUid: request.auth.uid,

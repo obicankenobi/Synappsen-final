@@ -6,16 +6,23 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-16, version **5.108.0** – byggd och pushad, **INTE DEPLOYAD** (deployförsök gjort och BLOCKERAT av att GitHub Actions inte tilldelar någon runner – se "Uppföljning 2026-08-16 (deployförsök BLOCKERAT)" längst ner).
+**Senast uppdaterad:** 2026-08-16, version **5.109.0** – byggd och pushad, **INTE DEPLOYAD**
+(ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
+blockerade försöket, som inte längre är det aktiva skälet).
 
 > **Deployläget just nu, i klartext:** senaste faktiska deploy är körning #78, som tog upp
 > **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0**
-> (SVG-spärren + fyra ägarbeslut) och **v5.108.0** (Etapp 67a) ligger båda pushade men
-> odeployade. Nästa deploy tar med sig båda.
+> (SVG-spärren + fyra ägarbeslut), **v5.108.0** (Etapp 67a) och **v5.109.0** (Etapp 67
+> beslutspunkt 2, serverunderlag) ligger alla pushade men odeployade. Ett tidigare
+> deployförsök 2026-08-16 blockerades av att GitHub Actions inte tilldelade någon runner (se
+> "Uppföljning 2026-08-16 (deployförsök BLOCKERAT)") – ägaren bad oss därefter avvakta med
+> deploy oavsett, så det är inte längre det som håller tillbaka nästa försök.
 
+v5.109.0 = **`ETAPPLAN16.md` beslutspunkt 2 (serverunderlaget för Etapp 67b/67c) – KLAR.**
+`ETAPPLAN16.md` som helhet är **ANTAGEN** (2026-08-16, se `BESLUTSLOGG.md`) – 67b–67e väntar på
+nästa "genomför delmål 67x". Se "Uppföljning 2026-08-16 (avtalsstatusAndrad/skapad)" längst ner.
 v5.108.0 = **Etapp 67a (`ETAPPLAN16.md`) – leverantörsvyn fick äntligen en väg in från menyn
-och kommandopaletten – KLAR.** Resten av `ETAPPLAN16.md` (67b–67e, leverantörsdashboarden) är
-**EJ ANTAGEN** – tre beslutspunkter väntar på ägaren. Se "Uppföljning 2026-08-16" längst ner.
+och kommandopaletten – KLAR.**
 v5.107.0 = SVG-uppladdning stängd + fyra ägarbeslut loggade, se "Uppföljning 2026-08-15".
 v5.106.0 = **Etapp
 66d (`ETAPPLAN15.md`) – driftstörning kopplad till rutin och åtgärd – KLAR. Med det är HELA
@@ -3306,3 +3313,30 @@ nästa "genomför delmål 67x". Ingen kod skriven i den här uppföljningen, bar
 pushade men odeployade, blockerat av att GitHub Actions inte tilldelar någon runner (se
 "Uppföljning 2026-08-16 (deployförsök BLOCKERAT)"). Ägaren har bett oss avvakta med deploy
 tills vidare.
+
+## Uppföljning 2026-08-16 (avtalsstatusAndrad/skapad – Etapp 67 beslutspunkt 2, v5.109.0)
+
+Ägaren bad om beslutspunkt 2:s serverdel först ("börja med tidsstämpeln och skapad-fältet"),
+innan 67b/67c byggs ovanpå den.
+
+**Byggt:** `avtalslivscykel.js`s `satAvtalsstatus` sätter nu `avtalsstatusAndrad:
+admin.firestore.FieldValue.serverTimestamp()` i samma `set(..., { merge: true })` som
+`avtalsstatus` – ingen extra skrivning. `organisationslivscykel.js`s `listaOrganisationer`
+returnerar `skapad` och `avtalsstatusAndrad` som ISO-strängar (fältet `skapad` fanns redan
+sedan Etapp 6b men skrevs aldrig ut; `avtalsstatusAndrad` är nytt och `null` för organisationer
+vars avtalsstatus aldrig ändrats sedan fältet infördes).
+
+**Ren serverändring – ingen UI-yta ännu.** Det här var uttryckligen bara underlaget; 67b
+(nyckeltal) och 67c ("kräver åtgärd", där en stillastående offert blir en sjunde signal) är
+de delmål som faktiskt visar värdena.
+
+**Testat:** tre nya tester i `tests/functions/etapp6.test.cjs`, i det redan etablerade mönstret
+för `satAvtalsstatus`/`listaOrganisationer` – `avtalsstatusAndrad` sätts och syns; en
+organisation som aldrig bytt avtalsstatus visar `null` (inte ett fel, en explicit distinktion
+mellan "aldrig ändrad" och "misslyckades"); `skapad` returneras som giltig ISO-tidsstämpel för
+en nyetablerad organisation. `lint`/`build`/`vitest run` (216/216) och `test:functions` (hela
+kedjan) gröna. `test:rules`/`test:storage` kördes inte – ingen regelfil rörd.
+
+Version 5.108.0 → **5.109.0**. `andringslogg.js` fick en post, medvetet formulerad som "ingen
+synlig förändring" – det här är ett internt förberedande steg, inget en organisations egna
+användare märker av. Committat och pushat. **Ingen deploy** – ägaren har bett oss avvakta.

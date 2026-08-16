@@ -370,6 +370,31 @@ async function main() {
     vantaSig(rad.avtalsstatus === "aktiv", `förväntade fallback-avtalsstatus 'aktiv', fick ${rad.avtalsstatus}`);
   });
 
+  console.log("\navtalsstatusAndrad/skapad – Etapp 67 beslutspunkt 2 (ETAPPLAN16.md)");
+  await test("satAvtalsstatus sätter avtalsstatusAndrad, synlig via listaOrganisationer", async () => {
+    const resultat = await funcs.listaOrganisationer.run({ data: {}, auth: { uid: "vanligSuperadmin" } });
+    const rad = resultat.organisationer.find((o) => o.orgId === nyOrgId);
+    vantaSig(
+      typeof rad.avtalsstatusAndrad === "string" && !Number.isNaN(Date.parse(rad.avtalsstatusAndrad)),
+      `avtalsstatusAndrad ska vara en ISO-tidsstämpel efter satAvtalsstatus, fick ${rad.avtalsstatusAndrad}`
+    );
+  });
+  await test("en organisation vars avtalsstatus ALDRIG ändrats visar null för avtalsstatusAndrad", async () => {
+    // orgVanlig har aldrig gått genom satAvtalsstatus i den här testfilen - null betyder
+    // "aldrig ändrad sedan Etapp 67 infördes fältet", inte att anropet skulle ha misslyckats.
+    const resultat = await funcs.listaOrganisationer.run({ data: {}, auth: { uid: "vanligSuperadmin" } });
+    const rad = resultat.organisationer.find((o) => o.orgId === "orgVanlig");
+    vantaSig(rad.avtalsstatusAndrad === null, `förväntade null, fick ${rad.avtalsstatusAndrad}`);
+  });
+  await test("listaOrganisationer returnerar skapad som en ISO-tidsstämpel för en nyetablerad organisation", async () => {
+    const resultat = await funcs.listaOrganisationer.run({ data: {}, auth: { uid: "vanligSuperadmin" } });
+    const rad = resultat.organisationer.find((o) => o.orgId === nyOrgId);
+    vantaSig(
+      typeof rad.skapad === "string" && !Number.isNaN(Date.parse(rad.skapad)),
+      `skapad ska vara en ISO-tidsstämpel, fick ${rad.skapad}`
+    );
+  });
+
   console.log("\nsatAvtaladArsavgift – Etapp 48c manuellt inmatat avtalat årspris");
   await test("en icke-plattformsadmin kan INTE ändra avtalad årsavgift", () =>
     forvantaFel("permission-denied", () =>

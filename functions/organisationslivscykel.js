@@ -282,6 +282,14 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         arDemo: data.arDemo === true,
         // Etapp 54b: gruppering ovanpå, ingen ny läsväg – se satHuvudman.
         huvudman: data.huvudman ?? null,
+        // Etapp 67 beslutspunkt 2 (ETAPPLAN16.md): fältet fanns redan (satt vid skapaOrganisation,
+        // se Etapp 6b) men returnerades aldrig härifrån. null bara i teorin – varje organisation
+        // som når fram till den här listan har redan passerat skapaOrganisation.
+        skapad: data.skapad?.toDate?.().toISOString() ?? null,
+        // Saknas för organisationer skapade före Etapp 67 (satAvtalsstatus skrev fältet först
+        // därefter) – null betyder "aldrig ändrad sedan uppföljningen infördes", inte "aldrig
+        // ändrad över huvud taget".
+        avtalsstatusAndrad: data.avtalsstatusAndrad?.toDate?.().toISOString() ?? null,
       };
     })
   );

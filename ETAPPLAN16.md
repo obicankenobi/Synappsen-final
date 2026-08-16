@@ -248,12 +248,25 @@ raden. Originaltexten står kvar nedan, kort, som ett spår för varför varje v
 `/leverantor`, resten skrollar under. En separat `/leverantor/oversikt` skulle dela
 plattformsadmin-funktionerna över två adresser i onödan.
 
-**2. Ska `avtalsstatusAndrad` byggas? → Ja, väg (a).** En `serverTimestamp()` läggs till i
-`satAvtalsstatus` (framåtriktat – befintliga kunder får ingen historik för tidigare byten),
-plus att `skapad` börjar returneras av `listaOrganisationer` (fältet fanns redan, skrevs bara
-aldrig ut). Ger "kund skapad för N dagar sedan, fortfarande i offertläge" utan loggenomgång.
-Den avgörande skillnaden mot alternativ (b) – härledning ur revisionsloggen – är kostnad: (b)
-hade krävt en extra läsning PER organisation vid varje sidladdning.
+**2. Ska `avtalsstatusAndrad` byggas? → Ja, väg (a). ✅ KLAR (2026-08-16, v5.109.0).** En
+`serverTimestamp()` läggs till i `satAvtalsstatus` (framåtriktat – befintliga kunder får
+ingen historik för tidigare byten), plus att `skapad` börjar returneras av
+`listaOrganisationer` (fältet fanns redan, skrevs bara aldrig ut). Ger "kund skapad för N
+dagar sedan, fortfarande i offertläge" utan loggenomgång. Den avgörande skillnaden mot
+alternativ (b) – härledning ur revisionsloggen – är kostnad: (b) hade krävt en extra läsning
+PER organisation vid varje sidladdning.
+
+**Genomfört:** `avtalslivscykel.js`s `satAvtalsstatus` skriver nu `avtalsstatusAndrad` i samma
+`set(..., { merge: true })` som `avtalsstatus` själv – ingen extra skrivning, ingen ändrad
+transaktionsgräns. `organisationslivscykel.js`s `listaOrganisationer` returnerar båda fälten
+som ISO-strängar (`null` om aldrig satt). **Ren serverändring, ingen UI-yta ännu** – 67b/67c
+är de delmål som faktiskt visar värdena; det här var bara underlaget beslutspunkt 2 pekade ut.
+Tre nya tester i `tests/functions/etapp6.test.cjs`: `avtalsstatusAndrad` sätts av
+`satAvtalsstatus` och syns i `listaOrganisationer`; en organisation som aldrig bytt
+avtalsstatus visar `null` (inte ett fel); `skapad` returneras som en giltig ISO-tidsstämpel
+för en nyetablerad organisation. **Testat:** `lint`/`build`/`vitest run` (216/216) och
+`test:functions` (hela kedjan, inklusive de tre nya) – alla gröna. `test:rules`/`test:storage`
+kördes inte, ingen regelfil rörd.
 
 **3. Är omfattningen rätt? → Ja, oförändrad.** Faller behovet att korta senare är 67e
 (ren underhållbarhet) och 67d (bekvämlighet vid få kunder) de som ska strykas först – i den
