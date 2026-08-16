@@ -55,6 +55,21 @@ export function arRedaktor(role) {
   return REDAKTORSROLLER.includes(role);
 }
 
+// Etapp 67a: avgör om klienten ens ska FÖRSÖKA läsa plattformsadmin/{uid} för att ta reda på
+// om den inloggade är leverantörsadmin. Se useArPlattformsadmin.js för hela motiveringen –
+// kort: plattformsadmin är ingen roll utan existensen av ett dokument, och en nekad läsning
+// är det normala svaret "nej". Att göra den läsningen för ALLA användare hade lagt en alltid
+// misslyckad läsning på startsidans kritiska väg och förorenat den "upprepade
+// permission-denied"-signal Etapp 32b ska larma på. En plattformsadmin är i praktiken alltid
+// superadmin (blibForstaPlattformsadmin kräver det).
+//
+// Bor här, och inte i hooken, för att den ska gå att enhetstesta: hookfilen importerar
+// firebase/config, som initierar Auth och kraschar i vitests nodmiljö. roles.js är medvetet
+// fri från Firebase-importer, precis som src/utils och src/config.
+export function farForsokaLasaPlattformsadmin(uid, role) {
+  return Boolean(uid) && role === ROLES.SUPERADMIN;
+}
+
 // Klientmotsvarighet till firestore.rules farRedigeraOmrade(omrade) – MÅSTE hållas i synk med
 // den. Etapp 31b (bugfynd): useRutiner(omrade)/useForradsartiklar() frågar Firestore utan att
 // filtrera på status, och förlitar sig på att regeln själv filtrerar bort utkast för den som

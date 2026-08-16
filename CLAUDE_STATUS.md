@@ -6,12 +6,18 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-16, version **5.107.0** – byggd, pushad och **DEPLOYAD**
-(körning #78 deployade v5.106.0, commit `ef7c841`, verifierat via asset-hash mot skarp URL;
-v5.107.0 är en efterföljande commit, deploy inte ännu triggad för den – se "Uppföljning
-2026-08-15" längst ner för de fyra ägarbesluten och SVG-säkerhetsfixen). **2026-08-16:
-`ETAPPLAN16.md` skriven som UTKAST (Etapp 67, leverantörsdashboard) – EJ ANTAGEN, ingen kod
-skriven, se "Uppföljning 2026-08-16" längst ner.** v5.106.0 = **Etapp
+**Senast uppdaterad:** 2026-08-16, version **5.108.0** – byggd och pushad, **INTE DEPLOYAD**.
+
+> **Deployläget just nu, i klartext:** senaste faktiska deploy är körning #78, som tog upp
+> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0**
+> (SVG-spärren + fyra ägarbeslut) och **v5.108.0** (Etapp 67a) ligger båda pushade men
+> odeployade. Nästa deploy tar med sig båda.
+
+v5.108.0 = **Etapp 67a (`ETAPPLAN16.md`) – leverantörsvyn fick äntligen en väg in från menyn
+och kommandopaletten – KLAR.** Resten av `ETAPPLAN16.md` (67b–67e, leverantörsdashboarden) är
+**EJ ANTAGEN** – tre beslutspunkter väntar på ägaren. Se "Uppföljning 2026-08-16" längst ner.
+v5.107.0 = SVG-uppladdning stängd + fyra ägarbeslut loggade, se "Uppföljning 2026-08-15".
+v5.106.0 = **Etapp
 66d (`ETAPPLAN15.md`) – driftstörning kopplad till rutin och åtgärd – KLAR. Med det är HELA
 Etapp 66 (alla fyra delmål 66a–66d) byggd OCH deployad**, se sektionen "Uppföljning 2026-08-14
 (Etapp 66d klar, v5.106.0 – Etapp 66 helt byggd)" längst ner.
@@ -3195,3 +3201,53 @@ fältet finns redan i `organisationslivscykel.js:94` men returneras inte), och o
 
 Ingen versionsbump, ingen changelog-post – inget kundvänt har byggts. Endast
 `ETAPPLAN16.md` (ny), `CLAUDE.md` (dokumentkartan) och den här sektionen.
+
+## Uppföljning 2026-08-16 (Etapp 67a klar, v5.108.0 – leverantörsvyn fick en väg in)
+
+Ägaren bad om delmål 67a ur `ETAPPLAN16.md`. **Planen som helhet är fortfarande inte antagen**
+– de tre beslutspunkterna är obesvarade – men 67a byggdes separat eftersom det var fristående
+från dem: det gör en befintlig vy nåbar och rör varken omfattning, datamodell eller server.
+
+**Problemet som löstes:** `/leverantor` har sedan Etapp 6a saknat länk från gränssnittet
+HELT. Vyn nåddes bara genom att skriva adressen för hand. Det är särskilt allvarligt eftersom
+`INCIDENT-CHECKLISTA.md` pekar dit på fem ställen under tidspress, bland annat för det globala
+e-postnödstoppet.
+
+**Två avvikelser mot planens egen skiss, båda funna i premisskontrollen av bygget:**
+
+- Planen sa "post i `src/data/sokindex.js`" – **fel fil.** Den innehåller platshållardata från
+  Fas 1 (påhittade kliniska rutiner), inte navigation. Rätt plats var `STATISKA_ATGARDER` i
+  `useSokindex.js:34`, där Akutläge/Skiftrapport/Öva redan bor.
+- **`STATISKA_ATGARDER` har ingen rollgating alls** – alla användare får hela listan. En post
+  rakt in hade gett varje användare en sökträff som leder till "du har inte åtkomst". Listan
+  byggs nu ihop i `useMemo` med posten villkorad.
+
+**Ett beslut togs under bygget som inte syns i diffen:** hooken läser `plattformsadmin/{uid}`
+**bara för superadmins**. Inte av behörighetsskäl (regellagret avgör ändå) utan för att
+`useSokindex` används av både `SokFalt.jsx` och kommandopaletten på startsidan – en oskyddad
+hook hade lagt en ALLTID misslyckad Firestore-läsning på den kritiska vägen för varje
+användare vid varje session, och matat exakt den signal Etapp 32b vill larma på ("upprepade
+`permission-denied`"). Att förorena mätningen innan larmet är byggt vore att sabotera den i
+förväg. Säkert eftersom `blibForstaPlattformsadmin` kräver superadmin
+(`functions/plattformsdrift.js:272`); den som utsetts via `gorTillPlattformsadmin` utan att
+vara superadmin får ingen menypost men når vyn via adressen – dagens läge, ingen regression.
+
+**Testet flyttade en funktion.** Predikatet låg först i hooken men gick inte att enhetstesta –
+`firebase/config` anropar `getAuth(app)` vid import och kraschar i vitests nodmiljö.
+`farForsokaLasaPlattformsadmin(uid, role)` bor därför i `src/firebase/roles.js`, som är fri
+från Firebase-importer. Sakligt en bättre hemvist också: den står nu bredvid `arRedaktor`.
+
+**Filer:** nya `src/hooks/useArPlattformsadmin.js` och
+`src/firebase/arPlattformsadminGating.test.js` (4 tester som låser superadmin-avgränsningen);
+ändrade `src/firebase/roles.js`, `src/components/BottomNav.jsx`, `src/hooks/useSokindex.js`,
+`INCIDENT-CHECKLISTA.md` (snabbreferensen "Var saker finns" + datumraden),
+`ETAPPLAN16.md` (67a ✅ + "Genomfört"), `CLAUDE.md`, `src/data/andringslogg.js`.
+
+**Övervägde men rörde inte `avtal/INCIDENTRESPONSPLAN.md`** – ingen detektions-,
+begränsnings- eller återställningsförmåga ändrad, inga nya personuppgifter, ingen
+regeländring. Samma bedömningsmönster som Etapp 65b/66b/66c/66d.
+
+Version 5.107.0 → **5.108.0**. `lint`/`build`/`vitest run` (216/216) gröna.
+`test:rules`/`test:storage`/`test:functions` kördes INTE – varken regelfiler eller Cloud
+Functions är rörda. Committat och pushat. **Ingen deploy gjord** – inte begärd. Nästa deploy
+tar med sig både v5.107.0 (SVG-spärren) och v5.108.0.

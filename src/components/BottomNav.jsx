@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { arRedaktor, ROLES } from "../firebase/roles";
+import { useArPlattformsadmin } from "../hooks/useArPlattformsadmin";
 import { oppnaKommandopalett } from "../hooks/useKommandopalett";
 import MerMeny from "./MerMeny";
 import KioskPinModal from "./KioskPinModal";
@@ -10,6 +11,9 @@ import "./BottomNav.css";
 // Mobilanpassad navigering längst ned på skärmen
 export default function BottomNav() {
   const { role, loggaUt } = useAuth();
+  // Måste anropas före kiosk-returen nedan – hooks får inte stå bakom en villkorlig retur.
+  // En kiosk är aldrig superadmin, så hooken gör ändå ingen läsning i det fallet.
+  const { arPlattformsadmin } = useArPlattformsadmin();
   const [merOppen, setMerOppen] = useState(false);
   const [pinOppen, setPinOppen] = useState(false);
   const navigate = useNavigate();
@@ -75,6 +79,11 @@ export default function BottomNav() {
     { till: "/ova", ikon: "🎓", namn: "Öva" },
     ...(arRedaktor(role) ? [{ till: "/godkannanden", ikon: "✅", namn: "Godkänn" }] : []),
     ...(arRedaktor(role) ? [{ till: "/admin", ikon: "⚙️", namn: "Admin" }] : []),
+    // Etapp 67a: leverantörsvyn hade sedan Etapp 6a INGEN väg in från gränssnittet alls –
+    // den nåddes bara genom att skriva /leverantor för hand i adressfältet. Gatas inte på
+    // role (plattformsadmin är ingen roll, se useArPlattformsadmin.js) utan på den faktiska
+    // behörigheten. Läggs sist eftersom den rör som mest en handfull konton totalt.
+    ...(arPlattformsadmin ? [{ till: "/leverantor", ikon: "🏢", namn: "Leverantör" }] : []),
   ];
 
   return (

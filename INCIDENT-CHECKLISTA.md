@@ -3,7 +3,11 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-11 · **Motsvarar kodläge:** v5.97.0 (Etapp 64, scaffolding för
+**Senast uppdaterad:** 2026-08-16 (Etapp 67a: leverantörsvyn fick en väg in från menyn –
+snabbreferensen "Var saker finns" uppdaterad, eftersom fem steg i den här checklistan pekar på
+`/leverantor` under tidspress. Ingen detektions-, begränsnings- eller återställningsförmåga
+ändrad, inga nya personuppgifter, ingen regeländring.) · **Motsvarar kodläge i övrigt:**
+v5.97.0 (Etapp 64, scaffolding för
 baspaketreferenser). Kontrollerat 2026-08-11 mot faktisk kod: den enda ändringen i
 `firestore.rules` sedan v5.91.0 är `baspaketreferenser`-blocket (plus en tvåfältsuppdatering
 på sökningar-utan-träff, Etapp 62a) – ingen detektions-, begränsnings- eller
@@ -313,6 +317,7 @@ användare. Sakligt, kort, verifierat.
 | Tvinga utloggning, ändra roll | `/admin` → Användare & roller |
 | Revisionslogg (hashkedja) + export | `/admin` → Revisionslogg |
 | Ändringslogg (bredare aktivitet) | `/admin` → Ändringslogg |
+| **Ta sig till leverantörsvyn över huvud taget** | "Mer" i nedre navigeringen → **🏢 Leverantör**, eller kommandopaletten (Ctrl/Cmd+K) → "Leverantörsvy" – Etapp 67a. Syns bara för leverantörsadmin. **Fram till Etapp 67a fanns ingen länk alls** – vyn nåddes bara genom att skriva `/leverantor` för hand, vilket fortfarande fungerar om menyposten mot förmodan saknas |
 | Pausa/återaktivera organisation | `/leverantor` |
 | Schemalagd radering (begära/avbryta) | `/admin` → **Radera organisationen permanent** (kunden), `/leverantor` (avbryt-knapp) – Etapp 49a |
 | Tillfällig supportåtkomst (bevilja/avsluta) | `/admin` → **Tillfällig supportåtkomst** (kunden), `/leverantor` (varningsraden, "Avsluta åtkomsten") – Etapp 50b |

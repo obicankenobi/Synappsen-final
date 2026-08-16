@@ -10,6 +10,7 @@ import { useKontakter } from "./useKontakter";
 import { useLankbibliotek } from "./useLankbibliotek";
 import { forradTillSlug } from "../firebase/forrad";
 import { expanderaNyckelord } from "../utils/synonymer";
+import { useArPlattformsadmin } from "./useArPlattformsadmin";
 
 export const OMRADE_LABELS = {
   "kliniskt-stod": "Kliniskt stöd",
@@ -41,12 +42,23 @@ const STATISKA_ATGARDER = [
   { titel: "Öva", kategori: "Åtgärd", sokvag: "/ova", nyckelord: ["kviss", "träna", "repetera", "quiz"] },
 ];
 
+// Etapp 67a: den enda åtgärden i indexet som INTE gäller alla. Läggs till först när
+// useArPlattformsadmin() svarat ja – annars hade en vanlig användare fått en sökträff som
+// leder rakt in i "den här vyn kräver leverantörsadmin-åtkomst, som du inte har".
+const LEVERANTOR_ATGARD = {
+  titel: "Leverantörsvy",
+  kategori: "Åtgärd",
+  sokvag: "/leverantor",
+  nyckelord: ["leverantör", "kunder", "organisationer", "plattform", "kundlista"],
+};
+
 export function useSokindex() {
   const { artiklar } = useForradsartiklar();
   const { rutiner: klinisktRutiner } = useRutiner("kliniskt-stod");
   const { rutiner: adminRutiner } = useRutiner("administration");
   const { kontakter } = useKontakter();
   const { lankar } = useLankbibliotek();
+  const { arPlattformsadmin } = useArPlattformsadmin();
 
   const alltSokbart = useMemo(() => {
     const forradsposter = artiklar
@@ -104,13 +116,14 @@ export function useSokindex() {
     return [
       ...sokposter,
       ...STATISKA_ATGARDER,
+      ...(arPlattformsadmin ? [LEVERANTOR_ATGARD] : []),
       ...forradsposter,
       ...rutinposter,
       ...checklisteatgarder,
       ...kontaktposter,
       ...lankposter,
     ];
-  }, [artiklar, klinisktRutiner, adminRutiner, kontakter, lankar]);
+  }, [artiklar, klinisktRutiner, adminRutiner, kontakter, lankar, arPlattformsadmin]);
 
   const fuse = useMemo(
     () =>

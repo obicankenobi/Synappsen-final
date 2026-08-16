@@ -1,7 +1,10 @@
 # Etapplan 16 – Leverantörens överblick: från lista till dashboard
 
-*Utkast 2026-08-16. **INTE ANTAGEN** – väntar på ägarens ställningstagande till omfattningen
-och till de tre beslutspunkterna längst ner. Ingen rad kod är skriven.*
+*Utkast 2026-08-16. Planen som helhet är **inte antagen** – de tre beslutspunkterna längst ner
+är fortfarande obesvarade. **67a är dock byggt och klart** (v5.108.0, 2026-08-16) på ägarens
+uttryckliga begäran, eftersom det var fristående från beslutspunkterna: det gör en befintlig vy
+nåbar och rör varken omfattningen, datamodellen eller någon serverfunktion. 67b–67e är
+fortfarande ogjorda och kräver ett ställningstagande först.*
 
 **Bakgrund:** ägaren frågade om det finns en huvudvy för leverantören och en
 dashboard-funktion för översyn och hantering av alla kunder. Svaret efter en genomgång av
@@ -58,7 +61,7 @@ varför summan inte stämmer mot verkligheten.
 
 ## Etapp 67 – Delmål
 
-### 67a – Vägen in ⬜
+### 67a – Vägen in ✅ KLAR (2026-08-16, v5.108.0)
 
 **Idé:** gör vyn nåbar. Det här är den enskilt största bristen och den billigaste att rätta:
 i dag måste man skriva `/leverantor` för hand i adressfältet varje gång.
@@ -79,6 +82,59 @@ plattformsadmin inte är en roll utan en separat collection. Hooken måste bygga
 **Klart när:** en plattformsadmin ser "Leverantör" i Mer-menyn och i kommandopaletten; en
 vanlig superadmin ser den inte; ingen extra Firestore-läsning sker för användare som inte är
 plattformsadmin utöver det enda misslyckade försöket per session.
+
+**Genomfört (2026-08-16, v5.108.0).** Två avvikelser mot skissen ovan, båda upptäckta i en
+premisskontroll av bygget självt:
+
+- **Planen sa "post i `src/data/sokindex.js`". Det var fel fil.** `sokindex.js` är
+  platshållardata från Fas 1 – fem påhittade kliniska rutiner ("Ryggsmärta", "Trauma höft"),
+  inte ett navigationsindex. Rätt plats visade sig vara `STATISKA_ATGARDER` i
+  `useSokindex.js:34`, där de befintliga navigationsåtgärderna (Akutläge, Skiftrapport, Öva …)
+  redan bor. Posten lades där i stället.
+- **`STATISKA_ATGARDER` är en modulkonstant utan någon rollgating alls** – varenda användare
+  får hela listan. En post rakt in i den hade gett varje undersköterska en sökträff
+  "Leverantörsvy" som leder till "den här vyn kräver leverantörsadmin-åtkomst, som du inte
+  har". Listan byggs därför nu ihop inne i `useMemo` med posten villkorad av
+  `useArPlattformsadmin()`.
+
+**En tredje sak avgjordes under bygget och är värd att skriva ut, eftersom den inte syns i
+diffen:** hooken läser `plattformsadmin/{uid}` **bara för superadmins**. Skälet är inte
+behörighet – regellagret avgör det ändå – utan brus. `useSokindex` används av både
+`SokFalt.jsx` och kommandopaletten, som båda renderas på startsidan; en oskyddad hook hade
+lagt en *alltid misslyckad* Firestore-läsning på den kritiska vägen för varje användare vid
+varje session, och matat exakt den signal Etapp 32b vill larma på ("upprepade
+`permission-denied`", se `OPPNA-PUNKTER.md`). Att förorena den mätningen innan larmet ens är
+byggt vore att sabotera den i förväg. Avgränsningen är säker eftersom
+`blibForstaPlattformsadmin` uttryckligen kräver superadmin
+(`functions/plattformsdrift.js:272`); en plattformsadmin som utsetts via
+`gorTillPlattformsadmin` utan att vara superadmin får ingen menypost men når fortfarande
+`/leverantor` genom att skriva adressen – alltså exakt dagens läge, ingen regression.
+
+**Testet flyttade en funktion.** Predikatet låg först i `useArPlattformsadmin.js`, men det
+gick inte att enhetstesta: filen importerar `firebase/config`, som anropar `getAuth(app)` vid
+import och kraschar i vitests nodmiljö. `farForsokaLasaPlattformsadmin(uid, role)` bor därför i
+`src/firebase/roles.js`, som är medvetet fri från Firebase-importer (samma egenskap som gör
+`src/utils`/`src/config` testbara). Det är också en bättre hemvist rent sakligt – den står nu
+bredvid `arRedaktor` och `farRedigeraOmrade`.
+
+**Övrigt byggt:** avduplicering av samtidiga läsningar (`pagaendePerUid`) eftersom `BottomNav`
+och `useSokindex` monteras samtidigt på startsidan och annars hade skickat var sin identisk
+läsning; sessionscache per uid (statusen kan aldrig ändras mitt i en session – den sätts bara
+av en Cloud Function); och en effekt utan synkrona `setState`-anrop, eftersom
+`react-hooks/set-state-in-effect` flaggar det (samma problem som redan är kommenterat i
+`Leverantor.jsx:109`).
+
+**Incidentdokumenten:** `INCIDENT-CHECKLISTA.md`s snabbreferens "Var saker finns" fick en ny
+rad. Fem steg i checklistan pekar på `/leverantor` under tidspress – bland annat det globala
+e-postnödstoppet – och fram till nu stod det ingenstans hur man tar sig dit.
+`avtal/INCIDENTRESPONSPLAN.md` rördes INTE: ingen detektions-, begränsnings- eller
+återställningsförmåga är ändrad, inga nya personuppgifter, ingen regeländring. Samma
+bedömningsmönster som för Etapp 65b/66b/66c/66d.
+
+**Testat:** `npm run lint`, `npm run build`, `npx vitest run` (216/216, varav 4 nya i
+`src/firebase/arPlattformsadminGating.test.js` som låser fast superadmin-avgränsningen så att
+en framtida "förenkling" inte tyst kan vidga den). `test:rules`/`test:storage`/`test:functions`
+kördes inte – varken `firestore.rules`, `storage.rules` eller någon Cloud Function är rörd.
 
 ---
 
@@ -236,7 +292,7 @@ kortas är 67e det som ska falla bort först (ren underhållbarhet), därefter 6
 
 | Delmål | Vad | Ny läsväg? | Serverändring? |
 |---|---|---|---|
-| 67a | Vägen in: hook + länk i Mer-menyn, kommandopaletten och sökindexet | Ja, en per session | Nej |
+| 67a ✅ | Vägen in: hook + länk i Mer-menyn och kommandopaletten | Ja, en per session – och bara för superadmins | Nej |
 | 67b | Nyckeltalsrad överst, demo exkluderad (krav 29) | Nej | Nej |
 | 67c | "Kräver åtgärd"-lista med sex verifierade signaler | Nej | Nej |
 | 67d | Sortering, filtrering, fritextsök, filter i URL:en | Nej | Nej |
