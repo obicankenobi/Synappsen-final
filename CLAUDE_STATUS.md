@@ -3288,3 +3288,21 @@ v5.107.0 (SVG-spärren + fyra ägarbeslut) och v5.108.0 (Etapp 67a).
 
 **OBS för nästa session:** deployen körs INTE om automatiskt. Produktionen ligger kvar på
 v5.106.0 (körning #78, commit `ef7c841`) tills någon triggar om den manuellt.
+
+## Uppföljning 2026-08-16 (ETAPPLAN16.md ANTAGEN – ägaren följde alla tre rekommendationer)
+
+Ägaren svarade "vi följer dina rekommendationer" på de tre öppna beslutspunkterna i
+`ETAPPLAN16.md`. Loggat i `BESLUTSLOGG.md`. Beslut: (1) samma sida som `/leverantor`, inte en
+separat `/leverantor/oversikt`; (2) bygg `avtalsstatusAndrad` väg (a) – `serverTimestamp()` i
+`satAvtalsstatus` + `skapad` börjar returneras av `listaOrganisationer`; (3) omfattningen
+(67b–67e) kortas inte.
+
+Planen är alltså **antagen**. 67a var redan klart (v5.108.0, byggt separat samma dag eftersom
+det var fristående från beslutspunkterna). 67b–67e är antagna men INTE byggda ännu – väntar på
+nästa "genomför delmål 67x". Ingen kod skriven i den här uppföljningen, bara planfilerna
+(`ETAPPLAN16.md`, `CLAUDE.md`, `BESLUTSLOGG.md`) uppdaterade.
+
+**Deployläget är oförändrat sedan förra uppföljningen** – v5.107.0/v5.108.0 ligger fortfarande
+pushade men odeployade, blockerat av att GitHub Actions inte tilldelar någon runner (se
+"Uppföljning 2026-08-16 (deployförsök BLOCKERAT)"). Ägaren har bett oss avvakta med deploy
+tills vidare.

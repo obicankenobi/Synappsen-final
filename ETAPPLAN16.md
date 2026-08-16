@@ -1,10 +1,8 @@
 # Etapplan 16 – Leverantörens överblick: från lista till dashboard
 
-*Utkast 2026-08-16. Planen som helhet är **inte antagen** – de tre beslutspunkterna längst ner
-är fortfarande obesvarade. **67a är dock byggt och klart** (v5.108.0, 2026-08-16) på ägarens
-uttryckliga begäran, eftersom det var fristående från beslutspunkterna: det gör en befintlig vy
-nåbar och rör varken omfattningen, datamodellen eller någon serverfunktion. 67b–67e är
-fortfarande ogjorda och kräver ett ställningstagande först.*
+*Utkast 2026-08-16. **ANTAGEN 2026-08-16** – ägaren följde samtliga tre rekommendationer
+(samma sida, bygg `avtalsstatusAndrad` väg (a), oförändrad omfattning), se `BESLUTSLOGG.md`.
+**67a är klart** (v5.108.0, byggt separat samma dag). 67b–67e är antagna men ännu ogjorda.*
 
 **Bakgrund:** ägaren frågade om det finns en huvudvy för leverantören och en
 dashboard-funktion för översyn och hantering av alla kunder. Svaret efter en genomgång av
@@ -241,27 +239,25 @@ testsviten är fortsatt grön.
 
 ---
 
-## Beslutspunkter som kräver ägaren
+## Beslutspunkter som kräver ägaren — AVGJORDA 2026-08-16
 
-**1. Samma sida eller en ny?** Min rekommendation: **samma sida**. Nyckeltal och
-åtgärdslista läggs överst i `/leverantor`, resten skrollar under. En separat
-`/leverantor/oversikt` skulle dela plattformsadmin-funktionerna över två adresser och kräva
-att man hoppar mellan dem för att göra något åt det man just sett. Alternativet är rimligt
-först om sidan senare växer förbi vad en skärm klarar.
+Ägaren svarade "vi följer dina rekommendationer" på samtliga tre. Se `BESLUTSLOGG.md` för
+raden. Originaltexten står kvar nedan, kort, som ett spår för varför varje val gjordes.
 
-**2. Ska `avtalsstatusAndrad` byggas?** Fynd 6: "den här offerten har legat stilla i 40
-dagar" går inte att svara på i dag. Två vägar: (a) lägg till en `serverTimestamp()` i
-`satAvtalsstatus` – två rader, men fungerar bara framåt, befintliga kunder får ingen
-historik; (b) härled ur revisionsloggen, som redan innehåller
-`organisation_avtalsstatus_andrad` med tidsstämpel – ingen ny data, men en dyr läsning per
-organisation. **Min rekommendation: (a), plus att `skapad` börjar returneras av
-`listaOrganisationer`** (fältet finns redan, se premisskontrollens tillägg). Det ger "kund
-skapad för N dagar sedan, fortfarande i offertläge" direkt, för alla kunder, utan
-loggenomgång.
+**1. Samma sida eller en ny? → Samma sida.** Nyckeltal och åtgärdslista läggs överst i
+`/leverantor`, resten skrollar under. En separat `/leverantor/oversikt` skulle dela
+plattformsadmin-funktionerna över två adresser i onödan.
 
-**3. Är omfattningen rätt?** Fem delmål matchar Etapp 65 och 66 i storlek. Behöver den
-kortas är 67e det som ska falla bort först (ren underhållbarhet), därefter 67d
-(bekvämlighet vid få kunder). 67a–67c är kärnan i det ägaren faktiskt frågade efter.
+**2. Ska `avtalsstatusAndrad` byggas? → Ja, väg (a).** En `serverTimestamp()` läggs till i
+`satAvtalsstatus` (framåtriktat – befintliga kunder får ingen historik för tidigare byten),
+plus att `skapad` börjar returneras av `listaOrganisationer` (fältet fanns redan, skrevs bara
+aldrig ut). Ger "kund skapad för N dagar sedan, fortfarande i offertläge" utan loggenomgång.
+Den avgörande skillnaden mot alternativ (b) – härledning ur revisionsloggen – är kostnad: (b)
+hade krävt en extra läsning PER organisation vid varje sidladdning.
+
+**3. Är omfattningen rätt? → Ja, oförändrad.** Faller behovet att korta senare är 67e
+(ren underhållbarhet) och 67d (bekvämlighet vid få kunder) de som ska strykas först – i den
+ordningen. 67a–67c är kärnan.
 
 ---
 
