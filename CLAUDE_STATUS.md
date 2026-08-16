@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-16, version **5.108.0** – byggd och pushad, **INTE DEPLOYAD**.
+**Senast uppdaterad:** 2026-08-16, version **5.108.0** – byggd och pushad, **INTE DEPLOYAD** (deployförsök gjort och BLOCKERAT av att GitHub Actions inte tilldelar någon runner – se "Uppföljning 2026-08-16 (deployförsök BLOCKERAT)" längst ner).
 
 > **Deployläget just nu, i klartext:** senaste faktiska deploy är körning #78, som tog upp
 > **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0**
@@ -3251,3 +3251,40 @@ Version 5.107.0 → **5.108.0**. `lint`/`build`/`vitest run` (216/216) gröna.
 `test:rules`/`test:storage`/`test:functions` kördes INTE – varken regelfiler eller Cloud
 Functions är rörda. Committat och pushat. **Ingen deploy gjord** – inte begärd. Nästa deploy
 tar med sig både v5.107.0 (SVG-spärren) och v5.108.0.
+
+## Uppföljning 2026-08-16 (deployförsök BLOCKERAT – GitHub Actions får ingen runner)
+
+**v5.107.0 och v5.108.0 är fortfarande INTE deployade.** Ett deployförsök gjordes på ägarens
+begäran och misslyckades – men INTE på grund av koden. Skrivet här så att nästa session inte
+gör om felsökningen från början.
+
+**Symtom:** körning #79 (`deploy.yml`, commit `b0662e7`) avslutades med `failure` efter
+**4 sekunder**, utan loggar (`get_job_logs` ger HTTP 404), med `runner_id: 0` och tomt
+`runner_name`. En omkörning (`run_attempt: 2`) gav exakt samma resultat efter 2 sekunder.
+Jobbet startade alltså aldrig – ingen runner tilldelades.
+
+**Felsökningen visade att det inte är vår kod, och inte heller specifikt deploy.yml:**
+
+- `deploy.yml` är **oförändrad** sedan körning #78 som lyckades (`git diff ef7c841..b0662e7 --
+  .github/` är tom) och är giltig YAML.
+- **CI misslyckas med exakt samma signatur** – 2 sekunder, `runner_id: 0`, inga loggar – på
+  varje push sedan **2026-08-15 23:38:51** (CI #364, commit `ca574cb`). CI #362 kl. 23:25:47
+  var den sista som lyckades. Även en ren dokumentationscommit (`a865b53`, CI #367) faller.
+  Det utesluter att någon kodändring är orsaken.
+- **Dependabots egna körningar lyckas** fortfarande (t.ex. 2026-08-16 08:45), vilket talar för
+  att det är minuter/spendgräns för Actions-runners som tagit slut, inte att Actions är
+  avstängt för repot.
+
+**Slutsats:** allt som kräver en `ubuntu-latest`-runner nekas sedan 2026-08-15 ~23:38. Det
+mest sannolika är att GitHub Actions-minuterna eller spendgränsen för faktureringsperioden är
+förbrukade. **Det går inte att åtgärda från en kodsession** – kräver att ägaren tittar i
+GitHub → Settings → Billing (spendgräns/minuter) och höjer eller inväntar nästa period.
+
+**Koden är deployklar.** Hela CI-sviten kördes lokalt mot emulatorerna i stället, allt grönt:
+`lint`, `build`, `vitest run` (216/216), `test:rules` (0 fel), `test:functions` (33 filer,
+0 fel), `test:storage` (24/24). Så snart Actions fungerar igen räcker det att trigga
+`deploy.yml` på `b0662e7` – ingen ny kodändring behövs, och den deployen tar med sig BÅDE
+v5.107.0 (SVG-spärren + fyra ägarbeslut) och v5.108.0 (Etapp 67a).
+
+**OBS för nästa session:** deployen körs INTE om automatiskt. Produktionen ligger kvar på
+v5.106.0 (körning #78, commit `ef7c841`) tills någon triggar om den manuellt.
