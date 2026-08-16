@@ -6,10 +6,12 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-15, version **5.107.0** – byggd, pushad och **DEPLOYAD**
+**Senast uppdaterad:** 2026-08-16, version **5.107.0** – byggd, pushad och **DEPLOYAD**
 (körning #78 deployade v5.106.0, commit `ef7c841`, verifierat via asset-hash mot skarp URL;
 v5.107.0 är en efterföljande commit, deploy inte ännu triggad för den – se "Uppföljning
-2026-08-15" längst ner för de fyra ägarbesluten och SVG-säkerhetsfixen). v5.106.0 = **Etapp
+2026-08-15" längst ner för de fyra ägarbesluten och SVG-säkerhetsfixen). **2026-08-16:
+`ETAPPLAN16.md` skriven som UTKAST (Etapp 67, leverantörsdashboard) – EJ ANTAGEN, ingen kod
+skriven, se "Uppföljning 2026-08-16" längst ner.** v5.106.0 = **Etapp
 66d (`ETAPPLAN15.md`) – driftstörning kopplad till rutin och åtgärd – KLAR. Med det är HELA
 Etapp 66 (alla fyra delmål 66a–66d) byggd OCH deployad**, se sektionen "Uppföljning 2026-08-14
 (Etapp 66d klar, v5.106.0 – Etapp 66 helt byggd)" längst ner.
@@ -3150,3 +3152,46 @@ rördes INTE – gallringsbeslutet är taget men inte byggt, så avtalstexten sk
 rättad), `src/data/andringslogg.js`. Version 5.106.0 → **5.107.0**. `test:storage` kört och grönt
 (24/24). `lint`/`build`/`vitest run` körs innan commit. Inte deployat än – v5.107.0 väntar på
 nästa deploy-tillfälle.
+
+## Uppföljning 2026-08-16 (ETAPPLAN16.md föreslagen – leverantörsdashboard, EJ ANTAGEN)
+
+Ägaren frågade om det finns en huvudvy för leverantören och en dashboard för översyn/hantering
+av alla kunder. Svaret efter en kodgenomgång: **ja till förvaltning, nej till överblick.**
+`src/pages/Leverantor.jsx` (990 rader) kan redan nästan allt som behöver GÖRAS med en kund,
+men svarar inte på "vad behöver jag göra något åt i dag?" utan att man läser hela listan.
+
+**`ETAPPLAN16.md` skriven som utkast (Etapp 67, fem delmål 67a–67e).** INTE antagen – väntar
+på ägarens ställningstagande. Ingen rad kod skriven. Registrerad i `CLAUDE.md`s dokumentkarta
+som utkast, medvetet INTE i läsordningens numrerade lista (den är för antagna planer – samma
+behandling som `ETAPPLAN5-ALT-A/B.md` fick).
+
+**Premisskontrollen (genomgående krav 8) gjordes före planen och gav sju utfall – fem höll,
+två gjorde det inte:**
+
+- **Fynd 2 (håller inte):** `/admin` gatas på `arRedaktor(role)` i `BottomNav.jsx:77`, men
+  plattformsadmin-status finns INTE i `role`-fältet – den bor i collectionen
+  `plattformsadmin/{uid}`. Klienten vet i dag ingenting om den. 67a måste därför bygga en ny
+  hook först. `firestore.rules:300–302` visade sig tillåta `read: if arPlattformsadmin()`,
+  alltså kan en plattformsadmin läsa sitt eget dokument medan alla andra får
+  `permission-denied` – statusen går att avgöra utan ny collection eller regeländring.
+- **Fynd 5 (håller inte, och lättast att missa tyst):** `manadsrapportOrganisationer`
+  filtrerar uttryckligen bort demo-organisationen (`avtalslivscykel.js:324–325`), men
+  `listaOrganisationer` gör det INTE – demo kommer med, bara flaggad `arDemo: true`. En
+  nyckeltalsrad byggd rakt på arrayen hade räknat demomiljön som betalande kund. Blev
+  **genomgående krav 29**: ett aggregat över alla kunder måste alltid exkludera demo, och
+  exkluderingen ska synas på beräkningsstället.
+- **Fynd 6 (delvis):** `satAvtalsstatus` (`avtalslivscykel.js:62`) skriver bara
+  `{ avtalsstatus }` – ingen tidsstämpel. "Offerten har legat stilla i 40 dagar" går inte att
+  svara på i dag. Lyftes till beslutspunkt 2 i stället för att byggas in på en gissning.
+- **Fynd 7 (håller inte, men åt andra hållet):** kostnadstrend antogs kräva ny datainsamling.
+  `organisationer/{orgId}/kostnadshistorik` skrivs redan en post per månad – bara `limit(1)`
+  läses. Trend uteslöts ändå, men av lässkostnadsskäl, och hör ihop med Etapp 48c när
+  GCP-exporten levererar.
+
+**Tre beslutspunkter lämnades öppna åt ägaren:** samma sida eller ny (rekommenderat: samma),
+om `avtalsstatusAndrad` ska byggas (rekommenderat: ja, plus att `skapad` börjar returneras –
+fältet finns redan i `organisationslivscykel.js:94` men returneras inte), och om omfattningen
+är rätt (om den ska kortas faller 67e först, sedan 67d).
+
+Ingen versionsbump, ingen changelog-post – inget kundvänt har byggts. Endast
+`ETAPPLAN16.md` (ny), `CLAUDE.md` (dokumentkartan) och den här sektionen.
