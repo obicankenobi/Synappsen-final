@@ -95,3 +95,32 @@
   border-radius: 6px;
   font: inherit;
 }
+
+.leverantor__filterrad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.leverantor__filterfalt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.leverantor__filterfalt input,
+.leverantor__filterfalt select {
+  padding: 6px 10px;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.leverantor__filterrad .leverantor__checkbox {
+  flex-direction: row;
+  align-items: center;
+}

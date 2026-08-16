@@ -6,18 +6,20 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-16, version **5.111.0** – byggd och pushad, **INTE DEPLOYAD**
+**Senast uppdaterad:** 2026-08-16, version **5.112.0** – byggd och pushad, **INTE DEPLOYAD**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
 > **Deployläget just nu, i klartext:** senaste faktiska deploy är körning #78, som tog upp
-> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0–v5.111.0**
+> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0–v5.112.0**
 > ligger alla pushade men odeployade. Ett tidigare deployförsök 2026-08-16 blockerades av att
 > GitHub Actions inte tilldelade någon runner (se "Uppföljning 2026-08-16 (deployförsök
 > BLOCKERAT)") – ägaren bad oss därefter avvakta med deploy oavsett, så det är inte längre det
 > som håller tillbaka nästa försök.
 
-Ägaren bad 2026-08-16 att köra `ETAPPLAN16.md`s kvarvarande delmål (67b–67e) **i följd utan att
+v5.112.0 = **Etapp 67d (sortering/filtrering/sök) – KLAR**, se "Uppföljning 2026-08-16
+(Etapp 67d klar, v5.112.0)" längst ner. Ägaren bad 2026-08-16 att köra `ETAPPLAN16.md`s
+kvarvarande delmål (67b–67e) **i följd utan att
 stanna mellan varje**. v5.111.0 = **Etapp 67c ("kräver åtgärd"-listan) – KLAR**, se
 "Uppföljning 2026-08-16 (Etapp 67c klar, v5.111.0)" längst ner. v5.110.0 = Etapp 67b
 (nyckeltalsrad) – KLAR. v5.109.0 = beslutspunkt 2:s serverunderlag –
@@ -3392,3 +3394,28 @@ förstaval, dokumenterat i koden som just det, inte en branschnorm eller ett cit
 delade utilen. `lint`/`build`/`vitest run` (230/230, oförändrat) gröna.
 
 Version 5.110.0 → **5.111.0**. Fortsätter nu direkt med 67d enligt ägarens instruktion.
+
+## Uppföljning 2026-08-16 (Etapp 67d klar, v5.112.0 – sortering/filtrering/sök)
+
+Tredje delmålet i den obevakade kedjan (67b–67e).
+
+**Byggt:** ny ren util `src/utils/leverantorFilter.js` (`filtreraOchSorteraOrganisationer`),
+samma mönster som `leverantorSignaler.js`. En filterrad ovanför organisationslistan: fritextsök
+(namn ELLER huvudman), avtalsstatus, status, modul, sortering (namn/användare/pris/kostnad/
+provperiod) med riktningsknapp, och en "visa demo"-kryssruta.
+
+**Hela tillståndet flyttat till URL:en** via `useSearchParams` (`?status=pausad&sort=pris&
+riktning=desc`), `replace: true` så varje tangenttryckning i sökfältet inte spammar
+webbläsarhistoriken. 67b:s `snabbfilter` (nyckeltalsrutornas genväg) ersattes INTE – det är
+fortfarande samma variabel, bara flyttad från lokal `useState` till URL-parametern `snabb`,
+precis som lovat i 67b:s egen dokumentation. De två filterlagren kombineras med OCH.
+
+**En sorteringsdetalj värd att notera:** saknade värden (t.ex. ett aldrig ifyllt avtalat pris)
+sorteras alltid sist oavsett riktning – annars hade "sortera på pris, fallande" blandat ihop
+"dyraste kund" med "kund utan pris" beroende på vilken riktning man råkat välja.
+
+**Testat:** 9 nya tester i `leverantorFilter.test.js`. `lint`/`build`/`vitest run` (239/239)
+gröna. Ingen regelfil/Cloud Function rörd.
+
+Version 5.111.0 → **5.112.0**. Fortsätter nu direkt med sista delmålet, 67e (dela upp
+`Leverantor.jsx`), enligt ägarens instruktion.

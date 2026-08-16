@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { collection, getDocs, query, where, addDoc, deleteDoc, doc, orderBy, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "../hooks/useAuth";
@@ -27,7 +27,16 @@ import BaspaketreferenserSektion from "../components/BaspaketreferenserSektion";
 import NyckeltalSektion from "../components/leverantor/NyckeltalSektion";
 import KraverAtgardSektion from "../components/leverantor/KraverAtgardSektion";
 import { berakLeverantorSignaler } from "../utils/leverantorSignaler";
+import { filtreraOchSorteraOrganisationer, SORT_FALT } from "../utils/leverantorFilter";
 import "./Leverantor.css";
+
+const SORT_ETIKETT = {
+  [SORT_FALT.NAMN]: "Namn",
+  [SORT_FALT.ANVANDARE]: "Antal användare",
+  [SORT_FALT.PRIS]: "Avtalat pris",
+  [SORT_FALT.KOSTNAD]: "Senaste månadens kostnad",
+  [SORT_FALT.PROVPERIOD]: "Provperiod t.o.m.",
+};
 
 // Etapp 50b: läses direkt av leverantörens klient mot Firestore (inte via en Cloud Function) –
 // exercerar samma firestore.rules-fönster (farSupportlasa) som en riktig support-situation
@@ -94,28 +103,71 @@ export default function Leverantor() {
   const [demoMeddelande, setDemoMeddelande] = useState(null);
   const [epostAvstangd, setEpostAvstangd] = useState(false);
   const [epostAndrar, setEpostAndrar] = useState(false);
-  // Etapp 67b: snabbfiltret nyckeltalsrutorna sätter. Egen state redan nu (inte tillfälligt
-  // hoprört med sorterings-/sök-UI:t) eftersom 67d ändå ska bygga vidare på exakt den här
-  // variabeln, inte ersätta den.
-  const [snabbfilter, setSnabbfilter] = useState(null);
   const { confirm } = useDialog();
 
-  // Etapp 67b/67c: EN beräkning, delad mellan nyckeltalsrutan ("Kräver åtgärd": {n}) och
-  // (från 67c) själva listan – annars räknas samma sex/sju villkor ut på två ställen och
-  // riskerar att glida isär.
-  const signaler = useMemo(() => berakLeverantorSignaler(organisationer, sokkvot), [organisationer, sokkvot]);
+  // Etapp 67d: hela filter-/sorterings-/söktillståndet lever i URL:en (?snabb=atgard&status=
+  // pausad&...) istället för lokal state, så en vy går att länka till och bokmärka – exakt
+  // planens egen "Klart när". Kvarstår från 67b: `snabb` (nyckeltalsrutornas genväg) är en
+  // ANNAN dimension än de detaljerade filtren och kombineras med AND av
+  // filtreraOchSorteraOrganisationer, inte ersätts av dem.
+  const [sokparametrar, setSokparametrar] = useSearchParams();
+  const snabbfilter = sokparametrar.get("snabb");
+  const statusFilter = sokparametrar.get("status") ?? "";
+  const avtalsstatusFilter = sokparametrar.get("avtalsstatus") ?? "";
+  const modulFilter = sokparametrar.get("modul") ?? "";
+  // Standard = visa (matchar det oförändrade beteendet innan 67d fanns) – "demo=0" krävs
+  // uttryckligen i URL:en för att DÖLJA, aldrig tvärtom.
+  const visaDemo = sokparametrar.get("demo") !== "0";
+  const sokterm = sokparametrar.get("sok") ?? "";
+  const sortField = sokparametrar.get("sort") ?? SORT_FALT.NAMN;
+  const sortRiktning = sokparametrar.get("riktning") ?? "asc";
 
-  const idagIso = new Date().toISOString().slice(0, 10);
-  const visadeOrganisationer = useMemo(() => {
-    const lista = organisationer ?? [];
-    if (snabbfilter === "aktiva") return lista.filter((o) => !o.arDemo && o.status === "aktiv");
-    if (snabbfilter === "provperiod") return lista.filter((o) => !o.arDemo && o.provperiodSlut && o.provperiodSlut >= idagIso);
-    if (snabbfilter === "atgard") {
-      const orgIdMedSignal = new Set(signaler.map((s) => s.orgId));
-      return lista.filter((o) => orgIdMedSignal.has(o.orgId));
-    }
-    return lista;
-  }, [organisationer, snabbfilter, signaler, idagIso]);
+  // En enda uppdateringsfunktion för alla filterkontroller: `null`/`""` tar bort parametern
+  // istället för att skriva ut den tom, så URL:en förblir kort och läsbar
+  // (`/leverantor?status=pausad`, inte `/leverantor?status=pausad&avtalsstatus=&modul=...`).
+  // `replace: true` eftersom varje knapptryck/tangentslag annars skulle lägga en egen post i
+  // webbläsarhistoriken – bakåtknappen ska ta dig bort från sidan, inte igenom varje bokstav
+  // som skrivits i sökfältet.
+  function uppdateraFilter(patch) {
+    setSokparametrar(
+      (fore) => {
+        const efter = new URLSearchParams(fore);
+        for (const [nyckel, varde] of Object.entries(patch)) {
+          if (varde === null || varde === "" || varde === undefined) efter.delete(nyckel);
+          else efter.set(nyckel, String(varde));
+        }
+        return efter;
+      },
+      { replace: true }
+    );
+  }
+
+  // Etapp 67b/67c: EN beräkning, delad mellan nyckeltalsrutan ("Kräver åtgärd": {n}) och
+  // 67c:s lista – annars räknas samma sju villkor ut på två ställen och riskerar att glida
+  // isär.
+  const signaler = useMemo(() => berakLeverantorSignaler(organisationer, sokkvot), [organisationer, sokkvot]);
+  const orgIdMedSignal = useMemo(() => new Set(signaler.map((s) => s.orgId)), [signaler]);
+
+  const visadeOrganisationer = useMemo(
+    () =>
+      filtreraOchSorteraOrganisationer(
+        organisationer,
+        {
+          snabbfilter,
+          status: statusFilter,
+          avtalsstatus: avtalsstatusFilter,
+          modul: modulFilter,
+          visaDemo,
+          sok: sokterm,
+          sortField,
+          sortRiktning,
+        },
+        orgIdMedSignal
+      ),
+    [organisationer, snabbfilter, statusFilter, avtalsstatusFilter, modulFilter, visaDemo, sokterm, sortField, sortRiktning, orgIdMedSignal]
+  );
+  const nagotFilterAktivt =
+    Boolean(snabbfilter) || Boolean(statusFilter) || Boolean(avtalsstatusFilter) || Boolean(modulFilter) || Boolean(sokterm) || !visaDemo;
 
   function ladda() {
     setLaddar(true);
@@ -505,7 +557,7 @@ export default function Leverantor() {
         sokkvot={sokkvot}
         antalSignaler={signaler.length}
         aktivtFilter={snabbfilter}
-        onValjFilter={setSnabbfilter}
+        onValjFilter={(v) => uppdateraFilter({ snabb: v })}
       />
 
       <KraverAtgardSektion signaler={signaler} />
@@ -671,7 +723,7 @@ export default function Leverantor() {
             felfall, inte bara det enda som redan hade en egen tidig retur. */}
         <h2>
           Organisationer ({visadeOrganisationer.length}
-          {snabbfilter && ` av ${(organisationer ?? []).length}`})
+          {nagotFilterAktivt && ` av ${(organisationer ?? []).length}`})
         </h2>
         <p className="sida__beskrivning">
           "Avtalat pris" fylls i manuellt och är inte kopplat till någon betalningstjänst.
@@ -680,8 +732,81 @@ export default function Leverantor() {
           Functions-kostnad. Fullständig molnkostnad kräver GCP-faktureringsexport till
           BigQuery, ett ägarbeslut (se <code>ETAPPLAN10.md</code> Etapp 48c).
         </p>
-        {snabbfilter && (
-          <button type="button" className="knapp knapp--sekundar knapp--liten" onClick={() => setSnabbfilter(null)}>
+
+        {/* Etapp 67d: sortering/filtrering/sök, hela tillståndet speglat i URL:en (se
+            uppdateraFilter ovan) så vyn går att länka till och bokmärka. */}
+        <div className="leverantor__filterrad">
+          <label className="leverantor__filterfalt">
+            Sök
+            <input
+              type="search"
+              placeholder="Namn eller huvudman"
+              value={sokterm}
+              onChange={(e) => uppdateraFilter({ sok: e.target.value })}
+            />
+          </label>
+          <label className="leverantor__filterfalt">
+            Avtalsstatus
+            <select value={avtalsstatusFilter} onChange={(e) => uppdateraFilter({ avtalsstatus: e.target.value })}>
+              <option value="">Alla</option>
+              {Object.entries(AVTALSSTATUS_ETIKETT).map(([varde, etikett]) => (
+                <option key={varde} value={varde}>
+                  {etikett}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="leverantor__filterfalt">
+            Status
+            <select value={statusFilter} onChange={(e) => uppdateraFilter({ status: e.target.value })}>
+              <option value="">Alla</option>
+              <option value="aktiv">Aktiv</option>
+              <option value="pausad">Pausad</option>
+              <option value="raderad">Raderad</option>
+            </select>
+          </label>
+          <label className="leverantor__filterfalt">
+            Modul
+            <select value={modulFilter} onChange={(e) => uppdateraFilter({ modul: e.target.value })}>
+              <option value="">Alla</option>
+              <option value="operations">Operations</option>
+              <option value="intelligence">Intelligence</option>
+            </select>
+          </label>
+          <label className="leverantor__filterfalt">
+            Sortera på
+            <select value={sortField} onChange={(e) => uppdateraFilter({ sort: e.target.value })}>
+              {Object.entries(SORT_ETIKETT).map(([varde, etikett]) => (
+                <option key={varde} value={varde}>
+                  {etikett}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className="knapp knapp--sekundar knapp--liten"
+            onClick={() => uppdateraFilter({ riktning: sortRiktning === "desc" ? null : "desc" })}
+            aria-label={sortRiktning === "desc" ? "Sorterar fallande, klicka för stigande" : "Sorterar stigande, klicka för fallande"}
+          >
+            {sortRiktning === "desc" ? "↓ Fallande" : "↑ Stigande"}
+          </button>
+          <label className="leverantor__filterfalt leverantor__checkbox">
+            <input
+              type="checkbox"
+              checked={visaDemo}
+              onChange={(e) => uppdateraFilter({ demo: e.target.checked ? null : "0" })}
+            />
+            Visa demo
+          </label>
+        </div>
+
+        {nagotFilterAktivt && (
+          <button
+            type="button"
+            className="knapp knapp--sekundar knapp--liten"
+            onClick={() => setSokparametrar(new URLSearchParams(), { replace: true })}
+          >
             Visa alla (rensa filter)
           </button>
         )}

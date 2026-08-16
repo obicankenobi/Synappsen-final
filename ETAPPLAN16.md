@@ -235,7 +235,7 @@ plan-text – ett rimligt förstaval, dokumenterat som sådant i koden, inte en 
 
 ---
 
-### 67d – Sortering, filtrering och sök ⬜
+### 67d – Sortering, filtrering och sök ✅ KLAR (2026-08-16, v5.112.0)
 
 **Idé:** listan är i dag osorterad (den kommer i den ordning Firestore råkar returnera
 dokumenten) och har varken filter eller sök. Vid tre kunder spelar det ingen roll; vid
@@ -253,6 +253,27 @@ projektet men är överdrivet här och läggs medvetet inte på.
 
 **Klart när:** listan går att sortera och filtrera, valen överlever en siduppdatering, och
 nyckeltalen i 67b fungerar som filtergenvägar.
+
+**Genomfört.** Filter-/sorteringslogiken ligger i en ny ren util,
+`src/utils/leverantorFilter.js` (`filtreraOchSorteraOrganisationer`), samma
+utils-först-mönster som `leverantorSignaler.js`. Hela tillståndet – snabbfilter, avtalsstatus,
+status, modul, visa/dölj demo, fritextsök, sorteringsfält, sorteringsriktning – speglas i
+URL:en via `useSearchParams` (`?status=pausad&sort=pris&riktning=desc`), med `replace: true` så
+varje tangenttryckning i sökfältet inte lägger en egen post i webbläsarhistoriken.
+
+67b:s `snabbfilter` (nyckeltalsrutornas genväg) ersattes INTE av det nya – det är fortfarande
+samma variabel, bara flyttad från lokal `useState` till URL-parametern `snabb`, precis som
+utlovat i 67b:s "Genomfört". De två filterlagren kombineras med OCH i
+`filtreraOchSorteraOrganisationer`.
+
+En detalj värd att notera: saknade värden (t.ex. ett avtalat pris som aldrig fyllts i) sorteras
+alltid sist, oavsett stigande/fallande riktning – annars hoppar "sortera på pris, fallande"
+förvirrande mellan "dyraste kund" och "kund utan ifyllt pris" beroende på vilken riktning man
+valt.
+
+**Testat:** 9 nya tester i `leverantorFilter.test.js` (kombinerade filter med OCH inte ELLER,
+fritextsök mot namn ELLER huvudman, saknade sorteringsvärden alltid sist i båda riktningarna,
+snabbfiltret `atgard` exkluderar alltid demo). `lint`/`build`/`vitest run` (239/239) gröna.
 
 ---
 
