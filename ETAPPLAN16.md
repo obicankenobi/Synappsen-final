@@ -136,7 +136,7 @@ kördes inte – varken `firestore.rules`, `storage.rules` eller någon Cloud Fu
 
 ---
 
-### 67b – Nyckeltalsrad överst ⬜
+### 67b – Nyckeltalsrad överst ✅ KLAR (2026-08-16, v5.110.0)
 
 **Idé:** svara på "hur ligger det till?" innan man börjar läsa listan. Överblick först,
 detaljer sen – det är hela skillnaden mellan en lista och en dashboard.
@@ -160,6 +160,29 @@ Varje tal är klickbart och filtrerar organisationslistan därunder (kopplar iho
 **Klart när:** raden syns överst, siffrorna stämmer mot en manuell räkning av listan,
 demo-organisationen räknas inte in i något av talen, och antalet kunder utan ifyllt pris
 framgår explicit av prissiffran.
+
+**Genomfört.** En avvikelse mot skissen, gjord medvetet för att inte bygga bort sig själv i
+67c/67d: "Kräver åtgärd"-räkningen bygger på en NY delad util,
+`src/utils/leverantorSignaler.js` (`berakLeverantorSignaler`), byggd nu snarare än separat i
+67c – annars hade 67b antingen behövt en förenklad tillfällig räkning som 67c sedan skrivit
+över, eller så hade samma sex/sju villkor riskerat att implementeras på två ställen och glida
+isär. Funktionen tar en injicerbar "nu"-tidpunkt (samma mönster som `utils/kompetensStatus.js`)
+för deterministisk testning. 14 tester i `leverantorSignaler.test.js`, inklusive att
+demo-organisationen ALDRIG ger en signal oavsett tillstånd (krav 29) och att en organisation
+med flera samtidiga problem sorteras HÖG→MEDEL→LÅG.
+
+Klickbarheten byggdes som ett `snabbfilter`-state i `Leverantor.jsx` (`null | "aktiva" |
+"provperiod" | "atgard"`) – medvetet en egen, bestående variabel redan nu (inte en tillfällig
+lösning), eftersom 67d ska bygga vidare på DEN, inte ersätta den med något nytt. Listan nedanför
+filtreras av samma state, med en explicit "Visa alla (rensa filter)"-knapp och en rubrik som
+visar "N av M" när ett filter är aktivt. Varje rad fick ett stabilt `id="org-{orgId}"` – inte
+använt av 67b själv, men förberett för att 67c:s åtgärdsrader ska kunna länka dit.
+
+"Delad sökkvot idag" flyttades in i `NyckeltalSektion.jsx` från sin tidigare egna sektion,
+enligt planens uttryckliga instruktion – inte duplicerad.
+
+**Testat:** `lint`/`build`/`vitest run` (230/230, varav 14 nya). Inga regelfiler eller
+Cloud Functions rörda – `test:rules`/`test:storage`/`test:functions` kördes inte.
 
 ---
 

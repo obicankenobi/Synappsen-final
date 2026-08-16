@@ -6,21 +6,21 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-16, version **5.109.0** – byggd och pushad, **INTE DEPLOYAD**
+**Senast uppdaterad:** 2026-08-16, version **5.110.0** – byggd och pushad, **INTE DEPLOYAD**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
 > **Deployläget just nu, i klartext:** senaste faktiska deploy är körning #78, som tog upp
-> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0**
-> (SVG-spärren + fyra ägarbeslut), **v5.108.0** (Etapp 67a) och **v5.109.0** (Etapp 67
-> beslutspunkt 2, serverunderlag) ligger alla pushade men odeployade. Ett tidigare
-> deployförsök 2026-08-16 blockerades av att GitHub Actions inte tilldelade någon runner (se
-> "Uppföljning 2026-08-16 (deployförsök BLOCKERAT)") – ägaren bad oss därefter avvakta med
-> deploy oavsett, så det är inte längre det som håller tillbaka nästa försök.
+> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0–v5.110.0**
+> ligger alla pushade men odeployade. Ett tidigare deployförsök 2026-08-16 blockerades av att
+> GitHub Actions inte tilldelade någon runner (se "Uppföljning 2026-08-16 (deployförsök
+> BLOCKERAT)") – ägaren bad oss därefter avvakta med deploy oavsett, så det är inte längre det
+> som håller tillbaka nästa försök.
 
-v5.109.0 = **`ETAPPLAN16.md` beslutspunkt 2 (serverunderlaget för Etapp 67b/67c) – KLAR.**
-`ETAPPLAN16.md` som helhet är **ANTAGEN** (2026-08-16, se `BESLUTSLOGG.md`) – 67b–67e väntar på
-nästa "genomför delmål 67x". Se "Uppföljning 2026-08-16 (avtalsstatusAndrad/skapad)" längst ner.
+Ägaren bad 2026-08-16 att köra `ETAPPLAN16.md`s kvarvarande delmål (67b–67e) **i följd utan att
+stanna mellan varje**. v5.110.0 = **Etapp 67b (nyckeltalsrad) – KLAR**, se "Uppföljning
+2026-08-16 (Etapp 67b klar, v5.110.0)" längst ner. v5.109.0 = beslutspunkt 2:s serverunderlag –
+KLAR, se "Uppföljning 2026-08-16 (avtalsstatusAndrad/skapad)".
 v5.108.0 = **Etapp 67a (`ETAPPLAN16.md`) – leverantörsvyn fick äntligen en väg in från menyn
 och kommandopaletten – KLAR.**
 v5.107.0 = SVG-uppladdning stängd + fyra ägarbeslut loggade, se "Uppföljning 2026-08-15".
@@ -3340,3 +3340,35 @@ kedjan) gröna. `test:rules`/`test:storage` kördes inte – ingen regelfil rör
 Version 5.108.0 → **5.109.0**. `andringslogg.js` fick en post, medvetet formulerad som "ingen
 synlig förändring" – det här är ett internt förberedande steg, inget en organisations egna
 användare märker av. Committat och pushat. **Ingen deploy** – ägaren har bett oss avvakta.
+
+## Uppföljning 2026-08-16 (Etapp 67b klar, v5.110.0 – nyckeltalsrad)
+
+Ägaren bad om att köra `ETAPPLAN16.md`s kvarvarande delmål (67b–67e) i följd, utan att stanna
+mellan varje. Det här är det första i den kedjan.
+
+**Byggt:** ny delad util `src/utils/leverantorSignaler.js` (`berakLeverantorSignaler`) – byggd
+NU snarare än isolerat i 67c (dit den enligt planen egentligen hörde), för att 67b:s
+"Kräver åtgärd"-räkning och 67c:s kommande fullständiga lista ska dela EXAKT samma sju
+villkor, inte två separata implementationer som kan glida isär. Tar en injicerbar
+"nu"-tidpunkt (samma testbarhetsmönster som `utils/kompetensStatus.js`).
+
+Ny `src/components/leverantor/NyckeltalSektion.jsx`, renderad överst i `/leverantor`: aktiva
+kunder, andel i provperiod, totalt antal användare, summerat avtalat pris (med explicit
+markering av hur många kunder som saknar ifyllt pris), "kräver åtgärd"-antal, och den tidigare
+fristående "Delad sökkvot idag"-sektionen flyttad hit enligt planens uttryckliga instruktion.
+Genomgående krav 29 respekteras genomgående – varje summa exkluderar `arDemo` explicit.
+
+Rutorna är klickbara och sätter ett nytt `snabbfilter`-state i `Leverantor.jsx`
+(`null | "aktiva" | "provperiod" | "atgard"`) som filtrerar organisationslistan därunder, med
+en rubrik som visar "N av M" och en "Visa alla"-knapp. Byggd som en BESTÅENDE variabel redan
+nu, inte en tillfällig lösning – 67d ska bygga vidare på den, inte ersätta den. Varje rad fick
+`id="org-{orgId}"`, förberett för 67c:s kommande djuplänkning.
+
+**Testat:** 14 nya tester i `leverantorSignaler.test.js` (bl.a. att demo ALDRIG ger en signal,
+och att flera samtidiga problem sorteras HÖG→MEDEL→LÅG). `lint`/`build`/`vitest run`
+(230/230) gröna. Ingen regelfil/Cloud Function rörd – `test:rules`/`test:storage`/
+`test:functions` kördes inte. Ingen live webbläsarverifiering (samma etablerade mönster som
+tidigare delmål i den här vyn – en plattformsadmin-gated intern sida, verifierad via
+enhetstester snarare än en seedad emulatoruppstart).
+
+Version 5.109.0 → **5.110.0**. Fortsätter nu direkt med 67c enligt ägarens instruktion.

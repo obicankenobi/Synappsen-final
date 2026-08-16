@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { collection, getDocs, query, where, addDoc, deleteDoc, doc, orderBy, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
@@ -24,6 +24,8 @@ import {
 import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
 import ManadsrapportSektion from "../components/ManadsrapportSektion";
 import BaspaketreferenserSektion from "../components/BaspaketreferenserSektion";
+import NyckeltalSektion from "../components/leverantor/NyckeltalSektion";
+import { berakLeverantorSignaler } from "../utils/leverantorSignaler";
 import "./Leverantor.css";
 
 // Etapp 50b: läses direkt av leverantörens klient mot Firestore (inte via en Cloud Function) –
@@ -91,7 +93,28 @@ export default function Leverantor() {
   const [demoMeddelande, setDemoMeddelande] = useState(null);
   const [epostAvstangd, setEpostAvstangd] = useState(false);
   const [epostAndrar, setEpostAndrar] = useState(false);
+  // Etapp 67b: snabbfiltret nyckeltalsrutorna sätter. Egen state redan nu (inte tillfälligt
+  // hoprört med sorterings-/sök-UI:t) eftersom 67d ändå ska bygga vidare på exakt den här
+  // variabeln, inte ersätta den.
+  const [snabbfilter, setSnabbfilter] = useState(null);
   const { confirm } = useDialog();
+
+  // Etapp 67b/67c: EN beräkning, delad mellan nyckeltalsrutan ("Kräver åtgärd": {n}) och
+  // (från 67c) själva listan – annars räknas samma sex/sju villkor ut på två ställen och
+  // riskerar att glida isär.
+  const signaler = useMemo(() => berakLeverantorSignaler(organisationer, sokkvot), [organisationer, sokkvot]);
+
+  const idagIso = new Date().toISOString().slice(0, 10);
+  const visadeOrganisationer = useMemo(() => {
+    const lista = organisationer ?? [];
+    if (snabbfilter === "aktiva") return lista.filter((o) => !o.arDemo && o.status === "aktiv");
+    if (snabbfilter === "provperiod") return lista.filter((o) => !o.arDemo && o.provperiodSlut && o.provperiodSlut >= idagIso);
+    if (snabbfilter === "atgard") {
+      const orgIdMedSignal = new Set(signaler.map((s) => s.orgId));
+      return lista.filter((o) => orgIdMedSignal.has(o.orgId));
+    }
+    return lista;
+  }, [organisationer, snabbfilter, signaler, idagIso]);
 
   function ladda() {
     setLaddar(true);
@@ -476,17 +499,13 @@ export default function Leverantor() {
       {fel && <p className="leverantor__fel">{fel.message}</p>}
       {exportMeddelande && <p className="leverantor__info">{exportMeddelande}</p>}
 
-      {sokkvot && (
-        <section className="admin-sektion">
-          <h2>🔍 Delad sökkvot idag</h2>
-          <p className={sokkvot.totalAntal >= sokkvot.tak * 0.8 ? "leverantor__varning" : "sida__beskrivning"}>
-            {sokkvot.totalAntal} / {sokkvot.tak} sökningar (Custom Search, delas av ALLA
-            organisationer).{" "}
-            {sokkvot.totalAntal >= sokkvot.tak * 0.8 &&
-              "⚠️ Nära dagstaket – klinikstöd kan sluta fungera för alla kunder om taket nås."}
-          </p>
-        </section>
-      )}
+      <NyckeltalSektion
+        organisationer={organisationer}
+        sokkvot={sokkvot}
+        antalSignaler={signaler.length}
+        aktivtFilter={snabbfilter}
+        onValjFilter={setSnabbfilter}
+      />
 
       <section className="admin-sektion">
         <h2>✉️ Utgående e-post</h2>
@@ -647,7 +666,10 @@ export default function Leverantor() {
             functions-felkod) faller renderingen igenom till här med `organisationer` fortfarande
             `null`, vilket kraschade sidan (bekräftat i en riktig webbläsare). `?? []` täcker alla
             felfall, inte bara det enda som redan hade en egen tidig retur. */}
-        <h2>Organisationer ({(organisationer ?? []).length})</h2>
+        <h2>
+          Organisationer ({visadeOrganisationer.length}
+          {snabbfilter && ` av ${(organisationer ?? []).length}`})
+        </h2>
         <p className="sida__beskrivning">
           "Avtalat pris" fylls i manuellt och är inte kopplat till någon betalningstjänst.
           Ställt mot "Senaste avslutade månad" ger det en GROV fingervisning, inte ett
@@ -655,9 +677,14 @@ export default function Leverantor() {
           Functions-kostnad. Fullständig molnkostnad kräver GCP-faktureringsexport till
           BigQuery, ett ägarbeslut (se <code>ETAPPLAN10.md</code> Etapp 48c).
         </p>
+        {snabbfilter && (
+          <button type="button" className="knapp knapp--sekundar knapp--liten" onClick={() => setSnabbfilter(null)}>
+            Visa alla (rensa filter)
+          </button>
+        )}
         <ul className="admin-lista">
-          {(organisationer ?? []).map((org) => (
-            <li key={org.orgId} className="admin-lista__rad leverantor__rad">
+          {visadeOrganisationer.map((org) => (
+            <li key={org.orgId} id={`org-${org.orgId}`} className="admin-lista__rad leverantor__rad">
               <div>
                 <strong>{org.namn}</strong>{" "}
                 {org.status === "pausad" && <span className="leverantor__pausad">⏸ Pausad</span>}
