@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.114.0",
+    datum: "2026-08-17",
+    andringar: [
+      "Säkerhetsgranskning: spärren mot personnummer täcker nu även samordningsnummer fullt ut, och leverantören kan inte längre läsa en organisations händelselogg utan att organisationen själv öppnat ett supportfönster",
+    ],
+  },
+  {
     version: "5.113.0",
     datum: "2026-08-17",
     andringar: [

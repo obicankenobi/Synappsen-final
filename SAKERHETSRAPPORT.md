@@ -586,3 +586,37 @@ regelrättelserna ovan ska inte betraktas som bekräftade förrän det är gjort
    p. 6 är inte passerat sedan förra kontrollen, och ingen ny övning behöver bokas i denna
    omgång. Notera dock att punkt 3 ovan rör återställningsfunktionen: om allowlisten byggs bör
    nästa övning uttryckligen inkludera ett återställningsprov, eftersom koden då ändrats.
+
+---
+
+## Tillägg (2026-08-17, v5.114.0): fullständig kodgranskning, Del 1 av 4
+
+Ägaren beställde 2026-08-17 en komplett säkerhetsgranskning av all kod, uppdelad i fyra
+omgångar. **Det fullständiga arbetsunderlaget ligger i `SAKERHETSGRANSKNING-2026-08.md`** –
+det här tillägget är den korta noteringen som `CLAUDE.md`s underhållsregel för den här filen
+kräver, inte en dubblett av rapporten.
+
+**Del 1 (regel- och behörighetslagret) är klar.** Tre fynd patchade i `firestore.rules`:
+
+1. **Personnummer-spärren missade samordningsnummer med dagfält 82–91** – alltså alla födda
+   den 22:a–31:a i månaden, ungefär en tredjedel av alla samordningsnummer. Regeln är den
+   hårda spärren mot direktanrop som kringgår klientfiltret, så luckan satt i just det lager
+   som ska hålla. Dagfältet täcker nu hela 61–91.
+2. **Varje leverantörsadmin kunde läsa varje kunds fullständiga revisionslogg** utan
+   kundbeviljat supportfönster, utan att kunden såg det och utan spår. Nu gated på
+   `farSupportlasa()` som allt annat kundinnehåll (Etapp 50b:s princip). Verifierat att ingen
+   klientfunktion använde grenen.
+3. **`visningar`/`checklistkorningar` saknade fältbegränsning** – godtyckliga fält kunde
+   skrivas, och `visningar.titel` renderas för hela organisationen i kommandopaletten.
+
+Ny testfil `tests/rules/sakerhetsgranskning-del1.test.mjs` (15 tester) i `test:rules`.
+Bevisad meningsfull: **7 av dem failar mot regelfilen före patchen**, alla 15 passerar efter.
+
+**Punkt 4 i den återkommande checklistan (npm audit) omprövad.** Ett uppgraderingsförsök av
+`firebase-tools` 13 → 15 gjordes enligt ägarbeslut och **rullades tillbaka**: `test:storage`
+gick från 24/24 till 18/24, där samtliga sex fel var "ska tillåtas"-tester som havererade på
+cross-service-uppslaget `firestore.get()` i storage-emulatorn. Det failar stängt, men blindar
+sex tester på storage-lagrets organisationsisolering. Bedömningen i förra tillägget står
+alltså kvar och är nu empiriskt underbyggd: hoppet är ett eget arbete, inte en releasedetalj.
+
+**Ingen av patcharna är deployad** – ägaren har valt att avvakta med deploy under granskningen.

@@ -88,8 +88,16 @@ async function main() {
   await test("en vanlig roll (vol) kan INTE läsa sin egen organisations revisionslogg", () =>
     assertFails(getDoc(doc(volA, "revisionslogg", "loggA1")))
   );
-  await test("en plattformsadmin (superadminA, seedad ovan) kan läsa ÄVEN org B:s post", () =>
-    assertSucceeds(getDoc(doc(superA, "revisionslogg", "loggB1")))
+  // ÄNDRAD FÖRVÄNTAN (säkerhetsgranskning 2026-08-17, Del 1 – fynd 1.2). Testet hette
+  // tidigare "en plattformsadmin ... kan läsa ÄVEN org B:s post" och bevisade alltså att
+  // leverantören hade stående läsrätt till varje kunds hela revisionslogg – med aktorUid,
+  // händelsetyp och sammanfattning, utan kundbeviljat fönster, utan att kunden såg det och
+  // utan spår. Det motsade den princip Etapp 50b etablerade för allt annat kundinnehåll.
+  // Läsregeln är nu gated på farSupportlasa(), och testet vänds till att bevisa det.
+  // Motsvarande test för revisionsloggHuvud längre ner står MEDVETET kvar oförändrat:
+  // det dokumentet innehåller bara senasteHash, inte personuppgifter.
+  await test("en plattformsadmin kan INTE läsa org B:s post utan aktivt supportfönster", () =>
+    assertFails(getDoc(doc(superA, "revisionslogg", "loggB1")))
   );
 
   console.log("\nrevisionslogg/{loggId} – ingen klient får någonsin skriva, oavsett roll");

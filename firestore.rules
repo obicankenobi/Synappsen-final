@@ -192,10 +192,20 @@ service cloud.firestore {
     // fanns i den ursprungliga versionen av funktionen (upptäckt av ett nytt rules-test i
     // Etapp 12e) och påverkade alla fyra collections som redan använde funktionen: rutiner,
     // anslag, skiftrapporter, anteckningar – inte bara den nya forradsartiklar-kontrollen.
+    // SÄKERHETSFIX (granskning 2026-08-17, Del 1 – fynd 1.1): dagfältet täckte tidigare bara
+    // 61–81 för samordningsnummer (`6[1-9]|7\d|8[01]`). Ett samordningsnummer är födelsedagen
+    // + 60, och riktiga dagar är 1–31, så fältet går ända till 91. Alla samordningsnummer för
+    // personer födda den 22:a–31:a i månaden (dagfält 82–91, ungefär en tredjedel av alla)
+    // passerade alltså regeln obehindrat. Klientfiltret (utils/piiFilter.js) fångade dem –
+    // dess giltigtDatum() drar av 60 och accepterar 1–31 – men klienten är just det lager ett
+    // direktanrop mot Firestore-REST-API:et kringgår, vilket ÄR hela skälet till att den här
+    // regeln finns (samma resonemang som Etapp 12e när forradsartiklar fick spärren).
+    // `[78]\d|9[01]` täcker nu 70–89 och 90–91; tillsammans med `6[1-9]` blir intervallet
+    // fullständigt 61–91, utan att släppa igenom ogiltiga dagar (92–99 nekas fortfarande).
     function harTroligtPersonnummer(text) {
       return text is string && text.matches(
-        '[\\s\\S]*(\\b(\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]|6[1-9]|7\\d|8[01])[-+]?\\d{4}'
-        + '|(19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]|6[1-9]|7\\d|8[01])[-+]?\\d{4})\\b)[\\s\\S]*'
+        '[\\s\\S]*(\\b(\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]|6[1-9]|[78]\\d|9[01])[-+]?\\d{4}'
+        + '|(19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]|6[1-9]|[78]\\d|9[01])[-+]?\\d{4})\\b)[\\s\\S]*'
       );
     }
 
@@ -869,9 +879,22 @@ service cloud.firestore {
     // regler helt. Hashkedjan som gör en manipulerad/borttagen post upptäckbar byggs i
     // Etapp 14b – se den begränsning som beskrivs där (skyddar mot en klient, INTE mot
     // Admin SDK-åtkomst).
+    // SÄKERHETSFIX (granskning 2026-08-17, Del 1 – fynd 1.2): läsregeln var tidigare
+    // `... || arPlattformsadmin()`, dvs. VARJE leverantörsadmin kunde när som helst läsa
+    // VARJE kunds fullständiga revisionslogg – med aktorUid, händelsetyp och sammanfattning,
+    // alltså vem hos kunden som gjorde vad och när. Det skedde utan kundbeviljat fönster,
+    // utan att kunden kunde se att det pågick, och utan spår (en klientläsning mot Firestore
+    // loggas ingenstans). Det motsäger direkt den princip Etapp 50b etablerade för allt annat
+    // kundinnehåll: leverantören kommer in bara genom ett tidsbegränsat fönster som KUNDEN
+    // själv öppnar och ser i sin adminpanel.
+    // Verifierat före ändringen att ingen klientkod använde grenen: enda läsningen av
+    // collectionen är useRevisionslogg.js, som alltid filtrerar på den egna organisationen,
+    // och leverantörsvyns diagnostik hämtar senaste händelse via hamtaOrganisationsdiagnostik
+    // (Cloud Function, Admin SDK) som kringgår reglerna helt. Ändringen tar alltså inte bort
+    // någon funktion som används – bara en stående åtkomst som inte behövdes.
     match /revisionslogg/{loggId} {
       allow read: if (arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default')))
-                   || arPlattformsadmin();
+                   || farSupportlasa(resource.data.get('organisationId', 'default'));
       allow create, update, delete: if false;
     }
 
@@ -891,20 +914,51 @@ service cloud.firestore {
     // visningar/{nyckel} – räknare för populäraste sökträffar, inget känsligt innehåll men
     // ändå organisationsskopat så en organisations "mest använda"-lista inte blandas med en
     // annans (nyckeln inkluderar redan organisationId, se useVisningar.js).
+    // SÄKERHETSFIX (granskning 2026-08-17, Del 1 – fynd 1.3): create/update saknade helt
+    // fältbegränsning, till skillnad från den strukturellt identiska soksstatistik nedan som
+    // redan hade keys().hasOnly([...]). Vem som helst inloggad i organisationen kunde därför
+    // skriva GODTYCKLIGA fält hit via ett direktanrop – och `titel` renderas för alla i
+    // organisationen under "Populärast" i kommandopaletten (se KommandopalettInnehall.jsx),
+    // så fältet var en oskyddad väg att visa fritext för hela arbetsplatsen. Samma
+    // personnummer-spärr som övriga fritextfält läggs därför på titel/sokvag (genomgående
+    // krav 1); klienten skriver bara rutintitlar som redan är spärrade vid sin egen källa,
+    // så spärren är en no-op för legitima skrivningar.
     match /visningar/{nyckel} {
       allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
-      allow create: if request.resource.data.get('organisationId', 'default') == minOrganisation();
-      allow update: if matcharMinOrg(resource.data.get('organisationId', 'default'));
+      allow create: if request.resource.data.get('organisationId', 'default') == minOrganisation()
+                     && request.resource.data.keys().hasOnly(
+                          ['titel', 'sokvag', 'organisationId', 'antal', 'senastVisad']
+                        )
+                     && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('sokvag', ''));
+      allow update: if matcharMinOrg(resource.data.get('organisationId', 'default'))
+                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+                          ['titel', 'sokvag', 'antal', 'senastVisad']
+                        )
+                     && !harTroligtPersonnummer(request.resource.data.get('titel', ''))
+                     && !harTroligtPersonnummer(request.resource.data.get('sokvag', ''));
     }
 
     // checklistkorningar/{rutinId} – Etapp 18d: EN ackumulerande post per rutin (antal
     // påbörjade/slutförda, total tid, avbrott per steg), aldrig en rad per körning. Ingen
     // patientkoppling, inget fritextfält – bara räknare, se useChecklistStatistik.js. Samma
     // öppna skrivmönster som visningar ovan (vem som helst i organisationen får räkna upp).
+    // SÄKERHETSFIX (granskning 2026-08-17, Del 1 – fynd 1.3): samma saknade fältbegränsning
+    // som visningar ovan. Collectionen ska enligt sin egen kommentar bara innehålla räknare
+    // ("inget fritextfält") – nu upprätthålls det av regeln i stället för att bara vara ett
+    // löfte i klientkoden. `avbrottPerSteg` skrivs som en punktnotationssökväg
+    // (`avbrottPerSteg.${stegIndex}`, se useChecklistStatistik.js) men är en enda toppnivå-
+    // nyckel sett från reglerna, vilket är varför den räcker i listan.
     match /checklistkorningar/{rutinId} {
       allow read: if matcharMinOrg(resource.data.get('organisationId', 'default'));
-      allow create: if request.resource.data.get('organisationId', 'default') == minOrganisation();
-      allow update: if matcharMinOrg(resource.data.get('organisationId', 'default'));
+      allow create: if request.resource.data.get('organisationId', 'default') == minOrganisation()
+                     && request.resource.data.keys().hasOnly(
+                          ['organisationId', 'antalPaborjade', 'antalSlutforda', 'totalTidMs', 'avbrottPerSteg']
+                        );
+      allow update: if matcharMinOrg(resource.data.get('organisationId', 'default'))
+                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+                          ['antalPaborjade', 'antalSlutforda', 'totalTidMs', 'avbrottPerSteg']
+                        );
     }
 
     // introduktionsspar/{sparId} – Etapp 19a: definitionen av ett introduktionsspår (namn,

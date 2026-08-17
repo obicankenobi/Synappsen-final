@@ -1,6 +1,6 @@
 # Synappsen – rätt information, direkt i handen, när det är bråttom
 
-*Beslutsunderlag för verksamhetsledning · Version 5.97.0 · 2026-08-11*
+*Beslutsunderlag för verksamhetsledning · Version 5.114.0 · 2026-08-17*
 
 ---
 
@@ -112,6 +112,24 @@ det blir gammalt utan att någon märker det. Synappsen har en egen innehållsh�
   ett eget kontotyp – läser godkänt innehåll, söker, kör checklistor och når akutläget direkt,
   men kan aldrig kvittera, kommentera eller skriva något i en persons namn. Låses upp med en
   PIN-kod, inget personligt lösenord på den delade skärmen.
+- **Handledarsignering i introduktionen:** utöver att den nyanställda själv kvitterar att hon
+  läst en punkt kan en kollega signera att momentet faktiskt gåtts igenom tillsammans. Att
+  signera sin egen introduktion är tekniskt omöjligt – spärren ligger i databasens regler, inte
+  bara i gränssnittet.
+- **Tydligt ansvar:** varje rutin kan ha en utpekad ägare (roll eller namngiven person), och
+  medarbetare kan tilldelas ansvarsområden. En samlad vy i adminpanelen svarar på "vem ansvarar
+  för vad" utan att någon behöver leta.
+
+## Vardagsdetaljer som gör skillnad i skiftet
+
+- **Uppläsning:** en rutin kan läsas upp högt – användbart med händerna upptagna eller vid
+  läshinder.
+- **"Ändrat sedan du läste":** om en rutin ändrats efter din senaste kvittering syns exakt vad
+  som skiljer, inte bara att något ändrats.
+- **Sökning som förstår vårdens ord:** en sökning på "PVK" hittar rutinen som skriver "perifer
+  venkateter", och tvärtom.
+- **Driftstörningar kan kategoriseras och kopplas till rätt rutin** i efterhand, med en samlad
+  historik utöver de senaste dygnens poster.
 
 ## Nyttan i siffror (uppskattning att validera i pilot)
 

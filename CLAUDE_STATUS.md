@@ -6,12 +6,12 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-17, version **5.113.0** – byggd och pushad, **INTE DEPLOYAD**
+**Senast uppdaterad:** 2026-08-17, version **5.114.0** – byggd och pushad, **INTE DEPLOYAD**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
 > **Deployläget just nu, i klartext:** senaste faktiska deploy är körning #78, som tog upp
-> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0–v5.113.0**
+> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0–v5.114.0**
 > ligger alla pushade men odeployade. Ett tidigare deployförsök 2026-08-16 blockerades av att
 > GitHub Actions inte tilldelade någon runner (se "Uppföljning 2026-08-16 (deployförsök
 > BLOCKERAT)") – ägaren bad oss därefter avvakta med deploy oavsett, så det är inte längre det
@@ -3458,7 +3458,48 @@ och beslutspunkter uppdaterade till "HELT KLAR". `CLAUDE.md`s läsordning fick e
 (`ETAPPLAN16.md`), övriga punkter numrerade om ett steg (samma mönster som när `ETAPPLAN15.md`
 sattes in tidigare) – och dokumentkartans tabellrad uppdaterad från "ANTAGEN" till "HELT KLAR".
 
-Version 5.112.0 → **5.113.0**. **Fem versioner (v5.107.0–v5.113.0) ligger nu pushade men
+Version 5.112.0 → **5.113.0**. **Fem versioner (v5.107.0–v5.114.0) ligger nu pushade men
 odeployade** – ägaren har bett oss avvakta med deploy tills vidare. Ingen ytterligare
 uppmaning väntar just nu; nästa steg är antingen en ny etapp eller en deploy, båda på ägarens
 initiativ.
+
+## Uppföljning 2026-08-17 (säkerhetsgranskning Del 1 av 4, v5.114.0)
+
+Ägaren beställde en **komplett säkerhetsgranskning av all kod**, uppdelad i fyra omgångar med
+patchning allt eftersom. Fullständigt arbetsunderlag: **`SAKERHETSGRANSKNING-2026-08.md`** –
+läs den, inte den här sektionen, för detaljerna. Tre ägarbeslut styr arbetet: patcha direkt men
+flagga det som kan bryta produktionsåtkomst; försök uppgradera firebase-tools men rulla tillbaka
+om det brister; **deploya inget oavsett fynd**.
+
+**Del 1 (regel- och behörighetslagret) klar.** Tre patchade fynd i `firestore.rules`:
+
+- **1.1 (allvarligast):** personnummer-spärren missade samordningsnummer med dagfält 82–91,
+  alltså alla födda den 22:a–31:a – ungefär en tredjedel. Ett samordningsnummer är födelsedagen
+  + 60, så fältet går till 91, men regeln täckte bara 61–81. Klientfiltret fångade dem, men
+  regeln är det lager som ska hålla mot direktanrop förbi klienten. Nu 61–91.
+- **1.2:** varje leverantörsadmin kunde läsa varje kunds **fullständiga revisionslogg** utan
+  kundbeviljat fönster, utan kundens vetskap och utan spår. Gated nu på `farSupportlasa()` som
+  allt annat kundinnehåll (Etapp 50b:s princip). Verifierat att ingen klientkod använde grenen.
+- **1.3:** `visningar`/`checklistkorningar` saknade fältbegränsning; `visningar.titel` renderas
+  för hela organisationen i kommandopaletten.
+
+Ny `tests/rules/sakerhetsgranskning-del1.test.mjs` (15 tester) i `test:rules`. **Bevisad
+meningsfull:** 7 av dem failar mot regelfilen före patchen, 15/15 passerar efter.
+
+**firebase-tools 13 → 15 försöktes och rullades tillbaka.** `test:rules` klarade sig, men
+`test:storage` gick 24/24 → 18/24: samtliga sex fel var "ska tillåtas"-tester som havererade på
+`firestore.get()` i storage-emulatorn. Failar stängt, men blindar sex tester på storage-lagrets
+organisationsisolering. Den kritiska `tar`-sårbarheten kvarstår därmed – dev-only, dokumenterad.
+
+**Processfynd (1.8) som är värt att komma ihåg:** `tests/docs/pitch-version.test.js` failade
+**redan innan granskningen**, sedan v5.113.0. Orsaken är att releaserutinen kört testsvepet
+FÖRE versionsbumpen – vakthunden jämför mot `package.json` och såg alltid den gamla versionen.
+v5.113.0 committades därför med ett rött test. `PITCH.md` är nu uppdaterad (version + de
+kundvända funktioner som saknades från Etapp 65/66). **Kör testsvepet EFTER bumpen framåt.**
+
+Full svit grön: `lint`, `build`, `vitest` 239/239, `test:rules` 16 filer 0 fel, `test:storage`
+24/24. **Inget deployat** – Del 1:s patchar är alltså ännu inte i produktion.
+
+**Nästa:** Del 2 (Cloud Functions). Öppen fråga att ta med dit: `systemvarningar`/`systemstatus`/
+`halsokontrollhistorik` läses av varje superadmin utan org-skopning – kontrollera vad de
+schemalagda funktionerna faktiskt skriver dit.
