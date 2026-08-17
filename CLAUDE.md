@@ -24,7 +24,16 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 2. **`OPPNA-PUNKTER.md`** – läs ANDRA. Ett samlat register över allt som väntar på en människa
    eller ett beslut (inte på kapacitet), tvärs över alla planfiler. Ersätter behovet av att
    läsa statusblocken i punkt 5–7 nedan var för sig.
-3. **`ETAPPLAN15.md`** – **HELT KLAR OCH DEPLOYAD** (Etapp 66: fyra tillägg på
+3. **`ETAPPLAN16.md`** – **HELT KLAR** (Etapp 67: leverantörens överblick – vägen in till
+   `/leverantor` (67a), nyckeltalsrad (67b), "kräver åtgärd"-lista (67c),
+   sortering/filtrering/sök (67d), dela upp `Leverantor.jsx` (67e)). Antagen 2026-08-16
+   (ägaren följde alla tre rekommendationer, se `BESLUTSLOGG.md`), byggd 2026-08-16–17
+   (v5.108.0–v5.113.0). Premisskontrollen gav två fynd som ändrade bygget: plattformsadmin
+   finns INTE i `role`-fältet (löst med `useArPlattformsadmin.js`), och `listaOrganisationer`
+   inkluderar demo-organisationen medan `manadsrapportOrganisationer` filtrerar bort den –
+   därav genomgående krav 29. `Leverantor.jsx` gick från 1145 till 217 rader i 67e, samma
+   katalogmönster som Etapp 8c.
+4. **`ETAPPLAN15.md`** – **HELT KLAR OCH DEPLOYAD** (Etapp 66: fyra tillägg på
    redan byggd grund – förslag når rutinens ägare, handledarsignering i introduktionen,
    ansvarsområden på personen, driftstörning kopplad till rutin). Alla fyra delmål 66a–66d
    klara 2026-08-14 (v5.103.0–v5.106.0), byggda ett i taget på ägarens uttryckliga begäran, och
@@ -36,13 +45,13 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
    premiss som inte stämde (det finns ingen "medicinteknikpanel" i koden). Planens "Vad jag
    INTE föreslår" innehåller tre idéer som medvetet skjutits upp – två av dem är nu frågor
    20–22 i `JURIDISK-GRANSKNING.md` §18 och delar blockering med Etapp 64.
-4. **`ETAPPLAN14.md`** – **HELT KLAR OCH DEPLOYAD** (Etapp 65: fyra vardagsfunktioner med
+5. **`ETAPPLAN14.md`** – **HELT KLAR OCH DEPLOYAD** (Etapp 65: fyra vardagsfunktioner med
    wow-faktor – uppläsning, "ändrat sedan du läste", synonymsökning, öva-läge). Alla fyra
    delmål 65a–65d klara 2026-08-13, byggda ett i taget på ägarens uttryckliga begäran
    (v5.99.0–v5.102.0), och deployade samma dag (körning #77, v5.102.0). Till skillnad från
    `ETAPPLAN13.md` nedan var ingen del av den här planen juridiskt eller externt blockerad.
    Historisk men korrekt.
-5. **`ETAPPLAN13.md`** – **ANTAGEN 2026-08-11** (Etapp 64: ett "baspaket" av nationella
+6. **`ETAPPLAN13.md`** – **ANTAGEN 2026-08-11** (Etapp 64: ett "baspaket" av nationella
    referenser). Skiljer sig från alla andra antagna planfiler på ett sätt värt att säga rakt
    ut: **"antagen" betyder INTE "byggbar av en kodsession".** Idén rör tre regulatoriska
    gränser (MDR, upphovsrätt och sedan 2026-08-12 varumärkesrätt för instrumentnamn) som
@@ -59,30 +68,30 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
    fortfarande juridiskt blockerade. Om användaren ber om fortsatt arbete utan att specificera
    vad: det här är den antagna planen, men inget ytterligare steg är byggbart förrän juridiken
    är klar – fråga vad nästa etapp ska vara under tiden, eller läs `OPPNA-PUNKTER.md`.
-6. **`ETAPPLAN12.md`** – **HELT KLAR OCH DEPLOYAD** (Etapp 59–63: "Från demo till drift" –
+7. **`ETAPPLAN12.md`** – **HELT KLAR OCH DEPLOYAD** (Etapp 59–63: "Från demo till drift" –
    hållfasthet snarare än nya funktioner). Antagen 2026-08-10 efter en kodgenomgång (inte en
    dokumentgenomgång) av v5.91.0, helt avslutad 2026-08-11 i v5.96.0 (körning #74). Historisk
    men korrekt.
-7. **`ETAPPLAN11.md`** – HELT KLAR utom 54c/54d (väntar på en konkret andra enhet hos en
+8. **`ETAPPLAN11.md`** – HELT KLAR utom 54c/54d (väntar på en konkret andra enhet hos en
    kund) och Etapp 58 (SSO – protokollet är avgjort, OIDC, men bygget väntar på en kund som
    kräver det). Båda är sedan 2026-08-10 **beslut med omprövningsvillkor, se
    `BESLUTSLOGG.md`** – inte längre öppna punkter, och alltså inte i `OPPNA-PUNKTER.md`.
    Etapp 53/54a-b/55/56/57 alla klara och deployade.
-8. **`ETAPPLAN10.md`** – HELT KLAR utom Etapp 52 (pilotpaketet, kräver bokad tid med riktiga
+9. **`ETAPPLAN10.md`** – HELT KLAR utom Etapp 52 (pilotpaketet, kräver bokad tid med riktiga
    människor, inte kod – se planens egen "Beslutspunkter som kräver ägaren"). Etapp 48–51
    HELT KLARA OCH DEPLOYADE.
-9. **`ETAPPLAN9.md`** – HELT KLAR (Etapp 45: kvalitetsmaskineriet riktas utåt). Historisk men
+10. **`ETAPPLAN9.md`** – HELT KLAR (Etapp 45: kvalitetsmaskineriet riktas utåt). Historisk men
    korrekt, inget kvar att göra där.
-10. **`ETAPPLAN8.md`** – Etapp 44, 46 och 47 HELT KLARA OCH DEPLOYADE. Ingen etapp väntar
+11. **`ETAPPLAN8.md`** – Etapp 44, 46 och 47 HELT KLARA OCH DEPLOYADE. Ingen etapp väntar
    ogjord i den här filen just nu.
-11. **`ETAPPLAN7.md`** – HELT KLAR OCH DEPLOYAD (Etapp 42+43, gränssnittsförnyelse). Historisk
+12. **`ETAPPLAN7.md`** – HELT KLAR OCH DEPLOYAD (Etapp 42+43, gränssnittsförnyelse). Historisk
     men korrekt, inget kvar att göra där.
-12. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkt (Etapp 40, villkorad av en
+13. **`ETAPPLAN6.md`** – inte stängd. Dess kvarvarande punkt (Etapp 40, villkorad av en
     konkret ny kund) är inte blockerad av kapacitet, bara av att komma i tur. Ta den när som
     helst.
-13. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter listas nu i `OPPNA-PUNKTER.md`
+14. **`ETAPPLAN5.md`** – inte stängd. Dess kvarvarande punkter listas nu i `OPPNA-PUNKTER.md`
     istället för att behöva läsas härifrån.
-14. Övriga dokument nedan, efter behov.
+15. Övriga dokument nedan, efter behov.
 
 ## Dokumentkarta
 
@@ -103,7 +112,7 @@ härnäst" – läs `CLAUDE_STATUS.md` istället, som uppdateras varje session.
 | `ETAPPLAN13.md` | Etapp 64: ett "baspaket" av nationella referenser (t.ex. bedömningsinstrument) | **ANTAGEN 2026-08-11** (se `BESLUTSLOGG.md`). Beslutspunkt 2 (leveransmodell) och 3 (förvaltning/pris) är avgjorda 2026-08-11; **beslutspunkt 1 (MDR, upphovsrätt och sedan 2026-08-12 varumärke) är kvar och blockerar allt riktigt innehåll**. En scaffolding-fas är byggd i v5.97.0 (`baspaketreferenser`, plattformsadmin-bara, inget innehållsfält). Kvarvarande steg: kommissionera bedömningen efter `JURIDISK-GRANSKNING.md` §18:s frågelista (inte planens egen kortare lista), se `OPPNA-PUNKTER.md`. Granskad tre gånger (2026-08-11 × 2, 2026-08-12 mot den bredare juridiska granskningen), se planens egen "Granskning". |
 | `ETAPPLAN14.md` | Etapp 65: fyra vardagsfunktioner med wow-faktor – uppläsning (65a), "ändrat sedan du läste" (65b), synonymsökning (65c), öva-läge (65d) | **HELT KLAR OCH DEPLOYAD** (antagen och genomförd 2026-08-13, v5.99.0–v5.102.0, körning #77). 65b inkluderade en regeländring (`versioner`-läsrätt vidgad, `farLasaVersioner()`). Historisk men korrekt. |
 | `ETAPPLAN15.md` | Etapp 66: fyra tillägg på redan byggd grund – förslag når rutinens ägare (66a), handledarsignering i introduktionen (66b), ansvarsområden på personen (66c), driftstörning kopplad till rutin (66d) | **HELT KLAR OCH DEPLOYAD** (v5.103.0–v5.106.0, deployad 2026-08-15, körning #78). 66a extraherade ägarroutingen till `arAnsvarigForRutin()` i `utils/rutinHjalp.js`, återanvänd av 66c. 66b: ny subcollection `introduktionstilldelningar/{uid}/signeringar`, genomgående krav 28 (`request.auth.uid != uid`) – gallringstid AVGJORD 2026-08-15 (3/5 år, se `BESLUTSLOGG.md`) men inte byggd. 66c: nytt fält `users/{uid}.ansvarsomraden`, ny adminvy "Vem ansvarar för vad". 66d: `skiftrapporter` fick `kategori`/`rutinId`, en fast kategorilista validerad server-side, och en ny "hela historiken"-vy. Ingen del var juridiskt blockerad. De uppskjutna idéerna från premisskontrollen finns i planens "Vad jag INTE föreslår" + `JURIDISK-GRANSKNING.md` §18 frågorna 20–22. |
-| `ETAPPLAN16.md` | Etapp 67: leverantörens överblick – vägen in till `/leverantor` (67a), nyckeltalsrad (67b), "kräver åtgärd"-lista (67c), sortering/filtrering/sök (67d), dela upp `Leverantor.jsx` (67e) | **ANTAGEN 2026-08-16** (se `BESLUTSLOGG.md` – ägaren följde alla tre rekommendationer: samma sida, bygg `avtalsstatusAndrad`, oförändrad omfattning). **67a KLAR** (v5.108.0, byggd separat samma dag eftersom den var fristående). 67b–67e antagna men ännu ogjorda. Premisskontrollen gav två fynd: plattformsadmin finns INTE i `role`-fältet (löst i 67a med `useArPlattformsadmin.js` + `farForsokaLasaPlattformsadmin()` i `roles.js`, som läser `plattformsadmin/{uid}` ENBART för superadmins – medvetet, för att inte förorena Etapp 32b:s tänkta `permission-denied`-larm), och `listaOrganisationer` inkluderar demo-organisationen medan `manadsrapportOrganisationer` filtrerar bort den – därav **genomgående krav 29**. Fyra av fem delmål kräver ingen serverändring alls. |
+| `ETAPPLAN16.md` | Etapp 67: leverantörens överblick – vägen in till `/leverantor` (67a), nyckeltalsrad (67b), "kräver åtgärd"-lista (67c), sortering/filtrering/sök (67d), dela upp `Leverantor.jsx` (67e) | **HELT KLAR** (antagen 2026-08-16, byggd 2026-08-16–17, v5.108.0–v5.113.0, se `BESLUTSLOGG.md`). Ägaren följde alla tre rekommendationer (samma sida, bygg `avtalsstatusAndrad`, oförändrad omfattning) och bad därefter köra 67b–67e i följd. Premisskontrollen gav två fynd som ändrade bygget: plattformsadmin finns INTE i `role`-fältet (löst i 67a med `useArPlattformsadmin.js` + `farForsokaLasaPlattformsadmin()` i `roles.js`, läser `plattformsadmin/{uid}` ENBART för superadmins), och `listaOrganisationer` inkluderar demo-organisationen medan `manadsrapportOrganisationer` filtrerar bort den – därav **genomgående krav 29**. 67b/67c delar en gemensam util (`leverantorSignaler.js`) byggd i 67b för att inte duplicera samma sju signalvillkor. `Leverantor.jsx` gick från 1145 till 217 rader i 67e, samma katalogmönster som Etapp 8c etablerade för `Admin.jsx`. Historisk men korrekt. |
 | `ETAPPLAN5-ALT-A.md` / `ETAPPLAN5-ALT-B.md` | Två utkast som INTE antogs när `ETAPPLAN6.md` valdes | **Utkast, ej antagna.** Arkiverade – se `FRAMTIDSPLAN.md` för omprövningsvillkor per alternativ. |
 | `CLAUDE_STATUS.md` | Kort handoff-sammanfattning | **Aktiv, LEVANDE** – händelsestyrd underhållsregel, se "Obligatorisk underhållsregel: CLAUDE_STATUS.md" under arbetsmönstren nedan. |
 | `src/data/andringslogg.js` | Användarvänd ändringslogg, visas i appen (`/nyheter`) | **Aktiv** – lägg till en post vid VARJE release. |

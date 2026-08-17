@@ -1,8 +1,10 @@
 # Etapplan 16 – Leverantörens överblick: från lista till dashboard
 
-*Utkast 2026-08-16. **ANTAGEN 2026-08-16** – ägaren följde samtliga tre rekommendationer
-(samma sida, bygg `avtalsstatusAndrad` väg (a), oförändrad omfattning), se `BESLUTSLOGG.md`.
-**67a är klart** (v5.108.0, byggt separat samma dag). 67b–67e är antagna men ännu ogjorda.*
+*Utkast 2026-08-16. **ANTAGEN 2026-08-16, HELT KLAR OCH BYGGD 2026-08-17.** Ägaren följde
+samtliga tre rekommendationer (samma sida, bygg `avtalsstatusAndrad` väg (a), oförändrad
+omfattning), se `BESLUTSLOGG.md`, och bad därefter att köra 67b–67e i följd utan att stanna
+mellan varje. Alla fem delmål (67a–67e) är nu klara: 67a v5.108.0, beslutspunkt 2:s
+serverunderlag v5.109.0, 67b v5.110.0, 67c v5.111.0, 67d v5.112.0, 67e v5.113.0.*
 
 **Bakgrund:** ägaren frågade om det finns en huvudvy för leverantören och en
 dashboard-funktion för översyn och hantering av alla kunder. Svaret efter en genomgång av
@@ -277,7 +279,7 @@ snabbfiltret `atgard` exkluderar alltid demo). `lint`/`build`/`vitest run` (239/
 
 ---
 
-### 67e – Dela upp `Leverantor.jsx` ⬜
+### 67e – Dela upp `Leverantor.jsx` ✅ KLAR (2026-08-17, v5.113.0)
 
 **Idé:** filen är 990 rader redan innan den här etappen och skulle passera 1 300 med
 67a–67d inbyggda. Dela upp den i sektionskomponenter.
@@ -297,6 +299,36 @@ den vuxit, inte i förebyggande syfte.
 
 **Klart när:** `Leverantor.jsx` är under ~250 rader, allt beteende är oförändrat, och hela
 testsviten är fortsatt grön.
+
+**Genomfört.** `Leverantor.jsx` gick från 1145 till **217 rader**. Sex nya filer i
+`src/components/leverantor/`: `SkapaOrganisationSektion`, `DemomiljoSektion`,
+`EpostNodstoppSektion`, `HuvudmanSektion`, `OrganisationsListaSektion`, `OrganisationsRad` –
+plus en delad konstant, `avtalsstatusEtikett.js` (tidigare definierad en gång i
+`Leverantor.jsx`, nu behövd på två ställen: filterradens avtalsstatus-väljare och varje rads
+egen).
+
+**Avvikelse mot Admin.jsx:s rena mönster, medveten:** Etapp 8c:s sektioner i `src/components/
+admin/` är nästan alla HELT självständiga (egna hooks, egna Firestore-anrop, i praktiken noll
+props – se t.ex. `RaderaOrganisationSektion.jsx`). Tre av de sex nya komponenterna följer det
+exakt (`SkapaOrganisationSektion`, `DemomiljoSektion`, `HuvudmanSektion` – minimala props, en
+callback för att trigga omladdning). Men `OrganisationsListaSektion`/`OrganisationsRad` kunde
+INTE göras lika självständiga: `NyckeltalSektion` (67b, ett SYSKON högre upp på sidan) behöver
+exakt samma filter-/sorteringstillstånd som listan, så det tillståndet måste ligga i
+`Leverantor.jsx` (föräldern till båda) och skickas ner som props – annars hade nyckeltalsrutan
+och listan kunnat visa olika saker.
+
+**Ett beteende bevarades medvetet oförändrat trots att det inte var den "naturliga" lösningen:**
+`diagnostikOppen`/`innehallOppen`/`arendenOppen` är fortfarande EN variabel var i
+`OrganisationsListaSektion` (inte per-rad-state i `OrganisationsRad`) – exakt den
+ursprungliga semantiken "bara en organisations panel åt gången i HELA listan". Projektets
+etablerade per-rad-hook-mönster (`RutinKort.jsx`, `PagagendeTilldelning` från Etapp 66b) hade
+gett en teknisk sett snyggare lösning med flera samtidigt öppna paneler, men planens egen
+"Klart när" kräver oförändrat beteende – en förbättring smugglad in i en refaktorering är
+precis vad "ren flytt" utesluter.
+
+**Testat:** inga nya tester behövdes – ingen ny logik skrevs, bara flyttad. `lint`/`build`/
+`vitest run` (239/239, oförändrat antal) gröna, vilket bekräftar att inga importfel eller
+brutna referenser smög sig in under flytten.
 
 ---
 
@@ -363,10 +395,10 @@ ordningen. 67a–67c är kärnan.
 | Delmål | Vad | Ny läsväg? | Serverändring? |
 |---|---|---|---|
 | 67a ✅ | Vägen in: hook + länk i Mer-menyn och kommandopaletten | Ja, en per session – och bara för superadmins | Nej |
-| 67b | Nyckeltalsrad överst, demo exkluderad (krav 29) | Nej | Nej |
-| 67c | "Kräver åtgärd"-lista med sex verifierade signaler | Nej | Nej |
-| 67d | Sortering, filtrering, fritextsök, filter i URL:en | Nej | Nej |
-| 67e | Dela upp `Leverantor.jsx` enligt Etapp 8c:s mönster | Nej | Nej |
+| 67b ✅ | Nyckeltalsrad överst, demo exkluderad (krav 29) | Nej | Nej |
+| 67c ✅ | "Kräver åtgärd"-lista, nu sju signaler (sjätte tillkom med beslutspunkt 2) | Nej | Nej |
+| 67d ✅ | Sortering, filtrering, fritextsök, filter i URL:en | Nej | Nej |
+| 67e ✅ | Dela upp `Leverantor.jsx` enligt Etapp 8c:s mönster | Nej | Nej |
 
 Fyra av fem delmål kräver **ingen serverändring alls** – all data hämtas redan, den
 presenteras bara aldrig. Enda undantaget är beslutspunkt 2, om ägaren väljer väg (a).

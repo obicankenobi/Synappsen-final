@@ -6,24 +6,25 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-16, version **5.112.0** – byggd och pushad, **INTE DEPLOYAD**
+**Senast uppdaterad:** 2026-08-17, version **5.113.0** – byggd och pushad, **INTE DEPLOYAD**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
 > **Deployläget just nu, i klartext:** senaste faktiska deploy är körning #78, som tog upp
-> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0–v5.112.0**
+> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0–v5.113.0**
 > ligger alla pushade men odeployade. Ett tidigare deployförsök 2026-08-16 blockerades av att
 > GitHub Actions inte tilldelade någon runner (se "Uppföljning 2026-08-16 (deployförsök
 > BLOCKERAT)") – ägaren bad oss därefter avvakta med deploy oavsett, så det är inte längre det
 > som håller tillbaka nästa försök.
 
-v5.112.0 = **Etapp 67d (sortering/filtrering/sök) – KLAR**, se "Uppföljning 2026-08-16
-(Etapp 67d klar, v5.112.0)" längst ner. Ägaren bad 2026-08-16 att köra `ETAPPLAN16.md`s
-kvarvarande delmål (67b–67e) **i följd utan att
-stanna mellan varje**. v5.111.0 = **Etapp 67c ("kräver åtgärd"-listan) – KLAR**, se
-"Uppföljning 2026-08-16 (Etapp 67c klar, v5.111.0)" längst ner. v5.110.0 = Etapp 67b
-(nyckeltalsrad) – KLAR. v5.109.0 = beslutspunkt 2:s serverunderlag –
-KLAR, se "Uppföljning 2026-08-16 (avtalsstatusAndrad/skapad)".
+**v5.113.0 = Etapp 67e (dela upp `Leverantor.jsx`) – KLAR. Med det är HELA Etapp 67
+(`ETAPPLAN16.md`, alla fem delmål 67a–67e) byggd**, se "Uppföljning 2026-08-17 (Etapp 67e
+klar, v5.113.0 – Etapp 67 helt byggd)" längst ner. Ägaren bad 2026-08-16 att köra
+`ETAPPLAN16.md`s kvarvarande delmål (67b–67e) **i följd utan att stanna mellan varje** – det är
+nu genomfört i sin helhet. v5.112.0 = Etapp 67d (sortering/filtrering/sök) – KLAR, se
+"Uppföljning 2026-08-16 (Etapp 67d klar, v5.112.0)". v5.111.0 = Etapp 67c
+("kräver åtgärd"-listan) – KLAR. v5.110.0 = Etapp 67b (nyckeltalsrad) – KLAR. v5.109.0 =
+beslutspunkt 2:s serverunderlag – KLAR, se "Uppföljning 2026-08-16 (avtalsstatusAndrad/skapad)".
 v5.108.0 = **Etapp 67a (`ETAPPLAN16.md`) – leverantörsvyn fick äntligen en väg in från menyn
 och kommandopaletten – KLAR.**
 v5.107.0 = SVG-uppladdning stängd + fyra ägarbeslut loggade, se "Uppföljning 2026-08-15".
@@ -3419,3 +3420,45 @@ gröna. Ingen regelfil/Cloud Function rörd.
 
 Version 5.111.0 → **5.112.0**. Fortsätter nu direkt med sista delmålet, 67e (dela upp
 `Leverantor.jsx`), enligt ägarens instruktion.
+
+## Uppföljning 2026-08-17 (Etapp 67e klar, v5.113.0 – Etapp 67 helt byggd)
+
+Sista delmålet i den obevakade kedjan (67b–67e), begärd av ägaren 2026-08-16. **Med det är
+`ETAPPLAN16.md` (Etapp 67, leverantörsdashboarden) helt byggd** – fem delmål över två dagar
+(67a v5.108.0, beslutspunkt 2 v5.109.0, 67b v5.110.0, 67c v5.111.0, 67d v5.112.0, 67e v5.113.0).
+
+**Byggt:** `Leverantor.jsx` delades från 1145 rader till **217**. Sex nya filer i
+`src/components/leverantor/`: `SkapaOrganisationSektion`, `DemomiljoSektion`,
+`EpostNodstoppSektion`, `HuvudmanSektion`, `OrganisationsListaSektion`, `OrganisationsRad`,
+plus en delad konstant `avtalsstatusEtikett.js`. Samma katalogmönster och konvention som
+Etapp 8c redan etablerade för `Admin.jsx`.
+
+**En avvikelse mot Admin.jsx:s rena "helt självständig sektion"-mönster, medveten och
+motiverad:** tre av de sex nya komponenterna (`SkapaOrganisationSektion`, `DemomiljoSektion`,
+`HuvudmanSektion`) följer mönstret exakt – minimala props, egna hooks. Men
+`OrganisationsListaSektion`/`OrganisationsRad` kunde inte göras lika självständiga:
+`NyckeltalSektion` (67b, ett SYSKON högre upp på sidan) behöver EXAKT samma
+filter-/sorteringstillstånd som listan, så det tillståndet måste ligga kvar i `Leverantor.jsx`
+(föräldern till båda) och skickas ner som props.
+
+**Ett beteende bevarades medvetet trots att en "bättre" lösning fanns nära till hands:**
+`diagnostikOppen`/`innehallOppen`/`arendenOppen` är fortfarande EN variabel var i
+`OrganisationsListaSektion`, inte per-rad-state i `OrganisationsRad` – exakt den
+ursprungliga semantiken "bara en organisations panel öppen åt gången i HELA listan". Projektets
+etablerade per-rad-hook-mönster (`RutinKort.jsx`, `PagagendeTilldelning`) hade gett flera
+samtidigt öppna paneler, en teknisk sett snyggare UX, men planens "Klart när" krävde oförändrat
+beteende – en förbättring smugglad in i en refaktorering är precis vad "ren flytt" utesluter.
+
+**Testat:** inga nya tester behövdes – ingen ny logik, bara flyttad. `lint`/`build`/
+`vitest run` (239/239, oförändrat) gröna, vilket bekräftar att inget importfel eller trasig
+referens smög sig in under omskrivningen.
+
+**Dokumentation avslutad för hela etappen:** `ETAPPLAN16.md`s toppstycke, sammanfattningstabell
+och beslutspunkter uppdaterade till "HELT KLAR". `CLAUDE.md`s läsordning fick en ny post 3
+(`ETAPPLAN16.md`), övriga punkter numrerade om ett steg (samma mönster som när `ETAPPLAN15.md`
+sattes in tidigare) – och dokumentkartans tabellrad uppdaterad från "ANTAGEN" till "HELT KLAR".
+
+Version 5.112.0 → **5.113.0**. **Fem versioner (v5.107.0–v5.113.0) ligger nu pushade men
+odeployade** – ägaren har bett oss avvakta med deploy tills vidare. Ingen ytterligare
+uppmaning väntar just nu; nästa steg är antingen en ny etapp eller en deploy, båda på ägarens
+initiativ.

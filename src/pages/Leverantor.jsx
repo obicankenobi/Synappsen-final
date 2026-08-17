@@ -1,115 +1,42 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { collection, getDocs, query, where, addDoc, deleteDoc, doc, orderBy, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase/config";
-import { useAuth } from "../hooks/useAuth";
-import { useDialog } from "../hooks/useDialog";
-import {
-  listaOrganisationer,
-  skapaOrganisation,
-  pausaOrganisation,
-  exporteraOrganisation,
-  satAvtalsstatus,
-  satProvperiod,
-  satAvtaladArsavgift,
-  satSokkvotTakPerDygn,
-  avbrytRaderingAvOrganisation,
-  blibForstaPlattformsadmin,
-  hamtaOrganisationsdiagnostik,
-  avslutaSupportAtkomst,
-  nollstallDemoOrganisation,
-  angeEpostAvstangd,
-  satHuvudman,
-} from "../firebase/functions";
-import { VERKSAMHETSTYPER } from "../config/verksamhetstyper";
+import { listaOrganisationer, blibForstaPlattformsadmin } from "../firebase/functions";
 import ManadsrapportSektion from "../components/ManadsrapportSektion";
 import BaspaketreferenserSektion from "../components/BaspaketreferenserSektion";
 import NyckeltalSektion from "../components/leverantor/NyckeltalSektion";
 import KraverAtgardSektion from "../components/leverantor/KraverAtgardSektion";
+import EpostNodstoppSektion from "../components/leverantor/EpostNodstoppSektion";
+import SkapaOrganisationSektion from "../components/leverantor/SkapaOrganisationSektion";
+import DemomiljoSektion from "../components/leverantor/DemomiljoSektion";
+import HuvudmanSektion from "../components/leverantor/HuvudmanSektion";
+import OrganisationsListaSektion from "../components/leverantor/OrganisationsListaSektion";
 import { berakLeverantorSignaler } from "../utils/leverantorSignaler";
 import { filtreraOchSorteraOrganisationer, SORT_FALT } from "../utils/leverantorFilter";
 import "./Leverantor.css";
-
-const SORT_ETIKETT = {
-  [SORT_FALT.NAMN]: "Namn",
-  [SORT_FALT.ANVANDARE]: "Antal användare",
-  [SORT_FALT.PRIS]: "Avtalat pris",
-  [SORT_FALT.KOSTNAD]: "Senaste månadens kostnad",
-  [SORT_FALT.PROVPERIOD]: "Provperiod t.o.m.",
-};
-
-// Etapp 50b: läses direkt av leverantörens klient mot Firestore (inte via en Cloud Function) –
-// exercerar samma firestore.rules-fönster (farSupportlasa) som en riktig support-situation
-// skulle göra. Bara aktiv under ett kundbeviljat supportfönster, se firestore.rules.
-const SUPPORTINNEHALL_COLLECTIONS = [
-  { namn: "rutiner", falt: "titel" },
-  { namn: "forradsartiklar", falt: "namn" },
-  { namn: "anslag", falt: "titel" },
-  { namn: "kontakter", falt: "namn" },
-];
-
-// Etapp 15d: avtalssignering och betalning sker MEDVETET utanför appen – det här är bara en
-// statusflagga leverantörsadmin sätter manuellt, se ETAPPLAN3.md beslutspunkt 6.
-const AVTALSSTATUS_ETIKETT = {
-  offert: "Offert",
-  signerat: "Signerat",
-  aktiv: "Aktiv",
-  pausad: "Pausad",
-  avslutad: "Avslutad",
-};
 
 // Etapp 6a: leverantörsvy – en enda plats för att se/administrera ALLA kundorganisationer.
 // Åtkomsten avgörs helt server-side (plattformsadmin/{uid}-collectionen, se firestore.rules
 // och functions/index.js) – den här sidan är bara ett gränssnitt ovanpå det, ingen egen
 // klientkontroll ger faktisk säkerhet.
+//
+// Etapp 67e (ETAPPLAN16.md): sidan var 1145 rader innan uppdelningen (990 innan 67a–67d
+// byggdes ovanpå). Den håller nu bara kvar det som genuint delas mellan flera sektioner –
+// den initiala datahämtningen, och filter-/sorterings-/söktillståndet i URL:en, som både
+// NyckeltalSektion (nyckeltalsrutornas snabbfilter) och OrganisationsListaSektion behöver.
+// Allt annat (formulär, listrader, paneler) flyttades till src/components/leverantor/, samma
+// mönster och katalogkonvention som Etapp 8c redan etablerade för Admin.jsx.
 export default function Leverantor() {
-  const { currentUser } = useAuth();
   const [organisationer, setOrganisationer] = useState(null);
   const [sokkvot, setSokkvot] = useState(null);
   const [fel, setFel] = useState(null);
   const [laddar, setLaddar] = useState(true);
-  const [namn, setNamn] = useState("");
-  const [operations, setOperations] = useState(false);
-  const [intelligence, setIntelligence] = useState(false);
-  const [verksamhetstyp, setVerksamhetstyp] = useState("");
-  const [orgnr, setOrgnr] = useState("");
-  const [kontaktNamn, setKontaktNamn] = useState("");
-  const [kontaktEpost, setKontaktEpost] = useState("");
-  const [anvandartak, setAnvandartak] = useState("");
-  const [skapar, setSkapar] = useState(false);
-  const [skapadInfo, setSkapadInfo] = useState(null);
-  const [inbjudanLank, setInbjudanLank] = useState(null);
-  const [atgard, setAtgard] = useState(null);
   const [bootstrapar, setBootstrapar] = useState(false);
-  const [exportMeddelande, setExportMeddelande] = useState(null);
-  const [provperiodDraft, setProvperiodDraft] = useState({});
-  const [arsavgiftDraft, setArsavgiftDraft] = useState({});
-  const [huvudmanDraft, setHuvudmanDraft] = useState({});
-  const [sokkvotTakDraft, setSokkvotTakDraft] = useState({});
-  const [diagnostikOppen, setDiagnostikOppen] = useState(null);
-  const [diagnostikData, setDiagnostikData] = useState({});
-  const [diagnostikLaddar, setDiagnostikLaddar] = useState(false);
-  const [innehallOppen, setInnehallOppen] = useState(null);
-  const [innehallData, setInnehallData] = useState({});
-  const [innehallLaddar, setInnehallLaddar] = useState(false);
-  const [arendenOppen, setArendenOppen] = useState(null);
-  const [arendenData, setArendenData] = useState({});
-  const [arendenLaddar, setArendenLaddar] = useState(false);
-  const [nyttArendeText, setNyttArendeText] = useState("");
-  const [arendeSparar, setArendeSparar] = useState(false);
-  const [demoEpost, setDemoEpost] = useState("");
-  const [demoNollstaller, setDemoNollstaller] = useState(false);
-  const [demoInbjudanLank, setDemoInbjudanLank] = useState(null);
-  const [demoMeddelande, setDemoMeddelande] = useState(null);
   const [epostAvstangd, setEpostAvstangd] = useState(false);
-  const [epostAndrar, setEpostAndrar] = useState(false);
-  const { confirm } = useDialog();
 
   // Etapp 67d: hela filter-/sorterings-/söktillståndet lever i URL:en (?snabb=atgard&status=
-  // pausad&...) istället för lokal state, så en vy går att länka till och bokmärka – exakt
-  // planens egen "Klart när". Kvarstår från 67b: `snabb` (nyckeltalsrutornas genväg) är en
-  // ANNAN dimension än de detaljerade filtren och kombineras med AND av
-  // filtreraOchSorteraOrganisationer, inte ersätts av dem.
+  // pausad&...) istället för lokal state, så en vy går att länka till och bokmärka. Kvarstår
+  // från 67b: `snabb` (nyckeltalsrutornas genväg) är en ANNAN dimension än de detaljerade
+  // filtren och kombineras med AND av filtreraOchSorteraOrganisationer, inte ersätts av dem.
   const [sokparametrar, setSokparametrar] = useSearchParams();
   const snabbfilter = sokparametrar.get("snabb");
   const statusFilter = sokparametrar.get("status") ?? "";
@@ -196,25 +123,6 @@ export default function Leverantor() {
       .finally(() => setLaddar(false));
   }, []);
 
-  // Etapp 53a: genomgående krav 17 (dubbel bekräftelse för en irreversibel/potentiellt
-  // skadlig handling) – att av misstag stänga AV nödstoppet igen mitt under en pågående
-  // incident är precis lika allvarligt som att glömma stänga av det när man borde.
-  async function hanteraEpostAvstangd(nyttVarde) {
-    const fraga = nyttVarde
-      ? "Stänga av ALL utgående e-post, för alla organisationer, med omedelbar verkan?"
-      : "Slå på utgående e-post igen, för alla organisationer?";
-    if (!(await confirm(fraga))) return;
-    setEpostAndrar(true);
-    try {
-      await angeEpostAvstangd(nyttVarde);
-      setEpostAvstangd(nyttVarde);
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setEpostAndrar(false);
-    }
-  }
-
   async function hanteraBootstrap() {
     setBootstrapar(true);
     try {
@@ -224,290 +132,6 @@ export default function Leverantor() {
       setFel(e);
     } finally {
       setBootstrapar(false);
-    }
-  }
-
-  async function hanteraSkapa(e) {
-    e.preventDefault();
-    setSkapar(true);
-    setSkapadInfo(null);
-    setInbjudanLank(null);
-    try {
-      const { data } = await skapaOrganisation(namn.trim(), { operations, intelligence }, verksamhetstyp || undefined, {
-        orgnr: orgnr.trim() || undefined,
-        kontaktperson:
-          kontaktNamn.trim() || kontaktEpost.trim()
-            ? { namn: kontaktNamn.trim(), epost: kontaktEpost.trim() }
-            : undefined,
-        anvandartak: anvandartak.trim() || undefined,
-      });
-      const meddelanden = [];
-      if (data.antalMallrutiner > 0) {
-        meddelanden.push(`${data.antalMallrutiner} startmall-rutiner`);
-      }
-      if (data.antalForradsartiklar > 0) {
-        meddelanden.push(`${data.antalForradsartiklar} förrådsartiklar`);
-      }
-      if (data.antalKontakter > 0) {
-        meddelanden.push(`${data.antalKontakter} kontakter`);
-      }
-      if (data.introduktionssparId) {
-        meddelanden.push("ett introduktionsspår");
-      }
-      if (data.kompetenskravId) {
-        meddelanden.push("ett kompetenskrav");
-      }
-      setSkapadInfo(meddelanden.length > 0 ? `Organisationen skapades med ${meddelanden.join(", ")}.` : "Organisationen skapades.");
-      if (data.inbjudanToken) {
-        setInbjudanLank(`${window.location.origin}/registrera?bjudan=${data.inbjudanToken}`);
-      }
-      setNamn("");
-      setOperations(false);
-      setIntelligence(false);
-      setVerksamhetstyp("");
-      setOrgnr("");
-      setKontaktNamn("");
-      setKontaktEpost("");
-      setAnvandartak("");
-      await ladda();
-    } catch (e2) {
-      setFel(e2);
-    } finally {
-      setSkapar(false);
-    }
-  }
-
-  async function hanteraPausa(orgId, pausad) {
-    setAtgard(orgId);
-    try {
-      await pausaOrganisation(orgId, pausad);
-      await ladda();
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setAtgard(null);
-    }
-  }
-
-  async function hanteraAvtalsstatus(orgId, avtalsstatus) {
-    setAtgard(orgId);
-    try {
-      await satAvtalsstatus(orgId, avtalsstatus);
-      await ladda();
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setAtgard(null);
-    }
-  }
-
-  async function hanteraProvperiod(orgId, provperiodSlut) {
-    setAtgard(orgId);
-    try {
-      await satProvperiod(orgId, provperiodSlut || null);
-      await ladda();
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setAtgard(null);
-    }
-  }
-
-  async function hanteraArsavgift(orgId, varde) {
-    setAtgard(orgId);
-    try {
-      const kr = varde === "" ? null : Number(varde);
-      await satAvtaladArsavgift(orgId, kr === null || Number.isNaN(kr) ? null : kr);
-      await ladda();
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setAtgard(null);
-    }
-  }
-
-  async function hanteraHuvudman(orgId, varde) {
-    setAtgard(orgId);
-    try {
-      const trimmat = varde.trim();
-      await satHuvudman(orgId, trimmat === "" ? null : trimmat);
-      await ladda();
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setAtgard(null);
-    }
-  }
-
-  async function hanteraSokkvotTak(orgId, varde) {
-    setAtgard(orgId);
-    try {
-      const tak = varde === "" ? null : Number(varde);
-      await satSokkvotTakPerDygn(orgId, tak === null || Number.isNaN(tak) ? null : tak);
-      await ladda();
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setAtgard(null);
-    }
-  }
-
-  async function hanteraAvbrytRadering(orgId) {
-    setAtgard(orgId);
-    try {
-      await avbrytRaderingAvOrganisation(orgId);
-      await ladda();
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setAtgard(null);
-    }
-  }
-
-  async function hanteraDiagnostik(orgId) {
-    if (diagnostikOppen === orgId) {
-      setDiagnostikOppen(null);
-      return;
-    }
-    setDiagnostikOppen(orgId);
-    if (diagnostikData[orgId]) {
-      return;
-    }
-    setDiagnostikLaddar(true);
-    try {
-      const { data } = await hamtaOrganisationsdiagnostik(orgId);
-      setDiagnostikData((d) => ({ ...d, [orgId]: data }));
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setDiagnostikLaddar(false);
-    }
-  }
-
-  async function hanteraAvslutaSupportAtkomst(orgId) {
-    setAtgard(orgId);
-    try {
-      await avslutaSupportAtkomst(orgId);
-      await ladda();
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setAtgard(null);
-    }
-  }
-
-  async function hanteraVisaInnehall(orgId) {
-    if (innehallOppen === orgId) {
-      setInnehallOppen(null);
-      return;
-    }
-    setInnehallOppen(orgId);
-    if (innehallData[orgId]) {
-      return;
-    }
-    setInnehallLaddar(true);
-    try {
-      const perCollection = await Promise.all(
-        SUPPORTINNEHALL_COLLECTIONS.map(async ({ namn, falt }) => {
-          const snap = await getDocs(query(collection(db, namn), where("organisationId", "==", orgId)));
-          return [namn, snap.docs.map((d) => ({ id: d.id, titel: d.data()[falt] ?? "(utan titel)", status: d.data().status ?? null }))];
-        })
-      );
-      setInnehallData((d) => ({ ...d, [orgId]: Object.fromEntries(perCollection) }));
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setInnehallLaddar(false);
-    }
-  }
-
-  async function hanteraArenden(orgId) {
-    if (arendenOppen === orgId) {
-      setArendenOppen(null);
-      return;
-    }
-    setArendenOppen(orgId);
-    setNyttArendeText("");
-    await laddaArenden(orgId);
-  }
-
-  async function laddaArenden(orgId) {
-    setArendenLaddar(true);
-    try {
-      const snap = await getDocs(
-        query(collection(db, "organisationer", orgId, "arendeanteckningar"), orderBy("skapadTidpunkt", "desc"))
-      );
-      setArendenData((d) => ({ ...d, [orgId]: snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })) }));
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setArendenLaddar(false);
-    }
-  }
-
-  async function hanteraLaggTillArende(orgId) {
-    const text = nyttArendeText.trim();
-    if (!text || !currentUser) return;
-    setArendeSparar(true);
-    try {
-      await addDoc(collection(db, "organisationer", orgId, "arendeanteckningar"), {
-        text,
-        skapadAv: currentUser.uid,
-        skapadTidpunkt: serverTimestamp(),
-      });
-      setNyttArendeText("");
-      await laddaArenden(orgId);
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setArendeSparar(false);
-    }
-  }
-
-  async function hanteraTaBortArende(orgId, arendeId) {
-    setArendeSparar(true);
-    try {
-      await deleteDoc(doc(db, "organisationer", orgId, "arendeanteckningar", arendeId));
-      await laddaArenden(orgId);
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setArendeSparar(false);
-    }
-  }
-
-  async function hanteraNollstallDemo(e) {
-    e.preventDefault();
-    setDemoNollstaller(true);
-    setDemoMeddelande(null);
-    setDemoInbjudanLank(null);
-    try {
-      const { data } = await nollstallDemoOrganisation(demoEpost.trim() || undefined);
-      if (data.inbjudanToken) {
-        setDemoInbjudanLank(`${window.location.origin}/registrera?bjudan=${data.inbjudanToken}`);
-        setDemoMeddelande("Demomiljön nollställd med nytt exempelinnehåll. Inbjudan skapad.");
-      } else {
-        setDemoMeddelande("Demomiljön nollställd med nytt exempelinnehåll.");
-      }
-      setDemoEpost("");
-      await ladda();
-    } catch (e2) {
-      setFel(e2);
-    } finally {
-      setDemoNollstaller(false);
-    }
-  }
-
-  async function hanteraExport(orgId) {
-    setAtgard(orgId);
-    setExportMeddelande(null);
-    try {
-      const { data } = await exporteraOrganisation(orgId);
-      setExportMeddelande(`Export sparad i Storage: ${data.path}`);
-    } catch (e) {
-      setFel(e);
-    } finally {
-      setAtgard(null);
     }
   }
 
@@ -526,12 +150,10 @@ export default function Leverantor() {
       <div className="sida">
         <Link to="/">← Hem</Link>
         <h1>🏢 Leverantörsvy</h1>
+        <p className="sida__beskrivning">Den här vyn kräver leverantörsadmin-åtkomst, som du inte har.</p>
         <p className="sida__beskrivning">
-          Den här vyn kräver leverantörsadmin-åtkomst, som du inte har.
-        </p>
-        <p className="sida__beskrivning">
-          Om ingen leverantörsadmin finns alls än kan en befintlig superadmin bootstrappa
-          sig själv till den första:
+          Om ingen leverantörsadmin finns alls än kan en befintlig superadmin bootstrappa sig
+          själv till den första:
         </p>
         <button type="button" className="knapp" disabled={bootstrapar} onClick={hanteraBootstrap}>
           {bootstrapar ? "..." : "Bli första leverantörsadmin"}
@@ -545,12 +167,11 @@ export default function Leverantor() {
       <Link to="/">← Hem</Link>
       <h1>🏢 Leverantörsvy</h1>
       <p className="sida__beskrivning">
-        Översikt över alla kundorganisationer – moduler, antal användare och senaste
-        avslutade månadens AI-kostnad.
+        Översikt över alla kundorganisationer – moduler, antal användare och senaste avslutade
+        månadens AI-kostnad.
       </p>
 
       {fel && <p className="leverantor__fel">{fel.message}</p>}
-      {exportMeddelande && <p className="leverantor__info">{exportMeddelande}</p>}
 
       <NyckeltalSektion
         organisationer={organisationer}
@@ -562,580 +183,31 @@ export default function Leverantor() {
 
       <KraverAtgardSektion signaler={signaler} />
 
-      <section className="admin-sektion">
-        <h2>✉️ Utgående e-post</h2>
-        <p className="sida__beskrivning">
-          Sedan Etapp 53b skickas inbjudningar per e-post (utöver den kopierbara länken).
-          Fler kanaler (påminnelser, månadsrapport) tillkommer i 53c–d. {epostAvstangd
-            ? "Just nu AVSTÄNGD för alla organisationer – inbjudningar skapas fortfarande, men mejlas inte."
-            : "Just nu påslagen."}
-        </p>
-        <button
-          type="button"
-          className="knapp"
-          disabled={epostAndrar}
-          onClick={() => hanteraEpostAvstangd(!epostAvstangd)}
-        >
-          {epostAndrar ? "..." : epostAvstangd ? "Slå på utgående e-post igen" : "Stäng av all utgående e-post"}
-        </button>
-      </section>
+      <EpostNodstoppSektion epostAvstangd={epostAvstangd} onAndrad={setEpostAvstangd} onFel={setFel} />
 
-      <section className="admin-sektion">
-        <h2>Skapa ny organisation</h2>
-        <form className="leverantor__form" onSubmit={hanteraSkapa}>
-          <label>
-            Namn
-            <input type="text" required value={namn} onChange={(e) => setNamn(e.target.value)} />
-          </label>
-          <label className="leverantor__checkbox">
-            <input type="checkbox" checked={operations} onChange={(e) => setOperations(e.target.checked)} />
-            Operations
-          </label>
-          <label className="leverantor__checkbox">
-            <input type="checkbox" checked={intelligence} onChange={(e) => setIntelligence(e.target.checked)} />
-            Intelligence
-          </label>
-          <label>
-            Startbibliotek (valfritt)
-            <select value={verksamhetstyp} onChange={(e) => setVerksamhetstyp(e.target.value)}>
-              {VERKSAMHETSTYPER.map((v) => (
-                <option key={v.varde} value={v.varde}>
-                  {v.namn}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Org.nr (valfritt)
-            <input type="text" value={orgnr} onChange={(e) => setOrgnr(e.target.value)} />
-          </label>
-          <label>
-            Kontaktperson – namn (valfritt)
-            <input type="text" value={kontaktNamn} onChange={(e) => setKontaktNamn(e.target.value)} />
-          </label>
-          <label>
-            Kontaktperson – e-post (valfritt, bjuder in som superadmin)
-            <input
-              type="email"
-              value={kontaktEpost}
-              onChange={(e) => setKontaktEpost(e.target.value)}
-              placeholder="kontakt@kund.se"
-            />
-          </label>
-          <label>
-            Användartak (valfritt)
-            <input
-              type="number"
-              min="1"
-              value={anvandartak}
-              onChange={(e) => setAnvandartak(e.target.value)}
-            />
-          </label>
-          <button type="submit" className="knapp" disabled={skapar}>
-            {skapar ? "Skapar..." : "Skapa organisation"}
-          </button>
-        </form>
-        {skapadInfo && <p className="leverantor__info">{skapadInfo}</p>}
-        {inbjudanLank && (
-          <div className="leverantor__info">
-            <p>
-              Inbjudan är skickad till e-postadressen (om en angavs). Reservlänk om mejlet
-              inte kommer fram (giltig i 7 dagar):
-            </p>
-            <input type="text" readOnly value={inbjudanLank} onFocus={(e) => e.target.select()} />
-          </div>
-        )}
-      </section>
+      <SkapaOrganisationSektion onSkapad={ladda} onFel={setFel} />
 
-      <section className="admin-sektion">
-        <h2>🎓 Demo- och övningsmiljö</h2>
-        <p className="sida__beskrivning">
-          En egen organisation ("_demo") med fiktivt exempelinnehåll – aldrig en riktig kund,
-          aldrig i faktureringsunderlaget. Nollställs automatiskt varje natt 04:00. Fyll i en
-          e-postadress för att direkt få en färsk superadmin-inbjudan till den personen (giltig
-          i 7 dagar) – annars nollställs bara innehållet.
-        </p>
-        <form className="leverantor__form" onSubmit={hanteraNollstallDemo}>
-          <label>
-            E-post för inbjudan (valfritt)
-            <input
-              type="email"
-              value={demoEpost}
-              onChange={(e) => setDemoEpost(e.target.value)}
-              placeholder="prospekt@exempel.se"
-            />
-          </label>
-          <button type="submit" className="knapp" disabled={demoNollstaller}>
-            {demoNollstaller ? "..." : "Nollställ demomiljön nu"}
-          </button>
-        </form>
-        {demoMeddelande && <p className="leverantor__info">{demoMeddelande}</p>}
-        {demoInbjudanLank && (
-          <div className="leverantor__info">
-            <p>Inbjudan är skickad till e-postadressen. Reservlänk (giltig i 7 dagar):</p>
-            <input type="text" readOnly value={demoInbjudanLank} onFocus={(e) => e.target.select()} />
-          </div>
-        )}
-      </section>
+      <DemomiljoSektion onNollstallt={ladda} onFel={setFel} />
 
-      {(() => {
-        // Etapp 54b: ren klientgruppering av redan hämtad data – ingen ny läsväg, ingen
-        // dataflytt. Organisationer utan huvudman ingår inte i någon grupp (ett fritextfält
-        // som aldrig fyllts i betyder "ingen huvudman", inte "en egen grupp kallad tomt").
-        const grupper = new Map();
-        for (const org of organisationer ?? []) {
-          if (!org.huvudman) continue;
-          if (!grupper.has(org.huvudman)) grupper.set(org.huvudman, []);
-          grupper.get(org.huvudman).push(org);
-        }
-        if (grupper.size === 0) return null;
-        return (
-          <section className="admin-sektion">
-            <h2>🏛️ Huvudmän</h2>
-            <p className="sida__beskrivning">
-              Grupperar organisationer som delar samma huvudman (t.ex. samma sjukhus med flera
-              enheter). Rent visuellt – varje organisation är fortfarande en egen, fullt
-              isolerad organisation i grunden.
-            </p>
-            <ul className="admin-lista">
-              {Array.from(grupper.entries()).map(([huvudman, orgar]) => {
-                const summaKr = orgar.reduce((s, o) => s + (o.avtaladArsavgiftKr ?? 0), 0);
-                return (
-                  <li key={huvudman} className="admin-lista__rad leverantor__rad">
-                    <div>
-                      <strong>{huvudman}</strong> · {orgar.length} enheter:{" "}
-                      {orgar.map((o) => o.namn).join(", ")}
-                      {summaKr > 0 && <> · Summerat avtalat pris: {summaKr.toLocaleString("sv-SE")} kr/år</>}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        );
-      })()}
+      <HuvudmanSektion organisationer={organisationer} />
 
-      <section className="admin-sektion">
-        {/* Etapp 43e: `organisationer` är `null` tills anropet lyckas – om `fel` sätts till
-            NÅGOT annat än exakt `permission-denied` (t.ex. ett nätverksfel eller en annan
-            functions-felkod) faller renderingen igenom till här med `organisationer` fortfarande
-            `null`, vilket kraschade sidan (bekräftat i en riktig webbläsare). `?? []` täcker alla
-            felfall, inte bara det enda som redan hade en egen tidig retur. */}
-        <h2>
-          Organisationer ({visadeOrganisationer.length}
-          {nagotFilterAktivt && ` av ${(organisationer ?? []).length}`})
-        </h2>
-        <p className="sida__beskrivning">
-          "Avtalat pris" fylls i manuellt och är inte kopplat till någon betalningstjänst.
-          Ställt mot "Senaste avslutade månad" ger det en GROV fingervisning, inte ett
-          täckningsbidrag – den siffran täcker bara AI-kostnad, inte Firestore/Storage/
-          Functions-kostnad. Fullständig molnkostnad kräver GCP-faktureringsexport till
-          BigQuery, ett ägarbeslut (se <code>ETAPPLAN10.md</code> Etapp 48c).
-        </p>
-
-        {/* Etapp 67d: sortering/filtrering/sök, hela tillståndet speglat i URL:en (se
-            uppdateraFilter ovan) så vyn går att länka till och bokmärka. */}
-        <div className="leverantor__filterrad">
-          <label className="leverantor__filterfalt">
-            Sök
-            <input
-              type="search"
-              placeholder="Namn eller huvudman"
-              value={sokterm}
-              onChange={(e) => uppdateraFilter({ sok: e.target.value })}
-            />
-          </label>
-          <label className="leverantor__filterfalt">
-            Avtalsstatus
-            <select value={avtalsstatusFilter} onChange={(e) => uppdateraFilter({ avtalsstatus: e.target.value })}>
-              <option value="">Alla</option>
-              {Object.entries(AVTALSSTATUS_ETIKETT).map(([varde, etikett]) => (
-                <option key={varde} value={varde}>
-                  {etikett}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="leverantor__filterfalt">
-            Status
-            <select value={statusFilter} onChange={(e) => uppdateraFilter({ status: e.target.value })}>
-              <option value="">Alla</option>
-              <option value="aktiv">Aktiv</option>
-              <option value="pausad">Pausad</option>
-              <option value="raderad">Raderad</option>
-            </select>
-          </label>
-          <label className="leverantor__filterfalt">
-            Modul
-            <select value={modulFilter} onChange={(e) => uppdateraFilter({ modul: e.target.value })}>
-              <option value="">Alla</option>
-              <option value="operations">Operations</option>
-              <option value="intelligence">Intelligence</option>
-            </select>
-          </label>
-          <label className="leverantor__filterfalt">
-            Sortera på
-            <select value={sortField} onChange={(e) => uppdateraFilter({ sort: e.target.value })}>
-              {Object.entries(SORT_ETIKETT).map(([varde, etikett]) => (
-                <option key={varde} value={varde}>
-                  {etikett}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            className="knapp knapp--sekundar knapp--liten"
-            onClick={() => uppdateraFilter({ riktning: sortRiktning === "desc" ? null : "desc" })}
-            aria-label={sortRiktning === "desc" ? "Sorterar fallande, klicka för stigande" : "Sorterar stigande, klicka för fallande"}
-          >
-            {sortRiktning === "desc" ? "↓ Fallande" : "↑ Stigande"}
-          </button>
-          <label className="leverantor__filterfalt leverantor__checkbox">
-            <input
-              type="checkbox"
-              checked={visaDemo}
-              onChange={(e) => uppdateraFilter({ demo: e.target.checked ? null : "0" })}
-            />
-            Visa demo
-          </label>
-        </div>
-
-        {nagotFilterAktivt && (
-          <button
-            type="button"
-            className="knapp knapp--sekundar knapp--liten"
-            onClick={() => setSokparametrar(new URLSearchParams(), { replace: true })}
-          >
-            Visa alla (rensa filter)
-          </button>
-        )}
-        <ul className="admin-lista">
-          {visadeOrganisationer.map((org) => (
-            <li key={org.orgId} id={`org-${org.orgId}`} className="admin-lista__rad leverantor__rad">
-              <div>
-                <strong>{org.namn}</strong>{" "}
-                {org.status === "pausad" && <span className="leverantor__pausad">⏸ Pausad</span>}
-                {org.status === "raderad" && <span className="leverantor__fel">🗑️ Raderad</span>}
-                {org.arDemo && <span className="leverantor__pausad">🎓 Demo</span>}
-                {org.huvudman && <span className="leverantor__pausad">🏛️ {org.huvudman}</span>}
-                {org.raderingSchemalagdTill && (
-                  <div className="leverantor__fel">
-                    ⚠️ Radering schemalagd till {new Date(org.raderingSchemalagdTill).toLocaleString("sv-SE")}.
-                    Anledning: "{org.raderingAnledning}".{" "}
-                    <button
-                      type="button"
-                      className="knapp knapp--liten"
-                      disabled={atgard === org.orgId}
-                      onClick={() => hanteraAvbrytRadering(org.orgId)}
-                    >
-                      Avbryt radering
-                    </button>
-                  </div>
-                )}
-                {org.supportAtkomstTill && new Date(org.supportAtkomstTill) > new Date() && (
-                  <div className="leverantor__varning">
-                    🔓 Supportåtkomst aktiv till {new Date(org.supportAtkomstTill).toLocaleString("sv-SE")}.
-                    Anledning: "{org.supportAtkomstAnledning}".{" "}
-                    <button
-                      type="button"
-                      className="knapp knapp--liten"
-                      disabled={atgard === org.orgId}
-                      onClick={() => hanteraAvslutaSupportAtkomst(org.orgId)}
-                    >
-                      Avsluta åtkomsten
-                    </button>
-                  </div>
-                )}
-                <div className="admin-lista__email">
-                  {org.antalAnvandare} användare · Operations {org.moduler?.operations ? "✅" : "❌"} ·
-                  {" "}Intelligence {org.moduler?.intelligence ? "✅" : "❌"}
-                  {org.senasteKostnad && (
-                    <> · Senaste avslutade månad: {(org.senasteKostnad.anvantOre / 100).toFixed(2)} kr</>
-                  )}
-                  {org.sokkvotIdag > 0 && (
-                    <> · Sökkvot idag: {org.sokkvotIdag} / {org.sokkvotTakPerDygn ?? sokkvot?.orgTakStandard ?? "–"}</>
-                  )}
-                  {org.avtaladArsavgiftKr != null && (
-                    <> · Avtalat: {org.avtaladArsavgiftKr.toLocaleString("sv-SE")} kr/år</>
-                  )}
-                  {org.provperiodSlut && <> · Provperiod t.o.m. {org.provperiodSlut}</>}
-                </div>
-              </div>
-              <div className="admin-lista__atgarder">
-                <label className="leverantor__avtalsstatus">
-                  Avtalsstatus
-                  <select
-                    value={org.avtalsstatus}
-                    disabled={atgard === org.orgId}
-                    onChange={(e) => hanteraAvtalsstatus(org.orgId, e.target.value)}
-                  >
-                    {Object.entries(AVTALSSTATUS_ETIKETT).map(([varde, etikett]) => (
-                      <option key={varde} value={varde}>
-                        {etikett}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="leverantor__avtalsstatus">
-                  Provperiod t.o.m.
-                  <input
-                    type="date"
-                    value={provperiodDraft[org.orgId] ?? org.provperiodSlut ?? ""}
-                    disabled={atgard === org.orgId}
-                    onChange={(e) =>
-                      setProvperiodDraft((d) => ({ ...d, [org.orgId]: e.target.value }))
-                    }
-                  />
-                </label>
-                <button
-                  type="button"
-                  className="knapp knapp--liten"
-                  disabled={atgard === org.orgId}
-                  onClick={() => hanteraProvperiod(org.orgId, provperiodDraft[org.orgId] ?? org.provperiodSlut)}
-                >
-                  Spara provperiod
-                </button>
-                <label className="leverantor__avtalsstatus">
-                  Avtalat pris (kr/år)
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    placeholder="Ej ifyllt"
-                    value={arsavgiftDraft[org.orgId] ?? org.avtaladArsavgiftKr ?? ""}
-                    disabled={atgard === org.orgId}
-                    onChange={(e) =>
-                      setArsavgiftDraft((d) => ({ ...d, [org.orgId]: e.target.value }))
-                    }
-                  />
-                </label>
-                <button
-                  type="button"
-                  className="knapp knapp--liten"
-                  disabled={atgard === org.orgId}
-                  onClick={() =>
-                    hanteraArsavgift(org.orgId, arsavgiftDraft[org.orgId] ?? org.avtaladArsavgiftKr ?? "")
-                  }
-                >
-                  Spara pris
-                </button>
-                <label className="leverantor__avtalsstatus">
-                  Huvudman (för gruppering, valfritt)
-                  <input
-                    type="text"
-                    placeholder="Ej ifyllt"
-                    value={huvudmanDraft[org.orgId] ?? org.huvudman ?? ""}
-                    disabled={atgard === org.orgId}
-                    onChange={(e) => setHuvudmanDraft((d) => ({ ...d, [org.orgId]: e.target.value }))}
-                  />
-                </label>
-                <button
-                  type="button"
-                  className="knapp knapp--liten"
-                  disabled={atgard === org.orgId}
-                  onClick={() => hanteraHuvudman(org.orgId, huvudmanDraft[org.orgId] ?? org.huvudman ?? "")}
-                >
-                  Spara huvudman
-                </button>
-                <label className="leverantor__avtalsstatus">
-                  Sökkvottak/dygn
-                  <input
-                    type="number"
-                    min="1"
-                    max={sokkvot?.tak ?? 100}
-                    step="1"
-                    placeholder={`Standard (${sokkvot?.orgTakStandard ?? 50})`}
-                    value={sokkvotTakDraft[org.orgId] ?? org.sokkvotTakPerDygn ?? ""}
-                    disabled={atgard === org.orgId}
-                    onChange={(e) =>
-                      setSokkvotTakDraft((d) => ({ ...d, [org.orgId]: e.target.value }))
-                    }
-                  />
-                </label>
-                <button
-                  type="button"
-                  className="knapp knapp--liten"
-                  disabled={atgard === org.orgId}
-                  onClick={() =>
-                    hanteraSokkvotTak(org.orgId, sokkvotTakDraft[org.orgId] ?? org.sokkvotTakPerDygn ?? "")
-                  }
-                >
-                  Spara tak
-                </button>
-                <button
-                  type="button"
-                  className="knapp knapp--liten"
-                  disabled={atgard === org.orgId}
-                  onClick={() => hanteraPausa(org.orgId, org.status !== "pausad")}
-                >
-                  {org.status === "pausad" ? "Återaktivera" : "Pausa"}
-                </button>
-                <button
-                  type="button"
-                  className="knapp knapp--liten"
-                  disabled={atgard === org.orgId}
-                  onClick={() => hanteraExport(org.orgId)}
-                >
-                  Exportera
-                </button>
-                <button
-                  type="button"
-                  className="knapp knapp--liten"
-                  onClick={() => hanteraDiagnostik(org.orgId)}
-                >
-                  {diagnostikOppen === org.orgId ? "Dölj diagnostik" : "Diagnostik"}
-                </button>
-                {org.supportAtkomstTill && new Date(org.supportAtkomstTill) > new Date() && (
-                  <button
-                    type="button"
-                    className="knapp knapp--liten"
-                    onClick={() => hanteraVisaInnehall(org.orgId)}
-                  >
-                    {innehallOppen === org.orgId ? "Dölj innehåll" : "🔓 Visa innehåll"}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="knapp knapp--liten"
-                  onClick={() => hanteraArenden(org.orgId)}
-                >
-                  {arendenOppen === org.orgId ? "Dölj ärenden" : "🗒️ Ärenden"}
-                </button>
-              </div>
-              {diagnostikOppen === org.orgId && (
-                <div className="leverantor__diagnostik">
-                  {diagnostikLaddar && !diagnostikData[org.orgId] ? (
-                    <p>Laddar diagnostik...</p>
-                  ) : (
-                    (() => {
-                      const d = diagnostikData[org.orgId];
-                      if (!d) return null;
-                      return (
-                        <>
-                          <p className="sida__beskrivning">
-                            Strukturell hälsa – antal och tidpunkter, aldrig dokumentinnehåll.
-                            Visningen loggas i organisationens egen revisionslogg.
-                          </p>
-                          <ul className="leverantor__diagnostik-lista">
-                            {Object.entries(d.antalDokument).map(([namn, antal]) => (
-                              <li key={namn}>
-                                {namn}: {antal}
-                              </li>
-                            ))}
-                          </ul>
-                          <p>
-                            Senaste loggade händelse:{" "}
-                            {d.senasteHandelse
-                              ? `${d.senasteHandelse.handelsetyp} (${new Date(d.senasteHandelse.tidpunkt).toLocaleString("sv-SE")})`
-                              : "Ingen"}
-                          </p>
-                          <p>
-                            Backup:{" "}
-                            {d.backupstatus.harOperationsModul
-                              ? `${d.backupstatus.antalBackuper} st, senast ${d.backupstatus.senasteDatum ?? "aldrig"}`
-                              : "Kräver Operations-modulen"}
-                          </p>
-                          <p className="sida__beskrivning">
-                            Felfrekvens (t.ex. upprepade nekade anrop) är ännu inte tillgänglig
-                            här – kräver ett separat Sentry API-token, se{" "}
-                            <code>ETAPPLAN5.md</code> §32b.
-                          </p>
-                        </>
-                      );
-                    })()
-                  )}
-                </div>
-              )}
-              {innehallOppen === org.orgId && (
-                <div className="leverantor__diagnostik">
-                  {innehallLaddar && !innehallData[org.orgId] ? (
-                    <p>Laddar innehåll...</p>
-                  ) : (
-                    (() => {
-                      const inn = innehallData[org.orgId];
-                      if (!inn) return null;
-                      return (
-                        <>
-                          <p className="sida__beskrivning">
-                            🔓 Läses under det aktiva supportfönstret – organisationen ser i sin
-                            egen adminpanel att detta pågår.
-                          </p>
-                          {SUPPORTINNEHALL_COLLECTIONS.map(({ namn }) => (
-                            <div key={namn}>
-                              <strong>{namn} ({inn[namn]?.length ?? 0})</strong>
-                              <ul className="leverantor__diagnostik-lista">
-                                {(inn[namn] ?? []).map((post) => (
-                                  <li key={post.id}>
-                                    {post.titel}
-                                    {post.status && ` (${post.status})`}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          ))}
-                        </>
-                      );
-                    })()
-                  )}
-                </div>
-              )}
-              {arendenOppen === org.orgId && (
-                <div className="leverantor__diagnostik">
-                  <p className="sida__beskrivning">
-                    Internt leverantörsminne – syns aldrig för organisationens egna
-                    användare, oavsett roll.
-                  </p>
-                  {arendenLaddar && !arendenData[org.orgId] ? (
-                    <p>Laddar ärenden...</p>
-                  ) : (
-                    <ul className="leverantor__diagnostik-lista leverantor__arendelista">
-                      {(arendenData[org.orgId] ?? []).length === 0 && <li>Inga ärenden ännu.</li>}
-                      {(arendenData[org.orgId] ?? []).map((a) => (
-                        <li key={a.id}>
-                          <span>
-                            {a.skapadTidpunkt?.toDate
-                              ? a.skapadTidpunkt.toDate().toLocaleString("sv-SE")
-                              : "..."}
-                            {" – "}
-                            {a.text}
-                          </span>
-                          <button
-                            type="button"
-                            className="knapp knapp--liten"
-                            disabled={arendeSparar}
-                            onClick={() => hanteraTaBortArende(org.orgId, a.id)}
-                          >
-                            Ta bort
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <div className="leverantor__form">
-                    <label>
-                      Ny anteckning
-                      <textarea
-                        rows={2}
-                        value={nyttArendeText}
-                        onChange={(e) => setNyttArendeText(e.target.value)}
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      className="knapp knapp--liten"
-                      disabled={arendeSparar || !nyttArendeText.trim()}
-                      onClick={() => hanteraLaggTillArende(org.orgId)}
-                    >
-                      {arendeSparar ? "..." : "Lägg till"}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
+      <OrganisationsListaSektion
+        organisationer={organisationer}
+        sokkvot={sokkvot}
+        visadeOrganisationer={visadeOrganisationer}
+        nagotFilterAktivt={nagotFilterAktivt}
+        sokterm={sokterm}
+        avtalsstatusFilter={avtalsstatusFilter}
+        statusFilter={statusFilter}
+        modulFilter={modulFilter}
+        sortField={sortField}
+        sortRiktning={sortRiktning}
+        visaDemo={visaDemo}
+        uppdateraFilter={uppdateraFilter}
+        onRensaFilter={() => setSokparametrar(new URLSearchParams(), { replace: true })}
+        ladda={ladda}
+        onFel={setFel}
+      />
 
       <BaspaketreferenserSektion />
 
