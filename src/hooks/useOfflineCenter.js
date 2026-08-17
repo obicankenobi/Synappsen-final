@@ -14,6 +14,7 @@ import { db, BILDCACHE_NAMN } from "../firebase/config";
 import { useAuth } from "./useAuth";
 import { RUTIN_STATUS } from "./useRutiner";
 import { ARTIKEL_STATUS } from "./useForradsartiklar";
+import { arStorageUrl } from "../utils/storageUrl";
 
 // BILDCACHE_NAMN bor numera i firebase/config.js – utloggningsstädningen där måste kunna
 // tömma samma cache utan att importera den här hooken (cirkulär import via useAuth).
@@ -134,9 +135,18 @@ export function useOfflineCenter() {
           if (b.typ === "bild" && b.url) bildUrler.push(b.url);
         });
       });
+      // Säkerhetsgranskning 2026-08-17 (Del 3 – fynd 3.4): bildUrl/bilagor[].url är vanliga
+      // Firestore-fält som en redaktör kan sätta till vilken adress som helst. Till skillnad
+      // från externaKallor, som valideras mot en domänlista server-side (arGodkandaKallor i
+      // firestore.rules), fanns ingen sådan spärr här – och cache.add() HÄMTAR adressen, så
+      // varje användare som tryckte "ladda ner bilder" hade gjort ett anrop till en godtycklig
+      // extern värd (som därmed ser IP och User-Agent för hela personalstyrkan). Vi cachar
+      // därför bara det som faktiskt ligger i vår egen Storage-bucket. En adress som filtreras
+      // bort visas fortfarande i appen – den blir bara inte tillgänglig offline.
+      const franEgenStorage = bildUrler.filter(arStorageUrl);
       const cache = await caches.open(BILDCACHE_NAMN);
-      await Promise.all(bildUrler.map((url) => cache.add(url).catch(() => null)));
-      uppdateraStatus("bilder", bildUrler.length);
+      await Promise.all(franEgenStorage.map((url) => cache.add(url).catch(() => null)));
+      uppdateraStatus("bilder", franEgenStorage.length);
     } catch (e) {
       setFel(e.message ?? "Nedladdningen av bilder misslyckades.");
     } finally {

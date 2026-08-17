@@ -29,6 +29,7 @@ och "väntar, bevaka bara" kräver ingen förberedelse; "ägarbeslut", "bokad m�
 
 | Vad | Var det står beskrivet | Öppet sedan | Blockerat av | Nästa konkreta handling |
 |---|---|---|---|---|
+| Fynd 3.3 – push-tokens ligger i `users/{uid}`, som hela organisationen får läsa, och användaren får skriva sitt eget tokenfält. En kollega kan därför få Synappsen-notiser att dyka upp på en utvald persons telefon | `SAKERHETSGRANSKNING-2026-08.md` fynd 3.3 | 2026-08-17 | Riktig fix kräver att tokens flyttas ur `users/{uid}` (Firestore saknar fältnivåläsrätt) med migrering och ändring i varje push-väg – en halvfärdig fix stänger av notiserna tyst för alla nuvarande användare. Faller under åtgärdsmandatets undantag "kan bryta produktionsåtkomst" | Ägaren säger ja/nej till att bygga `pushEnheter/{token}` med `{uid, organisationId}`, ägarbunden läs-/skrivrätt och en övergångsperiod där `skickaPush()` läser både gamla arrayfältet och den nya collectionen. Uppskattat omfång: en halv etapp |
 
 ## Kräver en bokad människa
 

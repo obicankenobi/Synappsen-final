@@ -10,6 +10,8 @@ import {
   clearIndexedDbPersistence,
 } from "firebase/firestore";
 import { connectAuthEmulator } from "firebase/auth";
+// Ren util utan Firebase-beroenden – ingen risk för cirkulär import (jfr BILDCACHE_NAMN nedan).
+import { rensaAllaSenastBesokta } from "../utils/senastBesokta";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -91,6 +93,21 @@ export async function rensaLokalaAnvandardata() {
   } catch (fel) {
     console.warn("Kunde inte rensa offline-centrets lokala nycklar vid utloggning:", fel);
   }
+
+  // Säkerhetsgranskning 2026-08-17 (Del 3 – fynd 3.2). Städningen ovan skrevs för
+  // offline-centrets nycklar och tog bara dem, trots att motiveringen högst upp i det här
+  // blocket är den delade akutmottagningsdatorn i allmänhet. "Senast besökta" är den enda
+  // övriga lokala nyckeln som innehåller INNEHÅLL (rutintitlar och sökvägar) i stället för en
+  // tidsstämpel, och den enda som saknade uid i nyckeln – den städas därför också.
+  //
+  // MEDVETET INTE städade, och skälet ska stå kvar:
+  //   • offlineKo_{uid} – köade läskvitteringar och BRISTANMÄLNINGAR som ännu inte nått
+  //     servern. Att tömma den vid utloggning hade tyst kastat bort en anmälan någon gjort
+  //     offline. Nyckeln innehåller uid, så nästa användare kommer aldrig åt den via appen.
+  //   • synappsen_checklista_{uid}_{rutinId} – en påbörjad checklistkörning ("fortsätt där du
+  //     var"). Samma resonemang: per uid, och att kasta den förstör pågående arbete.
+  //   • tema/accent/installationsbanner – enhetsinställningar utan användardata.
+  rensaAllaSenastBesokta();
 }
 
 // Endast för lokal utveckling/manuell verifiering mot emulatorerna (t.ex. Etapp 1:s

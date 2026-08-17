@@ -3,10 +3,16 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-16 (Etapp 67a: leverantörsvyn fick en väg in från menyn –
-snabbreferensen "Var saker finns" uppdaterad, eftersom fem steg i den här checklistan pekar på
-`/leverantor` under tidspress. Ingen detektions-, begränsnings- eller återställningsförmåga
-ändrad, inga nya personuppgifter, ingen regeländring.) · **Motsvarar kodläge i övrigt:**
+**Senast uppdaterad:** 2026-08-17 (säkerhetsgranskningen 2026-08, Del 1–3, v5.114.0–v5.116.0).
+Detektionen är OMFORMAD, inte försvagad: den nattliga kedjekontrollens detaljer flyttades till
+Sentry och `/admin` → Incidentberedskap visar numera den EGNA organisationens kedjestatus i
+stället för ett globalt omdöme (fynd 2.1/2.2). Behörighetsmodellen skärptes på tre punkter
+(`revisionslogg` kräver ett kundöppnat supportfönster även för plattformsadmin, `systemstatus`
+är plattformsadmin-bara, `visningar`/`checklistkorningar` har fältfilter). Inga nya
+personuppgifter, ingen förmåga borttagen. **Obs: inget av detta är deployat än** – tills det
+är det gäller v5.106.0:s beteende i produktion.
+(Föregående: 2026-08-16, Etapp 67a – leverantörsvyn fick en väg in från menyn, snabbreferensen
+"Var saker finns" uppdaterad.) · **Motsvarar kodläge i övrigt:**
 v5.97.0 (Etapp 64, scaffolding för
 baspaketreferenser). Kontrollerat 2026-08-11 mot faktisk kod: den enda ändringen i
 `firestore.rules` sedan v5.91.0 är `baspaketreferenser`-blocket (plus en tvåfältsuppdatering
@@ -70,6 +76,16 @@ HH:MM  vad jag gjorde / vad jag såg
   Firebase-konsolen: revisionskedjans senaste automatiska nattkontroll (intakt/avvikelse,
   senast körd) och senaste backup för din organisation. Visar INTE App Check-metriken eller
   misslyckade inloggningar – se rutan nedan för varför.
+  **Ändrat 2026-08-17 (säkerhetsgranskning Del 2, fynd 2.2):** statusen här gäller nu
+  DIN EGEN organisations kedja. Fram till dess visades ett globalt omdöme över samtliga
+  organisationer – en avvikelse hos en helt annan kund kunde alltså visa "🔴 Avvikelse" här
+  medan din egen kedja var hel, och tvärtom. Läser du en avvikelse i den här vyn i dag gäller
+  den alltså faktiskt dig.
+- Sentry, tagg `typ: revisionslogg_integritet` (säkerhetsgranskning Del 2, 2026-08-17) – den
+  nattliga kedjekontrollens DETALJER (vilken organisation, vilken orsak) går enbart hit.
+  Systemvarningen i appen anger bara ANTALET drabbade organisationer, eftersom den är läsbar
+  för varje kunds superadmin och tidigare läckte leverantörens kundlista. Som leverantör:
+  leta i Sentry, inte i systemvarningen, när du behöver veta VEM som är drabbad.
 - Sentry, tagg `typ: radering_schemalagd` (Etapp 49a, 2026-08-08) – **larmar VARJE gång en
   organisation begär permanent radering**, oavsett om det var avsiktligt eller ett kapat
   superadmin-konto. `/leverantor` visar samma varning med en "Avbryt radering"-knapp.

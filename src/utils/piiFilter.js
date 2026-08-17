@@ -4,7 +4,15 @@
 // är därför bara en påminnelse (confirm-dialog), inte en garanti. Förlita dig aldrig på
 // namn-varningen som ett juridiskt skydd; den kompletterar utbildning/rutiner, ersätter dem inte.
 
-const PERSONNUMMER_REGEX = /\b(\d{2})(\d{2})(\d{2})[-+]?(\d{4})\b/g;
+// Säkerhetsgranskning 2026-08-17 (Del 3 – fynd 3.1): århundradeprefixet var tidigare INTE
+// med i mönstret, så filtret missade den TOLVSIFFRIGA formen ("19850315-1234" /
+// "198503151234") helt – och det är just den form som svenska journalsystem (TakeCare,
+// Cosmic) visar och som personal alltså kopierar. Serverregeln harTroligtPersonnummer() i
+// firestore.rules täckte båda formerna redan efter Del 1, men den regeln gäller bara ett
+// fåtal fält; det HÄR filtret är den enda kontrollen på merparten av appens fritext
+// (skiftrapporter, bristanmälningar, kommentarer). De två lagren sa alltså emot varandra,
+// och det svagare låg på den bredare vägen.
+const PERSONNUMMER_REGEX = /\b(?:19|20)?(\d{2})(\d{2})(\d{2})[-+]?(\d{4})\b/g;
 
 function luhnGiltig(siffror) {
   let summa = 0;

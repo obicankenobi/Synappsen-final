@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-17, version **5.115.0** – byggd och pushad, **INTE DEPLOYAD**
+**Senast uppdaterad:** 2026-08-17, version **5.116.0** – byggd och pushad, **INTE DEPLOYAD**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -3550,3 +3550,60 @@ Full svit grön: `lint`, `build`, `vitest` 239/239, `test:rules` 16 filer 0 fel,
 fortfarande öppna i produktion.
 
 **Nästa:** Del 3 (`src/hooks/`, `src/firebase/`, `src/utils/`).
+
+## Uppföljning 2026-08-17 (säkerhetsgranskning Del 3 av 4, v5.116.0)
+
+Del 3 (`src/hooks/` 60 filer, `src/firebase/` 10, `src/utils/` 28) klar. Rapport:
+`SAKERHETSGRANSKNING-2026-08.md`.
+
+**Den lönsammaste tråden var en egenkontroll av mina egna tidigare patchar.** Del 1 lade ett
+fältfilter på `checklistkorningar` (`hasOnly([... 'avbrottPerSteg'])`). Klienten skriver
+`{ [\`avbrottPerSteg.${stegIndex}\`]: increment(1) }` via `setDoc({merge:true})` – och
+punktnotation är en fältSÖKVÄG för `updateDoc` men INTE för `setDoc`, som skapar ett
+toppnivåfält som bokstavligen heter `avbrottPerSteg.3`. Skrivningen NEKADES alltså av min egen
+regel (verifierat mot emulatorn). Del 1:s test missade det för att det skrev `antalSlutforda`,
+ett fält som råkade vara enkelt. **Lärdom att ta med till Del 4: ett fältfilter måste testas
+mot VARJE faktisk skrivning, inte mot en representativ.** Samma rad avslöjade att
+"mest avbrutna steg" aldrig fungerat sedan Etapp 18d – läsaren förväntar sig en nästlad map
+som aldrig skapades. Båda lösta med en riktig nästlad map.
+
+**Fynd 3.1 (hög):** klientens `piiFilter.js` – appens primära PII-spärr, den som gäller nästan
+all fritext – missade den TOLVSIFFRIGA personnummerformen helt (`19900101-0017`). Hittades
+genom att bära Del 1:s öppna fråga vidare: serverregeln patchades där till att täcka båda
+formerna, och en kontroll av om klienten sa samma sak visade att lagren var oense – med det
+svagare på den bredare vägen.
+
+**Fynd 3.2 (medel):** `senastBesokta.js` använde en GLOBAL localStorage-nyckel medan
+`useOfflineCenter.js` och `checklistFramsteg.js` uttryckligen resonerar om delade enheter och
+nycklar per uid. Värre än att nästa person såg listan: `useSenastBesokta` faller tillbaka på
+den lokala kopian när kontots fält saknas (nya användare) och skriver sedan tillbaka den till
+`users/{uid}` – föregående persons historik hamnade permanent i en ANNAN användares konto.
+Utloggningsstädningen sveper nu även dessa nycklar, men medvetet INTE `offlineKo_` (köade
+bristanmälningar) eller `synappsen_checklista_` – skälet står i koden.
+
+**Fynd 3.3 är FLAGGAD, inte patchad, och kräver ett ägarbeslut.** `users/{uid}` är läsbar för
+hela organisationen inklusive `pushTokens`, och en användare får fritt skriva sitt eget
+tokenfält. En kollega kan alltså lägga in någon annans token i sin egen lista och få
+Synappsen-notiser att dyka upp på den personens telefon. Ingen dataåtkomst utöver det
+angriparen redan har, men på en akutmottagning är en falsk "Ny akutrutin"-notis en
+patientsäkerhetsnära väg. Riktig fix kräver att tokens flyttas ur `users/{uid}` (Firestore har
+ingen fältnivåläsrätt) med migrering och ändring i varje push-väg – faller under
+åtgärdsmandatets undantag. Rekommendation i rapporten: `pushEnheter/{token}` med
+övergångsperiod där `skickaPush()` läser båda ställena. Uppskattat omfång: en halv etapp.
+
+**Fynd 3.4 (låg–medel, delvis patchad):** `bildUrl`/`bilagor[].url` saknar den ursprungsspärr
+`externaKallor` redan har (`arGodkandaKallor`). Offlinehämtningen anropade `cache.add()` på
+dem, så en redaktör kunde få varje anställd att skicka ett anrop till en godtycklig extern
+värd. Ny `src/utils/storageUrl.js` filtrerar offlinedelen. `<img src>`-halvan hör till Del 4.
+
+**Utan anmärkning:** samtliga 37 frågeställande hooks kartlagda mot sina `where`-satser (ingen
+ny list-provability-bugg); `halsokontrollhistorik`/`systemvarningar` innehåller efter Del 2
+enbart infrastrukturstatus utan kundidentitet; Storage-sökvägar med `/` i filnamnet fallerar
+stängt (segmentbindning i `storage.rules`); `mfa.js`, `messaging.js`, `felrapportering.js`
+rena.
+
+Full svit grön: `lint`, `build`, `vitest` 253/253, `test:rules` 16 filer 0 fel. **Inget
+deployat.** Obs: v5.114.0 får INTE deployas utan v5.116.0 – Del 1:s regression rättas där.
+
+**Nästa:** Del 4 (`src/components/`, `src/pages/`, CSP, workflows, beroenden).
+

@@ -11,6 +11,15 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.116.0",
+    datum: "2026-08-17",
+    andringar: [
+      "Säkerhetsgranskning: spärren mot personnummer känner nu igen den tolvsiffriga formen (19900101-0017), som journalsystem visar och som tidigare kunde sparas i fritext",
+      "På en delad dator eller kioskplatta visas inte längre föregående persons \"senast besökta\" för nästa som loggar in – listan följer kontot, inte enheten",
+      "Statistiken över vilket checkliststeg flest avbryter på fungerar nu (den har tidigare alltid visat ett streck)",
+    ],
+  },
+  {
     version: "5.115.0",
     datum: "2026-08-17",
     andringar: [

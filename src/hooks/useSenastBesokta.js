@@ -5,7 +5,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
-import { lasSenastBesokta, registreraBesok as registreraLokalt } from "../utils/senastBesokta";
+import {
+  lasSenastBesokta,
+  registreraBesok as registreraLokalt,
+  rensaGammalDelalNyckel,
+} from "../utils/senastBesokta";
 import { rapporteraNekadListning } from "../firebase/felrapportering";
 
 export function useSenastBesokta(uid) {
@@ -14,6 +18,8 @@ export function useSenastBesokta(uid) {
 
   useEffect(() => {
     if (!uid) return undefined;
+    // Fynd 3.2: städa bort den gamla, kontolösa nyckeln så snart någon loggat in på enheten.
+    rensaGammalDelalNyckel();
     return onSnapshot(
       doc(db, "users", uid),
       (snap) => {
@@ -32,10 +38,10 @@ export function useSenastBesokta(uid) {
   // tvingas köra om vid varje rendering istället för bara vid faktiska hash-ändringar.
   const registrera = useCallback(
     async (post) => {
-      registreraLokalt(post);
       if (!uid) return;
+      registreraLokalt(uid, post);
       try {
-        await updateDoc(doc(db, "users", uid), { senastBesokta: lasSenastBesokta() });
+        await updateDoc(doc(db, "users", uid), { senastBesokta: lasSenastBesokta(uid) });
       } catch {
         // Offline eller nätverksfel – den lokala kopian räcker för den här enheten, synkas
         // nästa gång ett besök registreras med fungerande nät.
@@ -46,7 +52,7 @@ export function useSenastBesokta(uid) {
 
   // Synkad lista om kontot har en (även tom, om användaren aldrig besökt något på ett synkat
   // konto), annars den lokala – t.ex. innan Firestore hunnit svara, eller utan inloggning.
-  const senastBesokta = synkat ?? lasSenastBesokta();
+  const senastBesokta = synkat ?? lasSenastBesokta(uid);
 
   return { senastBesokta, registrera, fel };
 }

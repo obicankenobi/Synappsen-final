@@ -24,7 +24,7 @@ hela multi-tenant-isoleringen, medan tusen rader UI-kod sällan kan det.
 |---|---|---|---|
 | **1** | `firestore.rules`, `storage.rules`, `roles.js`, `AuthContext`, `tests/rules/` | ~1 500 | ✅ **KLAR** 2026-08-17 |
 | **2** | `functions/` (14 filer) | ~5 500 | ✅ **KLAR** 2026-08-17 |
-| **3** | `src/hooks/`, `src/firebase/`, `src/utils/` | ~6 300 | ⬜ Ej påbörjad |
+| **3** | `src/hooks/`, `src/firebase/`, `src/utils/` | ~6 300 | ✅ **KLAR** 2026-08-17 |
 | **4** | `src/components/`, `src/pages/`, CSP, workflows, beroenden | ~14 600 | ⬜ Ej påbörjad |
 
 **Varje fynd som patchas får ett regressionstest som bevisligen failar mot koden före
@@ -48,6 +48,11 @@ patchen.** Ett test som passerar både före och efter bevisar ingenting.
 | 2.2 | Kundens kedjestatus visade en global dom över alla kunder | **Låg (korrekthet)** | ✅ Patchad |
 | 2.3 | Inbjuden e-postadress kan "squattas" i Firebase Auth före inlösen | **Låg** | 📋 Dokumenterad |
 | 2.4 | Klinikstöd-cachenyckeln trunkeras till 480 tecken | **Låg** | 📋 Dokumenterad |
+| 3.1 | Klientens personnummerspärr missade den TOLVSIFFRIGA formen helt | **Hög** | ✅ Patchad |
+| 3.2 | "Senast besökta" delades mellan användare på samma enhet – och skrevs in i nästa användares konto | **Medel** | ✅ Patchad |
+| 3.3 | Kollegors push-tokens är läsbara och egna är fritt skrivbara → notiskapning | **Medel** | 🚩 **Flaggad, kräver ditt beslut** |
+| 3.4 | `bildUrl`/`bilagor[].url` saknar ursprungsspärr; offlinehämtningen anropade dem | **Låg–medel** | ✅ Patchad (offlinedelen) |
+| 3.5 | Del 1:s fältfilter nekade en riktig klientskrivning (min egen regression) + statistiken har aldrig fungerat | **Regression** | ✅ Patchad |
 
 ---
 
@@ -366,10 +371,196 @@ Följande kontrollerades systematiskt och höll:
 
 ---
 
-# Del 3 – Klientens datalager ⬜ Ej påbörjad
+# Del 3 – Klientens datalager ✅ KLAR (2026-08-17)
 
-`src/hooks/`, `src/firebase/`, `src/utils/`. Frågekonstruktion (inkl. list-provability),
-PII-filtrets fullständighet, offline-kön, klientlagring.
+Genomgången omfattade 60 hooks, `src/firebase/` (10 filer) och `src/utils/` (28 källfiler).
+Fem trådar drevs: frågekonstruktion mot regellagret (list-provability), PII-filtrets
+fullständighet, klientlagringen på en delad enhet, Storage-/URL-hanteringen, samt en
+egenkontroll av att Del 1:s och Del 2:s patchar inte bröt någon riktig klientskrivning. Den
+sista tråden var den mest lönsamma – se fynd 3.5.
+
+## Fynd 3.1 — Personnummerspärren missade den form journalsystemen faktiskt visar
+
+`src/utils/piiFilter.js` är appens **primära** skydd mot att patientuppgifter skrivs in i
+Synappsen. Den körs på merparten av all fritext: skiftrapporter, bristanmälningar,
+kommentarer, rutininnehåll. Mönstret såg ut så här:
+
+```js
+/\b(\d{2})(\d{2})(\d{2})[-+]?(\d{4})\b/g
+```
+
+Sex siffror datum, alltså **bara tiosiffriga** personnummer. Verifierat empiriskt mot
+mönstret:
+
+| Inmatning | Upptäcktes före patchen |
+|---|---|
+| `900101-0017` | ✅ ja |
+| `9001010017` | ✅ ja |
+| `19900101-0017` | ❌ **nej** |
+| `199001010017` | ❌ **nej** |
+
+Den tolvsiffriga formen är den svenska journalsystemen (TakeCare, Cosmic) visar, och alltså
+den personal kopierar när de klistrar in. Filtret fångade den mindre sannolika formen och
+släppte igenom den mest sannolika.
+
+**Hur det hittades:** genom att bära en öppen fråga från Del 1 vidare. Del 1 patchade
+serverregeln `harTroligtPersonnummer()` så att den täcker *båda* formerna. Att då gå tillbaka
+och kontrollera om klientlagret sa samma sak visade att de två lagren var oense – och att det
+svagare av dem låg på den bredare vägen. Serverregeln skyddar bara ett fåtal fält; det här
+filtret skyddar nästan all fritext.
+
+**Åtgärd:** ett valfritt, icke-fångande århundradeprefix `(?:19|20)?`. Luhn-kontrollen räknar
+fortfarande på de tio sista siffrorna, så samordningsnummerlogiken (dag + 60) är oförändrad.
+Fyra nya enhetstester, varav två failade före patchen. Ett femte test låser fast att en längre
+siffersekvens (t.ex. 16 siffror i rad) fortfarande inte ger falskt larm.
+
+## Fynd 3.2 — "Senast besökta" följde enheten, inte kontot
+
+`src/utils/senastBesokta.js` sparade listan under en **global** localStorage-nyckel:
+
+```js
+const NYCKEL = "synappsen_senast_besokta";   // ingen uid
+```
+
+Två systerfiler resonerar uttryckligen om precis det här: `useOfflineCenter.js` ("Nyckeln
+inkluderar uid – annars visar en delad/kiosk-dator fel …") och `checklistFramsteg.js`
+("Nyckeln inkluderar uid så två personer som delar en enhet inte …"). `senastBesokta.js` är
+äldre (Etapp 17b) och missade det — och är den enda av de tre som lagrar **innehåll**
+(rutintitlar och sökvägar) i stället för en tidsstämpel.
+
+Två konsekvenser på en delad akutmottagningsdator eller en kioskplatta (Etapp 55 gör delade
+enheter till ett uttryckligen stött scenario):
+
+1. Nästa person som loggade in såg föregående persons lista på startsidan.
+2. **Allvarligare:** `useSenastBesokta.js` faller tillbaka på den lokala listan när kontots
+   eget `senastBesokta`-fält saknas — vilket det gör för varje ny användare — och skriver
+   sedan `lasSenastBesokta()` tillbaka till `users/{uid}`. Föregående persons besökshistorik
+   hamnade alltså **permanent i en annan användares konto**, synkad till alla dennes enheter.
+
+Utloggningsstädningen (`rensaLokalaAnvandardata()` i `firebase/config.js`) hjälpte inte:
+den skrevs med den delade datorn som uttalad motivering men sveper bara `offlineCenter_*`.
+
+**Åtgärd:** nyckeln är per uid, `uid` är obligatoriskt (utloggad ⇒ inget lokalt minne alls),
+den gamla kontolösa nyckeln raderas aktivt från enheten vid inloggning, och
+utloggningsstädningen sveper samtliga listor. **Medvetet inte svepta, och skälet står i koden:**
+`offlineKo_{uid}` (köade bristanmälningar som ännu inte nått servern — att tömma den hade tyst
+kastat bort någons anmälan) och `synappsen_checklista_{uid}_{rutinId}` (en påbörjad
+checklistkörning). Båda innehåller uid, så nästa användare når dem aldrig via appen.
+
+## Fynd 3.3 🚩 — Push-tokens kan kapas till en kollegas telefon (kräver ditt beslut)
+
+Två regler i `firestore.rules` kombineras olyckligt:
+
+- `users/{userId}`: `allow read: if arInloggad() && sameOrg` — vem som helst i organisationen
+  får läsa en kollegas **hela** användardokument, inklusive `pushTokens`.
+- Samma block låter en användare fritt skriva `pushTokens` på sig själv (fältet står i
+  `bararForandrarFalt`-listan, motiverat med "opaka tokens … kräver ingen PII-spärr").
+
+**Angreppet:** Alice läser Bobs `pushTokens`, lägger in Bobs token i sin egen lista och
+utlöser sedan en notis till sig själv. `skickaPush()` i `functions/gemensamt.js` läser Alices
+tokenlista och skickar — till Bobs telefon. Alice kan alltså få Synappsen-notiser att dyka upp
+på en utvald kollegas låsskärm. På en akutmottagning är en falsk "Ny akutrutin: …" en
+patientsäkerhetsnära social-engineering-väg, inte bara en olägenhet.
+
+Angreppet ger **ingen** åtkomst till data Alice inte redan får läsa.
+
+**Varför jag inte patchade:** Firestore har ingen fältnivåläsrätt, så den riktiga lösningen är
+att flytta tokens ur `users/{uid}` — antingen till en subcollection eller till en egen
+collection `pushEnheter/{token}` med `uid`-ägarskap. Båda innebär en migrering av befintliga
+tokens och en ändring i varje push-väg server-side. Gör man det halvt (läser bara den nya
+platsen) slutar notiserna tyst att fungera för alla nuvarande användare. Det faller under
+undantaget i ditt åtgärdsmandat: en ändring som kan bryta en fungerande produktionsfunktion.
+
+**Rekommendation:** egen collection `pushEnheter/{token}` med `{ uid, organisationId }`,
+läs-/skrivbar enbart av ägaren, och en övergångsperiod där `skickaPush()` läser BÅDE det gamla
+arrayfältet och den nya collectionen. Uppskattat omfång: en halv etapp. Säg till om du vill att
+jag bygger det.
+
+## Fynd 3.4 — Bildadresser saknar den ursprungsspärr externa källor har
+
+`bildUrl` och `bilagor[].url` är vanliga Firestore-fält som en redaktör kan sätta till vilken
+adress som helst. Projektet har redan precedens för att spärra sådant: `externaKallor`
+valideras mot en domänlista server-side (`arGodkandaKallor()` i `firestore.rules`). Bildfälten
+hade ingen motsvarighet.
+
+Det gör mer än att visa en främmande bild: `useOfflineCenter.laddaNerBilder()` anropar
+`cache.add(url)` på varje adress. En redaktör kunde alltså få **varje anställd som trycker
+"ladda ner bilder"** att skicka ett anrop till en godtycklig extern värd, som därmed ser IP och
+User-Agent för hela personalstyrkan.
+
+**Åtgärd (delvis):** ny `src/utils/storageUrl.js` med `arStorageUrl()`, som offlinehämtningen
+filtrerar genom — bara projektets egen Storage-bucket cachas. Sex enhetstester, inklusive att
+en värd som bara *slutar* likadant (`firebasestorage.googleapis.com.example.net`) avvisas.
+
+**Kvar:** `<img src={rutin.bildUrl}>` i `RutinKort.jsx`/`ForradArtikelKort.jsx` hämtar
+fortfarande adressen vid rendering. Den halvan hör hemma i Del 4 (UI-ytor) och bör troligen
+lösas i `firestore.rules` i stället, som `externaKallor` — men regelbudgeten är redan slut två
+gånger om, så det kräver en egen avvägning.
+
+## Fynd 3.5 — Del 1:s fältfilter nekade en riktig klientskrivning (min egen regression)
+
+Del 1 lade en fältbegränsning på `checklistkorningar` med
+`hasOnly([... 'avbrottPerSteg'])`. Klienten skriver så här:
+
+```js
+setDoc(ref, { organisationId, [`avbrottPerSteg.${stegIndex}`]: increment(1) }, { merge: true });
+```
+
+Punktnotation tolkas som en fält**sökväg** av `updateDoc`, men **inte** av `setDoc` — `setDoc`
+skapar ett toppnivåfält som bokstavligen heter `avbrottPerSteg.3`. Det namnet står inte i
+tillåtlistan, så skrivningen **nekas**. Verifierat mot emulatorn: `PERMISSION_DENIED`.
+
+Del 1:s testsvit missade det därför att testet skrev `{ antalSlutforda: 1 }` — ett fält som
+råkade vara enkelt. Ett fältfilter måste testas mot **varje** faktisk skrivning, inte mot en
+representativ.
+
+Samma rad avslöjade en bugg som funnits sedan Etapp 18d: `ChecklistStatistikSektion.jsx` läser
+`s.avbrottPerSteg` och kör `Object.entries()` på den, men det fältet skapades aldrig — bara
+syskonfält med punkt i namnet. **"Mest avbrutna steg" har alltid visat "-".**
+
+**Åtgärd:** en riktig nästlad map, `{ avbrottPerSteg: { [stegIndex]: increment(1) } }`.
+`increment()` fungerar inne i en map och `merge: true` slår ihop med befintliga steg. Två nya
+regeltester låser fast båda halvorna: den nästlade formen ska passera, punktformen ska inte
+kunna smyga tillbaka. Regressionen hann aldrig ut i produktion (inget av granskningen är
+deployat) men hade gjort det vid nästa deploy.
+
+## Genomgång utan anmärkning
+
+- **List-provability:** samtliga 37 frågeställande hooks kartlagda mot sina `where`-satser.
+  Alla utom två filtrerar på `organisationId`; de två (`useBaspaketreferenser` —
+  plattformsadmin-bara, och `useRutinDiffSedanLast` — subcollection under en rutin vars
+  regel slår upp förälderns organisation) är korrekta som de är. Ingen ny motsvarighet till
+  Etapp 31b:s bugg hittad.
+- **`halsokontrollhistorik` och `systemvarningar`:** båda är globalt läsbara för varje kunds
+  superadmin, vilket såg ut som fynd 2.1 igen. Genomgång av samtliga skrivställen
+  (`functions/klinikstod.js`, `functions/revisionslogg.js`) visar att innehållet efter Del 2
+  enbart är infrastrukturstatus — Gemini, sökmotorn, Storage — utan kundidentitet. Designen
+  stämmer med sin egen dokumenterade motivering.
+- **Storage-sökvägar:** filnamn byggs av `${Date.now()}-${fil.name}` där `fil.name` är
+  användarstyrt. Ett `/` i namnet skulle lägga till ett segment, men varje `match`-block i
+  `storage.rules` binder ett exakt antal segment, så en sådan sökväg matchar ingen regel och
+  nekas. Fallerar stängt. `..` betyder inget i GCS (platt namnrymd).
+- **`registreraVisning()`** skriver exakt de fem fält Del 1:s tillåtlista anger — kontrollerat
+  explicit efter fynd 3.5.
+- **MFA (`mfa.js`)** och **push-registrering (`messaging.js`)**: tunna omslag kring
+  Firebase-SDK:n, ingen egen hemlighetshantering, ingen tokenlogg.
+- **`felrapportering.js`:** skickar bara collection/roll/organisation/sökväg till Sentry,
+  aldrig dokumentinnehåll — kravet från Etapp 32a hålls.
+- **`functions.js`:** 45 tunna callable-omslag. De som skickar `orgId` från klienten
+  verifierades i Del 2 som plattformsadmin-grindade server-side.
+- **ReDoS:** de enda dynamiska regexarna i lagret finns i `piiFilter.js` och har inga
+  nästlade kvantifierare.
+- **Utloggningsstädningen** tömmer Firestores IndexedDB-cache och bildcachen korrekt, med
+  motiverad felsvälining per steg.
+
+## Test och verifiering
+
+- `src/utils/piiFilter.test.js`: +5 tester (två failade före patchen).
+- `src/utils/senastBesokta.test.js`: omskriven för uid-argumentet, +3 tester för delad enhet
+  (alla tre failade före patchen).
+- `src/utils/storageUrl.test.js`: ny, 6 tester.
+- `tests/rules/sakerhetsgranskning.test.mjs`: +2 tester för fynd 3.5 (**20 totalt**). Testet
+  för punktnotationen bevisades faila mot koden före patchen genom en separat emulatorkörning.
 
 ---
 
@@ -389,6 +580,12 @@ PII-filtrets fullständighet, offline-kön, klientlagring.
 | v5.108.0–v5.113.0 | Etapp 67a–67e | ❌ Nej |
 | **v5.114.0** | **Säkerhetsgranskning Del 1** | ❌ **Nej** |
 | **v5.115.0** | **Säkerhetsgranskning Del 2** | ❌ **Nej** |
+| **v5.116.0** | **Säkerhetsgranskning Del 3** | ❌ **Nej** |
 
-Ägaren har valt att avvakta med deploy under granskningen. **Fynd 1.1–1.3 och 2.1–2.2 är
-därmed patchade i koden men fortfarande öppna i produktion.**
+Ägaren har valt att avvakta med deploy under granskningen. **Fynd 1.1–1.3, 2.1–2.2 och
+3.1–3.2/3.4 är därmed patchade i koden men fortfarande öppna i produktion.**
+
+Fynd 3.5 är motsatsen och måste läsas som en egen rad i kön: det är en regression som Del 1
+införde och som Del 3 rättade **innan** något deployades. Deployas v5.114.0 utan v5.116.0
+slutar checklistlägets avbrottsräknare att fungera. Delarna ska alltså deployas tillsammans,
+inte en i taget.

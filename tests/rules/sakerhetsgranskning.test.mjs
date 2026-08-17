@@ -9,7 +9,7 @@
 //   2.1  systemstatus läckte leverantörens kundlista till varje kunds superadmin
 import { initializeTestEnvironment, assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { readFileSync } from "node:fs";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, increment } from "firebase/firestore";
 
 let antalKlarade = 0;
 let antalMisslyckade = 0;
@@ -180,6 +180,31 @@ async function main() {
   );
   await test("legitim räknaruppdatering i checklistkorningar fungerar oförändrat", () =>
     assertSucceeds(updateDoc(doc(volA, "checklistkorningar", "rutinA"), { antalSlutforda: 1 }))
+  );
+
+  // Fynd 3.5 (Del 3): fältbegränsningen ovan lades till i Del 1 UTAN ett test som körde
+  // registreraChecklistaAvbruten()s faktiska skrivning. Den skrivningen använde punktnotation
+  // i ett setDoc({merge:true}), vilket skapar ett toppnivåfält som bokstavligen heter
+  // "avbrottPerSteg.3" – ett annat namn än det tillåtna, alltså NEKAT. De två testerna nedan
+  // låser fast båda halvorna: den nya nästlade formen ska passera, den gamla punktformen ska
+  // inte kunna smyga tillbaka.
+  await test("avbrottsräknaren skrivs som en NÄSTLAD map och passerar fältfiltret", () =>
+    assertSucceeds(
+      setDoc(
+        doc(volA, "checklistkorningar", "rutinA"),
+        { organisationId: "orgA", avbrottPerSteg: { 3: increment(1) } },
+        { merge: true }
+      )
+    )
+  );
+  await test("den gamla punktnotationen (fältnamn med punkt) nekas fortfarande", () =>
+    assertFails(
+      setDoc(
+        doc(volA, "checklistkorningar", "rutinA"),
+        { organisationId: "orgA", ["avbrottPerSteg.4"]: increment(1) },
+        { merge: true }
+      )
+    )
   );
 
   console.log("\nFynd 2.1 – systemstatus är leverantörens driftöversikt, inte kunddata");
