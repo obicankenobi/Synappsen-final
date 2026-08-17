@@ -1096,11 +1096,20 @@ service cloud.firestore {
       //     permanent blockera B:s anteckning för den rutinen.
       // Klienten skriver alltid `${egenUid}_${rutinId}` (usePrivatAnteckning.js), så
       // prefixkontrollen är en no-op för legitima skrivningar.
+      // SÄKERHETSGRANSKNING 2026-08-17 (Del 4 – fynd 4.4): !arKiosk() saknades här, till
+      // skillnad från bristanmalningar, andringsforslag, anslag, signeringar och
+      // skiftrapporter som alla har den. Kiosk är ett DELAT enhetskonto, inte en person – och
+      // just den här collectionen är den enda vars gränssnitt uttryckligen LOVAR avskildhet
+      // ("Bara du kan se det du skriver här", PrivatAnteckning.jsx). På ett delat konto var
+      // det löftet falskt: nästa person som rörde plattan såg samma text, eftersom
+      // dokument-id:t bygger på kontots uid och kiosken har ETT uid. Läsning behålls
+      // (annars försvinner det som redan skrivits utan spår); det som stängs är att skriva
+      // NYTT under ett falskt privatlöfte.
       allow read, delete: if arInloggad() && dokId.split('_')[0] == request.auth.uid;
-      allow update: if arInloggad() && dokId.split('_')[0] == request.auth.uid
+      allow update: if arInloggad() && !arKiosk() && dokId.split('_')[0] == request.auth.uid
                      && resource.data.uid == request.auth.uid
                      && !harTroligtPersonnummer(request.resource.data.get('text', ''));
-      allow create: if arInloggad() && dokId.split('_')[0] == request.auth.uid
+      allow create: if arInloggad() && !arKiosk() && dokId.split('_')[0] == request.auth.uid
                      && request.resource.data.uid == request.auth.uid
                      && !harTroligtPersonnummer(request.resource.data.get('text', ''));
     }

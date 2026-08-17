@@ -9,7 +9,7 @@ import { formateraDatum } from "../utils/datum";
 import { talText } from "../utils/talText";
 import { useTalsyntes } from "../hooks/useTalsyntes";
 import { useRutinDiffSedanLast } from "../hooks/useRutinDiffSedanLast";
-import { ROLE_LABELS } from "../firebase/roles";
+import { ROLE_LABELS, ROLES } from "../firebase/roles";
 import FavoritKnapp from "./FavoritKnapp";
 import Kommentarer from "./Kommentarer";
 import VersionsHistorik from "./VersionsHistorik";
@@ -54,7 +54,11 @@ export default function RutinKort({
   onGranskaKalla,
   hamtaVersioner,
 }) {
-  const { currentUser, namn, organisationId } = useAuth();
+  const { currentUser, namn, organisationId, role } = useAuth();
+  // Säkerhetsgranskning 2026-08-17 (Del 4 – fynd 4.4/4.5): kiosk är ett DELAT
+  // enhetskonto. Tre ytor nedan var öppna för den utan att vara det server-side, eller
+  // utan att vara meningsfulla på ett delat konto – se respektive användningsställe.
+  const arKiosk = role === ROLES.KIOSK;
   const mittNamn = namn || currentUser?.email;
   const { stods: talstods, laserUpp, vaxla } = useTalsyntes();
   const [visaHistorik, setVisaHistorik] = useState(false);
@@ -221,6 +225,15 @@ export default function RutinKort({
         <p className="rutin-kort__signatur">Arkiverad – gäller inte längre, ingen kvittering krävs.</p>
       ) : (
         <div className="rutin-kort__laskvittering">
+          {/* Fynd 4.6: firestore.rules kräver !arKiosk() för lasteAv, men knappen visades
+              ändå. Eftersom kvitteringen går genom offlinekön lades en post som ALDRIG kan
+              gå igenom – ett tyst datafel och en kö som växer på varje delad platta. Ingen
+              säkerhetslucka (servern höll), men UI och regel ska säga samma sak. */}
+          {arKiosk ? (
+            <p className="rutin-kort__signatur">
+              Läskvittering kräver ett personligt konto och kan inte göras från en delad enhet.
+            </p>
+          ) : (
           <button
             type="button"
             className="knapp knapp--sekundar knapp--liten"
@@ -235,6 +248,7 @@ export default function RutinKort({
           >
             {jagHarLast ? "✓ Du har läst detta" : "Jag har läst och förstått"}
           </button>
+          )}
           {farRedigera && lasteAv.length > 0 && (
             <span
               className="rutin-kort__last-antal"
@@ -395,9 +409,23 @@ export default function RutinKort({
         />
       )}
 
-      <PrivatAnteckning rutinId={rutin.id} />
+      {/* Fynd 4.4: "Bara du kan se det du skriver här" är ett falskt löfte på ett delat
+          konto – nästa person vid plattan ser samma text. Regeln nekar numera också
+          skrivningen (firestore.rules, anteckningar), det här hindrar bara att rutan
+          ens erbjuds. */}
+      {!arKiosk && <PrivatAnteckning rutinId={rutin.id} />}
 
-      <Kommentarer rutinId={rutin.id} farTaBortAlla={farRedigera} anvandare={anvandare} />
+      {/* Fynd 4.5: servern nekar redan en kioskkommentar (skapaKommentar), men
+          formuläret visades ändå – och dess @-autokomplettering listar kollegors namn
+          och e-postadresser fem i taget. På en obevakad foajéplatta är det en
+          personalkatalog för vem som helst som går förbi. Kommentarerna VISAS
+          fortfarande, det är bara skrivvägen som tas bort. */}
+      <Kommentarer
+        rutinId={rutin.id}
+        farTaBortAlla={farRedigera}
+        anvandare={arKiosk ? [] : anvandare}
+        farSkriva={!arKiosk}
+      />
 
       {visaHistorik && (
         <VersionsHistorik

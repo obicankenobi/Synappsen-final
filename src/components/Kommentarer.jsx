@@ -52,7 +52,12 @@ function KommentarRad({ kommentar, svar, currentUser, farTaBortAlla, taBortKomme
   );
 }
 
-export default function Kommentarer({ rutinId, farTaBortAlla, anvandare = [] }) {
+// Säkerhetsgranskning 2026-08-17 (Del 4 – fynd 4.5): farSkriva stängs av för kioskkontot.
+// Servern nekade redan skapaKommentar för rollen kiosk, men formuläret visades ändå – och
+// dess @-autokomplettering listar kollegors namn och e-postadresser fem i taget, vilket
+// gjorde en obevakad foajéplatta till en uppslagsbok över personalen. Standardvärdet är
+// true så att inget befintligt anropsställe ändrar beteende.
+export default function Kommentarer({ rutinId, farTaBortAlla, anvandare = [], farSkriva = true }) {
   const { currentUser } = useAuth();
   const { visaMeddelande } = useDialog();
   const { kommentarer, skapaKommentar, taBortKommentar } = useKommentarer(rutinId);
@@ -131,6 +136,13 @@ export default function Kommentarer({ rutinId, farTaBortAlla, anvandare = [] }) 
             />
           ))}
 
+          {!farSkriva && (
+            <p className="kommentarer__tom">
+              Kommentarer kan inte skrivas från en delad enhet. Logga in på ditt eget konto.
+            </p>
+          )}
+
+          {farSkriva && (
           <form className="kommentarer__formular" onSubmit={hanteraSubmit}>
             {svararPa && (
               <p className="kommentarer__svarar-pa">
@@ -165,6 +177,7 @@ export default function Kommentarer({ rutinId, farTaBortAlla, anvandare = [] }) 
               Skicka
             </button>
           </form>
+          )}
         </div>
       )}
     </div>

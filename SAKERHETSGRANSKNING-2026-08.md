@@ -25,7 +25,7 @@ hela multi-tenant-isoleringen, medan tusen rader UI-kod sällan kan det.
 | **1** | `firestore.rules`, `storage.rules`, `roles.js`, `AuthContext`, `tests/rules/` | ~1 500 | ✅ **KLAR** 2026-08-17 |
 | **2** | `functions/` (14 filer) | ~5 500 | ✅ **KLAR** 2026-08-17 |
 | **3** | `src/hooks/`, `src/firebase/`, `src/utils/` | ~6 300 | ✅ **KLAR** 2026-08-17 |
-| **4** | `src/components/`, `src/pages/`, CSP, workflows, beroenden | ~14 600 | ⬜ Ej påbörjad |
+| **4** | `src/components/`, `src/pages/`, CSP, workflows, beroenden | ~14 600 | ✅ **KLAR** 2026-08-17 |
 
 **Varje fynd som patchas får ett regressionstest som bevisligen failar mot koden före
 patchen.** Ett test som passerar både före och efter bevisar ingenting.
@@ -53,6 +53,14 @@ patchen.** Ett test som passerar både före och efter bevisar ingenting.
 | 3.3 | Kollegors push-tokens är läsbara och egna är fritt skrivbara → notiskapning | **Medel** | 🚩 **Flaggad, kräver ditt beslut** |
 | 3.4 | `bildUrl`/`bilagor[].url` saknar ursprungsspärr; offlinehämtningen anropade dem | **Låg–medel** | ✅ Patchad (offlinedelen) |
 | 3.5 | Del 1:s fältfilter nekade en riktig klientskrivning (min egen regression) + statistiken har aldrig fungerat | **Regression** | ✅ Patchad |
+| 4.1 | CSP:n var Report-Only OCH innehöll `'unsafe-inline'` – verkningslös i båda lägena | **Medel** | ✅ Patchad (skärpning kvar som ditt beslut) |
+| 4.2 | Markdown-saneringen släppte igenom `<form>`/`<input>` – nätfiske inuti en klinisk rutin | **Medel–hög** | ✅ Patchad |
+| 4.3 | Service workern öppnade vilken adress som helst ur notis-payloaden | **Låg** | ✅ Patchad |
+| 4.4 | Kioskkontot kunde skriva "privata" anteckningar som nästa person vid plattan såg | **Medel** | ✅ Patchad |
+| 4.5 | Kiosk kunde räkna upp personalens namn och e-post via @-autokomplettering | **Medel** | ✅ Patchad |
+| 4.6 | Kvitteringsknappen visades för kiosk trots att regeln nekar den (växande död offlinekö) | **Låg (korrekthet)** | ✅ Patchad |
+| 4.7 | GitHub-actions är pinnade till flyttbara taggar; `firebase-tools` installeras opinnat i deployjobbet | **Låg** | 🚩 Flaggad |
+| 4.8 | Klientens filkontroll och `storage.rules` säger olika om SVG och storlek | **Låg (UX)** | 📋 Dokumenterad |
 
 ---
 
@@ -564,10 +572,216 @@ deployat) men hade gjort det vid nästa deploy.
 
 ---
 
-# Del 4 – UI-ytor och leveranskedja ⬜ Ej påbörjad
+# Del 4 – UI-ytor och leveranskedja ✅ KLAR (2026-08-17)
 
-`src/components/`, `src/pages/`, CSP, GitHub Actions-workflows, beroenden. XSS-sänkor
-(`marked`/DOMPurify), länkinjektion, hemligheter i byggsteg.
+Den bredaste och grundaste delen: 131 filer i `src/components/`+`src/pages/`, plus CSP,
+service workern, de fem GitHub Actions-workflowsen och beroendekedjan. Här användes en
+parallell delagent för breddsvepet av komponenter och sidor, medan jag själv tog CSP,
+workflows, beroenden och service workern. **Varje fynd delagenten rapporterade har jag
+verifierat mot koden själv innan det hamnade i den här rapporten** – ett av dem visade sig
+vara osäkert formulerat och ett annat behövde en helt annan slutsats efter att jag kört det i
+en riktig webbläsare (se 4.2).
+
+## Fynd 4.1 — Innehållssäkerhetspolicyn var avstängd i två oberoende avseenden
+
+`firebase.json` satte rubriken som **`Content-Security-Policy-Report-Only`**. En
+report-only-policy blockerar per definition ingenting; den rapporterar bara. Det är en giltig
+mätfas – projektet använder samma mönster medvetet för App Check – men mätfasen hade ingen
+slutpunkt och ingen har läst rapporterna.
+
+Allvarligare: även om den hade varit skarp hade den inte hjälpt mot XSS, för direktivet löd
+`script-src 'self' 'unsafe-inline' …`. `'unsafe-inline'` tillåter exakt det en injicerad
+`<script>`-tagg behöver. Policyn hade alltså en lucka som gjorde huvudsyftet verkningslöst,
+och luckan var osynlig eftersom policyn ändå inte var skarp.
+
+Skälet till `'unsafe-inline'` är ett enda legitimt inline-skript i `index.html` (temat sätts
+innan React laddar, för att slippa en blinkning). Det behöver inte `'unsafe-inline'` – ett
+statiskt skript kan tillåtas med sin **hash**.
+
+**Åtgärd:**
+
+| Före | Efter |
+|---|---|
+| `script-src 'self' 'unsafe-inline' …` | `script-src 'self' 'sha256-P9yZ…' …` |
+| `img-src 'self' data: blob: https:` | `img-src 'self' data: blob:` + enbart Storage-domänerna |
+| *(saknades)* | `frame-ancestors 'none'` |
+
+`img-src`-skärpningen är samma hål som fynd 3.4: den stänger den kvarvarande halvan
+(`<img src={rutin.bildUrl}>`) när policyn väl blir skarp.
+
+Hashen är spröd – ändrar någon en rad i temasnutten slutar den matcha. Därför finns
+`tests/docs/csp-hash.test.js`, som räknar om hashen ur `index.html` och jämför med
+`firebase.json`, plus ett andra test som failar om `'unsafe-inline'` smyger tillbaka. Samma
+"gör regeln händelsestyrd, inte minnesstyrd"-mönster som `pitch-version.test.js`.
+
+**Kvar som ditt beslut:** att byta `-Report-Only` mot en skarp `Content-Security-Policy`. Det
+kan bryta appen för användare om något legitimt bryter mot policyn, och särskilt reCAPTCHA
+(App Check) kan tänkas injicera egna inline-skript som hash-metoden inte täcker. Rätt ordning
+är: deploya den skärpta report-only-policyn, läs Sentry-rapporterna några dagar, och flippa
+först när de är tysta. Se `OPPNA-PUNKTER.md`.
+
+## Fynd 4.2 — Nätfiskeformulär kunde bäddas in i en klinisk rutin
+
+`MarkdownInnehall.jsx` är appens **enda** `dangerouslySetInnerHTML` (verifierat: noll
+förekomster av `eval`, `new Function`, `innerHTML`, `document.write` i hela `src/`). Den såg
+ut så här:
+
+```js
+const html = DOMPurify.sanitize(marked.parse(text ?? ""));
+```
+
+Rätt verktyg, rätt ordning – men utan konfiguration, och **DOMPurifys standardkonfiguration
+tillåter `<form>`, `<input>`, `<button>`, `<select>` och `<textarea>`**.
+
+Verifierat i riktig Chromium:
+
+```
+form+input  ->  "<form action=\"https://annan.example\"><input name=\"losenord\"></form>"
+```
+
+Nyttolasten passerade helt orörd. En redaktör kunde alltså placera ett inloggningsliknande
+fält mitt i en rutin som personalen är upplärd att lita på, och POST:a det till en extern
+server. CSP:ns `form-action 'self'` hade stoppat submitten – men policyn var Report-Only
+(fynd 4.1). **Två skyddslager, båda avstängda, och varken det ena eller det andra var synligt
+som en lucka.**
+
+**Hur det nästan blev fel.** Mitt första försök var ett vanligt enhetstest i vitest. Det
+rapporterade `<script>` och `javascript:`-länkar som **osanerade** – vilket hade varit ett
+larm om en allvarlig, akut XSS. Det var falskt: DOMPurify använder webbläsarens DOM-parser, och
+under happy-dom (projektets vitest-miljö) rapporterar den `isSupported: true` men beter sig
+ändå fel. Hade jag rapporterat den första körningen hade den här rapporten innehållit en
+påhittad kritisk sårbarhet – och missat den verkliga, eftersom formulärfallet drunknat i
+bruset. Sanningen kom först ur en körning i riktig Chromium.
+
+**Åtgärd:** saneringen flyttad till `src/utils/sanering.js` med explicit konfiguration –
+`FORBID_TAGS` för formulärelementen, `FORBID_ATTR` för `formaction` (kan kapa en submit utan
+`<form>`), `ping` (tyst spårningsanrop vid klick) och `target`. Testet ligger i
+`tests/e2e/markdownsanering.spec.js`, alltså i riktig webbläsare, med hela resonemanget ovan
+utskrivet i filhuvudet så att ingen flyttar tillbaka det till vitest.
+
+**Bekräftat säkert i samma körning:** `<script>`, `onerror`, `onload`, `<iframe>` och
+`javascript:`-URI:er tas alla bort korrekt.
+
+## Fynd 4.3 — Service workern öppnade vilken adress som helst
+
+`src/sw.js` gjorde `self.clients.openWindow(url)` med `url` direkt ur FCM-payloaden. Samtliga
+riktiga anropsställen (`functions/notiser.js`) skickar interna sökvägar, så det är inte
+utnyttjbart i dag – men en service worker är fel plats att lita på indata i, och angreppet
+förutsätter just den situation (komprometterad FCM-servernyckel) där ett andra lager är värt
+något. Nu krävs att adressen börjar med `/` och inte med `//` (protokollrelativ adress till
+en annan värd).
+
+## Fynd 4.4 — Kioskkontot skrev "privata" anteckningar på en delad platta
+
+`PrivatAnteckning.jsx` säger ordagrant: *"Bara du kan se det du skriver här."* På ett
+kioskkonto var det osant. Kiosk är ett **delat enhetskonto** (Etapp 55) och har ett enda uid,
+och anteckningens dokument-id byggs som `{uid}_{rutinId}` – nästa person som rörde
+foajéplattan såg alltså exakt samma text.
+
+Regeln för `anteckningar` saknade `!arKiosk()`. Fem andra collections har den —
+`bristanmalningar`, `andringsforslag`, `anslag`, `signeringar`, `skiftrapporter` — så
+principen (genomgående krav 19) var etablerad och konsekvent tillämpad överallt utom här. Och
+just den här är den enda vars gränssnitt uttryckligen **lovar** avskildhet.
+
+**Åtgärd:** `!arKiosk()` på create och update. **Läsning behålls medvetet** – det som redan
+skrivits ska inte försvinna tyst; det som stängs är att skriva nytt under ett falskt löfte.
+UI:t döljer dessutom rutan för kiosk, så spärren inte blir ett obegripligt felmeddelande. Fyra
+nya regeltester, varav två failade före patchen.
+
+## Fynd 4.5 — Foajéplattan var en uppslagsbok över personalen
+
+`Kommentarer.jsx` autokompletterar `@`-omnämnanden ur organisationens användarlista:
+
+```js
+anvandare.filter((a) => a.email && a.email.split("@")[0].toLowerCase().startsWith(prefix)).slice(0, 5)
+```
+
+Servern nekar visserligen en kioskkommentar (verifierat i `functions/organisationsadmin.js`),
+men **formuläret visades ändå**. Vem som helst som passerade en obevakad foajéplatta kunde
+öppna en rutin, trycka "Kommentera" och skriva `@a`, `@b`, `@c` … och få ut personalens namn
+och e-postadresser fem i taget. Läsningen av `users` är tillåten för alla inloggade i
+organisationen, så inget stoppade det server-side heller.
+
+**Åtgärd:** `Kommentarer` tar en ny `farSkriva`-prop (standard `true`, så inget befintligt
+anropsställe ändrar beteende). För kiosk döljs formuläret och användarlistan skickas tom.
+Befintliga kommentarer **visas fortfarande** – det är bara skrivvägen och katalogen som
+stängs.
+
+## Fynd 4.6 — Kvitteringsknappen byggde en död offlinekö
+
+Regeln kräver `!arKiosk()` för `lasteAv`, men knappen visades för kiosk. Eftersom kvitteringen
+går genom offlinekön lades en post som **aldrig** kan gå igenom: ett tyst datafel och en kö
+som växer på varje delad platta. Ingen säkerhetslucka – servern höll hela tiden – men UI och
+regel ska säga samma sak. Knappen ersätts nu med en förklarande rad.
+
+## Fynd 4.7 🚩 — Leveranskedjan i deployjobbet
+
+Två observationer i `.github/workflows/deploy.yml`, det enda jobbet som håller
+`FIREBASE_SERVICE_ACCOUNT`:
+
+1. **Actions är pinnade till flyttbara taggar** (`actions/checkout@v4`,
+   `google-github-actions/auth@v2`). En tagg kan flyttas; sker det efter ett kontointrång kör
+   deployjobbet angriparens kod med tjänstekontot i handen. Standardhärdningen är att pinna
+   till commit-SHA.
+2. **`npm install -g firebase-tools`** utan version. Varje deploy hämtar det som råkar vara
+   senast, ogranskat, i samma jobb.
+
+**Varför jag inte patchade:** båda ändrar deployvägen, och deployen är just nu det enda
+fungerande steget som redan är trasigt av andra skäl (körning #79 blockeras av
+infrastruktur). En opinnad-till-pinnad ändring som inte går att provköra är en dålig idé i det
+läget. Konkret rekommendation finns i `OPPNA-PUNKTER.md`.
+
+**Utan anmärkning i övrigt:** `ci.yml` använder `pull_request` (inte `pull_request_target`)
+och har inga hemligheter alls – en fork-PR kan alltså inte exfiltrera något. Samtliga fyra
+hemlighetsbärande workflows är `workflow_dispatch`-only, ingen triggas av push.
+
+## Fynd 4.8 — Klienten och `storage.rules` säger olika om filer
+
+`storage.rules` stänger SVG (ägarbeslut 2026-08-15) och sätter storleksgränser. Klientens
+kontroller gör inte samma sak: `Profil.jsx`, `RutinFormular.jsx` och `LaddaUpp.jsx` kollar
+bara `fil.type.startsWith("image/")`, vilket släpper igenom SVG, och
+`ForradArtikelFormular.jsx` samt `OrganisationBrandingSektion.jsx` kollar **ingenting** före
+uppladdning. `accept="image/*"` är ett filurvalsförslag, inte en spärr.
+
+Servern håller i samtliga fall, så det här är inte en säkerhetslucka utan en UX-defekt:
+användaren väntar ut hela uppladdningen och får `storage/unauthorized`. Dokumenterad, inte
+patchad – fem UI-ställen att ändra för noll säkerhetsvinst är fel prioritering, och risken för
+ett slarvfel är större än vinsten.
+
+## Genomgång utan anmärkning
+
+- **Öppen omdirigering: ingen.** Samtliga `navigate()`-anrop spårade. `sokvag`-värdena
+  konstrueras i klienten från konstanter och dokument-id. Ingen `returnTo`/`next`-parameter
+  finns någonstans. `?bjudan=` skickas till en Cloud Function, aldrig till navigering.
+- **`javascript:`-URI:er i länkar** är neutraliserade av React 19, som aktivt blockerar dem.
+  `Lankbibliotek` har dessutom en egen `^https?://`-vakt både vid inmatning och rendering, och
+  `telefon.js` strippar allt utom siffror och ett inledande plus.
+- **`target="_blank"`:** samtliga sju förekomster har `rel="noreferrer"`, som implicerar
+  `noopener`.
+- **`<iframe>`/`<object>`/`<embed>`:** noll förekomster i komponenter och sidor.
+- **Inga hemligheter i koden.** Den enda träffen är Firebase-webbnyckeln i `deploy.yml` – den
+  är publik av konstruktion (den ligger i klientbundlen ändå) och skyddas av
+  Firestore-reglerna, inte av hemlighållande. Samma sak för Sentry-DSN och reCAPTCHA-sitekey.
+  Inga `.env`-filer, nycklar eller tjänstekonton är spårade i git.
+- **Inga source maps** publiceras (verifierat mot `dist/`).
+- **Beroenden:** `npm audit --omit=dev` ger **0 sårbarheter**. Samtliga sju (inklusive den
+  kritiska `tar`) kommer via `firebase-tools`, en devDependency. Det bekräftar fynd 1.4:s
+  bedömning med en mätning i stället för ett resonemang – produktionsbygget är rent.
+- **`/leverantor` saknar `RollSkyddadRoute`**, men all data kommer från `listaOrganisationer`,
+  som avgör åtkomsten server-side. En vanlig användare får en tom vy, inte kunddata.
+- **Loggning:** `ErrorBoundary` är den enda loggpunkten i omfattningen och skickar
+  `componentStack`, inte props eller dokumentinnehåll.
+
+## Test och verifiering
+
+- `tests/docs/csp-hash.test.js`: ny, 2 tester (hashdrift + `'unsafe-inline'`-återfall).
+- `tests/e2e/markdownsanering.spec.js`: ny, 6 tester i riktig Chromium. Formulärtestet failade
+  mot koden före patchen.
+- `tests/rules/kioskrestriktioner.test.mjs`: +4 tester (**12 totalt**), varav två failade före
+  patchen.
+- Ett kasserat vitest-test: `MarkdownInnehall.test.jsx` skrevs, gav bevisligen fel svar under
+  happy-dom och togs bort igen till förmån för e2e-varianten. Det är värt att stå i rapporten
+  – ett test som ljuger åt båda hållen är sämre än inget test.
 
 ---
 

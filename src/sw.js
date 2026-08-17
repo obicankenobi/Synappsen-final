@@ -41,9 +41,21 @@ if (firebaseConfig.projectId) {
 
 // Låter en klickad notis öppna (eller fokusera en redan öppen flik med) rätt sida, istället
 // för att bara stänga notisen.
+// Säkerhetsgranskning 2026-08-17 (Del 4 – fynd 4.3): `url` kommer ur FCM-payloaden, och
+// openWindow() nedan skulle lyda även en absolut adress till en helt annan värd. Samtliga
+// riktiga anropsställen (functions/notiser.js) skickar redan interna sökvägar som börjar med
+// "/", så det här ändrar ingenting i praktiken – men en service worker är fel plats att lita
+// på indata i. Kräver en payload-injektion (dvs. en komprometterad FCM-servernyckel) för att
+// bli utnyttjbar, vilket är just den situation där ett andra försvarslager är värt något.
+function saakerIntern(url) {
+  // "/x" är internt. "//annanvärd" ser ut som en sökväg men är en protokollrelativ ADRESS,
+  // så det dubbla snedstrecket måste uteslutas explicit.
+  return typeof url === "string" && url.startsWith("/") && !url.startsWith("//") ? url : "/";
+}
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url ?? "/";
+  const url = saakerIntern(event.notification.data?.url);
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {

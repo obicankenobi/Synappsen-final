@@ -620,3 +620,54 @@ sex tester på storage-lagrets organisationsisolering. Bedömningen i förra til
 alltså kvar och är nu empiriskt underbyggd: hoppet är ett eget arbete, inte en releasedetalj.
 
 **Ingen av patcharna är deployad** – ägaren har valt att avvakta med deploy under granskningen.
+
+## Tillägg (2026-08-17, v5.115.0–v5.117.0): fullständig kodgranskning, Del 2–4 av 4 – AVSLUTAD
+
+Hela genomgången är klar. Fullständig rapport med varje fynd, angreppsscenario och åtgärd:
+`SAKERHETSGRANSKNING-2026-08.md`. Sammanfattning här, enligt den återkommande
+säkerhetsgenomgångens rutin.
+
+**Utfall: 17 fynd, varav 12 patchade, 3 flaggade för ägarbeslut och 2 dokumenterade.**
+
+De fyra som betydde mest:
+
+1. **Nattkontrollen läckte leverantörens kundlista till varje kund** (2.1). Den schemalagda
+   `verifieraRevisionskedjor()` skrev varje avvikande organisations ID till två collections
+   som är läsbara för superadmin i VILKEN organisation som helst. Anmärkningsvärt: kodbasen
+   dokumenterar redan den korrekta principen på två andra ställen och följer den där –
+   nattkontrollen var undantaget som bröt mot sin egen husregel.
+2. **Klientens personnummerspärr missade den tolvsiffriga formen** (3.1) – alltså den form
+   svenska journalsystem visar. Serverregeln täckte båda formerna efter Del 1; de två lagren
+   sa emot varandra, och det svagare låg på den bredare vägen.
+3. **Nätfiskeformulär kunde bäddas in i en klinisk rutin** (4.2). DOMPurifys
+   standardkonfiguration tillåter `<form>` och `<input>`. CSP:ns `form-action 'self'` hade
+   stoppat submitten – men policyn var Report-Only. Två lager, båda avstängda, ingetdera
+   synligt som en lucka.
+4. **Kioskkontot skrev "privata" anteckningar som nästa person vid plattan såg** (4.4).
+   `!arKiosk()` saknades på `anteckningar` trots att fem andra collections har den – och just
+   den här är den enda vars gränssnitt uttryckligen lovar avskildhet.
+
+**Punkt 4 i den återkommande checklistan (npm audit), slutgiltigt svar.** `npm audit
+--omit=dev` ger **0 sårbarheter**. Samtliga sju, inklusive den kritiska `tar`, kommer via
+`firebase-tools` – en devDependency som inte ingår i produktionsbygget. Förra tilläggets
+bedömning står, nu med en mätning i stället för ett resonemang.
+
+**Två metodfynd som är värda mer än enskilda buggar:**
+
+- **Ett fältfilter måste testas mot varje faktisk skrivning, inte mot en representativ.** Del
+  1:s fältbegränsning på `checklistkorningar` nekade en riktig klientskrivning (fynd 3.5).
+  Testet missade det för att det råkade skriva ett enkelt fält. Regressionen fångades av en
+  egenkontroll i Del 3 och nådde aldrig produktion.
+- **Ett test i fel miljö kan ljuga åt båda hållen.** Ett första enhetstest av
+  markdown-saneringen rapporterade `<script>` som osanerat – ett falskt kritiskt larm –
+  eftersom DOMPurify beter sig fel under happy-dom. Sanningen kom ur en körning i riktig
+  Chromium, och testet ligger nu i e2e-sviten. Hade den första körningen rapporterats hade
+  rapporten innehållit en påhittad sårbarhet och missat den verkliga.
+
+**Kvar för ägaren att besluta** (se `OPPNA-PUNKTER.md`): flytta push-tokens ur `users/{uid}`
+(3.3), gör CSP:n skarp efter en mätperiod (4.1), och härda deployjobbets leveranskedja (4.7).
+
+**Ingenting av detta är deployat.** Produktionen kör v5.106.0; v5.107.0–v5.117.0 ligger
+pushade och odeployade enligt ägarbeslut. **v5.114.0 får inte deployas utan v5.116.0** – Del
+1:s regression rättas där.
+

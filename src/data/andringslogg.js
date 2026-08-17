@@ -11,6 +11,16 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.117.0",
+    datum: "2026-08-17",
+    andringar: [
+      "Säkerhetsgranskning: en rutins text kan inte längre innehålla dolda formulärfält – ett sätt att härma en inloggningsruta mitt i en rutin är borttaget",
+      "På en delad enhet (kioskläge) visas inte längre rutan för privata anteckningar, som inte kunde hållas privat på ett konto flera delar",
+      "På en delad enhet går det inte längre att söka fram kollegors namn och e-postadresser via kommentarsfältet",
+      "Kvitteringsknappen visas inte längre på delade enheter, där kvitteringen ändå aldrig kunde registreras",
+    ],
+  },
+  {
     version: "5.116.0",
     datum: "2026-08-17",
     andringar: [

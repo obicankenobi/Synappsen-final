@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-17, version **5.116.0** – byggd och pushad, **INTE DEPLOYAD**
+**Senast uppdaterad:** 2026-08-17, version **5.117.0** – byggd och pushad, **INTE DEPLOYAD**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -3606,4 +3606,71 @@ Full svit grön: `lint`, `build`, `vitest` 253/253, `test:rules` 16 filer 0 fel.
 deployat.** Obs: v5.114.0 får INTE deployas utan v5.116.0 – Del 1:s regression rättas där.
 
 **Nästa:** Del 4 (`src/components/`, `src/pages/`, CSP, workflows, beroenden).
+
+## Uppföljning 2026-08-17 (säkerhetsgranskning Del 4 av 4, v5.117.0 – HELA GRANSKNINGEN KLAR)
+
+Del 4 (`src/components/` + `src/pages/`, 131 filer, plus CSP, service workern, fem
+GitHub Actions-workflows och beroendekedjan) klar. Därmed är hela den fyrdelade granskningen
+avslutad: **17 fynd, 12 patchade, 3 flaggade för ägarbeslut, 2 dokumenterade.** Fullständig
+rapport: `SAKERHETSGRANSKNING-2026-08.md`. Sammanfattning även inskriven som ett
+`## Tillägg`-block i `SAKERHETSRAPPORT.md`, enligt den återkommande säkerhetsgenomgångens
+rutin.
+
+**Arbetssättet i Del 4 skilde sig:** en parallell delagent gjorde breddsvepet av komponenter
+och sidor medan jag tog CSP, workflows, beroenden och service workern. Varje fynd delagenten
+rapporterade verifierades mot koden innan det togs in – ett var osäkert formulerat (`target`-
+attributet, som DOMPurify i själva verket redan strippar) och ett krävde en helt annan
+slutsats efter en körning i riktig webbläsare. Delagenten var värd sitt pris på just den här
+delen (bred, grund, låg kontextberoende), men dess rapport är ett underlag, inte ett facit.
+
+**Fynd 4.2 (medel–hög):** `MarkdownInnehall.jsx` anropade `DOMPurify.sanitize()` UTAN
+konfiguration, och DOMPurifys standard tillåter `<form>` och `<input>`. En redaktör kunde
+lägga ett inloggningsliknande fält mitt i en klinisk rutin som POST:ar till en extern server.
+CSP:ns `form-action 'self'` hade stoppat submitten – men policyn var Report-Only (fynd 4.1).
+Två lager, båda avstängda, ingetdera synligt som en lucka. Saneringen ligger nu i
+`src/utils/sanering.js` med explicit `FORBID_TAGS`/`FORBID_ATTR`.
+
+**VIKTIG METODLÄRDOM, läs den här innan du skriver ett saneringstest.** Mitt första försök var
+ett vitest-test under happy-dom. Det rapporterade `<script>` och `javascript:`-länkar som
+OSANERADE – ett falskt kritiskt larm – och `<h1>` som borttagen. DOMPurify använder
+webbläsarens DOM-parser och beter sig fel under happy-dom trots att den rapporterar
+`isSupported: true`. Sanningen kom först ur en körning i riktig Chromium. Hade jag rapporterat
+den första körningen hade rapporten innehållit en påhittad sårbarhet OCH missat den verkliga,
+som drunknat i bruset. Testet ligger därför i `tests/e2e/markdownsanering.spec.js`, med hela
+resonemanget i filhuvudet. Den kasserade vitest-filen finns inte kvar.
+
+**Fynd 4.1:** CSP:n var avstängd i två oberoende avseenden – `Report-Only` (blockerar
+ingenting) OCH `script-src 'unsafe-inline'` (hade gjort direktivet verkningslöst även skarpt).
+`'unsafe-inline'` fanns bara för ETT statiskt inline-skript i `index.html`, som i stället
+tillåts med sin sha256-hash. `img-src` är samtidigt begränsad till Storage-domänerna, vilket
+stänger den kvarvarande halvan av fynd 3.4. Hashen skyddas av `tests/docs/csp-hash.test.js`
+(räknar om den ur index.html + failar om `'unsafe-inline'` smyger tillbaka).
+
+**Fynd 4.4/4.5/4.6 – kioskläget:** `anteckningar` saknade `!arKiosk()` trots att fem andra
+collections har den, och det är den ENDA collectionen vars gränssnitt uttryckligen lovar
+avskildhet ("Bara du kan se det du skriver här") – på ett delat konto var det osant.
+Kommentarsfältets @-autokomplettering gjorde dessutom en obevakad foajéplatta till en
+uppslagsbok över personalens namn och e-post. Och kvitteringsknappen visades trots att regeln
+nekar den, vilket byggde en offlinekö som aldrig kunde tömmas. Regel + UI rättade,
+`kioskrestriktioner.test.mjs` utökad till 12 tester.
+
+**Flaggat, kräver ägarbeslut** (i `OPPNA-PUNKTER.md`): 3.3 (flytta push-tokens ur
+`users/{uid}`), 4.1 (gör CSP:n skarp efter en mätperiod), 4.7 (pinna GitHub-actions till SHA
+och `firebase-tools` till en version i deployjobbet).
+
+**Beroenden slutgiltigt utredda:** `npm audit --omit=dev` ger 0 sårbarheter. Alla sju,
+inklusive den kritiska `tar`, kommer via `firebase-tools` (devDependency). Produktionsbygget
+är rent – fynd 1.4 är därmed besvarat med en mätning i stället för ett resonemang.
+
+Full svit grön: `lint`, `build`, `vitest` 255/255, `test:rules` 16 filer 0 fel,
+`test:functions`, `test:storage`, `test:e2e`.
+
+**Deployläget, viktigast av allt just nu:** produktionen kör v5.106.0. v5.107.0–v5.117.0 är
+pushade och odeployade enligt ägarbeslutet att avvakta genom hela granskningen. **Samtliga
+patchade sårbarheter är alltså fortfarande öppna i produktion.** Delarna ska deployas
+TILLSAMMANS – v5.114.0 utan v5.116.0 bryter checklistlägets avbrottsräknare (Del 1:s
+regression, rättad i Del 3).
+
+**Nästa:** ingen granskningsdel återstår. Nästa naturliga steg är ett deploybeslut, och
+därefter de tre flaggade punkterna.
 

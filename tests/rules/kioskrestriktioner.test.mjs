@@ -47,6 +47,10 @@ async function main() {
     await setDoc(doc(db, "users", "personalA"), { role: "personal", organisationId: ORG_A });
     await setDoc(doc(db, "users", "superadminA"), { role: "superadmin", organisationId: ORG_A });
 
+    // Fynd 4.4: en anteckning som redan finns under kioskkontot – bevisar att läsning finns
+    // kvar (inget försvinner tyst) medan skrivning stängs.
+    await setDoc(doc(db, "anteckningar", "kioskA_befintlig"), { uid: "kioskA", text: "Sedan tidigare" });
+
     await setDoc(doc(db, "rutiner", "rutinA1"), {
       organisationId: ORG_A,
       omrade: "kliniskt-stod",
@@ -120,6 +124,33 @@ async function main() {
   );
   await test("superadminA kan INTE skriva kiosk-PIN-hashen direkt", () =>
     assertFails(setDoc(doc(superA, "organisationer", ORG_A, "installningar", "kioskPin"), { hash: "x" }))
+  );
+
+  // SÄKERHETSGRANSKNING 2026-08-17 (Del 4 – fynd 4.4). anteckningar/{uid}_{rutinId} saknade
+  // !arKiosk() trots att fem andra collections i den här filen redan har den – och det är den
+  // ENDA collectionen vars gränssnitt uttryckligen lovar avskildhet ("Bara du kan se det du
+  // skriver här"). På ett delat enhetskonto var löftet falskt: nästa person vid plattan såg
+  // samma text, eftersom dokument-id:t bygger på kontots uid och kiosken har ett enda uid.
+  // De två första testerna nedan FAILADE mot reglerna före patchen.
+  console.log("\nprivata anteckningar – kiosk får inte skriva under ett falskt privatlöfte");
+  await test("kioskA kan INTE skapa en privat anteckning", () =>
+    assertFails(
+      setDoc(doc(kioskA, "anteckningar", "kioskA_rutinA1"), { uid: "kioskA", text: "Hemligt" })
+    )
+  );
+  await test("kioskA kan INTE uppdatera en befintlig anteckning", () =>
+    assertFails(updateDoc(doc(kioskA, "anteckningar", "kioskA_befintlig"), { text: "Ändrad" }))
+  );
+  await test("kioskA kan fortfarande LÄSA det som redan skrivits (raderas inte tyst)", () =>
+    assertSucceeds(getDoc(doc(kioskA, "anteckningar", "kioskA_befintlig")))
+  );
+  await test("en vanlig person kan fortfarande skapa sin egen anteckning", () =>
+    assertSucceeds(
+      setDoc(doc(personalA, "anteckningar", "personalA_rutinA1"), {
+        uid: "personalA",
+        text: "Min minnesanteckning",
+      })
+    )
   );
 
   console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);
