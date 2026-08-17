@@ -29,38 +29,70 @@ const {
 // råkade klicka på "Verifiera". Kör samma kontroll automatiskt varje natt, för ALLA
 // organisationer, och larma (Sentry + systemvarningar, samma mönster som
 // verifieraKlinikstodSchemalagt ovan) bara vid en faktisk avvikelse.
+// SÄKERHETSFIX (granskning 2026-08-17, Del 2 – fynd 2.1): funktionen skrev tidigare varje
+// avvikande organisations ID till TVÅ collections som är läsbara av en superadmin i VILKEN
+// organisation som helst (`systemstatus/{id}` och `systemvarningar/{id}`, se firestore.rules):
+//
+//   systemstatus/revisionskedja.avvikelser = [{ orgId, orsak }, ...]
+//   systemvarningar.meddelande             = "Hashkedjan är bruten för 2 organisation(er): orgB (…) | orgC (…)"
+//
+// Varje kunds superadmin kunde alltså läsa ut (a) andra kunders organisations-ID, dvs.
+// leverantörens kundlista, och (b) vilka av dem som hade en bruten revisionskedja – ett
+// allvarligt integritetslarm om någon annans verksamhet.
+//
+// Kodbasen dokumenterar redan den korrekta principen på två andra ställen och följer den där:
+// se reserveraBudget() ("skulle här läcka en annan kunds AI-förbrukning till alla andra
+// kunders superadmins") och okaSokkvot() ("bara AGGREGAT ... hade läckt cross-tenant"). Den
+// här funktionen var undantaget. Detaljerna går nu till Sentry, precis som i de två fallen.
+//
+// Dessutom rättas ett andra fel som följde av samma design: `alletGiltigt` var en GLOBAL dom
+// som renderades i varje kunds egen adminpanel. Kund A fick alltså "🔴 Avvikelse upptäckt" när
+// kund B:s kedja brast – både ett läckage och direkt vilseledande om den egna statusen. Varje
+// organisation får nu sitt EGET resultat på organisationer/{orgId}, som redan är läsbart bara
+// för den egna organisationen och plattformsadmin.
 async function verifieraRevisionskedjor() {
   const orgSnap = await db.collection("organisationer").get();
   const avvikelser = [];
+  const senastKord = admin.firestore.FieldValue.serverTimestamp();
+
   for (const orgDoc of orgSnap.docs) {
     const resultat = await verifieraRevisionskedja(orgDoc.id);
     if (!resultat.giltig) {
       avvikelser.push({ orgId: orgDoc.id, ...resultat });
     }
+    // Per organisation, på ett dokument bara den organisationen (och leverantören) kan läsa.
+    await orgDoc.ref.set(
+      {
+        revisionskedja: {
+          giltig: resultat.giltig,
+          orsak: resultat.orsak ?? null,
+          senastKord,
+        },
+      },
+      { merge: true }
+    );
   }
 
   // Etapp 46: skriv resultatet ÄVEN när allt är i sin ordning, inte bara vid en avvikelse.
   // Utan detta går det inte att skilja "kedjan är intakt" från "det här jobbet slutade
-  // köras för tre veckor sedan" – tystnad betydde tidigare båda sakerna, oskiljbart, för
-  // den som tittar i adminpanelen. `systemstatus/revisionskedja` är ett enda, delat
-  // sammanfattningsdokument (samma icke-organisationsskopade mönster som
-  // `systemvarningar`) – inte en logg, bara senaste kända läget.
+  // köras för tre veckor sedan" – tystnad betydde tidigare båda sakerna, oskiljbart.
+  // Kvar här: BARA leverantörens egen driftöversikt, utan någon kunds identitet. Läsrätten
+  // är sedan samma granskning begränsad till plattformsadmin (se firestore.rules).
   await db
     .collection("systemstatus")
     .doc("revisionskedja")
     .set({
-      senastKord: admin.firestore.FieldValue.serverTimestamp(),
+      senastKord,
       alletGiltigt: avvikelser.length === 0,
       antalOrganisationerKontrollerade: orgSnap.size,
-      // Bara organisation + den redan maskinella orsakstexten (t.ex. "kedjan bruten") –
-      // aldrig dokumentinnehåll, samma försiktighet som Sentry-larmet nedan.
-      avvikelser: avvikelser.map((a) => ({ orgId: a.orgId, orsak: a.orsak })),
+      antalAvvikelser: avvikelser.length,
     });
 
   if (avvikelser.length === 0) return avvikelser;
 
-  // Aldrig dokumentinnehåll i larmet – bara organisation, dokument-ID och den redan
-  // maskinella orsakstexten (t.ex. "kedjan bruten"), som inte innehåller PII.
+  // Aldrig dokumentinnehåll i larmet – och sedan granskningen 2026-08-17 inte heller något
+  // organisations-ID, eftersom Sentry (till skillnad från systemvarningar) bara når
+  // leverantören.
   Sentry.captureMessage("Revisionsloggens hashkedja är bruten", {
     level: "error",
     tags: { typ: "revisionslogg-integritetsbrott" },
@@ -68,9 +100,10 @@ async function verifieraRevisionskedjor() {
   });
   await db.collection("systemvarningar").add({
     typ: "revisionslogg_integritet",
-    meddelande: `Hashkedjan är bruten för ${avvikelser.length} organisation(er): ${avvikelser
-      .map((a) => `${a.orgId} (${a.orsak})`)
-      .join(" | ")}`,
+    meddelande:
+      `Hashkedjan är bruten för ${avvikelser.length} organisation(er). ` +
+      "Vilka framgår av leverantörens larm (Sentry) och av respektive organisations egen " +
+      "incidentberedskapsvy – aldrig här, eftersom den här collectionen läses av alla kunders superadmins.",
     tidpunkt: admin.firestore.FieldValue.serverTimestamp(),
   });
   return avvikelser;

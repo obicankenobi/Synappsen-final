@@ -813,8 +813,16 @@ service cloud.firestore {
     // (t.ex. revisionskedjans nattliga verifiering), skrivet VARJE körning – inte bara vid en
     // avvikelse (till skillnad från systemvarningar ovan). Samma delade, icke-org-skopade
     // resonemang. Skrivs endast av Cloud Function.
+    // SÄKERHETSFIX (granskning 2026-08-17, Del 2 – fynd 2.1): läsrätten var `arSuperadmin()`,
+    // dvs. en superadmin i VILKEN organisation som helst. Dokumentet `revisionskedja` innehöll
+    // då en lista över varje AVVIKANDE organisations ID – alltså läckte leverantörens kundlista
+    // och andras integritetslarm till varje kund. Innehållet är nu rensat från kundidentiteter
+    // (se functions/revisionslogg.js) OCH läsrätten begränsad till leverantören, eftersom
+    // dokumentet i sak är leverantörens driftöversikt över hela plattformen, inte kunddata.
+    // Varje organisation läser sin EGEN kedjestatus på organisationer/{orgId}.revisionskedja,
+    // som redan är korrekt organisationsskopad (se useSystemstatus.js).
     match /systemstatus/{id} {
-      allow read: if arSuperadmin();
+      allow read: if arPlattformsadmin();
       allow write: if false;
     }
 

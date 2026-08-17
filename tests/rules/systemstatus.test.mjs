@@ -56,8 +56,16 @@ async function main() {
   const utloggad = testEnv.unauthenticatedContext().firestore();
 
   console.log("\nsystemstatus/{id} – läsning");
-  await test("en superadmin kan läsa", () =>
-    assertSucceeds(getDoc(doc(super1, "systemstatus", "revisionskedja")))
+  // ÄNDRAD FÖRVÄNTAN (säkerhetsgranskning 2026-08-17, Del 2 – fynd 2.1). Testet krävde
+  // tidigare att en superadmin i EN KUNDORGANISATION kunde läsa systemstatus. Dokumentet
+  // `revisionskedja` innehöll då en lista över varje AVVIKANDE organisations ID, vilket
+  // innebar att varje kund kunde läsa ut leverantörens kundlista och vilka andra kunder som
+  // hade en bruten revisionskedja. Innehållet är nu rensat från kundidentiteter OCH läsrätten
+  // begränsad till plattformsadmin – dokumentet är leverantörens driftöversikt över hela
+  // plattformen, inte kunddata. Varje organisation läser sin EGNA kedjestatus på
+  // organisationer/{orgId}.revisionskedja i stället (se useSystemstatus.js).
+  await test("en superadmin i en kundorganisation kan INTE läsa (läckte tidigare kundlistan)", () =>
+    assertFails(getDoc(doc(super1, "systemstatus", "revisionskedja")))
   );
   await test("en vanlig roll (vol) kan INTE läsa", () =>
     assertFails(getDoc(doc(vol1, "systemstatus", "revisionskedja")))

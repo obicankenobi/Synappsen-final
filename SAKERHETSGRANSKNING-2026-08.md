@@ -23,7 +23,7 @@ hela multi-tenant-isoleringen, medan tusen rader UI-kod sällan kan det.
 | Del | Omfattning | Rader | Status |
 |---|---|---|---|
 | **1** | `firestore.rules`, `storage.rules`, `roles.js`, `AuthContext`, `tests/rules/` | ~1 500 | ✅ **KLAR** 2026-08-17 |
-| **2** | `functions/` (14 filer) | ~5 500 | ⬜ Ej påbörjad |
+| **2** | `functions/` (14 filer) | ~5 500 | ✅ **KLAR** 2026-08-17 |
 | **3** | `src/hooks/`, `src/firebase/`, `src/utils/` | ~6 300 | ⬜ Ej påbörjad |
 | **4** | `src/components/`, `src/pages/`, CSP, workflows, beroenden | ~14 600 | ⬜ Ej påbörjad |
 
@@ -44,6 +44,10 @@ patchen.** Ett test som passerar både före och efter bevisar ingenting.
 | 1.6 | Användare kan sätta sin egen `senasteInloggning` | **Låg** | 📋 Dokumenterad |
 | 1.7 | `soksstatistik`-räknare kan sättas till godtyckliga värden | **Låg** | 📋 Dokumenterad |
 | 1.8 | Releasechecklistan körde testsviten *före* versionsbumpen | **Process** | ✅ Rättad |
+| 2.1 | Nattkontrollen läckte leverantörens kundlista + andras integritetslarm till varje kund | **Medel** | ✅ Patchad |
+| 2.2 | Kundens kedjestatus visade en global dom över alla kunder | **Låg (korrekthet)** | ✅ Patchad |
+| 2.3 | Inbjuden e-postadress kan "squattas" i Firebase Auth före inlösen | **Låg** | 📋 Dokumenterad |
+| 2.4 | Klinikstöd-cachenyckeln trunkeras till 480 tecken | **Låg** | 📋 Dokumenterad |
 
 ---
 
@@ -245,18 +249,120 @@ användning inte påverkas av någon patch.
 
 ---
 
-# Del 2 – Cloud Functions ⬜ Ej påbörjad
+# Del 2 – Cloud Functions ✅ KLAR (2026-08-17)
 
-Omfattar `functions/` (14 filer, ~5 500 rader): server-side auktorisering, indatavalidering,
-hemligheter, kvoter och revisionsloggens hashkedja.
+Genomgången omfattade alla 14 filer i `functions/` (~5 500 rader) och ~93 exports.
 
-**Öppen fråga att ta med hit från Del 1:** `systemvarningar`, `systemstatus` och
-`halsokontrollhistorik` är läsbara av **varje superadmin i varje organisation** utan
-org-skopning. Det är dokumenterat som avsiktligt ("delad infrastruktur, inte kunddata"), men
-bedömningen håller bara om innehållet verkligen saknar organisationsspecifik information.
-Vad de schemalagda funktionerna faktiskt skriver dit måste kontrolleras i Del 2 – skriver
-t.ex. revisionskedjans nattliga verifiering ut vilka organisationer som har brutna kedjor,
-är det ett läckage mellan kunder.
+**Den öppna frågan från Del 1 besvarades — och svaret var ja, det läckte.** Se fynd 2.1.
+
+## Fynd 2.1 — Nattkontrollen läckte leverantörens kundlista till varje kund
+
+**Allvarlighet: medel.** Cross-tenant informationsläckage i en multi-tenant-produkt vars
+kärnlöfte är "fullt isolerade" organisationer.
+
+`verifieraRevisionskedjor()` (nattligt jobb, 04:00) skrev varje avvikande organisations ID till
+**två** collections som enligt `firestore.rules` är läsbara av en superadmin i *vilken
+organisation som helst*:
+
+```js
+systemstatus/revisionskedja.avvikelser = [{ orgId, orsak }, ...]
+systemvarningar.meddelande = "Hashkedjan är bruten för 2 organisation(er): orgB (…) | orgC (…)"
+```
+
+Varje kunds superadmin kunde alltså läsa ut:
+
+- **andra kunders organisations-ID** — i praktiken leverantörens kundlista, kommersiellt känslig
+- **vilka av dem som hade en bruten revisionskedja** — ett allvarligt integritetslarm om någon
+  annans verksamhet
+
+Det som gör fyndet tydligt är att **kodbasen redan dokumenterar den korrekta principen på två
+andra ställen och följer den där**. `reserveraBudget()`: *"Sentry, INTE systemvarningar: den
+collectionen är delad … och skulle här läcka en annan kunds AI-förbrukning till alla andra
+kunders superadmins."* `okaSokkvot()`: *"bara AGGREGAT … Att lägga en annan kunds
+sökförbrukning där hade läckt cross-tenant."* Nattkontrollen var undantaget som inte följde
+sin egen husregel.
+
+**Kontrollerat och friat:** `klinikstod.js` skriver också till `halsokontrollhistorik` och
+`systemvarningar`, men enbart om delad infrastruktur (Gemini, sökmotor, Storage,
+källverifiering) — ingen organisationsdata. De är korrekt klassade som delade.
+
+**Åtgärd:**
+- Detaljerna går nu enbart till Sentry, som bara når leverantören — exakt mönstret
+  `reserveraBudget()` etablerade.
+- `systemvarningar`-meddelandet anger **antalet** drabbade organisationer, aldrig vilka.
+- `systemstatus/revisionskedja` innehåller bara leverantörens driftaggregat, och läsrätten är
+  skärpt från `arSuperadmin()` till `arPlattformsadmin()` — dokumentet *är* leverantörens
+  plattformsöversikt, inte kunddata.
+
+## Fynd 2.2 — Kundens kedjestatus var en global dom över alla kunder
+
+**Allvarlighet: låg, men det är en korrekthetsbugg med säkerhetsinnebörd.**
+
+Samma dokument bar fältet `alletGiltigt` — sant bara om **samtliga** organisationers kedjor var
+intakta — och det renderades i *varje kunds egen* incidentberedskapsvy. Kund A fick alltså
+"🔴 Avvikelse upptäckt" när kund B:s kedja brast, och "🟢 Intakt" sa ingenting om A:s egen
+kedja. Vyn som ska svara på "är min revisionslogg orörd?" svarade på något helt annat.
+
+Samma vy visade också `antalOrganisationerKontrollerade`, dvs. hur många kunder leverantören
+har — till varje kund.
+
+**Åtgärd:** varje organisation får nu sitt eget resultat på
+`organisationer/{orgId}.revisionskedja` (`giltig`, `orsak`, `senastKord`), ett dokument som
+redan är korrekt organisationsskopat. `useSystemstatus.js` och `IncidentberedskapSektion.jsx`
+läser därifrån och visar den egna statusen, med orsakstext när kedjan brustit.
+
+## Fynd 2.3–2.4 — Lågriskobservationer, dokumenterade
+
+**2.3 En inbjuden e-postadress kan "squattas".** `losInInbjudan` kräver korrekt att den
+inloggade adressen matchar inbjudans, men kontrollerar inte `email_verified`. En angripare som
+gissar en adress som kommer att bjudas in (ofta förutsägbar, `fornamn.efternamn@region.se`) kan
+registrera den i Firebase Auth först och därmed blockera den riktiga personen. **Ingen
+behörighet vinns** — token är fortfarande hemligheten — så det är en tillgänglighetsstörning,
+inte ett övertag. Möjlig åtgärd: kräv `request.auth.token.email_verified` vid inlösen.
+
+**2.4 Klinikstöd-cachenyckeln trunkeras.** Nyckeln är base64url av
+`${organisationId}::${fraga}`, avhuggen vid 480 tecken (~360 byte). Eftersom `organisationId`
+ligger **först** kan trunkeringen aldrig ge en kollision mellan två organisationer — bara
+mellan två mycket långa frågor inom samma organisation, som då kan få varandras cachade svar.
+Verifierat att ordningen är rätt; noteras för att beslutet inte ska gå förlorat.
+
+## Genomgång utan anmärkning
+
+Följande kontrollerades systematiskt och höll:
+
+- **Autentisering:** samtliga callables kontrollerar `request.auth` — verifierat programmatiskt
+  över alla exports, noll undantag.
+- **IDOR:** bara tre funktioner tar emot `organisationId` från klienten, och alla tre går genom
+  `kravLasningAvRevisionslogg()`, som bara litar på värdet om anroparen är plattformsadmin och
+  annars härleder organisationen ur anroparens eget användardokument.
+- **Rolländring** (`uppdateraAnvandarRoll`): superadmin, samma organisation, giltig roll ur en
+  fast lista, loggas i revisionsloggen.
+- **Supportåtkomst** (`beviljaSupportAtkomst`): `orgId` härleds ur anroparen, så leverantören
+  kan **inte** bevilja sig själv åtkomst — Etapp 50b:s princip håller i koden.
+- **SSRF i källbevakningen:** `domanGodkand()` körs som ett andra försvarslager före varje
+  hämtning, med en kommentar som säger exakt varför ("en URL som av någon anledning skulle ha
+  smugit sig igenom, t.ex. skriven direkt av Admin SDK, hämtas ändå aldrig"). Domänkontrollen
+  använder `new URL().hostname` och `endsWith('.' + domän)`, så `evil-1177.se` och
+  `1177.se.evil.com` avvisas båda korrekt.
+- **Inbjudningstoken:** 192 bitar från `crypto.randomBytes(24)`, e-postbindning vid inlösen,
+  transaktion mot dubbelinlösen, utgångstid kontrollerad.
+- **Path traversal i backup-återställning:** `sokvag` måste börja med `backups/${orgId}/`, och
+  GCS behandlar `..` som ett vanligt tecken i objektnamn (inte en katalognivå), så
+  `backups/orgA/../orgB/x.json` pekar på ett objekt som helt enkelt inte finns.
+- **Personnummer i AI-flöden:** frågor till Gemini avvisas server-side om de innehåller ett
+  personnummer, och `innehallerPersonnummer()` i `gemensamt.js` använder den **fullständiga**
+  Luhn + datumkontrollen — den hade alltså inte luckan som fynd 1.1 avslöjade i regellagret.
+- **Hemligheter:** API-nycklar hämtas via `defineSecret`, loggas aldrig. Mottagaradresser
+  utelämnas medvetet ur loggarna med en dokumenterad motivering.
+
+## Test och verifiering
+
+- `tests/rules/sakerhetsgranskning.test.mjs` utökad med fynd 2.1 (**18 tester totalt**,
+  filen omdöpt från `-del1` eftersom den nu spänner över flera delar).
+- `tests/functions/etapp32d.test.cjs`: **två tester hade kodifierat läckaget** och är vända till
+  att bevisa att det är stängt. Det ena krävde uttryckligen att systemvarningen *nämnde* den
+  trasiga organisationen vid namn; det andra att `avvikelser`-listan fanns. Båda kräver nu
+  motsatsen, plus ett nytt test på att varje organisation får sin egen status.
 
 ---
 
@@ -282,6 +388,7 @@ PII-filtrets fullständighet, offline-kön, klientlagring.
 | v5.107.0 | SVG-spärr + fyra ägarbeslut | ❌ Nej |
 | v5.108.0–v5.113.0 | Etapp 67a–67e | ❌ Nej |
 | **v5.114.0** | **Säkerhetsgranskning Del 1** | ❌ **Nej** |
+| **v5.115.0** | **Säkerhetsgranskning Del 2** | ❌ **Nej** |
 
-Ägaren har valt att avvakta med deploy under granskningen. **Fynd 1.1–1.3 är därmed
-patchade i koden men fortfarande öppna i produktion.**
+Ägaren har valt att avvakta med deploy under granskningen. **Fynd 1.1–1.3 och 2.1–2.2 är
+därmed patchade i koden men fortfarande öppna i produktion.**

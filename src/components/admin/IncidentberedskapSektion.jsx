@@ -49,11 +49,16 @@ export default function IncidentberedskapSektion() {
         {!fel && !revisionskedja && (
           <p className="sida__beskrivning">Ingen automatisk kontroll har körts ännu.</p>
         )}
+        {/* Säkerhetsgranskning 2026-08-17 (fynd 2.1): visade tidigare en GLOBAL dom över
+            samtliga kunders kedjor, plus hur många organisationer leverantören har. Kund A
+            fick alltså "🔴 Avvikelse upptäckt" när kund B:s kedja brast. Visar nu den EGNA
+            organisationens status, vilket är det enda som är meningsfullt här. */}
         {revisionskedja && (
           <p className="sida__beskrivning">
-            {revisionskedja.alletGiltigt ? "🟢 Intakt" : "🔴 Avvikelse upptäckt"} – senast
-            kontrollerad {formateraTid(revisionskedja.senastKord)}, ({revisionskedja.antalOrganisationerKontrollerade}{" "}
-            organisationer). Körs automatiskt varje natt 04:00.
+            {revisionskedja.giltig ? "🟢 Intakt" : "🔴 Avvikelse upptäckt"} – senast
+            kontrollerad {formateraTid(revisionskedja.senastKord)}.
+            {!revisionskedja.giltig && revisionskedja.orsak && ` Orsak: ${revisionskedja.orsak}.`}
+            {" "}Körs automatiskt varje natt 04:00.
           </p>
         )}
       </div>

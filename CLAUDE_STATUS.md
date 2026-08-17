@@ -6,12 +6,12 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-17, version **5.114.0** – byggd och pushad, **INTE DEPLOYAD**
+**Senast uppdaterad:** 2026-08-17, version **5.115.0** – byggd och pushad, **INTE DEPLOYAD**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
 > **Deployläget just nu, i klartext:** senaste faktiska deploy är körning #78, som tog upp
-> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0–v5.114.0**
+> **v5.106.0** (commit `ef7c841`, verifierat via asset-hash mot skarp URL). **v5.107.0–v5.115.0**
 > ligger alla pushade men odeployade. Ett tidigare deployförsök 2026-08-16 blockerades av att
 > GitHub Actions inte tilldelade någon runner (se "Uppföljning 2026-08-16 (deployförsök
 > BLOCKERAT)") – ägaren bad oss därefter avvakta med deploy oavsett, så det är inte längre det
@@ -3458,7 +3458,7 @@ och beslutspunkter uppdaterade till "HELT KLAR". `CLAUDE.md`s läsordning fick e
 (`ETAPPLAN16.md`), övriga punkter numrerade om ett steg (samma mönster som när `ETAPPLAN15.md`
 sattes in tidigare) – och dokumentkartans tabellrad uppdaterad från "ANTAGEN" till "HELT KLAR".
 
-Version 5.112.0 → **5.113.0**. **Fem versioner (v5.107.0–v5.114.0) ligger nu pushade men
+Version 5.112.0 → **5.113.0**. **Fem versioner (v5.107.0–v5.115.0) ligger nu pushade men
 odeployade** – ägaren har bett oss avvakta med deploy tills vidare. Ingen ytterligare
 uppmaning väntar just nu; nästa steg är antingen en ny etapp eller en deploy, båda på ägarens
 initiativ.
@@ -3503,3 +3503,50 @@ Full svit grön: `lint`, `build`, `vitest` 239/239, `test:rules` 16 filer 0 fel,
 **Nästa:** Del 2 (Cloud Functions). Öppen fråga att ta med dit: `systemvarningar`/`systemstatus`/
 `halsokontrollhistorik` läses av varje superadmin utan org-skopning – kontrollera vad de
 schemalagda funktionerna faktiskt skriver dit.
+
+## Uppföljning 2026-08-17 (säkerhetsgranskning Del 2 av 4, v5.115.0)
+
+Del 2 (Cloud Functions, 14 filer, ~5 500 rader, ~93 exports) klar. Rapport:
+`SAKERHETSGRANSKNING-2026-08.md`.
+
+**Den öppna frågan från Del 1 besvarades – och det läckte.** `verifieraRevisionskedjor()`
+(nattjobbet 04:00) skrev varje avvikande organisations ID till både
+`systemstatus/revisionskedja.avvikelser` och `systemvarningar.meddelande`. Båda är enligt
+`firestore.rules` läsbara av en superadmin i VILKEN organisation som helst. Varje kund kunde
+alltså läsa ut leverantörens kundlista OCH vilka andra kunder som hade en bruten
+revisionskedja.
+
+Det anmärkningsvärda: **kodbasen dokumenterar redan den korrekta principen två gånger och
+följer den där** – `reserveraBudget()` ("skulle här läcka en annan kunds AI-förbrukning till
+alla andra kunders superadmins") och `okaSokkvot()` ("bara AGGREGAT ... hade läckt
+cross-tenant"). Nattkontrollen var undantaget som bröt mot sin egen husregel.
+
+**Fynd 2.2 (följdfel av samma design):** `alletGiltigt` var en GLOBAL dom som renderades i
+varje kunds egen incidentberedskapsvy. Kund A fick "🔴 Avvikelse upptäckt" när kund B:s kedja
+brast – vyn som ska svara på "är MIN revisionslogg orörd?" svarade på något helt annat.
+
+**Åtgärdat:** detaljerna går nu bara till Sentry; `systemvarningar` anger antal, aldrig vilka;
+`systemstatus/revisionskedja` är rensat från kundidentiteter och läsrätten skärpt till
+plattformsadmin. Varje organisation får sin EGNA status på
+`organisationer/{orgId}.revisionskedja` (redan korrekt org-skopat), som `useSystemstatus.js`
+och `IncidentberedskapSektion.jsx` nu läser.
+
+**Tre befintliga tester kodifierade det gamla beteendet** och är vända: två i
+`etapp32d.test.cjs` (ett krävde uttryckligen att varningen NÄMNDE den trasiga organisationen)
+och ett i `systemstatus.test.mjs` (krävde att en kunds superadmin KUNDE läsa). Regeltestfilen
+är omdöpt till `tests/rules/sakerhetsgranskning.test.mjs` (18 tester) eftersom den nu spänner
+över flera granskningsdelar.
+
+**Utan anmärkning, systematiskt kontrollerat:** samtliga callables kontrollerar `request.auth`
+(verifierat programmatiskt, noll undantag); bara tre tar `organisationId` från klienten och
+alla går genom en grind som bara litar på värdet för plattformsadmin; rolländring och
+supportåtkomst är korrekt grindade (leverantören kan inte bevilja sig själv åtkomst);
+källbevakningen kör domänkontroll som andra försvarslager före varje hämtning (ingen SSRF);
+inbjudningstoken är 192 bitar med e-postbindning och transaktion mot dubbelinlösen;
+backup-återställning kan inte path-traversas.
+
+Full svit grön: `lint`, `build`, `vitest` 239/239, `test:rules` 16 filer 0 fel,
+`test:functions` 0 fel. **Inget deployat** – fynd 1.1–1.3 och 2.1–2.2 är patchade men
+fortfarande öppna i produktion.
+
+**Nästa:** Del 3 (`src/hooks/`, `src/firebase/`, `src/utils/`).

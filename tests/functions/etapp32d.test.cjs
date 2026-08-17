@@ -75,13 +75,30 @@ async function main() {
     vantaSig(avvikelser.some((a) => a.orgId === "org32dTrasig"), "org32dTrasig flaggades inte");
     vantaSig(!avvikelser.some((a) => a.orgId === "org32dHel"), "org32dHel flaggades felaktigt");
   });
-  await test("skriver en systemvarning som nämner den trasiga organisationen", async () => {
+  // ÄNDRAD FÖRVÄNTAN (säkerhetsgranskning 2026-08-17, Del 2 – fynd 2.1). Testet krävde
+  // tidigare att systemvarningen NÄMNDE den trasiga organisationen vid namn. Men
+  // systemvarningar/{id} är läsbar av en superadmin i VILKEN organisation som helst (se
+  // firestore.rules), så det innebar att varje kund kunde läsa ut vilka ANDRA kunder som hade
+  // en bruten revisionskedja – inklusive leverantörens kundlista. Larmet ska finnas kvar, men
+  // utan kundidentiteter; detaljerna går till Sentry, som bara når leverantören.
+  await test("systemvarningen finns kvar men läcker INTE någon organisations identitet", async () => {
     const varningSnap = await db
       .collection("systemvarningar")
       .where("typ", "==", "revisionslogg_integritet")
       .get();
-    const traff = varningSnap.docs.find((d) => d.data().meddelande.includes("org32dTrasig"));
-    vantaSig(Boolean(traff), "ingen systemvarning nämnde org32dTrasig");
+    vantaSig(varningSnap.size > 0, "ingen systemvarning skrevs alls");
+    const lackande = varningSnap.docs.find((d) => d.data().meddelande.includes("org32dTrasig"));
+    vantaSig(!lackande, "systemvarningen innehöll ett organisations-ID (cross-tenant-läckage)");
+    const nagonNamnerAntal = varningSnap.docs.some((d) => /\d+ organisation/.test(d.data().meddelande));
+    vantaSig(nagonNamnerAntal, "systemvarningen bör ange ANTALET drabbade organisationer");
+  });
+
+  await test("varje organisation får sin EGNA kedjestatus på organisationer/{orgId}", async () => {
+    const trasig = await db.collection("organisationer").doc("org32dTrasig").get();
+    const hel = await db.collection("organisationer").doc("org32dHel").get();
+    vantaSig(trasig.data()?.revisionskedja?.giltig === false, "org32dTrasig fick inte giltig:false");
+    vantaSig(hel.data()?.revisionskedja?.giltig === true, "org32dHel fick inte giltig:true");
+    vantaSig(trasig.data()?.revisionskedja?.senastKord != null, "senastKord saknas per organisation");
   });
 
   console.log("\nverifieraRevisionskedjor – en borttagen organisation slutar flaggas");
@@ -100,7 +117,11 @@ async function main() {
     vantaSig(data.senastKord != null, "senastKord saknas");
     vantaSig(typeof data.alletGiltigt === "boolean", "alletGiltigt saknas eller har fel typ");
     vantaSig(typeof data.antalOrganisationerKontrollerade === "number", "antalOrganisationerKontrollerade saknas");
-    vantaSig(Array.isArray(data.avvikelser), "avvikelser ska alltid vara en array (tom vid allt OK)");
+    // ÄNDRAD FÖRVÄNTAN (fynd 2.1): fältet `avvikelser` innehöll en lista med varje avvikande
+    // organisations ID, i ett dokument som varje kunds superadmin kunde läsa. Det ska nu vara
+    // borta helt – bara ett antal återstår, och läsrätten är begränsad till plattformsadmin.
+    vantaSig(data.avvikelser === undefined, "avvikelser-listan med organisations-ID ska vara borttagen");
+    vantaSig(typeof data.antalAvvikelser === "number", "antalAvvikelser saknas");
   });
 
   console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);

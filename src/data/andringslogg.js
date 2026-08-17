@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.115.0",
+    datum: "2026-08-17",
+    andringar: [
+      "Säkerhetsgranskning: incidentberedskapsvyn visar nu er EGEN revisionskedjas status i stället för en samlad status över alla organisationer, och driftinformation om andra organisationer syns inte längre",
+    ],
+  },
+  {
     version: "5.114.0",
     datum: "2026-08-17",
     andringar: [

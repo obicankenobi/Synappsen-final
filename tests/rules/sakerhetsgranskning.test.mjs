@@ -1,10 +1,12 @@
-// Säkerhetsgranskning 2026-08-17, Del 1 (regel- och behörighetslagret).
-// Låser fast de tre fynd som patchades i firestore.rules. Varje test är skrivet så att det
-// FAILAR mot regelfilen som den såg ut före granskningen – annars bevisar det ingenting.
+// Säkerhetsgranskning 2026-08 – regelnivåfynden från samtliga delar av granskningen.
+// Låser fast varje patchat fynd. Varje test är skrivet så att det FAILAR mot regelfilen som
+// den såg ut före sin patch – annars bevisar det ingenting. Filen växer per granskningsdel;
+// se SAKERHETSGRANSKNING-2026-08.md för den fullständiga rapporten.
 //
 //   1.1  harTroligtPersonnummer() missade samordningsnummer med dagfält 82–91
 //   1.2  revisionslogg var läsbar av varje plattformsadmin utan kundbeviljat supportfönster
 //   1.3  visningar/checklistkorningar saknade fältbegränsning på create/update
+//   2.1  systemstatus läckte leverantörens kundlista till varje kunds superadmin
 import { initializeTestEnvironment, assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { readFileSync } from "node:fs";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
@@ -49,6 +51,11 @@ async function main() {
       sokvag: "/kliniskt-stod",
       organisationId: "orgA",
       antal: 1,
+    });
+    await setDoc(doc(db, "systemstatus", "revisionskedja"), {
+      alletGiltigt: true,
+      antalOrganisationerKontrollerade: 12,
+      antalAvvikelser: 0,
     });
     await setDoc(doc(db, "checklistkorningar", "rutinA"), {
       organisationId: "orgA",
@@ -173,6 +180,17 @@ async function main() {
   );
   await test("legitim räknaruppdatering i checklistkorningar fungerar oförändrat", () =>
     assertSucceeds(updateDoc(doc(volA, "checklistkorningar", "rutinA"), { antalSlutforda: 1 }))
+  );
+
+  console.log("\nFynd 2.1 – systemstatus är leverantörens driftöversikt, inte kunddata");
+  await test("kundens superadmin kan INTE läsa systemstatus (läckte tidigare kundlistan)", () =>
+    assertFails(getDoc(doc(superA, "systemstatus", "revisionskedja")))
+  );
+  await test("plattformsadmin KAN läsa systemstatus", () =>
+    assertSucceeds(getDoc(doc(leverantor, "systemstatus", "revisionskedja")))
+  );
+  await test("kundens superadmin läser sin EGNA kedjestatus via organisationer/{orgId}", () =>
+    assertSucceeds(getDoc(doc(superA, "organisationer", "orgA")))
   );
 
   await testEnv.cleanup();
