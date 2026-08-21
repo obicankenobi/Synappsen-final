@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-17, version **5.117.0** – byggd och pushad, **INTE DEPLOYAD**
+**Senast uppdaterad:** 2026-08-21, version **5.117.0** – **DEPLOYAD** (körning #81)
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -3673,4 +3673,36 @@ regression, rättad i Del 3).
 
 **Nästa:** ingen granskningsdel återstår. Nästa naturliga steg är ett deploybeslut, och
 därefter de tre flaggade punkterna.
+
+## Uppföljning 2026-08-21 (deploy av v5.107.0–v5.117.0, körning #81)
+
+Ägaren hävde avvakta-beslutet och bad om deploy av samtliga väntande commits. **Körning #81,
+commit `3c2c7df`, conclusion: success**, 20:42–20:48 UTC (5 min 46 s). Ny asset-hash live:
+`assets/index-BUk2-H6q.js`.
+
+Därmed är hela säkerhetsgranskningens patchar i produktion: fynd 1.1–1.3, 2.1–2.2, 3.1–3.2,
+3.4–3.5 och 4.2–4.6. Produktionen gick från v5.106.0 till v5.117.0 i ett steg, elva versioner.
+
+**Infrastrukturblockeringen är över.** Körning #79 (2026-08-16) och #80 (2026-08-18)
+misslyckades båda på sekunder utan loggar, med `runner_id: 0` – diagnosen då var att
+GitHub Actions inte tilldelade någon runner, sannolikt en spendgräns. #81 kördes normalt.
+Ingen kodändring låg bakom, så inget behöver göras åt det.
+
+**En sak är INTE verifierad, och ska kontrolleras om.** CSP-rubriken som produktionen serverar
+är fortfarande den GAMLA policyn: `img-src 'self' data: blob: https:`, ingen sha256-hash, inget
+`frame-ancestors`. Den deployade commiten innehåller bevisligen den patchade policyn
+(`git show 3c2c7df:firebase.json`), och svaret bär `cache-control: max-age=3600`. Mest
+sannolikt är det alltså Firebase Hostings edge-cache, som ignorerar query-strängar och därför
+inte går att cache-busta. **Kontrollera rubriken igen efter en timme.** Står den gamla policyn
+kvar då är fynd 4.1 fortfarande öppet i produktion trots deployen, och orsaken är något annat
+än cache.
+
+Övriga fynd är bekräftat live: saneringens `FORBID_ATTR` (fynd 4.2) finns i den serverade
+bundlen. Regelfilerna deployades i samma `firebase deploy`, och jobbet kör lint, vitest,
+`test:rules` och build som grindar före deploysteget – ett rött test hade stoppat hela
+körningen.
+
+**Kvar att besluta:** de tre flaggade punkterna i `OPPNA-PUNKTER.md` (3.3 push-tokens,
+4.1 skarp CSP, 4.7 pinnade actions), samt glappet mellan `VARUMARKE.md` §12 och den faktiska
+appikonen (se jämförelsen 2026-08-21).
 
