@@ -62,6 +62,8 @@
   body.utskrift-etiketter .hyll-etiketter-overlay {
     position: static;
     overflow: visible;
+    /* Etapp 68a: utskrift. Vitt papper och svart bläck är fasta av fysiska skäl,
+       inte av temaskäl. Ska aldrig gå via ett tematoken. */
     background: #fff;
   }
 
@@ -71,6 +73,6 @@
 
   body.utskrift-etiketter .hyll-etiketter__etikett {
     box-shadow: none;
-    border: 1px solid #000;
+    border: 1px solid #000; /* se kommentaren ovan: utskrift, inte tema */
   }
 }

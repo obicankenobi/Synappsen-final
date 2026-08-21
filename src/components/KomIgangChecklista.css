@@ -1,5 +1,5 @@
 .kom-igang {
-  border: 1px solid var(--kant, #ddd);
+  border: 1px solid var(--kant);
   border-radius: 8px;
   padding: 16px;
   margin: 16px 0;
@@ -15,14 +15,14 @@
   width: 100%;
   height: 8px;
   border-radius: 4px;
-  background: var(--kant, #eee);
+  background: var(--kant);
   overflow: hidden;
   margin-bottom: 12px;
 }
 
 .kom-igang__stapel-fyllnad {
   height: 100%;
-  background: var(--primar, #2a7);
+  background: var(--primar);
   transition: width 0.2s ease;
 }
 

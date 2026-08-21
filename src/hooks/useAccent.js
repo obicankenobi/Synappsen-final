@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 const NYCKEL = "synappsen-accent";
 
 export const ACCENTER = [
-  { varde: "bla", namn: "Blå", farg: "#2563eb" },
+  { varde: "bla", namn: "Blå", farg: "#2f5fd6" },
   { varde: "gron", namn: "Grön", farg: "#15803d" },
   { varde: "lila", namn: "Lila", farg: "#7c3aed" },
   { varde: "orange", namn: "Orange", farg: "#c2410c" },

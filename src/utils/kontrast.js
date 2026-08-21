@@ -52,7 +52,7 @@ export function morkLagesVariant(hex) {
 // textfärg ovanpå (knapp-text, var(--yta)): vitt i ljust läge, den mörka ytfärgen i mörkt läge.
 export function valideraAccentfarg(hex) {
   if (!/^#[0-9a-fA-F]{6}$/.test(hex ?? "")) {
-    return { giltig: false, fel: "Ange en giltig hexfärg, t.ex. #2563eb." };
+    return { giltig: false, fel: "Ange en giltig hexfärg, t.ex. #2f5fd6." };
   }
   const ljustLage = kontrastforhallande(hex, "#ffffff");
   if (ljustLage < AA_GRANS) {

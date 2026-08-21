@@ -1,7 +1,21 @@
 :root {
-  --primar: #2563eb;
-  --primar-mork: #1d4ed8;
-  --primar-ljus: #eff6ff;
+  /* Etapp 68b (2026-08-21): primärblå bytt från #2563eb till #2F5FD6, färgen som
+     GRAFISK-PROFIL.md hela tiden uppgett som varumärkesblå men som aldrig landat i koden.
+     Bytet gjordes på MÄTNING, inte smak (genomgående krav 30):
+       #2563eb mot vit yta 5,17:1   ->  #2f5fd6 mot vit yta 5,63:1
+       #2563eb mot --bg    4,88:1   ->  #2f5fd6 mot --bg    5,31:1
+       vit text på #2f5fd6          5,63:1
+       vit text på #274eaf          7,51:1
+     Den nya färgen har alltså mer kontrastmarginal än den den ersätter.
+     --primar-mork och --primar-ljus är härledda ur basen (18% mot svart, 93% mot vitt).
+
+     MÖRKT LÄGE ÄR MEDVETET ORÖRT HÄR. Dess --primar #3b82f6 ger bara 3,68:1 mot vit
+     text, alltså under AA, och att välja ersättaren är delmål 68c:s uppgift. Att gissa
+     en nyans nu hade gjort defekten värre: en rak omräkning av #2f5fd6 till samma
+     ljushet ger 3,26:1. */
+  --primar: #2f5fd6;
+  --primar-mork: #274eaf;
+  --primar-ljus: #f0f4fc;
   --accent: #0d9488;
   --amber: #f59e0b;
   --amber-ljus: #fffbeb;
@@ -16,6 +30,12 @@
   --kant: #e2e8f0;
   --kant-stark: #cbd5e1;
   --farlig: #dc2626;
+  /* Etapp 68a: text och ikoner PÅ en färgmättad yta (primärknapp, farlig knapp).
+     Vitt i båda teman, eftersom ytan under är mättad i båda. Poängen med token:et är
+     inte att värdet varierar utan att en framtida ändring av --primar bara kräver EN
+     ändring här i stället för en jakt genom sexton filer. */
+  --pa-primar: #ffffff;
+  --pa-farlig: #ffffff;
   --farlig-mork: #b91c1c;
   --farlig-ljus: #fef2f2;
   /* #15803d (inte #16a34a) för att nå WCAG AA-kontrast mot --bg för normal text */
@@ -72,6 +92,12 @@
   --kant: #242a3a;
   --kant-stark: #333c52;
   --farlig: #f87171;
+  /* Etapp 68a: text och ikoner PÅ en färgmättad yta (primärknapp, farlig knapp).
+     Vitt i båda teman, eftersom ytan under är mättad i båda. Poängen med token:et är
+     inte att värdet varierar utan att en framtida ändring av --primar bara kräver EN
+     ändring här i stället för en jakt genom sexton filer. */
+  --pa-primar: #ffffff;
+  --pa-farlig: #ffffff;
   --farlig-mork: #fca5a5;
   --farlig-ljus: #450a0a;
   --success: #4ade80;
@@ -103,6 +129,12 @@
     --kant: #242a3a;
     --kant-stark: #333c52;
     --farlig: #f87171;
+  /* Etapp 68a: text och ikoner PÅ en färgmättad yta (primärknapp, farlig knapp).
+     Vitt i båda teman, eftersom ytan under är mättad i båda. Poängen med token:et är
+     inte att värdet varierar utan att en framtida ändring av --primar bara kräver EN
+     ändring här i stället för en jakt genom sexton filer. */
+  --pa-primar: #ffffff;
+  --pa-farlig: #ffffff;
     --farlig-mork: #fca5a5;
     --farlig-ljus: #450a0a;
     --success: #4ade80;

@@ -80,7 +80,7 @@
   bottom: 100%;
   left: 0;
   z-index: 5;
-  background: var(--bg-yta, #fff);
+  background: var(--yta);
   border: 1px solid var(--kant);
   border-radius: 8px;
   box-shadow: var(--skugga);

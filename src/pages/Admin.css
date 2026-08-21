@@ -157,7 +157,7 @@
 .admin-feedback-rad__atgard-klar {
   display: inline-block;
   margin-top: 8px;
-  color: var(--success, #1a7f37);
+  color: var(--success);
   font-weight: 600;
   font-size: 0.85rem;
 }

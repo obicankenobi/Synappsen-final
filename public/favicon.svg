@@ -6,7 +6,7 @@
        Klyftans bredd är 1,70 av 24 enheter och mäts från terminalens centrum, vilket
        är det som gör att den tunnas ut jämnt i stället för att slutas på ett ställe. -->
   <style>
-    .mark { fill: #2563eb; stroke: #2563eb; }
+    .mark { fill: #2f5fd6; stroke: #2f5fd6; }
     @media (prefers-color-scheme: dark) {
       .mark { fill: #6c9bf7; stroke: #6c9bf7; }
     }

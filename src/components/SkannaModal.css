@@ -2,13 +2,17 @@
   position: fixed;
   inset: 0;
   z-index: 900;
-  background: #000;
+  background: var(--skanna-bakgrund);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .skanna-modal {
+  /* Etapp 68a: kameravyn är medvetet svart med vita hjälplinjer oavsett tema. En
+     sökarruta ska ha maximal kontrast mot bilden, inte mot appen. Fasta med avsikt. */
+  --skanna-bakgrund: #000;
+  --skanna-hjalplinje: #ffffff;
   position: relative;
   width: 100%;
   height: 100%;
@@ -35,14 +39,14 @@
   position: relative;
   width: min(70vw, 280px);
   height: min(70vw, 280px);
-  border: 3px solid #ffffff;
+  border: 3px solid var(--skanna-hjalplinje);
   border-radius: 16px;
   box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.35);
 }
 
 .skanna-modal__hjalptext {
   position: relative;
-  color: #ffffff;
+  color: var(--skanna-hjalplinje);
   font-weight: 600;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
@@ -50,6 +54,6 @@
 .skanna-modal .knapp--sekundar {
   position: relative;
   background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  border-color: #ffffff;
+  color: var(--skanna-hjalplinje);
+  border-color: var(--skanna-hjalplinje);
 }

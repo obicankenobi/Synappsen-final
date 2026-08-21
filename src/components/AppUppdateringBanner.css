@@ -7,7 +7,7 @@
   justify-content: center;
   gap: 12px;
   background: var(--primar);
-  color: #ffffff;
+  color: var(--pa-primar);
   text-align: center;
   padding: 8px 16px;
   font-size: 0.85rem;
@@ -15,9 +15,9 @@
 }
 
 .app-uppdatering-banner__knapp {
-  border: 1px solid #ffffff;
+  border: 1px solid var(--pa-primar);
   background: transparent;
-  color: #ffffff;
+  color: var(--pa-primar);
   border-radius: 6px;
   padding: 4px 12px;
   font-size: 0.8rem;

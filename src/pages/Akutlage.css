@@ -3,12 +3,29 @@
    avvikande och läsbart i starkt ljus. Stor typografi och stora tryckytor (min 48x48px,
    Etapp 17d) genomgående. */
 .akutlage {
+  /* Etapp 68a: akutlägets färger är MEDVETET fasta och följer inte temat, se
+     kommentaren överst. De ligger som egna variabler bara för att vara namngivna och
+     ändras på ett ställe. Flytta dem ALDRIG till index.css temablock: hela poängen är
+     att de ser likadana ut oavsett vad användaren valt.
+
+     Kontrasten är MÄTT med src/utils/kontrast.js (genomgående krav 30), inte bedömd:
+       text mot bakgrund   21,0:1
+       larm mot bakgrund    7,6:1
+       lank mot bakgrund    9,9:1
+       text mot panel      17,4:1
+     Samtliga klarar AA (4,5) med god marginal, vilket är meningen i ett läge som ska
+     gå att läsa i starkt solljus. */
+  --akut-bg: #000000;
+  --akut-panel: #1a1a1a;
+  --akut-text: #ffffff;
+  --akut-larm: #ff6b6b;
+  --akut-lank: #6bb8ff;
   position: fixed;
   inset: 0;
   z-index: 1000;
   overflow-y: auto;
-  background: #000000;
-  color: #ffffff;
+  background: var(--akut-bg);
+  color: var(--akut-text);
   padding: 24px;
   font-size: 1.15rem;
 }
@@ -23,7 +40,7 @@
 .akutlage__header h1 {
   font-size: 2rem;
   margin: 0;
-  color: #ff6b6b;
+  color: var(--akut-larm);
 }
 
 .akutlage__stang {
@@ -32,9 +49,9 @@
   min-height: 48px;
   min-width: 48px;
   padding: 8px 20px;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--akut-text);
   border-radius: 8px;
-  color: #ffffff;
+  color: var(--akut-text);
   text-decoration: none;
   font-weight: 700;
   font-size: 1.1rem;
@@ -51,7 +68,7 @@
 
 .akutlage__sektion h2 {
   font-size: 1.5rem;
-  border-bottom: 2px solid #ffffff;
+  border-bottom: 2px solid var(--akut-text);
   padding-bottom: 8px;
   margin-bottom: 16px;
 }
@@ -72,7 +89,7 @@
   gap: 16px;
   min-height: 48px;
   padding: 12px 16px;
-  background: #1a1a1a;
+  background: var(--akut-panel);
   border-radius: 8px;
   font-size: 1.3rem;
 }
@@ -83,7 +100,7 @@
 
 .akutlage__nummer {
   font-weight: 700;
-  color: #ff6b6b;
+  color: var(--akut-larm);
   white-space: nowrap;
   text-decoration: none;
 }
@@ -103,7 +120,7 @@
 }
 
 .akutlage__rutin {
-  background: #1a1a1a;
+  background: var(--akut-panel);
   border-radius: 8px;
   padding: 16px 20px;
 }
@@ -111,7 +128,7 @@
 .akutlage__rutin h3 {
   font-size: 1.4rem;
   margin: 0 0 12px;
-  color: #ffffff;
+  color: var(--akut-text);
 }
 
 .akutlage__rutin-innehall {
@@ -120,5 +137,5 @@
 }
 
 .akutlage__rutin-innehall :is(a) {
-  color: #6bb8ff;
+  color: var(--akut-lank);
 }

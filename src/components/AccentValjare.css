@@ -9,7 +9,7 @@
   border-radius: 50%;
   border: 2px solid var(--kant);
   background: var(--accent-forhandsvisning);
-  color: #fff;
+  color: var(--pa-primar);
   cursor: pointer;
   display: flex;
   align-items: center;

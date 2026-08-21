@@ -9,7 +9,7 @@
   padding: 12px 18px;
   min-height: 48px;
   background: var(--farlig);
-  color: #ffffff;
+  color: var(--pa-primar);
   text-decoration: none;
   font-weight: 700;
   font-size: 0.95rem;

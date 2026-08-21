@@ -55,12 +55,12 @@ function OrganisationBrandingFormular({ branding, organisationId, sparaBranding 
         <input
           id="org-accentfarg"
           type="color"
-          value={/^#[0-9a-fA-F]{6}$/.test(accentfarg) ? accentfarg : "#2563eb"}
+          value={/^#[0-9a-fA-F]{6}$/.test(accentfarg) ? accentfarg : "#2f5fd6"}
           onChange={(e) => setAccentfarg(e.target.value)}
         />
         <input
           type="text"
-          placeholder="#2563eb"
+          placeholder="#2f5fd6"
           value={accentfarg}
           onChange={(e) => setAccentfarg(e.target.value)}
           className="org-branding__hexinput"

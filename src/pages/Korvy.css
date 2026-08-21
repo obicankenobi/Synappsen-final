@@ -45,7 +45,7 @@
 .korvy__ljud[aria-pressed="true"] {
   background: var(--primar);
   border-color: var(--primar);
-  color: #fff;
+  color: var(--pa-primar);
 }
 
 .korvy__progressbar {
@@ -135,7 +135,7 @@
   border-radius: 10px;
   border: none;
   background: var(--primar);
-  color: #ffffff;
+  color: var(--pa-primar);
   font-size: 1.15rem;
   font-weight: 700;
   text-decoration: none;

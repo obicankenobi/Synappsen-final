@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-21, version **5.117.0** – **DEPLOYAD** (körning #82, verifierad mot artefakten)
+**Senast uppdaterad:** 2026-08-21, version **5.118.0** – byggd och pushad, **INTE DEPLOYAD**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -3782,4 +3782,59 @@ utbytt" är precis den sortens glapp som resten av det här projektet redan har 
 Releasechecklistan i `.claude/skills/synappsen-release/SKILL.md` säger redan åt en att
 kontrollera asset-hashen efter deploy. Jag gjorde det, men jämförde den inte mot något, och
 en hash utan jämförelse bevisar ingenting.
+
+## Uppföljning 2026-08-21 (Etapp 68a och 68b, v5.118.0)
+
+Ägaren antog `ETAPPLAN17.md` delvis och bad om 68a och 68b nu, med 68c, 68d och 68f
+schemalagda 3,5 timmar senare. Båda klara.
+
+**68a, tokendisciplin.** 37 hårdkodade hexvärden i 16 filer, inte 141 i 10 som planens
+premisskontroll påstod. Min siffra räknade felaktigt in `index.css` själv. Rättas i 68f.
+
+Arbetet delade sig i fyra kategorier, och den tredje gav riktiga buggar:
+
+1. **Vitt på färgad yta** (7 filer). Två nya tokens `--pa-primar` och `--pa-farlig` i alla
+   tre temablocken. Värdet är vitt i båda teman, och poängen är inte att det varierar utan
+   att en framtida ändring av `--primar` blir en ändring i stället för en jakt.
+2. **Döda fallbacks** (5 st). `var(--kant, #ddd)` och liknande där token:et finns, så
+   fallbacken aldrig kan gälla. Värst var `var(--primar, #2a7)`, en GRÖN reservfärg för
+   primärblå som hade sett besynnerlig ut om den någonsin slagit till.
+3. **TRE RIKTIGA BUGGAR.** `--fel`, `--bg-yta` och `--fara` finns inte som tokens. De
+   elementen renderade alltså sin hårdkodade fallback och **följde inte mörkt läge**:
+   en varningstext i `Personalpuls.css`, en bakgrund i `Kommentarer.css` och en statusfärg
+   i `Kompetensmatris.css`. Nu `var(--farlig)` respektive `var(--yta)`. Plus en rak
+   hårdkodad röd i `KioskPinModal.css`.
+4. **Medvetet fasta färger** (18 st). Akutläget är forcerad högkontrast oavsett tema
+   (Etapp 17c), kameravyn i `SkannaModal` ska ha maximal kontrast mot bilden och inte mot
+   appen, och `HyllEtiketter`s utskriftsfärger är fasta av fysiska skäl. De är nu
+   **namngivna scope-variabler med förklaring**, inte flyttade till temat, vilket vore fel.
+   Akutlägets kontraster är uppmätta och inskrivna: 21,0 / 7,6 / 9,9 / 17,4:1.
+
+Kvar utanför `index.css`: 9 förekomster, samtliga token-DEKLARATIONER eller dokumenterade
+utskriftsfärger. Det är rätt slutläge, inte en rest.
+
+**68b, primärfärgen.** Ljust läges `--primar` bytt från `#2563eb` till `#2F5FD6`, färgen
+`GRAFISK-PROFIL.md` hela tiden uppgett men som aldrig landat i koden. Bytet gjordes på
+mätning (krav 30): 5,63:1 mot vit yta i stället för 5,17:1, och 5,31:1 mot `--bg` i stället
+för 4,88:1. **Den nya färgen har alltså mer marginal än den den ersätter.**
+`--primar-mork` `#274eaf` och `--primar-ljus` `#f0f4fc` härledda ur basen.
+
+Följdändringar i samma commit: de fem ikonfilerna, `theme-color` i `index.html`, och
+accentväljarens blå färgprick i `useAccent.js`, som annars hade visat en annan blå än den
+appen faktiskt använder.
+
+**Mörkt läge är MEDVETET orört.** Dess `--primar` `#3b82f6` ger 3,68:1 mot vit text, under
+AA, och att välja ersättaren är 68c:s uppgift. Jag testade en rak omräkning av `#2f5fd6`
+till samma ljushet och fick 3,26:1, alltså **sämre** än defekten. Att gissa nu hade
+förvärrat det som 68c ska laga.
+
+Accenternas egna `--primar` (gron, lila, orange) är orörda. De är separata accenter, inte
+varianter av blå.
+
+Fullt svep grönt: lint, build, vitest 255/255, `test:rules` 16 filer 0 fel, `test:e2e`
+23 passed inklusive axe-core mot 25 routes i sju roller, som är den grind som hade fångat
+en kontrastregression.
+
+**Schemalagt:** 68c, 68d och 68f 2026-08-22 kl 02:43. Obs att schemaläggningen är
+sessionsbunden och försvinner om sessionen avslutas, se rapporten till ägaren.
 

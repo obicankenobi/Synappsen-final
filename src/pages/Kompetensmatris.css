@@ -1,7 +1,7 @@
 .kompetensmatris__status--klar {
-  color: var(--success, #1a7f37);
+  color: var(--success);
 }
 
 .kompetensmatris__status--forfallen {
-  color: var(--fara, #b42318);
+  color: var(--farlig);
 }

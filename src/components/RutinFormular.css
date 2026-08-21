@@ -208,7 +208,7 @@
 
 .rutin-formular__verktygsfalt-knapp--vald {
   background: var(--primar) !important;
-  color: #fff;
+  color: var(--pa-primar);
   border-color: var(--primar) !important;
 }
 

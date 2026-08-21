@@ -96,5 +96,5 @@
 .sok-falt__kategori-chip--vald {
   background: var(--primar);
   border-color: var(--primar);
-  color: #fff;
+  color: var(--pa-primar);
 }

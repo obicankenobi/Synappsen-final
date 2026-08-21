@@ -39,7 +39,7 @@
 }
 
 .kiosk-pin__fel {
-  color: #c0392b;
+  color: var(--farlig);
   margin: 0 0 12px;
 }
 

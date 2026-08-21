@@ -11,6 +11,14 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.118.0",
+    datum: "2026-08-21",
+    andringar: [
+      "Appens blå färg är justerad till varumärkets, och har samtidigt något bättre läsbarhet än den tidigare",
+      "Rättat: en varningstext i personalpulsen, en bakgrund i kommentarer och en statusfärg i kompetensmatrisen följde inte mörkt läge",
+    ],
+  },
+  {
     version: "5.117.0",
     datum: "2026-08-17",
     andringar: [

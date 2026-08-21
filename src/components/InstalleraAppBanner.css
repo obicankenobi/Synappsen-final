@@ -17,7 +17,7 @@
 .installera-app-banner__knapp {
   border: none;
   background: var(--primar);
-  color: #ffffff;
+  color: var(--pa-primar);
   border-radius: 6px;
   padding: 4px 14px;
   font-size: 0.8rem;
