@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-21, version **5.117.0** – **DEPLOYAD** (körning #81)
+**Senast uppdaterad:** 2026-08-21, version **5.117.0** – **DEPLOYAD** (körning #82, verifierad mot artefakten)
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -3705,4 +3705,81 @@ körningen.
 **Kvar att besluta:** de tre flaggade punkterna i `OPPNA-PUNKTER.md` (3.3 push-tokens,
 4.1 skarp CSP, 4.7 pinnade actions), samt glappet mellan `VARUMARKE.md` §12 och den faktiska
 appikonen (se jämförelsen 2026-08-21).
+
+## RÄTTELSE 2026-08-21 (körning #81 deployade INTE hosting)
+
+**Föregående sektion är fel och rättas här.** Jag skrev att produktionen gick från v5.106.0
+till v5.117.0 i körning #81. Det stämmer inte. Körningen rapporterade `conclusion: success`,
+och jag tog det som bevis på att deployen var klar utan att kontrollera artefakten. Det var
+felet.
+
+**Vad som faktiskt hände:** körning #81 deployade **Cloud Functions och regelfilerna**, men
+**inte hosting**. Jobbloggen visar ett sextiotal `Successful update operation` för functions
+(med några 429 Quota Exceeded som CLI:n själv försökte om och lyckades med), men inget
+hosting-steg syns.
+
+**Bevisen, i den ordning som gjorde det avgjort:**
+
+| Kontroll | Utfall |
+|---|---|
+| Lokal bygg-hash mot serverad | `index-BOG0uMiH.js` mot `index-BUk2-H6q.js`, olika |
+| `saneraMarkdown` i serverad bundle (fynd 4.2) | saknas |
+| `FORBID_TAGS` (fynd 4.2) | saknas |
+| `avbrottPerSteg` (fynd 3.5) | saknas |
+| `synappsen_senast_besokta_` (fynd 3.2) | saknas |
+| `last-modified` på serverad tillgång | 2026-08-15 23:24 UTC, alltså **körning #78** |
+
+Träffen på `formaction` som jag tog som bevis för att fynd 4.2 var live var **falsk**; strängen
+finns i bundlen av andra skäl. Det är den enda kontroll jag gjorde direkt efter deployen, och
+den råkade vara den enda som kunde ge fel svar.
+
+**Konsekvens för säkerhetsgranskningen.** Fynden delar sig i två högar:
+
+- **Live i produktion:** allt som ligger i `firestore.rules`, `storage.rules` och `functions/`.
+  Alltså fynd 1.1, 1.2, 1.3, 2.1, 2.2 och 4.4 (regeldelen).
+- **INTE live:** allt som ligger i klientkoden eller i `firebase.json`. Alltså fynd 3.1
+  (tolvsiffrigt personnummer), 3.2 (senast besökta på delad enhet), 3.4, 3.5, 4.1 (CSP), 4.2
+  (nätfiskeformulär i markdown), 4.3, 4.5 och 4.6.
+
+Det förklarar också varför CSP-rubriken fortfarande var den gamla en timme efter deployen.
+Cachehypotesen var fel: rubriken kommer från `firebase.json`s hosting-block, och hosting
+deployades aldrig.
+
+**Åtgärd: deployen omkörd som körning #82** (commit `c5507f3`, 21:57–22:02 UTC).
+**Hosting är nu utbytt.** Verifierat med fyra oberoende signaler:
+
+| Kontroll | Utfall |
+|---|---|
+| `/icons/symbol.svg` | HTTP 200. Filen fanns inte före commit `0cc1132` |
+| `/icons/symbol-axon.svg` | HTTP 200. Samma sak |
+| `/icons/icon.svg` | Innehåller "Appikon", alltså den nya symbolen och inte S-bokstaven |
+| CSP-rubriken | `sha256-P9yZ…` finns, `unsafe-inline` borta, `img-src` begränsad till Storage, `frame-ancestors 'none'` |
+
+**Fynd 4.1 är därmed stängt i produktion**, och hela säkerhetsgranskningen är live.
+
+### Två testfel jag gjorde på vägen, båda värda att skriva ned
+
+**1. En grön workflow är inte bevis för en genomförd deploy.** Det var felet efter #81.
+
+**2. Att söka efter funktions- och variabelnamn i en byggd bundle bevisar ingenting.**
+Efter #82 sökte jag `saneraMarkdown`, `FORBID_TAGS`, `avbrottPerSteg` och
+`synappsen_senast_besokta_` i den serverade bundlen och fick noll träffar, och drog slutsatsen
+att hosting fortfarande var gammal. Fel igen: **min egen lokala bundle saknar samma strängar**,
+eftersom minifieringen döper om identifierare och koden delas i chunks. Testet kunde bara ge
+ett svar.
+
+Att jämföra lokal bygg-hash mot serverad är också ogiltigt: workflowen skriver en `.env` med
+riktiga Firebase-värden före bygget, medan en lokal build saknar den, så innehållet och
+därmed hashen skiljer sig alltid.
+
+**Signaler som faktiskt håller efter en deploy:** en fil som är NY i commiten (HTTP 200 mot
+404), en HTTP-rubrik som kommer ur `firebase.json`, eller en användarvänd textsträng som
+överlever minifiering, hämtad ur rätt chunk. Inte identifierarnamn, inte bundle-hashar.
+
+**Lärdom att bära vidare, och den hör hemma i releaserutinen:** en grön workflow är inte
+bevis för att en deploy nått fram. Skillnaden mellan "jobbet gick igenom" och "artefakten är
+utbytt" är precis den sortens glapp som resten av det här projektet redan har regler mot.
+Releasechecklistan i `.claude/skills/synappsen-release/SKILL.md` säger redan åt en att
+kontrollera asset-hashen efter deploy. Jag gjorde det, men jämförde den inte mot något, och
+en hash utan jämförelse bevisar ingenting.
 
