@@ -163,7 +163,7 @@ export default function Leverantor() {
   }
 
   return (
-    <div className="sida">
+    <div className="sida sida--bred">
       <Link to="/">← Hem</Link>
       <h1>🏢 Leverantörsvy</h1>
       <p className="sida__beskrivning">

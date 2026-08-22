@@ -452,7 +452,7 @@ export default function Admin() {
   );
 
   return (
-    <div className="sida">
+    <div className="sida sida--bred">
       <h1>Adminpanel</h1>
       {arSuperadmin && <p><Link to="/ledningsrapport">📄 Ledningsrapport (utskriftsvänlig sammanfattning)</Link></p>}
 

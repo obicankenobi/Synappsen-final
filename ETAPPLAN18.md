@@ -1,7 +1,9 @@
 # Etapplan 18 – Appen på en datorskärm
 
-**Etapp 69. ANTAGEN 2026-08-22** (se `BESLUTSLOGG.md`). Bygger på en genomgång av UI-lagret i
-v5.121.0 (75 CSS-filer, 28 sidor) och på skissen i artefakten "Synappsen på dator".
+**Etapp 69. ANTAGEN 2026-08-22, HELT KLAR 2026-08-22** (se `BESLUTSLOGG.md`).
+Samtliga delmål 69a–69h byggda, testade och renderade granskade samma dag som antagandet.
+Bygger på en genomgång av UI-lagret i v5.121.0 (75 CSS-filer, 28 sidor) och på skissen i
+artefakten "Synappsen på dator".
 
 > **Vid antagandet tillkom delmål 69h** på ägarens begäran: inloggningssidan görs om helt.
 > Alla tre beslutspunkter avgjordes samtidigt, enligt rekommendationerna — brytpunkt **1024 px**,
@@ -264,14 +266,40 @@ kör vid standardviewporten 1280px sedan tidigare — fullt tvåbreddssvep är 6
 
 ---
 
-### 69d. Vyer som använder bredden
+### 69d. Vyer som använder bredden ✅ KLAR 2026-08-22
 
-Kortrutnät från två till tre eller fyra kolumner, sökfältet permanent synligt i stället för
-bakom en knapp, och en genomgång av de vyer som lider mest av full bredd. `Admin.css` (12
-`--kant`-användningar) och `Leverantor.css` är de tyngsta och tas först.
+**Rättelser innan bygget.** Två av planens tre antaganden höll inte.
 
-**Klart när:** de fem mest använda vyerna är renderade och granskade vid 1440 px, och ingen av
-dem har en rad löpande text över 80 tecken.
+1. **"Sökfältet permanent synligt i stället för bakom en knapp" var redan löst av 69c.**
+   Sidomenyns "Sök"-knapp är alltid synlig på en datorskärm. `Leverantor.jsx`s eget filter/
+   sök lever redan i URL:en (Etapp 67d), aldrig bakom en knapp. Ingen kod behövdes för den
+   här punkten.
+2. **"Kortrutnät från två till tre eller fyra kolumner" gäller inte `Sektionssida.jsx`s
+   rutinlista, och att göra det hade varit fel.** Varje `RutinKort` bär sin egen rutintext,
+   och 69b:s mätning (55–63 tecken/rad vid 600px) håller bara SÅ LÄNGE den bredden består.
+   En tre-kolumners rutinlista hade klämt samma prosa in i en ~300px spalt och gjort den
+   oläslig — precis tvärtom mot vad 69b löste samma dag.
+3. **Det som HÖLL:** `Admin.css` (`.admin-statistik-grid`) och Leverantörsvyns nyckeltal-
+   och kräver-åtgärd-rader är REDAN responsiva (`grid-template-columns: repeat(auto-fit,
+   minmax(220px, 1fr))` respektive `flex-wrap`) — de har bara aldrig haft en behållare bred
+   nog att visa mer än en–två kolumner, eftersom de ärver `.sida`s 600px-tak. Ingen ny
+   grid-kod behövdes, bara en bredare behållare.
+
+**Byggt:** `--maxbredd-bred: 1100px` och en `.sida--bred`-modifierare i `index.css`, satt på
+`Admin.jsx` och `Leverantor.jsx`s faktiska innehållsvy (INTE dess laddnings-/nekad-tillstånd,
+som bara visar korta meddelanden och inte vinner något på bredden).
+
+**En verklig regression hittad under bygget, inte i produktion.** Att bredda behållaren
+stretchade OCKSÅ löpande text: `EpostNodstoppSektion.jsx`s beskrivningsstycke mättes till
+**1068px brett** (över 100 tecken/rad) innan en motåtgärd lades till. Fixat med `.sida--bred
+p { max-width: var(--maxbredd-lasbar) }` — samma princip 69b redan etablerade, applicerad
+här på den bredare behållaren. Uppmätt EFTER fixen: **600px**, tillbaka inom rekommendationen.
+Grid-/flex-raderna (nyckeltal, etiketter) berörs inte, eftersom regeln bara träffar `<p>`.
+
+**Klart när:** de fem mest använda vyerna är renderade och granskade vid 1440 px ✅ (Hem,
+Kliniskt stöd, Admin, Leverantör, Logistik — de tre sistnämnda via `Sektionssida`/`.sida`
+oförändrade, Admin/Leverantör via `.sida--bred`), och ingen av dem har en rad löpande text
+över 80 tecken ✅ (uppmätt, inte antaget — se regressionen ovan).
 
 ---
 
@@ -299,7 +327,7 @@ båda teman, inte bara uträknat.
 
 ---
 
-### 69f. Skrolla till toppen vid ruttbyte (fristående defekt)
+### 69f. Skrolla till toppen vid ruttbyte (fristående defekt) ✅ KLAR 2026-08-22
 
 Appen återställer inte skrollpositionen när man byter sida. Går man långt ner i en lista i
 Kliniskt stöd och öppnar en rutin, öppnas rutinen mitt i texten. React Router gör det inte
@@ -308,12 +336,41 @@ automatiskt, och ingen komponent i projektet gör det heller — verifierat.
 Undantag: djuplänkning (`/kliniskt-stod#rutin-{id}`) ska fortsätta fungera, liksom
 webbläsarens bakåtknapp, som ska återställa den gamla positionen och inte skrolla till toppen.
 
-**Klart när:** ett e2e-test bevisar båda beteendena — framåtnavigering börjar överst,
-bakåtnavigering återvänder till samma position.
+**Byggt som `src/components/ScrollHantering.jsx`, men det tog TVÅ felaktiga försök att komma
+rätt — båda värda att skriva ner:**
+
+1. **Att lita på webbläsarens egna `history.scrollRestoration` ("auto") för bakåtfallet.**
+   Ett e2e-test som klickade bakåt och mätte `window.scrollY` fick konsekvent 0, inte den
+   skrollade positionen — webbläsarens `popstate`-återställning hann ske innan React
+   renderat klart den nya sidans höjd.
+2. **Att spara positionen i CLEANUP-funktionen för navigeringseffekten** ("spara det gamla
+   värdet precis innan jag sätter det nya"). Det såg rätt ut men var fel: cleanup för sidan
+   man LÄMNAR körs efter att React redan bytt ut DOM-innehållet mot den NYA sidans. Är den
+   nya sidan kortare (Hem är kortare än en långt nerskrollad Nyheter-lista) har webbläsaren
+   redan KLAMPAT om scrollY till vad som får plats — ofta 0 — innan cleanup hinner läsa av
+   det. Bekräftat genom att logga hela navigeringssekvensen och se värdet redan vara 0 innan
+   cleanup körde.
+
+**Lösningen:** spara löpande, via en `scroll`-lyssnare, medan sidan fortfarande är fullt
+renderad — värdet finns då redan sparat innan någon navigering ens påbörjas och hinner aldrig
+klampas om. `history.scrollRestoration` sätts till `"manual"` för att inte konkurrera med
+webbläsarens egen gissning.
+
+**En till lärdom, den här gången i TESTET snarare än komponenten:** det första testförsöket
+navigerade via sidans egen "← Hem"-länk, som ligger överst i det skrollbara innehållet.
+Playwrights `.click()` (precis som en riktig users pekare) måste då skrolla UPP till länken
+FÖRST för att kunna klicka på den — vilket i sig nollställer positionen innan navigeringen
+ens sker. Inte ett fel i skrollåterställningen, bara ett orealistiskt sätt att testa den.
+Löst genom att navigera via den fasta sidomenyn (69c) istället, som alltid är synlig utan att
+kräva att man skrollar dit.
+
+**Klart när:** ett e2e-test bevisar båda beteendena ✅ (`tests/e2e/skrollhantering.spec.js`,
+tre test: framåtnavigering börjar överst, bakåtnavigering återvänder till samma position,
+och djuplänkning med hash skrollar till ankaret).
 
 ---
 
-### 69g. Testsvepet vid två bredder, och en vakt mot temadrift
+### 69g. Testsvepet vid två bredder, och en vakt mot temadrift ✅ KLAR 2026-08-22
 
 Två luckor i kvalitetsmaskineriet som blir värre av den här etappen, inte bättre.
 
@@ -338,6 +395,36 @@ token. Samma "händelsestyrd, inte minnesstyrd"-princip som resten av projektet.
 **Klart när:** svepet kör vid två bredder utan att bli mer än ungefär dubbelt så långsamt, och
 drifttestet failar om man ändrar ett värde i bara det ena mörka blocket (bevisa det genom att
 prova).
+
+**Byggt — men INTE som en fullständig 2×2-korsprodukt.** En fullständig korsprodukt (två
+bredder × två teman på BÅDA specfilerna) hade fyrdubblat den redan tyngsta delen av sviten,
+inte fördubblat den — planens egen budget. De två dimensionerna delades därför upp mellan de
+två specfilerna istället, efter vilken defekt var och en faktiskt hade fångat:
+
+- `rokprov.spec.js` (25 routes × 7 roller): körs nu vid **mobil (390×844) och dator
+  (1440×900)** — motiverat av att 69c bytte hela navigeringskomponenten mellan de bredderna.
+  Ett svep som bara körde vid en bredd hade aldrig rört `BottomNav.jsx`-vägen alls. Från
+  ~130s till **4m 18s** för 14 körningar (7 roller × 2 bredder) — nära den accepterade
+  fördubblingen.
+- `tillganglighet.spec.js` (25 routes × 2 roller, axe-core): körs nu i **ljust och mörkt
+  läge**, oförändrad bredd — motiverat av att 69h:s app-övergripande länkfärgsdefekt var
+  tema-, inte breddberoende. Från ~85s till **2m 54s** för 4 körningar.
+
+**En verklig, tredje kontrastdefekt hittades av det breddade axe-svepet, INTE i förväg.**
+`.hem__snabblankar a` (Hem-sidans fyra genvägschips: Anslagstavla, Nyheter, Feedback, Hjälp)
+satte `color: var(--primar)` mot `background: var(--primar-ljus)`, vilket gav **4,25:1** i
+mörkt läge — under WCAG AA:s 4,5:1. Samma defekt slog dessutom mot ALLA fyra dubblerade
+`<BottomNav/>`-rutter (`/`, `/admin`, `/godkannanden`, `/ledningsrapport`), eftersom chipsen
+finns på Hem som alla länkar till. Fanns troligen sedan länge — aldrig körd i mörkt läge
+förrän nu. Fixat: `color: var(--primar-mork)`, samma "text på tintad yta"-mönster
+`Sidomeny.css`s aktiva länk redan använder, uppmätt till 6,15–11,05:1 i samtliga åtta
+paletter. Paret `--primar-mork`/`--primar-ljus` tillagt i `tests/docs/kontrastpalett.test.js`
+så det bevakas permanent, inte bara den här gången.
+
+**Drifttestet** (`tests/docs/morkt-lage-drift.test.js`) jämför `:root[data-tema="dark"]` mot
+sitt `@media (prefers-color-scheme: dark)`-syskon, token för token, för basen och alla tre
+accenter (8 kontroller). Bevisat att det faktiskt fångar drift genom att tillfälligt ändra ett
+enda värde i bara det ena blocket, se testet faila, och återställa — inte bara påstått.
 
 ---
 

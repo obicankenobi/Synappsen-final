@@ -86,6 +86,10 @@ const PAR = [
   // .knapp--sekundar: color var(--primar), transparent bakgrund
   ["--primar", "--bg", AA_TEXT, "sekundärknapp och länkar mot sidbakgrund"],
   ["--primar", "--yta", AA_TEXT, "sekundärknapp och länkar mot kortyta"],
+  // Etapp 69g: .hem__snabblankar a och Sidomeny.css:s .sidomeny__lank.active - text på en
+  // tintad yta, samma mönster som --pa-primar men för den SVAGARE ytan istället för en
+  // färgmättad knapp. Upptäckt via axe-core i mörkt läge (69g:s tillägg), var tidigare fel.
+  ["--primar-mork", "--primar-ljus", AA_TEXT, "text på tintad primärfärgad yta"],
   // statusfärger som text
   ["--farlig", "--yta", AA_TEXT, "felmeddelande mot kortyta"],
   ["--success", "--yta", AA_TEXT, "bekräftelse mot kortyta"],

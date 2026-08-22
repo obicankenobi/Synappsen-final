@@ -21,6 +21,7 @@ import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
 import Sidomeny from "./components/Sidomeny";
+import ScrollHantering from "./components/ScrollHantering";
 import KommandopalettLyssnare from "./components/KommandopalettLyssnare";
 import KioskBevakning from "./components/KioskBevakning";
 import { REDAKTORSROLLER } from "./firebase/roles";
@@ -124,6 +125,7 @@ export default function App() {
           Hoppa till innehåll
         </a>
         <SidTitelBevakning />
+        <ScrollHantering />
         <KioskBevakning />
         <AppUppdateringBanner />
         <MfaPolicyBanner />

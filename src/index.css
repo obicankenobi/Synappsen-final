@@ -221,6 +221,17 @@ U+2122,U+2212,U+2248,U+2260,U+2264-2265" \
      råkar vara överens idag, men inget som tvingar dem att förbli det. Ett enda token löser
      det utan att ändra något värde. */
   --maxbredd-lasbar: 600px;
+  /* Etapp 69d (2026-08-22): Admin.jsx och Leverantor.jsx (Admin.css/Leverantor.css) är
+     dashboards, inte löptext - de har redan responsiva rutnät (`.admin-statistik-grid`:
+     `grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))`, Leverantors nyckeltal/
+     kräver-åtgärd-rader: `flex-wrap`) som ALDRIG fått plats att visa mer än en-två kolumner,
+     eftersom de ärver samma 600px-tak som prosan. Att bredda BEHÖVER alltså ingen ny
+     grid-kod, bara en bredare behållare. `Sektionssida.jsx`s rutinlista är MEDVETET
+     UNDANTAGEN: varje `RutinKort` bär egen rutintext, och 69b:s mätning (55-63 tecken/rad
+     vid 600px) gäller bara så länge den bredden består - en tre-kolumners rutinlista hade
+     klämt in samma prosa i en ~300px spalt och gjort den OLÄSLIG, precis tvärtom mot vad 69b
+     löste. */
+  --maxbredd-bred: 1100px;
 
   /* Etapp 69c (2026-08-22): sidomenyns bredd. Brytpunkten den visas vid (1024px) är INTE ett
      token - CSS custom properties går inte att använda i ett @media-villkor, en begränsning
@@ -485,6 +496,22 @@ h1 {
   padding: 24px 16px 90px;
 }
 
+/* Etapp 69d: dashboardvyer (Admin, Leverantör) - se motiveringen vid --maxbredd-bred ovan.
+   `width: 100%` gör detta ofarligt på en smal skärm: den faktiska bredden blir ändå aldrig
+   mer än viewporten, `max-width` sätter bara ett tak som normalt aldrig nås på mobil. */
+.sida--bred {
+  max-width: var(--maxbredd-bred);
+}
+
+/* Etapp 69d: löptext inuti en bred dashboard får INTE använda hela --maxbredd-bred - mätt i
+   en riktig renderad rad (Leverantor.jsx:s e-postbeskrivning) blev det 1068px, långt över
+   den 80-teckensgräns krav 8 i den här etappen satte. Samma princip 69b redan etablerade
+   för --maxbredd-lasbar, applicerad här på den bredare behållaren: rutnät/flex-rader (korta
+   nyckeltal, etiketter) berörs inte eftersom `<p>` bara träffar löpande text. */
+.sida--bred p {
+  max-width: var(--maxbredd-lasbar);
+}
+
 /* Etapp 69h (2026-08-22): `.sida--auth` är BORTTAGEN härifrån. Auth-sidorna har fått ett eget
    skal i src/components/AuthSkal.css – delad vy med märkespanel över 1024 px, centrerat
    formulär under. Klassen hade bara två användare (LoggaIn, Registrera) och båda är
@@ -551,7 +578,12 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--primar);
+  /* Etapp 69g (2026-08-22): var var(--primar), vilket gav 4,25:1 i mörkt läge mot
+     --primar-ljus - under WCAG AA:s 4,5:1. Upptäckt först nu eftersom axe-svepet aldrig
+     körde i mörkt läge förrän 69g lade till det. --primar-mork är samma "text på tintad
+     yta"-mönster Sidomeny.css redan använder för sin aktiva länk, och mäter 6,15-11,05:1 i
+     samtliga åtta paletter (src/utils/kontrast.js). */
+  color: var(--primar-mork);
   background: var(--primar-ljus);
   text-decoration: none;
   font-size: 0.85rem;

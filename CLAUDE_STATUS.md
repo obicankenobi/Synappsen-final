@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.126.0** – byggd och pushad, väntar på deploy. Etapp 69: 69a (z-index-delen), 69b, 69c, 69e och 69h klara.
+**Senast uppdaterad:** 2026-08-22, version **5.127.0** – byggd och pushad, väntar på deploy. **Etapp 69 (ETAPPLAN18.md) HELT KLAR:** samtliga delmål 69a-69h avslutade.
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -4200,3 +4200,46 @@ Fullt svep grönt: lint, build, vitest 395/395, `test:rules`, `test:functions`,
 
 Kvar i Etapp 69: 69a (brytpunktsdelen, nu i praktiken klar via denna etapps 1024px), 69d, 69f,
 69g.
+
+## Uppföljning 2026-08-22 (Etapp 69 HELT KLAR: 69d, 69f, 69g, v5.127.0)
+
+Slutförde de tre återstående delmålen i `ETAPPLAN18.md` i en följd, på ägarens begäran
+("Slutför alla kvarvarande steg i denna etapplanen"). **Etapp 69 är därmed helt klar** –
+69a–69h alla byggda, testade och renderade granskade samma dag som antagandet.
+
+**69d (vyer som använder bredden).** Två av planens tre antaganden höll inte. "Sökfältet
+permanent synligt" var redan löst av 69c (sidomenyns Sök-knapp). "Kortrutnät till tre
+kolumner" gäller INTE `Sektionssida.jsx`s rutinlista – varje `RutinKort` bär egen rutintext,
+och en tre-kolumners lista hade klämt in 69b:s nyss lösta läsbara radlängd i en ~300px spalt.
+Det som höll: `Admin.css` och Leverantörens nyckeltalsrader är REDAN responsiva grid/flex,
+bara instängda i `.sida`s 600px-tak. Löst med `--maxbredd-bred: 1100px` + `.sida--bred` på
+Admin/Leverantör. En verklig regression hittades UNDER bygget: att bredda behållaren
+stretchade också löpande text till 1068px brett – fixat med `.sida--bred p { max-width:
+var(--maxbredd-lasbar) }`, samma princip som 69b.
+
+**69f (skrolla till toppen vid ruttbyte).** Tog två felaktiga försök innan det satt: (1) att
+lita på webbläsarens `history.scrollRestoration` höll inte – ett e2e-test bevisade
+`window.scrollY` alltid blev 0 vid bakåtnavigering; (2) att spara positionen i navigerings-
+effektens CLEANUP höll inte heller – cleanup körs efter att React redan bytt DOM till den nya
+(kortare) sidan, som redan hunnit klampa om scrollY. Lösningen: en löpande `scroll`-lyssnare
+som sparar positionen medan sidan fortfarande är fullt renderad. Byggd som
+`ScrollHantering.jsx`, bevisad med `tests/e2e/skrollhantering.spec.js` (3 test).
+
+**69g (testsvep vid två bredder/teman + drift-vakt).** En full 2×2-korsprodukt hade
+fyrdubblat sviten, inte fördubblat den (planens egen budget) – delade därför upp dimensionerna:
+`rokprov.spec.js` kör nu vid mobil OCH dator (motiverat av 69c:s navigeringsbyte),
+`tillganglighet.spec.js` kör nu i ljust OCH mörkt (motiverat av 69h:s tema-defekt). Det
+BREDDADE axe-svepet hittade en TREDJE riktig kontrastdefekt, inte i förväg: Hem-sidans fyra
+genvägschips (`.hem__snabblankar a`) gav 4,25:1 i mörkt läge, under kravet 4,5:1 – och slog
+igenom på alla fyra dubblerade `<BottomNav/>`-rutter eftersom de länkar dit. Fixat med
+`--primar-mork` (6,15–11,05:1), samma mönster Sidomeny redan använder, och tillagt i
+`kontrastpalett.test.js`s permanenta bevakning. Ny `tests/docs/morkt-lage-drift.test.js`
+(8 kontroller) jämför de två handhållna mörkt-läge-kopiorna token för token – bevisat att den
+faktiskt fångar drift genom att tillfälligt mutera ett värde, se testet faila, och återställa.
+
+Fullt svep grönt: lint, build, vitest 407/407 (36 filer), `test:rules`, `test:functions`,
+`test:storage`, e2e **41/41** (32 tidigare + 3 skrollhantering + widened rökprov/axe).
+
+**Etapp 69 (`ETAPPLAN18.md`) är därmed HELT KLAR.** Ingen aktiv etapplan väntar. Nästa steg
+är deploy (efterfrågat av ägaren), sedan att fråga vad nästa etapp ska bli, eller läsa
+`OPPNA-PUNKTER.md`.

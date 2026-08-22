@@ -9,10 +9,24 @@
 // funktionstest): sidan renderar, ingen ErrorBoundary-krasch, inga konsolfel. En roll som
 // saknar behörighet till en route (RollSkyddadRoute) omdirigeras tyst till startsidan – det
 // är korrekt, förväntat beteende, inte ett testfel, och kräver ingen särskild hantering här.
+//
+// Etapp 69g (ETAPPLAN18.md): körs sedan 2026-08-22 vid TVÅ bredder, inte bara en. Ända sedan
+// Etapp 69c fick appen en helt annan navigeringskomponent (Sidomeny.jsx) över 1024px - ett
+// svep som bara körde vid standardviewporten (1280×720, alltså redan över den brytpunkten)
+// hade aldrig rört BottomNav.jsx-vägen alls. Dubblar sviten (7 roller × 2 bredder istället
+// för × 1), vilket är precis den "ungefär dubbelt så långsam"-kostnad planen accepterade -
+// inte fyra gånger, eftersom tema hanteras separat i tillganglighet.spec.js istället (samma
+// fulla rök-svep vid båda TEMAN hade blivit fyra gånger så långsamt för marginell nytta;
+// mörkt läge har inga egna routes eller krascher att hitta, bara kontrastfrågor, som redan
+// är axe:s jobb).
 import { test, expect } from "@playwright/test";
 import { ALLA_ROUTES } from "./rutter.mjs";
 
 const LOSENORD = "test1234";
+const BREDDER = [
+  { namn: "mobil", viewport: { width: 390, height: 844 } },
+  { namn: "dator", viewport: { width: 1440, height: 900 } },
+];
 
 // Samtliga sju roller i src/firebase/roles.js. "plattformsadmin" (styr /leverantor-åtkomst
 // server-side) är MEDVETET UTANFÖR den här sviten – det är en separat Firestore-collection,
@@ -60,52 +74,58 @@ async function loggaIn(page, epost) {
   await page.waitForURL("**/", { timeout: 15_000 });
 }
 
-for (const { roll, epost } of ROLLER) {
-  test(`rökprov (${roll}): samtliga ${ALLA_ROUTES.length} routes renderar utan krasch`, async ({ page }) => {
-    // 25 sekventiella sidladdningar med inloggning ryms inte inom Playwrights standard-
-    // testtimeout (30s) – särskilt eftersom "networkidle" (se nedan) annars kan vänta länge
-    // på grund av Firestores ihållande realtidslyssnare (websocket), inte för att sidan
-    // faktiskt hänger.
-    test.setTimeout(120_000);
+for (const { namn: breddNamn, viewport } of BREDDER) {
+  for (const { roll, epost } of ROLLER) {
+    test(`rökprov (${roll}, ${breddNamn}): samtliga ${ALLA_ROUTES.length} routes renderar utan krasch`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      // 25 sekventiella sidladdningar med inloggning ryms inte inom Playwrights standard-
+      // testtimeout (30s) – särskilt eftersom "networkidle" (se nedan) annars kan vänta länge
+      // på grund av Firestores ihållande realtidslyssnare (websocket), inte för att sidan
+      // faktiskt hänger.
+      test.setTimeout(120_000);
 
-    const problem = [];
-    let aktuellRoute = null;
-    let konsolfelForRoute = [];
+      const problem = [];
+      let aktuellRoute = null;
+      let konsolfelForRoute = [];
 
-    page.on("console", (msg) => {
-      if (msg.type() === "error") konsolfelForRoute.push(msg.text());
-    });
-    page.on("pageerror", (fel) => {
-      konsolfelForRoute.push(`pageerror: ${fel.message}`);
-    });
-
-    await loggaIn(page, epost);
-
-    for (const route of ALLA_ROUTES) {
-      aktuellRoute = route;
-      konsolfelForRoute = [];
-
-      // "load" istället för "networkidle": Firestores realtidslyssnare håller en ihållande
-      // websocket-anslutning öppen, vilket kan hindra "networkidle" från att någonsin
-      // upplösas – inte för att sidan faktiskt hänger. En kort extra väntan låter React/
-      // Firestore hinna rendera första datan.
-      await page.goto(route, { waitUntil: "load", timeout: 15_000 }).catch((fel) => {
-        problem.push(`${route}: navigering misslyckades (${fel.message})`);
+      page.on("console", (msg) => {
+        if (msg.type() === "error") konsolfelForRoute.push(msg.text());
       });
-      await page.waitForTimeout(400);
+      page.on("pageerror", (fel) => {
+        konsolfelForRoute.push(`pageerror: ${fel.message}`);
+      });
 
-      const antalKrascher = await page.locator(".error-boundary").count();
-      if (antalKrascher > 0) {
-        problem.push(`${route}: ErrorBoundary visades (sidan kraschade vid rendering)`);
-      }
-      const oventadeKonsolfel = konsolfelForRoute.filter((rad) => !arKantMiljobegransning(route, rad));
-      if (oventadeKonsolfel.length > 0) {
-        problem.push(`${route}: konsolfel – ${oventadeKonsolfel.join(" | ")}`);
-      }
-    }
+      await loggaIn(page, epost);
 
-    expect(problem, `Roll: ${roll} (senast besökta route innan avslut: ${aktuellRoute})\n${problem.join("\n")}`).toEqual(
-      []
-    );
-  });
+      for (const route of ALLA_ROUTES) {
+        aktuellRoute = route;
+        konsolfelForRoute = [];
+
+        // "load" istället för "networkidle": Firestores realtidslyssnare håller en ihållande
+        // websocket-anslutning öppen, vilket kan hindra "networkidle" från att någonsin
+        // upplösas – inte för att sidan faktiskt hänger. En kort extra väntan låter React/
+        // Firestore hinna rendera första datan.
+        await page.goto(route, { waitUntil: "load", timeout: 15_000 }).catch((fel) => {
+          problem.push(`${route}: navigering misslyckades (${fel.message})`);
+        });
+        await page.waitForTimeout(400);
+
+        const antalKrascher = await page.locator(".error-boundary").count();
+        if (antalKrascher > 0) {
+          problem.push(`${route}: ErrorBoundary visades (sidan kraschade vid rendering)`);
+        }
+        const oventadeKonsolfel = konsolfelForRoute.filter((rad) => !arKantMiljobegransning(route, rad));
+        if (oventadeKonsolfel.length > 0) {
+          problem.push(`${route}: konsolfel – ${oventadeKonsolfel.join(" | ")}`);
+        }
+      }
+
+      expect(
+        problem,
+        `Roll: ${roll}, bredd: ${breddNamn} (senast besökta route innan avslut: ${aktuellRoute})\n${problem.join("\n")}`
+      ).toEqual([]);
+    });
+  }
 }
