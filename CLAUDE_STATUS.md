@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.119.0** – byggd och pushad, **INTE DEPLOYAD**
+**Senast uppdaterad:** 2026-08-22, version **5.119.0** – byggd, pushad och **DEPLOYAD** (körning #83)
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -3889,3 +3889,32 @@ Fullt svep grönt: lint, build, vitest, `test:e2e` med axe-core mot 25 routes i 
 rekommendationen är att avstå.** Produktionen kör v5.117.0; v5.118.0 och v5.119.0 är pushade
 men odeployade.
 
+
+## Uppföljning 2026-08-22 (deploy av v5.118.0 och v5.119.0, körning #83)
+
+Ägaren bad om deploy av de två väntande versionerna. Körning **#83** på commit `1a619f6`,
+default-grenen. Produktionen kör nu **v5.119.0**.
+
+**Verifierad på artefakten, inte på körningsstatusen.** Efter felet i körning #81 (grön
+workflow, hosting aldrig deployad – se uppföljningen 2026-08-21) togs ett baseline FÖRE
+deployen: den serverade CSS-filen var `index-C8tKQHWv.css` och innehöll `#2563eb`, inget
+`--pa-primar`, inget `#2f5fd6`. Efter deployen serveras `index-CcvvKSZ3.css` med `--pa-primar`,
+`#2f5fd6` (68b:s primärfärg) och `#7d8a99` (68d:s `--kant-stark`), och `#2563eb` är borta.
+
+Det är ett giltigt signalval enligt doktrinen i uppföljningen 2026-08-21: **CSS-egna
+variabelnamn minifieras inte** av Vite/Rollup, och hexvärden är literaler. Det är alltså inte
+samma sak som att grepa efter identifierarnamn i en minifierad JS-bundle, vilket var det
+ogiltiga testet som fick mig att felaktigt tro att #82 inte deployat.
+
+En sidoiakttagelse värd att skriva ner för nästa gång: `5.119.0` finns **inte** i huvudchunken
+`index-*.js`. `APP_VERSION` används bara i `Nyheter.jsx` och `admin/SystemstatusSektion.jsx`,
+som båda är lazy-laddade – strängen ligger i `Nyheter-*.js`. Att inte hitta versionen i
+huvudchunken bevisar alltså ingenting. Hämtad ur rätt chunk fanns den.
+
+CSP-rubriken är oförändrat `Content-Security-Policy-Report-Only` med hashen
+`'sha256-P9yZEO5lFejtO0SZXIJ3BVCHLkxZNrpaungAr34q224='` – alltså fortfarande inte enforcing,
+vilket är avsiktligt tills rapporterna är genomlästa.
+
+Kvar i Etapp 68: **68e** (typsnittet), villkorat av beslutspunkt 1 där rekommendationen är att
+avstå. Kvar utanför etappen: `--kant` (1,23:1 över 91 regler) väntar på ett ägarbeslut, se
+`OPPNA-PUNKTER.md`.
