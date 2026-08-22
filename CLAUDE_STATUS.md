@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.127.0** – byggd och pushad, väntar på deploy. **Etapp 69 (ETAPPLAN18.md) HELT KLAR:** samtliga delmål 69a-69h avslutade.
+**Senast uppdaterad:** 2026-08-22, version **5.127.0** – byggd, pushad och **DEPLOYAD** (körning #86). **Etapp 69 (ETAPPLAN18.md) HELT KLAR OCH LIVE I PRODUKTION.**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -4243,3 +4243,16 @@ Fullt svep grönt: lint, build, vitest 407/407 (36 filer), `test:rules`, `test:f
 **Etapp 69 (`ETAPPLAN18.md`) är därmed HELT KLAR.** Ingen aktiv etapplan väntar. Nästa steg
 är deploy (efterfrågat av ägaren), sedan att fråga vad nästa etapp ska bli, eller läsa
 `OPPNA-PUNKTER.md`.
+
+## Uppföljning 2026-08-22 (deploy av v5.127.0, körning #86 – Etapp 69 LIVE)
+
+Ägaren bad om deploy när hela etapplanen var klar. Körning **#86** på commit `8c715bc`.
+Produktionen kör nu **v5.127.0**, med samtliga delmål 69a–69h.
+
+Verifierat på artefakten: den serverade CSS-filen (`index-SuVp5zAB.css`) är bit-för-bit samma
+som den lokala byggen av samma commit, och `.hem__snabblankar a`s färg gick från
+`var(--primar)` (69g:s hittade defekt, 4,25:1 i mörkt läge) till `var(--primar-mork)`
+(6,15–11,05:1) — exakt den sista fixen som lades till i etappen.
+
+**Etapp 69 är därmed inte bara klar i koden utan live i produktion.** Ingen aktiv etapplan
+väntar. Nästa steg: fråga ägaren vad nästa etapp ska bli, eller läsa `OPPNA-PUNKTER.md`.
