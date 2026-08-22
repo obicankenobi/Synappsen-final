@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.121.0** – byggd och pushad, väntar på deploy. **Etapp 68 är HELT KLAR.**
+**Senast uppdaterad:** 2026-08-22, version **5.121.0** – byggd, pushad och **DEPLOYAD** (körning #85). **Etapp 68 är HELT KLAR.**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -3995,3 +3995,13 @@ avslöjar handjustering per komponent snarare än en skala.
 **`ETAPPLAN17.md` / Etapp 68 är därmed HELT KLAR** – 68a–68g byggda, alla tre beslutspunkter
 avgjorda. Ingen aktiv etapplan väntar just nu; fråga ägaren vad nästa etapp ska vara, eller läs
 `OPPNA-PUNKTER.md`.
+
+## Uppföljning 2026-08-22 (deploy av v5.121.0, körning #85)
+
+Ägaren bad om deploy. Körning **#85** på commit `cbbf01f`. Produktionen kör nu **v5.121.0**.
+
+Verifierat på artefakten med tre oberoende signaler: (1) `manifest.webmanifest` gick från
+`theme_color: #1d4ed8` / `background_color: #ffffff` till `#274eaf` / `#f5f9fa` – exakt 68e:s
+rättelse; (2) den serverade CSS-filen bytte hash (`index-BP_CbFB9.css` → `index-D7QZ692q.css`);
+(3) `GET /fonts/public-sans-400.woff2` svarar **200**, en fil som är helt ny i den här commiten
+och alltså inte kunde funnits där innan.
