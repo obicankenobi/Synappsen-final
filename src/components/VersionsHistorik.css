@@ -13,7 +13,9 @@
   border-radius: 16px 16px 0 0;
   padding: 20px;
   width: 100%;
-  max-width: 600px;
+  /* Etapp 69b: samma värde som .sida i index.css, nu ur samma token istället för en egen
+     hårdkodad kopia - se --maxbredd-lasbar där för mätningen och varför. */
+  max-width: var(--maxbredd-lasbar);
   max-height: 80vh;
   overflow-y: auto;
 }

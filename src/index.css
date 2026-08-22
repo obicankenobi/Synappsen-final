@@ -212,6 +212,16 @@ U+2122,U+2212,U+2248,U+2260,U+2264-2265" \
      stapel-kontext - se AuthSkal.css och Kommentarer.css för de två användningarna. */
   --z-lokal: 1;
 
+  /* Etapp 69b (2026-08-22): läsbar radlängd. `.sida` hade redan `max-width: 600px` sedan
+     tidigare (Etapp 43a) - INTE odokumenterat, bara inte ett token. Uppmätt i renderad vy
+     (1440 px viewport, en riktig rutintext i .rutin-kort): innehållsytan blir 534 px, vilket
+     ger ca 55-63 tecken per rad i Public Sans - inom den vanliga rekommendationen 50-75.
+     Samma 600px-värde fanns dessutom hårdkodat en gång till i VersionsHistorik.css, vilket
+     är precis den sortens duplicering CLAUDE.md:s hela inledning handlar om: två ställen som
+     råkar vara överens idag, men inget som tvingar dem att förbli det. Ett enda token löser
+     det utan att ändra något värde. */
+  --maxbredd-lasbar: 600px;
+
   font: 16px/1.6 system-ui, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
@@ -461,7 +471,7 @@ h1 {
 .sida {
   flex: 1;
   width: 100%;
-  max-width: 600px;
+  max-width: var(--maxbredd-lasbar);
   margin: 0 auto;
   padding: 24px 16px 90px;
 }

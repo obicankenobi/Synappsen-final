@@ -156,14 +156,34 @@ buggarna, som var avsikten** ✅.
 
 ---
 
-### 69b. Läsbar radlängd
+### 69b. Läsbar radlängd ✅ KLAR 2026-08-22 (premissen var fel)
 
-`.app-innehall` får en maxbredd och centreras. Löpande text får en **snävare** egen spalt än
-korten — det är prosan som blir oläslig av långa rader, inte ett kortrutnät. På en 1440-skärm
-är rutinbrödtexten idag omkring 150 tecken bred; 50–75 är den vanliga rekommendationen.
+**Rättelse innan bygget:** planen påstod att rutinbrödtexten är "omkring 150 tecken bred" på
+en 1440-skärm. Den siffran kom från min egen handritade artefaktdemo, inte från en mätning
+av appen, och den höll inte. Genomgången av faktisk kod (`Sektionssida.jsx`, `RutinKort.jsx`,
+och i praktiken varje sida i `src/pages/` utom `Akutlage`/`Korvy`/de nya auth-sidorna) visade
+att `.sida` redan har `max-width: 600px` sedan Etapp 43a — inte odokumenterat, bara inte ett
+token. Uppmätt genom att rendera en riktig rutintext i ett `.rutin-kort` vid en 1440 px
+viewport: innehållsytan blir **534 px**, vilket ger **55–63 tecken per rad** i Public Sans —
+redan inom rekommendationen 50–75. Skärmdump tagen som bevis, inte bara uträknat.
 
-**Klart när:** radlängden är uppmätt i renderad vy vid 1440 px och ligger under 80 tecken för
-löpande text, och kortrutnätet fortfarande får använda hela ytan.
+Det faktiska problemet är närmast det omvända: `.sida` sätter SAMMA 600px-tak på allt
+innehåll, prosa och kortrutnät och dashboards likadant, vilket gör att kort som skulle må bra
+av två-tre kolumner på en datorskärm (Admin, Leverantör, Hem:s snabblänkar) tvingas till en
+enda smal kolumn. Det är precis vad **69d** ("vyer som använder bredden") redan är till för —
+inget nytt delmål behövs, bara en tydlig notering här om att gränsen mellan 69b och 69d går
+vid prosa kontra rutnät, inte vid en sidas totala bredd.
+
+**Vad som faktiskt byggdes:** `--maxbredd-lasbar: 600px` i `index.css`, med mätningen ovan
+inskriven. `.sida` pekar nu på token:et. Samma värde fanns dessutom hårdkodat en gång till i
+`VersionsHistorik.css` — exakt den sortens duplicering `CLAUDE.md`s inledning handlar om, två
+ställen som råkade vara överens men inget som tvingade dem att förbli det. Nu ett token, inget
+ändrat värde.
+
+**Klart när:** radlängden är uppmätt i renderad vy vid 1440 px (✅ 55–63 tecken, dokumenterat
+i koden), och kortrutnätet fortfarande får använda hela ytan (✅ oförändrat, ingen kod rörd
+utanför de två `max-width`-raderna). Ingen synlig skillnad — verifierat: samma pixelbredd
+(534 px) före och efter.
 
 ---
 

@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.125.0",
+    datum: "2026-08-22",
+    andringar: [
+      "Internt städ: sidbredden styrs nu från ett enda ställe i koden istället för två. Inget syns annorlunda",
+    ],
+  },
+  {
     version: "5.124.0",
     datum: "2026-08-22",
     andringar: [

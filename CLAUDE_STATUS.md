@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.124.0** – byggd och pushad, väntar på deploy. Etapp 69: 69a (z-index-delen), 69e och 69h klara.
+**Senast uppdaterad:** 2026-08-22, version **5.125.0** – byggd och pushad, väntar på deploy. Etapp 69: 69a (z-index-delen), 69b, 69e och 69h klara.
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -4127,3 +4127,30 @@ Fullt svep grönt: lint, build (oförändrad precache-storlek: 124 poster), vite
 `test:rules`, `test:functions`, `test:storage`, e2e 23/23.
 
 Kvar i Etapp 69: 69a (brytpunktsdelen, ihop med 69b/69c), 69b, 69c, 69d, 69f, 69g.
+
+## Uppföljning 2026-08-22 (delmål 69b, premissen var fel, v5.125.0)
+
+Nästa steg i `ETAPPLAN18.md`: **69b**, läsbar radlängd. Planens egen premiss höll inte vid
+kontroll mot faktisk kod, och det är värt att skriva in rakt av: siffran "~150 tecken per
+rad" kom från min egen artefaktdemo, inte från en mätning av appen.
+
+**Verklig mätning:** `.sida` har redan haft `max-width: 600px` sedan Etapp 43a. Renderade en
+riktig rutintext i ett `.rutin-kort` vid 1440 px viewport och mätte: innehållsytan blir
+**534 px**, vilket ger **55–63 tecken per rad** i Public Sans — redan inom rekommendationen
+50–75. Skärmdump tagen, inte bara uträknat.
+
+Det faktiska problemet ligger åt andra hållet: `.sida` sätter samma 600px-tak på ALLT
+innehåll, inklusive kortrutnät och dashboards som skulle må bra av mer bredd på en
+datorskärm. Det är redan **69d**s jobb ("vyer som använder bredden") — inget nytt delmål
+behövdes, bara en tydlig notering i planen om var gränsen går.
+
+**Vad som byggdes:** `--maxbredd-lasbar: 600px` i `index.css` med mätningen inskriven.
+`.sida` pekar nu på token:et. Samma värde fanns dessutom hårdkodat en gång till i
+`VersionsHistorik.css` — två ställen som råkade vara överens men inget som tvingade dem att
+förbli det. Nu ett token, inget ändrat värde. Verifierat: exakt samma pixelbredd (534 px)
+före och efter.
+
+Fullt svep grönt: lint, build, vitest 395/395, `test:rules`, `test:functions`,
+`test:storage`, e2e 23/23.
+
+Kvar i Etapp 69: 69a (brytpunktsdelen, ihop med 69c), 69c, 69d, 69f, 69g.
