@@ -1,7 +1,7 @@
 .mer-meny__bakgrund {
   position: fixed;
   inset: 0;
-  z-index: 800;
+  z-index: var(--z-modal);
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: flex-end;

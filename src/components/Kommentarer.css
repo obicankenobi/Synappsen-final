@@ -79,7 +79,8 @@
   position: absolute;
   bottom: 100%;
   left: 0;
-  z-index: 5;
+  /* Etapp 69a: lokal stapling - se index.css --z-lokal. */
+  z-index: var(--z-lokal);
   background: var(--yta);
   border: 1px solid var(--kant);
   border-radius: 8px;

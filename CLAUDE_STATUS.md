@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.123.0** – byggd och pushad, väntar på deploy. Etapp 69: 69e och 69h klara.
+**Senast uppdaterad:** 2026-08-22, version **5.124.0** – byggd och pushad, väntar på deploy. Etapp 69: 69a (z-index-delen), 69e och 69h klara.
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -4094,3 +4094,36 @@ Fullt svep grönt: lint, vitest 395/395 (35 filer, +27 från det nya testet), `t
 `test:functions`, `test:storage`, e2e 23/23.
 
 Kvar i Etapp 69: 69a, 69b, 69c, 69d, 69f, 69g.
+
+## Uppföljning 2026-08-22 (delmål 69a, z-index-delen, v5.124.0)
+
+Nästa steg i `ETAPPLAN18.md`: **69a**, brytpunkter och z-index som tokens. Byggde bara
+z-index-delen — brytpunktsdelen väntar på 69b/69c, som är de delmål som faktiskt behöver
+värdet, och att skapa en token i förväg hade varit gissning.
+
+**Att gå igenom alla 25 z-index-deklarationer avslöjade en riktig bugg i produktion.**
+"Lämna kioskläge" i `BottomNav.jsx` satte `pinOppen=true` utan att stänga `merOppen`. Två
+fullskärmsoverlägg låg alltså monterade samtidigt, och det var bara att `MerMeny`s äldre
+z-index (800) råkade vinna över `KioskPinModal`s (300) som gjorde PIN-dialogen — **enda vägen
+ut ur kioskläget** (Etapp 55b) — synlig alls. Bekräftat genom att återskapa exakt det
+DOM-tillståndet och rendera det: PIN-dialogen låg gråtonad och overksam bakom Mer-menyns
+bakgrund. Fixat i klick-hanteraren (stänger menyn innan PIN-dialogen öppnas), inte bara med
+z-index — skalan är ett skyddsnät, inte ersättningen för den riktiga fixen.
+
+Två till, mindre allvarliga: `.sok-falt__resultat` (sökresultat på `/`) satt i en förälder
+utan egen stapel-kontext och konkurrerade därför direkt mot bottennavet i appens
+rot-kontext — flyttad till samma lager som andra flytande widgetar. Och `VersionsHistorik`,
+`KioskPinModal` och `HyllEtiketter` låg alla lägre än systembanderollernas nivå, vilket hade
+låtit en banderoll rendera ovanpå en öppen modal.
+
+Fem namngivna tokens ersätter de 10 lösa värdena: `--z-nav`, `--z-flytande`, `--z-banner`,
+`--z-modal`, `--z-modal-topp`, plus `--z-lokal` för de tre fall som bara höjer ett element
+över sina egna syskon.
+
+Verifierat renderat, inte bara uträknat: både buggen (före/efter) och att en banderoll nu
+korrekt hamnar under en modal.
+
+Fullt svep grönt: lint, build (oförändrad precache-storlek: 124 poster), vitest 395/395,
+`test:rules`, `test:functions`, `test:storage`, e2e 23/23.
+
+Kvar i Etapp 69: 69a (brytpunktsdelen, ihop med 69b/69c), 69b, 69c, 69d, 69f, 69g.

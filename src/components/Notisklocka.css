@@ -40,7 +40,7 @@
   width: 260px;
   max-height: 300px;
   overflow-y: auto;
-  z-index: 150;
+  z-index: var(--z-flytande);
 }
 
 .notisklocka__panel ul {

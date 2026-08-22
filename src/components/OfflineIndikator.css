@@ -1,7 +1,7 @@
 .offline-indikator {
   position: sticky;
   top: 0;
-  z-index: 300;
+  z-index: var(--z-banner);
   background: var(--amber-ljus);
   color: var(--amber-text);
   text-align: center;

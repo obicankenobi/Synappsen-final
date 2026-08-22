@@ -40,7 +40,9 @@
 
 .auth-panel__innehall {
   position: relative;
-  z-index: 1;
+  /* Etapp 69a: lokal stapling, höjer bara innehållet över det
+     absolutpositionerade vattenmärket i SAMMA panel - se index.css --z-lokal. */
+  z-index: var(--z-lokal);
   display: flex;
   flex-direction: column;
   gap: 18px;

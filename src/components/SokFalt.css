@@ -39,7 +39,15 @@
   background: var(--yta);
   position: absolute;
   width: 100%;
-  z-index: 10;
+  /* Etapp 69a: `.sok-falt` (föräldern) har `position: relative` men sätter INGET
+     eget z-index, alltså ingen egen stapel-kontext - den här listans z-index
+     konkurrerar därför direkt mot t.ex. --z-nav i appens rot-kontext, inte bara mot
+     sina syskon. Listan saknar `max-height`, så på en liten skärm med många
+     träffar kan den växa ner mot den fasta bottenraden. Gamla värdet (10) hade
+     förlorat mot navets 100 om de någonsin överlappat; --z-flytande (150) vinner
+     garanterat. Samma tier som Akut-knappen och notisklockans panel, som är
+     precis den sortens 'tillfälligt flytande ovanpå sidan'-lager det här också är. */
+  z-index: var(--z-flytande);
 }
 
 .sok-falt__resultat li button {

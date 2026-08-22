@@ -9,7 +9,7 @@
   border-top: 1px solid var(--kant);
   box-shadow: 0 -2px 10px rgba(15, 23, 42, 0.06);
   padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
-  z-index: 100;
+  z-index: var(--z-nav);
   /* UI-designjustering (2026-07): fanns redan innan dagens namnbyte – på smala skärmar
      (~320-360px) med alla 7 poster (redaktörsroller) klipptes den sista länken (Admin) bort
      helt, utan att gå att nå. overflow-x: auto gör att den går att skrolla fram till istället

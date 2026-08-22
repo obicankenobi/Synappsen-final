@@ -1,7 +1,7 @@
 .hyll-etiketter-overlay {
   position: fixed;
   inset: 0;
-  z-index: 700;
+  z-index: var(--z-modal);
   background: var(--bg);
   overflow-y: auto;
   padding: 16px;

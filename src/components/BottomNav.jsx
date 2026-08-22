@@ -47,7 +47,23 @@ export default function BottomNav() {
               { till: "/kliniskt-stod", ikon: "🩺", namn: "Kliniskt" },
               { till: "/logistik", ikon: "📦", namn: "Logistik" },
               { till: "/administration", ikon: "📋", namn: "Regler" },
-              { onKlick: () => setPinOppen(true), ikon: "🔓", namn: "Lämna kioskläge" },
+              {
+                // Etapp 69a: satte tidigare BARA setPinOppen(true), utan att stänga menyn.
+                // merOppen stannade alltså true medan PIN-dialogen visades - båda är
+                // fullskärmsoverlägg (position: fixed; inset: 0), och berodde man sig på att
+                // MerMenys äldre z-index (800) råkade vinna över KioskPinModals (300) hade
+                // PIN-dialogen renderats OSYNLIG bakom Mer-menyns halvgenomskinliga bakgrund -
+                // enda vägen ut ur kioskläget (Etapp 55b) obrukbar. Bekräftat genom att
+                // återskapa exakt detta DOM-tillstånd och rendera det, se ETAPPLAN18.md 69a.
+                // Att stänga menyn ordentligt här är den riktiga fixen; z-index-skalan
+                // nedan är ett skyddsnät, inte ersättningen för den.
+                onKlick: () => {
+                  setMerOppen(false);
+                  setPinOppen(true);
+                },
+                ikon: "🔓",
+                namn: "Lämna kioskläge",
+              },
             ]}
             onStang={() => setMerOppen(false)}
           />

@@ -1,7 +1,7 @@
 .skanna-modal__bakgrund {
   position: fixed;
   inset: 0;
-  z-index: 900;
+  z-index: var(--z-modal);
   background: var(--skanna-bakgrund);
   display: flex;
   align-items: center;

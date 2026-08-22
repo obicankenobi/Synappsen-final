@@ -118,17 +118,41 @@ CSS-kommentaren, som krav 30 redan kräver för färger.
 
 Två skalor saknas, och båda behövs innan sidomenyn byggs.
 
-**Brytpunkter.** Custom properties går inte att använda i `@media`-villkor — det är en
-begränsning i CSS, inte ett designval. Skalan blir därför en dokumenterad konstant med
-`@custom-media`-liknande kommentar överst i `index.css`, plus en enda `--sidomeny-bredd` som
-token för det som *går* att tokenisera.
+**z-index — ✅ KLAR 2026-08-22.** 25 deklarationer i 20 filer (24 uppmätt i v5.121.0, en till
+tillkom med `AuthSkal.css` i 69h) med 10 lösa värden mellan 1 och 1000 ersatta av fem
+namngivna tokens: `--z-nav` (100), `--z-flytande` (150), `--z-banner` (300), `--z-modal`
+(800), `--z-modal-topp` (1000) — plus `--z-lokal` (1) för de tre fall som bara höjer ett
+element över sina egna syskon och aldrig konkurrerar globalt.
 
-**z-index.** 24 deklarationer med 10 lösa värden mellan 5 och 1000 är inte en skala, det är
-tio gånger någon gissade. Sidomenyn lägger till ett lager till, och en overlay ovanpå den.
-Ersätts av namngivna tokens (`--z-nav`, `--z-panel`, `--z-modal`, `--z-toast`).
+**Att gå igenom alla 25 avslöjade en RIKTIG bugg, inte bara oreda.** "Lämna kioskläge" i
+`BottomNav.jsx` satte `pinOppen=true` utan att stänga `merOppen`. Två fullskärmsoverlägg låg
+alltså monterade samtidigt, och det var bara att `MerMeny`s äldre värde (800) råkade vinna
+över `KioskPinModal`s (300) som gjorde att PIN-dialogen — **enda vägen ut ur kioskläget**,
+Etapp 55b — syntes alls. Bekräftat genom att återskapa exakt det DOM-tillståndet och rendera
+det (se bilderna i sessionen): dialogen låg gråtonad och overksam bakom Mer-menyns
+halvgenomskinliga bakgrund, med hela "Mer"-arket fortfarande synligt och klickbart ovanpå.
+Den riktiga fixen är att stänga menyn i klick-hanteraren; skalan är ett skyddsnät som gör att
+nästa sådana krock upptäcks vid en genomläsning, inte av misstag i produktion.
 
-**Klart när:** inga nya värden i komponent-CSS, `npm run build` oförändrad utdata bortsett
-från variabelnamn, och en renderad jämförelse före/efter som visar ingen synlig skillnad.
+En andra, mindre defekt rättades i samma svep: `.sok-falt__resultat` (sökresultatens
+dropdown på `/`) hade `z-index: 10` i en förälder som INTE skapar en egen stapel-kontext
+(`.sok-falt` saknar eget `z-index`) — listan konkurrerade alltså direkt mot `--z-nav` (100) i
+appens rot-kontext, inte bara mot sina syskon. Listan saknar `max-height`, så på en liten
+skärm med många träffar hade den kunnat växa ner mot den fasta bottenraden och förlora.
+Flyttad till `--z-flytande` (150), samma lager som Akut-knappen och notisklockans panel.
+
+En tredje omklassning utan bekräftad bugg men en uppenbar risk: `VersionsHistorik` (var 200),
+`KioskPinModal` (var 300) och `HyllEtiketter` (var 700) låg alla LÄGRE än banderollernas 300,
+vilket hade låtit en banderoll rendera ovanpå en öppen modal. Alla tre samlade i `--z-modal`
+(800) nu. Verifierat renderat att en banderoll korrekt hamnar UNDER modalen efteråt.
+
+**Brytpunkter — INTE påbörjad.** Kvar till 69b/69c, som är de delmål som faktiskt behöver
+värdet. Att skapa en brytpunktstoken innan något använder den hade varit gissning i förväg.
+
+**Klart när (z-index-delen):** inga nya värden i komponent-CSS ✅, `npm run build` oförändrad
+utdata bortsett från variabelnamn ✅ (verifierat: samma antal precache-poster, samma filer),
+och en renderad jämförelse före/efter som visar ingen synlig skillnad **utom de två rättade
+buggarna, som var avsikten** ✅.
 
 ---
 

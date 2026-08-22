@@ -11,6 +11,14 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.124.0",
+    datum: "2026-08-22",
+    andringar: [
+      "Rättat: att lämna kioskläget kunde visa PIN-koden dold bakom menyn i vissa lägen. Fungerar nu alltid",
+      "Sökresultatens lista kan inte längre hamna bakom bottenmenyn på små skärmar",
+    ],
+  },
+  {
     version: "5.123.0",
     datum: "2026-08-22",
     andringar: [

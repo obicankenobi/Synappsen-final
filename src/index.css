@@ -177,6 +177,41 @@ U+2122,U+2212,U+2248,U+2260,U+2264-2265" \
   --skugga: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
   --skugga-hover: 0 6px 16px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.06);
 
+  /* Etapp 69a (2026-08-22): z-index-skalan. Fanns tidigare inte alls - 25 deklarationer i
+     20 filer med 10 lösa värden mellan 1 och 1000, tilldelade en i taget utan att någon
+     rimligen höll reda på vad som redan fanns. Samma tema-oberoende värden i ljust och
+     mörkt läge, hör därför bara hemma här, inte i temablocken nedan.
+
+     Att gå igenom alla 25 avslöjade en RIKTIG bugg, inte bara oreda: "Lämna kioskläge" i
+     BottomNav.jsx satte pinOppen=true utan att stänga merOppen. Två fullskärmsoverlägg låg
+     alltså öppna samtidigt, och det var bara MerMenys äldre värde (800) som råkade vinna
+     över KioskPinModals (300) som gjorde PIN-dialogen - enda vägen ut ur kioskläget,
+     Etapp 55b - osynlig bakom Mer-menyns bakgrund. Bekräftat genom att återskapa exakt det
+     DOM-tillståndet och rendera det. Se BottomNav.jsx för den riktiga fixen (stänga menyn);
+     skalan här är ett skyddsnät som gör att nästa sådana krock upptäcks vid en genomläsning
+     istället för att behöva hittas av misstag.
+
+     Fem lager, i stigande ordning: */
+  --z-nav: 100; /* Bottenraden. Understa lagret som får täcka sidinnehåll. */
+  --z-flytande: 150; /* Fasta knappar/paneler ovanpå navet: Akut-knappen, notisklockans panel. */
+  --z-banner: 300; /* Avfärdningsbara systembanderoller överst i fönstret. */
+  /* Alla overlägg med bakgrund + dialog: menyer, bekräftelser, moduler i förrådet,
+     skanning, skiftrapportens lässida m.fl. En genomgång av samtliga användare visade att
+     flera redan låg lägre än --z-banner (VersionsHistorik 200, KioskPinModal 300,
+     HyllEtiketter 700) - vilket hade låtit en banderoll rendera OVANPÅ en öppen modal.
+     Alla samlade på samma nivå här löser det. */
+  --z-modal: 800;
+  /* Det som måste kunna öppnas OVANPÅ en redan öppen modal: bekräftelsedialogen (öppnas ofta
+     inifrån en modul, t.ex. VersionsHistorik/SkannaModal/RutinFormular - verifierat),
+     kommandopaletten, akutläget och hoppa-till-innehall-länken. Låg redan alla på 1000 sedan
+     tidigare (fast utan att någon skrivit ut varför) - oförändrat värde, bara namngivet. */
+  --z-modal-topp: 1000;
+  /* Lokal stapling: höjer ett element över sina EGNA syskon inom en position:relative-
+     förälder som själv INTE sätter z-index (t.ex. en autoifyllnadslista ovanför en
+     textruta). Konkurrerar aldrig med lagren ovan eftersom föräldern inte skapar en egen
+     stapel-kontext - se AuthSkal.css och Kommentarer.css för de två användningarna. */
+  --z-lokal: 1;
+
   font: 16px/1.6 system-ui, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
@@ -858,7 +893,7 @@ select:focus {
   top: 8px;
   transform: translateY(-200%);
   left: 8px;
-  z-index: 1000;
+  z-index: var(--z-modal-topp);
   padding: 10px 16px;
   background: var(--primar);
   /* Etapp 68c: var #fff, vilket gav 1,74-3,68:1 i mörkt läge beroende på accent.
