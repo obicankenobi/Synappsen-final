@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.120.0",
+    datum: "2026-08-22",
+    andringar: [
+      "Inmatningsfält, rullgardinsmenyer och textrutor har tydligare kantlinjer och går nu att urskilja även vid nedsatt syn eller i starkt ljus. Korten i appen ser ut som förut",
+    ],
+  },
+  {
     version: "5.119.0",
     datum: "2026-08-22",
     andringar: [

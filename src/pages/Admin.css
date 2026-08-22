@@ -24,7 +24,7 @@
 
 .admin-lista select {
   padding: 8px 10px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   box-shadow: var(--skugga);
   border-radius: 8px;
 }
@@ -109,7 +109,7 @@
 
 .admin-budget__form input {
   padding: 10px 12px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   box-shadow: var(--skugga);
   border-radius: 8px;
   width: 140px;
@@ -256,7 +256,7 @@
 
 .admin-lista__atgarder select {
   padding: 8px 10px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   box-shadow: var(--skugga);
   border-radius: 8px;
 }
@@ -271,7 +271,7 @@
 
 .admin-lista__ansvarsomraden input {
   padding: 8px 10px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 8px;
   min-width: 200px;
 }
@@ -279,7 +279,7 @@
 .admin-feedback-rad__meta select {
   margin-left: auto;
   padding: 4px 8px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 6px;
   font-size: 0.8rem;
 }
@@ -300,7 +300,7 @@
 .admin-feedback-rad__svarformular input {
   flex: 1;
   padding: 8px 10px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 8px;
   font: inherit;
 }
@@ -316,13 +316,13 @@
   flex: 1;
   min-width: 160px;
   padding: 8px 10px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 8px;
   font: inherit;
 }
 
 .admin-audit-filter select {
   padding: 8px 10px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 8px;
 }

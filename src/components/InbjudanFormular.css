@@ -19,7 +19,7 @@
 .inbjudan-formular input,
 .inbjudan-formular select {
   padding: 10px 12px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   box-shadow: var(--skugga);
   border-radius: 8px;
   font: inherit;
@@ -41,7 +41,7 @@
   width: 100%;
   margin-top: 6px;
   padding: 8px 10px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 8px;
   font: inherit;
 }

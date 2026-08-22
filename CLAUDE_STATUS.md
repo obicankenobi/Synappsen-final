@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.119.0** – byggd, pushad och **DEPLOYAD** (körning #83)
+**Senast uppdaterad:** 2026-08-22, version **5.120.0** – byggd och pushad, väntar på deploy
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -3918,3 +3918,36 @@ vilket är avsiktligt tills rapporterna är genomlästa.
 Kvar i Etapp 68: **68e** (typsnittet), villkorat av beslutspunkt 1 där rekommendationen är att
 avstå. Kvar utanför etappen: `--kant` (1,23:1 över 91 regler) väntar på ett ägarbeslut, se
 `OPPNA-PUNKTER.md`.
+
+## Uppföljning 2026-08-22 (Etapp 68g – beslut om `--kant`, v5.120.0)
+
+Ägaren delegerade den öppna punkten från 68d: "Ta beslut om --kant". Beslutet är loggat i
+`BESLUTSLOGG.md`, och det gick emot det uppenbara.
+
+**Mörka INTE `--kant`.** Token:et ger 1,23:1 mot `--yta`, alltså under 1.4.11:s 3:1 – men
+kravet gäller det som behövs för att IDENTIFIERA en komponent, inte dekoration. En genomgång
+av samtliga användningar delade dem i 36 faktiska kontrollgränser (fält, selects, textareas,
+verktygsknappar, val-chips – där fältet har samma bakgrund som kortet under, så strecket bär
+informationen) och 81 kortkanter, avdelare och ifyllnader (där kortet bärs av sin egen yta och
+skugga). Att mörka alla 117 hade ramat in varje kort i appen i grått, framtvingat av ett krav
+som inte ställs.
+
+De 36 pekar nu på `--kant-stark`, som redan fanns, redan når 3,52:1 mot kortyta i båda teman
+och redan var definierat som just "kontrollgräns, inte dekoration". **Inget nytt token
+behövdes**, och 68d:s kontrastvakt bevakar dem därmed automatiskt. Följdfix:
+`.tema-vaxlare__val` hade bas `--kant` och hover `--kant-stark` – när basen flyttades blev
+hovern osynlig, den går nu till `--text-svag`.
+
+Verifierat både mätt och renderat (Chromium, före/efter sida vid sida): fälten blir tydligt
+avgränsade, korten oförändrade.
+
+`TILLGANGLIGHETSREDOGORELSE.md` avvikelse 8 (SYN-6) går därmed från "delvis åtgärdad" till
+**ÅTGÄRDAD**. Samtidigt rättad: dokumentet angav 91 användningar, rätt siffra är 117.
+
+Fullt svep grönt: lint, build, vitest 368/368, `test:rules`, `test:functions`, `test:storage`
+och `test:e2e` 23/23 med axe-core mot 25 routes i sju roller. **Obs för nästa session:**
+`test:e2e` failar utan `PLAYWRIGHT_CHROMIUM_PATH` satt i samma skal – det var inte ett riktigt
+fel första gången det inträffade här.
+
+Kvar i Etapp 68: **68e** (typsnittet), villkorat av beslutspunkt 1 där rekommendationen är att
+avstå. Det är nu etappens enda återstående punkt.

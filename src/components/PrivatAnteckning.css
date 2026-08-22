@@ -17,7 +17,7 @@
 
 .privat-anteckning__panel textarea {
   padding: 8px 10px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   box-shadow: var(--skugga);
   border-radius: 8px;
   font: inherit;

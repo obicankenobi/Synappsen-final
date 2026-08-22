@@ -1,7 +1,7 @@
 .kontakter-sok {
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   box-shadow: var(--skugga);
   border-radius: 8px;
   font: inherit;

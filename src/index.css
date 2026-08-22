@@ -27,6 +27,31 @@
      färgtemperatur (uppmätt bakgrund #f5f9fa) – en aning svalare/blåare än tidigare #f8fafc. */
   --bg: #f5f9fa;
   --yta: #ffffff;
+  /* Etapp 68g (2026-08-22): BESLUT om --kant, som stått som en öppen punkt sedan 68d.
+     Token:et ger 1,23:1 mot --yta och 1,16:1 mot --bg (mörkt: 1,25 och 1,35) - långt under
+     de 3:1 WCAG 1.4.11 kräver. Den uppenbara åtgärden, att mörka --kant tills det når 3:1,
+     är FEL och genomfördes medvetet inte.
+
+     Skälet: 1.4.11 kräver 3:1 av det som behövs för att IDENTIFIERA en komponent eller ett
+     tillstånd, inte av dekoration. En genomgång av samtliga 117 användningar delade dem i
+     två grupper:
+
+       36 st  kontrollgränser - <input>, <select>, <textarea>, verktygsknappar, val-chips.
+              Här ÄR hårstrecket det enda som säger att ytan är ett fält, eftersom fältet
+              har background: var(--yta), samma som kortet det ligger på. Verklig defekt.
+       81 st  kortkanter, avdelare (border-top/bottom) och ifyllnader (background: var(--kant)
+              i .badge--neutral m.fl.). Korten bärs av sin egen yta och sin skugga; strecket
+              är förstärkning. 1.4.11 gäller inte, och att mörka dem hade gjort varje kort i
+              appen inramat i grått - en synlig omdesign framtvingad av ett krav som inte
+              ställs.
+
+     Åtgärden blev därför att peka om de 36 till --kant-stark, som redan finns, redan når
+     3:1 i alla åtta paletter och redan är definierat som just "kontrollgräns, inte
+     dekoration" (se kommentaren nedan). Inget nytt token behövdes, och kontrastvakten i
+     tests/docs/kontrastpalett.test.js bevakar det redan.
+
+     --kant är alltså AVSIKTLIGT kvar på 1,23:1. Höj det inte för att få en mätning grön:
+     det som ska vara synligt pekar inte längre hit. */
   --kant: #e2e8f0;
   /* Etapp 68d: kontrastvakten hittade att --kant-stark inte klarade WCAG 1.4.11 (3:1)
      mot vare sig --yta eller --bg, i BÅDA teman och alla fyra accenter. Det spelar roll
@@ -511,7 +536,7 @@ h1 {
 
 .auth-form input {
   padding: 12px 14px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 10px;
   font-size: 1rem;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -541,7 +566,7 @@ h1 {
    tyngre än denna. */
 select {
   padding: 10px 12px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 8px;
   font-size: 0.95rem;
   font-family: inherit;

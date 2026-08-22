@@ -6,7 +6,7 @@
 
 .tema-vaxlare__val {
   padding: 8px 14px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   background: var(--yta);
   color: var(--text);
   border-radius: 999px;
@@ -15,8 +15,12 @@
   transition: background-color 0.15s, border-color 0.15s;
 }
 
+/* Etapp 68g: basen är numera --kant-stark (kontrollgräns, 1.4.11), och hovern pekade
+   tidigare på samma token - alltså en hover som inte syntes alls. Den går nu ett steg
+   till, till --text-svag (#475569 ljust / #94a3b8 mörkt), som redan är AA-text mot både
+   --yta och --bg och därmed garanterat starkare än basen. */
 .tema-vaxlare__val:hover {
-  border-color: var(--kant-stark);
+  border-color: var(--text-svag);
 }
 
 .tema-vaxlare__val--vald {

@@ -31,7 +31,7 @@
 .profil-losenord-formular input,
 .profil-namn-formular input {
   padding: 10px 12px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   box-shadow: var(--skugga);
   border-radius: 8px;
   font: inherit;

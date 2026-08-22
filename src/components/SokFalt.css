@@ -84,7 +84,7 @@
 }
 
 .sok-falt__kategori-chip {
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   background: var(--yta);
   color: var(--text);
   border-radius: 999px;

@@ -21,7 +21,7 @@
 .leverantor__form input[type="text"],
 .leverantor__form select {
   padding: 10px 12px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   box-shadow: var(--skugga);
   border-radius: 8px;
   font: inherit;
@@ -91,7 +91,7 @@
 
 .leverantor__avtalsstatus select {
   padding: 4px 8px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 6px;
   font: inherit;
 }
@@ -115,7 +115,7 @@
 .leverantor__filterfalt input,
 .leverantor__filterfalt select {
   padding: 6px 10px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 8px;
   font: inherit;
 }

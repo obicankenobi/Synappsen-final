@@ -17,7 +17,7 @@
 
 .skiftrapport-formular textarea {
   padding: 10px 12px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   box-shadow: var(--skugga);
   border-radius: 8px;
   font: inherit;
@@ -80,7 +80,7 @@
 
 .skiftrapport-rad__kategorisering select {
   padding: 6px 8px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 6px;
   font-size: 0.85rem;
 }
@@ -110,7 +110,7 @@
 
 .skiftrapport-historik__filter select {
   padding: 8px 10px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 8px;
 }
 

@@ -21,7 +21,7 @@
 .rutin-formular input,
 .rutin-formular textarea {
   padding: 10px 12px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   box-shadow: var(--skugga);
   border-radius: 8px;
   font-size: 1rem;
@@ -195,7 +195,7 @@
 
 .rutin-formular__verktygsfalt button {
   padding: 6px 10px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   background: var(--yta);
   border-radius: 6px;
   cursor: pointer;

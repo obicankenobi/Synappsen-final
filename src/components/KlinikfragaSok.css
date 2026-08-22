@@ -28,7 +28,7 @@
   flex: 1;
   min-width: 200px;
   padding: 10px 12px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 8px;
   font: inherit;
 }

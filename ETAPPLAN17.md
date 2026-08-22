@@ -221,6 +221,35 @@ slutgiltiga paletten, symbolens geometri och radieskalan. `VARUMARKE.md` §12 up
 att beskrivningen matchar den symbol som faktiskt ligger i `public/`. Åtgärd P5 i
 `VARUMARKE.md` stryks när 68c är klar.
 
+### 68g. Beslut om `--kant` ✅ KLAR 2026-08-22
+
+Tillkom efter planen skrevs. 68d lämnade en öppen fråga: `--kant` ger 1,23:1 mot `--yta`
+och klarar alltså inte 1.4.11:s 3:1. Ägaren delegerade beslutet ("ta beslut om --kant").
+
+**Premisskontrollen ändrade svaret.** Den självklara åtgärden – mörka `--kant` tills det når
+3:1 – visade sig vara fel. En genomgång av samtliga användningar gav två grupper:
+
+| | Antal | Vad | Gäller 1.4.11? |
+|---|---|---|---|
+| A | 36 | `<input>`, `<select>`, `<textarea>`, verktygsknappar, val-chips | **Ja.** Fältet har `background: var(--yta)`, samma som kortet under. Strecket är det enda som säger att ytan är ett fält |
+| B | 81 | Kortkanter, avdelare (`border-top`/`-bottom`), ifyllnader (`background: var(--kant)`) | **Nej.** Kortet bärs av sin egen yta och sin skugga; strecket är förstärkning |
+
+1.4.11 kräver 3:1 av det som behövs för att IDENTIFIERA en komponent eller ett tillstånd,
+inte av dekoration. Att mörka alla 117 hade ramat in varje kort i appen i grått – en synlig
+omdesign framtvingad av ett krav som inte ställs.
+
+**Åtgärd:** de 36 i grupp A pekar nu på `--kant-stark`, som redan fanns, redan når 3:1 i alla
+åtta paletter och redan är definierat som "kontrollgräns, inte dekoration". Inget nytt token
+behövdes, och 68d:s kontrastvakt bevakar det redan.
+
+En följdfix: `.tema-vaxlare__val` hade bas `--kant` och hover `--kant-stark`. När basen flyttades
+blev hovern en tom operation. Den går nu till `--text-svag` i stället.
+
+Mätt (krav 30): `--kant-stark` mot `--yta` 3,52:1 i båda teman, mot `--bg` 3,32:1 ljust och
+3,80:1 mörkt. `--kant` är oförändrat 1,23:1 och ska förbli det.
+
+**Rättelse:** `TILLGANGLIGHETSREDOGORELSE.md` angav 91 användningar. Rätt siffra är 117.
+
 ---
 
 ## Beslutspunkter som kräver ägaren

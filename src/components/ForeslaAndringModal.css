@@ -38,7 +38,7 @@
 .foresla-andring-modal textarea {
   font: inherit;
   padding: 8px;
-  border: 1px solid var(--kant);
+  border: 1px solid var(--kant-stark);
   border-radius: 8px;
   background: var(--bg);
   color: var(--text);
