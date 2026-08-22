@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.120.0** – byggd och pushad, väntar på deploy
+**Senast uppdaterad:** 2026-08-22, version **5.120.0** – byggd, pushad och **DEPLOYAD** (körning #84)
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -3951,3 +3951,13 @@ fel första gången det inträffade här.
 
 Kvar i Etapp 68: **68e** (typsnittet), villkorat av beslutspunkt 1 där rekommendationen är att
 avstå. Det är nu etappens enda återstående punkt.
+
+## Uppföljning 2026-08-22 (deploy av v5.120.0, körning #84)
+
+Ägaren bad om deploy. Körning **#84** på commit `a4a3205`. Produktionen kör nu **v5.120.0**.
+
+Verifierat på artefakten med samma metod som körning #83: baseline före deployen visade
+`select{border:1px solid var(--kant)` i den serverade CSS:en (`index-CcvvKSZ3.css`). Efter
+deployen serveras `index-BP_CbFB9.css` – samma filnamn som den lokala byggen av `a4a3205`
+producerar, alltså inte bara "en ny hash" utan bit-för-bit samma build-output – och
+`select`-regeln lyder nu `var(--kant-stark)`, exakt den ändring 68g gjorde.
