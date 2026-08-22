@@ -54,7 +54,13 @@ export default defineConfig({
       injectManifest: {
         // Samma mönster som tidigare globPatterns (workbox-block nedan), men injectManifest
         // läser det härifrån istället.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        // Etapp 68e (2026-08-22): woff2 tillagt. Utan det precachas INTE de självhostade
+        // fontfilerna, och ett förstabesök helt offline hade renderats i systemtypsnittet.
+        // Det hade inte varit trasigt (font-display: swap gör att texten alltid ritas), men
+        // inkonsekvent i en app vars poäng delvis är att fungera utan nät mitt i ett pass.
+        // Mätt kostnad: precachen gick från 120 entries / 1782,14 KiB till 122 / 1827,10 KiB,
+        // alltså +44,96 KiB (+2,5 %).
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
       },
       manifest: {
         name: 'Synappsen',
@@ -63,8 +69,13 @@ export default defineConfig({
         lang: 'sv',
         start_url: '/',
         display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#1d4ed8',
+        // Etapp 68e (2026-08-22): båda värdena låg efter koden och rättas här.
+        // theme_color var kvar på #1d4ed8 medan index.html bytte till #274eaf i 68b – de
+        // styr samma sak (systemets färgsättning av appfönstret) från två filer, och bara
+        // den ena uppdaterades. background_color var #ffffff medan appens --bg är #f5f9fa;
+        // den målas under appen innan första renderingen, så fel värde ger en kort vit blink.
+        background_color: '#f5f9fa',
+        theme_color: '#274eaf',
         icons: [
           {
             src: '/icons/icon.svg',

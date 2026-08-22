@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.120.0** – byggd, pushad och **DEPLOYAD** (körning #84)
+**Senast uppdaterad:** 2026-08-22, version **5.121.0** – byggd och pushad, väntar på deploy. **Etapp 68 är HELT KLAR.**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -3961,3 +3961,37 @@ Verifierat på artefakten med samma metod som körning #83: baseline före deplo
 deployen serveras `index-BP_CbFB9.css` – samma filnamn som den lokala byggen av `a4a3205`
 producerar, alltså inte bara "en ny hash" utan bit-för-bit samma build-output – och
 `select`-regeln lyder nu `var(--kant-stark)`, exakt den ändring 68g gjorde.
+
+## Uppföljning 2026-08-22 (Etapp 68e + 68f-rättelse, v5.121.0 – ETAPP 68 HELT KLAR)
+
+Ägaren bad om att samtliga steg i `ETAPPLAN17.md` slutförs, med sub-agenter, snabbt. Två
+agenter kördes parallellt: en för typsnittet, en för `GRAFISK-PROFIL.md`.
+
+**68e – typsnittet.** Beslutspunkt 1 blev därmed ja. Min rekommendation var att vänta, och
+den fick stå tillbaka – det är ägarens beslut och det är loggat som sådant i `BESLUTSLOGG.md`.
+Public Sans självhostat i `public/fonts/`, två delmängdade woff2-filer på totalt **45 324 byte**,
+`font-display: swap` så första renderingen aldrig blockeras, och en reservkedja som slutar med
+emojitypsnitt (Public Sans saknar de ~90 emoji appen använder, och webbläsaren gör reservval
+per tecken). Ingen CDN – CSP:n är `font-src 'self' data:`, så en Google Fonts-länk hade
+blockerats tyst. Hela `pyftsubset`-anropet står i `src/index.css` så filerna går att återskapa.
+
+**Utöver planen:** `vite.config.js` `globPatterns` saknade `woff2`, så fonten precachades inte
+och ett förstabesök helt offline hade renderats i systemtypsnittet. Tillagt och mätt: 120 → 122
+entries, 1782,14 → 1827,10 KiB (+2,5 %).
+
+**68f – rättelse av ett felaktigt ✅.** 68f markerades KLAR tidigare samma dag, men bara
+`VARUMARKE.md`-delen var gjord. `GRAFISK-PROFIL.md` fanns **inte i repot alls**, trots att både
+delmålet och `VARUMARKE.md` P2 pekade på den. Den är nu skriven från faktisk kod (538 rader) och
+committad, och P2 är delvis avbockad. Värt att notera i just det här projektet: det var precis
+det stale-mönster `CLAUDE.md` varnar för, och jag orsakade det själv genom att bocka av ett
+delmål på halva innehållet. Agentens utkast påstod dessutom i sitt typografiavsnitt att appen
+saknar webbfont – sant när den läste filen, falskt när den skrev den. Rättat innan commit.
+
+**Beslutspunkt 2 och 3 avgjorda** (kortskuggor respektive radieskala): båda nej, ingen
+kodändring, se `BESLUTSLOGG.md`. Prototypens `0 10px 24px`-skuggor drar mot en brådska
+`VARUMARKE.md` §5 uttryckligen inte vill ha, och dess åtta radievärden (inklusive 9 och 11)
+avslöjar handjustering per komponent snarare än en skala.
+
+**`ETAPPLAN17.md` / Etapp 68 är därmed HELT KLAR** – 68a–68g byggda, alla tre beslutspunkter
+avgjorda. Ingen aktiv etapplan väntar just nu; fråga ägaren vad nästa etapp ska vara, eller läs
+`OPPNA-PUNKTER.md`.

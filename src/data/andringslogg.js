@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.121.0",
+    datum: "2026-08-22",
+    andringar: [
+      "Appen har fått ett eget typsnitt, valt för läsbarhet i små storlekar. Texten ritas direkt även innan typsnittet hunnit laddas, så inget syns långsammare",
+    ],
+  },
+  {
     version: "5.120.0",
     datum: "2026-08-22",
     andringar: [

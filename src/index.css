@@ -1,3 +1,82 @@
+/* Etapp 68e (2026-08-22): Public Sans självhostad. INGEN CDN, och det är ett krav och
+   inte en smaksak: CSP:n i firebase.json säger `font-src 'self' data:`, så en
+   <link> mot fonts.googleapis.com hade blockerats av webbläsaren och appen hade
+   tyst fallit tillbaka på systemtypsnittet. Filerna ligger därför i public/fonts/,
+   som Vite kopierar rakt av till dist/.
+
+   MÄTT ÖVERFÖRINGSVIKT (genomgående krav 30 – mätt, inte påstått).
+   woff2 efter delmängdning, exakta byte från `stat -c%s`:
+
+     public/fonts/public-sans-400.woff2    22 620 byte  (~22,1 KiB)
+     public/fonts/public-sans-600.woff2    22 704 byte  (~22,2 KiB)
+     ------------------------------------------------------------
+     SUMMA TILLAGD ÖVERFÖRINGSVIKT         45 324 byte  (~44,3 KiB)
+
+   Jämförelsetal från samma mätning, så siffran går att bedöma:
+   hela Public Sans Regular som woff2 utan delmängdning är 29 588 byte, alltså
+   sparar delmängdningen ca 24 % per fil. Två filer, inte fler – appen använder
+   font-weight 500 och 600 på sina ställen, och 500 mappas av webbläsaren till
+   närmaste tillgängliga vikt (400).
+
+   OM HINTNING (medvetet val, också mätt): TTF-hintningen kostar 7 392 byte per fil
+   (22 620 mot 14 956 utan). Den är BEHÅLLEN. Skälet är målgruppen – appen körs på
+   sjukhusens Windows-arbetsstationer, ofta i låg upplösning, där vertikal hintning
+   håller stammar och x-höjd skarpa vid små grader. 7 KB är en engångskostnad som
+   dessutom cachas av service workern; läsbarheten är en daglig vinst. Vill någon
+   ompröva det är siffran ovan hela underlaget: lägg till --no-hinting i
+   pyftsubset-anropet nedan.
+
+   SÅ HÄR ÅTERSKAPAS FILERNA (fonttools + brotli, `pip install fonttools brotli`).
+   Källa: officiella utgåvan v2.001, https://github.com/uswds/public-sans/releases
+   (fonts/ttf/PublicSans-Regular.ttf respektive PublicSans-SemiBold.ttf):
+
+     pyftsubset PublicSans-Regular.ttf \
+       --unicodes="U+0020-007E,U+00A0-00FF,U+0100-017F,U+2013-2014,U+2018-201A,\
+U+201C-201E,U+2020-2022,U+2026,U+2030,U+2039-203A,U+2044,U+20AC,U+2113,U+2116,\
+U+2122,U+2212,U+2248,U+2260,U+2264-2265" \
+       --flavor=woff2 --name-IDs="0,1,2,3,4,5,6,13,14" \
+       --output-file=public-sans-400.woff2
+
+   Delmängden valdes på en RÄKNING av vilka icke-ASCII-tecken src/ faktiskt
+   innehåller, inte på en gissning: ä (4 384 träffar), ö (2 687), å (2 577),
+   – en dash (835), Å/Ö/Ä, é, à, ·, §, …, •, ≥. Utöver dessa ingår:
+     - hela Latin-1 (U+00A0-00FF) – ger µ för µg-doser, ° och de nordiska ø/æ/ß,
+     - Latin Extended-A (U+0100-017F, kostar 3 392 byte) – personalnamn med
+       polska/tjeckiska/baltiska tecken (š ž ć č ł ő ū), vilket är vardag på en
+       svensk akutmottagning,
+     - typografi appen redan använder plus ℓ och № som är rimliga i ett förråd.
+   Fonten saknar helt pilar och symboler (→ ← ✓ ⚠ ✕ …) och alla emoji som appen
+   använder. Det är inte ett fel: webbläsaren gör reservval PER TECKEN, så de
+   plockas ur systemets symbol-/emojitypsnitt via reservkedjan i body-regeln nedan.
+
+   Ingen `unicode-range` är satt med FLIT. Den hade behövt hållas i synk med
+   pyftsubset-anropet ovan för hand, och det här projektet har gott om exempel på
+   vad som händer med värden som måste minnas (se CLAUDE.md). Nyttan hade dessutom
+   varit noll – appen renderar alltid latinsk text, så filen hämtas ändå.
+
+   LICENS: Public Sans är SIL Open Font License 1.1. Licenstexten ligger i
+   public/fonts/OFL.txt, och upphovsrätts- och licensposterna (name-ID 0, 13, 14)
+   är kvar INUTI woff2-filerna – därav --name-IDs ovan. OFL tillåter självhostning
+   och ombildning till woff2; kravet är att notisen följer med, vilket den gör. */
+@font-face {
+  font-family: "Public Sans";
+  src: url("/fonts/public-sans-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  /* swap: texten ritas OMEDELBART i reservtypsnittet och byts när fonten landat.
+     Första renderingen blockeras alltså aldrig av en fontnedladdning – viktigt i en
+     app någon öppnar mitt i ett arbetspass. */
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Public Sans";
+  src: url("/fonts/public-sans-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* Etapp 68b (2026-08-21): primärblå bytt från #2563eb till #2F5FD6, färgen som
      GRAFISK-PROFIL.md hela tiden uppgett som varumärkesblå men som aldrig landat i koden.
@@ -268,6 +347,25 @@
 
 body {
   margin: 0;
+  /* Etapp 68e: appens typsnitt. Sätts HÄR och bara här – alla komponenter använder
+     redan `font: inherit` / `font-family: inherit` (ett trettiotal ställen i
+     src/components/), så de följer med utan att någon fil behöver röras.
+
+     :root sätter fortfarande `font: 16px/1.6 system-ui, ...` (kortformen längre upp)
+     och det är MED FLIT kvar orört: den bidrar med font-size och line-height, som
+     body ärver. Den här raden åsidosätter bara familjen.
+
+     FULLSTÄNDIG RESERVKEDJA, i den ordning den faller: Public Sans först, därefter
+     varje plattforms egen systemfont, och sist tre emoji-/symboltypsnitt. Det sista
+     ledet är inte kosmetik – appen använder ett nittiotal emoji (📋 🩺 ⚠ → ✓ …) som
+     Public Sans saknar helt, och webbläsaren gör reservval PER TECKEN. Utan de leden
+     hamnar de på webbläsarens sista utväg i stället för på ett riktigt emojitypsnitt.
+     Kedjan slutar på `sans-serif` så att även en okänd plattform får en vettig font,
+     och tack vare font-display: swap ovan ritas den här kedjan direkt vid första
+     renderingen – inget textbortfall medan fonten laddas. */
+  font-family: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   /* Etapp 44d: förhindrar webbläsarens gummistuds/pull-to-refresh vid överscrollning – ett av
      de tydligaste "det här är bara en webbsida"-tecknen på en telefon. Sidor med eget internt
      scroll (t.ex. modaler) påverkas inte, det här gäller bara sidans egen rullning. */

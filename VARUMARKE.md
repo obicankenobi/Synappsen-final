@@ -446,7 +446,7 @@ tecknas förrän B1 finns, och B2 är den fråga varje kunds jurist ställer fö
 | # | Åtgärd | Insats |
 |---|---|---|
 | **P1** | Skriv bakgrundsstycket på webbplatsens startsida | 20 min, bara du kan göra det |
-| **P2** | Committa `GRAFISK-PROFIL.md`, `MARKNADSANALYS.md`, `KOSTNADSKALKYL-OCH-PRISSATTNING.md` och `synappsen-web/` till repot, så att pekarna i detta dokument går att följa | 30 min |
+| **P2** | ~~Committa `GRAFISK-PROFIL.md`~~ **KLAR 2026-08-22 (Etapp 68f).** Den fanns inte i repot alls och är nu skriven från faktisk kod, inte återskapad ur minnet. **Kvar:** committa `MARKNADSANALYS.md`, `KOSTNADSKALKYL-OCH-PRISSATTNING.md` och `synappsen-web/`, så att resterande pekare i detta dokument går att följa | 20 min kvar |
 | **P3** | **Rätta de inaktuella siffrorna i `MARKNADSANALYS.md`.** Den anger 149 regeltester och fyra säkerhetsgenomgångar. Faktiskt läge 2026-08-21: **179** test i `organisationsisolering.test.mjs`, **322** i hela regelsviten, och **åtta** `## Tillägg`-block i `SAKERHETSRAPPORT.md`. Eftersom marknadsanalysen är källdokument för prismodell och värdering bör även övriga siffror kontrolleras | 1 timme |
 | **P4** | Skriv om `PITCH.md`s exempel för privat vårdcentral och klinik, se `MARKNADSANALYS.md` §10 | Dagar |
 | ~~**P5**~~ | ~~Rätta knappkontrasten i mörkt läge~~ **KLAR 2026-08-22 (Etapp 68c).** Premissen var dessutom delvis fel: primärknappen hade aldrig defekten, eftersom `.knapp` sätter `color: var(--yta)` som växlar med temat. Den riktiga defekten var vit text på färgad yta i sju andra regler, värst 1,74:1 på grön accent, inklusive hoppa-till-innehall-länken. | Klart |

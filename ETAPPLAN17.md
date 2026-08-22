@@ -199,7 +199,7 @@ fanns före hela Etapp 68 och upptäcktes bara för att vakten skrevs, vilket ä
 
 ---
 
-### 68e. Typsnittet (villkorat av beslutspunkt 1)
+### 68e. Typsnittet ✅ KLAR 2026-08-22
 
 Appen har inget eget typsnitt. `index.css` deklarerar `font-family` två gånger, båda
 `inherit`, så appen renderas i systemtypsnittet: San Francisco på iOS, Roboto på Android,
@@ -212,12 +212,41 @@ Sätt den på `body` och låt `inherit` i övrigt vara kvar.
 **Klart när:** typsnittet laddas utan CDN (krav 32), första renderingen inte blockeras, och
 den tillagda överföringsvikten är uppmätt och inskriven.
 
+**Utfall.** Beslutspunkt 1 blev ja (se `BESLUTSLOGG.md`) när ägaren bad om att hela etapplanen
+slutförs. Min rekommendation var att vänta; den fick stå tillbaka.
+
+| | |
+|---|---|
+| `public/fonts/public-sans-400.woff2` | 22 620 byte |
+| `public/fonts/public-sans-600.woff2` | 22 704 byte |
+| **Summa** | **45 324 byte (~44,3 KiB)** |
+
+Plus `OFL.txt` (SIL Open Font License 1.1); licensposterna ligger dessutom kvar inuti woff2-
+filerna. Delmängden valdes på en **räkning** av vilka icke-ASCII-tecken `src/` faktiskt
+innehåller (ä 4 384, ö 2 687, å 2 577, en dash 835 …), plus hela Latin-1 och Latin Extended-A
+för personalnamn med polska/tjeckiska/baltiska tecken. Hela `pyftsubset`-anropet står som
+kommentar i `src/index.css` så filerna går att återskapa.
+
+Två saker utöver planens krav:
+- **Reservkedjan slutar med emojitypsnitt.** Public Sans saknar helt de ~90 emoji appen
+  använder, och webbläsaren gör reservval per tecken.
+- **`vite.config.js` `globPatterns` utökad med `woff2`.** Utan det precachades fonten inte, och
+  ett förstabesök helt offline hade renderats i systemtypsnittet. Mätt: 120 → 122 entries,
+  1782,14 → 1827,10 KiB (+2,5 %).
+
 ---
 
 ### 68f. Dokumenten i takt ✅ KLAR 2026-08-22
 
-`GRAFISK-PROFIL.md` (finns ännu inte i repot, se `VARUMARKE.md` P2) uppdateras med den
-slutgiltiga paletten, symbolens geometri och radieskalan. `VARUMARKE.md` §12 uppdateras så
+`GRAFISK-PROFIL.md` uppdateras med den slutgiltiga paletten, symbolens geometri och
+radieskalan.
+
+> **Rättelse 2026-08-22.** 68f markerades KLAR tidigare samma dag, men bara `VARUMARKE.md`-
+> delen var gjord: `GRAFISK-PROFIL.md` fanns inte i repot alls, trots att både det här delmålet
+> och `VARUMARKE.md` §14 (åtgärd P2) refererade till den. Den är nu skriven från faktisk kod
+> (538 rader: paletten per tema och accent med motiveringarna ur `index.css`, kontrastbevakningen,
+> typografin, form, symbolens geometri, akutlägets medvetna undantag) och committad. Därmed är
+> P2 delvis avbockad i `VARUMARKE.md`. `VARUMARKE.md` §12 uppdateras så
 att beskrivningen matchar den symbol som faktiskt ligger i `public/`. Åtgärd P5 i
 `VARUMARKE.md` stryks när 68c är klar.
 
