@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.121.0** – byggd, pushad och **DEPLOYAD** (körning #85). **Etapp 68 är HELT KLAR.**
+**Senast uppdaterad:** 2026-08-22, version **5.121.0** deployad (körning #85). **Etapp 68 helt klar.** `ETAPPLAN18.md` (Etapp 69) skriven som utkast, EJ ANTAGEN.
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -4005,3 +4005,34 @@ Verifierat på artefakten med tre oberoende signaler: (1) `manifest.webmanifest`
 rättelse; (2) den serverade CSS-filen bytte hash (`index-BP_CbFB9.css` → `index-D7QZ692q.css`);
 (3) `GET /fonts/public-sans-400.woff2` svarar **200**, en fil som är helt ny i den här commiten
 och alltså inte kunde funnits där innan.
+
+## Uppföljning 2026-08-22 (ETAPPLAN18.md – Etapp 69 skriven som utkast)
+
+Ägaren frågade om appen kan få en mobil- och en datorversion, bad om en demo, och därefter om
+en etapplan plus fler UI-förbättringar. Demon ligger som artefakt ("Synappsen på dator", ett
+reglage som växlar mellan dagens utseende och förslaget). `ETAPPLAN18.md` är skriven men
+**EJ ANTAGEN** – tre beslutspunkter väntar på ägaren.
+
+**Genomgången av UI-lagret gav ett fynd som inte har med skärmbredd att göra och som bör
+byggas oavsett vad som händer med resten av planen.** `SokFalt`, `KommandopalettInnehall` och
+`Notisklocka` sätter `outline: none` på fokus och ersätter ringen med enbart ett bakgrundsbyte.
+Uppmätt: **1,06–1,14:1** i båda teman, mot WCAG 1.4.11:s krav på 3:1. Tangentbordsfokus är
+alltså i praktiken osynligt på appens tre mest tangentbordsdrivna ytor. `src/index.css`
+dokumenterar redan exakt samma defekt för `.auth-form input:focus` och löste den där – men
+rättningen spreds aldrig till listorna. Axe fångar det inte: axe kan se ATT en fokusindikator
+finns, inte att den räcker. Det är delmål 69e och är avsiktligt skrivet som fristående.
+
+Två antaganden till föll i premisskontrollen: fälten är **helt OK** (`border-color: --primar`
+ger 5,63:1 ljust och 4,87:1 mörkt), så delmålet krympte från "alla fokusmarkeringar" till bara
+listorna; och de 10 kvarvarande hårdkodade hexvärdena är samtliga befogade (skanner, utskrift,
+akutläget, en inuti en kommentar) – **städdelmålet ströks helt**.
+
+Övriga mätningar värda att ha: noll breddbaserade brytpunkter, `.app-innehall` utan maxbredd,
+118 av 156 `border-radius` hårdkodade (föreslås INTE städas – se planens "Vad jag INTE
+föreslår"), 24 `z-index` med 10 lösa värden, ingen skrollhantering vid ruttbyte, och
+**e2e-svepet kör vid en enda bredd** (1280×720) vilket blir sämre först när brytpunkter
+införs. Mörkt läge underhålls i två handhållna kopior som är identiska idag men bara den ena
+läses av kontrastvakten.
+
+Rekommendationen är genomgående **en kodbas med brytpunkter**, inte två byggen med
+enhetsdetektering – motiverat i planen.
