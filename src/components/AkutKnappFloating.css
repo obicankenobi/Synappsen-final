@@ -3,6 +3,9 @@
   right: 16px;
   bottom: calc(76px + env(safe-area-inset-bottom));
   z-index: var(--z-flytande);
+  /* Etapp 69c: 76px reserverar plats för BottomNav, som är dold över brytpunkten - utan
+     denna override hade knappen svävat med ett onödigt stort, oavsiktligt tomrum under sig
+     på en datorskärm. */
   display: flex;
   align-items: center;
   gap: 6px;
@@ -24,5 +27,11 @@
 @media print {
   .akut-knapp-floating {
     display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .akut-knapp-floating {
+    bottom: calc(24px + env(safe-area-inset-bottom));
   }
 }

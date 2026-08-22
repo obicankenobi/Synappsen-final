@@ -114,7 +114,7 @@ CSS-kommentaren, som krav 30 redan kräver för färger.
 
 ## Delmål
 
-### 69a. Brytpunkter och z-index som tokens (förarbete, ingen synlig ändring)
+### 69a. Brytpunkter och z-index som tokens (förarbete, ingen synlig ändring) ✅ HELT KLAR
 
 Två skalor saknas, och båda behövs innan sidomenyn byggs.
 
@@ -146,8 +146,12 @@ En tredje omklassning utan bekräftad bugg men en uppenbar risk: `VersionsHistor
 vilket hade låtit en banderoll rendera ovanpå en öppen modal. Alla tre samlade i `--z-modal`
 (800) nu. Verifierat renderat att en banderoll korrekt hamnar UNDER modalen efteråt.
 
-**Brytpunkter — INTE påbörjad.** Kvar till 69b/69c, som är de delmål som faktiskt behöver
-värdet. Att skapa en brytpunktstoken innan något använder den hade varit gissning i förväg.
+**Brytpunkter — ✅ KLAR i 69c.** Väntade medvetet på 69b/69c, delmålen som faktiskt behövde
+värdet — att skapa en brytpunktstoken innan något använder den hade varit gissning i förväg.
+1024px levererades av 69c (`Sidomeny.css`, `BottomNav.css`, `MerMeny.css`, `index.css`,
+`AuthSkal.css` sedan tidigare), tillsammans med `--sidomeny-bredd` som EN token för den del av
+skalan som faktiskt går att tokenisera (custom properties fungerar inte i `@media`-villkor,
+se 69c för hela resonemanget).
 
 **Klart när (z-index-delen):** inga nya värden i komponent-CSS ✅, `npm run build` oförändrad
 utdata bortsett från variabelnamn ✅ (verifierat: samma antal precache-poster, samma filer),
@@ -187,16 +191,76 @@ utanför de två `max-width`-raderna). Ingen synlig skillnad — verifierat: sam
 
 ---
 
-### 69c. Sidomeny över brytpunkten
+### 69c. Sidomeny över brytpunkten ✅ KLAR 2026-08-22
 
 Den största delen. `BottomNav` behålls oförändrad under brytpunkten; över den ersätts den av
-en sidomeny där allt syns samtidigt — de sex sidor som idag ligger bakom "Mer" inkluderade.
+en sidomeny där allt syns samtidigt — de sidor som idag ligger bakom "Mer" inkluderade.
 
-Kräver en `useMediaQuery`-hook (finns inte; `matchMedia` används idag bara för
-PWA-installation och iOS-detektering i `messaging.js` och `useInstallBanner.js`).
+**Rättelse innan bygget:** planen antog en `useMediaQuery`-hook skulle behövas. Den behövdes
+inte. `BottomNav` och `Sidomeny` monteras BÅDA alltid, och en CSS-brytpunkt (`display: none`
+på den ena eller andra) avgör vilken som syns — enklare än att mount:a/unmount:a via
+`matchMedia`, och gör krav 34 sant AV KONSTRUKTION istället för av JS-logik som kan hinna fel.
 
-**Klart när:** krav 34 är bevisat med ett test, `MerMeny` inte går att nå över brytpunkten,
-tangentbordsnavigering fungerar i båda lägena, och axe är rent vid båda bredderna.
+**Ny delad datakälla, inte en ny kopia.** `useNavigeringData.js` bygger listan över vilka
+sidor navigeringen länkar till (roll-/redaktörs-/plattformsadmin-logiken), och BÅDE
+`BottomNav.jsx` och det nya `Sidomeny.jsx` läser den. `BottomNav.jsx` byggde tidigare sin
+egen lista inline — att låta den fortsätta göra det och duplicera samma logik i `Sidomeny`
+hade varit exakt det mönster som redan orsakat en riktig bugg i den här etappen (69a).
+`BottomNav.jsx` refactorerad att använda hooken; ingen synlig ändring på mobil (verifierat
+renderat, se nedan).
+
+**Byggt:**
+- `src/hooks/useNavigeringData.js` — delad datakälla.
+- `src/components/Sidomeny.jsx` + `.css` — sidomenyn. Symbolen inline (samma geometri som
+  `public/icons/symbol.svg`), en `Sök`-knapp som öppnar kommandopaletten, alla sidlänkar i en
+  enda lista (ingen påhittad kategoriindelning — data har ingen riktig gruppering), och för
+  kiosk-rollen en `Lämna kioskläge`-knapp som öppnar `KioskPinModal`.
+- `--sidomeny-bredd: 232px` i `index.css`. Brytpunkten (1024px, beslutad 2026-08-22,
+  `BESLUTSLOGG.md`) är INTE ett token — CSS-variabler går inte att använda i ett
+  `@media`-villkor (samma begränsning 69a redan dokumenterade för z-index) — utan en
+  upprepad bokstavlig siffra, dokumenterad en gång i `index.css` och sedan i varje fil som
+  behöver den (`Sidomeny.css`, `BottomNav.css`, `MerMeny.css`, redan `AuthSkal.css`).
+- `.app-innehall` får `padding-left: var(--sidomeny-bredd)` och `padding-bottom: 0` över
+  brytpunkten (den 76px:s bottenutrymme som reserveras för `BottomNav` behövs inte när den
+  är dold).
+- `AkutKnappFloating.css` fick en egen override över brytpunkten (`bottom: 24px` istället för
+  det nedärvda `76px`) — annars hade knappen svävat med ett stort, oavsiktligt tomrum under
+  sig på en datorskärm. Hittat genom att faktiskt titta på den renderade sidan, inte genom att
+  räkna ut det i förväg.
+- `App.jsx`: `<Sidomeny />` tillagd bredvid `<BottomNav />` på alla FYRA ställen den
+  förekommer — `SkyddatLayout` plus tre inline-duplicerade block för `/admin`,
+  `/godkannanden` och `/ledningsrapport` (`RollSkyddadRoute`, inte `SkyddadRoute`).
+  **Observation, inte åtgärdad här:** de tre blocken är redan idag kopior av samma
+  `<main>+<BottomNav/>`-markup, och saknar dessutom `<KommandopalettLyssnare />` som
+  `SkyddatLayout` har — ett förmodligen oavsiktligt hål (kommandopaletten går inte att öppna
+  på de tre sidorna) som fanns FÖRE 69c och inte hör till den här etappen att fixa.
+
+**Krav 34 bevisat, inte påstått.** Nytt `tests/e2e/sidomeny.spec.js`, sex test: synlighet vid
+1440px och vid 390px, ett direkt mått på att EXAKT en huvudnavigering är synlig vid båda
+bredderna, navigering + `aria-current`-markering via sidomenyn, kioskrollens
+"Lämna kioskläge" i sidomenyn, och en kantfall-kontroll — öppna "Mer" på mobil och sedan
+förstora fönstret förbi brytpunkten UTAN att stänga menyn, vilket inte får lämna den synlig.
+
+**En riktig regression hittad och fixad under bygget.** Standardviewporten för hela
+e2e-sviten (`devices["Desktop Chrome"]`, 1280×720) ligger OVANFÖR den nya 1024px-brytpunkten
+— alla befintliga test som inte själva sätter en mobil viewport körde därför plötsligt med
+sidomenyn synlig och bottenraden dold. `tests/e2e/kioskbevakning.spec.js` klickar uttryckligen
+på `BottomNav`s "Mer"-knapp och tajmade ut. Fixat genom att pinna den specen till en explicit
+mobil viewport (`test.use({ viewport: { width: 390, height: 844 } })`) — den testar
+uttryckligen det mobila flödet, och desktopmotsvarigheten täcks redan av
+`sidomeny.spec.js`. Det här är för övrigt den konkreta anledningen till att 69g (testsvep vid
+två bredder) inte är kosmetiskt — hela svepet kör annars av misstag i BARA ett av de två
+lägena.
+
+**Verifierat renderat**, inte bara testat: skärmdumpar tagna av startsidan i ljust och mörkt
+läge vid 1440px (sidomenyn, aktiv länk, Akut-knappen i sin nya position), av mobilvyn vid
+390px (oförändrad), och av `/admin` (den tyngsta av de tre duplicerade rutterna) för att
+bekräfta att sidopanelens `padding-left` inte krockar med en tung dashboard-sida.
+
+**Klart när:** krav 34 är bevisat med ett test ✅, `MerMeny` inte går att nå över brytpunkten
+✅ (bevisat i samma spec), tangentbordsnavigering fungerar i båda lägena ✅ (`NavLink`,
+inga egna tabindex-hack), och axe är rent vid båda bredderna ✅ (`tillganglighet.spec.js`
+kör vid standardviewporten 1280px sedan tidigare — fullt tvåbreddssvep är 69g).
 
 ---
 

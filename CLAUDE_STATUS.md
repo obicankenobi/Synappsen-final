@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.125.0** – byggd och pushad, väntar på deploy. Etapp 69: 69a (z-index-delen), 69b, 69e och 69h klara.
+**Senast uppdaterad:** 2026-08-22, version **5.126.0** – byggd och pushad, väntar på deploy. Etapp 69: 69a (z-index-delen), 69b, 69c, 69e och 69h klara.
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -4154,3 +4154,49 @@ Fullt svep grönt: lint, build, vitest 395/395, `test:rules`, `test:functions`,
 `test:storage`, e2e 23/23.
 
 Kvar i Etapp 69: 69a (brytpunktsdelen, ihop med 69c), 69c, 69d, 69f, 69g.
+
+## Uppföljning 2026-08-22 (delmål 69c, sidomenyn, v5.126.0)
+
+Nästa och största steget i `ETAPPLAN18.md`: **69c**, sidomeny över brytpunkten (1024px).
+
+**Rättelse innan bygget:** planen antog en `useMediaQuery`-hook skulle behövas. Onödig —
+`BottomNav` och `Sidomeny` monteras BÅDA alltid, och CSS (`display: none` på den ena eller
+andra vid brytpunkten) avgör vilken som syns. Gör krav 34 ("de får aldrig visas samtidigt")
+sant av konstruktion, inte av JS-logik som kan hinna fel.
+
+**Ny delad datakälla, inte en ny kopia.** `useNavigeringData.js` bygger listan över sidor
+(roll-/redaktörs-/plattformsadmin-logiken), och både `BottomNav.jsx` och det nya
+`Sidomeny.jsx` läser den. Att låta `Sidomeny` bygga sin egen kopia av samma logik hade varit
+exakt det mönster som redan orsakat en riktig bugg i den här etappen (se 69a).
+
+**Byggt:** `useNavigeringData.js`, `Sidomeny.jsx`/`.css`, `--sidomeny-bredd: 232px` i
+`index.css` (brytpunkten 1024px är INTE ett token av samma CSS-begränsning som 69a redan
+dokumenterade för z-index — en upprepad, dokumenterad siffra istället), `.app-innehall` får
+`padding-left` över brytpunkten, och `AkutKnappFloating` fick en egen bottenposition där
+(annars ett stort oavsiktligt tomrum under knappen på en datorskärm — hittat genom att titta
+på den renderade sidan).
+
+**Krav 34 bevisat, inte påstått.** Nytt `tests/e2e/sidomeny.spec.js`, sex test inklusive en
+kantfallskontroll: öppna "Mer" på mobil och förstora fönstret förbi brytpunkten UTAN att
+stänga menyn — den ska ändå inte bli kvar synlig.
+
+**En riktig regression hittad och fixad under bygget.** Hela e2e-sviten kör som standard vid
+1280×720, vilket ligger OVANFÖR den nya 1024px-brytpunkten. `kioskbevakning.spec.js` klickar
+uttryckligen på `BottomNav`s "Mer"-knapp och började tajma ut, eftersom bottenraden nu är
+dold vid den bredden. Fixat genom att pinna den specen till en explicit mobil viewport — den
+testar det mobila flödet uttryckligen, desktopmotsvarigheten täcks redan av
+`sidomeny.spec.js`. Konkret bevis för varför 69g (testsvep vid två bredder) inte är kosmetiskt.
+
+**Observation, inte åtgärdad:** `App.jsx` har fyra ställen som renderar `<BottomNav />` — en
+delad `SkyddatLayout` plus tre kopierade block (`/admin`, `/godkannanden`,
+`/ledningsrapport`). De tre saknar dessutom `<KommandopalettLyssnare />`, ett förmodligen
+oavsiktligt hål som fanns FÖRE 69c. Utanför den här etappens omfattning.
+
+Verifierat renderat i båda teman vid 1440px och oförändrat vid 390px (skärmdumpar), samt på
+`/admin` (tyngsta av de tre duplicerade rutterna).
+
+Fullt svep grönt: lint, build, vitest 395/395, `test:rules`, `test:functions`,
+`test:storage`, e2e 29/29 (23 tidigare + 6 nya).
+
+Kvar i Etapp 69: 69a (brytpunktsdelen, nu i praktiken klar via denna etapps 1024px), 69d, 69f,
+69g.

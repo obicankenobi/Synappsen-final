@@ -20,6 +20,7 @@ import OfflineKoLyssnare from "./components/OfflineKoLyssnare";
 import SkyddadRoute from "./components/SkyddadRoute";
 import RollSkyddadRoute from "./components/RollSkyddadRoute";
 import BottomNav from "./components/BottomNav";
+import Sidomeny from "./components/Sidomeny";
 import KommandopalettLyssnare from "./components/KommandopalettLyssnare";
 import KioskBevakning from "./components/KioskBevakning";
 import { REDAKTORSROLLER } from "./firebase/roles";
@@ -88,6 +89,7 @@ function SkyddatLayout({ children }) {
         </ErrorBoundary>
       </main>
       <BottomNav />
+      <Sidomeny />
       <KommandopalettLyssnare />
     </SkyddadRoute>
   );
@@ -322,6 +324,7 @@ export default function App() {
                   </ErrorBoundary>
                 </main>
                 <BottomNav />
+                <Sidomeny />
               </RollSkyddadRoute>
             }
           />
@@ -337,6 +340,7 @@ export default function App() {
                   </ErrorBoundary>
                 </main>
                 <BottomNav />
+                <Sidomeny />
               </RollSkyddadRoute>
             }
           />
@@ -352,6 +356,7 @@ export default function App() {
                   </ErrorBoundary>
                 </main>
                 <BottomNav />
+                <Sidomeny />
               </RollSkyddadRoute>
             }
           />

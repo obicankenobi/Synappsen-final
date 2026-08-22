@@ -50,3 +50,12 @@
 .bottom-nav__ikon {
   font-size: 1.3rem;
 }
+
+/* Etapp 69c: över brytpunkten (samma 1024px som Sidomeny.css visar vid) ersätts bottenraden
+   av sidomenyn. De får ALDRIG synas samtidigt (genomgående krav 34) - se
+   tests/e2e/sidomeny.spec.js för beviset. */
+@media (min-width: 1024px) {
+  .bottom-nav {
+    display: none;
+  }
+}

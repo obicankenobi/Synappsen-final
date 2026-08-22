@@ -222,6 +222,15 @@ U+2122,U+2212,U+2248,U+2260,U+2264-2265" \
      det utan att ändra något värde. */
   --maxbredd-lasbar: 600px;
 
+  /* Etapp 69c (2026-08-22): sidomenyns bredd. Brytpunkten den visas vid (1024px) är INTE ett
+     token - CSS custom properties går inte att använda i ett @media-villkor, en begränsning
+     i språket, inte ett designval (se ETAPPLAN18.md 69a). Värdet 1024px upprepas därför som
+     en bokstavlig siffra i varje fil som behöver det (Sidomeny.css, BottomNav.css,
+     MerMeny.css, index.css nedan, AuthSkal.css sedan tidigare) - beslutat en gång,
+     2026-08-22, se BESLUTSLOGG.md, och ska ändras på alla ställen samtidigt om det någonsin
+     omprövas. */
+  --sidomeny-bredd: 232px;
+
   font: 16px/1.6 system-ui, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
@@ -844,6 +853,16 @@ select:focus {
      riktig mobilvy (375px) där en väntande-granskning-rad doldes bakom navet. 76px är samma
      värde AkutKnappFloating.css redan använder för sitt eget bottom-avstånd. */
   padding-bottom: calc(76px + env(safe-area-inset-bottom));
+}
+
+/* Etapp 69c: över brytpunkten ersätts bottenraden av Sidomeny.css:s fasta sidopanel, så det
+   nedre utrymmet (76px ovan) behövs inte längre - däremot behöver INNEHÅLLET flyttas åt
+   höger så det inte hamnar under panelen. Samma 1024px som Sidomeny.css/AuthSkal.css. */
+@media (min-width: 1024px) {
+  .app-innehall {
+    padding-bottom: 0;
+    padding-left: var(--sidomeny-bredd);
+  }
 }
 
 .sektionssida__taggfilter {

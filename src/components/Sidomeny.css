@@ -1,0 +1,72 @@
+/* Etapp 69c (2026-08-22): huvudnavigeringen på en datorskärm. Dold som standard (mobil);
+   index.css:s brytpunkt (`@media (min-width: 1024px)`, samma värde som AuthSkal.css redan
+   beslutat, se BESLUTSLOGG.md 2026-08-22) visar den och gömmer BottomNav.css:s `.bottom-nav`
+   i samma svep – de två får ALDRIG synas samtidigt (genomgående krav 34), bevisat av
+   tests/e2e/sidomeny.spec.js, inte bara påstått här. */
+.sidomeny {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .sidomeny {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidomeny-bredd);
+    padding: 20px 12px;
+    background: var(--yta);
+    border-right: 1px solid var(--kant);
+    overflow-y: auto;
+    z-index: var(--z-nav);
+  }
+}
+
+.sidomeny__marke {
+  width: 26px;
+  height: 26px;
+  color: var(--primar);
+  margin: 4px 10px 18px;
+}
+
+.sidomeny__lank {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-liten);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.sidomeny__lank:hover {
+  background: var(--bg);
+}
+
+/* .active sätts av react-router-dom:s NavLink på den matchande länken. */
+.sidomeny__lank.active {
+  background: var(--primar-ljus);
+  color: var(--primar-mork);
+  font-weight: 600;
+}
+
+.sidomeny__lank--knapp {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  width: 100%;
+  text-align: left;
+}
+
+.sidomeny__ikon {
+  font-size: 1.05rem;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}

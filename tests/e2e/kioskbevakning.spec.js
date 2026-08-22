@@ -10,6 +10,14 @@
 // vid att dialogen öppnas med rätt fält, inte ett lyckat upplåsningsförsök.
 import { test, expect } from "@playwright/test";
 
+// Etapp 69c: standardviewporten (1280×720, "Desktop Chrome") ligger över den nya 1024px-
+// brytpunkten, där Sidomeny.jsx ersätter bottenraden (se ETAPPLAN18.md). De två testen
+// längre ner som klickar "Mer" testar uttryckligen BottomNav.jsx:s mobila "Mer"-flöde -
+// desktopvarianten (Sidomeny, alltid synlig, ingen "Mer"-knapp behövs) täcks separat av
+// tests/e2e/sidomeny.spec.js. Sätts därför explicit till en mobil bredd här, i stället för
+// att av misstag förlita sig på standardvärdet.
+test.use({ viewport: { width: 390, height: 844 } });
+
 async function loggaInSomKiosk(page) {
   await page.goto("/logga-in");
   await page.fill('input[type="email"]', "e2e-kioskA@orga.test");

@@ -56,3 +56,13 @@
 .mer-meny__ikon {
   font-size: 1.4rem;
 }
+
+/* Etapp 69c: skyddsnät mot en smal men verklig kant - öppnar man "Mer" på en smal skärm och
+   sedan förstorar fönstret (eller roterar en surfplatta) förbi 1024px UTAN att stänga menyn
+   först, ska den inte bli kvar synlig samtidigt som Sidomeny. Bara "Mer"-knappen som öppnar
+   den är redan dold där (se BottomNav.css), men det stänger inte en redan öppen instans. */
+@media (min-width: 1024px) {
+  .mer-meny__bakgrund {
+    display: none;
+  }
+}
