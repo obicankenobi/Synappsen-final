@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import AuthSkal from "../components/AuthSkal";
 import { hamtaMfaResolver, slutforMfaInloggning } from "../firebase/mfa";
 
 export default function LoggaIn() {
@@ -47,9 +48,7 @@ export default function LoggaIn() {
 
   if (resolver) {
     return (
-      <main id="huvudinnehall" className="sida sida--auth" tabIndex={-1}>
-        <h1>Verifieringskod</h1>
-        <p className="auth__undertext">Ange koden från din autentiseringsapp.</p>
+      <AuthSkal rubrik="Verifieringskod" undertext="Ange koden från din autentiseringsapp.">
         <form onSubmit={hanteraTotpSubmit} className="auth-form">
           <label>
             Kod
@@ -67,14 +66,20 @@ export default function LoggaIn() {
             {laddar ? "Verifierar..." : "Verifiera"}
           </button>
         </form>
-      </main>
+      </AuthSkal>
     );
   }
 
   return (
-    <main id="huvudinnehall" className="sida sida--auth" tabIndex={-1}>
-      <h1>Logga in</h1>
-      <p className="auth__undertext">Synappsen – kunskapsbank för akutmottagningen</p>
+    <AuthSkal
+      rubrik="Logga in"
+      undertext="Logga in för att nå avdelningens rutiner."
+      foten={
+        <p className="auth__bytlank">
+          Inget konto? <Link to="/registrera">Skapa konto</Link>
+        </p>
+      }
+    >
       <form onSubmit={hanteraSubmit} className="auth-form">
         <label>
           E-post
@@ -101,9 +106,6 @@ export default function LoggaIn() {
           {laddar ? "Loggar in..." : "Logga in"}
         </button>
       </form>
-      <p className="auth__bytlank">
-        Inget konto? <Link to="/registrera">Skapa konto</Link>
-      </p>
-    </main>
+    </AuthSkal>
   );
 }

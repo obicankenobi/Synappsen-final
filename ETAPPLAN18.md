@@ -1,7 +1,11 @@
 # Etapplan 18 – Appen på en datorskärm
 
-**Etapp 69. Utkast 2026-08-22, EJ ANTAGEN.** Bygger på en genomgång av UI-lagret i v5.121.0
-(75 CSS-filer, 28 sidor) och på skissen i artefakten "Synappsen på dator".
+**Etapp 69. ANTAGEN 2026-08-22** (se `BESLUTSLOGG.md`). Bygger på en genomgång av UI-lagret i
+v5.121.0 (75 CSS-filer, 28 sidor) och på skissen i artefakten "Synappsen på dator".
+
+> **Vid antagandet tillkom delmål 69h** på ägarens begäran: inloggningssidan görs om helt.
+> Alla tre beslutspunkter avgjordes samtidigt, enligt rekommendationerna — brytpunkt **1024 px**,
+> **fast** sidomeny, akutläget **orört**.
 
 > **Vad den här planen är:** att ge appen en datorlayout, plus fyra defekter som genomgången
 > hittade på vägen och som inte har med skärmbredd att göra.
@@ -201,6 +205,14 @@ Två luckor i kvalitetsmaskineriet som blir värre av den här etappen, inte bä
 Efter 69c testar en enda bredd bara *en av två* layouter. Svepet ska köras vid både en mobil-
 och en datorbredd.
 
+**Temat — tillagt 2026-08-22 under bygget av 69h.** Samma lucka finns i en andra dimension, och
+den visade sig kosta mer: Playwrights standard är `colorScheme: 'light'`, och specen sätter inget
+annat. **Mörkt läge testas alltså inte alls av axe.** Det är förklaringen till att en
+app-övergripande kontrastdefekt kunde ligga kvar (se 69h): appen saknade helt en global länkfärg,
+72 länkar föll tillbaka på webbläsarens `#0000EE`, och det mäter 9,40:1 mot vitt men **1,90–2,06:1**
+i mörkt läge. I ljust läge var defekten osynlig. Svepet ska alltså köras i fyra kombinationer:
+två bredder × två teman.
+
 **Temadrift.** Mörkt läge underhålls i två handhållna kopior, och kontrastvakten läser bara den
 ena. De är identiska idag (verifierat), men en framtida ändring i bara den ena skulle passera
 oupptäckt — och kontrastvakten skulle rapportera grönt. Ett test som jämför blocken token för
@@ -212,20 +224,76 @@ prova).
 
 ---
 
-## Beslutspunkter som kräver ägaren
+### 69h. Inloggningssidan görs om ✅ KLAR 2026-08-22
 
-**1. Var går brytpunkten?**
-Rekommendation: **1024 px.** Under den ligger surfplattor i stående läge och alla telefoner —
+Tillkom vid antagandet. Ägarens beskrivning: *"bara textfält med mörk bakgrund"*.
+
+**Vad som faktiskt finns idag** (verifierat): `LoggaIn.jsx` och `Registrera.jsx` renderar båda
+`<main className="sida sida--auth">` — ett 380 px brett kort med `--yta` som bakgrund, en `h1`,
+en undertext, två fält, en knapp och en länk. Det är inte mörkt i sig; i mörkt läge ligger
+kortet på `--bg` `#0a0e16`, och då *läser* det som fält på svart. Funktionellt, men utan
+avsändare: inget märke, ingen symbol, ingenting som säger vilket system man loggar in i.
+
+**Varför det hör hemma i den här etappen och inte i en egen:** den nya formgivningen ÄR en
+responsiv layout — delad vy över brytpunkten, enkel centrerad vy under. Samma 1024 px som 69c.
+
+**Varumärkesramar som gäller** (ur `VARUMARKE.md` §5, §12 och §13):
+
+- **Behärskad.** Inga utropstecken, inga superlativ, ingen brådska. Men behärskad är inte
+  anonym — sidan får ha en åsikt.
+- **Aldrig neurala nätverk, noder eller hjärnor.** §12 noterar att två av tre logotypförslag
+  från en bildmodell blev nätverksgrafer, så dragningen måste motstås aktivt.
+- **Aldrig bilder på vårdpersonal.** Stockfoto på vårdpersonal står som punkt 6 på listan över
+  vad som skulle skada varumärket.
+- **Inga nyttosiffror.** Punkt 1 på samma lista: en siffra utan täckning river hela positionen.
+  En inloggningssida är ingen plats för påståenden som inte går att belägga.
+- Symbolen är den enda visuella tillgång som faktiskt finns och är genomtänkt — den ska bära.
+
+**Utförande:** ett gemensamt `AuthSkal` som båda sidorna använder, så att de inte kan glida
+isär (idag är de två separata filer med samma klassnamn). Panelen behöver **egna scoped
+tokens** av samma skäl som akutläget har det: `--primar-mork` är en mörk blå i ljust läge men
+en *ljus* blå i mörkt, och duger därför inte som panelbakgrund i båda teman.
+
+**Klart när:** båda sidorna renderade och granskade i ljust och mörkt läge vid både 390 px och
+1440 px (krav 33), varje ny färg uppmätt och siffran inskriven (krav 30), fokusordningen
+oförändrad, `h1` och `id="huvudinnehall"` kvar för hopplänken, och axe rent.
+
+**✅ KLAR 2026-08-22.** Byggd som ett gemensamt `AuthSkal` (`src/components/AuthSkal.jsx`
++ `.css`) som både `LoggaIn` och `Registrera` använder. Panelen har egna scoped tokens,
+uppmätta: `#1e3a8a` ljust (vit text 10,36:1, dämpad 5,49:1) och `#101a2e` mörkt (17,37:1 /
+9,21:1). `.sida--auth` i `index.css` är borttagen som död kod.
+
+**Att granska den renderat gav fyra defekter som ALLA fanns före 69h**, och tre av dem drabbade
+hela appen, inte bara inloggningen:
+
+| # | Defekt | Omfattning | Uppmätt |
+|---|---|---|---|
+| 1 | `a` saknade global färg – 72 länkar föll tillbaka på webbläsarens `#0000EE` | **Hela appen** | 9,40:1 ljust, **1,90–2,06:1 mörkt** |
+| 2 | `color-scheme` deklarerades ingenstans, så webbläsaren renderade sina kontroller i ljust läge oavsett tema | **Hela appen** | — |
+| 3 | `.auth-form input` saknade `background`/`color` → vita fält i mörkt läge | Auth-sidorna | — |
+| 4 | `.hoppa-till-innehall` låg på `top: -40px`, men länken är högre → nederkanten syntes i övre vänstra hörnet | **Hela appen** | — |
+
+Defekt 1 och 2 är samma rot: ingenting berättade för webbläsaren vilket tema som gällde. Båda
+rättade — `color-scheme` per temablock och `a { color: var(--primar) }`, vilket ger 5,63:1 ljust
+och 4,87–5,25:1 mörkt.
+
+Ingen av dem hade kunnat fångas av det befintliga svepet, eftersom det inte kör i mörkt läge.
+Därav tillägget i 69g.
+
+---
+
+## Beslutspunkter — AVGJORDA 2026-08-22
+
+**1. Var går brytpunkten?** → **1024 px.** Rekommendationen följdes. Under den ligger surfplattor i stående läge och alla telefoner —
 de har inte plats för en 232 px sidomeny utan att innehållet blir trängre än idag. Över den
 ligger surfplattor i liggande läge och alla datorer. Det är ett värde att välja *en* gång;
 byter man det senare får varje delmål granskas om.
 
-**2. Ska sidomenyn gå att fälla ihop?**
-Rekommendation: **nej, inte i den här etappen.** En hopfällbar meny betyder ett sparat läge per
+**2. Ska sidomenyn gå att fälla ihop?** → **Nej**, inte i den här etappen. En hopfällbar meny betyder ett sparat läge per
 användare, ett till tillstånd att testa i sju roller, och en till sak som kan hamna i otakt
 mellan enheter. Bygg den fast först och se om någon faktiskt ber om det.
 
-**3. Vad ska hända med Akutläge på en datorskärm?**
+**3. Vad ska hända med Akutläge på en datorskärm?** → **Lämnas orört.**
 Akutläget har medvetet egna, fasta högkontrastfärger utanför temasystemet, byggt för en telefon
 i handsken. Rekommendation: **lämna det orört i den här etappen** och lägg till en rad i
 `GRAFISK-PROFIL.md` om att det är ett avsiktligt undantag även från brytpunkterna. Att designa
@@ -263,6 +331,8 @@ praktiken, och det vet inte jag utan en riktig datamängd. Hör hemma efter pilo
 69e  fokusmarkering ──┐  (fristående, kan byggas först — rättar en defekt i produktion)
 69f  skrollning ──────┤
                       │
+69h  inloggningen ─┘  (fristående layout, delar bara brytpunktsvärdet)
+
 69a  tokens ──> 69b  radlängd ──> 69c  sidomeny ──> 69d  vyerna
                                         │
                                         └──> 69g  testsvep vid två bredder
@@ -279,3 +349,4 @@ praktiken, och det vet inte jag utan en riktig datamängd. Hör hemma efter pilo
 | 69e | Litet | Ingen — mönstret finns redan i `index.css` |
 | 69f | Litet | Att bakåtknappen slutar återställa positionen |
 | 69g | Medel | Svepets körtid |
+| 69h | Medel | Att panelen bara fungerar i ett av två teman — därav egna scoped tokens |

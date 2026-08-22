@@ -1,0 +1,218 @@
+/* Etapp 69h (2026-08-22): inloggnings- och registreringssidans formgivning.
+   Se ETAPPLAN18.md delmål 69h för varumärkesramarna som styrde utförandet.
+
+   EGNA SCOPED TOKENS, av samma skäl som src/pages/Akutlage.css har det. Panelen behöver en
+   djup blå yta i BÅDA teman, och ingen befintlig token duger: --primar-mork är #274eaf i
+   ljust läge men #60a5fa i mörkt, alltså en LJUS blå. Hade panelen använt den skulle den bli
+   nästan vit i mörkt läge och texten oläslig. Värdena nedan hör därför till den här vyn och
+   ska inte flyttas in i temablocken i index.css.
+
+   MÄTT (genomgående krav 30), med src/utils/kontrast.js:
+     ljust  --auth-panel #1e3a8a : vit text 10,36:1 · dämpad text 5,49:1
+     mörkt  --auth-panel #101a2e : vit text 17,37:1 · dämpad text 9,21:1
+   Kravet är 4,5:1 för brödtext. Båda teman klarar det med marginal, och den dämpade
+   texten är mätt separat eftersom den är den svagaste av de två. */
+.auth-skal {
+  --auth-panel: #1e3a8a;
+  --auth-panel-text: #ffffff;
+  --auth-panel-svag: #a9bde8;
+
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="light"]) .auth-skal {
+    --auth-panel: #101a2e;
+  }
+}
+
+:root[data-tema="dark"] .auth-skal {
+  --auth-panel: #101a2e;
+}
+
+/* ---------- Märkespanelen (bara över brytpunkten) ---------- */
+
+.auth-panel {
+  display: none;
+}
+
+.auth-panel__innehall {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 30ch;
+}
+
+.auth-panel__marke {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--auth-panel-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.auth-panel__symbol {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.auth-panel__rad {
+  margin: 0;
+  color: var(--auth-panel-text);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.auth-panel__omraden {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--auth-panel-svag);
+  font-size: 0.92rem;
+}
+
+.auth-panel__omraden li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-panel__omraden li::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* Symbolen stor och tystad som ett vattenmärke. Den är den enda visuella tillgång
+   varumärket faktiskt har (VARUMARKE.md §12), och får därför bära panelen ensam – i stället
+   för det bildspråk §12 uttryckligen förbjuder: nodgrafer, hjärnor och stockfoto på
+   vårdpersonal.
+
+   Ett första försök beskar den (`right: -14%; bottom: -16%`) och
+   resultatet lästes som en abstrakt klump – varken den fyllda terminalen eller den öppna
+   bågen gick att urskilja, alltså precis den skillnad VARUMARKE.md §12 säger är det som ger
+   symbolen riktning. En symbol som inte går att känna igen är sämre än ingen symbol. Den
+   ligger nu HEL innanför panelen. */
+.auth-panel__vattenmarke {
+  position: absolute;
+  right: 6%;
+  bottom: 7%;
+  width: 42%;
+  height: auto;
+  color: var(--auth-panel-text);
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+/* ---------- Formulärsidan ---------- */
+
+.auth-vy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background: var(--bg);
+}
+
+/* Kortet finns kvar UNDER brytpunkten och är avsiktligt borta över den. Utan kort blir
+   mobilvyn precis det som var utgångsläget för 69h: fält som svävar direkt mot bakgrunden,
+   utan avsändare. Över brytpunkten bär panelen den rollen i stället, och ett kort där hade
+   blivit en ruta i en ruta. */
+.auth-vy__kort {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  background: var(--yta);
+  border: 1px solid var(--kant);
+  border-radius: var(--radius);
+  box-shadow: var(--skugga);
+  padding: 28px 24px 26px;
+}
+
+.auth-vy__marke {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  color: var(--text);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.auth-vy__symbol {
+  width: 26px;
+  height: 26px;
+  color: var(--primar);
+  flex-shrink: 0;
+}
+
+.auth-vy__kort h1 {
+  margin: 0 0 6px;
+  font-size: 1.7rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.auth-vy__kort .auth__undertext {
+  margin: 0 0 26px;
+  color: var(--text-svag);
+  font-size: 0.95rem;
+}
+
+/* ---------- Över brytpunkten: delad vy ---------- */
+
+/* 1024 px är Etapp 69:s brytpunkt, beslutad 2026-08-22 (BESLUTSLOGG.md) och samma värde som
+   sidomenyn i 69c använder. Under den finns det inte plats för en panel utan att formuläret
+   blir trängre än det är idag. */
+@media (min-width: 1024px) {
+  .auth-skal {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .auth-panel {
+    display: flex;
+    align-items: center;
+    padding: 64px;
+    position: relative;
+    overflow: hidden;
+    background: var(--auth-panel);
+  }
+
+  /* Märket bärs av panelen över brytpunkten – att visa det två gånger vore brus. */
+  .auth-vy__marke {
+    display: none;
+  }
+
+  .auth-vy__kort {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    max-width: 400px;
+  }
+
+  .auth-vy {
+    padding: 64px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .auth-skal {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+}

@@ -11,6 +11,16 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.122.0",
+    datum: "2026-08-22",
+    andringar: [
+      "Inloggnings- och registreringssidan har fått ny formgivning, med Synappsens märke och en delad vy på datorskärm",
+      "Länkar syntes knappt i mörkt läge och har fått rätt färg. Gällde hela appen, inte bara inloggningen",
+      "Inloggningsfälten visades vita i mörkt läge och följer nu temat",
+      "Länken \"Hoppa till innehåll\" kikade fram i övre vänstra hörnet på varje sida och är nu dold tills den används",
+    ],
+  },
+  {
     version: "5.121.0",
     datum: "2026-08-22",
     andringar: [

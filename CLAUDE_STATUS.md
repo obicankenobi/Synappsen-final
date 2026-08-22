@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.121.0** deployad (körning #85). **Etapp 68 helt klar.** `ETAPPLAN18.md` (Etapp 69) skriven som utkast, EJ ANTAGEN.
+**Senast uppdaterad:** 2026-08-22, version **5.122.0** – byggd och pushad, väntar på deploy. `ETAPPLAN18.md` ANTAGEN, delmål 69h klart.
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -4036,3 +4036,39 @@ läses av kontrastvakten.
 
 Rekommendationen är genomgående **en kodbas med brytpunkter**, inte två byggen med
 enhetsdetektering – motiverat i planen.
+
+## Uppföljning 2026-08-22 (Etapp 69 ANTAGEN + delmål 69h byggt, v5.122.0)
+
+Ägaren antog `ETAPPLAN18.md` utan invändningar mot rekommendationerna, vilket avgör alla tre
+beslutspunkter: brytpunkt **1024 px**, **fast** sidomeny, akutläget **orört**. Se
+`BESLUTSLOGG.md`. Samtidigt tillkom **69h**: inloggningssidan görs om helt, med varumärkes-
+profilen som ram.
+
+**69h är byggt.** Gemensamt `AuthSkal` för `LoggaIn` och `Registrera` (de hade tidigare var sin
+kopia av samma markup – samma tvåställenmönster som gjort dokument i det här projektet inaktuella
+gång på gång). Delad vy med märkespanel över 1024 px, kort med märkesrad under. Panelen har egna
+scoped tokens av samma skäl som akutläget: `--primar-mork` är mörkblå i ljust läge men LJUS blå i
+mörkt och duger inte som panelbakgrund. Uppmätt: `#1e3a8a` / `#101a2e`, vit text 10,36:1
+respektive 17,37:1.
+
+**Att granska sidan renderad gav fyra defekter som alla fanns FÖRE 69h, och tre drabbade hela
+appen:**
+
+1. **Appen saknade helt en global länkfärg.** 72 `<Link>`/`<a>` i JSX, noll CSS-regler som satte
+   `color`. De föll tillbaka på webbläsarens `#0000EE`: **9,40:1 mot vitt men 1,90–2,06:1 i mörkt
+   läge**, alltså långt under AA. Rättat med `a { color: var(--primar) }` → 5,63:1 / 4,87–5,25:1.
+2. **`color-scheme` deklarerades ingenstans**, så webbläsaren renderade sina egna kontroller och
+   standardfärger i ljust läge oavsett appens tema. Samma rot som punkt 1. Satt per temablock.
+3. `.auth-form input` saknade `background`/`color` → **vita fält mot #0a0e16** i mörkt läge.
+4. `.hoppa-till-innehall` låg på `top: -40px` men är högre än så, så nederkanten syntes i övre
+   vänstra hörnet på **varje sida i appen**. Ersatt med `translateY(-200%)`, höjdoberoende.
+
+**Varför ingen sett dem:** axe-svepet kör i Playwrights standardläge, som är LJUST. **Mörkt läge
+testas inte alls automatiskt.** Det är samma sorts lucka som "svepet kör vid en enda bredd", fast
+i en andra dimension – och den här gången kostade den en app-övergripande WCAG-defekt. Delmål 69g
+är utökat: svepet ska köras i fyra kombinationer, två bredder × två teman.
+
+Fullt svep grönt: lint, vitest 368/368, `test:rules`, `test:functions`, `test:storage`, e2e 23/23.
+
+Kvar i Etapp 69: 69a–69g. 69e (fokusmarkering på listposter) är fortfarande den som rättar en
+defekt i produktion och kan tas när som helst.

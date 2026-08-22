@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import AuthSkal from "../components/AuthSkal";
 import { useAuth } from "../hooks/useAuth";
 import { granskaInbjudan } from "../firebase/functions";
 import { ROLE_LABELS } from "../firebase/roles";
@@ -53,36 +54,41 @@ export default function Registrera() {
 
   if (!token || granskningsfel) {
     return (
-      <main id="huvudinnehall" className="sida sida--auth" tabIndex={-1}>
-        <h1>Skapa konto</h1>
-        <p className="auth__undertext">
-          Registrering kräver en inbjudan från din organisations administratör. Be en
-          superadmin bjuda in dig från adminpanelen.
-        </p>
+      <AuthSkal
+        rubrik="Skapa konto"
+        undertext="Registrering kräver en inbjudan från din organisations administratör. Be en superadmin bjuda in dig från adminpanelen."
+        foten={
+          <p className="auth__bytlank">
+            Har du redan ett konto? <Link to="/logga-in">Logga in</Link>
+          </p>
+        }
+      >
         {granskningsfel && <p className="auth__fel">{granskningsfel}</p>}
-        <p className="auth__bytlank">
-          Har du redan ett konto? <Link to="/logga-in">Logga in</Link>
-        </p>
-      </main>
+      </AuthSkal>
     );
   }
 
   if (granskar) {
     return (
-      <main id="huvudinnehall" className="sida sida--auth" tabIndex={-1}>
-        <h1>Skapa konto</h1>
-        <p className="auth__undertext">Kontrollerar inbjudan...</p>
-      </main>
+      <AuthSkal rubrik="Skapa konto" undertext="Kontrollerar inbjudan..." />
     );
   }
 
   return (
-    <main id="huvudinnehall" className="sida sida--auth" tabIndex={-1}>
-      <h1>Skapa konto</h1>
-      <p className="auth__undertext">
-        Du bjöds in till <strong>{inbjudan.organisationsNamn}</strong> med rollen{" "}
-        <strong>{ROLE_LABELS[inbjudan.roll] ?? inbjudan.roll}</strong> ({inbjudan.epost}).
-      </p>
+    <AuthSkal
+      rubrik="Skapa konto"
+      undertext={
+        <>
+          Du bjöds in till <strong>{inbjudan.organisationsNamn}</strong> med rollen{" "}
+          <strong>{ROLE_LABELS[inbjudan.roll] ?? inbjudan.roll}</strong> ({inbjudan.epost}).
+        </>
+      }
+      foten={
+        <p className="auth__bytlank">
+          Har du redan ett konto? <Link to="/logga-in">Logga in</Link>
+        </p>
+      }
+    >
       <form onSubmit={hanteraSubmit} className="auth-form">
         <label>
           Namn
@@ -110,9 +116,6 @@ export default function Registrera() {
           {laddar ? "Skapar konto..." : "Skapa konto"}
         </button>
       </form>
-      <p className="auth__bytlank">
-        Har du redan ett konto? <Link to="/logga-in">Logga in</Link>
-      </p>
-    </main>
+    </AuthSkal>
   );
 }
