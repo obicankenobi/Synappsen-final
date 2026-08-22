@@ -28,7 +28,13 @@
   --bg: #f5f9fa;
   --yta: #ffffff;
   --kant: #e2e8f0;
-  --kant-stark: #cbd5e1;
+  /* Etapp 68d: kontrastvakten hittade att --kant-stark inte klarade WCAG 1.4.11 (3:1)
+     mot vare sig --yta eller --bg, i BÅDA teman och alla fyra accenter. Det spelar roll
+     eftersom token:et bär sökfältets och kommandopalettens kantlinjer, alltså riktiga
+     kontrollgränser och inte dekoration. Gamla värden gav 1,48:1 (ljust) och 1,63:1
+     (mörkt). Nya ger ca 3,5:1 mot yta och 3,3-3,8:1 mot bakgrund.
+     Defekten fanns före Etapp 68 och upptäcktes bara för att vakten skrevs. */
+  --kant-stark: #7d8a99;
   --farlig: #dc2626;
   /* Etapp 68a: text och ikoner PÅ en färgmättad yta (primärknapp, farlig knapp).
      Vitt i båda teman, eftersom ytan under är mättad i båda. Poängen med token:et är
@@ -90,14 +96,25 @@
   --bg: #0a0e16;
   --yta: #131722;
   --kant: #242a3a;
-  --kant-stark: #333c52;
+  --kant-stark: #606f89;
   --farlig: #f87171;
   /* Etapp 68a: text och ikoner PÅ en färgmättad yta (primärknapp, farlig knapp).
      Vitt i båda teman, eftersom ytan under är mättad i båda. Poängen med token:et är
      inte att värdet varierar utan att en framtida ändring av --primar bara kräver EN
      ändring här i stället för en jakt genom sexton filer. */
-  --pa-primar: #ffffff;
-  --pa-farlig: #ffffff;
+  /* Etapp 68c: MÖRK text på färgad knapp i mörkt läge, inte vit. Mätt (krav 30):
+     vit text på mörkt läges accenter ger 3,68 (blå), 1,74 (grön), 2,72 (lila) och
+     2,26 (orange), alltså under AA:s 4,5 i samtliga fall. Samma yta med mörk text ger
+     4,87 / 10,27 / 6,58 / 7,91.
+     Skälet till att det inte går att laga genom att mörka accenten i stället: accenten
+     gör dubbel tjänst i mörkt läge, som knappbakgrund OCH som länk-/textfärg mot den
+     mycket mörka bottnen. De två rollerna drar åt motsatt håll, och en accent mörk nog
+     för vit knapptext blir för mörk för att läsas som text mot --bg.
+     Värdet är samma som --yta i det här temat, med avsikt: .knapp har alltid använt
+     color: var(--yta) och har därför aldrig haft defekten. Det står som en egen token
+     ändå, så att knapptexten inte tyst följer med om --yta ändras av ytskäl. */
+  --pa-primar: #131722;
+  --pa-farlig: #131722;
   --farlig-mork: #fca5a5;
   --farlig-ljus: #450a0a;
   --success: #4ade80;
@@ -127,14 +144,25 @@
     --bg: #0a0e16;
     --yta: #131722;
     --kant: #242a3a;
-    --kant-stark: #333c52;
+    --kant-stark: #606f89;
     --farlig: #f87171;
   /* Etapp 68a: text och ikoner PÅ en färgmättad yta (primärknapp, farlig knapp).
      Vitt i båda teman, eftersom ytan under är mättad i båda. Poängen med token:et är
      inte att värdet varierar utan att en framtida ändring av --primar bara kräver EN
      ändring här i stället för en jakt genom sexton filer. */
-  --pa-primar: #ffffff;
-  --pa-farlig: #ffffff;
+  /* Etapp 68c: MÖRK text på färgad knapp i mörkt läge, inte vit. Mätt (krav 30):
+     vit text på mörkt läges accenter ger 3,68 (blå), 1,74 (grön), 2,72 (lila) och
+     2,26 (orange), alltså under AA:s 4,5 i samtliga fall. Samma yta med mörk text ger
+     4,87 / 10,27 / 6,58 / 7,91.
+     Skälet till att det inte går att laga genom att mörka accenten i stället: accenten
+     gör dubbel tjänst i mörkt läge, som knappbakgrund OCH som länk-/textfärg mot den
+     mycket mörka bottnen. De två rollerna drar åt motsatt håll, och en accent mörk nog
+     för vit knapptext blir för mörk för att läsas som text mot --bg.
+     Värdet är samma som --yta i det här temat, med avsikt: .knapp har alltid använt
+     color: var(--yta) och har därför aldrig haft defekten. Det står som en egen token
+     ändå, så att knapptexten inte tyst följer med om --yta ändras av ytskäl. */
+  --pa-primar: #131722;
+  --pa-farlig: #131722;
     --farlig-mork: #fca5a5;
     --farlig-ljus: #450a0a;
     --success: #4ade80;
@@ -679,7 +707,11 @@ select:focus {
   z-index: 1000;
   padding: 10px 16px;
   background: var(--primar);
-  color: #fff;
+  /* Etapp 68c: var #fff, vilket gav 1,74-3,68:1 i mörkt läge beroende på accent.
+     Det är hoppa-till-innehall-länken, alltså just den funktion som finns FÖR
+     tangentbords- och skärmläsaranvändare. Att den var den sämst kontrasterande ytan i
+     appen är den sortens fel som bara syns om man mäter. */
+  color: var(--pa-primar);
   border-radius: var(--radius-liten);
   font-weight: 600;
   text-decoration: none;

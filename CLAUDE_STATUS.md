@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-21, version **5.118.0** – byggd och pushad, **INTE DEPLOYAD**
+**Senast uppdaterad:** 2026-08-22, version **5.119.0** – byggd och pushad, **INTE DEPLOYAD**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -3837,4 +3837,55 @@ en kontrastregression.
 
 **Schemalagt:** 68c, 68d och 68f 2026-08-22 kl 02:43. Obs att schemaläggningen är
 sessionsbunden och försvinner om sessionen avslutas, se rapporten till ägaren.
+
+## Uppföljning 2026-08-22 (Etapp 68c, 68d och 68f, v5.119.0)
+
+Ägaren bad om att köra dem direkt i stället för schemalagt, vilket var tur: `CronCreate` är
+sessionsbunden och jobbet hade redan försvunnit när sessionen startade om.
+
+**68c: planens premiss var fel, och premisskontrollen räddade den.**
+`.knapp` sätter `color: var(--yta)`, inte vit, och `--yta` växlar med temat. Primärknappen
+mäter 5,63 / 5,02 / 5,70 / 5,18:1 i ljust läge och 4,87 / 10,27 / 6,58 / 7,91:1 i mörkt, för
+de fyra accenterna. **Den har alltså aldrig haft defekten.** Siffran 3,68:1 som både planen
+och `VARUMARKE.md` P5 byggde på mätte ett par som inte finns i appen.
+
+Den riktiga defekten var smalare och värre: **sju regler sätter vit text på `--primar`**, och
+alla sju faller i mörkt läge, från 3,68:1 (blå) till **1,74:1 (grön)**. Den sjunde är
+`.hoppa-till-innehall`, alltså just den funktion som finns FÖR tangentbords- och
+skärmläsaranvändare.
+
+Väg 2 valdes på mätning. Väg 1 går inte: accenten gör dubbel tjänst i mörkt läge, som
+knappbakgrund OCH som länkfärg mot den mycket mörka bottnen, och de två rollerna drar åt
+motsatt håll. `--pa-primar` och `--pa-farlig` är nu mörka i mörkt läge. Att 68a införde
+token:et innan defekten var lokaliserad blev tur: rättningen blev två rader.
+
+**68d: vakten hittade en defekt ingen letade efter.**
+`tests/docs/kontrastpalett.test.js`, 14 par gånger 8 paletter, 113 test. Bevisat meningsfull:
+**8 fel** mot paletten före 68c:s rättning, 113 gröna efter.
+
+Utöver det failade `--kant-stark` på WCAG 1.4.11: 1,48:1 i ljust och 1,63:1 i mörkt mot ett
+krav på 3:1. Det bär **sökfältets och kommandopalettens kantlinjer**, alltså riktiga
+kontrollgränser. Nya värden `#7d8a99` och `#606f89` ger ca 3,5:1. Defekten fanns före hela
+Etapp 68.
+
+**68f: två dokumenterade avvikelser gick att stänga, en tredje inte.**
+`TILLGANGLIGHETSREDOGORELSE.md` avvikelse 9 (blå accent 3,98:1 mot kortyta i mörkt läge) är
+**ommätt till 4,87:1 och åtgärdad** — siffran var stale mot en tidigare palett, och vakten
+bevakar den nu. Avvikelse 8 är **delvis** åtgärdad: `--kant-stark` är fixad, men den
+generella `--kant` (1,23:1) kvarstår.
+
+**Att laga `--kant` är ett eget beslut och gjordes INTE.** Den används i 91 regler och bär
+både fältgränser och kortkanter. En rättning kräver antingen ett eget `--kant-falt`-token
+applicerat på formulärkontroller, eller ett medvetet beslut att mörka varje kortkant i appen.
+Det är en synlig omdesign, inte en bugfix, och hör inte hemma i ett delmål om knappkontrast.
+
+Även: `VARUMARKE.md` §12 beskriver nu symbolen som faktiskt ligger i `public/`, P5 är struken,
+och `ETAPPLAN17.md`s premisskontroll är rättad från "141 hexvärden i 10 filer" till korrekta
+**37 i 16**. Den felräkningen var min och räknade in `index.css`.
+
+Fullt svep grönt: lint, build, vitest, `test:e2e` med axe-core mot 25 routes i sju roller.
+
+**Etapp 68 är därmed klar utom 68e (typsnittet), som är villkorat av beslutspunkt 1 där
+rekommendationen är att avstå.** Produktionen kör v5.117.0; v5.118.0 och v5.119.0 är pushade
+men odeployade.
 

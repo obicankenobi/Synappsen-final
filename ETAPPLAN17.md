@@ -38,11 +38,16 @@ varför `--text-svag` är `#475569` och inte `#64748b`, och varför `--success` 
 inte `#16a34a`: båda för att nå 4,5:1 mot `--bg`. Varje färgändring i den här planen måste
 därför mätas, inte bedömas. Därav genomgående krav 30.
 
-**Städjobbet är större än palettbytet.** Utanför `index.css` finns **141 hårdkodade
-hexvärden fördelade på 10 komponent-CSS-filer** (`AppUppdateringBanner.css`,
-`InstalleraAppBanner.css`, `KioskPinModal.css`, `Personalpuls.css`, `SkannaModal.css` med
-flera). De påverkas inte av en tokenändring. Utan 68a blir varje framtida palettjustering
-opålitlig, och det är därför 68a ligger först och inte sist.
+**Städjobbet är större än palettbytet.** Utanför `index.css` finns **37 hårdkodade
+hexvärden fördelade på 16 komponent-CSS-filer** (`AppUppdateringBanner.css`,
+`InstalleraAppBanner.css`, `KioskPinModal.css`, `Personalpuls.css`, `SkannaModal.css`,
+`Akutlage.css` med flera). De påverkas inte av en tokenändring. Utan 68a blir varje framtida
+palettjustering opålitlig, och det är därför 68a ligger först och inte sist.
+
+> **Rättelse 2026-08-22.** Siffran stod ursprungligen som "141 hexvärden i 10 filer". Det var
+> fel: greppet räknade in `index.css` själv, där 110 av värdena bor och där de hör hemma.
+> Felet är mitt och upptäcktes först när 68a faktiskt genomfördes. Det ändrade slutsatsen
+> inte alls, bara storleken på arbetet.
 
 ### Mätningar gjorda med appens eget verktyg (`src/utils/kontrast.js`)
 
@@ -85,9 +90,9 @@ en begränsning att arbeta runt, det är avsiktligt.
 
 ## Delmål
 
-### 68a. Tokendisciplin i komponent-CSS (förarbete)
+### 68a. Tokendisciplin i komponent-CSS (förarbete) ✅ KLAR 2026-08-21
 
-Migrera de 141 hårdkodade hexvärdena i de 10 komponent-CSS-filerna till befintliga tokens.
+Migrera de 37 hårdkodade hexvärdena i de 16 komponent-CSS-filerna till befintliga tokens.
 Där ingen token passar, lägg till en i `index.css` med både ljus och mörk variant.
 
 Det här är inte kosmetika. En färg som står hårdkodad i `KioskPinModal.css` följer inte med
@@ -102,7 +107,7 @@ rökprovet över 25 routes i sju roller.
 
 ---
 
-### 68b. Primärfärgen till `#2F5FD6`
+### 68b. Primärfärgen till `#2F5FD6` ✅ KLAR 2026-08-21
 
 Byt `--primar` i ljust läge från `#2563eb` till `#2F5FD6`, och härled om `--primar-mork` och
 `--primar-ljus` från den. Uppdatera mörkt läges motsvarigheter.
@@ -121,7 +126,7 @@ axe-svep är grönt i båda temana.
 
 ---
 
-### 68c. Rätta knappkontrasten i mörkt läge
+### 68c. Rätta knappkontrasten i mörkt läge ✅ KLAR 2026-08-22
 
 Vit text på `--primar: #3b82f6` ger **3,68:1**. AA kräver 4,5. Det är en riktig
 tillgänglighetsdefekt, inte en preferens, och den finns i produktion i dag.
@@ -139,9 +144,30 @@ mätt och inskrivet, och `TILLGANGLIGHETSREDOGORELSE.md` uppdaterad.
 
 **Detta delmål bör göras även om resten av planen inte antas.**
 
+#### Genomfört 2026-08-22, och premissen ovan var fel
+
+Premisskontrollen visade att **primärknappen aldrig haft defekten**. `.knapp` sätter
+`color: var(--yta)`, inte vit, och `--yta` växlar med temat. Uppmätt blir knappen 5,63 / 5,02
+/ 5,70 / 5,18:1 i ljust läge och 4,87 / 10,27 / 6,58 / 7,91:1 i mörkt, för blå, grön, lila
+respektive orange. Alla klarar AA. Siffran 3,68:1 som planen och `VARUMARKE.md` P5 byggde på
+mätte ett par som inte finns i appen.
+
+Den riktiga defekten är smalare och skarpare: **sju regler sätter vit text på `--primar`**,
+och alla sju faller i mörkt läge, från 3,68:1 (blå) ner till **1,74:1 (grön)**. Sex av dem är
+`--pa-primar` från 68a, som gjorde en redan befintlig hårdkodning enhetlig. Den sjunde är
+`.hoppa-till-innehall`, alltså just den funktion som finns FÖR tangentbords- och
+skärmläsaranvändare.
+
+**Väg 2 valdes, och mätningen avgjorde det.** Väg 1, att mörka accenten, går inte: accenten
+gör dubbel tjänst i mörkt läge, som knappbakgrund OCH som länk-/textfärg mot den mycket mörka
+bottnen. En accent mörk nog för vit knapptext blir för mörk att läsa som text mot `--bg`.
+`--pa-primar` och `--pa-farlig` är därför mörka i mörkt läge, vilket är samma sak som
+`.knapp` alltid gjort. Att 68a införde token:et innan defekten var lokaliserad visade sig
+vara tur: rättningen blev två rader.
+
 ---
 
-### 68d. Kontrastvakt som test
+### 68d. Kontrastvakt som test ✅ KLAR 2026-08-22
 
 Skriv ett vitest som läser palettens tokens och kör `kontrastforhallande()` över de par som
 faktiskt möts i gränssnittet: text mot bakgrund, text mot yta, vit text mot primärknapp,
@@ -154,6 +180,22 @@ delmålet gör att man inte kan låta bli.
 
 **Klart när:** testet ingår i `npm run test` och failar bevisligen mot paletten före 68c:s
 rättning.
+
+#### Genomfört 2026-08-22
+
+`tests/docs/kontrastpalett.test.js`. 14 par gånger 8 paletter (fyra accenter, två teman) plus
+ett vakttest som failar om någon lägger till en femte accent utan att ta med den. 113 test.
+
+**Bevisat meningsfullt:** körd mot paletten före 68c:s rättning ger **8 fel**, ett per accent
+och tema för `--pa-primar` och `--pa-farlig`. Efter rättningen 113 gröna.
+
+**Vakten hittade en defekt planen inte kände till.** `--kant-stark` klarade inte WCAG 1.4.11
+(3:1) mot vare sig `--yta` eller `--bg`, i båda teman och alla fyra accenter: 1,48:1 i ljust
+och 1,63:1 i mörkt. Det spelar roll eftersom token:et bär **sökfältets och
+kommandopalettens kantlinjer**, alltså riktiga kontrollgränser och inte dekoration. Nya
+värden `#7d8a99` och `#606f89` ger ca 3,5:1 mot yta och 3,3–3,8:1 mot bakgrund. Defekten
+fanns före hela Etapp 68 och upptäcktes bara för att vakten skrevs, vilket är precis vad den
+är till för.
 
 ---
 
@@ -172,7 +214,7 @@ den tillagda överföringsvikten är uppmätt och inskriven.
 
 ---
 
-### 68f. Dokumenten i takt
+### 68f. Dokumenten i takt ✅ KLAR 2026-08-22
 
 `GRAFISK-PROFIL.md` (finns ännu inte i repot, se `VARUMARKE.md` P2) uppdateras med den
 slutgiltiga paletten, symbolens geometri och radieskalan. `VARUMARKE.md` §12 uppdateras så

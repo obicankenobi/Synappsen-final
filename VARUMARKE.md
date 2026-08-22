@@ -384,6 +384,18 @@ saker hör dock hemma här:
 **Symbolen är en synaps i genomskärning**, inte en abstrakt form. Presynaptisk terminal,
 klyfta, mottagaryta, riktning från övre vänster till nedre höger. Den går att förklara.
 
+Ritad och inlagd 2026-08-21, se `public/icons/`. Terminalen är en **fylld kropp** och
+mottagarytan en **öppen båge**, alltså två olika sorters form. Det är den skillnaden som ger
+riktning utan förklaring; ett tidigare utkast med två speglade klumpar lästes som ett ben.
+Klyftan har **konstant bredd** eftersom bågen ritas från samma centrum som terminalen, vilket
+är det som gör märket skalbart: en klyfta som är bredare på ett ställe sluter sig alltid på
+det smalaste först, och då är synapsen borta. Riktningen är 30 grader, flackare än 45 för
+renare kanter mot pixelrutnätet. Två varianter: `symbol.svg` utan axon för storlekar under
+48 px, `symbol-axon.svg` med axon över.
+
+**Öppet:** ingen har ännu sett symbolen utan att veta vad den föreställer, och ordmärket är
+inte ritat.
+
 **Aldrig neurala nätverk, noder eller hjärnor i bildspråket.** Produkten tonar medvetet ned
 AI, och nodgrafen är den mest generiska tech-symbolen som finns. Två av tre logotypförslag
 från en bildmodell blev nätverksgrafer, så dragningen är stark och måste motstås aktivt.
@@ -437,7 +449,7 @@ tecknas förrän B1 finns, och B2 är den fråga varje kunds jurist ställer fö
 | **P2** | Committa `GRAFISK-PROFIL.md`, `MARKNADSANALYS.md`, `KOSTNADSKALKYL-OCH-PRISSATTNING.md` och `synappsen-web/` till repot, så att pekarna i detta dokument går att följa | 30 min |
 | **P3** | **Rätta de inaktuella siffrorna i `MARKNADSANALYS.md`.** Den anger 149 regeltester och fyra säkerhetsgenomgångar. Faktiskt läge 2026-08-21: **179** test i `organisationsisolering.test.mjs`, **322** i hela regelsviten, och **åtta** `## Tillägg`-block i `SAKERHETSRAPPORT.md`. Eftersom marknadsanalysen är källdokument för prismodell och värdering bör även övriga siffror kontrolleras | 1 timme |
 | **P4** | Skriv om `PITCH.md`s exempel för privat vårdcentral och klinik, se `MARKNADSANALYS.md` §10 | Dagar |
-| **P5** | Rätta knappkontrasten i mörkt läge före produktion, se `GRAFISK-PROFIL.md` §2 | Minuter |
+| ~~**P5**~~ | ~~Rätta knappkontrasten i mörkt läge~~ **KLAR 2026-08-22 (Etapp 68c).** Premissen var dessutom delvis fel: primärknappen hade aldrig defekten, eftersom `.knapp` sätter `color: var(--yta)` som växlar med temat. Den riktiga defekten var vit text på färgad yta i sju andra regler, värst 1,74:1 på grön accent, inklusive hoppa-till-innehall-länken. | Klart |
 | **P6** | Kontrollera om `synapsen.se` är ledig och registrera den i så fall. Låg prioritet, se §11 | 10 min + 289 kr/år |
 
 ---
