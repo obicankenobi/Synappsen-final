@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.123.0",
+    datum: "2026-08-22",
+    andringar: [
+      "Tangentbordsfokus i sökresultat, kommandopaletten och notisklistan syns nu tydligt. Det gjorde det inte tidigare",
+    ],
+  },
+  {
     version: "5.122.0",
     datum: "2026-08-22",
     andringar: [

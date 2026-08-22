@@ -167,7 +167,7 @@ dem har en rad löpande text över 80 tecken.
 
 ---
 
-### 69e. Fokusmarkering på listposter (fristående defekt)
+### 69e. Fokusmarkering på listposter (fristående defekt) ✅ KLAR 2026-08-22
 
 Se premisskontrollens fynd 1. `SokFalt`, `KommandopalettInnehall` och `Notisklocka` får en
 fokusindikator som faktiskt syns — samma lösning som `.auth-form input:focus` redan använder.
@@ -179,6 +179,15 @@ inkluderar skärmläsaranvändare.
 **Klart när:** varje ändrad fokusmarkering är uppmätt till minst 3:1 i båda teman och alla
 fyra accenter, siffran står i koden (krav 30 och 35), och ett test i `tests/docs/` bevakar
 paren på samma sätt som `kontrastpalett.test.js`.
+
+**✅ Byggd.** De tre `:hover, :focus-visible { background: X; outline: none; }`-reglerna
+delades upp: hover behåller bara bakgrundsbytet, `:focus-visible` får dessutom
+`outline: 2px solid var(--primar-mork)`. Uppmätt mot `--yta` (SokFalt, Kommandopalett) och
+`--bg` (Notisklocka) i samtliga åtta paletter: **6,70–13,76:1**, god marginal över kravet på
+3:1. Nytt test `tests/docs/fokusmarkering.test.js` (27 kontroller) bevakar både att
+`outline: none` inte kommer tillbaka och att kontrasten håller i alla paletter — samma mönster
+som `kontrastpalett.test.js`. Granskat renderat med faktisk tangentbordsnavigering (Tab) i
+båda teman, inte bara uträknat.
 
 ---
 

@@ -79,10 +79,15 @@
   border-radius: 8px;
 }
 
-.kommandopalett__resultat li button:hover,
+.kommandopalett__resultat li button:hover {
+  background: var(--primar-ljus);
+}
+
+/* Etapp 69e: samma defekt och samma lösning som SokFalt.css - se kommentaren där. */
 .kommandopalett__resultat li button:focus-visible {
   background: var(--primar-ljus);
-  outline: none;
+  outline: 2px solid var(--primar-mork);
+  outline-offset: -2px;
 }
 
 .kommandopalett__meta {

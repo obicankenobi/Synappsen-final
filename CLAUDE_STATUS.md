@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-22, version **5.122.0** – byggd och pushad, väntar på deploy. `ETAPPLAN18.md` ANTAGEN, delmål 69h klart.
+**Senast uppdaterad:** 2026-08-22, version **5.123.0** – byggd och pushad, väntar på deploy. Etapp 69: 69e och 69h klara.
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -4072,3 +4072,25 @@ Fullt svep grönt: lint, vitest 368/368, `test:rules`, `test:functions`, `test:s
 
 Kvar i Etapp 69: 69a–69g. 69e (fokusmarkering på listposter) är fortfarande den som rättar en
 defekt i produktion och kan tas när som helst.
+
+## Uppföljning 2026-08-22 (delmål 69e byggt, v5.123.0)
+
+Fortsatte med nästa steg i den antagna `ETAPPLAN18.md`: **69e**, det fristående delmålet som
+rättar en WCAG-defekt som redan låg i produktion. `SokFalt`, `KommandopalettInnehall` och
+`Notisklocka` hade `outline: none` på fokus utan en tillräcklig ersättning (1,06–1,14:1 mot
+kravet 3:1).
+
+Fixen: de tre `:hover, :focus-visible`-reglerna delades upp så hover behåller bara
+bakgrundsbytet och `:focus-visible` dessutom får `outline: 2px solid var(--primar-mork)`.
+Uppmätt mot rätt bakgrund (`--yta` för SokFalt/Kommandopalett, `--bg` för Notisklocka) i
+samtliga åtta paletter: **6,70–13,76:1** – god marginal.
+
+Nytt test `tests/docs/fokusmarkering.test.js` (27 kontroller) bevakar att `outline: none` inte
+kommer tillbaka och att kontrasten håller i alla paletter, samma mönster som
+`kontrastpalett.test.js`. Granskat renderat med faktisk tangentbordsnavigering (Tab) i båda
+teman via en fristående HTML-harness som laddar de riktiga CSS-filerna – inte bara uträknat.
+
+Fullt svep grönt: lint, vitest 395/395 (35 filer, +27 från det nya testet), `test:rules`,
+`test:functions`, `test:storage`, e2e 23/23.
+
+Kvar i Etapp 69: 69a, 69b, 69c, 69d, 69f, 69g.

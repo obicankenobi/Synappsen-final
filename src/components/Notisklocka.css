@@ -63,10 +63,17 @@
   border-radius: 6px;
 }
 
-.notisklocka__panel li button:hover,
+.notisklocka__panel li button:hover {
+  background: var(--bg);
+}
+
+/* Etapp 69e: samma defekt som SokFalt.css, fast med --bg som bakgrund (panelen ligger på
+   --yta). --primar-mork mot --bg mäter minst 6,70:1 i samtliga åtta paletter - se
+   SokFalt.css för hela resonemanget och siffrorna mot --yta. */
 .notisklocka__panel li button:focus-visible {
   background: var(--bg);
-  outline: none;
+  outline: 2px solid var(--primar-mork);
+  outline-offset: -2px;
 }
 
 .notisklocka__knapp:focus-visible {

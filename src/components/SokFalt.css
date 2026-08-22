@@ -55,10 +55,23 @@
   border-bottom: 1px solid var(--bg);
 }
 
-.sok-falt__resultat li button:hover,
+.sok-falt__resultat li button:hover {
+  background: var(--primar-ljus);
+}
+
+/* Etapp 69e (2026-08-22): rättar en fokusdefekt i produktion, upptäckt vid genomgången
+   inför ETAPPLAN18.md. Fokusringen sattes tidigare till `outline: none` och ersattes
+   ENDAST av bakgrundsbytet ovan (--primar-ljus mot --yta), vilket mäter 1,10-1,14:1 i
+   de åtta paletterna - långt under WCAG 1.4.11:s krav på 3:1. Tangentbordsfokus var
+   alltså i praktiken osynligt i sökresultaten.
+
+   src/index.css dokumenterar redan exakt samma defekt och lösning för
+   .auth-form input:focus. --primar-mork mot --yta mäter 7,04-12,75:1 i samtliga åtta
+   paletter (uträknat med src/utils/kontrast.js) - god marginal över kravet. */
 .sok-falt__resultat li button:focus-visible {
   background: var(--primar-ljus);
-  outline: none;
+  outline: 2px solid var(--primar-mork);
+  outline-offset: -2px;
 }
 
 .sok-falt__resultat li:last-child button {
