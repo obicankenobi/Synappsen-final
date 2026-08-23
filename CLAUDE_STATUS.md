@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-23, version **5.128.0** – byggd och pushad, väntar på deploy. Rättar en trasig uppdateringsknapp.
+**Senast uppdaterad:** 2026-08-23, version **5.128.0** – byggd, pushad och **DEPLOYAD** (körning #87). Uppdateringsknappen fungerar.
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -4287,3 +4287,17 @@ Fullt svep grönt: lint, build (bekräftat i minifierad `dist/sw.js` att både l
 `clientsClaim()` faktiskt kompilerades in), vitest 410/410 (37 filer), `test:rules`,
 `test:functions`, `test:storage`, e2e 41/41 (två `ERR_CONNECTION_REFUSED`-flakes vid full
 parallell körning, bekräftat ORELATERADE genom att köra om dem isolerat – passerade båda).
+
+## Uppföljning 2026-08-23 (deploy av v5.128.0, körning #87)
+
+Deployade fixen för "Uppdatera"-knappen direkt eftersom det var en rapporterad, redan
+verifierad bugg. Körning **#87** på commit `5a63c16`. Produktionen kör nu **v5.128.0**.
+
+Verifierat på artefakten: `sw.js` innehöll noll förekomster av `SKIP_WAITING` före deployen,
+en efter.
+
+**Obs för nästa gång knappen testas:** eftersom `src/sw.js` sjäva filen ändrades är det den
+DEPLOYADE service workern som saknade fixen innan nu. En webbläsare som redan hade den GAMLA
+workern installerad (utan lyssnaren) sedan tidigare kan behöva en vanlig sidladdning (inte
+bara "Uppdatera"-klicket) EN gång för att hämta den NYA workern som väl har fixen – därefter
+fungerar knappen normalt vid framtida uppdateringar. Det är förväntat, inte ett nytt fel.
