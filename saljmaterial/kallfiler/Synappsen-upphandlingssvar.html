@@ -1,0 +1,194 @@
+<!doctype html><html lang="sv"><head><meta charset="utf-8">
+<link rel="stylesheet" href="stil.css">
+<style>
+  body{ font-size:9pt; }
+  h2{ font-size:12pt; }
+  .fraga{ font-weight:700; color:var(--mork); margin-bottom:2pt; }
+  .svar{ margin-bottom:8pt; padding-left:10pt; border-left:2pt solid var(--dis); }
+  .svar p:last-child{ margin-bottom:0; }
+</style></head><body>
+
+<div class="hero">
+  <div class="kicker">Svarsbibliotek för upphandling och leverantörsgranskning</div>
+  <h1>Standardsvar</h1>
+  <div class="tag">Färdiga formuleringar på de frågor som kommer varje gång</div>
+  <div class="meta">Internt arbetsdokument · uppdateras vid varje produktändring som berör ett svar · [DATUM]</div>
+</div>
+
+<div class="notis rod">
+<strong>Detta är ett internt arbetsdokument, inte ett kundutskick.</strong> Klipp in enskilda svar i ett anbud, ett leverantörsformulär eller ett mejl. Kontrollera alltid att svaret fortfarande stämmer mot faktisk produktversion innan det skickas — flera svar nedan har en <span class="fyll">[FYLL I]</span> eller ett statusberoende som ändras när en funktion byggs. Ett svar som var sant i mars och osant i september är värre än inget svar alls.
+</div>
+
+<h2>A. Bolag, leverans och kontinuitet</h2>
+
+<div class="fraga">A1. Vem är leverantören, och hur säkerställs leveransen om leverantören faller bort?</div>
+<div class="svar">
+<p>Leverantören är <span class="fyll">[BOLAGSNAMN]</span>, <span class="fyll">[ORG.NR]</span>, med <span class="fyll">[ANTAL]</span> anställda. Verksamheten drivs med en ansvarig person, vilket redovisas öppet eftersom det påverkar realistiska svarstider.</p>
+<p>Just därför är kompenserande kontroller inbyggda i tjänsten i stället för beroende av bemanning: kunden kan själv pausa organisationens åtkomst, tvinga utloggning av en användare, ändra roller, aktivera obligatorisk tvåfaktorsautentisering och exportera all sin data — utan leverantörens medverkan.</p>
+<p><span class="fyll">[FYLL I: källkodsdeposition eller motsvarande arrangemang, samt avtalsklausul om leverantörens upphörande]</span></p>
+</div>
+
+<div class="fraga">A2. Hur många kunder har ni i dag, och kan ni lämna referenser?</div>
+<div class="svar">
+<p>Synappsen har i dag ingen kund i skarp drift. Produkten är byggd och testad genom [ANTAL] dokumenterade utvecklingsetapper med automatiska tester i CI, men den har inte använts av en extern verksamhet under en mätperiod. Vi säger det rakt ut eftersom motsatsen skulle upptäckas ändå.</p>
+<p>Det vi kan visa i stället: fullständig utvecklingslogg, fyra dokumenterade säkerhetsgenomgångar av all kod med varje fynd och åtgärd redovisad, en juridisk genomlysning, och en demomiljö där ni kan prova produkten själva utan att lämna någon uppgift ifrån er.</p>
+<p>Vi erbjuder ett referenskundsupplägg med 50 % rabatt första året till de tre första kunderna, just eftersom vi behöver det ni behöver.</p>
+</div>
+
+<div class="fraga">A3. Vilken försäkring har ni?</div>
+<div class="svar">
+<p><span class="fyll">[FYLL I: försäkringsbolag, försäkringsbelopp och att produktansvarsmoment ingår samt att programvara omfattas och vårdverksamhet inte är undantagen]</span></p>
+</div>
+
+<h2>B. Dataskydd och GDPR</h2>
+
+<div class="fraga">B1. Vem är personuppgiftsansvarig respektive personuppgiftsbiträde?</div>
+<div class="svar">
+<p>Kunden är personuppgiftsansvarig, leverantören personuppgiftsbiträde. Ett personuppgiftsbiträdesavtal enligt artikel 28 GDPR finns färdigt som mall och bifogas.</p>
+<p>Leverantören behandlar därutöver vissa uppgifter som självständigt personuppgiftsansvarig — kontaktpersoner hos kunden, fakturaunderlag, supportärenden och säkerhetsloggar för leverantörens egen driftsäkerhet. Den behandlingen ligger utanför biträdesavtalet och har egen rättslig grund och egen informationstext.</p>
+</div>
+
+<div class="fraga">B2. Vilka personuppgifter behandlas, och om vem?</div>
+<div class="svar">
+<p>Kundens anställda och uppdragstagare som ges konto: namn, e-postadress, yrkesroll och behörighetsnivå. Därutöver användningsdata (inloggningstider, vilket innehåll en användare skapat, redigerat eller kvitterat som läst), fritext som personalen själv skriver in, samt vid tvåfaktorsautentisering en TOTP-hemlighet kopplad till kontot.</p>
+<p><strong>Inga patienter eller andra tredje parter är avsedda registrerade.</strong> Inga särskilda kategorier av personuppgifter enligt artikel 9 GDPR är avsedda att behandlas.</p>
+</div>
+
+<div class="fraga">B3. Kan patientuppgifter hamna i systemet?</div>
+<div class="svar">
+<p>Systemet är konstruerat för att förhindra det i tre oberoende tekniska lager: klientkontroll av varje fritextfält, servervalidering med fullständig datum- och checksummekontroll i de flöden som går via servern, och en spärr i databasens egna behörighetsregler som nekar att spara ett fält som matchar ett sannolikt personnummer — oavsett vilken väg skrivningen kommer ifrån.</p>
+<p><strong>Ärlig begränsning:</strong> inget textbaserat filter kan hindra en användare som aktivt vill kringgå varningarna. Kundens personal måste instrueras att aldrig skriva patientuppgifter i systemet. De tekniska spärrarna är ett skyddsnät, inte en garanti. Detta gäller allt textbaserat skydd, oavsett leverantör.</p>
+</div>
+
+<div class="fraga">B4. Var lagras data, och sker överföring till tredjeland?</div>
+<div class="svar">
+<p>Samtliga serverfunktioner kör i regionen europe-west1 (Belgien), verifierat direkt i koden. Felrapportering sker till Sentrys EU-region (Frankfurt, verifierat). E-postutskick går via Brevo, ett EU-baserat bolag i Frankrike.</p>
+<p>Regionen för databasen och fillagringen sätts vid projektskapande: <span class="fyll">[FYLL I: bekräftad region, styrkt med skärmbild ur konsolen]</span>.</p>
+<p>Underleverantörer i Google-koncernen omfattas av <span class="fyll">[FYLL I: rättslig grund för överföring — Googles standardvillkor eller egen transferanalys]</span>. En fullständig underbiträdesförteckning med behandling och region per underbiträde bifogas.</p>
+</div>
+
+<div class="fraga">B5. Hur hanteras en begäran om registerutdrag eller radering från en enskild anställd?</div>
+<div class="svar">
+<p>Kunden är personuppgiftsansvarig och tar emot begäran. Leverantören bistår med underlag. Fullständig dataexport kan tas ut av kundens egen superadministratör när som helst. <span class="fyll">[FYLL I: avtalad rutin och svarstid för leverantörens bistånd]</span></p>
+</div>
+
+<div class="fraga">B6. Hur länge sparas revisionsloggen?</div>
+<div class="svar">
+<p>Revisionsloggen är en manipuleringsdetekterande hashkedja som styrker vad som hänt i systemet, inklusive en genomförd radering. <span class="fyll">[FYLL I: avtalad gallringstid och rättslig grund för fortsatt lagring efter avslutad kundrelation]</span></p>
+<p><em>Internt: detta är den enskilt vanligaste invändningen från ett dataskyddsombud. Svara inte ”raderas aldrig” — det läses som en brist mot lagringsminimeringsprincipen i artikel 5.1 e. Ange en faktisk, härledd gallringstid.</em></p>
+</div>
+
+<div class="fraga">B7. Finns ett underlag för konsekvensbedömning (DPIA)?</div>
+<div class="svar">
+<p>Ja. Ett färdigt underlag skrivet för en icke-teknisk läsare bifogas. Det är faktaunderlaget en konsekvensbedömning behöver, inte en fullständig DPIA — den ska göras av er som personuppgiftsansvarig.</p>
+</div>
+
+<h2>C. Informationssäkerhet</h2>
+
+<div class="fraga">C1. Hur säkerställs att en kunds data inte kan nås av en annan kund?</div>
+<div class="svar">
+<p>Varje kundorganisation är logiskt avskild i databasens behörighetsregler. Varje datablock kontrollerar både organisationstillhörighet och att organisationen inte är pausad; ingen samling förlitar sig enbart på en rollkontroll.</p>
+<p>Isoleringen är <strong>bevisad, inte antagen</strong>: en egen automatiserad testsvit körs mot en riktig databasemulator i CI vid varje ändring, och har vid flera tillfällen fångat verkliga fel innan release.</p>
+</div>
+
+<div class="fraga">C2. Vem hos leverantören kan läsa vårt innehåll?</div>
+<div class="svar">
+<p>Normalt ingen. Leverantören har ingen stående läsåtkomst till kunders innehåll — rutiner, förrådsartiklar, anslag och kontakter är åtkomliga endast för medlemmar i den egna organisationen, enforcerat i databasreglerna.</p>
+<p>För support kan <em>kunden själv</em> öppna ett tidsbegränsat läsfönster på högst sex timmar. Fönstret är synligt i kundens gränssnitt medan det pågår, kan avbrytas när som helst, och loggas i båda ändar. Leverantören kan inte bevilja sig själv åtkomst — organisationstillhörigheten härleds från den anropande användaren.</p>
+</div>
+
+<div class="fraga">C3. Har ni genomfört penetrationstest eller extern säkerhetsgranskning?</div>
+<div class="svar">
+<p><strong>Nej, ingen oberoende extern penetrationstestning har genomförts.</strong> Vi redovisar det öppet.</p>
+<p>Vad som däremot finns: fyra dokumenterade fullständiga säkerhetsgenomgångar av hela kodbasen, med varje fynd, dess allvarlighetsgrad, åtgärd och ett regressionstest som bevisligen misslyckas mot koden före åtgärden. Rapporterna kan lämnas ut. Utöver detta körs behörighetsreglernas testsvit i CI vid varje ändring.</p>
+<p>En extern granskning kan beställas som ett villkor för avtal om ni kräver det. <span class="fyll">[FYLL I: er hållning till att bekosta detta]</span></p>
+</div>
+
+<div class="fraga">C4. Hur hanteras kryptering?</div>
+<div class="svar">
+<p>Kryptering i vila och under överföring enligt Google Cloud/Firebase standardkryptering. All åtkomst sker över HTTPS. Lösenord hanteras av Firebase Authentication och lagras aldrig i klartext. Kioskläges-PIN hashas på servern och är aldrig läsbar för klienten.</p>
+</div>
+
+<div class="fraga">C5. Vilka autentiseringsmetoder stöds?</div>
+<div class="svar">
+<p>E-post och lösenord, med valfri tvåfaktorsautentisering (TOTP) som kan göras obligatorisk per roll av kundens egen administratör — enforcerat i databasreglerna. Öppen självregistrering finns inte; konton skapas via inbjudan med engångstoken.</p>
+<p><strong>SSO via SAML eller OIDC är inte byggt.</strong> Tekniskt vägval (OIDC) är fattat och implementationen kan genomföras mot en konkret kravbild. <span class="fyll">[FYLL I: er tidplan och eventuellt åtagande]</span></p>
+</div>
+
+<div class="fraga">C6. Hur upptäcks och hanteras incidenter?</div>
+<div class="svar">
+<p>Tekniska fel i frontend och backend fångas automatiskt (Sentry, EU-region) och granskas löpande. En fastställd incidentresponsplan finns som eget dokument, med klassificering i tre nivåer, roller, faser, tidskrav och kommunikationsordning.</p>
+<p>Vid personuppgiftsincident underrättas kunden senast inom 72 timmar efter kännedom. <strong>Kunden anmäler till IMY — leverantören gör det aldrig i kundens ställe.</strong></p>
+<p><em>Om ni omfattas av cybersäkerhetslagen och har en tidig varningsplikt inom 24 timmar reglerar vi gärna en kortare underrättelsetid för driftpåverkande incidenter i avtalet.</em></p>
+</div>
+
+<div class="fraga">C7. Hur ser backup- och återställningsrutinen ut?</div>
+<div class="svar">
+<p>Schemalagd veckovis säkerhetskopiering av kärndata till molnlagring. Återställning är byggd och testad som en serverfunktion, avsiktligt utan självbetjäningsknapp. Funktionen vägrar en sökväg utanför den angivna organisationens egen mapp och hoppar över dokument vars organisationstillhörighet inte matchar.</p>
+<p>Uppmätt återställningstid: under en minut för en normalstor organisation, mätt mot 1 500 dokument i testmiljö (utan produktionens nätverkslatens). Högsta dataförlust: en vecka. Säkerhetskopior gallras automatiskt efter 90 dagar.</p>
+</div>
+
+<h2>D. Tillgänglighet</h2>
+
+<div class="fraga">D1. Uppfyller tjänsten WCAG 2.1 nivå AA?</div>
+<div class="svar">
+<p><strong>Delvis förenlig.</strong> Vi använder den formuleringen medvetet i stället för ett odetaljerat ja.</p>
+<p>Vad som är kontrollerat och håller: färgkontrast i ljust tema (uppmätta värden 4,6–17,1:1), språkmärkning, alternativtext på bilder, kopplade formuläretiketter, och tangentbordsnavigering med synlig fokusmarkering. Samtliga 27 sidor ger noll maskinellt upptäckta överträdelser för två roller, och granskningen är sedan dess en permanent regressionsspärr i CI.</p>
+<p>Kvarstående kända brister finns, varav några på <strong>nivå A</strong>, och är öppet listade i vår tillgänglighetsredogörelse med WCAG-kriterium, nivå och konsekvens för användaren. Ingen användartestning med skärmläsare eller med personer med funktionsnedsättning har genomförts. Ingen granskning av omflöde vid 400 % förstoring har gjorts.</p>
+</div>
+
+<div class="fraga">D2. Finns en tillgänglighetsredogörelse enligt DOS-lagen?</div>
+<div class="svar">
+<p>Ja, en fullständig redogörelse finns framtagen och bifogas som underlag. Observera att DOS-lagen riktar sig till den offentliga aktören, inte till leverantören — det är formellt ni som ska publicera en redogörelse, men ni kan inte fullgöra det utan vårt underlag. <span class="fyll">[FYLL I: publiceringsadress när redogörelsen publicerats]</span></p>
+</div>
+
+<h2>E. Regelefterlevnad i övrigt</h2>
+
+<div class="fraga">E1. Är tjänsten en medicinteknisk produkt enligt MDR?</div>
+<div class="svar">
+<p>Vår bedömning är nej. Tjänsten beräknar inte doser, ställer inte diagnos, lämnar inga behandlingsrekommendationer och tolkar inga patientdata. Kunskapssökningen sammanfattar externa källor och anger alltid varifrån. Allt innehåll författas eller godkänns av kundens egen behöriga personal.</p>
+<p>Gränsdragningen är medveten: funktioner som skulle kunna kvalificera produkten som medicinteknisk har uttryckligen valts bort och den bedömningen är dokumenterad. <span class="fyll">[FYLL I: om en extern juridisk bedömning inhämtats, ange det här — det är ett starkt svar]</span></p>
+</div>
+
+<div class="fraga">E2. Omfattas tjänsten av AI-förordningen, och i så fall hur?</div>
+<div class="svar">
+<p>Tjänsten innehåller AI-funktioner (tolkning av fotograferade dokument till utkast, sammanfattning av källor, förslag på kontrollfrågor). Vår bedömning är att de <strong>inte</strong> utgör högrisk enligt förordningens bilaga III, eftersom de inte fattar beslut om personer och inte används för triage eller prioritering av vård.</p>
+<p>Transparenskravet i artikel 50 hanteras genom att AI-genererat innehåll märks för läsaren. Allt AI-genererat innehåll passerar dessutom ett mänskligt godkännandesteg innan publicering — men vi noterar att det mänskliga godkännandet inte i sig tar bort märkningsplikten, eftersom kravet tar sikte på mottagarens möjlighet att veta.</p>
+<p><em>Internt: kontrollera att märkningen faktiskt är implementerad i rutinvyn innan detta svar skickas.</em></p>
+</div>
+
+<div class="fraga">E3. Hur ser ni på kravet på säkerhet i leverantörskedjan (NIS2 / cybersäkerhetslagen)?</div>
+<div class="svar">
+<p>Leverantören omfattas sannolikt inte direkt av cybersäkerhetslagen, eftersom tillämpningsområdet i huvudsak bygger på storlekströsklar som ett bolag av vår storlek ligger under, och de kategorier som omfattas oavsett storlek tar sikte på molntjänster och infrastruktur snarare än en vertikal applikationstjänst.</p>
+<p>Vi förstår däremot att ni som omfattad entitet ska ställa säkerhetskrav på era leverantörer och kunna visa att ni följt upp dem. Detta dokument, tillsammans med vår tekniska beskrivning, incidentresponsplan och konsekvensbedömningsunderlag, är avsett att svara på den standarduppsättningen frågor. Saknas något, säg vad så kompletterar vi skriftligt.</p>
+</div>
+
+<div class="fraga">E4. Hur hanteras exit och dataportabilitet?</div>
+<div class="svar">
+<p>Fullständig export av all kunddata kan tas ut när som helst av kundens egen administratör, utan avgift och utan leverantörens medverkan. Vid avslut kan åtkomsten pausas omedelbart.</p>
+<p>Radering initieras av kunden i appen och genomförs automatiskt efter 48 timmar, med möjlighet att avbryta under fönstret. Säkerhetskopior, inklusive den sista som tas före radering, gallras automatiskt efter 90 dagar — vilket innebär att data kan finnas kvar i en säkerhetskopia i upp till 90 dagar efter att den försvunnit ur den levande databasen. Detta är ett medvetet skyddsnät mot felaktig radering och redovisas öppet.</p>
+</div>
+
+<h2>F. Upphandlingsformalia</h2>
+
+<div class="fraga">F1. Under vilken form kan tjänsten köpas?</div>
+<div class="svar">
+<p>Priset per enhet och år ligger med bred marginal under direktupphandlingsgränsen, som för 2026 är 700 000 kronor. Observera att gränsen avser myndighetens samlade inköp av samma slag under räkenskapsåret och inte gäller per avdelning — den bedömningen måste göras av er inköpsfunktion, inte av en enskild verksamhetschef.</p>
+<p>Synappsen finns i dag inte på något ramavtal.</p>
+</div>
+
+<div class="fraga">F2. Har ni deltagit i förberedelserna av denna upphandling?</div>
+<div class="svar">
+<p>Nej. Om en kostnadsfri pilot har genomförts hos er dessförinnan är den skriftligt dokumenterad som kostnadsfri och tidsbegränsad, utan förtur i en framtida upphandling, och med uttrycklig notering om att leverantören inte deltagit i utformningen av upphandlingsunderlaget. Dokumentationen kan uppvisas.</p>
+</div>
+
+<h2>Underhållsregel för det här dokumentet</h2>
+<div class="notis">
+Uppdatera ett svar <strong>samma dag</strong> som den funktion eller det förhållande svaret beskriver ändras — inte vid nästa anbud. Följande svar har ett känt statusberoende och ska kontrolleras före varje utskick: <strong>A2</strong> (antal kunder), <strong>B4</strong> och <strong>B6</strong> (region, gallringstid), <strong>C3</strong> (extern granskning), <strong>C5</strong> (SSO), <strong>D1</strong> (WCAG-status), <strong>E2</strong> (AI-märkning i gränssnittet).
+</div>
+
+<div class="fot">
+  <span>Internt arbetsdokument · <span class="fyll">[BOLAGSNAMN]</span></span>
+  <span>Svarsbibliotek · [DATUM]</span>
+</div>
+</body></html>

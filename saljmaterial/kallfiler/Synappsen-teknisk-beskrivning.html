@@ -1,0 +1,154 @@
+<!doctype html><html lang="sv"><head><meta charset="utf-8">
+<link rel="stylesheet" href="stil.css">
+<style>
+  body{ font-size:9.2pt; }
+  h2{ font-size:12.5pt; }
+  table{ font-size:8.5pt; }
+</style></head><body>
+
+<div class="hero">
+  <div class="kicker">Teknisk beskrivning för IT och informationssäkerhet</div>
+  <h1>Synappsen</h1>
+  <div class="tag">Arkitektur, behörighet, dataskydd, drift och avveckling</div>
+  <div class="meta">Version [DATUM] · avser produktversion [VERSION] · leverantör <span class="fyll">[BOLAGSNAMN]</span></div>
+</div>
+
+<div class="notis teal">
+<strong>Om det här dokumentet.</strong> Det är skrivet för att kunna skickas rakt av till en IT-avdelning, en systemförvaltare eller ett dataskyddsombud, utan att någon behöver författa nytt. Där något inte är på plats står det öppet i klartext i stället för att utelämnas — se särskilt avsnitt 10. Fördjupande underlag (personuppgiftsbiträdesavtal, underbiträdesförteckning, konsekvensbedömningsunderlag, incidentresponsplan, tillgänglighetsredogörelse) lämnas på begäran och kostar ingenting att granska.
+</div>
+
+<h2>1. Vad tjänsten är</h2>
+<p>Synappsen är en installerbar webbapplikation (Progressive Web App) för vårdverksamhet. Den samlar kliniska rutiner, förrådsinformation, kontaktuppgifter, driftinformation och administrativa dokument på ett ställe, sökbart och tillgängligt på mobil, surfplatta och dator.</p>
+<p><strong>Tjänsten är uttryckligen inte avsedd att innehålla patientuppgifter.</strong> Det är inte enbart en policy utan ett tekniskt genomfört krav i tre oberoende lager — se avsnitt 4.</p>
+<p><strong>Tjänsten är inte en medicinteknisk produkt.</strong> Den beräknar inte doser, ställer inte diagnos och lämnar inga behandlingsrekommendationer. Kunskapssökningen sammanfattar källor och anger alltid varifrån; den räknar aldrig ut något. Denna gränsdragning är medveten och dokumenterad.</p>
+
+<h2>2. Arkitektur</h2>
+<table>
+<tr><th style="width:26%">Lager</th><th>Beskrivning</th></tr>
+<tr><td><strong>Frontend</strong></td><td>React, byggd som statiska filer och levererad via Firebase Hosting (Googles globala CDN). Ingen serverkomponent renderar sidor — all presentationslogik körs i klientens webbläsare eller installerade PWA.</td></tr>
+<tr><td><strong>Backend</strong></td><td>Google Cloud Functions (serverlöst — ingen egen server att patcha eller övervaka). Samtliga funktioner kör i regionen <strong>europe-west1</strong> (Belgien), verifierat direkt i koden.</td></tr>
+<tr><td><strong>Databas</strong></td><td>Google Cloud Firestore (dokumentdatabas) för strukturerad data. Google Cloud Storage för uppladdade filer och bilder.</td></tr>
+<tr><td><strong>Autentisering</strong></td><td>Google Firebase Authentication — e-post och lösenord, med valfri tvåfaktorsautentisering (TOTP).</td></tr>
+<tr><td><strong>Felrapportering</strong></td><td>Sentry, EU-region (Frankfurt, <code>ingest.de.sentry.io</code> — verifierat). Personuppgifter lagras inte i felloggar.</td></tr>
+<tr><td><strong>Multi-tenant</strong></td><td>Varje kundorganisation är logiskt helt avskild från andra kunder i samma databas. Isoleringen sker i databasens behörighetsregler (Firestore Security Rules) och verifieras med en egen automatiserad testsvit som körs vid varje ny version.</td></tr>
+</table>
+<p>Ingen del av systemet kräver att er organisation driftar egen infrastruktur, VPN eller egna servrar. All åtkomst sker över vanlig HTTPS.</p>
+
+<h2>3. Autentisering och behörighet</h2>
+<ul>
+<li><strong>Inloggning:</strong> e-post och lösenord. Öppen självregistrering finns inte — konton skapas via inbjudan med en engångstoken (192 bitars entropi, e-postbunden vid inlösen, med utgångstid).</li>
+<li><strong>Tvåfaktorsautentisering (TOTP):</strong> frivillig per konto, men kan göras <em>obligatorisk per roll</em> av er egen superadministratör. Kravet enforceras i databasreglerna, inte enbart som en inställning i gränssnittet.</li>
+<li><strong>Sessionshantering:</strong> automatisk utloggning vid inaktivitet, med konfigurerbar tid och förvarning. En superadministratör hos er kan omedelbart återkalla en enskild användares aktiva session ("tvinga utloggning") vid misstänkt kapning eller när någon slutar.</li>
+<li><strong>Rollmodell:</strong> sju roller — superadmin, VÖL, sektionsledare, VEC, förrådsansvarig, personal och kiosk. Varje roll har ett tydligt avgränsat redigeringsområde, enforcerat i databasreglerna och inte bara genom att knappar döljs i gränssnittet.</li>
+<li><strong>Kioskläge (delad enhet):</strong> en kontotyp för en delad surfplatta, inte en person. Läser godkänt innehåll, söker och kör checklistor — men kan aldrig kvittera, kommentera, föreslå ändringar eller bristanmäla, eftersom det skulle göra spårbarhetssiffror missvisande. Låses upp med en PIN-kod som hashas på servern och aldrig är läsbar för klienten; er superadministratör kan byta den omedelbart vid förlust eller stöld.</li>
+<li><strong>SSO / Microsoft Entra ID:</strong> <span class="etikett nej">Ej byggt</span> Tekniskt vägval är fattat (OIDC), men implementationen väntar på en kund med konkreta krav. Fråga oss om aktuell status om detta är ett hårt krav.</li>
+</ul>
+
+<h2>4. Skydd mot patientuppgifter — tre lager</h2>
+<table>
+<tr><th style="width:22%">Lager</th><th>Vad som kontrolleras</th></tr>
+<tr><td><strong>1. Klienten</strong></td><td>Varje fritextfält (rutiner, kommentarer, skiftrapporter, anteckningar, anslag, feedback, förrådsartiklar, checklistesteg, kvissfrågor) kontrolleras i webbläsaren innan sparning mot mönster som liknar personnummer, med varning till användaren.</td></tr>
+<tr><td><strong>2. Servern</strong></td><td>De flöden som går via en serverfunktion (AI-bildtolkning, kommentarer, feedback, kunskapssökning) kontrolleras även på servern med en fullständig kontroll — datumvalidering plus Luhn-checksumma — oavsett vad klienten skickade.</td></tr>
+<tr><td><strong>3. Databasreglerna</strong></td><td>Databasens egna behörighetsregler nekar att spara ett fält vars innehåll matchar ett sannolikt personnummer, oavsett vilken väg skrivningen kommer ifrån. Detta är den spärr som håller även mot ett direktanrop som kringgår klienten helt.</td></tr>
+</table>
+<div class="notis rod">
+<strong>Ärlig begränsning, som ska tas med i er bedömning.</strong> Inget textfilter kan med hundraprocentig säkerhet förhindra att en användare som aktivt vill kringgå varningarna ändå skriver in en patientuppgift i ett fritextfält. Detta är samma begränsning som gäller allt textbaserat skydd mot personuppgifter, oavsett leverantör. Er egen personal måste instrueras att aldrig skriva patientuppgifter i systemet — de tekniska spärrarna är ett skyddsnät, inte en garanti.
+</div>
+
+<h2>5. Nätverk och klientkrav</h2>
+<ul>
+<li>Utgående HTTPS (port 443) till Googles och Firebases domäner samt Sentry. Standardportar — ingen brandväggsöppning utöver vanlig webbtrafik krävs.</li>
+<li><strong>Ingen inkommande trafik till er organisation krävs.</strong> Synappsen initierar aldrig anslutningar in till er infrastruktur.</li>
+<li>Fungerar i moderna webbläsare (de två senaste versionerna av Chrome, Edge, Firefox och Safari) samt som installerad PWA på mobil och dator.</li>
+<li><strong>Offline-läge:</strong> ett urval godkänt innehåll cachas lokalt och går att läsa utan nätverksanslutning, med en tydlig banner när anslutningen tappats. Akutlägets innehåll hålls avsiktligt varmt i cachen oavsett vilken sida användaren senast besökt. Ny eller redigerad data kräver nät för att kunna sparas.</li>
+<li><strong>App Check:</strong> den installerade appen skickar ett kryptografiskt intyg (Google App Check via reCAPTCHA) med varje serveranrop, som skydd mot egenbyggda klienter som anropar backend direkt. <span class="etikett delvis">Mätfas</span> Klienten skickar intyg, men serverfunktionerna kräver dem ännu inte — aktivering av tvingande läge är medvetet uppskjuten tills verifieringsgraden är tillräcklig.</li>
+</ul>
+
+<h2>6. Spårbarhet och revisionslogg</h2>
+<ul>
+<li>Fullständig ändringslogg: vem gjorde vad och när, sökbar och filtrerbar i adminpanelen och exporterbar.</li>
+<li>Loggen är <strong>manipuleringsdetekterande via en hashkedja</strong> — en post som ändras eller tas bort i efterhand bryter kedjan, vilket upptäcks av en automatisk nattlig kontroll. Det är alltså inte enbart en vanlig loggtabell.</li>
+<li>Varje organisation ser sin egen kedjestatus. Statusen är organisationsskopad — en kunds kontrollresultat är aldrig synligt för en annan kund.</li>
+<li>Versionshistorik per rutin med visuell skillnadsvisning och möjlighet att återställa en tidigare version.</li>
+<li>Läskvittering på rutiner och anslag, med lista över vilka som <em>inte</em> kvitterat och exporterbart underlag.</li>
+</ul>
+
+<h2>7. Backup, återställning och kontinuitet</h2>
+<ul>
+<li><strong>Schemalagd säkerhetskopiering</strong> av kärndata varje vecka till Google Cloud Storage.</li>
+<li><strong>Återställning är byggd och testad</strong> som en serverfunktion, avsiktligt utan självbetjäningsknapp i gränssnittet — en återställning är för ingripande för att ligga bakom ett vanligt klick. Funktionen vägrar en sökväg som inte ligger under exakt den angivna organisationens egen mapp och hoppar över varje dokument vars organisationstillhörighet inte matchar; en felriktad fil kan alltså aldrig skriva över en annan kunds data.</li>
+<li><strong>Uppmätt återställningstid:</strong> under en minut för en normalstor organisation, mätt mot 1 500 dokument i testmiljö. <em>Brasklapp: mätningen saknar produktionens nätverkslatens.</em> Högsta dataförlust vid återställning från veckobackup: en vecka.</li>
+<li><strong>Backupretention:</strong> säkerhetskopior raderas automatiskt efter 90 dagar av en schemalagd funktion.</li>
+<li><strong>Er egen förmåga att agera utan oss:</strong> er superadministratör kan själv pausa hela organisationens åtkomst vid en misstänkt pågående incident, ändra roller, tvinga utloggning, aktivera obligatorisk tvåfaktorsautentisering och exportera all er data — utan att kontakta leverantören först.</li>
+</ul>
+
+<h2>8. Leverantörens åtkomst till ert innehåll</h2>
+<p><strong>Normalt ingen.</strong> Leverantören har ingen stående läsåtkomst till kunders innehåll — rutiner, förrådsartiklar, anslag och kontakter är åtkomliga enbart för medlemmar i den egna organisationen, enforcerat i databasreglerna.</p>
+<p>För att en supportfråga ska kunna besvaras kan <strong>ni själva</strong> öppna ett tillfälligt läsfönster på högst sex timmar. Fönstret är synligt i ert gränssnitt medan det pågår, kan avbrytas när som helst av er, och loggas i båda ändar. Leverantören kan inte bevilja sig själv åtkomst — organisationstillhörigheten härleds från den anropande användaren, inte från ett värde klienten skickar in.</p>
+
+<h2>9. Personuppgiftsbehandling och underbiträden</h2>
+<p>Kunden är personuppgiftsansvarig, leverantören personuppgiftsbiträde. Ett personuppgiftsbiträdesavtal enligt artikel 28 GDPR finns färdigt som mall och tecknas per kund.</p>
+<p><strong>Kategorier av registrerade:</strong> kundens anställda och uppdragstagare som ges konto (namn, e-postadress, yrkesroll). Inga patienter eller andra tredje parter är avsedda registrerade. Inga särskilda kategorier av personuppgifter enligt artikel 9 GDPR är avsedda att behandlas.</p>
+<table class="tat">
+<tr><th style="width:30%">Underbiträde</th><th>Behandlar</th><th style="width:24%">Region</th></tr>
+<tr><td>Google Firebase Authentication</td><td>Inloggningsuppgifter</td><td>Se not nedan</td></tr>
+<tr><td>Google Cloud Firestore</td><td>All strukturerad data i appen</td><td>Se not nedan</td></tr>
+<tr><td>Google Cloud Storage</td><td>Uppladdade filer, säkerhetskopior</td><td>Se not nedan</td></tr>
+<tr><td>Google Cloud Functions</td><td>All serverlogik</td><td>europe-west1 (verifierat)</td></tr>
+<tr><td>Google Firebase Hosting</td><td>Statiska webbtillgångar</td><td>Globalt CDN</td></tr>
+<tr><td>Google Generative AI (Gemini)</td><td>Bilder och text som skickas för AI-tolkning</td><td>Se not nedan</td></tr>
+<tr><td>Google Programmerbara sökmotorn</td><td>Sökfrågor för kunskapssökningen</td><td>Global Google-infrastruktur</td></tr>
+<tr><td>Sentry</td><td>Felmeddelanden och stackspår</td><td>EU (Frankfurt, verifierat)</td></tr>
+<tr><td>Google reCAPTCHA (App Check)</td><td>Enhets- och webbläsarsignaler</td><td>Global Google-infrastruktur</td></tr>
+<tr><td>Brevo (Sendinblue SAS)</td><td>Mottagaradress + innehållslös notistext</td><td>Frankrike/EU (verifierat)</td></tr>
+</table>
+<p><small><strong>Not om region:</strong> regionen för Firestore-databasen och Storage-hinken sätts vid projektskapande och framgår inte av koden. <span class="fyll">[FYLL I: bekräftad region, styrkt med skärmbild ur konsolen]</span> — vi lämnar hellre ett verifierat svar med underlag än en formulering. Detsamma gäller regionen för AI-anropen; en migrering till en regional endpoint är planerad inför regionkund.</small></p>
+
+<h2>10. Vad som inte finns — öppet redovisat</h2>
+<p>En IT-avdelning som upptäcker en lucka på egen hand drar rimligen slutsatsen att det finns fler. Därför står de här punkterna här i stället för att utelämnas.</p>
+<table>
+<tr><th style="width:32%">Punkt</th><th>Läge</th></tr>
+<tr><td><strong>SSO / Entra ID</strong></td><td><span class="etikett nej">Ej byggt.</span> Protokollval (OIDC) fattat, bygget villkorat av en kund med konkreta krav.</td></tr>
+<tr><td><strong>Flera enheter under samma huvudman</strong></td><td><span class="etikett delvis">Delvis.</span> Gruppering finns. Delad rutindata och jämförande ledningsrapport mellan egna enheter finns inte.</td></tr>
+<tr><td><strong>Journalsystemsintegration</strong></td><td><span class="etikett nej">Finns inte, medvetet.</span> Produkten spärrar aktivt patientuppgifter; en journalintegration vore en annan produkt med en annan riskklass.</td></tr>
+<tr><td><strong>Tillgänglighet (WCAG 2.1 AA)</strong></td><td><span class="etikett delvis">Delvis förenlig.</span> Samtliga 27 sidor ger noll maskinellt upptäckta överträdelser för två roller, och granskningen är en permanent regressionsspärr i CI. Kända kvarstående brister finns dock på nivå A och är öppet listade i tillgänglighetsredogörelsen. Ingen användartestning med skärmläsare har genomförts.</td></tr>
+<tr><td><strong>Extern penetrationstestning</strong></td><td><span class="etikett nej">Ej genomförd.</span> Fyra fullständiga interna säkerhetsgenomgångar av all kod är dokumenterade, med varje fynd, åtgärd och regressionstest redovisat. En oberoende extern granskning har inte gjorts.</td></tr>
+<tr><td><strong>App Check-enforcement</strong></td><td><span class="etikett delvis">Mätfas.</span> Intyg skickas men krävs ännu inte av servern.</td></tr>
+<tr><td><strong>Referenskund</strong></td><td><span class="etikett nej">Finns inte ännu.</span> Ingen pilot är i drift. Effektsiffror i vårt säljmaterial är uttryckligen märkta som uppskattningar.</td></tr>
+</table>
+
+<h2>11. Incidenthantering</h2>
+<ul>
+<li>Oväntade tekniska fel i både frontend och backend fångas automatiskt (Sentry, EU-region) och granskas löpande.</li>
+<li><strong>Personuppgiftsincident:</strong> underrättelse till er senast inom 72 timmar efter kännedom, i enlighet med personuppgiftsbiträdesavtalet punkt 8.</li>
+<li>En fastställd incidentresponsplan finns som eget dokument: klassificering i tre nivåer med exempel ur den här tjänsten, roller och ansvar, faser, tidskrav, kommunikationsordning och bevarande av bevis. <strong>Kunden anmäler till IMY — leverantören gör det aldrig i kundens ställe.</strong></li>
+<li><strong>Bemanning redovisas öppet:</strong> leverantören drivs av en ansvarig person. Därför är kompenserande kontroller byggda in i tjänsten i stället för att bero på bemanning — se avsnitt 7 om vad ni själva kan göra utan oss.</li>
+<li>Om en incident hos oss kan utlösa er egen rapporteringsskyldighet med kortare frist än 72 timmar (t.ex. enligt cybersäkerhetslagen) reglerar vi gärna en kortare underrättelsetid för sådana händelser i avtalet. Säg till.</li>
+</ul>
+
+<h2>12. Kvalitetssäkring av leveransen</h2>
+<ul>
+<li>Automatiska tester körs i CI vid varje ändring — inklusive <strong>databasens behörighetsregler</strong>, inte bara applikationskoden. Organisationsisoleringen är alltså bevisad vid varje release, inte antagen.</li>
+<li>Testsviten omfattar enhetstester, regeltester mot en riktig databasemulator, serverfunktionstester, lagringsregeltester samt en rökprovssvit som laddar samtliga sidor för varje roll och kontrollerar rendering och konsolfel.</li>
+<li>En automatiserad tillgänglighetsgranskning (axe-core) över samtliga sidor och två roller ingår i testkedjan, så en framtida regression fångas i CI i stället för vid nästa manuella granskning.</li>
+<li>Fullständig utvecklingslogg med varje fas dokumenterad finns och kan visas upp.</li>
+</ul>
+
+<h2>13. Vad som händer när avtalet upphör</h2>
+<ul>
+<li>Er organisations åtkomst kan pausas omedelbart.</li>
+<li>En fullständig exportfil av all er data kan tas ut när som helst, av er egen superadministratör eller på begäran.</li>
+<li><strong>Radering:</strong> er superadministratör begär radering i appen med angiven anledning. Organisationen pausas omedelbart, och raderingen genomförs automatiskt efter 48 timmar — under det fönstret kan både ni och leverantören avbryta. Vid genomförd radering tas en sista säkerhetskopia, varpå dokument, filer och användarkonton raderas permanent. En minimal post (namn, status, tidpunkt) blir kvar så att leverantören kan visa att raderingen skedde.</li>
+<li><strong>Att notera:</strong> säkerhetskopior, inklusive den sista som tas före radering, raderas automatiskt efter 90 dagar. En raderad organisations data kan alltså finnas kvar i en säkerhetskopia i upp till 90 dagar efter att den försvunnit ur den levande databasen. Detta är ett medvetet val som skyddsnät mot felaktig radering.</li>
+<li>Organisationens revisionslogg raderas inte i samma steg, eftersom spårbarheten över vad som hänt — inklusive raderingen — måste kunna visas. <span class="fyll">[FYLL I: avtalad gallringstid för revisionsloggen]</span></li>
+</ul>
+
+<div class="notis">
+<strong>Frågor vi gärna får.</strong> Om något i det här dokumentet är otillräckligt för er granskning, säg vad som saknas så kompletterar vi det skriftligt. Vi svarar hellre på en obekväm fråga nu än på en efter att avtalet är tecknat.
+</div>
+
+<div class="fot">
+  <span><span class="fyll">[BOLAGSNAMN]</span> &middot; <span class="fyll">[KONTAKTPERSON]</span> &middot; <span class="fyll">[E-POST]</span> &middot; <span class="fyll">[TELEFON]</span></span>
+  <span>Teknisk beskrivning · [DATUM]</span>
+</div>
+</body></html>
