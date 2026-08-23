@@ -5,7 +5,7 @@ en del av ett upphandlings- eller granskningsunderlag, utan att ägaren behöver
 nytt. Uppdatera vid varje förändring av det som beskrivs nedan (särskilt App Check-status,
 se punkt 3).
 
-**Upprättat:** 2026-07-26, som en del av Etapp 13d (`ETAPPLAN3.md`).
+**Upprättat:** 2026-07-26, som en del av Etapp 13d (`etapplaner/ETAPPLAN3.md`).
 
 ---
 
@@ -39,7 +39,7 @@ egna servrar. All åtkomst sker över vanlig HTTPS.
   frivillig per konto, men kan **göras obligatorisk per roll** av er egen superadmin
   (t.ex. kräva 2FA för samtliga superadmin- och VOL-konton) – detta enforceras i
   databasreglerna, inte bara som en inställning i gränssnittet.
-- **SSO/Microsoft Entra ID:** planerat men **inte byggt ännu** (se `ETAPPLAN3.md`, Etapp
+- **SSO/Microsoft Entra ID:** planerat men **inte byggt ännu** (se `etapplaner/ETAPPLAN3.md`, Etapp
   13f). Fråga leverantören om aktuell status om detta är ett hårt krav hos er.
 - **Sessionshantering:** automatisk utloggning vid inaktivitet (konfigurerbar tid). En
   superadmin hos er kan omedelbart återkalla en enskild användares aktiva session
@@ -63,7 +63,7 @@ att någon bygger en egen klient som pratar direkt med backend-funktionerna.
 
 **Aktuell status: mätfas.** Klienten skickar intyg, men serverfunktionerna kräver dem
 ännu inte (enforcement är en separat, medvetet uppskjuten aktivering efter en
-mätperiod – se `ETAPPLAN2.md`, Etapp 12c). **Uppdatera denna rad när enforcement har
+mätperiod – se `etapplaner/ETAPPLAN2.md`, Etapp 12c). **Uppdatera denna rad när enforcement har
 aktiverats.**
 
 ## 4. Nätverkskrav
@@ -126,7 +126,7 @@ aktiverats.**
   tekniska timeout är satt till 5 minuter som säkerhetsmarginal. Den faktiska flaskhalsen vid
   en verklig incident är sällan själva återställningen, utan tiden det tar en människa att
   identifiera rätt backupfil och fatta beslutet att återställa (se
-  `INCIDENT-CHECKLISTA.md` steg 8).
+  `drift/INCIDENT-CHECKLISTA.md` steg 8).
   **Återkommande övning (Etapp 49c):** en rad i den återkommande säkerhetsgenomgången
   (`CLAUDE.md`) påminner nu om att kontrollera om det är dags att göra om övningen – kör
   helt enkelt om `.github/workflows/rto-matning.yml` manuellt. Senast genomförd 2026-08-09.

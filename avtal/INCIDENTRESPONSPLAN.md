@@ -9,7 +9,7 @@ upphandling)
 
 > **Läsanvisning.** Detta dokument beskriver *vad* som ska ske vid en incident och *varför* –
 > det är styrande policy. Den operativa steg-för-steg-hanteringen finns i det interna
-> dokumentet `INCIDENT-CHECKLISTA.md`, som inte delas externt eftersom det innehåller
+> dokumentet `drift/INCIDENT-CHECKLISTA.md`, som inte delas externt eftersom det innehåller
 > driftdetaljer. Vid konflikt mellan dokumenten gäller denna plan.
 
 ---
@@ -33,7 +33,7 @@ Planen kompletterar och ska läsas tillsammans med:
 | `avtal/PUB-AVTAL-MALL.md` p. 8 | Den avtalade skyldigheten att underrätta kund inom 72 timmar |
 | `avtal/DPIA-UNDERLAG.md` p. 9 | Konsekvensbedömningens incidentrutin |
 | `avtal/UNDERBITRADEN.md` | Underbiträden som kan beröras av en incident |
-| `SAKERHETSRAPPORT.md` | Tjänstens säkerhetsarkitektur och kända begränsningar |
+| `granskningar/SAKERHETSRAPPORT.md` | Tjänstens säkerhetsarkitektur och kända begränsningar |
 
 ---
 
@@ -248,7 +248,7 @@ Efter varje P1- och P2-incident genomförs en genomgång som besvarar:
 5. Vilken konkret ändring i tjänsten eller rutinen följer?
 
 **Genomgången är inte skuldsökande.** Dess enda syfte är att förändra systemet eller rutinen.
-Slutsatserna förs in i denna plan, i `INCIDENT-CHECKLISTA.md` och vid behov som en punkt i den
+Slutsatserna förs in i denna plan, i `drift/INCIDENT-CHECKLISTA.md` och vid behov som en punkt i den
 aktiva etapplanen.
 
 ---

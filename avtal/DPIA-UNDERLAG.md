@@ -2,13 +2,13 @@
 
 **Status:** Färdigt underlag som Kunden kan lämna vidare till sitt eget dataskyddsombud eller
 sin egen risk- och sårbarhetsanalys (ROS). Skriven för en icke-teknisk läsare – tekniska
-detaljer finns i `SAKERHETSRAPPORT.md` för den som vill gå djupare. Detta underlag är inte i
+detaljer finns i `granskningar/SAKERHETSRAPPORT.md` för den som vill gå djupare. Detta underlag är inte i
 sig en fullständig DPIA (som ska göras av Kunden som personuppgiftsansvarig), utan
 faktaunderlaget en sådan bedömning behöver om Synappsen som behandling.
 
-**Upprättat:** 2026-07-26, som en del av Etapp 13c (`ETAPPLAN3.md`).
+**Upprättat:** 2026-07-26, som en del av Etapp 13c (`etapplaner/ETAPPLAN3.md`).
 **Senast uppdaterat:** 2026-07-31 – punkt 10 (Sammanfattande riskbedömning) omskriven mot
-faktiskt kodläge efter Etapp 32/33 (se `ETAPPLAN5.md` Etapp 34d).
+faktiskt kodläge efter Etapp 32/33 (se `etapplaner/ETAPPLAN5.md` Etapp 34d).
 
 ---
 
@@ -35,7 +35,7 @@ bara en policy utan ett tekniskt genomfört krav, i tre oberoende lager:
    (Firestore Security Rules) att spara ett fält vars innehåll matchar ett sannolikt
    personnummer, oavsett vilken väg skrivningen kommer ifrån. Denna spärr byggdes ut och en
    verklig brist i den upptäcktes och åtgärdades under sommaren 2026 (se
-   `UTVECKLINGSLOGG.md`, fas 39) – ett konkret exempel på att skyddet aktivt underhålls och
+   `etapplaner/UTVECKLINGSLOGG.md`, fas 39) – ett konkret exempel på att skyddet aktivt underhålls och
    testas, inte bara antas fungera.
 
 **Ärlig begränsning att ta med i bedömningen:** inget textfilter kan med 100 % säkerhet
@@ -43,7 +43,7 @@ förhindra att en användare som aktivt vill kringgå varningarna ändå skriver
 patientuppgift i fritext. Detta är samma begränsning som gäller allt textbaserat
 PII-skydd, oavsett leverantör. Kundens egen personal måste instrueras att aldrig skriva
 patientuppgifter i systemet – de tekniska spärrarna är ett skyddsnät, inte en garanti mot en
-avsiktlig eller ovetande felaktig inmatning. Se `SAKERHETSRAPPORT.md` för den fullständiga,
+avsiktlig eller ovetande felaktig inmatning. Se `granskningar/SAKERHETSRAPPORT.md` för den fullständiga,
 tekniska genomgången av detta filter och dess kända gränser.
 
 ## 3. Vilka personuppgifter behandlas, och om vem?
@@ -97,7 +97,7 @@ enforcerat på två nivåer:
 
 - En sökbar/filtrerbar ändringslogg finns redan i adminpanelen.
 - En mer robust, exporterbar revisionslogg med begränsad manipuleringsdetektion är planerad
-  (`ETAPPLAN3.md`, Etapp 14) men **inte byggd ännu** vid tidpunkten för detta underlag – ange
+  (`etapplaner/ETAPPLAN3.md`, Etapp 14) men **inte byggd ännu** vid tidpunkten för detta underlag – ange
   det tydligt om Kunden efterfrågar detta specifikt idag.
 - Force-logout: en superadmin kan omedelbart återkalla en enskild användares aktiva session,
   t.ex. vid en misstänkt komprometterad inloggning eller när någon slutar.
@@ -109,9 +109,9 @@ enforcerat på två nivåer:
 - Automatisk utloggning vid inaktivitet.
 - App Check (Google reCAPTCHA): tekniskt skydd mot att andra klienter än den riktiga,
   installerade appen kan anropa serverfunktionerna. Aktiverat sedan sommaren 2026, för
-  närvarande i en mätfas innan det görs obligatoriskt (se `ETAPPLAN2.md`, Etapp 12c).
+  närvarande i en mätfas innan det görs obligatoriskt (se `etapplaner/ETAPPLAN2.md`, Etapp 12c).
 - Beroendesårbarheter i systemets tredjepartsbibliotek övervakas och åtgärdas löpande
-  (senast genomgång: `UTVECKLINGSLOGG.md`, fas 36).
+  (senast genomgång: `etapplaner/UTVECKLINGSLOGG.md`, fas 36).
 
 ## 8. Underbiträden och tredjelandsöverföring
 

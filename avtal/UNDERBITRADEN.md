@@ -3,11 +3,11 @@
 **Status:** Löpande dokument, ska hållas uppdaterat varje gång ett underbiträde läggs till,
 byts eller tas bort. Refereras från `avtal/PUB-AVTAL-MALL.md` (Etapp 13a), punkt 5.
 
-**Upprättat:** 2026-07-26, som en del av Etapp 13b (`ETAPPLAN3.md`).
+**Upprättat:** 2026-07-26, som en del av Etapp 13b (`etapplaner/ETAPPLAN3.md`).
 
 **Metod:** varje rad nedan är verifierad direkt mot koden (`functions/`-modulerna,
 `.github/workflows/deploy.yml`, `src/sentry.js`), inte antagen – i enlighet med genomgående
-krav 8 i `ETAPPLAN3.md`. Rader markerade "[FYLLS I]"/"[EJ VERIFIERAT]" kräver en åtgärd av
+krav 8 i `etapplaner/ETAPPLAN3.md`. Rader markerade "[FYLLS I]"/"[EJ VERIFIERAT]" kräver en åtgärd av
 ägaren (vanligen en kontroll i ett moln-konsol som inte syns i koden).
 
 ---
@@ -80,7 +80,7 @@ till Google för att hitta träffar begränsade till fem godkända medicinska k�
 **Rättelse 2026-08-23: funktionen är i drift och tar emot skarpa användarfrågor.** Den var
 pausad i användargränssnittet från v5.3.5, men återaktiverades och byggdes om med enforcement i
 två lager plus en daglig automatisk källverifiering (`verifieraKlinikstodSchemalagt` i
-`functions/index.js`). `SAKERHETSRAPPORT.md` rättade sin egen text redan 2026-08-01, men den
+`functions/index.js`). `granskningar/SAKERHETSRAPPORT.md` rättade sin egen text redan 2026-08-01, men den
 här förteckningen följde inte med – i knappt fyra veckor beskrev alltså **ett dokument som
 lämnas till kundens dataskyddsombud en behandling som mindre omfattande än den faktiskt är.**
 Det är precis fel riktning att ha fel åt i en underbiträdesförteckning.
@@ -107,14 +107,14 @@ mening. Global Google-infrastruktur, samma juridiska grund som övriga Google-tj
 ### Linear
 
 Används internt av leverantören för utvecklingsbacklogg (se Fas 33 i
-`UTVECKLINGSLOGG.md`). **Behandlar inte kunddata** – ärendena beskriver funktioner och
+`etapplaner/UTVECKLINGSLOGG.md`). **Behandlar inte kunddata** – ärendena beskriver funktioner och
 tekniskt arbete, inte innehåll från en kunds Firestore-databas. Tas ändå upp här för
 fullständighet, eftersom vissa kunder/DPO efterfrågar en fullständig lista över samtliga
 verktyg leverantören använder, oavsett om kunddata behandlas.
 
 ### Brevo (Sendinblue SAS)
 
-Vald 2026-08-10 (`BESLUTSLOGG.md`, beslutspunkt 1 i `ETAPPLAN11.md` §53) som e-postkanal för
+Vald 2026-08-10 (`BESLUTSLOGG.md`, beslutspunkt 1 i `etapplaner/ETAPPLAN11.md` §53) som e-postkanal för
 Etapp 53 – i första hand inbjudningar (53b), tilldelade påminnelser (53c) och en kundvänd
 månadssammanfattning (53d). EU-baserat bolag (Frankrike), vilket var det avgörande skälet
 framför ett amerikanskt alternativ.
@@ -122,7 +122,7 @@ framför ett amerikanskt alternativ.
 - **Vad som skickas:** en mottagaradress plus en kort, medvetet innehållslös notistext (t.ex.
   "du har 3 rutiner att granska, logga in för att se dem"). Aldrig organisationens namn,
   verksamhetsinnehåll eller andra personuppgifter än mottagarens egen adress – se
-  `ETAPPLAN11.md` genomgående krav 18. Enda undantaget är inbjudningsmejlet (53b), som med
+  `etapplaner/ETAPPLAN11.md` genomgående krav 18. Enda undantaget är inbjudningsmejlet (53b), som med
   nödvändighet måste nämna organisationens namn för att vara begripligt; det är ett medvetet,
   dokumenterat undantag, inte en glidning.
 - **Teknisk status:** hjälparfunktionen `skickaEpost()` och det globala nödstoppet

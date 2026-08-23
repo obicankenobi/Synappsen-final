@@ -2,8 +2,8 @@
 
 > Denna fil uppdateras löpande och är tänkt att läsas i BÖRJAN av en ny
 > Claude Code-tråd om sessionen bytts (t.ex. efter kontext-kompaktering eller
-> en helt ny konversation). Den ersätter INTE `UTVECKLINGSLOGG.md` (detaljerad
-> historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
+> en helt ny konversation). Den ersätter INTE `etapplaner/UTVECKLINGSLOGG.md` (detaljerad
+> historik) eller `etapplaner/ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
 **Senast uppdaterad:** 2026-08-23, version **5.128.0** – byggd, pushad och **DEPLOYAD** (körning #87). Uppdateringsknappen fungerar. Samma dag: säljmaterialpaketet infört i repot, granskat mot koden och rättat på tre punkter – se "Uppföljning 2026-08-23 (säljmaterialet)" längst ner. **Ingen kodändring, bara dokument.**
@@ -18,30 +18,30 @@ blockerade försöket, som inte längre är det aktiva skälet).
 > som håller tillbaka nästa försök.
 
 **v5.113.0 = Etapp 67e (dela upp `Leverantor.jsx`) – KLAR. Med det är HELA Etapp 67
-(`ETAPPLAN16.md`, alla fem delmål 67a–67e) byggd**, se "Uppföljning 2026-08-17 (Etapp 67e
+(`etapplaner/ETAPPLAN16.md`, alla fem delmål 67a–67e) byggd**, se "Uppföljning 2026-08-17 (Etapp 67e
 klar, v5.113.0 – Etapp 67 helt byggd)" längst ner. Ägaren bad 2026-08-16 att köra
-`ETAPPLAN16.md`s kvarvarande delmål (67b–67e) **i följd utan att stanna mellan varje** – det är
+`etapplaner/ETAPPLAN16.md`s kvarvarande delmål (67b–67e) **i följd utan att stanna mellan varje** – det är
 nu genomfört i sin helhet. v5.112.0 = Etapp 67d (sortering/filtrering/sök) – KLAR, se
 "Uppföljning 2026-08-16 (Etapp 67d klar, v5.112.0)". v5.111.0 = Etapp 67c
 ("kräver åtgärd"-listan) – KLAR. v5.110.0 = Etapp 67b (nyckeltalsrad) – KLAR. v5.109.0 =
 beslutspunkt 2:s serverunderlag – KLAR, se "Uppföljning 2026-08-16 (avtalsstatusAndrad/skapad)".
-v5.108.0 = **Etapp 67a (`ETAPPLAN16.md`) – leverantörsvyn fick äntligen en väg in från menyn
+v5.108.0 = **Etapp 67a (`etapplaner/ETAPPLAN16.md`) – leverantörsvyn fick äntligen en väg in från menyn
 och kommandopaletten – KLAR.**
 v5.107.0 = SVG-uppladdning stängd + fyra ägarbeslut loggade, se "Uppföljning 2026-08-15".
 v5.106.0 = **Etapp
-66d (`ETAPPLAN15.md`) – driftstörning kopplad till rutin och åtgärd – KLAR. Med det är HELA
+66d (`etapplaner/ETAPPLAN15.md`) – driftstörning kopplad till rutin och åtgärd – KLAR. Med det är HELA
 Etapp 66 (alla fyra delmål 66a–66d) byggd OCH deployad**, se sektionen "Uppföljning 2026-08-14
 (Etapp 66d klar, v5.106.0 – Etapp 66 helt byggd)" längst ner.
 v5.105.0 = Etapp 66c (ansvarsområden) – KLAR, se "Uppföljning 2026-08-14 (Etapp 66c klar,
 v5.105.0)". v5.104.0 = Etapp 66b (handledarsignering) – KLAR, se "Uppföljning 2026-08-14
 (Etapp 66b klar, v5.104.0)". v5.103.0 = Etapp 66a (förslag når rutinens ägare) – KLAR, se
-"Uppföljning 2026-08-14 (Etapp 66a klar, v5.103.0)". Planen `ETAPPLAN15.md` (Etapp 66)
+"Uppföljning 2026-08-14 (Etapp 66a klar, v5.103.0)". Planen `etapplaner/ETAPPLAN15.md` (Etapp 66)
 föreslogs samma dag, se "Uppföljning 2026-08-14 (ETAPPLAN15 föreslagen, Etapp 66)".
-`ETAPPLAN15.md` väntar nu bara på nästa deploy. Senaste bekräftade produktionsdeploy är
+`etapplaner/ETAPPLAN15.md` väntar nu bara på nästa deploy. Senaste bekräftade produktionsdeploy är
 fortfarande **5.102.0** (körning #77, commit
 `2addfef`, deploy.yml på `claude/compassionate-euler-rho0q5`, ny asset-hash
 `assets/index-QGEvHg37.js` bekräftad på `synappsen-final-build.web.app`). v5.102.0 = **Etapp
-65d (`ETAPPLAN14.md`) – öva-läge – KLAR. Med det är HELA Etapp 65 (alla fyra delmål 65a–65d)
+65d (`etapplaner/ETAPPLAN14.md`) – öva-läge – KLAR. Med det är HELA Etapp 65 (alla fyra delmål 65a–65d)
 byggd OCH i produktion**, ett delmål i taget 2026-08-13 på ägarens uttryckliga begäran. Se
 sektionerna "Uppföljning 2026-08-13 (ny plan: ETAPPLAN14.md, Etapp 65 – fyra
 vardagsfunktioner)", "Uppföljning 2026-08-13 (Etapp 65a klar, v5.99.0)", "Uppföljning
@@ -55,14 +55,14 @@ gröna** (267/267 respektive 17/17) – granskningens sandbox saknade IPv6 helt,
 Firebase-emulatorn att hänga tyst; rotorsaken var att `firebase-tools` hårdkodar att
 `localhost` slår upp till både `127.0.0.1` och `::1` oavsett systemets faktiska nätverk,
 fixat genom att peka emulatorerna på `127.0.0.1` explicit i `firebase.json`. Se samma
-uppföljningssektion för detaljer. **Samma dag tillkom `JURIDISK-GRANSKNING.md`** (internt
+uppföljningssektion för detaljer. **Samma dag tillkom `granskningar/JURIDISK-GRANSKNING.md`** (internt
 dokument, delas aldrig externt i sin helhet) och dess fem tekniska premisser är verifierade mot
 kod – tre bekräftade brister, varav en (AI-transparens enligt artikel 50) är ett krav som
 redan gäller. Se sektionen "Uppföljning 2026-08-11 (juridisk granskning + kodverifiering)"
-längst ner. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
+längst ner. **`etapplaner/ETAPPLAN12.md` (Etapp 59–63, "Från demo till
 drift") är HELT KLAR OCH DEPLOYAD** (v5.96.0, körning #74) – se sektionen
 "Uppföljning 2026-08-11 (ETAPPLAN12.md helt klar, v5.96.0)" längst ner.
-**`ETAPPLAN13.md` (Etapp 64, baspaketet) är nu DEN ANTAGNA PLANEN.** Ägaren beslutade
+**`etapplaner/ETAPPLAN13.md` (Etapp 64, baspaketet) är nu DEN ANTAGNA PLANEN.** Ägaren beslutade
 2026-08-11 att idén ska drivas vidare (se `BESLUTSLOGG.md`), och samma dag att en
 **scaffolding-fas ska byggas nu** – struktur och gränssnitt, men utan riktigt
 instrumentinnehåll och osynlig för alla kunder (bara plattformsadmin) – i väntan på den
@@ -70,9 +70,9 @@ externa juridiska bedömningen (MDR + upphovsrätt), som fortfarande behöver ko
 se `OPPNA-PUNKTER.md`. Scaffoldingen är nu byggd (v5.97.0). Planen granskades två gånger
 2026-08-11 och fick sju fel rättade totalt. Se sektionen "Uppföljning 2026-08-11 (ETAPPLAN13
 scaffolding klar, v5.97.0)" längst ner.
-`ETAPPLAN11.md` (Etapp 53–58) är nu **HELT KLAR utom 54c/54d och Etapp 58** – båda väntar
+`etapplaner/ETAPPLAN11.md` (Etapp 53–58) är nu **HELT KLAR utom 54c/54d och Etapp 58** – båda väntar
 medvetet på en extern förutsättning (konkret andra enhet respektive en kund som kräver SSO),
-inte på kapacitet, se `OPPNA-PUNKTER.md`. **`ETAPPLAN12.md` (Etapp 59–63, "Från demo till
+inte på kapacitet, se `OPPNA-PUNKTER.md`. **`etapplaner/ETAPPLAN12.md` (Etapp 59–63, "Från demo till
 drift") är den nya AKTIVA planen, ANTAGEN 2026-08-10** direkt efter en kodgenomgång (inte en
 dokumentgenomgång) av v5.91.0 – till skillnad från tidigare planer bygger den nästan inga nya
 funktioner, bara hållfasthet: den genomgången hittade tre fel som redan fanns i
@@ -100,7 +100,7 @@ försvann – den gamla toppkommentaren – allt annat finns kvar ordagrant), ex
 identisk mot originalet, full `test:functions`-svit (35 filer) körd två gånger (en gång per
 delningsomgång) och grön båda gångerna, noll testfiler ändrade. Ett fristående, separat
 förslag (Etapp 64, ett "baspaket" av nationella referenser) hölls medvetet UTANFÖR den
-aktiva planen, i en egen fil `ETAPPLAN13.md`. `ETAPPLAN9.md`/`ETAPPLAN8.md`/`ETAPPLAN10.md`
+aktiva planen, i en egen fil `etapplaner/ETAPPLAN13.md`. `etapplaner/ETAPPLAN9.md`/`etapplaner/ETAPPLAN8.md`/`etapplaner/ETAPPLAN10.md`
 fortsatt HELT KLARA OCH DEPLOYADE (utom 10:s Etapp 52, väntar på en bokning). **Läs
 sektionen "Uppföljning 2026-08-10 (Etapp 61a klar, hela Etapp 61 klar)" längst ner** –
 tidigare uppföljningar (61b/61c, 60c, 60b, 60a, 59, 53–57) finns kvar nedanför den, i
@@ -112,7 +112,7 @@ kronologisk ordning.
 > misslyckats i det här projektet flera gånger tidigare (se bakgrundsstycket i `CLAUDE.md`).
 
 > **OBS (2026-07-28):** punkt 1 nedan under "Så här jobbar vi" om `continue-on-error` i
-> `deploy.yml` är FEL/INAKTUELL – den flaggan togs bort i Etapp 8b (`ETAPPLAN2.md`), långt
+> `deploy.yml` är FEL/INAKTUELL – den flaggan togs bort i Etapp 8b (`etapplaner/ETAPPLAN2.md`), långt
 > innan denna fil senast skrevs om. Jobbets `conclusion`-fält ÄR pålitligt idag; ett riktigt
 > `firebase deploy`-fel ger `conclusion: "failure"` på riktigt (bekräftat två gånger i skarpt
 > läge 2026-07-28, se den nya sektionen längst ner). Läs ändå alltid loggtexten vid osäkerhet.
@@ -120,7 +120,7 @@ kronologisk ordning.
 ## Nuläge i ett stycke
 
 Etapp 1–5 (ETAPPLAN.md) är genomförda. Efter dem gjordes en fristående
-kodgenomgång som resulterade i `ETAPPLAN2.md` (Etapp 6–11). Användaren bad om
+kodgenomgång som resulterade i `etapplaner/ETAPPLAN2.md` (Etapp 6–11). Användaren bad om
 Etapp 6, 7, 8 samt 10b–10e – **samtliga är nu genomförda, testade och
 pushade** (v5.15.1 → v5.24.0, se UTVECKLINGSLOGG.md Fas 24–32 för fullständiga
 detaljer per delmål):
@@ -213,7 +213,7 @@ redan verifierat innehåll (inte nyskrivna påståenden), med en ärlig risktabe
 att revisionsloggens manipuleringsskydd (Etapp 14) inte är byggt än. 13d skrev
 `avtal/IT-FAKTABLAD.md` för kundens IT-avdelning, återanvänder samma verifierade fakta;
 nytt öppet fält identifierat – ingen dokumenterad återställningstid (RTO) efter backup
-finns, markerad `[FYLLS I]`. 13e uppdaterade `PITCH.md` (version 5.7.0 → 5.25.0) och
+finns, markerad `[FYLLS I]`. 13e uppdaterade `saljmaterial/PITCH.md` (version 5.7.0 → 5.25.0) och
 **rättade ett sakfel:** dokumentet påstod att klinikstöd-sökningen "hämtar live" svar,
 men funktionen är i själva verket medvetet pausad i gränssnittet sedan v5.3.5 – omskrivet
 till att öppet berätta det.
@@ -222,7 +222,7 @@ till att öppet berätta det.
 åtgärdade i kod – "hoppa till innehåll"-länk + `<main>`-landmärke, dynamisk sidtitel per
 rutt (`useSidTitel`), tillgängligt namn på adminpanelens rollväljare, och
 bekräftelsedialogen (`DialogProvider.jsx`) stängs nu med Esc, håller kvar fokus (Tab-cykel)
-och återlämnar det vid stängning. `TILLGANGLIGHETSREDOGORELSE.md` uppdaterad med status
+och återlämnar det vid stängning. `granskningar/TILLGANGLIGHETSREDOGORELSE.md` uppdaterad med status
 per rad (fortsatt "delvis förenlig" – sju punkter kvarstår). Version bumpad 5.25.0 →
 **5.25.1** eftersom detta är en faktisk beteendeändring, inte dokumentation. **Linear
 SYN-6 kunde inte uppdateras från den här sessionen** (ingen Linear-verktygsåtkomst
@@ -286,13 +286,13 @@ innan produktion. Version bumpad 5.25.1 → **5.26.0** (första faktiska UI-ytan
 14c (inloggningshändelser, rollbyte, modul-/budgetändringar loggas inte). Därefter
 Etapp 15–21.
 
-## HISTORISKT: vad som återstod per 2026-07-28 (`ETAPPLAN4.md` var aktiv plan då – den är den INTE nu)
+## HISTORISKT: vad som återstod per 2026-07-28 (`etapplaner/ETAPPLAN4.md` var aktiv plan då – den är den INTE nu)
 
-- **`ETAPPLAN4.md` Etapp 26–30** – medarbetarens röst (föreslå ändring), skanna i förrådet,
+- **`etapplaner/ETAPPLAN4.md` Etapp 26–30** – medarbetarens röst (föreslå ändring), skanna i förrådet,
   kundens egen profil, riktig offline, snabbhet/WCAG AA. Inte påbörjade.
-- **13f (SSO/Entra ID)** och **Etapp 16 (veckopuls)**, båda i `ETAPPLAN3.md` – medvetet
+- **13f (SSO/Entra ID)** och **Etapp 16 (veckopuls)**, båda i `etapplaner/ETAPPLAN3.md` – medvetet
   pausade, väntar på ett ägarbeslut vardera (se den filens statusblock).
-- **Etapp 10a (demoläge/sandlåda)** i `ETAPPLAN2.md` – enda ej genomförda delmålet i Etapp 10.
+- **Etapp 10a (demoläge/sandlåda)** i `etapplaner/ETAPPLAN2.md` – enda ej genomförda delmålet i Etapp 10.
 - **Kioskläge** (`FEATURE.KIOSK_MODE`) – reserverad flagga, aldrig byggt UI bakom den.
 - **Etapp 11 (Intelligence 2.0)** – uttryckligen villkorad: bör vänta tills minst en kund
   faktiskt betalar för Intelligence-modulen.
@@ -309,7 +309,7 @@ Etapp 15–21.
    arbetsgrenen). Polla med `actions_list`/`list_workflow_jobs` tills job är
    `completed`.
    **RÄTTAT 2026-07-28:** `continue-on-error` togs bort från "Deploya till
-   Firebase"-steget redan i Etapp 8b (`ETAPPLAN2.md`) – jobbets
+   Firebase"-steget redan i Etapp 8b (`etapplaner/ETAPPLAN2.md`) – jobbets
    `conclusion`-fält ÄR pålitligt, ett riktigt `firebase deploy`-fel ger
    `conclusion: "failure"` på riktigt (bekräftat i skarpt läge två gånger
    2026-07-28: en IAM-behörighetsfel och en Eventarc-propageringsfördröjning,
@@ -331,7 +331,7 @@ Etapp 15–21.
    `src/data/andringslogg.js` (svensk, kort, användarvänlig ändringslogg) –
    samma glömska hände där också och krävde en separat fix.
 4. **Dokumentation:** varje större fas/etapp får en ny sektion i
-   `UTVECKLINGSLOGG.md` (kronologisk historik, "Fas N – rubrik"). Läs den
+   `etapplaner/UTVECKLINGSLOGG.md` (kronologisk historik, "Fas N – rubrik"). Läs den
    filen för fullständig teknisk historik om du behöver detaljer om en
    specifik fix.
 5. **Firestore/Storage-regler:** ett återkommande buggmönster (hittat och
@@ -356,19 +356,19 @@ Etapp 15–21.
 **Se `CLAUDE.md` för den fullständiga, underhållna dokumentkartan** (vilken fil är aktuell,
 vilken är historisk, vilken är auktoritativ för vad). Kort version:
 
-- `ETAPPLAN.md` (Etapp 0–5), `ETAPPLAN2.md` (Etapp 6–12), `ETAPPLAN3.md` (Etapp 13–21) –
+- `etapplaner/ETAPPLAN.md` (Etapp 0–5), `etapplaner/ETAPPLAN2.md` (Etapp 6–12), `etapplaner/ETAPPLAN3.md` (Etapp 13–21) –
   historiska men KORREKTA, status per delmål underhållen inline. Alla tre klara utom
   namngivna, medvetet pausade punkter (13f SSO, Etapp 16 veckopuls).
-- `ETAPPLAN4.md` – Etapp 22–31. **Var den aktiva planen när det här stycket skrevs; är det
-  inte längre** (`ETAPPLAN5.md` tog över, och sedan 2026-08-01 är `ETAPPLAN6.md` aktiv).
+- `etapplaner/ETAPPLAN4.md` – Etapp 22–31. **Var den aktiva planen när det här stycket skrevs; är det
+  inte längre** (`etapplaner/ETAPPLAN5.md` tog över, och sedan 2026-08-01 är `etapplaner/ETAPPLAN6.md` aktiv).
   Historisk men korrekt.
-- `FRAMTIDSPLAN.md` – **arkiv över ej antagna planer** sedan 2026-08-01 (var dessförinnan en
+- `produkt/FRAMTIDSPLAN.md` – **arkiv över ej antagna planer** sedan 2026-08-01 (var dessförinnan en
   pekare mot den aktiva planen, och blev stale i den rollen två gånger).
-- `MODULPLAN.md` – modul-/affärsplan (skrevs om 2026-07-28, var stale sedan v5.10.0 – påstod
+- `produkt/MODULPLAN.md` – modul-/affärsplan (skrevs om 2026-07-28, var stale sedan v5.10.0 – påstod
   bl.a. felaktigt att organisationsmodellen inte var byggd).
-- `UTVECKLINGSLOGG.md` – fullständig kronologisk teknisk historik, "Fas 1–41+".
-- `SAKERHETSRAPPORT.md` – säkerhetsgranskning av multi-tenant-lagret.
-- `TILLGANGLIGHETSREDOGORELSE.md` – WCAG-status per punkt.
+- `etapplaner/UTVECKLINGSLOGG.md` – fullständig kronologisk teknisk historik, "Fas 1–41+".
+- `granskningar/SAKERHETSRAPPORT.md` – säkerhetsgranskning av multi-tenant-lagret.
+- `granskningar/TILLGANGLIGHETSREDOGORELSE.md` – WCAG-status per punkt.
 - `src/data/andringslogg.js` – användarvänd ändringslogg (visas i appen, `/nyheter`).
 - `src/version.js` – läser version DIREKT från `package.json`, ska inte redigeras manuellt.
 - `firestore.rules` / `storage.rules` – multi-tenant-säkerhetsmodellen,
@@ -379,12 +379,12 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
 
 ## Uppföljning 2026-07-28: allt sedan v5.25.0/Etapp 14 (läs detta för aktuell status)
 
-**ETAPPLAN3.md (Etapp 13–21) färdigställdes helt** (utom 13f/16, se `ETAPPLAN3.md`s eget
+**ETAPPLAN3.md (Etapp 13–21) färdigställdes helt** (utom 13f/16, se `etapplaner/ETAPPLAN3.md`s eget
 statusblock för exakt vilka beslut som väntar på ägaren) – rollbaserad startvy, akutläge,
 checklistläge, kompetenspaket, bristanmälan, källbevakning, m.m. Detaljer i
-`UTVECKLINGSLOGG.md`.
+`etapplaner/UTVECKLINGSLOGG.md`.
 
-**Ny plan `ETAPPLAN4.md` (Etapp 22–30) skrevs** efter en explicit förfrågan om funktioner med
+**Ny plan `etapplaner/ETAPPLAN4.md` (Etapp 22–30) skrevs** efter en explicit förfrågan om funktioner med
 "wow-faktor" för personalen. Genomfört i den här sessionen, i tur och ordning, allt
 deployat och verifierat i produktion:
 
@@ -426,11 +426,11 @@ IAM-behörighetsfel tillsammans med ägaren (se ovan).
 
 ## Uppföljning 2026-08-01: fem ägarbeslut i ETAPPLAN5.md + Etapp 33c byggd och deployad
 
-**Kontext:** `ETAPPLAN5.md` (Etapp 32–36) hade sju öppna "beslutspunkter som kräver ägaren"
+**Kontext:** `etapplaner/ETAPPLAN5.md` (Etapp 32–36) hade sju öppna "beslutspunkter som kräver ägaren"
 kvar. Användaren tog ställning till fem av dem i den här sessionen:
 
 - **Etapp 33c (backup-retention):** 90 dagar. Inskrivet i `avtal/PUB-AVTAL-MALL.md` p. 6.
-- **Etapp 34a (jourkontakt):** namn + telefonnummer ifyllt i `INCIDENT-CHECKLISTA.md`s
+- **Etapp 34a (jourkontakt):** namn + telefonnummer ifyllt i `drift/INCIDENT-CHECKLISTA.md`s
   kontakttabell (internt dokument, delas aldrig externt).
 - **Etapp 35e (App Check-enforcement):** beslut bekräftat att FORTSÄTTA VÄNTA – Firestore låg
   på 89% verifierat (under ~98%-marginalen), Storage-siffran (0/10) för litet underlag. Ingen
@@ -457,31 +457,31 @@ kvar. Användaren tog ställning till fem av dem i den här sessionen:
   Rotationen är fortsatt manuell (ingen kod utför den), bara påminnelsen är automatiserad.
 
 **Dokument uppdaterade i två commits** (`7108d50` beslut, `382562b` Etapp 33c-bygget):
-`ETAPPLAN5.md` (statusmarkeringar + beslutspunktslistan), `INCIDENT-CHECKLISTA.md`
+`etapplaner/ETAPPLAN5.md` (statusmarkeringar + beslutspunktslistan), `drift/INCIDENT-CHECKLISTA.md`
 (kontakttabell, nyckelrotationssektion, "Vad som ännu inte finns"-tabellen),
-`SAKERHETSRAPPORT.md` (Del 3-sammanfattningen), `avtal/PUB-AVTAL-MALL.md` (p. 6).
+`granskningar/SAKERHETSRAPPORT.md` (Del 3-sammanfattningen), `avtal/PUB-AVTAL-MALL.md` (p. 6).
 
 **Kvarstår i ETAPPLAN5.md:** Etapp 32b (tre larmtyper, väntar på om ägaren vill betala för
 Sentry API-token/GCP-faktureringsexport), ToS-genomgång för källbevakningens sju domäner,
 Etapp 30b (fysiskt akutlägestest), och 35e:s uppföljning om några veckor (se ovan). När dessa
-är avklarade väljs en av `ETAPPLAN5-ALT-A.md`/`-ALT-B.md` som nästa plan.
+är avklarade väljs en av `etapplaner/ETAPPLAN5-ALT-A.md`/`-ALT-B.md` som nästa plan.
 
 **Processfel hittat och åtgärdat i samma veva:** den här filen (`CLAUDE_STATUS.md`) hade
 själv inte uppdaterats sedan 2026-07-29, trots att `CLAUDE.md` uttryckligen instruerar att den
 ska hållas löpande – exakt samma minnesstyrda-istället-för-händelsestyrda mönster som redan
-en gång orsakat att `SAKERHETSRAPPORT.md`/`FRAMTIDSPLAN.md`/`MODULPLAN.md` blev stale. Fixat
+en gång orsakat att `granskningar/SAKERHETSRAPPORT.md`/`produkt/FRAMTIDSPLAN.md`/`produkt/MODULPLAN.md` blev stale. Fixat
 genom att skriva just den här sektionen, OCH genom att lägga till en ny obligatorisk,
 händelsestyrd underhållsregel i `CLAUDE.md` ("Regel: CLAUDE_STATUS.md") – se den filen.
 
 ## Uppföljning 2026-08-01 (senare samma dag): ETAPPLAN6.md antagen som ny aktiv plan
 
-**Ny aktiv plan:** `ETAPPLAN6.md` (Etapp 37–41, "Innehållet som håller: redaktionell kvalitet
-och bevisad nytta"). Utgångsläge v5.56.0. Tesen är samma som `ETAPPLAN5.md`s, applicerad på
+**Ny aktiv plan:** `etapplaner/ETAPPLAN6.md` (Etapp 37–41, "Innehållet som håller: redaktionell kvalitet
+och bevisad nytta"). Utgångsläge v5.56.0. Tesen är samma som `etapplaner/ETAPPLAN5.md`s, applicerad på
 innehåll i stället för säkerhet: produkten är byggd för att innehåll ska skapas och godkännas
 korrekt, men saknar förmågan att upptäcka när det som redan ligger där blivit gammalt eller
 motsägelsefullt. Detaljerna hör hemma i planfilen – läs den, inte den här sammanfattningen.
 
-**`ETAPPLAN5.md` är INTE stängd.** Etapp 32b, ToS-genomgången, Etapp 30b och uppföljningen av
+**`etapplaner/ETAPPLAN5.md` är INTE stängd.** Etapp 32b, ToS-genomgången, Etapp 30b och uppföljningen av
 35e (App Check) spåras fortsatt där, blockerade av ägarbeslut eller extern tid.
 
 **Justeringar gjorda i planen innan den lades in** (den kom som ett utkast och antogs efter
@@ -506,8 +506,8 @@ en genomgång, inte rakt av):
 
 **Två premissfel i utkastet hittades och åtgärdades:**
 
-1. **`FRAMTIDSPLAN.md` var inte det "arkiv för ej antagna planer" utkastet påstod.** Den
-   pekade fortfarande på `ETAPPLAN4.md` som aktiv plan – elva releaser efter att `ETAPPLAN5.md`
+1. **`produkt/FRAMTIDSPLAN.md` var inte det "arkiv för ej antagna planer" utkastet påstod.** Den
+   pekade fortfarande på `etapplaner/ETAPPLAN4.md` som aktiv plan – elva releaser efter att `etapplaner/ETAPPLAN5.md`
    tagit över. Femte gången samma stale-mönster i det här projektet. **Fixad genom att ge filen
    en roll som inte KAN bli stale på samma sätt:** den är nu ett arkiv över bortvalda alternativ
    med omprövningsvillkor per alternativ, inte en pekare mot den aktiva planen. `CLAUDE.md` har
@@ -522,7 +522,7 @@ en genomgång, inte rakt av):
 `src/utils/innehallshalsa.js` (13 vitest-tester) + ny adminsektion
 `InnehallshalsaSektion.jsx` – visar per godkänd rutin om den bör granskas, saknar ägare,
 aldrig kvitterats, har en obesvarad källvarning eller är utgången, plus en sammanvägd
-hälsosiffra som **aldrig visas utan sin nedbrytning** (krav infört när `ETAPPLAN6.md`
+hälsosiffra som **aldrig visas utan sin nedbrytning** (krav infört när `etapplaner/ETAPPLAN6.md`
 antogs). Superadmin ser alla tre områden, VÖL/sektionsledare/VEC/förrådsansvarig ser bara sitt
 eget. Ingen ny collection eller nytt Firestore-fält.
 
@@ -531,7 +531,7 @@ INTE bygga det felaktiga kriteriet:** "aldrig visad" hade byggt på `visningar`-
 som bara skrivs vid sökträffar/kommandopalett – inte vid vanlig bläddring – och hade flaggat
 nästan alla rutiner som aldrig lästa oavsett verklighet. "Saknade steg trots att
 checklistläget är påslaget för organisationen" beskrev en organisationsväxel som inte finns;
-checklistläge är en egenskap per rutin. Detaljerna står i `ETAPPLAN6.md` Etapp 37a.
+checklistläge är en egenskap per rutin. Detaljerna står i `etapplaner/ETAPPLAN6.md` Etapp 37a.
 
 **Verifierat i en riktig webbläsare** (Playwright mot Firestore-/Auth-emulatorerna, inte bara
 vitest): en frisk rutin, en rutin med fyra flaggor, och ett utkast som korrekt hoppas över
@@ -560,7 +560,7 @@ granskad inom en runda när dess redan existerande `granskadDatum` (satt av den 
 existerande "Markera som granskad"-knappen i `RutinKort.jsx`, byggd långt före den här etappen)
 är nyare än rundans starttid. Ren beräkningsfunktion `berakningRundaFramsteg()`
 (`src/utils/granskningsrunda.js`, 5 tester) håller "vad återstår"-listan till bara
-`{id, titel, omrade, granskad}` – **aldrig per person** (krav 14 i `ETAPPLAN6.md`, verifierat
+`{id, titel, omrade, granskad}` – **aldrig per person** (krav 14 i `etapplaner/ETAPPLAN6.md`, verifierat
 med ett eget test).
 
 **Verifierat i en riktig webbläsare** (Playwright mot emulatorerna): en runda med en
@@ -578,7 +578,7 @@ test:storage). Version 5.57.0 → **5.58.0**, ändringslogg uppdaterad.
 ## Uppföljning 2026-08-01 (Etapp 37c): dubblettdetektion byggd, väntar på PILOTUTVÄRDERING
 
 **Etapp 37c byggd, men medvetet INTE markerad ✅ KLAR** – till skillnad från 37a/37b kräver
-denna etapps eget klart-kriterium (se `ETAPPLAN6.md`: "minst hälften av flaggade par ska
+denna etapps eget klart-kriterium (se `etapplaner/ETAPPLAN6.md`: "minst hälften av flaggade par ska
 bedömas rimliga av en redaktör") en människas bedömning mot verkligt innehåll över tid. Det
 kan den här sessionen inte göra åt ägaren. **Nästa steg för en superadmin/redaktör:** öppna
 adminpanelen, titta på "🔍 Möjliga dubbletter (pilot: Kliniskt stöd)"-sektionen mot RIKTIGA
@@ -648,8 +648,8 @@ enligt planens egen ordningsprincip är Etapp 38 (redaktörens vardag) – men b
 
 **Ägarbeslut:** granskningskön i Etapp 38 ägs **per område** – VÖL/sektionsledare för
 Kliniskt stöd, VEC för Administration, samma uppdelning som redigeringsrätten redan följer.
-Utlovad svarstid på ett ändringsförslag: **inom en vecka.** Löser `ETAPPLAN4.md`s tidigare
-obesvarade beslutspunkt 3, uppdaterat i `ETAPPLAN6.md` (Etapp 38-sektionen + beslutspunkt 1).
+Utlovad svarstid på ett ändringsförslag: **inom en vecka.** Löser `etapplaner/ETAPPLAN4.md`s tidigare
+obesvarade beslutspunkt 3, uppdaterat i `etapplaner/ETAPPLAN6.md` (Etapp 38-sektionen + beslutspunkt 1).
 
 **Konsekvens för det kommande bygget:** 38a måste stödja flera samtidiga granskare (en kö
 per område, inte en gemensam), och 38b:s "vad hände med min ändring"-funktion ska nu
@@ -708,7 +708,7 @@ visningen.
 
 9 nya regeltester (rules), 8 nya funktionstester, fullt testsvep grönt, verifierat i en
 riktig webbläsare mot emulatorerna (trendtabell med seedad data, skapa+ta bort en markering).
-Version 5.61.0 → **5.62.0**. Detaljer i `ETAPPLAN6.md`s nya sektion "39a/39b – Effekt över
+Version 5.61.0 → **5.62.0**. Detaljer i `etapplaner/ETAPPLAN6.md`s nya sektion "39a/39b – Effekt över
 tid + Före och efter".
 
 **Kvar i Etapp 39 (vid det tillfället):** 39c (anonym personalpuls) och 39d
@@ -744,7 +744,7 @@ emulatorn hänger utan svar i den här sandboxade miljön (bekräftat att det IN
 regression – samma sak händer för en redan levererad funktion, `skickaFeedback`, anropad på
 samma sätt; sannolik orsak är att emulatorns metadata-serveruppslag blockeras av miljöns
 nätverksproxy). Anropslogikens korrekthet täcks istället av de 9 nya funktionstesterna, som
-anropar funktionerna direkt och kringgår HTTP-lagret. Detaljer i `ETAPPLAN6.md`s sektion
+anropar funktionerna direkt och kringgår HTTP-lagret. Detaljer i `etapplaner/ETAPPLAN6.md`s sektion
 "39c/39d – Personalpuls + Referensunderlag". Version 5.62.0 → **5.63.0**.
 
 **INTE gjort ännu (vid det tillfället):** deploy till produktion. Se nästa sektion – en deploy
@@ -766,16 +766,16 @@ Filerna behövde också serveras över `http://` (en lokal `python3 -m http.serv
 under `file://`.
 
 Efter granskning (skärmdumpar av båda genom flera vyer) sammanställdes en skriftlig
-rekommendation, som användaren godkände som en ny etapplan: **`ETAPPLAN7.md`, Etapp 42 –
+rekommendation, som användaren godkände som en ny etapplan: **`etapplaner/ETAPPLAN7.md`, Etapp 42 –
 Gränssnittsförnyelse.** Premisskontroll (krav 8) vid antagandet visade att INGEN av
 mockupernas centrala påståenden om att vara "lyfta direkt" från befintlig kod stämmer fullt
 ut (se planens egen premisskontroll-tabell) – särskilt att en samlad, domänöverskridande
 godkännandekö INTE finns idag (godkännande sker per sektion i `Sektionssida.jsx`), och att en
 persistent Akut-knapp INTE finns idag (bara på `Hem.jsx`).
 
-**`ETAPPLAN7.md` är nu den aktiva planen** (se `CLAUDE.md`s uppdaterade läsordning/dokumentkarta,
-ändrad i samma veva). `ETAPPLAN6.md` är inte stängd men inte längre aktiv – dess kvarvarande
-punkter (40, 41) väntar inte på ägarbeslut, bara på tur. Inget i `ETAPPLAN7.md` är påbörjat.
+**`etapplaner/ETAPPLAN7.md` är nu den aktiva planen** (se `CLAUDE.md`s uppdaterade läsordning/dokumentkarta,
+ändrad i samma veva). `etapplaner/ETAPPLAN6.md` är inte stängd men inte längre aktiv – dess kvarvarande
+punkter (40, 41) väntar inte på ägarbeslut, bara på tur. Inget i `etapplaner/ETAPPLAN7.md` är påbörjat.
 
 ## Uppföljning 2026-08-02 (Etapp 41): "Innehåll som märks i vardagen" klar, ETAPPLAN6 stängd
 ## förutom Etapp 40
@@ -804,15 +804,15 @@ den här sandboxade miljön (samma klass av begränsning som Cloud Functions-anr
 39c/39d). Bekräftat att det inte är en regression: den REDAN BEFINTLIGA `bildUrl`-
 uppladdningen (oförändrad av denna etapp) uppvisar exakt samma symptom i samma testkörning.
 Regellogiken är istället verifierad direkt via `test:storage` (21/21 gröna). Detaljer i
-`ETAPPLAN6.md`s Etapp 41-sektion. Version 5.63.0 → **5.64.0**.
+`etapplaner/ETAPPLAN6.md`s Etapp 41-sektion. Version 5.63.0 → **5.64.0**.
 
 **INTE gjort ännu (vid det tillfället):** deploy av v5.64.0 till produktion. Se nästa sektion.
 
 ## Uppföljning 2026-08-02 (Etapp 42e/42a/42b/42c): fyra av sex delpunkter i gränssnittsförnyelsen klara
 
-Byggde de tre första delarna av `ETAPPLAN7.md` på begäran ("genomför dem 3 första delarna").
+Byggde de tre första delarna av `etapplaner/ETAPPLAN7.md` på begäran ("genomför dem 3 första delarna").
 Premisskontroll (krav 8) vid byggstart hittade två viktiga korrigeringar av planens egna
-antaganden (fulla detaljer i `ETAPPLAN7.md`s "42e/42a/42b/42c ✅ KLARA"-sektion):
+antaganden (fulla detaljer i `etapplaner/ETAPPLAN7.md`s "42e/42a/42b/42c ✅ KLARA"-sektion):
 
 1. **42a var redan till stor del byggt** – `RutinKort.jsx` visade redan fulltext/ägare/taggar
    innan den här etappen; den enda genuina luckan var att bulk-markeringen (fanns redan för
@@ -867,7 +867,7 @@ i en riktig webbläsare: banderollen räknar rätt och länkar rätt för en sup
 alls för en `personal`-roll. Version 5.65.0 → **5.66.0**.
 
 **Detta stänger Etapp 42 förutom 42f (mobilvy)** – som är villkorad av en OBESVARAD
-beslutspunkt (se `ETAPPLAN7.md` beslutspunkt 2: ska mobilvyn ingå alls, och mockupen täcker
+beslutspunkt (se `etapplaner/ETAPPLAN7.md` beslutspunkt 2: ska mobilvyn ingå alls, och mockupen täcker
 bara tre av flera skärmar). Fråga användaren om den frågan innan du bygger 42f – det är inte
 en premisskontroll-fråga, det är ett faktiskt öppet ägarbeslut.
 
@@ -880,23 +880,23 @@ Etapp 42 klar förutom just den punkten. **Beslut: vänta.** Mobilvyn ska INTE b
 (bara de tre skärmar mockupen redan täcker) – skjuts upp tills Administration/Admin/
 Godkännanden/Nyheter också har en mockup att bygga mot, så 42f blir en komplett
 mobilupplevelse i ett svep istället för en ofullständig. Inget kodat, ingen versionsbump
-(ren dokumentation). `ETAPPLAN7.md` beslutspunkt 2 och Etapp 42:s sammanfattning uppdaterade.
+(ren dokumentation). `etapplaner/ETAPPLAN7.md` beslutspunkt 2 och Etapp 42:s sammanfattning uppdaterade.
 **Nästa steg för 42f, när det blir aktuellt, är INTE att skriva kod** – det är att ta fram
 mockuper för de fyra saknade skärmarna (t.ex. via Claude Design, samma väg som de två
 ursprungliga UI-utkasten kom in denna session).
 
-**Med detta är hela `ETAPPLAN7.md` i praktiken klar** (42f medvetet pausad, inte oavslutad).
+**Med detta är hela `etapplaner/ETAPPLAN7.md` i praktiken klar** (42f medvetet pausad, inte oavslutad).
 Om användaren ber om "nästa steg" utan att specificera: fråga om prioritering mellan
-`ETAPPLAN6.md`s Etapp 40 (villkorad av en ny kund) och `ETAPPLAN5.md`s kvarvarande punkter –
+`etapplaner/ETAPPLAN6.md`s Etapp 40 (villkorad av en ny kund) och `etapplaner/ETAPPLAN5.md`s kvarvarande punkter –
 det finns inget mer ogjort och obeslutat i den aktiva UI-planen just nu.
 
 ## Om du är en ny Claude-session som läser detta
 
 Fråga användaren vad nästa steg ska vara – det finns inget akut, oavslutat arbete.
-`ETAPPLAN7.md` (Etapp 42, gränssnittsförnyelse) är i praktiken klar: 42e/42a/42b/42c/42d
+`etapplaner/ETAPPLAN7.md` (Etapp 42, gränssnittsförnyelse) är i praktiken klar: 42e/42a/42b/42c/42d
 byggda, 42f medvetet pausad på ägarens beslut (vänta på mockuper för de sidor som saknar en –
 se ovan). Bygg INTE 42f utan att först fråga om det förändrade läget (nya mockuper klara?).
-`ETAPPLAN6.md` har bara Etapp 40 kvar (villkorad av en konkret ny kund) och `ETAPPLAN5.md`s
+`etapplaner/ETAPPLAN6.md` har bara Etapp 40 kvar (villkorad av en konkret ny kund) och `etapplaner/ETAPPLAN5.md`s
 kvarvarande punkter kan tas närhelst de passar/blockeringen lossnar. Läs `CLAUDE.md` först om
 du är osäker på vilken fil som är auktoritativ för vad – och notera dess underhållsregel för
 DEN HÄR filen innan du avslutar sessionen. Om du ska verifiera en Cloud Function ELLER en
@@ -914,7 +914,7 @@ Användaren tog fram fyra nya mockuper (Claude Design) för de tidigare saknade 
 (Administration, Godkännanden, Admin, Nyheter) plus en lösning på 9-postersproblemet i
 `BottomNav.jsx`. Granskade dem (samma `page.route()`-recept mot lokalt cachade npm-paket som
 tidigare i veckan) och gav skriftlig feedback – alla fyra skärmar och "Mer"-menyn höll måttet.
-Byggde sedan 42f. Se `ETAPPLAN7.md`s egen "42f ✅ KLAR"-sektion för hela premisskontrollen och
+Byggde sedan 42f. Se `etapplaner/ETAPPLAN7.md`s egen "42f ✅ KLAR"-sektion för hela premisskontrollen och
 motiveringen – kort sammanfattat här:
 
 - **Mockupens ramberättelse ("nedre flikbar ersätter sidopanel på smala skärmar") stämde
@@ -934,7 +934,7 @@ motiveringen – kort sammanfattat här:
   genom att rendera den som syskon (React-fragment) istället.
 - **Medvetet INTE byggt:** mockupens tätare/omdesignade kortlayouter för Administration/Admin/
   Nyheter-sidorna själva (t.ex. Admin-panelens accordion-lösning på dess densitet). Det är en
-  större, fristående insats utanför vad `ETAPPLAN7.md`s egen skrivna 42f-definition (nav +
+  större, fristående insats utanför vad `etapplaner/ETAPPLAN7.md`s egen skrivna 42f-definition (nav +
   Akut-knapp) bad om – spara till en egen etapp om den ska tas.
 
 Nya filer: `src/components/MerMeny.jsx`, `src/components/MerMeny.css`. Ändrade:
@@ -945,10 +945,10 @@ emulatorerna vid 375×812. Version 5.66.0 → 5.67.0, committat och pushat till
 `claude/compassionate-euler-rho0q5`. **DEPLOYAT TILL PRODUKTION 2026-08-03** (körning #65,
 commit `0552d59`, `deploy.yml` via `workflow_dispatch`, `conclusion: success`).
 
-`ETAPPLAN7.md` (Etapp 42) är därmed HELT KLAR, alla delpunkter 42a–42f. Nästa steg utan
-vidare instruktion: `ETAPPLAN6.md`s Etapp 40 (villkorad av en konkret ny kund) eller
-`ETAPPLAN5.md`s kvarvarande punkter (blockerade av ägarbeslut/extern tid) – båda väntar bara
-på att komma i tur, inte på kapacitet. En ny `ETAPPLAN8.md` behöver skrivas när/om det finns
+`etapplaner/ETAPPLAN7.md` (Etapp 42) är därmed HELT KLAR, alla delpunkter 42a–42f. Nästa steg utan
+vidare instruktion: `etapplaner/ETAPPLAN6.md`s Etapp 40 (villkorad av en konkret ny kund) eller
+`etapplaner/ETAPPLAN5.md`s kvarvarande punkter (blockerade av ägarbeslut/extern tid) – båda väntar bara
+på att komma i tur, inte på kapacitet. En ny `etapplaner/ETAPPLAN8.md` behöver skrivas när/om det finns
 ett nytt större arbetsområde att ta itu med (t.ex. Admin-panelens mobildensitet, om det
 prioriteras).
 
@@ -962,7 +962,7 @@ alla möter). Dessutom tre uppskjutna punkter från Etapp 42: Hem:s snabblänksr
 tät på 375px under 42f:s test), Admin-panelens mobildensitet (mockupens accordion-lösning,
 medvetet inte byggd i 42f), och mörkt läge (beslutspunkt 3, aldrig löst).
 
-Användaren bad om en plan för detta, tillagd i SAMMA fil (`ETAPPLAN7.md`) som en ny
+Användaren bad om en plan för detta, tillagd i SAMMA fil (`etapplaner/ETAPPLAN7.md`) som en ny
 "Etapp 43 – Slutföra gränssnittsförnyelsen"-sektion, snarare än en ny `ETAPPLANx.md` – ett
 uttryckligt undantag från den vanliga "ny fil per avslutad plan"-principen i `CLAUDE.md`,
 eftersom ETAPPLAN7 fortfarande var den aktiva/pågående filen när begäran kom.
@@ -976,7 +976,7 @@ prioriteras tidigt eftersom den redan har en bekräftad brist (skärmdump från 
 
 **Inget kodat ännu** – detta var enbart planering. `CLAUDE.md`s dokumentkarta uppdaterad
 (ETAPPLAN7.md beskrivs nu som "42 klar + 43 ny", inte längre "HELT KLAR"). Dokumentändringarna
-(`ETAPPLAN7.md`/`CLAUDE.md`/den här filen) committade och pushade till
+(`etapplaner/ETAPPLAN7.md`/`CLAUDE.md`/den här filen) committade och pushade till
 `claude/compassionate-euler-rho0q5` (commit `dadf0f6`), trots att inget kodarbete skedde –
 planeringen i sig är den beständiga ändringen. Nästa steg: invänta ägarbeslut på Etapp 43:s
 tre beslutspunkter innan bygge påbörjas.
@@ -1009,7 +1009,7 @@ Version 5.67.0 → 5.68.0, committat och pushat till `claude/compassionate-euler
 **Inte deployat** – ingen deploy begärd den här gången.
 
 Nästa steg utan vidare instruktion: 43b (Hem:s snabblänksrad, låg insats) enligt den
-beslutade byggordningen i `ETAPPLAN7.md`.
+beslutade byggordningen i `etapplaner/ETAPPLAN7.md`.
 
 ## Uppföljning 2026-08-03 (Etapp 43b klar)
 
@@ -1061,7 +1061,7 @@ av appen – samma mönster som redan bekräftades för de sju sidorna i Etapp 4
 brist hittades den här gången** (till skillnad från Korvy-fixen i "Kritiska specialfall") –
 en ärlig premisskontroll-utgång är ibland "redan i sin ordning". Ingen kodändring, ingen
 version-bump (inget som visas för användaren ändrades), bara dokumentation av att sidorna är
-granskade i `ETAPPLAN7.md`.
+granskade i `etapplaner/ETAPPLAN7.md`.
 
 Nästa steg enligt byggordningen: 43c (Admin-panelens mobildensitet, accordion-lösning) –
 den mest omfattande enskilda delpunkten i Etapp 43, kräver en egen premisskontroll av
@@ -1101,7 +1101,7 @@ en egen premisskontroll av vilka komponenter som saknar en fungerande mörk vari
 
 ## Uppföljning 2026-08-03 (Etapp 43d: mörkt läge redan klart)
 
-Premisskontroll vid byggstart visade att `ETAPPLAN7.md`s antagande var fel: mörkt läge
+Premisskontroll vid byggstart visade att `etapplaner/ETAPPLAN7.md`s antagande var fel: mörkt läge
 antogs behöva byggas (data-tema-attribut, växlare i `Profil.jsx`), men **funktionen finns
 redan, komplett**: `src/hooks/useTema.js` + `src/components/TemaVaxlare.jsx` (redan monterad
 i `Profil.jsx`) – ljust/mörkt/system, `localStorage`-persistens, FOUC-säkert
@@ -1140,15 +1140,15 @@ Granskade de tre sista 43e-grupperna i en riktig webbläsare (1280px/375px):
 Inga nya vitest-tester. Inga rules-ändringar. Fullt testsvep grönt. Version 5.71.0 → 5.72.0,
 committat och pushat. **Inte deployat.**
 
-**`ETAPPLAN7.md` (Etapp 42 + Etapp 43) är därmed HELT KLAR.** Två genuina buggar hittades och
+**`etapplaner/ETAPPLAN7.md` (Etapp 42 + Etapp 43) är därmed HELT KLAR.** Två genuina buggar hittades och
 fixades under Etapp 43:s byggpass (Korvy-knappens flex-läckage i "Kritiska specialfall",
 Leverantörsvyns null-krasch här) – ingen av dem var kända innan premisskontrollen/testningen.
 
 **DEPLOYAD TILL PRODUKTION 2026-08-03** (körning #66, commit `3efb193`, `deploy.yml` via
 `workflow_dispatch`, `conclusion: success`) – v5.67.0 → v5.72.0 i ett enda hopp, alltså både
-Etapp 42 och Etapp 43 samtidigt. Hela gränssnittsförnyelsen (`ETAPPLAN7.md`) är nu live.
+Etapp 42 och Etapp 43 samtidigt. Hela gränssnittsförnyelsen (`etapplaner/ETAPPLAN7.md`) är nu live.
 
-Nästa steg utan vidare instruktion: `ETAPPLAN6.md`s Etapp 40 eller `ETAPPLAN5.md`s
+Nästa steg utan vidare instruktion: `etapplaner/ETAPPLAN6.md`s Etapp 40 eller `etapplaner/ETAPPLAN5.md`s
 kvarvarande punkter, båda blockerade av ägarbeslut/extern tid snarare än kapacitet. Ingen ny
 UI-plan väntar just nu – nästa `ETAPPLANx.md` skrivs när/om ett nytt större arbetsområde
 identifieras.
@@ -1157,13 +1157,13 @@ identifieras.
 
 Användaren bad om en genomgång av hela produkten (vad som är byggt, vilka funktioner som
 finns) och en avvägning av kandidater för nästa etapplan. Svar: alla tre huvudpaket +
-källbevakning är fullt byggda och i drift (se `MODULPLAN.md`), och UI:t precis totalförnyat
-(`ETAPPLAN7.md`). Tre kandidater till nästa steg togs fram: **(A) mobilappskänsla/
+källbevakning är fullt byggda och i drift (se `produkt/MODULPLAN.md`), och UI:t precis totalförnyat
+(`etapplaner/ETAPPLAN7.md`). Tre kandidater till nästa steg togs fram: **(A) mobilappskänsla/
 installationsbarhet**, **(B) sök- och kunskapsupptäckt 2.0**, **(C) incidentberedskap i
 produkten**. Rekommendation gavs (A eller C, lägst beslutsspärr) – **ägaren beslutade A som
 Etapp 44, med B och C uttryckligen köade som kommande etapper, inte förkastade.**
 
-**Ny fil `ETAPPLAN8.md` skriven och antagen.** Premisskontroll (krav 8) vid antagandet
+**Ny fil `etapplaner/ETAPPLAN8.md` skriven och antagen.** Premisskontroll (krav 8) vid antagandet
 hittade att en av de ursprungliga idéerna redan var löst i kod: bakgrundssynk av
 offline-gjorda kvitteringar/bristanmälningar finns redan (`useOfflineKo.js`, Etapp 29c) –
 den punkten utgår helt ur Etapp 44. De genuina luckorna som blev kvar: ingen egen
@@ -1173,10 +1173,10 @@ ett obekräftat uppdateringsbeteende vid deploy (ingen kod hanterar `controllerc
 okänt om `registerType: 'autoUpdate'` ger en tyst, oanmäld omladdning mitt i en session),
 och saknad touch-polish (pull-to-refresh, textmarkerings-callout på knappar). Detaljerad
 plan, inklusive vilka delar som kräver ytterligare verifiering INNAN kod skrivs (44b/44c),
-finns i `ETAPPLAN8.md`s egen Etapp 44-sektion.
+finns i `etapplaner/ETAPPLAN8.md`s egen Etapp 44-sektion.
 
 **Inget kodat** – ren planering, ingen version-bump. `CLAUDE.md`s läsordning och dokumentkarta
-uppdaterade (`ETAPPLAN8.md` är nu steg 2 i läsordningen, `ETAPPLAN7.md` nedgraderad till
+uppdaterade (`etapplaner/ETAPPLAN8.md` är nu steg 2 i läsordningen, `etapplaner/ETAPPLAN7.md` nedgraderad till
 historisk). Nästa steg: börja Etapp 44 (44a–44d i den ordning planen anger), med extra
 uppmärksamhet på att 44b och 44c uttryckligen kräver verifiering mot ett riktigt beteende
 (en iOS-enhet respektive en riktig deploy under en öppen flik) innan kod skrivs.
@@ -1218,8 +1218,8 @@ uppdaterad. Committat och pushat till `claude/compassionate-euler-rho0q5`.
 `workflow_dispatch`, `conclusion: success`) – ny asset-hash `index-DLJ3EL3S.js` bekräftad via
 `curl` mot produktions-URL:en.
 
-`ETAPPLAN8.md` Etapp 44 är därmed helt klar och LIVE. Nästa steg: Etapp B (sök- och
-kunskapsupptäckt 2.0) enligt den beslutade ordningen i `ETAPPLAN8.md`, om inget annat
+`etapplaner/ETAPPLAN8.md` Etapp 44 är därmed helt klar och LIVE. Nästa steg: Etapp B (sök- och
+kunskapsupptäckt 2.0) enligt den beslutade ordningen i `etapplaner/ETAPPLAN8.md`, om inget annat
 prioriteras.
 
 ## Uppföljning 2026-08-04 (Etapp 45 antagen): extern granskning strukturerad till en plan
@@ -1227,18 +1227,18 @@ prioriteras.
 Användaren delade en extern, skriftlig dokumentationsgranskning (inte kodgranskning) och bad
 om synpunkter, sedan om att strukturera granskningen + synpunkterna till en genomförbar plan.
 
-**Tre av granskningens sakpåståenden verifierades innan de togs för goda:** `PITCH.md`
+**Tre av granskningens sakpåståenden verifierades innan de togs för goda:** `saljmaterial/PITCH.md`
 bekräftat stå kvar på "Version 5.25.0" (48 releaser efter v5.73.0, värre än granskningens
-egen siffra eftersom den gjordes mot v5.72.0). `TILLGANGLIGHETSREDOGORELSE.md`s
-`[FYLL I: datum]` bekräftad, rad 102. `INCIDENT-CHECKLISTA.md`s kontakttabell bekräftad
+egen siffra eftersom den gjordes mot v5.72.0). `granskningar/TILLGANGLIGHETSREDOGORELSE.md`s
+`[FYLL I: datum]` bekräftad, rad 102. `drift/INCIDENT-CHECKLISTA.md`s kontakttabell bekräftad
 till stor del tom, men "2 av 5 ifyllda" snarare än granskningens "en femtedel" – en mindre
 justering, slutsatsen höll ändå.
 
-**Ny plan `ETAPPLAN9.md` (Etapp 45 – "Kvalitetsmaskineriet riktas utåt") skriven och antagen.**
+**Ny plan `etapplaner/ETAPPLAN9.md` (Etapp 45 – "Kvalitetsmaskineriet riktas utåt") skriven och antagen.**
 Tesen: samma premisskontroll-/händelsestyrda-underhålls-disciplin som redan skyddar
-`version.js`/`FRAMTIDSPLAN.md`/`CLAUDE_STATUS.md` internt saknas för de dokument och den
+`version.js`/`produkt/FRAMTIDSPLAN.md`/`CLAUDE_STATUS.md` internt saknas för de dokument och den
 produktkvalitet en KUND eller MYNDIGHET faktiskt möter. Fem delmål:
-- **45a:** `PITCH.md` – ett versionsdriftstest (struktur) + en innehållsuppdatering till
+- **45a:** `saljmaterial/PITCH.md` – ett versionsdriftstest (struktur) + en innehållsuppdatering till
   Etapp 22–43 (engångsinsats). Inte byggt ännu.
 - **45b:** en ny rökprovssvit (alla ~27 routes × sex roller, kollar rendering/ErrorBoundary/
   konsolfel) – motiverad med att samma enkla mekanism hade fångat tre av projektets mest
@@ -1251,7 +1251,7 @@ produktkvalitet en KUND eller MYNDIGHET faktiskt möter. Fem delmål:
 - **45e/45f:** ändringsloggens ton vid rena UI-releaser (konvention, framåtriktad) respektive
   en `BESLUTSLOGG.md` (lägre prioritet, byggs om tid finns). Inte gjorda ännu.
 
-**Tre beslut togs och skrevs in direkt i `ETAPPLAN9.md`:** (1) `ETAPPLAN8.md`s köade Etapp
+**Tre beslut togs och skrevs in direkt i `etapplaner/ETAPPLAN9.md`:** (1) `etapplaner/ETAPPLAN8.md`s köade Etapp
 B/C byter plats OCH sköts bakom Etapp 45 – heter nu 46 (incidentberedskap, tidigare C) och 47
 (sök/kunskapsupptäckt, tidigare B), med motivering (72-timmarsfristen i
 `avtal/PUB-AVTAL-MALL.md` p. 8). (2) Deploy-per-avslutad-etapp bekräftad som redan avsedd
@@ -1259,7 +1259,7 @@ norm, ingen ändring. (3) `BESLUTSLOGG.md` (45f) byggs framåtriktat, ingen retr
 genomgång av `CLAUDE_STATUS.md`s historik.
 
 **Dokument uppdaterade i samma commit:** `CLAUDE.md` (läsordning nu 8 punkter, dokumentkarta,
-ny obligatorisk underhållsregel för `OPPNA-PUNKTER.md`), `ETAPPLAN8.md` (Etapp B/C → 46/47,
+ny obligatorisk underhållsregel för `OPPNA-PUNKTER.md`), `etapplaner/ETAPPLAN8.md` (Etapp B/C → 46/47,
 kön flyttad bakom Etapp 45). Version oförändrad (5.73.0) – inget kodarbete, förutom
 `OPPNA-PUNKTER.md` som är ren dokumentation.
 
@@ -1268,15 +1268,15 @@ annat prioriteras.
 
 ## Uppföljning 2026-08-04 (Etapp 45a klar): PITCH.md kan inte längre glida obemärkt
 
-Byggde 45a direkt efter att `ETAPPLAN9.md` antogs ("börja med delmål 45a").
+Byggde 45a direkt efter att `etapplaner/ETAPPLAN9.md` antogs ("börja med delmål 45a").
 
-**45a-i:** ny `tests/docs/pitch-version.test.js` – jämför `PITCH.md`s versionsrubrik mot
+**45a-i:** ny `tests/docs/pitch-version.test.js` – jämför `saljmaterial/PITCH.md`s versionsrubrik mot
 `package.json`, failar om major skiljer sig eller minor ligger mer än 15 bakom. **Verifierat
 mot det verkliga felet innan fixen:** kört mot ursprungsläget gav rött med "48
 minorversioner efter, gränsen är 15" – bekräftar att testet faktiskt fångar problemet, inte
 bara en attrapp som alltid är grön.
 
-**45a-ii:** `PITCH.md` omskriven till att täcka Etapp 22–43 – samlad godkännandekö,
+**45a-ii:** `saljmaterial/PITCH.md` omskriven till att täcka Etapp 22–43 – samlad godkännandekö,
 effektmätning över tid, en ny sektion om innehållshälsa/granskningsrundor/dubblettdetektion/
 "Ni sa vi gjorde"/arkiverad status, revisionsloggens hashkedja (aldrig omnämnd tidigare, en
 lucka utöver de granskningen själv hittade), gränssnittsförnyelsen och installationsbarheten.
@@ -1289,7 +1289,7 @@ bumpa för ändringar utan motsvarande app-synlig/deploybar yta (jfr Etapp 14b/1
 Fullt testsvep grönt (lint, build, vitest 124/124). Committat och pushat.
 
 **Kvar i Etapp 45:** 45b (rökprovssvit), 45c (tillgänglighetsgranskning), 45e (ändringsloggens
-ton), 45f (beslutslogg) – i den ordningen enligt `ETAPPLAN9.md`.
+ton), 45f (beslutslogg) – i den ordningen enligt `etapplaner/ETAPPLAN9.md`.
 
 ## Uppföljning 2026-08-04 (Etapp 45b klar): rökprovssvit, alla sex roller × 25 routes
 
@@ -1343,7 +1343,7 @@ plus en ny delad `tests/e2e/rutter.mjs` så rökprovssviten och tillgänglighets
 driva isär om en route ändras. Noll överträdelser efter fixarna, bekräftat i en riktig
 körning (11/11 gröna totalt i `test:e2e`).
 
-`TILLGANGLIGHETSREDOGORELSE.md` omskriven: nya rader #12–#17, en ärlig ny sektion om vad som
+`granskningar/TILLGANGLIGHETSREDOGORELSE.md` omskriven: nya rader #12–#17, en ärlig ny sektion om vad som
 FORTFARANDE inte är testat (riktig skärmläsare – oförändrat sedan innan; interaktionsutlöst
 UI som modaler bara skannas i statiskt läge, inte öppna – ny nyans). Skärmläsartestning
 tillagd i `OPPNA-PUNKTER.md`.
@@ -1368,9 +1368,9 @@ En rad i `OPPNA-PUNKTER.md` som blir ett beslut flyttas hit och tas bort därifr
 Ingen versionsbump (ren dokumentation). Fullt testsvep grönt (lint, vitest 124/124).
 Committat och pushat.
 
-**Med detta är HELA `ETAPPLAN9.md` (Etapp 45, alla sex delmål 45a–45f) klar.** Nästa steg
-enligt den beslutade ordningen (Beslut 1 i `ETAPPLAN9.md`): Etapp 46 (incidentberedskap i
-produkten), i `ETAPPLAN8.md`.
+**Med detta är HELA `etapplaner/ETAPPLAN9.md` (Etapp 45, alla sex delmål 45a–45f) klar.** Nästa steg
+enligt den beslutade ordningen (Beslut 1 i `etapplaner/ETAPPLAN9.md`): Etapp 46 (incidentberedskap i
+produkten), i `etapplaner/ETAPPLAN8.md`.
 
 ## Uppföljning 2026-08-04 (Etapp 46 klar): incidentberedskap i produkten
 
@@ -1395,8 +1395,8 @@ misslyckat backupstatus-anrop visade Firebase-klientens råa felkod ("internal")
 en läsbar text – fixat till en egen, tydlig felrad.
 
 Dokumentation uppdaterad i samma commit (obligatorisk regel för incidentdokumenten):
-`INCIDENT-CHECKLISTA.md` (ny rad i "Var saker finns", uppdaterad hashkedjerad, nytt
-kodläge/datum), `SAKERHETSRAPPORT.md` (nytt tillägg-block).
+`drift/INCIDENT-CHECKLISTA.md` (ny rad i "Var saker finns", uppdaterad hashkedjerad, nytt
+kodläge/datum), `granskningar/SAKERHETSRAPPORT.md` (nytt tillägg-block).
 
 6 nya regeltester, 4 nya functions-tester, 1 nytt assert i en befintlig testfil. Fullt
 testsvep grönt (lint, build, vitest 124/124, test:rules, test:functions, test:storage
@@ -1434,7 +1434,7 @@ inloggad session gör.
 Inga nya vitest-tester, inga rules-/functions-/storage-ändringar. Fullt testsvep grönt (lint,
 build, vitest 124/124). Version 5.75.0 → **5.76.0**. Committat och pushat.
 
-**Med detta är `ETAPPLAN8.md` (Etapp 44, 46, 47) OCH `ETAPPLAN9.md` (Etapp 45) alla helt
+**Med detta är `etapplaner/ETAPPLAN8.md` (Etapp 44, 46, 47) OCH `etapplaner/ETAPPLAN9.md` (Etapp 45) alla helt
 klara.** Tre releaser (5.74–5.76) väntar på deploy. Ingen ny UI-/kvalitetsplan väntar – nästa
 `ETAPPLANx.md` skrivs när/om ett nytt större arbetsområde identifieras.
 
@@ -1445,7 +1445,7 @@ Användaren bad "deploya den". Triggade `deploy.yml` via `workflow_dispatch` på
 #68: `status: completed`, `conclusion: success`. Detta var ett trehopp – v5.74.0 (Etapp 45),
 v5.75.0 (Etapp 46) och v5.76.0 (Etapp 47) gick alla live samtidigt eftersom ingen av dem
 deployats individuellt sedan v5.73.0 (körning #67). Bekräftade ny asset-hash i produktion
-(`assets/index-BtpA3PtP.js`) via `curl`. Uppdaterade `CLAUDE.md`s `ETAPPLAN8.md`-rad i
+(`assets/index-BtpA3PtP.js`) via `curl`. Uppdaterade `CLAUDE.md`s `etapplaner/ETAPPLAN8.md`-rad i
 dokumentkartan (tog bort "inte deployade ännu").
 
 Inget nytt kodat i den här sessionen – rent avstämnings-/dokumentationsarbete kring en redan
@@ -1463,15 +1463,15 @@ collections, saknar de 7 utkastet pekade ut; `pausaOrganisation` gör bara en st
 backup-gallringen (90 dagar) och `hamtaBackupstatus` finns redan; `arPlattformsadmin()`-
 gränsen stämmer.
 
-**Tre skärpningar innan antagande** (detaljer i `ETAPPLAN10.md`s egen "Ändringar mot
+**Tre skärpningar innan antagande** (detaljer i `etapplaner/ETAPPLAN10.md`s egen "Ändringar mot
 utkastet"): (1) 48a är en nybyggnad av mätpunkt, inte en avsmalning – AI-budgetlarmet är ett
 Sentry-larm, inte en UI-yta, och sökkvoten har ingen mätpunkt alls i dag; (2) 48c och 50a/50b
 fick egna "verifiera först"-flaggor (molnkostnadsdata resp. tidsbegränsade Firestore-regler är
 osäkra/nya); (3) 49a (radering) avkopplades explicit från 49b–49d, som ska köras oavsett vad
 ägaren beslutar om 49a.
 
-Skrev `ETAPPLAN10.md`, uppdaterade `CLAUDE.md`s läsordning och dokumentkarta (ny rad, flyttade
-`ETAPPLAN9.md` till "helt klar och deployad"). Inget delmål byggt än – väntar på att användaren
+Skrev `etapplaner/ETAPPLAN10.md`, uppdaterade `CLAUDE.md`s läsordning och dokumentkarta (ny rad, flyttade
+`etapplaner/ETAPPLAN9.md` till "helt klar och deployad"). Inget delmål byggt än – väntar på att användaren
 säger vilket delmål som ska påbörjas.
 
 ## Uppföljning 2026-08-06 (Etapp 48a–48b klara): delad sökkvot mätt och synlig
@@ -1498,7 +1498,7 @@ Leverantörsvyn (`Leverantor.jsx`) fick en ny sektion + en rad per organisation.
 test:rules, test:functions. Version 5.76.0 → **5.77.0**. Committat och pushat.
 
 48c (verifiera molnkostnadsdata, sedan täckningsbidrag) och 48d (rimlighetstak per
-organisation) kvarstår i `ETAPPLAN10.md`.
+organisation) kvarstår i `etapplaner/ETAPPLAN10.md`.
 
 ## Uppföljning 2026-08-06 (deploy): v5.77.0 live i produktion
 
@@ -1514,13 +1514,13 @@ Byggde 48c direkt efter deploy, på användarens "gå vidare med 48c".
 **Premisskontroll bekräftade delmålets egen "verifiera först"-varning helt och hållet:**
 faktisk molnkostnad per organisation kräver att GCP:s faktureringsexport till BigQuery
 aktiveras – ett projektval bara ägaren kan göra i GCP-konsolen, inte en kodfråga. Det här är
-INTE en ny slutsats: `ETAPPLAN5.md`, `SAKERHETSRAPPORT.md` och `INCIDENT-CHECKLISTA.md` har
+INTE en ny slutsats: `etapplaner/ETAPPLAN5.md`, `granskningar/SAKERHETSRAPPORT.md` och `drift/INCIDENT-CHECKLISTA.md` har
 redan dragit exakt samma slutsats för Etapp 32b:s inloggningslarm. Uppdaterade
 `OPPNA-PUNKTER.md` så samma rad nu nämner båda – ett enda ägarbeslut låser upp båda.
 
 **En andra lucka hittades vid samma kontroll, inte tidigare känd:** det finns inget lagrat
 kronbelopp för vad en organisation faktiskt betalar någonstans i datamodellen –
-`MODULPLAN.md`s prismodell är bara text i ett dokument. Ett täckningsbidrag går alltså inte
+`produkt/MODULPLAN.md`s prismodell är bara text i ett dokument. Ett täckningsbidrag går alltså inte
 att räkna ut ens grovt idag, oavsett faktureringsexporten.
 
 **Byggde det enda förberedande steget som faktiskt var byggbart:** ny callable
@@ -1529,7 +1529,7 @@ den redan kända AI-kostnaden – med en tydlig text om att det INTE är ett ful
 täckningsbidrag. 5 nya functions-tester i `tests/functions/etapp6.test.cjs`. Fullt testsvep
 grönt. Version 5.77.0 → **5.78.0**. Committat och pushat, INTE deployat ännu.
 
-48d (rimlighetstak per organisation) kvarstår i `ETAPPLAN10.md` – det enda obyggda i Etapp 48.
+48d (rimlighetstak per organisation) kvarstår i `etapplaner/ETAPPLAN10.md` – det enda obyggda i Etapp 48.
 
 ## Uppföljning 2026-08-06 (Etapp 48 helt klar)
 
@@ -1548,7 +1548,7 @@ lint, build, vitest 124/124, test:functions. Version 5.78.0 → **5.79.0**. Comm
 pushat, INTE deployat ännu.
 
 **Med detta är Etapp 48 (48a–48d) helt klar.** Två releaser (5.78–5.79) väntar på deploy.
-Nästa punkt i `ETAPPLAN10.md` är Etapp 49 (livscykeln stängd – automatiserad radering vid
+Nästa punkt i `etapplaner/ETAPPLAN10.md` är Etapp 49 (livscykeln stängd – automatiserad radering vid
 avetablering, en faktisk återställningsövning, exportens fullständighet).
 
 ## Uppföljning 2026-08-06 (meta): ny skill för releasechecklistan
@@ -1592,7 +1592,7 @@ att kontrollera om det är dags för en ny återställningsövning.
 Fullt testsvep grönt: lint, build, vitest (124/124), test:functions. Version 5.79.0 →
 **5.80.0**. Committat och pushat, INTE deployat ännu (tre releaser väntar: 5.78–5.80).
 
-Nästa punkt i `ETAPPLAN10.md`, om användaren ber om fortsatt arbete, är Etapp 50
+Nästa punkt i `etapplaner/ETAPPLAN10.md`, om användaren ber om fortsatt arbete, är Etapp 50
 (supportbarhet utan innehållsåtkomst).
 
 ## Uppföljning 2026-08-08 (deploy): v5.80.0 live i produktion
@@ -1628,7 +1628,7 @@ skriva organisationens namn + en `confirm()`-dialog) och `/leverantor` (avbryt-k
 14 nya functions-tester hittade två RIKTIGA buggar (inte i testerna): `FieldValue.delete()`
 i ett icke-merge `set()` (Firestore avvisar det), och ett testantagande om användarantal som
 var fel (den var en testbugg). `avtal/PUB-AVTAL-MALL.md` p. 6,
-`avtal/INCIDENTRESPONSPLAN.md` (v1.1 → v1.2) och `INCIDENT-CHECKLISTA.md` uppdaterade i samma
+`avtal/INCIDENTRESPONSPLAN.md` (v1.1 → v1.2) och `drift/INCIDENT-CHECKLISTA.md` uppdaterade i samma
 commit. Version 5.80.0 → **5.81.0**. Committat och pushat, INTE deployat ännu.
 
 **49b – jag kan INTE genomföra alternativ A själv.** Den här sessionsmiljön har ingen
@@ -1647,7 +1647,7 @@ projektåtkomst) kör en kort runbook själv:
 5. Städa bort testorganisationen (`organisationer/<org-id>` + dess dokument) manuellt i
    Firestore-konsolen.
 6. Ge mig siffran från steg 4, så skriver jag in den i `avtal/IT-FAKTABLAD.md` p. 6 och
-   markerar 49b klar i `ETAPPLAN10.md`/`OPPNA-PUNKTER.md`.
+   markerar 49b klar i `etapplaner/ETAPPLAN10.md`/`OPPNA-PUNKTER.md`.
 
 Endast v5.81.0 väntar på deploy – v5.78.0/5.79.0/5.80.0 gick redan live i körning #70.
 
@@ -1696,7 +1696,7 @@ Användaren bad om nästa steg för Etapp 50 ("supportbarhet utan innehållsåtk
 **Premisskontroll gjord innan bygget:** kontrollerade var Etapp 32a:s
 `permission-denied`-rapportering faktiskt syns idag – bekräftat: bara i Sentry (klientsidan),
 ingen serverbar väg att fråga Sentrys händelsedatabas utan ett separat API-token. Samma
-blockering som redan var dokumenterad i `ETAPPLAN5.md` §32b. Beslöt att bygga resten av 50a
+blockering som redan var dokumenterad i `etapplaner/ETAPPLAN5.md` §32b. Beslöt att bygga resten av 50a
 nu och flagga felfrekvens som `felfrekvensTillganglig: false` i svaret istället för att låtsas
 den finns eller vänta på ägaren för hela etappen.
 
@@ -1708,7 +1708,7 @@ Loggar sig själv in i organisationens EGEN revisionslogg (`organisation_diagnos
 Ny expanderbar "Diagnostik"-sektion per organisationsrad i `/leverantor`
 (`src/pages/Leverantor.jsx`). 11 nya functions-tester
 (`tests/functions/diagnostik.test.cjs`), inklusive ett test som bevisar att inget
-dokumentinnehåll läcker i svaret. `ETAPPLAN10.md` uppdaterad (§50a markerad ✅ KLAR med full
+dokumentinnehåll läcker i svaret. `etapplaner/ETAPPLAN10.md` uppdaterad (§50a markerad ✅ KLAR med full
 "Genomfört"-sektion).
 
 **Testat:** fullt testsvep (lint, build, vitest, rules, functions, storage, e2e) – alla gröna,
@@ -1716,7 +1716,7 @@ inga regressioner. Version bumpad 5.81.0 → **5.82.0**, ny post i `src/data/and
 Pushad till `claude/compassionate-euler-rho0q5`, INTE ännu deployad.
 
 **Kvar i Etapp 50:** 50b (tidsbegränsad supportåtkomst) har en olöst beslutspunkt – ska den
-byggas alls? (se `ETAPPLAN10.md` "Beslutspunkter som kräver ägaren" punkt 3). 50c
+byggas alls? (se `etapplaner/ETAPPLAN10.md` "Beslutspunkter som kräver ägaren" punkt 3). 50c
 (ärendehistorik) är obyggd, inget känt hinder.
 
 ## Uppföljning 2026-08-09 (Etapp 50b klar)
@@ -1725,7 +1725,7 @@ Användaren fick alternativen för 50b och svarade: "Genomför alternativ A, men
 tidsfönstret till 6h" – ägarbeslutet är alltså att bygga tillfällig, kundinitierad
 supportåtkomst, med fönstret satt till 6 timmar istället för utkastets föreslagna 4h.
 
-**Genomfört, i den ordning `ETAPPLAN10.md` ursprungligen krävde ("isolera regelmönstret
+**Genomfört, i den ordning `etapplaner/ETAPPLAN10.md` ursprungligen krävde ("isolera regelmönstret
 innan UI"):**
 1. `farSupportlasa(orgId)`/`supportAtkomstAktiv(orgId)` i `firestore.rules` – den ENDA platsen
    i hela regelfilen där en plattformsadmin (leverantören) får läsa en organisations INNEHÅLL,
@@ -1744,12 +1744,12 @@ innan UI"):**
 
 **Dokumentation uppdaterad i samma commit** (per CLAUDE.md:s obligatoriska underhållsregler,
 eftersom detta ändrar behörighetsmodellen och lägger till en ny begränsningsåtgärd):
-`INCIDENT-CHECKLISTA.md` (ny rad i "Var saker finns" + Steg 3:s containment-tabell + en
+`drift/INCIDENT-CHECKLISTA.md` (ny rad i "Var saker finns" + Steg 3:s containment-tabell + en
 caveat i Steg 4 om att enskilda läsningar under fönstret inte loggas, bara att fönstret var
 öppet), `avtal/INCIDENTRESPONSPLAN.md` (version 1.2 → 1.3, avsnitt 5.2), `avtal/IT-FAKTABLAD.md`
 §5 (ny rad: "vem hos leverantören kan se era uppgifter?"), `avtal/PUB-AVTAL-MALL.md` §7, och
-ett nytt `SAKERHETSRAPPORT.md`-tillägg (2026-08-09) med en ärlig läckageriskbedömning.
-`BESLUTSLOGG.md` fick en ny rad, `ETAPPLAN10.md` §50b markerad ✅ KLAR med full
+ett nytt `granskningar/SAKERHETSRAPPORT.md`-tillägg (2026-08-09) med en ärlig läckageriskbedömning.
+`BESLUTSLOGG.md` fick en ny rad, `etapplaner/ETAPPLAN10.md` §50b markerad ✅ KLAR med full
 "Genomfört"-sektion, beslutspunkt 3 struckt.
 
 **Testat:** fullt testsvep (lint, build, vitest, rules – 219 tester inkl. de 7 nya, functions
@@ -1758,7 +1758,7 @@ ett nytt `SAKERHETSRAPPORT.md`-tillägg (2026-08-09) med en ärlig läckageriskb
 
 ## Uppföljning 2026-08-09 (Etapp 50c + 51 klara)
 
-Användaren frågade om hela `ETAPPLAN10.md` var slutförd. Svar: nej – 50c, 51a–c och Etapp 52
+Användaren frågade om hela `etapplaner/ETAPPLAN10.md` var slutförd. Svar: nej – 50c, 51a–c och Etapp 52
 kvarstod. Bad om "50c och 51a-c", vilket byggdes i samma session.
 
 **50c – ärendehistorik:** ny subcollection `organisationer/{orgId}/arendeanteckningar/{id}`,
@@ -1795,11 +1795,11 @@ inte förvrängs av den nattliga nollställningen.
 `/admin` upprepad gånger, alltid mot OLIKA roller, alltid grön i isolerad körning – en känd,
 förbekräftad sandlådeflakighet under Playwrights 2-worker-parallellism, inte en regression;
 samma mönster observerades även INNAN den här sessionens ändringar). Version bumpad 5.83.0 →
-**5.84.0**, ny post i `src/data/andringslogg.js`. `ETAPPLAN10.md` uppdaterad: §50c och hela
+**5.84.0**, ny post i `src/data/andringslogg.js`. `etapplaner/ETAPPLAN10.md` uppdaterad: §50c och hela
 §51 (51a–c) markerade ✅ KLAR med fulla "Genomfört"-sektioner, sammanfattningstabellens rader
 för Etapp 50 och 51 uppdaterade.
 
-**Med detta är HELA `ETAPPLAN10.md` (Etapp 48–51) klar utom Etapp 52** (pilotpaketet – kräver
+**Med detta är HELA `etapplaner/ETAPPLAN10.md` (Etapp 48–51) klar utom Etapp 52** (pilotpaketet – kräver
 bokad tid från riktiga människor, inte kodningstid, se planens egen "Beslutspunkter som kräver
 ägaren").
 
@@ -1809,15 +1809,15 @@ Användaren bad "deploya den". Triggade `deploy.yml` (`workflow_dispatch`) mot
 `claude/compassionate-euler-rho0q5`, commit `545e958` (Etapp 50c + hela Etapp 51). Körning
 **#72**, `conclusion: success`. Bekräftade genom att läsa av asset-hashen på startsidan:
 `assets/index-CJpO8Yof.js` på `https://synappsen-final-build.web.app/`. Ingen kodändring i
-denna uppföljning. Med detta är Etapp 48–51 (hela `ETAPPLAN10.md` utom Etapp 52) HELT KLARA
+denna uppföljning. Med detta är Etapp 48–51 (hela `etapplaner/ETAPPLAN10.md` utom Etapp 52) HELT KLARA
 OCH DEPLOYADE i produktion.
 
 ## Uppföljning 2026-08-10 (ETAPPLAN11.md skriven som UTKAST – ej antagen)
 
 Användaren bad om en genomgång av projektet och ett förslag på en ny etapplan (nya funktioner,
-saker att ändra, sådant som gör produkten mer attraktiv för kund). Resultat: **`ETAPPLAN11.md`,
+saker att ändra, sådant som gör produkten mer attraktiv för kund). Resultat: **`etapplaner/ETAPPLAN11.md`,
 tydligt märkt UTKAST/EJ ANTAGEN** – inget delmål ska byggas förrän ägaren strukit det som inte
-ska med, samma ordning som `ETAPPLAN10.md` gick igenom 2026-08-06. Ingen produktkod ändrad.
+ska med, samma ordning som `etapplaner/ETAPPLAN10.md` gick igenom 2026-08-06. Ingen produktkod ändrad.
 
 Sex premisser verifierades mot faktisk kod innan utkastet skrevs (genomgående krav 8), och
 samtliga sex stämde – de utgör planens grund:
@@ -1830,9 +1830,9 @@ samtliga sex stämde – de utgör planens grund:
    `src/config/features.js`, ingen komponent/hook/regel/funktion refererar den.
 4. Ingen enhets-/avdelningsnivå under organisationen finns (noll träffar på `enhetId`/
    `avdelningId`); `organisationId` ÄR avdelningen.
-5. **`PITCH.md` (v5.73.0) påstår felaktigt att klinikstöd-sökningen är "medvetet pausad i
+5. **`saljmaterial/PITCH.md` (v5.73.0) påstår felaktigt att klinikstöd-sökningen är "medvetet pausad i
    gränssnittet".** `KlinikfragaSok.jsx:15` har `const PAUSAD = false;` sedan 2026-07-14
-   (Fas 13) – tre veckor innan `PITCH.md` senast skrevs. `MODULPLAN.md` säger korrekt att den
+   (Fas 13) – tre veckor innan `saljmaterial/PITCH.md` senast skrevs. `produkt/MODULPLAN.md` säger korrekt att den
    är i drift. **Sjätte fallet av samma stale-dokument-mönster** som gett upphov till fyra av
    projektets underhållsregler. Åtgärd föreslagen som Etapp 57a + en händelsestyrd regel (57b).
 6. Startbiblioteket ger en ny akutmottagning **två** rutinmallar, och inga mallar alls för
@@ -1845,7 +1845,7 @@ villkorat). Fyra beslutspunkter för ägaren med rekommendation i varje, samt et
 "Vad jag INTE föreslår, och varför"-avsnitt (MDR-risken med dosberäkning,
 journalsystemsintegration, benchmarking mellan kunder, native app, Intelligence 2.0, chatt).
 
-**Rekommenderad omedelbar åtgärd oavsett om planen antas:** Etapp 57a (rätta `PITCH.md`) –
+**Rekommenderad omedelbar åtgärd oavsett om planen antas:** Etapp 57a (rätta `saljmaterial/PITCH.md`) –
 tar minuter och det är det enda dokumentet en köpare faktiskt läser.
 
 `OPPNA-PUNKTER.md` orörd: utkastets beslutspunkter blir öppna punkter först om/när planen
@@ -1853,22 +1853,22 @@ antas – ett ej antaget förslag är varken en öppen punkt eller ett beslut.
 
 ## Uppföljning 2026-08-10 (ETAPPLAN11.md ANTAGEN, Etapp 57a klar)
 
-Användaren bad: "Anta den planen och starta första steget". `ETAPPLAN11.md` markerad
+Användaren bad: "Anta den planen och starta första steget". `etapplaner/ETAPPLAN11.md` markerad
 **ANTAGEN 2026-08-10** och gjord till den aktiva planen i `CLAUDE.md`s läsordning/dokumentkarta
-(`ETAPPLAN10.md` nedgraderad till historisk, HELT KLAR utom Etapp 52). **Viktigt: antagandet
+(`etapplaner/ETAPPLAN10.md` nedgraderad till historisk, HELT KLAR utom Etapp 52). **Viktigt: antagandet
 av planens omfattning svarar INTE på planens fyra egna beslutspunkter** (nytt underbiträde för
 e-post m.fl.) – de kräver var sitt eget ägarbeslut innan respektive delmål byggs, och är nu
 inlagda i `OPPNA-PUNKTER.md`. Loggat i `BESLUTSLOGG.md`.
 
 **Första steget genomfört: Etapp 57a** (planens egen ordningsprincip: "kräver ingen antagen
-plan, gör den direkt", före allt annat). `PITCH.md` rättad – det felaktiga påståendet att
+plan, gör den direkt", före allt annat). `saljmaterial/PITCH.md` rättad – det felaktiga påståendet att
 klinikstöd-sökningen är "medvetet pausad i gränssnittet" (den återaktiverades 2026-07-14, tre
-veckor innan `PITCH.md` senast skrevs) ersatt med en korrekt, historik-formulerad beskrivning.
+veckor innan `saljmaterial/PITCH.md` senast skrevs) ersatt med en korrekt, historik-formulerad beskrivning.
 Versionsraden bumpad till 5.84.0/2026-08-10 (dokumentversion, ingen kodändring/apprelease).
 Lade även till en kort rad om kommandopalett, taggbaserade rutin-förslag och det uppdaterade
 "Sedan ditt förra pass" (Etapp 47a/47b), som saknades helt i säljdokumentet. 57b (händelsestyrd
-underhållsregel för `PITCH.md`) och 57c (ärligt "vad som inte finns"-stycke) kvarstår som egna
-delmål i `ETAPPLAN11.md`.
+underhållsregel för `saljmaterial/PITCH.md`) och 57c (ärligt "vad som inte finns"-stycke) kvarstår som egna
+delmål i `etapplaner/ETAPPLAN11.md`.
 
 Ingen produktkod ändrad denna session – rent dokumentationsarbete, ingen version bump av
 `package.json`/deploy behövdes.
@@ -1893,7 +1893,7 @@ Ny UI-sektion "✉️ Utgående e-post" i `/leverantor`.
 
 Underhållsregler triggade och åtgärdade i samma session: `avtal/UNDERBITRADEN.md` (ny rad,
 Brevo, ersätter den gamla "veckopuls"-placeholdern), `avtal/INCIDENTRESPONSPLAN.md` (v1.3 →
-**v1.4**, avsnitt 5.2), `INCIDENT-CHECKLISTA.md` (ny containment-rad + "Var saker finns"-rad,
+**v1.4**, avsnitt 5.2), `drift/INCIDENT-CHECKLISTA.md` (ny containment-rad + "Var saker finns"-rad,
 header uppdaterad).
 
 Testat: nytt `tests/functions/epost.test.cjs` (10 tester – validering, PII-spärr, nödstopp,
@@ -1901,10 +1901,10 @@ tyst no-op utan nyckel, ett faktiskt utskick mot en mockad Brevo-endpoint som be
 loggposten aldrig innehåller mejlets text, `angeEpostAvstangd`s behörighet). Full testsvep
 grön: lint, build, vitest (124/124), rules (oförändrade, alla gröna), functions (inkl. de 10
 nya), storage, e2e (11/11 – inget flak denna gång). Version bumpad 5.84.0 → **5.85.0**, ny
-post i `src/data/andringslogg.js`. `ETAPPLAN11.md` §53a markerad ✅ KLAR med full
+post i `src/data/andringslogg.js`. `etapplaner/ETAPPLAN11.md` §53a markerad ✅ KLAR med full
 "Genomfört"/"Testat"-sektion.
 
-**Nästa steg i `ETAPPLAN11.md`:** 53b (inbjudan levereras per e-post), 53c (påminnelser till
+**Nästa steg i `etapplaner/ETAPPLAN11.md`:** 53b (inbjudan levereras per e-post), 53c (påminnelser till
 rutinägare), 53d (kundvänd månadssammanfattning) – alla tre går genom samma `skickaEpost()`.
 
 ## Uppföljning 2026-08-10 (Etapp 53b klar: inbjudan mejlas, v5.86.0)
@@ -1923,12 +1923,12 @@ med rätt mottagare/organisationsnamn/länk mot en mockad Brevo-endpoint, samt a
 simulerat nätverksfel inte hindrar att inbjudan ändå skapas). Full testsvep grön: lint,
 build, vitest (124/124), rules, functions (alla 29 testblock, inkl. befintliga
 `etapp6.test.cjs`s inbjudningssvit oförändrat grön), storage, e2e (11/11, inget flak). Version
-bumpad 5.85.0 → **5.86.0**, ny post i `src/data/andringslogg.js`. `ETAPPLAN11.md` §53b
+bumpad 5.85.0 → **5.86.0**, ny post i `src/data/andringslogg.js`. `etapplaner/ETAPPLAN11.md` §53b
 markerad ✅ KLAR. `avtal/UNDERBITRADEN.md` och `OPPNA-PUNKTER.md`s Brevo-rad uppdaterade för
 att spegla att koden nu faktiskt använder underbiträdet (fast fortfarande ingen skarp
 `BREVO_API_KEY`).
 
-**Nästa steg i `ETAPPLAN11.md`:** 53c (påminnelser till rutinägare, förvalt på för tilldelade
+**Nästa steg i `etapplaner/ETAPPLAN11.md`:** 53c (påminnelser till rutinägare, förvalt på för tilldelade
 uppgifter/av för allt annat, daglig sammanslagning) och 53d (kundvänd månadssammanfattning).
 
 ## Uppföljning 2026-08-10 (Etapp 53c klar: dagliga e-postpåminnelser, v5.87.0)
@@ -1957,11 +1957,11 @@ påminnelse alls"-assertion. Nya rules-tester: `tests/rules/systemstatus.test.mj
 klientavstängning för `epostPaminnelseko`) och `tests/rules/organisationsisolering.test.mjs`
 (självuppdatering av `epostInstallningar` tillåten, andras användares inte). Full testsvep
 grön: lint, build, vitest (124/124), rules, functions (alla 30 testblock), storage, e2e
-(11/11). Version bumpad 5.86.0 → **5.87.0**. `ETAPPLAN11.md` §53c markerad ✅ KLAR.
-`INCIDENT-CHECKLISTA.md` steg 5 utökad (ny, tillfällig plats för en redan listad
+(11/11). Version bumpad 5.86.0 → **5.87.0**. `etapplaner/ETAPPLAN11.md` §53c markerad ✅ KLAR.
+`drift/INCIDENT-CHECKLISTA.md` steg 5 utökad (ny, tillfällig plats för en redan listad
 personuppgiftstyp – e-post) och header uppdaterad till v5.87.0.
 
-**Nästa steg i `ETAPPLAN11.md`:** 53d (kundvänd månadssammanfattning till chefen, länk in i
+**Nästa steg i `etapplaner/ETAPPLAN11.md`:** 53d (kundvänd månadssammanfattning till chefen, länk in i
 `/ledningsrapport`) – sista delmålet i Etapp 53.
 
 ## Uppföljning 2026-08-10 (Etapp 53d klar: kundvänd månadssammanfattning, v5.88.0 – HELA Etapp 53 KLAR)
@@ -1989,7 +1989,7 @@ aldrig, länken till ledningsrapporten finns, de två opt-out-fälten är helt o
 varandra). Full testsvep grön: lint, build, vitest (124/124), rules, functions (31
 testblock), storage, e2e (11/11). Version bumpad 5.87.0 → **5.88.0**.
 
-**Med detta är HELA Etapp 53 (53a–53d) i `ETAPPLAN11.md` klar och testad – men INTE
+**Med detta är HELA Etapp 53 (53a–53d) i `etapplaner/ETAPPLAN11.md` klar och testad – men INTE
 deployad** (senaste produktionsdeploy är fortfarande v5.84.0). Nästa steg: antingen deploya
 (kräver att ägaren först satt en riktig `BREVO_API_KEY`, annars går inget mejl ut skarpt –
 se `OPPNA-PUNKTER.md`) eller fortsätta med Etapp 54 (utredning + huvudmannafält, lågrisk,
@@ -2009,7 +2009,7 @@ byta aktiv organisation utan utloggning är alltså en avgränsad, väl förstå
 medlemskaps-collection + en styrd växlingsfunktion + en UI-växlare), INTE en omskrivning av
 behörighetsmodellen som utkastet öppnade för att det kunde vara. 54d stryks alltså inte –
 nedgraderas från "okänd risk" till "förstådd, avgränsad". Den verkliga regelrisken i Etapp 54
-ligger i 54c (delade rutiner), inte 54d. Skrivet in i `ETAPPLAN11.md` som en
+ligger i 54c (delade rutiner), inte 54d. Skrivet in i `etapplaner/ETAPPLAN11.md` som en
 "Premisskontroll"-sektion under §54.
 
 **54b byggd** ovanpå detta: fritextfältet `huvudman` på `organisationer/{orgId}`, satt via en
@@ -2023,7 +2023,7 @@ hör hemma i 54c, inte 54b. Den delen byggdes medvetet INTE.
 
 Testat: `tests/functions/etapp6.test.cjs` utökad med 5 nya tester för `satHuvudman`. Full
 testsvep grön: lint, build, vitest (124/124), rules, functions (31 testblock, samtliga 62 i
-etapp6.test.cjs), storage, e2e (11/11). Version bumpad 5.88.0 → **5.89.0**. `ETAPPLAN11.md`
+etapp6.test.cjs), storage, e2e (11/11). Version bumpad 5.88.0 → **5.89.0**. `etapplaner/ETAPPLAN11.md`
 §54a/§54b markerade ✅ KLARA. `OPPNA-PUNKTER.md`s Etapp 54-rad omskriven till att bara gälla
 54c/54d (54a/54b är nu avklarade, inte längre en öppen fråga).
 
@@ -2035,7 +2035,7 @@ Användaren bad "deploya den" efter Etapp 54a–54b. Triggade `deploy.yml`
 genom att läsa av asset-hashen på startsidan: `assets/index-D_ReJBIJ.js` på
 `https://synappsen-final-build.web.app/`. Ingen kodändring i denna uppföljning.
 
-**Med detta är HELA `ETAPPLAN11.md` Etapp 53 (53a–53d) OCH Etapp 54a–54b HELT KLARA OCH
+**Med detta är HELA `etapplaner/ETAPPLAN11.md` Etapp 53 (53a–53d) OCH Etapp 54a–54b HELT KLARA OCH
 DEPLOYADE i produktion.** Observera: `BREVO_API_KEY` är fortfarande INTE satt som en riktig
 GitHub-hemlighet – all e-postinfrastruktur (inbjudan, dagliga påminnelser, månadsrapport) är
 alltså live i koden men no-oppar tyst tills ägaren tecknar avtal med Brevo och sätter
@@ -2068,7 +2068,7 @@ bygget:** de fyra härledningskällornas lyssnare gated bakom att checklistan fa
 annars hade VARJE superadmins startsida fått fyra extra Firestore-lyssnare, även etablerade
 organisationer som aldrig visar checklistan.
 
-**56d:** nytt stycke "Ni börjar inte från ett tomt system" i `PITCH.md`.
+**56d:** nytt stycke "Ni börjar inte från ett tomt system" i `saljmaterial/PITCH.md`.
 
 **E2E-flak utrett noggrant under sessionen:** en isolerad enstaka körning av
 `rökprov (superadmin)` misslyckades en gång (efter min första version av 56c, INNAN
@@ -2084,9 +2084,9 @@ rutiner istället för 5, eftersom demomiljön återanvänder samma `VERKSAMHETS
 akutmottagning`). Full testsvep grön: lint, build, vitest (130/130, 20 filer), rules,
 functions (31 testblock, 67/67 i etapp6.test.cjs), storage, e2e (11/11, plus 3 extra
 isolerade omkörningar av den tidigare flakiga testen). Version bumpad 5.89.0 → **5.90.0**.
-`ETAPPLAN11.md` §56 (56a–56d) markerad ✅ HELT KLAR.
+`etapplaner/ETAPPLAN11.md` §56 (56a–56d) markerad ✅ HELT KLAR.
 
-**Med detta är HELA Etapp 53, Etapp 54a–54b och HELA Etapp 56 i `ETAPPLAN11.md` klara och
+**Med detta är HELA Etapp 53, Etapp 54a–54b och HELA Etapp 56 i `etapplaner/ETAPPLAN11.md` klara och
 testade – men INTE deployade** (senaste produktionsdeploy är fortfarande v5.89.0). Nästa
 steg: deploya, eller fortsätta med Etapp 55 (kioskläge) eller 57b–c (säljmaterialets
 underhållsregel + ärlighetsstycke).
@@ -2108,7 +2108,7 @@ om "mest specifika block vinner". Firestore Security Rules kombinerar ALLA match
 med ELLER – det snävare blocket stängde ingenting. Ett regeltest (skrivet FÖRE detta
 upptäcktes, inte i efterhand) visade att en superadmin fortfarande kunde läsa/skriva hashen
 direkt. Rättat genom att explicit undanta `dokId == 'kioskPin'` i själva wildcard-villkoren –
-den enda metod som faktiskt fungerar. Se `SAKERHETSRAPPORT.md`s tillägg (2026-08-10,
+den enda metod som faktiskt fungerar. Se `granskningar/SAKERHETSRAPPORT.md`s tillägg (2026-08-10,
 v5.91.0) för den fullständiga lärdomen. Ingen produktionsdata någonsin exponerad.
 
 PIN-verifiering sker helt server-side (`satKioskPin`/`verifieraKioskPin`, SHA-256-hash,
@@ -2118,9 +2118,9 @@ inaktivitet, ALDRIG utloggning), en egen `BottomNav`-gren för kiosk-rollen
 (Sök/Hem/Akutläge direkt, resten i Mer-menyn), `KioskPinModal.jsx` för att lämna kioskläget,
 `KioskPinSektion.jsx` i `/admin` för att sätta PIN-koden.
 
-**55c fullgjord i samma commit:** `INCIDENT-CHECKLISTA.md` (steg 3-tabell, steg 4,
+**55c fullgjord i samma commit:** `drift/INCIDENT-CHECKLISTA.md` (steg 3-tabell, steg 4,
 snabbreferensen), `avtal/INCIDENTRESPONSPLAN.md` v1.4 → v1.5 (avsnitt 4 + versionshistorik),
-`avtal/IT-FAKTABLAD.md` avsnitt 2, `SAKERHETSRAPPORT.md` (nytt tillägg).
+`avtal/IT-FAKTABLAD.md` avsnitt 2, `granskningar/SAKERHETSRAPPORT.md` (nytt tillägg).
 
 Testat: `tests/rules/kioskrestriktioner.test.mjs` (8 tester) + `tests/functions/
 kioskrestriktioner.test.cjs` (9 tester, inkl. att verifieraKioskPin-svaret aldrig läcker
@@ -2134,9 +2134,9 @@ på en annan revision (`chromium-1194`) än vad den pinnade `@playwright/test`-v
 förväntade sig (`chromium_headless_shell-1234`) – löst genom att sätta
 `PLAYWRIGHT_CHROMIUM_PATH=/opt/pw-browsers/chromium` innan `npm run test:e2e`, exakt den
 work-around miljöns egen dokumentation redan beskriver. Version bumpad 5.90.0 → **5.91.0**.
-`ETAPPLAN11.md` §55 (55a–55c) markerad ✅ HELT KLAR.
+`etapplaner/ETAPPLAN11.md` §55 (55a–55c) markerad ✅ HELT KLAR.
 
-**Med detta är Etapp 53, 54a–54b, 55 OCH 56 i `ETAPPLAN11.md` alla klara och testade – men
+**Med detta är Etapp 53, 54a–54b, 55 OCH 56 i `etapplaner/ETAPPLAN11.md` alla klara och testade – men
 INTE deployade** (senaste produktionsdeploy fortfarande v5.89.0). Nästa steg: deploya, eller
 fortsätta med 54c/54d (väntar på en konkret andra enhet) eller 57b–c (säljmaterialets
 underhållsregel + ärlighetsstycke).
@@ -2150,43 +2150,43 @@ tabellformat som de fyra befintliga levande-dokument-reglerna. Triggas av: en ku
 funktion blir synlig/avstängd/väsentligt ändrad, en lucka i 57c:s stycke stängs eller öppnas,
 eller en större release.
 
-**57c:** nytt stycke "Vad som inte finns än" i `PITCH.md` (SSO, delad data mellan enheter
+**57c:** nytt stycke "Vad som inte finns än" i `saljmaterial/PITCH.md` (SSO, delad data mellan enheter
 under samma huvudman, journal-/HR-integration, dosberäkning – samma ärlighetsprincip som det
 redan befintliga "Ärlighet om vad som faktiskt är mätt"-stycket).
 
 **Sidofynd, åtgärdat i samma commit:** när 57b-regeln skrevs blev det synligt att Etapp 55
 (kioskläget, förra sessionen) redan hade brutit mot den regel som just skulle skrivas in –
-`PITCH.md` nämnde aldrig kioskläget trots att det är en ny, kundvänd funktion. Lade till en
+`saljmaterial/PITCH.md` nämnde aldrig kioskläget trots att det är en ny, kundvänd funktion. Lade till en
 kort bullet om det under "Byggd för vårdens krav", och höll det DÄRFÖR utanför listan över
 luckor i 57c (det är inte längre en lucka). Ett litet, konkret exempel på att den nya regeln
 löser ett verkligt, redan inträffat fall, inte bara ett hypotetiskt.
 
 **Ingen versionsbump:** varken `package.json` eller `andringslogg.js` rördes – enbart
-`CLAUDE.md` (interna instruktioner) och `PITCH.md` (säljmaterial) ändrades, ingenting i den
-faktiska appen. `PITCH.md`s egen versionsrad justerades till att peka på den redan gällande
+`CLAUDE.md` (interna instruktioner) och `saljmaterial/PITCH.md` (säljmaterial) ändrades, ingenting i den
+faktiska appen. `saljmaterial/PITCH.md`s egen versionsrad justerades till att peka på den redan gällande
 appversionen (5.91.0) istället för att skapa en egen, separat siffra.
 
 Testsvep: lint, build, vitest (130/130) – inga rules-/functions-/storage-/e2e-tester
 relevanta eftersom ingen kod under `firestore.rules`, `storage.rules`, `functions/` eller
-`tests/` ändrades. `ETAPPLAN11.md` §57 (57a–57c) markerad ✅ HELT KLAR.
+`tests/` ändrades. `etapplaner/ETAPPLAN11.md` §57 (57a–57c) markerad ✅ HELT KLAR.
 
-**Med detta har `ETAPPLAN11.md` bara två öppna punkter kvar: 54c/54d (väntar på en konkret
+**Med detta har `etapplaner/ETAPPLAN11.md` bara två öppna punkter kvar: 54c/54d (väntar på en konkret
 andra enhet hos en kund) och Etapp 58 (SSO, väntar på en kund som kräver det) – båda
 medvetet väntande på en extern förutsättning, inte på kapacitet.**
 
-## Uppföljning 2026-08-10 (`ETAPPLAN12.md` antagen, Etapp 59 klar: rättningar, v5.92.0)
+## Uppföljning 2026-08-10 (`etapplaner/ETAPPLAN12.md` antagen, Etapp 59 klar: rättningar, v5.92.0)
 
-`ETAPPLAN11.md` var vid det här laget helt klar utom två externt villkorade punkter (se
+`etapplaner/ETAPPLAN11.md` var vid det här laget helt klar utom två externt villkorade punkter (se
 ovan) – dags för en ny plan. Gjorde en genomgång av FAKTISK kod (inte dokumentation) i
 v5.91.0, vilket resulterade i två nya planfiler:
 
-- **`ETAPPLAN12.md`** (Etapp 59–63, "Från demo till drift") – **ANTAGEN samma dag.**
+- **`etapplaner/ETAPPLAN12.md`** (Etapp 59–63, "Från demo till drift") – **ANTAGEN samma dag.**
   Genomgången hittade tre fel i produktionsgrenen, varav två infördes av de senaste två
   etapperna: sex `omrade: "logistik"`-mallrutiner (Etapp 56a) som ingen vy kunde visa/söka/
   godkänna men som ändå räknades i hälsosiffran, kioskläget (Etapp 55a) som inte gatades av
   `FEATURE.KIOSK_MODE` i något lager, och en föråldrad `dompurify`-version (produktionens
   enda XSS-sanerare). Planen är medvetet tyngre på hållfasthet än på nya funktioner.
-- **`ETAPPLAN13.md`** (Etapp 64) – ett fristående, EJ byggbart förslag om ett "baspaket" av
+- **`etapplaner/ETAPPLAN13.md`** (Etapp 64) – ett fristående, EJ byggbart förslag om ett "baspaket" av
   nationella referenser (ägarens fråga under genomgången), hållet i en egen fil eftersom det
   väntar på en extern juridisk MDR-bedömning, inte på kod. Blockerar inget annat.
 
@@ -2214,7 +2214,7 @@ v5.91.0, vilket resulterade i två nya planfiler:
   fel och rättades i samma session:** planens ursprungliga text påstod att
   `npm-audit-rapport.md` "inte fanns i repot" – det stämde inte, filen är MEDVETET
   gitignorad (`scripts/npm-audit-rapport.mjs`, Etapp 31a) och genereras av CI vid varje
-  körning till `$GITHUB_STEP_SUMMARY`. Ingen ny fil skapades; se `ETAPPLAN12.md`s rättelse
+  körning till `$GITHUB_STEP_SUMMARY`. Ingen ny fil skapades; se `etapplaner/ETAPPLAN12.md`s rättelse
   för hela resonemanget.
 
 Testat: `tests/functions/etapp6.test.cjs`/`demo-organisation.test.cjs` (räknarna
@@ -2222,7 +2222,7 @@ uppdaterade), `tests/functions/gatingmatris.test.cjs` (2 nya rader),
 `tests/functions/kioskrestriktioner.test.cjs` (4 nya tester, inkl. att verifieraKioskPin
 ALDRIG blockeras). Full testsvep grön: lint, build, vitest (130/130), functions (alla 32
 filer). Inga ändringar i `firestore.rules`/`storage.rules`, så `test:rules`/`test:storage`
-kördes inte om. Version bumpad 5.91.0 → **5.92.0**. `ETAPPLAN12.md` §59 (59a–59c) markerad
+kördes inte om. Version bumpad 5.91.0 → **5.92.0**. `etapplaner/ETAPPLAN12.md` §59 (59a–59c) markerad
 ✅ HELT KLAR.
 
 **Med detta är Etapp 59 klar och testad – men INTE deployad** (senaste produktionsdeploy
@@ -2247,7 +2247,7 @@ rutinantal – Firestores realtidskanaler svarar chunked utan den headern, och a
 aldrig). Löst med CDP:s `Network.dataReceived` (samma metod som Chrome DevTools egen
 Network-flik använder).
 
-**Resultat (se `ETAPPLAN12.md` §60 för hela tabellen och resonemanget):**
+**Resultat (se `etapplaner/ETAPPLAN12.md` §60 för hela tabellen och resonemanget):**
 
 - Tid till interaktiv (~0,9–1,0 s) och Fuse-byggtid (<2 ms) är GODKÄNDA även vid 2 000
   rutiner – oberoende av rutinantalet i det här spannet. **60d (webbworker för sökindexet)
@@ -2264,7 +2264,7 @@ Network-flik använder).
 
 **Ärlig avvikelse:** planens "Klart när"-kriterium förutsatte en tröskel nedskriven I FÖRVÄG
 – ingen sådan skrevs ned innan mätningen kördes. Bedömningen ovan är gjord i efterhand med
-sunt förnuft istället, vilket är skrivet ut ärligt i `ETAPPLAN12.md` snarare än dolt.
+sunt förnuft istället, vilket är skrivet ut ärligt i `etapplaner/ETAPPLAN12.md` snarare än dolt.
 
 **Ingen versionsbump:** rent mätnings-/verktygsarbete, ingen appkod ändrad.
 `src/hooks/useSokindex.js` instrumenterades TILLFÄLLIGT för Fuse-byggtidsmätningen och
@@ -2312,7 +2312,7 @@ Testat: lint, build, vitest (130/130, befintliga `kompetensStatus.test.js`/
 `veckansRepetition.test.js`/`innehallshalsa.test.js` använde redan `{uid, tidpunkt}` utan
 `namn` – bekräftar i efterhand att `namn` aldrig behövdes av logiken). Inga functions-/
 regeländringar denna gång. Version bumpad 5.92.0 → **5.93.0** (första app-synliga ändringen
-sedan 5.91.0). `ETAPPLAN12.md` §60b markerad ✅ KLAR med hela resonemanget.
+sedan 5.91.0). `etapplaner/ETAPPLAN12.md` §60b markerad ✅ KLAR med hela resonemanget.
 
 **Nästa steg:** 60c (serverside-filtrering av papperskorg/arkiv) kvarstår som rekommenderat,
 ej byggt. Etapp 61 (underhållbarhet/testluckor) är inte villkorat av något och kan tas när
@@ -2354,12 +2354,12 @@ inte "tillbaka till nollpunkten".
 `tests/functions/backfillborttagen.test.cjs` (behörighet, dry-run, idempotens, rör inte en
 redan satt true/false – MÅSTE stå sist i test:functions-kedjan, se filens egen kommentar om
 varför), `etapp6.test.cjs` utökad. Full testsvep grön (lint, build, vitest 130/130, alla 32
-functions-testfiler). Version bumpad 5.93.0 → **5.94.0**. `ETAPPLAN12.md` §60c markerad
+functions-testfiler). Version bumpad 5.93.0 → **5.94.0**. `etapplaner/ETAPPLAN12.md` §60c markerad
 ✅ KLAR, hela Etapp 60 markerad HELT KLAR.
 
 **Nästa steg:** Etapp 61 (underhållbarhet/testluckor) är inte villkorat av något och kan tas
-när som helst. Etapp 60 helt klart innebär att `ETAPPLAN12.md` nu bara har 61–63 kvar (plus
-det fristående, ej byggbara Etapp 64 i `ETAPPLAN13.md`).
+när som helst. Etapp 60 helt klart innebär att `etapplaner/ETAPPLAN12.md` nu bara har 61–63 kvar (plus
+det fristående, ej byggbara Etapp 64 i `etapplaner/ETAPPLAN13.md`).
 
 ## Uppföljning 2026-08-10 (Etapp 61b/61c klara: testtäckning + kiosk-e2e)
 
@@ -2386,7 +2386,7 @@ FAKTISKT PIN-upplåsningsförsök testas inte här – det täcks redan av
 `test:e2e`-sviten kördes (inte bara den nya filen): 17/17 gröna.
 
 Testat: `npm run lint`/`build`/`npx vitest run` gröna (175/175, 25 filer), full `test:e2e`
-grön (17/17). Ingen versionsbump – rent testarbete, ingen appkod ändrad. `ETAPPLAN12.md`
+grön (17/17). Ingen versionsbump – rent testarbete, ingen appkod ändrad. `etapplaner/ETAPPLAN12.md`
 §61b och §61c markerade ✅ KLARA.
 
 **Nästa steg:** 61a (dela `functions/index.js`) kvarstår som den enda ogjorda delen av
@@ -2421,14 +2421,14 @@ också, fortsatt 0 misslyckade.
 ~800 rader (störst är `avtalslivscykel.js` på 726). En multiset-diff av alla icke-tomma
 rader i HELA `functions/`-katalogen före/efter visar att exakt EN rad försvann (den gamla
 toppkommentaren, ersatt av nya filhuvuden) – bevisar att detta genuint var en ren flytt,
-inte bara påstådd. Se `ETAPPLAN12.md` §61a för den fullständiga filindelningen och
+inte bara påstådd. Se `etapplaner/ETAPPLAN12.md` §61a för den fullständiga filindelningen och
 avvikelserna från planens ursprungliga förslag (varför ingen egen `epost.js`/`schemalagt.js`
 byggdes, varför `loggaRevision` ligger i `gemensamt.js` snarare än `revisionslogg.js`).
 
 Testat: lint, `node --check` × 12, `require`-rökprov (93 exports, identiska), full
 `test:functions` (35 filer, körd två gånger) 0 misslyckade båda gångerna, build, vitest
 (175/175). Ingen versionsbump krävs egentligen (ren flytt, inget beteende ändrat för en
-användare) men bumpas ändå för spårbarhet i deploy-historiken. `ETAPPLAN12.md` §61a
+användare) men bumpas ändå för spårbarhet i deploy-historiken. `etapplaner/ETAPPLAN12.md` §61a
 markerad ✅ KLAR – **hela Etapp 61 (61a–61c) är nu HELT KLAR.**
 
 **Nästa steg:** Etapp 62 (mätvärde → åtgärd) är villkorad av att Etapp 59 är stängd, vilket
@@ -2438,8 +2438,8 @@ den är – inget hindrar att ta den näst. Etapp 63 (gruppera öppna punkter, f
 
 ## Uppföljning 2026-08-10 (Etapp 63c-beslutspunkterna avgjorda)
 
-Användaren tog ställning till `ETAPPLAN11.md`s tre kvarvarande beslutspunkter (samlade i
-`ETAPPLAN12.md` §63c): "OIDC, på för tilldelade uppgifter, följ din rekommendation för punkt
+Användaren tog ställning till `etapplaner/ETAPPLAN11.md`s tre kvarvarande beslutspunkter (samlade i
+`etapplaner/ETAPPLAN12.md` §63c): "OIDC, på för tilldelade uppgifter, följ din rekommendation för punkt
 2. vänta med 54c/54d".
 
 - **SSO-protokoll (Etapp 58):** OIDC, planens rekommendation.
@@ -2454,14 +2454,14 @@ under Etapp 13f och en gång under Etapp 58, uttryckligen noterat som samma frå
 ur `OPPNA-PUNKTER.md`. Ingen av de tre beslutspunkterna låste upp nytt kodningsarbete idag.
 Ingen versionsbump – ren dokumentationsändring.
 
-`ETAPPLAN12.md` §63c:s "Klart när" (de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`)
+`etapplaner/ETAPPLAN12.md` §63c:s "Klart när" (de tre beslutspunkterna har ett svar i `BESLUTSLOGG.md`)
 är nu uppfyllt, men Etapp 63 som helhet är INTE klar – 63a och 63b är obyggda.
 
 ---
 
 ## Uppföljning 2026-08-11 (ETAPPLAN12.md helt klar, v5.96.0, deploy #74 live)
 
-Genomförde hela den återstående delen av `ETAPPLAN12.md` (Etapp 62 och 63) i ett
+Genomförde hela den återstående delen av `etapplaner/ETAPPLAN12.md` (Etapp 62 och 63) i ett
 sammanhängande pass, efter att ett tidigare försök att pausa/sprida arbetet över natten med
 schemalagda återuppväckningar (`ScheduleWakeup`) inte levererade – sessionen återupptogs
 aldrig automatiskt, och ingen kod byggdes mellan 62a (committad 2026-08-10 kväll) och när
@@ -2472,7 +2472,7 @@ invänta explicit uppföljning från användaren istället.
 - **62a** (redan committad föregående kväll): "Skapa rutin"-genväg från en sökning utan träff.
 - **62b:** ny `VeckopulsSektion.jsx` – utgångna rutiner, obesvarade förslag och sökluckor i
   prioritetsordning med direktlänk, högst upp i adminpanelen. Löste samtidigt en kvarstående
-  rad i `OPPNA-PUNKTER.md` (Etapp 16/veckopuls) som stått öppen sedan `ETAPPLAN3.md`.
+  rad i `OPPNA-PUNKTER.md` (Etapp 16/veckopuls) som stått öppen sedan `etapplaner/ETAPPLAN3.md`.
 - **62c:** `InnehallshalsaSektion.jsx` fick åtgärdsknappar – starta en granskningsrunda för
   exakt de rutiner som flaggats "bör granskas", tilldela ägare inline i tabellen.
   `useGranskningsrundor` fick en `aktiv`-parameter för att inte prenumerera i onödan i
@@ -2480,12 +2480,12 @@ invänta explicit uppföljning från användaren istället.
 - **63a:** `OPPNA-PUNKTER.md` omgrupperad i fem rubriker efter insatstyp istället för en enda
   tabell – tillkom en femte kategori ("väntar på en extern förutsättning") som planens
   ursprungliga tre-vägs uppdelning inte rymde ärligt.
-- **63b:** två nya root-dokument, `REDAKTORSGUIDE.md` och `PILOTUPPLAGG.md`, förberedelse för
-  Etapp 52-piloten (`ETAPPLAN10.md`) utan att en pilot är bokad. Registrerade i `CLAUDE.md`s
+- **63b:** två nya root-dokument, `drift/REDAKTORSGUIDE.md` och `saljmaterial/PILOTUPPLAGG.md`, förberedelse för
+  Etapp 52-piloten (`etapplaner/ETAPPLAN10.md`) utan att en pilot är bokad. Registrerade i `CLAUDE.md`s
   dokumentkarta.
 - **63c:** redan avgjort och loggat föregående kväll (se sektionen ovan).
 
-**Hela `ETAPPLAN12.md` (Etapp 59–63) är nu KLAR.**
+**Hela `etapplaner/ETAPPLAN12.md` (Etapp 59–63) är nu KLAR.**
 
 Släppt som v5.96.0. Fullt testsvep grönt: lint, build, vitest (175/175), `test:rules` (18/18),
 `test:functions` (samtliga ~33 filer), `test:storage` (21/21), `test:e2e` (17/17 – en första
@@ -2496,7 +2496,7 @@ från Etapp 62c:s ändringar).
 **Deployad:** körning #74, commit `91091be`, klar 2026-08-11 04:58 UTC. Ny asset-hash
 `assets/index-CQA-Qbjq.js` bekräftad live på `https://synappsen-final-build.web.app/`.
 
-**Nästa steg:** ingen aktiv plan pekas ut ännu – `ETAPPLAN12.md` är den senast antagna och nu
+**Nästa steg:** ingen aktiv plan pekas ut ännu – `etapplaner/ETAPPLAN12.md` är den senast antagna och nu
 helt klar. Läs `OPPNA-PUNKTER.md` för vad som väntar på en människa/ett beslut, eller vänta på
 ny instruktion från ägaren om vad nästa etapp ska vara.
 
@@ -2504,7 +2504,7 @@ ny instruktion från ägaren om vad nästa etapp ska vara.
 
 ## Uppföljning 2026-08-11 (granskning av ETAPPLAN13 + fyra döda sökvägar efter 61a)
 
-Ägaren bad om en granskning av baspaketsförslaget. `ETAPPLAN13.md` är omskriven – fem fel i
+Ägaren bad om en granskning av baspaketsförslaget. `etapplaner/ETAPPLAN13.md` är omskriven – fem fel i
 utkastet, varav två är värda att känna till även om man inte läser planen: den citerade MDR
 Annex VIII regel 11 (en KLASSIFICERINGS-regel) för vad som i själva verket är en
 kvalificeringsfråga, och den saknade upphovsrätten helt trots att bedömningsinstrument ofta
@@ -2513,8 +2513,8 @@ alternativ B som återanvänder Etapp 56:s seedningsmekanism och flyttar utgivar
 kunden. Se planens egen "Granskning"-sektion. **Fortfarande ej byggbar** – nu av två
 juridiska skäl i stället för ett.
 
-`CLAUDE.md`s dokumentkarta uppdaterad: `ETAPPLAN12.md` står inte längre som den aktiva planen,
-och `ETAPPLAN11.md`s 54c/54d + Etapp 58 pekade fortfarande mot `OPPNA-PUNKTER.md` trots att de
+`CLAUDE.md`s dokumentkarta uppdaterad: `etapplaner/ETAPPLAN12.md` står inte längre som den aktiva planen,
+och `etapplaner/ETAPPLAN11.md`s 54c/54d + Etapp 58 pekade fortfarande mot `OPPNA-PUNKTER.md` trots att de
 flyttades till `BESLUTSLOGG.md` 2026-08-10.
 
 **Ett fynd om Etapp 61a värt att komma ihåg:** delningen av `functions/index.js` gjorde ~86
@@ -2522,7 +2522,7 @@ kommentarsreferenser i levande kod inaktuella. De flesta är ofarliga – skarve
 alla 93 Cloud Functions, så referensen leder rätt via ett extra hopp. Men referenser till
 INTERNA symboler som aldrig exporterats är äkta återvändsgränder, och fyra sådana fanns
 (`GODKANDA_KALLDOMANER`, `STANDARD_TAK_ORE`, `aktuellManadNyckel`, `personalpulsResultat`).
-Rättade. Historiska planfiler och append-only-sektionerna här och i `SAKERHETSRAPPORT.md`
+Rättade. Historiska planfiler och append-only-sektionerna här och i `granskningar/SAKERHETSRAPPORT.md`
 lämnades medvetet orörda – de var korrekta när de skrevs. Ingen versionsbump (kommentarer och
 dokument), ingen deploy: v5.96.0/körning #74 är fortfarande det som kör i produktion.
 
@@ -2530,7 +2530,7 @@ dokument), ingen deploy: v5.96.0/körning #74 är fortfarande det som kör i pro
 
 ## Uppföljning 2026-08-11 (andra genomläsning av ETAPPLAN13 – två egna fel rättade)
 
-Ägaren bad om en andra genomläsning av `ETAPPLAN13.md` efter den första omskrivningen. Hittade
+Ägaren bad om en andra genomläsning av `etapplaner/ETAPPLAN13.md` efter den första omskrivningen. Hittade
 två substantiella fel jag själv införde (inte i det ursprungliga utkastet): ja/nej var
 omkastade i "Klart när"-tabellens fråga 1 (ett ja-svar – "det kvalificerar som medicinteknisk
 programvara" – är det DÅLIGA utfallet, jag hade skrivit det som "byggbart"), och ett räknefel
@@ -2538,7 +2538,7 @@ i beslutspunkt 2 ("B löser tre av de fyra tekniska förutsättningarna" – rä
 fyrakällorstaket och domänlistan gäller oavsett leveransmodell). Båda rättade, plus en
 kvarleven av samma ja/nej-inversion i alternativ A:s "Kräver"-rad som annars hade smugit
 förbi. Se planens egen "Granskning"-sektion, punkt 6–7. Samma slutsats som tidigare:
-`ETAPPLAN13.md` är fortfarande inte byggbar utan en extern juridisk bedömning – det här ändrar
+`etapplaner/ETAPPLAN13.md` är fortfarande inte byggbar utan en extern juridisk bedömning – det här ändrar
 inte SLUTSATSEN, bara kvaliteten på underlaget som når juristen. Ingen versionsbump, ingen
 deploy.
 
@@ -2547,8 +2547,8 @@ deploy.
 ## Uppföljning 2026-08-11 (ETAPPLAN13 antagen)
 
 Ägaren beslutade att baspaketsidén (Etapp 64) ska drivas vidare – beslutet loggat i
-`BESLUTSLOGG.md`. `ETAPPLAN13.md` är därmed formellt **ANTAGEN**, precis som `ETAPPLAN11.md`
-och `ETAPPLAN12.md` var den dag de antogs, och står nu överst i `CLAUDE.md`s läsordning.
+`BESLUTSLOGG.md`. `etapplaner/ETAPPLAN13.md` är därmed formellt **ANTAGEN**, precis som `etapplaner/ETAPPLAN11.md`
+och `etapplaner/ETAPPLAN12.md` var den dag de antogs, och står nu överst i `CLAUDE.md`s läsordning.
 
 **Viktig distinktion, upprepad på flera ställen i dokumenten för att den inte ska missas:**
 "antagen" betyder INTE "byggbar". Planens centrala risk är regulatorisk (MDR-kvalificering +
@@ -2557,7 +2557,7 @@ bedömningen – är fortfarande öppen. Den raden finns nu i `OPPNA-PUNKTER.md`
 bokad människa" (en betald extern juridisk genomgång, samma bokningskategori men inte ett
 internt möte). Ingen kod ska skrivas för Etapp 64 förrän den bedömningen finns.
 
-Uppdaterade i samma commit: `ETAPPLAN13.md` (statusbanner, "Klart när"-beslutspunkt 1,
+Uppdaterade i samma commit: `etapplaner/ETAPPLAN13.md` (statusbanner, "Klart när"-beslutspunkt 1,
 föreslagen ordning, sammanfattningstabell), `CLAUDE.md` (läsordning punkt 3–4 bytte plats och
 innehåll, dokumentkartans två rader), `BESLUTSLOGG.md` (ny rad), `OPPNA-PUNKTER.md` (ny rad).
 Ingen kod, ingen versionsbump, ingen deploy.
@@ -2583,7 +2583,7 @@ innehåll. Ägaren godkände den avgränsningen. Beslutet loggat i `BESLUTSLOGG.
 - 12 nya regeltester (`tests/rules/baspaketreferenser.test.mjs`), alla gröna.
 - `useBaspaketreferenser.js` (hook) och `BaspaketreferenserSektion.jsx` (ny sektion i
   leverantörsvyn, `/leverantor`) – syns ENDAST för plattformsadmin, aldrig för en kund.
-- `ETAPPLAN13.md` fick en ny "Scaffolding-fasen – ✅ KLAR"-sektion.
+- `etapplaner/ETAPPLAN13.md` fick en ny "Scaffolding-fasen – ✅ KLAR"-sektion.
 
 **Vad som INTE byggdes, medvetet:** riktigt namngivet instrumentinnehåll, 64b:s centrala
 källbevakningslarm, och ingen per-organisation-modulflagga (kunder kan alltså inte ens
@@ -2598,7 +2598,7 @@ juridiska bedömningen (fortfarande i `OPPNA-PUNKTER.md`), eller vänta på äga
 ## Uppföljning 2026-08-11 (ETAPPLAN13 beslutspunkt 2 och 3 avgjorda)
 
 Ägaren svarade på beslutspunkt 2 och 3 direkt (utan att fråga om status först denna gång).
-Loggat i `BESLUTSLOGG.md`, `ETAPPLAN13.md` uppdaterad genomgående (beslutspunktstabellen, ny
+Loggat i `BESLUTSLOGG.md`, `etapplaner/ETAPPLAN13.md` uppdaterad genomgående (beslutspunktstabellen, ny
 "Leveransmodellen"-sektion, 64d omskriven, tekniska förutsättning 4 markerad avgjord,
 "Klart när"-tabellens fråga 2/4 justerade, sammanfattningstabellen).
 
@@ -2622,7 +2622,7 @@ En fristående granskningssession (INTE en `ETAPPLANx.md`-etapp) gick igenom hel
 åtta parallella genomgångar på disjunkta filområden: Firestore-/Storage-regler, Cloud
 Functions, frontend, de stora formulär-/adminfilerna, tillgänglighet (WCAG 2.1 AA), offline/
 PWA-livscykel, test-/byggkedja och dokumentens sanningshalt. Full detaljerad rapport i
-`GRANSKNING-2026-08-11.md` (arbetet) och ett nytt tillägg i `SAKERHETSRAPPORT.md` (fynden,
+`granskningar/GRANSKNING-2026-08-11.md` (arbetet) och ett nytt tillägg i `granskningar/SAKERHETSRAPPORT.md` (fynden,
 prioriterade). Gren: `claude/synappsen-final-review-slzcxe`, PR #15.
 
 **Allvarligast åtgärdat:**
@@ -2648,19 +2648,19 @@ prioriterade). Gren: `claude/synappsen-final-review-slzcxe`, PR #15.
 - Tillgänglighet: kommandopaletten (Ctrl/Cmd+K, appens primära sökväg) saknade fokusfälla/Esc/
   fokusåterlämning; `VersionsHistorik` var nakna div utan `role`; fokusindikatorn på input/
   select hade 1,06:1 kontrast mot kravet 3:1; ingen global `prefers-reduced-motion`. Tre av
-  dessa motsäger `TILLGANGLIGHETSREDOGORELSE.md` direkt (se nedan).
+  dessa motsäger `granskningar/TILLGANGLIGHETSREDOGORELSE.md` direkt (se nedan).
 - Flera tysta felhanteringsluckor i `RutinFormular.jsx`/`LaddaUpp.jsx`/`Profil.jsx`/
   `Admin.jsx` (bl.a. 2FA-policyns spara-knapp kunde se sparad ut medan anropet fallit), en
   blob-URL-läcka, saknad klientvalidering av bilagor mot `storage.rules`s gränser.
 
 **Kvar att göra, i prioritetsordning** (fullständig lista med motivering i
-`SAKERHETSRAPPORT.md`s tillägg):
+`granskningar/SAKERHETSRAPPORT.md`s tillägg):
 1. `functions/backup.js` `aterstallOrganisation` saknar allowlist mot collection-namn.
 2. `storage.rules` `arBild()` tillåter SVG överallt, inklusive organisationslogotypen – ett
    öppet ägarbeslut, nu i `OPPNA-PUNKTER.md`.
 3. Ingen samtidighetshantering vid redigering av samma rutin (rak `updateDoc`, ingen
    version/transaktion) – två redaktörer som sparar överskriver varandra spårlöst.
-4. `TILLGANGLIGHETSREDOGORELSE.md` är INTE rättad mot de tre WCAG-fynden som motsäger den.
+4. `granskningar/TILLGANGLIGHETSREDOGORELSE.md` är INTE rättad mot de tre WCAG-fynden som motsäger den.
 
 npm audit: 7 sårbarheter, men `npm audit --omit=dev` och en separat körning i `functions/` ger
 båda noll – samtliga är dev-only. Den kritiska kräver en planerad major-uppgradering av
@@ -2693,10 +2693,10 @@ Ingen deploy gjord ännu.
 ## Uppföljning 2026-08-11 (juridisk granskning + kodverifiering av dess premisser)
 
 En extern juridisk kartläggning (v2) tillfördes projektet och ligger nu i repot som
-`JURIDISK-GRANSKNING.md` – **internt dokument, delas ALDRIG externt i sin helhet** (innehåller
+`granskningar/JURIDISK-GRANSKNING.md` – **internt dokument, delas ALDRIG externt i sin helhet** (innehåller
 bolags-, bisyssle- och jävsbedömningar; avsnitt 21.4 listar vad som kan omarbetas till
 kundmaterial). Registrerad i `CLAUDE.md`s dokumentkarta bland incidentdokumenten, eftersom den
-har samma interna/externa hantering som `INCIDENT-CHECKLISTA.md`.
+har samma interna/externa hantering som `drift/INCIDENT-CHECKLISTA.md`.
 
 Rapporten markerade fyra tekniska premisser som **[PK]** – slutsatser som hängde på ett
 tekniskt faktum den inte kunnat kontrollera. Samtliga är nu verifierade mot faktisk kod, och
@@ -2743,15 +2743,15 @@ om. Ingen kod ändrad i den här sessionen – bara dokument.
 ## Uppföljning 2026-08-12 (ETAPPLAN13 avstämd mot JURIDISK-GRANSKNING.md)
 
 Sessionen upptäckte att den lokala arbetskopian låg 14 commits efter fjärrgrenen – en annan
-session hade under tiden pushat den breda granskningen (v5.98.0) och `JURIDISK-GRANSKNING.md`.
+session hade under tiden pushat den breda granskningen (v5.98.0) och `granskningar/JURIDISK-GRANSKNING.md`.
 Synkade upp med `git merge --ff-only`, sedan stämde jag av om den nya, bredare juridiska
-granskningen redan täcker `ETAPPLAN13.md`s (Etapp 64) fyra "Klart när"-frågor.
+granskningen redan täcker `etapplaner/ETAPPLAN13.md`s (Etapp 64) fyra "Klart när"-frågor.
 
-**Svar: ja, med god marginal.** `JURIDISK-GRANSKNING.md` §18 ("Frågor att ställa till anlitad
+**Svar: ja, med god marginal.** `granskningar/JURIDISK-GRANSKNING.md` §18 ("Frågor att ställa till anlitad
 jurist") är en färdig, bredare frågelista – dess frågor 1–6 täcker och överträffar planens
-egna fyra. En kommission bör gå efter §18, inte `ETAPPLAN13.md`s egen lista.
+egna fyra. En kommission bör gå efter §18, inte `etapplaner/ETAPPLAN13.md`s egen lista.
 
-**Två saker granskningen hittade som `ETAPPLAN13.md` saknade helt, nu inarbetade:**
+**Två saker granskningen hittade som `etapplaner/ETAPPLAN13.md` saknade helt, nu inarbetade:**
 - **Nytt genomgående krav 27:** varumärkesrätt för instrumentnamn ("RETTS", "VÄST-A") är en
   tredje juridisk risk, skild från MDR och upphovsrätt – aktualiserad av beslutet 2026-08-11
   att namnge och sälja paket. Ingen marknadsföring av namngivna paket förrän juridiken svarat.
@@ -2761,7 +2761,7 @@ egna fyra. En kommission bör gå efter §18, inte `ETAPPLAN13.md`s egen lista.
   `BESLUTSLOGG.md` står kvar oförändrat – det här är en flagga inför juristsamtalet, inte en
   ändring jag gjort på egen hand.
 
-Uppdaterade `ETAPPLAN13.md` (nytt krav 27, reservationstext, omskriven "Klart när"-tabell med
+Uppdaterade `etapplaner/ETAPPLAN13.md` (nytt krav 27, reservationstext, omskriven "Klart när"-tabell med
 fem frågor istället för fyra, tredje granskningsrunda dokumenterad), `CLAUDE.md` (läsordning
 + dokumentkarta, "två" → "tre" regulatoriska gränser) och `OPPNA-PUNKTER.md` (Etapp 64-raden
 pekar nu på §18 och föreslår att samma uppdrag kan omfatta hela den bredare granskningen).
@@ -2773,12 +2773,12 @@ Ingen kod, ingen versionsbump, ingen deploy.
 INTE snabbare svarstider. Gjorde en fullständig genomgång av faktisk kod (samtliga sidor,
 komponenter, hooks) och grepade samtliga `ETAPPLANx.md`-filer för att skilja på genuint nya
 förslag och sådant som redan är byggt eller redan medvetet avfärdat – röstsökning (23d) och
-gamification (poäng/märken/topplistor, `ETAPPLAN12.md`) var redan avfärdade av goda skäl och
+gamification (poäng/märken/topplistor, `etapplaner/ETAPPLAN12.md`) var redan avfärdade av goda skäl och
 återuppfanns inte.
 
 Lade fram åtta förslag; ägaren valde fyra för en ny plan: uppläsning, "ändrat sedan du
-läste", synonymsökning, öva-läge. Skrev `ETAPPLAN14.md` (Etapp 65, delmål 65a–65d) –
-**FÖRESLAGEN, EJ ANTAGEN**. Till skillnad från `ETAPPLAN13.md` är ingen del juridiskt
+läste", synonymsökning, öva-läge. Skrev `etapplaner/ETAPPLAN14.md` (Etapp 65, delmål 65a–65d) –
+**FÖRESLAGEN, EJ ANTAGEN**. Till skillnad från `etapplaner/ETAPPLAN13.md` är ingen del juridiskt
 blockerad; väntar bara på ett ägarbeslut om byggstart.
 
 **Ett konkret premisskontroll-fynd (krav 8) värt att komma ihåg:** 65b ("ändrat sedan du
@@ -2789,12 +2789,12 @@ användargrupp funktionen är byggd för. Måste vidgas till alla organisationsm
 kräver ingen ny kod – `utils/diff.js`s `diffRader()` återanvänds oförändrat.
 
 Uppdaterade `CLAUDE.md` (läsordning omnumrerad, ny rad i dokumentkartan för
-`ETAPPLAN14.md`). Ingen kod, ingen versionsbump, ingen deploy – rent planeringsarbete.
+`etapplaner/ETAPPLAN14.md`). Ingen kod, ingen versionsbump, ingen deploy – rent planeringsarbete.
 Nästa steg: invänta ägarens besked om byggstart.
 
 ## Uppföljning 2026-08-13 (Etapp 65a klar, v5.99.0)
 
-Ägaren bad direkt om byggstart för `ETAPPLAN14.md`s delmål 65a (uppläsning) – samma dag
+Ägaren bad direkt om byggstart för `etapplaner/ETAPPLAN14.md`s delmål 65a (uppläsning) – samma dag
 planen föreslogs. Byggt och klart samma session:
 
 - `src/utils/talText.js` (+ 8 enhetstester): saniterar rå Markdown-text till talbar text –
@@ -2804,25 +2804,25 @@ planen föreslogs. Byggt och klart samma session:
   "sticky" läge – läser om automatiskt vid stegbyte om uppläsning redan var aktiv).
   Avbryter alltid vid avmontering/navigering, plus explicit vid checklistans "Klar"-övergång
   (samma komponentinstans lever kvar där, ett unmount sker inte).
-- Bekräftat att invändningen mot röstsökning (23d, avfärdad i `ETAPPLAN4.md` – ljud som
+- Bekräftat att invändningen mot röstsökning (23d, avfärdad i `etapplaner/ETAPPLAN4.md` – ljud som
   skickas till en tredje part) inte gäller talsyntes: `speechSynthesis` är utdata, inget
   spelas in, inget lämnar enheten.
 
-Två avvikelser från ursprungsplanen (dokumenterade i `ETAPPLAN14.md`s "Genomfört"-avsnitt):
+Två avvikelser från ursprungsplanen (dokumenterade i `etapplaner/ETAPPLAN14.md`s "Genomfört"-avsnitt):
 rösturvalet blev `voice.lang.startsWith("sv")` istället för `voice.localService` (språk är
 den egenskap som faktiskt avgör begriplighet), och talsyntesen delades i en egen hook
 istället för att dupliceras i två komponenter.
 
 Ingen ändring i `firestore.rules`/`storage.rules`/Cloud Functions – bara `lint`/`build`/
 `vitest run` (182/182) körda, alla gröna. Version 5.98.0 → **5.99.0**, `andringslogg.js`
-uppdaterad, `ETAPPLAN14.md` (65a markerad klar + "Genomfört"-avsnitt), `CLAUDE.md`
+uppdaterad, `etapplaner/ETAPPLAN14.md` (65a markerad klar + "Genomfört"-avsnitt), `CLAUDE.md`
 (läsordning + dokumentkarta, "föreslagen" → "delvis byggd"). Committat och pushat.
 **Deployad samma session** (körning #76, commit `3eefd17`, ny asset-hash
 `assets/index-VSVjfc_t.js` bekräftad på `synappsen-final-build.web.app`).
 
 ## Uppföljning 2026-08-13 (Etapp 65b klar, v5.100.0)
 
-Ägaren bad direkt om byggstart för `ETAPPLAN14.md`s delmål 65b ("ändrat sedan du läste").
+Ägaren bad direkt om byggstart för `etapplaner/ETAPPLAN14.md`s delmål 65b ("ändrat sedan du läste").
 Byggt och klart samma session, inklusive den regeländring planen redan hade flaggat som en
 förutsättning:
 
@@ -2845,7 +2845,7 @@ förutsättning:
 - **`src/components/RutinKort.jsx`:** ny klickbar badge + expanderbar `DiffVy`-panel.
 
 **Övervägde men rörde inte incidentdokumenten.** `CLAUDE.md`s underhållsregel flaggar
-regeländringar för granskning mot `INCIDENT-CHECKLISTA.md` steg 4 och
+regeländringar för granskning mot `drift/INCIDENT-CHECKLISTA.md` steg 4 och
 `avtal/INCIDENTRESPONSPLAN.md` avsnitt 4. Bedömning: den här ändringen vidgar bara LÄSNING av
 äldre versioner av innehåll som redan var läsbart i sin nuvarande form (samma organisation,
 samma rutin) – den ändrar varken vilka roller som kan begränsas/återkallas (avsnitt 4:s
@@ -2854,19 +2854,19 @@ exponering kartläggs (checklistans steg 4 räknar redan generiskt "allt som per
 organisation gav åtkomst till"). Inget att uppdatera där.
 
 Ingen ändring i `storage.rules`/Cloud Functions. Version 5.99.0 → **5.100.0**,
-`andringslogg.js` uppdaterad, `ETAPPLAN14.md` (65b markerad klar + "Genomfört"-avsnitt),
+`andringslogg.js` uppdaterad, `etapplaner/ETAPPLAN14.md` (65b markerad klar + "Genomfört"-avsnitt),
 `CLAUDE.md` (dokumentkarta). `lint`/`build`/`vitest run` (186/186)/`test:rules` (samtliga
 sviter, inklusive den nya) alla gröna. Committat och pushat. **Ingen deploy gjord** – inte
 begärd i den här sessionen.
 
 ## Uppföljning 2026-08-13 (Etapp 65c klar, v5.101.0)
 
-Ägaren bad direkt om byggstart för `ETAPPLAN14.md`s delmål 65c (synonymsökning). Byggt och
+Ägaren bad direkt om byggstart för `etapplaner/ETAPPLAN14.md`s delmål 65c (synonymsökning). Byggt och
 klart samma session:
 
 - `src/data/synonymer.js`: 17 synonymgrupper med allmänna kliniska förkortningar (PVK,
   KAD, EKG, BT, HLR m.fl.). Medvetet INGA namngivna varumärkesskyddade instrument – samma
-  gräns som `ETAPPLAN13.md` genomgående krav 27 flaggar för Etapp 64, hölls även här trots
+  gräns som `etapplaner/ETAPPLAN13.md` genomgående krav 27 flaggar för Etapp 64, hölls även här trots
   att den etappen är juridiskt blockerad och den här inte är det.
 - `src/utils/synonymer.js`: `expanderaNyckelord(nyckelord, innehall)`, ren funktion, 7
   enhetstester.
@@ -2876,14 +2876,14 @@ klart samma session:
 
 Ingen ändring i `firestore.rules`/`storage.rules`/Cloud Functions – ren klientsidig
 datafil, ingen ny Firestore-fråga. Version 5.100.0 → **5.101.0**, `andringslogg.js`
-uppdaterad, `ETAPPLAN14.md` (65c markerad klar + "Genomfört"-avsnitt), `CLAUDE.md`
+uppdaterad, `etapplaner/ETAPPLAN14.md` (65c markerad klar + "Genomfört"-avsnitt), `CLAUDE.md`
 (dokumentkarta). `lint`/`build`/`vitest run` (193/193) gröna. Committat och pushat.
 **Ingen deploy gjord** – inte begärd i den här sessionen. Med detta är tre av fyra delmål
 i Etapp 65 klara (65a/65b/65c) – bara 65d (öva-läge) återstår.
 
 ## Uppföljning 2026-08-13 (Etapp 65d klar, v5.102.0 – Etapp 65 helt byggd)
 
-Ägaren bad direkt om byggstart för `ETAPPLAN14.md`s sista delmål, 65d (öva-läge). Byggt och
+Ägaren bad direkt om byggstart för `etapplaner/ETAPPLAN14.md`s sista delmål, 65d (öva-läge). Byggt och
 klart samma session:
 
 - `src/utils/ovaLage.js`: `byggFragepool()` + `slumpaFragor()` (Fisher-Yates), 11
@@ -2901,7 +2901,7 @@ klart samma session:
 
 Ingen ändring i `firestore.rules`/`storage.rules`/Cloud Functions – ingen ny collection,
 ren klientlogik. Version 5.101.0 → **5.102.0**, `andringslogg.js` uppdaterad,
-`ETAPPLAN14.md` (65d markerad klar + "Genomfört"-avsnitt, plus toppstycket omskrivet: HELA
+`etapplaner/ETAPPLAN14.md` (65d markerad klar + "Genomfört"-avsnitt, plus toppstycket omskrivet: HELA
 Etapp 65 är nu klar), `CLAUDE.md` (läsordning + dokumentkarta, "delvis byggd" →
 "helt byggd, inte ännu deployad"). `lint`/`build`/`vitest run` (204/204) gröna – ny lazy
 chunk `OvaLage-*.js` bekräftad i byggutdata. Committat och pushat. **Deployad samma session**
@@ -2922,7 +2922,7 @@ innan planen skrevs och **strök fem av de nio**:
   i `src/` eller `functions/`. Det är ett nybygge, inte en utökning.
 - **Tre bör inte byggas nu**, se nedan.
 
-**`ETAPPLAN15.md` (Etapp 66) skrevs med fyra delmål**, alla tillägg på existerande
+**`etapplaner/ETAPPLAN15.md` (Etapp 66) skrevs med fyra delmål**, alla tillägg på existerande
 datamodeller: 66a förslag når rutinens `agare` (notis), 66b handledarsignering i
 introduktionen, 66c ansvarsområden på personen, 66d driftstörning kopplad till rutin/kategori.
 **Nytt genomgående krav 28:** en signatur om en annan människa får aldrig kunna sättas av
@@ -2930,7 +2930,7 @@ personen själv, och spärren ska ligga i `firestore.rules` (`request.auth.uid !
 gränssnittet.
 
 **Tre idéer medvetet uppskjutna, loggade i planens "Vad jag INTE föreslår":**
-- **Bemanning/scheman – avråds.** Redan avfärdad en gång (`ETAPPLAN4.md` rad 1030). Två skäl
+- **Bemanning/scheman – avråds.** Redan avfärdad en gång (`etapplaner/ETAPPLAN4.md` rad 1030). Två skäl
   till: schemadata är en helt ny GDPR-yta om anställda, och regionen har redan ett system.
   Om det verkliga behovet är "vem ansvarar för vad" är det 66c som löser det.
 - **Rutin-/flödesschemaverktyg – för stort och blandat för en punkt.** Bryt ner: grafiska
@@ -2940,7 +2940,7 @@ gränssnittet.
   löser inte upphovsrättsfrågan* – mänsklig granskning gör inte ett bearbetat verk till ett
   icke-intrång.
 
-**Tillagt i `JURIDISK-GRANSKNING.md` §18: frågorna 20–22** (AI-sammanfattning, patientriktad
+**Tillagt i `granskningar/JURIDISK-GRANSKNING.md` §18: frågorna 20–22** (AI-sammanfattning, patientriktad
 information, flödesschemaverktyg) – så att de kommer med i SAMMA juridiska uppdrag som Etapp
 64 i stället för att kräva ett andra uppdrag senare. `OPPNA-PUNKTER.md`s Etapp 64-rad pekar
 nu på det.
@@ -2955,7 +2955,7 @@ inkonsekventa i fyra olika varianter (`# ETAPPLAN 5`, `# ETAPPLAN3`, `# Synappse
 etappindelad utvecklingsplan`, `# Etapplan 12`). Ägaren bad om formen **`Etapplan N`** rakt
 igenom, och uttryckligen om att hela serien skulle normaliseras – inte bara den nya filen.
 13 filer ändrade, **enbart rad 1 i varje** (verifierat: `13 files changed, 13 insertions(+),
-13 deletions(-)`), inget sakinnehåll rört. `ETAPPLAN.md` och `ETAPPLAN2.md` hade inget
+13 deletions(-)`), inget sakinnehåll rört. `etapplaner/ETAPPLAN.md` och `etapplaner/ETAPPLAN2.md` hade inget
 nummer alls i rubriken och fick 1 respektive 2.
 
 Detta är värt att notera eftersom `CLAUDE.md` säger att de historiska planfilerna inte ska
@@ -2967,7 +2967,7 @@ korsreferens i projektet pekar på filnamnet, inte på rubriken.
 
 ## Uppföljning 2026-08-14 (Etapp 66a klar, v5.103.0)
 
-Ägaren bad om byggstart för `ETAPPLAN15.md`s delmål 66a (förbättringsförslag når rutinens
+Ägaren bad om byggstart för `etapplaner/ETAPPLAN15.md`s delmål 66a (förbättringsförslag når rutinens
 ansvariga). Byggt och klart samma session.
 
 **Premisskontrollen vid byggstart rättade planens egen premisskontroll.** Planen påstod att
@@ -2995,13 +2995,13 @@ inte misstas för en bugg.
 
 Ingen ändring i `firestore.rules`/`storage.rules`/Cloud Functions, ingen ny collection, inget
 nytt fält, ingen ny Firestore-fråga. Version 5.102.0 → **5.103.0**, `andringslogg.js`
-uppdaterad, `ETAPPLAN15.md` (66a klar + "Genomfört"), `CLAUDE.md` (läsordning +
+uppdaterad, `etapplaner/ETAPPLAN15.md` (66a klar + "Genomfört"), `CLAUDE.md` (läsordning +
 dokumentkarta). `lint`/`build`/`vitest run` (212/212) gröna. Committat och pushat. **Ingen
 deploy gjord** – inte begärd i den här sessionen.
 
 ## Uppföljning 2026-08-14 (Etapp 66b klar, v5.104.0)
 
-Ägaren bad om byggstart för `ETAPPLAN15.md`s delmål 66b (handledarsignering i
+Ägaren bad om byggstart för `etapplaner/ETAPPLAN15.md`s delmål 66b (handledarsignering i
 introduktionen). Byggt och klart samma session.
 
 - **`firestore.rules`:** ny subcollection `introduktionstilldelningar/{uid}/signeringar/
@@ -3024,7 +3024,7 @@ misstag (`taBortSignering`, loggat i revisionsloggen). Frågan är sammanslagen 
 `OPPNA-PUNKTER.md`s redan öppna rad om revisionsloggens gallringstid, som samma underliggande
 fråga, i stället för en ny separat rad.
 
-**Obligatorisk följdåtgärd (ny personuppgiftscollection):** `INCIDENT-CHECKLISTA.md` steg 5
+**Obligatorisk följdåtgärd (ny personuppgiftscollection):** `drift/INCIDENT-CHECKLISTA.md` steg 5
 uppdaterad. `avtal/INCIDENTRESPONSPLAN.md` avsnitt 2 rördes INTE – samma precedent som Etapp
 64/65b: avsnittet är generiska definitioner, ingen collection-för-collection-inventering, och
 ingen detektions-/begränsningsförmåga ändras.
@@ -3032,14 +3032,14 @@ ingen detektions-/begränsningsförmåga ändras.
 Ny testfil `tests/rules/introduktionssigneringar.test.mjs`, 11 tester (självsignering avvisas,
 organisationsisolering, dubblettsignering avvisas, läs-/raderingsbehörighet), körda mot
 emulatorn: 11/11 gröna, hela `test:rules`-sviten fortsatt grön. Version 5.103.0 → **5.104.0**,
-`andringslogg.js` uppdaterad, `ETAPPLAN15.md` (66b klar + "Genomfört"), `CLAUDE.md`
+`andringslogg.js` uppdaterad, `etapplaner/ETAPPLAN15.md` (66b klar + "Genomfört"), `CLAUDE.md`
 (läsordning + dokumentkarta), `OPPNA-PUNKTER.md` (gallringsraden utökad).
 `lint`/`build`/`vitest run` (212/212) gröna. Committat och pushat. **Ingen deploy gjord** –
 inte begärd i den här sessionen.
 
 ## Uppföljning 2026-08-14 (Etapp 66c klar, v5.105.0)
 
-Ägaren bad om byggstart för `ETAPPLAN15.md`s delmål 66c (ansvarsområden på personen). Byggt
+Ägaren bad om byggstart för `etapplaner/ETAPPLAN15.md`s delmål 66c (ansvarsområden på personen). Byggt
 och klart samma session.
 
 - **Nytt fält `users/{uid}.ansvarsomraden: string[]`**, samma kommaseparerade
@@ -3060,19 +3060,19 @@ och klart samma session.
   begrepp) – att uppfinna en matchningsregel hade riskerat att bygga fel sak. Var en
   "Bygge"-punkt i planen, inte en del av "Klart när"-kriteriet.
 - Ny personuppgift (`ansvarsomraden` på en redan existerande collection) tillagd i
-  `INCIDENT-CHECKLISTA.md` steg 5:s inventeringsruta. `avtal/INCIDENTRESPONSPLAN.md` rördes
+  `drift/INCIDENT-CHECKLISTA.md` steg 5:s inventeringsruta. `avtal/INCIDENTRESPONSPLAN.md` rördes
   INTE – ingen ny collection, ingen regeländring, ingen detektions-/begränsningsförmåga
   ändrad.
 
 Ingen ändring i `storage.rules`/Cloud Functions. Version 5.104.0 → **5.105.0**,
-`andringslogg.js` uppdaterad, `ETAPPLAN15.md` (66c klar + "Genomfört"), `CLAUDE.md`
+`andringslogg.js` uppdaterad, `etapplaner/ETAPPLAN15.md` (66c klar + "Genomfört"), `CLAUDE.md`
 (läsordning + dokumentkarta). 4 nya regeltester gröna, hela `test:rules`-sviten fortsatt
 grön. `lint`/`build`/`vitest run` (212/212) gröna. Committat och pushat. **Ingen deploy
 gjord** – inte begärd i den här sessionen. Bara 66d (driftstörningslogg) återstår i Etapp 66.
 
 ## Uppföljning 2026-08-14 (Etapp 66d klar, v5.106.0 – Etapp 66 helt byggd)
 
-Ägaren bad om byggstart för `ETAPPLAN15.md`s sista delmål, 66d (driftstörningslogg kopplad
+Ägaren bad om byggstart för `etapplaner/ETAPPLAN15.md`s sista delmål, 66d (driftstörningslogg kopplad
 till rutin och åtgärd). Byggt och klart samma session.
 
 - **Två nya fält på `skiftrapporter`:** `kategori` (fast lista – lokal/it/medicinteknik/
@@ -3088,7 +3088,7 @@ till rutin och åtgärd). Byggt och klart samma session.
   saknade redan en tidsbegränsning – `VISNINGSGRANS_TIMMAR` filtrerar bara klientsidan, all
   historik fanns alltså redan laddad. Exponerade den bara som ett nytt `alla`-fält från
   hooken.
-- **Namngivningsdistinktionen mot `INCIDENT-CHECKLISTA.md`/`avtal/INCIDENTRESPONSPLAN.md`
+- **Namngivningsdistinktionen mot `drift/INCIDENT-CHECKLISTA.md`/`avtal/INCIDENTRESPONSPLAN.md`
   hölls medvetet isär**, precis som planen krävde – det här är en driftstörningslogg, inte en
   säkerhetsincident med rättsliga tidsfrister.
 - **Övervägde men rörde inte incidentdokumenten.** Regeländringen vidgar bara vilka FÄLT som
@@ -3100,7 +3100,7 @@ Ny testfil `tests/rules/skiftrapportkategorisering.test.mjs`, 9 tester (skapande
 ogiltig kategori, kategorisering av en icke-ägare, text oföränderlig, null-rensning,
 organisationsisolering), körda mot emulatorn: 9/9 gröna, hela `test:rules`-sviten (nu 15
 filer) fortsatt grön. Version 5.105.0 → **5.106.0**, `andringslogg.js` uppdaterad,
-`ETAPPLAN15.md` (66d klar + "Genomfört", plus toppstycket omskrivet: HELA Etapp 66 är nu
+`etapplaner/ETAPPLAN15.md` (66d klar + "Genomfört", plus toppstycket omskrivet: HELA Etapp 66 är nu
 klar), `CLAUDE.md` (läsordning + dokumentkarta, "delvis byggd" → "helt klar, inte ännu
 deployad"). `lint`/`build`/`vitest run` (212/212) gröna. Committat och pushat. **Ingen
 deploy gjord** – inte begärd i den här sessionen. Nästa steg: en deploy skulle ta med sig
@@ -3132,8 +3132,8 @@ efter deploy-triggern, besvarade medan deployen kördes) – samtliga fyra logga
    anser vara bäst"). Valde att bara rätta formuleringen, inte bygga en serverside `hasOnly`-
    spärr nu. Grep över hela repot efter de aktuella fraserna visade att den felaktiga
    "strukturellt begränsat"-formuleringen bara fanns på ETT ställe utanför granskningens egen
-   rättelseruta: `JURIDISK-GRANSKNING.md` §6.2:s tabellcell (rad 359). De andra fyra träffarna
-   (`ETAPPLAN3.md`, `ETAPPLAN4.md`, `SAKERHETSRAPPORT.md`, samt gårdagens egen rättelsetext i
+   rättelseruta: `granskningar/JURIDISK-GRANSKNING.md` §6.2:s tabellcell (rad 359). De andra fyra träffarna
+   (`etapplaner/ETAPPLAN3.md`, `etapplaner/ETAPPLAN4.md`, `granskningar/SAKERHETSRAPPORT.md`, samt gårdagens egen rättelsetext i
    den här filen) beskriver bara fältformen neutralt utan att påstå regelnivå-enforcement –
    rördes inte. Tabellcellen skrevs om för att inte längre påstå att spärren "sitter i
    datamodellen". Ingen kodändring.
@@ -3157,15 +3157,15 @@ att `image/.*` FAKTISKT matchar `image/svg+xml` i emulatorn (det gör den). Fixa
 tester som bevisar SVG-spärren på rutinbilagor, profilbilder och organisationslogotyp.
 `test:storage` 24/24 gröna (tidigare 21/21).
 
-**Övervägde men rörde inte:** `avtal/INCIDENTRESPONSPLAN.md`/`INCIDENT-CHECKLISTA.md` – SVG-
+**Övervägde men rörde inte:** `avtal/INCIDENTRESPONSPLAN.md`/`drift/INCIDENT-CHECKLISTA.md` – SVG-
 fixen ändrar inte vem som får agera eller någon detektions-/begränsningsförmåga, bara vilken
 filtyp som accepteras. `avtal/PUB-AVTAL-MALL.md` p. 6:s "raderas ALDRIG"-text för revisionsloggen
 rördes INTE – gallringsbeslutet är taget men inte byggt, så avtalstexten skulle bli osann om den
 ändrades i förväg.
 
-**Genomfört:** `storage.rules`, `tests/rules/storage.test.mjs` (24 tester), `JURIDISK-GRANSKNING.md`
+**Genomfört:** `storage.rules`, `tests/rules/storage.test.mjs` (24 tester), `granskningar/JURIDISK-GRANSKNING.md`
 §6.2, `OPPNA-PUNKTER.md` (fyra rader borttagna), `BESLUTSLOGG.md` (fyra nya rader), `CLAUDE.md`
-(läsordning + dokumentkarta, deploy-status rättad), `ETAPPLAN15.md` (toppstycke, deploy-status
+(läsordning + dokumentkarta, deploy-status rättad), `etapplaner/ETAPPLAN15.md` (toppstycke, deploy-status
 rättad), `src/data/andringslogg.js`. Version 5.106.0 → **5.107.0**. `test:storage` kört och grönt
 (24/24). `lint`/`build`/`vitest run` körs innan commit. Inte deployat än – v5.107.0 väntar på
 nästa deploy-tillfälle.
@@ -3177,7 +3177,7 @@ av alla kunder. Svaret efter en kodgenomgång: **ja till förvaltning, nej till 
 `src/pages/Leverantor.jsx` (990 rader) kan redan nästan allt som behöver GÖRAS med en kund,
 men svarar inte på "vad behöver jag göra något åt i dag?" utan att man läser hela listan.
 
-**`ETAPPLAN16.md` skriven som utkast (Etapp 67, fem delmål 67a–67e).** INTE antagen – väntar
+**`etapplaner/ETAPPLAN16.md` skriven som utkast (Etapp 67, fem delmål 67a–67e).** INTE antagen – väntar
 på ägarens ställningstagande. Ingen rad kod skriven. Registrerad i `CLAUDE.md`s dokumentkarta
 som utkast, medvetet INTE i läsordningens numrerade lista (den är för antagna planer – samma
 behandling som `ETAPPLAN5-ALT-A/B.md` fick).
@@ -3211,17 +3211,17 @@ fältet finns redan i `organisationslivscykel.js:94` men returneras inte), och o
 är rätt (om den ska kortas faller 67e först, sedan 67d).
 
 Ingen versionsbump, ingen changelog-post – inget kundvänt har byggts. Endast
-`ETAPPLAN16.md` (ny), `CLAUDE.md` (dokumentkartan) och den här sektionen.
+`etapplaner/ETAPPLAN16.md` (ny), `CLAUDE.md` (dokumentkartan) och den här sektionen.
 
 ## Uppföljning 2026-08-16 (Etapp 67a klar, v5.108.0 – leverantörsvyn fick en väg in)
 
-Ägaren bad om delmål 67a ur `ETAPPLAN16.md`. **Planen som helhet är fortfarande inte antagen**
+Ägaren bad om delmål 67a ur `etapplaner/ETAPPLAN16.md`. **Planen som helhet är fortfarande inte antagen**
 – de tre beslutspunkterna är obesvarade – men 67a byggdes separat eftersom det var fristående
 från dem: det gör en befintlig vy nåbar och rör varken omfattning, datamodell eller server.
 
 **Problemet som löstes:** `/leverantor` har sedan Etapp 6a saknat länk från gränssnittet
 HELT. Vyn nåddes bara genom att skriva adressen för hand. Det är särskilt allvarligt eftersom
-`INCIDENT-CHECKLISTA.md` pekar dit på fem ställen under tidspress, bland annat för det globala
+`drift/INCIDENT-CHECKLISTA.md` pekar dit på fem ställen under tidspress, bland annat för det globala
 e-postnödstoppet.
 
 **Två avvikelser mot planens egen skiss, båda funna i premisskontrollen av bygget:**
@@ -3251,8 +3251,8 @@ från Firebase-importer. Sakligt en bättre hemvist också: den står nu bredvid
 **Filer:** nya `src/hooks/useArPlattformsadmin.js` och
 `src/firebase/arPlattformsadminGating.test.js` (4 tester som låser superadmin-avgränsningen);
 ändrade `src/firebase/roles.js`, `src/components/BottomNav.jsx`, `src/hooks/useSokindex.js`,
-`INCIDENT-CHECKLISTA.md` (snabbreferensen "Var saker finns" + datumraden),
-`ETAPPLAN16.md` (67a ✅ + "Genomfört"), `CLAUDE.md`, `src/data/andringslogg.js`.
+`drift/INCIDENT-CHECKLISTA.md` (snabbreferensen "Var saker finns" + datumraden),
+`etapplaner/ETAPPLAN16.md` (67a ✅ + "Genomfört"), `CLAUDE.md`, `src/data/andringslogg.js`.
 
 **Övervägde men rörde inte `avtal/INCIDENTRESPONSPLAN.md`** – ingen detektions-,
 begränsnings- eller återställningsförmåga ändrad, inga nya personuppgifter, ingen
@@ -3303,7 +3303,7 @@ v5.106.0 (körning #78, commit `ef7c841`) tills någon triggar om den manuellt.
 ## Uppföljning 2026-08-16 (ETAPPLAN16.md ANTAGEN – ägaren följde alla tre rekommendationer)
 
 Ägaren svarade "vi följer dina rekommendationer" på de tre öppna beslutspunkterna i
-`ETAPPLAN16.md`. Loggat i `BESLUTSLOGG.md`. Beslut: (1) samma sida som `/leverantor`, inte en
+`etapplaner/ETAPPLAN16.md`. Loggat i `BESLUTSLOGG.md`. Beslut: (1) samma sida som `/leverantor`, inte en
 separat `/leverantor/oversikt`; (2) bygg `avtalsstatusAndrad` väg (a) – `serverTimestamp()` i
 `satAvtalsstatus` + `skapad` börjar returneras av `listaOrganisationer`; (3) omfattningen
 (67b–67e) kortas inte.
@@ -3311,7 +3311,7 @@ separat `/leverantor/oversikt`; (2) bygg `avtalsstatusAndrad` väg (a) – `serv
 Planen är alltså **antagen**. 67a var redan klart (v5.108.0, byggt separat samma dag eftersom
 det var fristående från beslutspunkterna). 67b–67e är antagna men INTE byggda ännu – väntar på
 nästa "genomför delmål 67x". Ingen kod skriven i den här uppföljningen, bara planfilerna
-(`ETAPPLAN16.md`, `CLAUDE.md`, `BESLUTSLOGG.md`) uppdaterade.
+(`etapplaner/ETAPPLAN16.md`, `CLAUDE.md`, `BESLUTSLOGG.md`) uppdaterade.
 
 **Deployläget är oförändrat sedan förra uppföljningen** – v5.107.0/v5.108.0 ligger fortfarande
 pushade men odeployade, blockerat av att GitHub Actions inte tilldelar någon runner (se
@@ -3347,7 +3347,7 @@ användare märker av. Committat och pushat. **Ingen deploy** – ägaren har be
 
 ## Uppföljning 2026-08-16 (Etapp 67b klar, v5.110.0 – nyckeltalsrad)
 
-Ägaren bad om att köra `ETAPPLAN16.md`s kvarvarande delmål (67b–67e) i följd, utan att stanna
+Ägaren bad om att köra `etapplaner/ETAPPLAN16.md`s kvarvarande delmål (67b–67e) i följd, utan att stanna
 mellan varje. Det här är det första i den kedjan.
 
 **Byggt:** ny delad util `src/utils/leverantorSignaler.js` (`berakLeverantorSignaler`) – byggd
@@ -3424,7 +3424,7 @@ Version 5.111.0 → **5.112.0**. Fortsätter nu direkt med sista delmålet, 67e 
 ## Uppföljning 2026-08-17 (Etapp 67e klar, v5.113.0 – Etapp 67 helt byggd)
 
 Sista delmålet i den obevakade kedjan (67b–67e), begärd av ägaren 2026-08-16. **Med det är
-`ETAPPLAN16.md` (Etapp 67, leverantörsdashboarden) helt byggd** – fem delmål över två dagar
+`etapplaner/ETAPPLAN16.md` (Etapp 67, leverantörsdashboarden) helt byggd** – fem delmål över två dagar
 (67a v5.108.0, beslutspunkt 2 v5.109.0, 67b v5.110.0, 67c v5.111.0, 67d v5.112.0, 67e v5.113.0).
 
 **Byggt:** `Leverantor.jsx` delades från 1145 rader till **217**. Sex nya filer i
@@ -3453,9 +3453,9 @@ beteende – en förbättring smugglad in i en refaktorering är precis vad "ren
 `vitest run` (239/239, oförändrat) gröna, vilket bekräftar att inget importfel eller trasig
 referens smög sig in under omskrivningen.
 
-**Dokumentation avslutad för hela etappen:** `ETAPPLAN16.md`s toppstycke, sammanfattningstabell
+**Dokumentation avslutad för hela etappen:** `etapplaner/ETAPPLAN16.md`s toppstycke, sammanfattningstabell
 och beslutspunkter uppdaterade till "HELT KLAR". `CLAUDE.md`s läsordning fick en ny post 3
-(`ETAPPLAN16.md`), övriga punkter numrerade om ett steg (samma mönster som när `ETAPPLAN15.md`
+(`etapplaner/ETAPPLAN16.md`), övriga punkter numrerade om ett steg (samma mönster som när `etapplaner/ETAPPLAN15.md`
 sattes in tidigare) – och dokumentkartans tabellrad uppdaterad från "ANTAGEN" till "HELT KLAR".
 
 Version 5.112.0 → **5.113.0**. **Fem versioner (v5.107.0–v5.115.0) ligger nu pushade men
@@ -3466,7 +3466,7 @@ initiativ.
 ## Uppföljning 2026-08-17 (säkerhetsgranskning Del 1 av 4, v5.114.0)
 
 Ägaren beställde en **komplett säkerhetsgranskning av all kod**, uppdelad i fyra omgångar med
-patchning allt eftersom. Fullständigt arbetsunderlag: **`SAKERHETSGRANSKNING-2026-08.md`** –
+patchning allt eftersom. Fullständigt arbetsunderlag: **`granskningar/SAKERHETSGRANSKNING-2026-08.md`** –
 läs den, inte den här sektionen, för detaljerna. Tre ägarbeslut styr arbetet: patcha direkt men
 flagga det som kan bryta produktionsåtkomst; försök uppgradera firebase-tools men rulla tillbaka
 om det brister; **deploya inget oavsett fynd**.
@@ -3494,7 +3494,7 @@ organisationsisolering. Den kritiska `tar`-sårbarheten kvarstår därmed – de
 **Processfynd (1.8) som är värt att komma ihåg:** `tests/docs/pitch-version.test.js` failade
 **redan innan granskningen**, sedan v5.113.0. Orsaken är att releaserutinen kört testsvepet
 FÖRE versionsbumpen – vakthunden jämför mot `package.json` och såg alltid den gamla versionen.
-v5.113.0 committades därför med ett rött test. `PITCH.md` är nu uppdaterad (version + de
+v5.113.0 committades därför med ett rött test. `saljmaterial/PITCH.md` är nu uppdaterad (version + de
 kundvända funktioner som saknades från Etapp 65/66). **Kör testsvepet EFTER bumpen framåt.**
 
 Full svit grön: `lint`, `build`, `vitest` 239/239, `test:rules` 16 filer 0 fel, `test:storage`
@@ -3507,7 +3507,7 @@ schemalagda funktionerna faktiskt skriver dit.
 ## Uppföljning 2026-08-17 (säkerhetsgranskning Del 2 av 4, v5.115.0)
 
 Del 2 (Cloud Functions, 14 filer, ~5 500 rader, ~93 exports) klar. Rapport:
-`SAKERHETSGRANSKNING-2026-08.md`.
+`granskningar/SAKERHETSGRANSKNING-2026-08.md`.
 
 **Den öppna frågan från Del 1 besvarades – och det läckte.** `verifieraRevisionskedjor()`
 (nattjobbet 04:00) skrev varje avvikande organisations ID till både
@@ -3554,7 +3554,7 @@ fortfarande öppna i produktion.
 ## Uppföljning 2026-08-17 (säkerhetsgranskning Del 3 av 4, v5.116.0)
 
 Del 3 (`src/hooks/` 60 filer, `src/firebase/` 10, `src/utils/` 28) klar. Rapport:
-`SAKERHETSGRANSKNING-2026-08.md`.
+`granskningar/SAKERHETSGRANSKNING-2026-08.md`.
 
 **Den lönsammaste tråden var en egenkontroll av mina egna tidigare patchar.** Del 1 lade ett
 fältfilter på `checklistkorningar` (`hasOnly([... 'avbrottPerSteg'])`). Klienten skriver
@@ -3612,8 +3612,8 @@ deployat.** Obs: v5.114.0 får INTE deployas utan v5.116.0 – Del 1:s regressio
 Del 4 (`src/components/` + `src/pages/`, 131 filer, plus CSP, service workern, fem
 GitHub Actions-workflows och beroendekedjan) klar. Därmed är hela den fyrdelade granskningen
 avslutad: **17 fynd, 12 patchade, 3 flaggade för ägarbeslut, 2 dokumenterade.** Fullständig
-rapport: `SAKERHETSGRANSKNING-2026-08.md`. Sammanfattning även inskriven som ett
-`## Tillägg`-block i `SAKERHETSRAPPORT.md`, enligt den återkommande säkerhetsgenomgångens
+rapport: `granskningar/SAKERHETSGRANSKNING-2026-08.md`. Sammanfattning även inskriven som ett
+`## Tillägg`-block i `granskningar/SAKERHETSRAPPORT.md`, enligt den återkommande säkerhetsgenomgångens
 rutin.
 
 **Arbetssättet i Del 4 skilde sig:** en parallell delagent gjorde breddsvepet av komponenter
@@ -3703,7 +3703,7 @@ bundlen. Regelfilerna deployades i samma `firebase deploy`, och jobbet kör lint
 körningen.
 
 **Kvar att besluta:** de tre flaggade punkterna i `OPPNA-PUNKTER.md` (3.3 push-tokens,
-4.1 skarp CSP, 4.7 pinnade actions), samt glappet mellan `VARUMARKE.md` §12 och den faktiska
+4.1 skarp CSP, 4.7 pinnade actions), samt glappet mellan `produkt/VARUMARKE.md` §12 och den faktiska
 appikonen (se jämförelsen 2026-08-21).
 
 ## RÄTTELSE 2026-08-21 (körning #81 deployade INTE hosting)
@@ -3785,7 +3785,7 @@ en hash utan jämförelse bevisar ingenting.
 
 ## Uppföljning 2026-08-21 (Etapp 68a och 68b, v5.118.0)
 
-Ägaren antog `ETAPPLAN17.md` delvis och bad om 68a och 68b nu, med 68c, 68d och 68f
+Ägaren antog `etapplaner/ETAPPLAN17.md` delvis och bad om 68a och 68b nu, med 68c, 68d och 68f
 schemalagda 3,5 timmar senare. Båda klara.
 
 **68a, tokendisciplin.** 37 hårdkodade hexvärden i 16 filer, inte 141 i 10 som planens
@@ -3814,7 +3814,7 @@ Kvar utanför `index.css`: 9 förekomster, samtliga token-DEKLARATIONER eller do
 utskriftsfärger. Det är rätt slutläge, inte en rest.
 
 **68b, primärfärgen.** Ljust läges `--primar` bytt från `#2563eb` till `#2F5FD6`, färgen
-`GRAFISK-PROFIL.md` hela tiden uppgett men som aldrig landat i koden. Bytet gjordes på
+`produkt/GRAFISK-PROFIL.md` hela tiden uppgett men som aldrig landat i koden. Bytet gjordes på
 mätning (krav 30): 5,63:1 mot vit yta i stället för 5,17:1, och 5,31:1 mot `--bg` i stället
 för 4,88:1. **Den nya färgen har alltså mer marginal än den den ersätter.**
 `--primar-mork` `#274eaf` och `--primar-ljus` `#f0f4fc` härledda ur basen.
@@ -3847,7 +3847,7 @@ sessionsbunden och jobbet hade redan försvunnit när sessionen startade om.
 `.knapp` sätter `color: var(--yta)`, inte vit, och `--yta` växlar med temat. Primärknappen
 mäter 5,63 / 5,02 / 5,70 / 5,18:1 i ljust läge och 4,87 / 10,27 / 6,58 / 7,91:1 i mörkt, för
 de fyra accenterna. **Den har alltså aldrig haft defekten.** Siffran 3,68:1 som både planen
-och `VARUMARKE.md` P5 byggde på mätte ett par som inte finns i appen.
+och `produkt/VARUMARKE.md` P5 byggde på mätte ett par som inte finns i appen.
 
 Den riktiga defekten var smalare och värre: **sju regler sätter vit text på `--primar`**, och
 alla sju faller i mörkt läge, från 3,68:1 (blå) till **1,74:1 (grön)**. Den sjunde är
@@ -3869,7 +3869,7 @@ kontrollgränser. Nya värden `#7d8a99` och `#606f89` ger ca 3,5:1. Defekten fan
 Etapp 68.
 
 **68f: två dokumenterade avvikelser gick att stänga, en tredje inte.**
-`TILLGANGLIGHETSREDOGORELSE.md` avvikelse 9 (blå accent 3,98:1 mot kortyta i mörkt läge) är
+`granskningar/TILLGANGLIGHETSREDOGORELSE.md` avvikelse 9 (blå accent 3,98:1 mot kortyta i mörkt läge) är
 **ommätt till 4,87:1 och åtgärdad** — siffran var stale mot en tidigare palett, och vakten
 bevakar den nu. Avvikelse 8 är **delvis** åtgärdad: `--kant-stark` är fixad, men den
 generella `--kant` (1,23:1) kvarstår.
@@ -3879,8 +3879,8 @@ både fältgränser och kortkanter. En rättning kräver antingen ett eget `--ka
 applicerat på formulärkontroller, eller ett medvetet beslut att mörka varje kortkant i appen.
 Det är en synlig omdesign, inte en bugfix, och hör inte hemma i ett delmål om knappkontrast.
 
-Även: `VARUMARKE.md` §12 beskriver nu symbolen som faktiskt ligger i `public/`, P5 är struken,
-och `ETAPPLAN17.md`s premisskontroll är rättad från "141 hexvärden i 10 filer" till korrekta
+Även: `produkt/VARUMARKE.md` §12 beskriver nu symbolen som faktiskt ligger i `public/`, P5 är struken,
+och `etapplaner/ETAPPLAN17.md`s premisskontroll är rättad från "141 hexvärden i 10 filer" till korrekta
 **37 i 16**. Den felräkningen var min och räknade in `index.css`.
 
 Fullt svep grönt: lint, build, vitest, `test:e2e` med axe-core mot 25 routes i sju roller.
@@ -3941,7 +3941,7 @@ hovern osynlig, den går nu till `--text-svag`.
 Verifierat både mätt och renderat (Chromium, före/efter sida vid sida): fälten blir tydligt
 avgränsade, korten oförändrade.
 
-`TILLGANGLIGHETSREDOGORELSE.md` avvikelse 8 (SYN-6) går därmed från "delvis åtgärdad" till
+`granskningar/TILLGANGLIGHETSREDOGORELSE.md` avvikelse 8 (SYN-6) går därmed från "delvis åtgärdad" till
 **ÅTGÄRDAD**. Samtidigt rättad: dokumentet angav 91 användningar, rätt siffra är 117.
 
 Fullt svep grönt: lint, build, vitest 368/368, `test:rules`, `test:functions`, `test:storage`
@@ -3964,8 +3964,8 @@ producerar, alltså inte bara "en ny hash" utan bit-för-bit samma build-output 
 
 ## Uppföljning 2026-08-22 (Etapp 68e + 68f-rättelse, v5.121.0 – ETAPP 68 HELT KLAR)
 
-Ägaren bad om att samtliga steg i `ETAPPLAN17.md` slutförs, med sub-agenter, snabbt. Två
-agenter kördes parallellt: en för typsnittet, en för `GRAFISK-PROFIL.md`.
+Ägaren bad om att samtliga steg i `etapplaner/ETAPPLAN17.md` slutförs, med sub-agenter, snabbt. Två
+agenter kördes parallellt: en för typsnittet, en för `produkt/GRAFISK-PROFIL.md`.
 
 **68e – typsnittet.** Beslutspunkt 1 blev därmed ja. Min rekommendation var att vänta, och
 den fick stå tillbaka – det är ägarens beslut och det är loggat som sådant i `BESLUTSLOGG.md`.
@@ -3980,8 +3980,8 @@ och ett förstabesök helt offline hade renderats i systemtypsnittet. Tillagt oc
 entries, 1782,14 → 1827,10 KiB (+2,5 %).
 
 **68f – rättelse av ett felaktigt ✅.** 68f markerades KLAR tidigare samma dag, men bara
-`VARUMARKE.md`-delen var gjord. `GRAFISK-PROFIL.md` fanns **inte i repot alls**, trots att både
-delmålet och `VARUMARKE.md` P2 pekade på den. Den är nu skriven från faktisk kod (538 rader) och
+`produkt/VARUMARKE.md`-delen var gjord. `produkt/GRAFISK-PROFIL.md` fanns **inte i repot alls**, trots att både
+delmålet och `produkt/VARUMARKE.md` P2 pekade på den. Den är nu skriven från faktisk kod (538 rader) och
 committad, och P2 är delvis avbockad. Värt att notera i just det här projektet: det var precis
 det stale-mönster `CLAUDE.md` varnar för, och jag orsakade det själv genom att bocka av ett
 delmål på halva innehållet. Agentens utkast påstod dessutom i sitt typografiavsnitt att appen
@@ -3989,10 +3989,10 @@ saknar webbfont – sant när den läste filen, falskt när den skrev den. Rätt
 
 **Beslutspunkt 2 och 3 avgjorda** (kortskuggor respektive radieskala): båda nej, ingen
 kodändring, se `BESLUTSLOGG.md`. Prototypens `0 10px 24px`-skuggor drar mot en brådska
-`VARUMARKE.md` §5 uttryckligen inte vill ha, och dess åtta radievärden (inklusive 9 och 11)
+`produkt/VARUMARKE.md` §5 uttryckligen inte vill ha, och dess åtta radievärden (inklusive 9 och 11)
 avslöjar handjustering per komponent snarare än en skala.
 
-**`ETAPPLAN17.md` / Etapp 68 är därmed HELT KLAR** – 68a–68g byggda, alla tre beslutspunkter
+**`etapplaner/ETAPPLAN17.md` / Etapp 68 är därmed HELT KLAR** – 68a–68g byggda, alla tre beslutspunkter
 avgjorda. Ingen aktiv etapplan väntar just nu; fråga ägaren vad nästa etapp ska vara, eller läs
 `OPPNA-PUNKTER.md`.
 
@@ -4010,7 +4010,7 @@ och alltså inte kunde funnits där innan.
 
 Ägaren frågade om appen kan få en mobil- och en datorversion, bad om en demo, och därefter om
 en etapplan plus fler UI-förbättringar. Demon ligger som artefakt ("Synappsen på dator", ett
-reglage som växlar mellan dagens utseende och förslaget). `ETAPPLAN18.md` är skriven men
+reglage som växlar mellan dagens utseende och förslaget). `etapplaner/ETAPPLAN18.md` är skriven men
 **EJ ANTAGEN** – tre beslutspunkter väntar på ägaren.
 
 **Genomgången av UI-lagret gav ett fynd som inte har med skärmbredd att göra och som bör
@@ -4039,7 +4039,7 @@ enhetsdetektering – motiverat i planen.
 
 ## Uppföljning 2026-08-22 (Etapp 69 ANTAGEN + delmål 69h byggt, v5.122.0)
 
-Ägaren antog `ETAPPLAN18.md` utan invändningar mot rekommendationerna, vilket avgör alla tre
+Ägaren antog `etapplaner/ETAPPLAN18.md` utan invändningar mot rekommendationerna, vilket avgör alla tre
 beslutspunkter: brytpunkt **1024 px**, **fast** sidomeny, akutläget **orört**. Se
 `BESLUTSLOGG.md`. Samtidigt tillkom **69h**: inloggningssidan görs om helt, med varumärkes-
 profilen som ram.
@@ -4075,7 +4075,7 @@ defekt i produktion och kan tas när som helst.
 
 ## Uppföljning 2026-08-22 (delmål 69e byggt, v5.123.0)
 
-Fortsatte med nästa steg i den antagna `ETAPPLAN18.md`: **69e**, det fristående delmålet som
+Fortsatte med nästa steg i den antagna `etapplaner/ETAPPLAN18.md`: **69e**, det fristående delmålet som
 rättar en WCAG-defekt som redan låg i produktion. `SokFalt`, `KommandopalettInnehall` och
 `Notisklocka` hade `outline: none` på fokus utan en tillräcklig ersättning (1,06–1,14:1 mot
 kravet 3:1).
@@ -4097,7 +4097,7 @@ Kvar i Etapp 69: 69a, 69b, 69c, 69d, 69f, 69g.
 
 ## Uppföljning 2026-08-22 (delmål 69a, z-index-delen, v5.124.0)
 
-Nästa steg i `ETAPPLAN18.md`: **69a**, brytpunkter och z-index som tokens. Byggde bara
+Nästa steg i `etapplaner/ETAPPLAN18.md`: **69a**, brytpunkter och z-index som tokens. Byggde bara
 z-index-delen — brytpunktsdelen väntar på 69b/69c, som är de delmål som faktiskt behöver
 värdet, och att skapa en token i förväg hade varit gissning.
 
@@ -4130,7 +4130,7 @@ Kvar i Etapp 69: 69a (brytpunktsdelen, ihop med 69b/69c), 69b, 69c, 69d, 69f, 69
 
 ## Uppföljning 2026-08-22 (delmål 69b, premissen var fel, v5.125.0)
 
-Nästa steg i `ETAPPLAN18.md`: **69b**, läsbar radlängd. Planens egen premiss höll inte vid
+Nästa steg i `etapplaner/ETAPPLAN18.md`: **69b**, läsbar radlängd. Planens egen premiss höll inte vid
 kontroll mot faktisk kod, och det är värt att skriva in rakt av: siffran "~150 tecken per
 rad" kom från min egen artefaktdemo, inte från en mätning av appen.
 
@@ -4157,7 +4157,7 @@ Kvar i Etapp 69: 69a (brytpunktsdelen, ihop med 69c), 69c, 69d, 69f, 69g.
 
 ## Uppföljning 2026-08-22 (delmål 69c, sidomenyn, v5.126.0)
 
-Nästa och största steget i `ETAPPLAN18.md`: **69c**, sidomeny över brytpunkten (1024px).
+Nästa och största steget i `etapplaner/ETAPPLAN18.md`: **69c**, sidomeny över brytpunkten (1024px).
 
 **Rättelse innan bygget:** planen antog en `useMediaQuery`-hook skulle behövas. Onödig —
 `BottomNav` och `Sidomeny` monteras BÅDA alltid, och CSS (`display: none` på den ena eller
@@ -4203,7 +4203,7 @@ Kvar i Etapp 69: 69a (brytpunktsdelen, nu i praktiken klar via denna etapps 1024
 
 ## Uppföljning 2026-08-22 (Etapp 69 HELT KLAR: 69d, 69f, 69g, v5.127.0)
 
-Slutförde de tre återstående delmålen i `ETAPPLAN18.md` i en följd, på ägarens begäran
+Slutförde de tre återstående delmålen i `etapplaner/ETAPPLAN18.md` i en följd, på ägarens begäran
 ("Slutför alla kvarvarande steg i denna etapplanen"). **Etapp 69 är därmed helt klar** –
 69a–69h alla byggda, testade och renderade granskade samma dag som antagandet.
 
@@ -4240,7 +4240,7 @@ faktiskt fångar drift genom att tillfälligt mutera ett värde, se testet faila
 Fullt svep grönt: lint, build, vitest 407/407 (36 filer), `test:rules`, `test:functions`,
 `test:storage`, e2e **41/41** (32 tidigare + 3 skrollhantering + widened rökprov/axe).
 
-**Etapp 69 (`ETAPPLAN18.md`) är därmed HELT KLAR.** Ingen aktiv etapplan väntar. Nästa steg
+**Etapp 69 (`etapplaner/ETAPPLAN18.md`) är därmed HELT KLAR.** Ingen aktiv etapplan väntar. Nästa steg
 är deploy (efterfrågat av ägaren), sedan att fråga vad nästa etapp ska bli, eller läsa
 `OPPNA-PUNKTER.md`.
 
@@ -4315,22 +4315,22 @@ invändningshantering, e-postmallar, sex HTML-källfiler, samt Word-/PowerPoint-
 Textdelarna laddades upp; binärfilerna gjorde det inte, se `CLAUDE.md`s nya avsnitt
 "Marknads- och säljmaterial" för motiveringen och för konsekvensen (presentationerna måste
 byggas om separat vid varje rättelse). Paketets kritiska påståenden verifierades mot faktisk
-kod – resultatet ligger i `SALJMATERIAL-UNDERLAG-FOR-BEDOMNING.md`. Därefter granskades
-`KOPARANALYS.md` mot sina egna källor; granskningen står som §15 i den filen, med brödtexten
+kod – resultatet ligger i `saljmaterial/SALJMATERIAL-UNDERLAG-FOR-BEDOMNING.md`. Därefter granskades
+`saljmaterial/KOPARANALYS.md` mot sina egna källor; granskningen står som §15 i den filen, med brödtexten
 orörd enligt vanlig kronologiprincip.
 
 **Tre osanningar i kundvänt material, samtliga rättade:**
 
 | Vad | Var | Rättat till |
 |---|---|---|
-| **"VANLIGASTE VALET"** på Drift-nivån, och demomanusets *"Drift, som är det de flesta väljer"* – med noll kunder har ingen valt något | `saljmaterial/kallfiler/Synappsen-prislista.html`, `Synappsen-demomanus.md` | "VÅR REKOMMENDATION" respektive "den nivå jag rekommenderar", plus en uttrycklig varning i demomanuset |
+| **"VANLIGASTE VALET"** på Drift-nivån, och demomanusets *"Drift, som är det de flesta väljer"* – med noll kunder har ingen valt något | `saljmaterial/kallfiler/Synappsen-prislista.html`, `saljmaterial/Synappsen-demomanus.md` | "VÅR REKOMMENDATION" respektive "den nivå jag rekommenderar", plus en uttrycklig varning i demomanuset |
 | **Upphandlingssvar E2 påstod att artikel 50-märkningen var implementerad.** Ingen sådan märkning finns i koden – verifierat med genomsökning av hela `src/`. Ett aktivt felaktigt påstående i ett dokument avsett att klippas in i skarpa anbud | `saljmaterial/kallfiler/Synappsen-upphandlingssvar.html` | Redovisad som ej byggd, med en intern varningsruta om att inte skriva tillbaka påståendet utan att först kontrollera i koden |
-| **Underbiträdesförteckningen beskrev klinikstöd-sökningen som pausad.** Den återaktiverades 2026-08-01; `SAKERHETSRAPPORT.md` rättade sig själv då men förteckningen följde inte med. Ett dokument som lämnas till kundens dataskyddsombud beskrev alltså en behandling som **mindre** omfattande än den är – fel riktning att ha fel åt | `avtal/UNDERBITRADEN.md` | Rättad, med en not om varför. `SAKERHETSRAPPORT.md`s kvarstående rubrik "Pausad funktion" är märkt som historisk så den inte citeras igen |
+| **Underbiträdesförteckningen beskrev klinikstöd-sökningen som pausad.** Den återaktiverades 2026-08-01; `granskningar/SAKERHETSRAPPORT.md` rättade sig själv då men förteckningen följde inte med. Ett dokument som lämnas till kundens dataskyddsombud beskrev alltså en behandling som **mindre** omfattande än den är – fel riktning att ha fel åt | `avtal/UNDERBITRADEN.md` | Rättad, med en not om varför. `granskningar/SAKERHETSRAPPORT.md`s kvarstående rubrik "Pausad funktion" är märkt som historisk så den inte citeras igen |
 
-**Tre stale-fynd i interna dokument, rättade:** `PITCH.md` sa sex roller (koden har sju,
-`src/firebase/roles.js`); `MODULPLAN.md` listade kioskläget som obyggt fyra månader efter att
+**Tre stale-fynd i interna dokument, rättade:** `saljmaterial/PITCH.md` sa sex roller (koden har sju,
+`src/firebase/roles.js`); `produkt/MODULPLAN.md` listade kioskläget som obyggt fyra månader efter att
 det byggdes i Etapp 55 – och var därmed underlag för en köparanalys som drog slutsatser om
-modulgränserna ur en felaktig bild; `TILLGANGLIGHETSREDOGORELSE.md`s sammanfattning påstod att
+modulgränserna ur en felaktig bild; `granskningar/TILLGANGLIGHETSREDOGORELSE.md`s sammanfattning påstod att
 #8 och #9 kvarstod trots att Etapp 68 åtgärdade dem. Faktiskt kvarvarande på nivå A är fyra
 små punkter (#4, #5, #6, #10), nu en rad i `OPPNA-PUNKTER.md` med kommersiell motivering.
 
@@ -4338,10 +4338,10 @@ små punkter (#4, #5, #6, #10), nu en rad i `OPPNA-PUNKTER.md` med kommersiell m
 sa att den utgår helt för de tre första referenskunderna, kostnadskalkylen sa "ge aldrig bort
 den". **Beslut: avgiften kvarstår och betalas av de tre första kunderna**, om inte annat
 uttryckligen framgår i det enskilda kundavtalet. `saljmaterial/kallfiler/Synappsen-
-prislista.html` rättad, `KOPARANALYS.md` §15 räknat om (referenskundens förstaårskostnad är
+prislista.html` rättad, `saljmaterial/KOPARANALYS.md` §15 räknat om (referenskundens förstaårskostnad är
 55 625 kr, inte 24 375 kr), se `BESLUTSLOGG.md`.
 
-**Ett ägarbeslut kvarstår öppet i `OPPNA-PUNKTER.md`:** utfallsgarantin (`KOPARANALYS.md`
+**Ett ägarbeslut kvarstår öppet i `OPPNA-PUNKTER.md`:** utfallsgarantin (`saljmaterial/KOPARANALYS.md`
 §11.1) – ja eller nej. Analysens motivering ("marginalen är 99 %, garantin är nästan gratis")
 håller inte: kostnaden är den nedlagda tiden, inte det återbetalda abonnemanget. Garantin kan
 ändå vara rätt, men som riskinstrument.

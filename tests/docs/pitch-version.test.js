@@ -27,7 +27,7 @@ describe("PITCH.md får inte glida ur takt med produktens version", () => {
   test(`versionsrubriken ligger max ${MAX_MINOR_DRIFT} minorversioner efter package.json`, () => {
     const rot = fileURLToPath(new URL("../../", import.meta.url));
     const pakets = lasVersion(`${rot}package.json`, /"version":\s*"(\d+)\.(\d+)\.(\d+)"/);
-    const pitch = lasVersion(`${rot}PITCH.md`, /Version (\d+)\.(\d+)\.(\d+)/);
+    const pitch = lasVersion(`${rot}saljmaterial/PITCH.md`, /Version (\d+)\.(\d+)\.(\d+)/);
 
     expect(
       pitch.major,

@@ -4,7 +4,7 @@
 avtalet undertecknas. Detta är inte juridisk rådgivning – låt kundens och/eller Synappsens
 jurist läsa igenom innan första undertecknandet, texten kan sedan återanvändas oförändrad.
 
-**Upprättat:** 2026-07-26, som en del av Etapp 13a (`ETAPPLAN3.md`).
+**Upprättat:** 2026-07-26, som en del av Etapp 13a (`etapplaner/ETAPPLAN3.md`).
 
 ---
 
@@ -67,7 +67,7 @@ underbiträden, och ge Kunden möjlighet att invända, i enlighet med art. 28.2 
 
 - Personuppgifter behandlas så länge avtalet om Tjänsten löper.
 - **Vid uppsägning eller avetablering av Kundens organisation** (ägarbeslut och genomfört
-  2026-08-06/08, se `ETAPPLAN10.md` Etapp 49a):
+  2026-08-06/08, se `etapplaner/ETAPPLAN10.md` Etapp 49a):
   1. Kundens egen superadmin (eller Biträdet, i undantagsfall) begär radering i appen, med en
      obligatorisk angiven anledning. Organisationen **pausas omedelbart** – all läs- och
      skrivåtkomst stängs för samtliga användare (enforcerat i `firestore.rules`).
@@ -84,7 +84,7 @@ underbiträden, och ge Kunden möjlighet att invända, i enlighet med art. 28.2 
   Biträdets eget initiativ utan att Kundens superadmin agerar) sker fortsatt genom att en
   behörig person i Biträdets organisation utför samma steg via administratörsgränssnittet,
   inom [FYLLS I: avtalad tidsfrist, t.ex. 30 dagar] efter en skriftlig begäran.
-- **Backupretention (ägarbeslut och genomfört 2026-08-01, se `ETAPPLAN5.md` Etapp 33c):**
+- **Backupretention (ägarbeslut och genomfört 2026-08-01, se `etapplaner/ETAPPLAN5.md` Etapp 33c):**
   schemalagda veckobackuper (`backups/{orgId}/...` i Firebase Storage), INKLUSIVE den sista
   säkerhetskopian som tas precis innan en permanent radering, raderas automatiskt efter
   **90 dagar** av en schemalagd funktion som körs varje vecka. **Beslutat 2026-08-06:** detta
@@ -109,7 +109,7 @@ Biträdet tillämpar bland annat:
   och avbrytbart, öppna ett läsfönster (högst 6 timmar) för att en supportfråga ska kunna
   besvaras – synligt i Kundens gränssnitt medan det pågår, loggat i båda ändar.
 
-Se `SAKERHETSRAPPORT.md` och `avtal/DPIA-UNDERLAG.md` för en fullständig teknisk genomgång.
+Se `granskningar/SAKERHETSRAPPORT.md` och `avtal/DPIA-UNDERLAG.md` för en fullständig teknisk genomgång.
 
 ## 8. Personuppgiftsincident
 
