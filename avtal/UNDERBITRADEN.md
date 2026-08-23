@@ -22,7 +22,7 @@ krav 8 i `ETAPPLAN3.md`. Rader markerade "[FYLLS I]"/"[EJ VERIFIERAT]" kräver e
 | Google Cloud Functions | All serverlogik (Cloud Functions-koden) | europe-west1 (verifierat) | I drift |
 | Google Firebase Hosting | Statiska webbtillgångar (den byggda appen) | Globalt CDN (se rad nedan) | I drift |
 | Google Generative AI (Gemini API) | Bilder/text som skickas för AI-tolkning (rutin-/artikelutkast) | Ospecificerad/global (se rad nedan) | I drift |
-| Google Programmerbara sökmotorn (Custom Search API) | Sökfrågor för klinikstöd-sökningen | Global Google-infrastruktur | I drift, **funktionen pausad i UI** (se `SAKERHETSRAPPORT.md`) |
+| Google Programmerbara sökmotorn (Custom Search API) | Sökfrågor för klinikstöd-sökningen | Global Google-infrastruktur | I drift (funktionen är **inte** pausad – se not nedan) |
 | Sentry (Functional Software, Inc.) | Felmeddelanden och stacktraces vid krascher/undantag | EU (Frankfurt, `ingest.de.sentry.io` – verifierat) | I drift |
 | Google reCAPTCHA (App Check) | Enhets-/webbläsarsignaler för att avgöra äkta klientanrop | Global Google-infrastruktur | I drift (mätläge, se Etapp 12c) |
 | Linear | Interna utvecklingsärenden (backlogg) | [FYLLS I – rör inte kunddata, se not nedan] | Internt leverantörsverktyg |
@@ -77,9 +77,13 @@ rutiner/förrådsartiklar (`functions/ai-import.js`, modell `gemini-2.5-flash`).
 Används av klinikstöd-sökningens källbegränsade verifiering (`SOKMOTOR_API_KEY`,
 `googleapis.com/customsearch/v1`, se `functions/klinikstod.js`). Skickar användarens fritextfråga
 till Google för att hitta träffar begränsade till fem godkända medicinska källdomäner.
-**Funktionen är pausad i användargränssnittet** sedan v5.3.5 (se `SAKERHETSRAPPORT.md`,
-"Pausad funktion") – underbiträdet är tekniskt aktivt (schemalagd verifiering körs
-dagligen) men tar inte emot skarpa användarfrågor för närvarande.
+**Rättelse 2026-08-23: funktionen är i drift och tar emot skarpa användarfrågor.** Den var
+pausad i användargränssnittet från v5.3.5, men återaktiverades och byggdes om med enforcement i
+två lager plus en daglig automatisk källverifiering (`verifieraKlinikstodSchemalagt` i
+`functions/index.js`). `SAKERHETSRAPPORT.md` rättade sin egen text redan 2026-08-01, men den
+här förteckningen följde inte med – i knappt fyra veckor beskrev alltså **ett dokument som
+lämnas till kundens dataskyddsombud en behandling som mindre omfattande än den faktiskt är.**
+Det är precis fel riktning att ha fel åt i en underbiträdesförteckning.
 
 ### Sentry (Functional Software, Inc., d/b/a Sentry)
 

@@ -14,18 +14,24 @@ en affär i efterhand.
 2. **Bilda aktiebolag och teckna ansvarsförsäkring med produktansvarsmoment.** Produktansvar
    är strikt och kan inte avtalas bort. Vid enskild firma möter privatekonomin ett anspråk.
    Se marknadsanalysen avsnitt 9, risk 2 och 3.
-3. **Deploya den senaste versionen.** Enligt säkerhetsgranskningen kör produktionen v5.106.0
-   medan koden ligger på v5.117.0. Att sälja en produkt vars patchade sårbarheter inte är
-   utrullade är ett åtagande du inte vill ha kvar när första kunden är igång.
+3. ~~**Deploya den senaste versionen.**~~ ✅ **KLAR 2026-08-23.** Produktionen kör v5.128.0
+   (körning #87). Punkten var korrekt när den skrevs – då låg produktionen på v5.106.0 medan
+   koden var på v5.117.0.
 4. **Lös frågan om leverantörens upphörande.** Källkodsdeposition eller motsvarande, plus en
    avtalsklausul. Det är den fråga varje kunds jurist ställer först om en ensam leverantör,
    och den enda invändning i hela materialet där ett svävande svar sänker affären direkt.
 
-> **En femte punkt som tar minuter:** rätta rollantalet i `PITCH.md` och `SAKERHETSRAPPORT.md`.
-> Båda säger sex roller; IT-faktabladet och modulplanen säger sju (kioskläget byggdes i Etapp
-> 55). Materialet i den här mappen säger sju. Ett säljdokument som underrapporterar en byggd
-> funktion är litet i sak, men det är samma stale-dokument-mönster som redan gett upphov till
-> fyra underhållsregler i projektet.
+> ~~**En femte punkt som tar minuter:** rätta rollantalet i `PITCH.md`…~~ ✅ **KLAR
+> 2026-08-23.** `PITCH.md` säger nu sju roller, verifierat mot `src/firebase/roles.js`.
+> `SAKERHETSRAPPORT.md` räknade upp sex i löptext men beskriver kioskrollen utförligt i sitt
+> tillägg om Etapp 55 – ingen ändring behövdes där.
+
+> **VIKTIGT (tillagt 2026-08-23): hela det här paketet är skrivet mot kodläge v5.117.0.**
+> Koden ligger nu på v5.128.0 – elva versioner senare, med etapp 66–69 byggda däremellan.
+> Ingen av dem ändrar paketets slutsatser i sak (de rör rutinägarnotiser, handledarsignering,
+> leverantörsvyn och skrivbordslayout), men **kontrollera statuspåståenden mot koden, inte mot
+> det här paketet**, innan något skickas. En faktaverifiering av paketets kritiska påståenden
+> mot faktisk kod finns i `SALJMATERIAL-UNDERLAG-FOR-BEDOMNING.md`.
 
 ---
 
@@ -148,10 +154,11 @@ före varje utskick.** Var och en ändras när en funktion byggs.
 | "SSO är inte byggt" | Ändra när Etapp 58 är klar |
 | "Flerenhetsstöd finns inte" | Ändra när 54c/54d är byggda. Volymrabatterna i prislistan förutsätter det |
 | "Ingen extern penetrationstestning" | Ändra om en beställs |
-| "Kvarstående WCAG-brister på nivå A" | Ändra när SYN-6 är stängd |
-| "App Check i mätfas" | Ändra när enforcement aktiveras |
-| "Sju roller" | Stämmer mot IT-faktabladet. Se noten överst om att PITCH.md säger sex |
-| AI-märkning enligt art. 50 | **Kontrollera att den faktiskt är implementerad i rutinvyn** innan upphandlingssvar E2 skickas. Kravet gäller sedan 2 augusti 2026 |
+| "Kvarstående WCAG-brister på nivå A" | ✅ Sant per 2026-08-23. Fyra brister kvarstår (#4, #5, #6, #10) – inte sju som redogörelsens sammanfattning tidigare antydde. Ändra när SYN-6 är stängd |
+| "App Check i mätfas" | ✅ Verifierat i kod 2026-08-23: klienten skickar intyg (`src/firebase/config.js`), ingen serverfunktion kräver dem. Ändra när enforcement aktiveras |
+| "Sju roller" | ✅ Verifierat i kod 2026-08-23 (`src/firebase/roles.js`). `PITCH.md` är rättad från sex till sju samma dag |
+| AI-märkning enligt art. 50 | ❌ **INTE implementerad – verifierat i kod 2026-08-23.** Upphandlingssvar E2 påstod motsatsen och är rättat. Skicka inget svar som beskriver märkningen som byggd förrän den finns i koden. Kravet gäller sedan 2 augusti 2026 |
+| "Uppstartsavgift 25 000 kr" | ⚠️ **Motstridiga uppgifter i materialet.** Prislistan och offertmallen säger att den utgår helt för de tre första referenskunderna; `KOSTNADSKALKYL-OCH-PRISSATTNING.md` §5.2 säger "ge aldrig bort den". Avgör vilket som gäller innan en offert lämnas – se `OPPNA-PUNKTER.md` |
 
 ---
 

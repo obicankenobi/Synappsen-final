@@ -6,7 +6,7 @@
 > historik) eller `ETAPPLAN.md` (den etappindelade planen) – den är en kort
 > "var slutade vi och vad gör jag nu"-sammanfattning som pekar vidare dit.
 
-**Senast uppdaterad:** 2026-08-23, version **5.128.0** – byggd, pushad och **DEPLOYAD** (körning #87). Uppdateringsknappen fungerar.
+**Senast uppdaterad:** 2026-08-23, version **5.128.0** – byggd, pushad och **DEPLOYAD** (körning #87). Uppdateringsknappen fungerar. Samma dag: säljmaterialpaketet infört i repot, granskat mot koden och rättat på tre punkter – se "Uppföljning 2026-08-23 (säljmaterialet)" längst ner. **Ingen kodändring, bara dokument.**
 (ägaren har bett oss AVVAKTA med deploy tills vidare – se "Deployläget" nedan för det tidigare
 blockerade försöket, som inte längre är det aktiva skälet).
 
@@ -4301,3 +4301,52 @@ DEPLOYADE service workern som saknade fixen innan nu. En webbläsare som redan h
 workern installerad (utan lyssnaren) sedan tidigare kan behöva en vanlig sidladdning (inte
 bara "Uppdatera"-klicket) EN gång för att hämta den NYA workern som väl har fixen – därefter
 fungerar knappen normalt vid framtida uppdateringar. Det är förväntat, inte ett nytt fel.
+
+---
+
+## Uppföljning 2026-08-23 (säljmaterialet infört, granskat och rättat)
+
+**Ingen kodändring.** Enbart dokument – men tre av rättelserna rör påståenden som skickas till
+kunder, och en av dem var direkt osann.
+
+**Vad som hände.** Ägaren tillhandahöll ett säljmaterialpaket framtaget 2026-08-17–19 mot
+kodläge v5.117.0 (marknadsanalys, kostnadskalkyl, kandidatlista, köparanalys, demomanus,
+invändningshantering, e-postmallar, sex HTML-källfiler, samt Word-/PowerPoint-original).
+Textdelarna laddades upp; binärfilerna gjorde det inte, se `CLAUDE.md`s nya avsnitt
+"Marknads- och säljmaterial" för motiveringen och för konsekvensen (presentationerna måste
+byggas om separat vid varje rättelse). Paketets kritiska påståenden verifierades mot faktisk
+kod – resultatet ligger i `SALJMATERIAL-UNDERLAG-FOR-BEDOMNING.md`. Därefter granskades
+`KOPARANALYS.md` mot sina egna källor; granskningen står som §15 i den filen, med brödtexten
+orörd enligt vanlig kronologiprincip.
+
+**Tre osanningar i kundvänt material, samtliga rättade:**
+
+| Vad | Var | Rättat till |
+|---|---|---|
+| **"VANLIGASTE VALET"** på Drift-nivån, och demomanusets *"Drift, som är det de flesta väljer"* – med noll kunder har ingen valt något | `saljmaterial/kallfiler/Synappsen-prislista.html`, `Synappsen-demomanus.md` | "VÅR REKOMMENDATION" respektive "den nivå jag rekommenderar", plus en uttrycklig varning i demomanuset |
+| **Upphandlingssvar E2 påstod att artikel 50-märkningen var implementerad.** Ingen sådan märkning finns i koden – verifierat med genomsökning av hela `src/`. Ett aktivt felaktigt påstående i ett dokument avsett att klippas in i skarpa anbud | `saljmaterial/kallfiler/Synappsen-upphandlingssvar.html` | Redovisad som ej byggd, med en intern varningsruta om att inte skriva tillbaka påståendet utan att först kontrollera i koden |
+| **Underbiträdesförteckningen beskrev klinikstöd-sökningen som pausad.** Den återaktiverades 2026-08-01; `SAKERHETSRAPPORT.md` rättade sig själv då men förteckningen följde inte med. Ett dokument som lämnas till kundens dataskyddsombud beskrev alltså en behandling som **mindre** omfattande än den är – fel riktning att ha fel åt | `avtal/UNDERBITRADEN.md` | Rättad, med en not om varför. `SAKERHETSRAPPORT.md`s kvarstående rubrik "Pausad funktion" är märkt som historisk så den inte citeras igen |
+
+**Tre stale-fynd i interna dokument, rättade:** `PITCH.md` sa sex roller (koden har sju,
+`src/firebase/roles.js`); `MODULPLAN.md` listade kioskläget som obyggt fyra månader efter att
+det byggdes i Etapp 55 – och var därmed underlag för en köparanalys som drog slutsatser om
+modulgränserna ur en felaktig bild; `TILLGANGLIGHETSREDOGORELSE.md`s sammanfattning påstod att
+#8 och #9 kvarstod trots att Etapp 68 åtgärdade dem. Faktiskt kvarvarande på nivå A är fyra
+små punkter (#4, #5, #6, #10), nu en rad i `OPPNA-PUNKTER.md` med kommersiell motivering.
+
+**Två nya ägarbeslut registrerade i `OPPNA-PUNKTER.md`,** medvetet inte avgjorda här:
+
+1. **Uppstartsavgiften 25 000 kr är motstridig i materialet.** Prislistan och offertmallen
+   säger att den utgår helt för de tre första referenskunderna; `KOSTNADSKALKYL-OCH-
+   PRISSATTNING.md` §5.2 säger "ge aldrig bort den". Det är ett rent affärsbeslut, och det
+   påverkar tre av köparanalysens argument (§7.1, §7.3, §11.1) eftersom alla tre räknar med
+   full avgift.
+2. **Utfallsgarantin (`KOPARANALYS.md` §11.1)** – ja eller nej. Analysens motivering
+   ("marginalen är 99 %, garantin är nästan gratis") håller inte: kostnaden är den nedlagda
+   tiden, inte det återbetalda abonnemanget. Garantin kan ändå vara rätt, men som
+   riskinstrument.
+
+**Det viktigaste att bära med sig till nästa session:** paketet är skrivet mot v5.117.0 medan
+koden är på v5.128.0. Kontrollera statuspåståenden mot koden, inte mot paketet. Och när ett
+säljdokument rättas – kom ihåg att `.pptx`-filerna inte ligger i repot och inte får rättelsen
+automatiskt.

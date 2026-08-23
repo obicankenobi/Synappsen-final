@@ -487,3 +487,76 @@ efter det tjugonde.
 **Uttryckligen inte verifierat:** ingen verklig köpare har intervjuats. Betygen i avsnitt 4,
 kostnadsuppskattningarna i avsnitt 7 och konverteringsbedömningen i avsnitt 10 är samtliga
 bedömningar utan mätdata bakom sig.
+
+---
+
+## 15. Granskning 2026-08-23 – prövad mot sina egna källor och mot koden
+
+> Tillagd i efterhand, enligt projektets vanliga kronologiprincip: **brödtexten ovan är
+> orörd.** Analysen skrevs innan säljmaterialpaketet fanns i repot och kunde därför inte
+> stämmas av mot prislistan, offertmallen och kostnadskalkylen. Den avstämningen är nu gjord.
+> Underlaget finns i `SALJMATERIAL-UNDERLAG-FOR-BEDOMNING.md`.
+
+**Huvudslutsatsen står.** De två starkaste fynden – tvåsanningsproblemet (§6.5, med fixen i
+§11.9) och att paketeringen lägger köpargumentet bakom fel prisnivå (§6.6) – överlever
+kontroll. Tvåsanningsproblemet är verifierat obesvarat i **hela** paketet: varken
+invändningshanteringen, upphandlingssvaret, demomanuset eller den tekniska beskrivningen
+adresserar vilken rutin som är styrande när samma rutin finns i två system. Det är den enda
+kompetenta invändning materialet inte har något svar på, och fixen i §11.9 återanvänder
+källbevakningen som redan är byggd och redan säljs som tillägg.
+
+**Fyra ställen där källorna ändrar bilden:**
+
+| § | Vad analysen säger | Vad källorna visar |
+|---|---|---|
+| **7.1 / 1.2** | Förstaårskostnaden är ~100 000 kr, "2,5 gånger den siffra offerten inleds med", och att inte äga den beräkningen är "den enskilt största onödiga risken i säljprocessen" | `Synappsen-offert-MALL.docx` specificerar **redan** årsavgift, uppstart, rabatt, summa exkl. moms, moms 25 % och summa inkl. moms som separata rader. Säljaren äger alltså redan 80 000-delen. Det som faktiskt inte ägs är kundens **egen** arbetstid, ca 20 000–30 000 kr. Luckan är en tredjedel av den beskrivna. **Dessutom:** prislistan och offertmallen säger att uppstartsavgiften utgår helt för de tre första referenskunderna – för en sådan kund är förstaårskostnaden 19 500 + 0 + 4 875 moms = **24 375 kr**, inte 80 000 |
+| **7.4** | Prishopp på 63 % från Liten till Kärna vid användare 31; föreslår att man ska kunna köpa extra användare uppåt från Liten till 350 kr/st | Det tillägget finns redan, utan nivåbegränsning, i både prislistan och kostnadskalkylen. Och siffran är uppenbart avsiktligt vald: (39 000 − 24 000) / 350 = 42,9 användare, alltså 30 + 43 = **73 användare** ≈ Kärnas tak på 75. Trappan är redan jämn. Noteras också att Liten inte finns i den kundvända prislistan – den är ett *förslag* i kostnadskalkylen §5.1 |
+| **7.3 + 12** | §7.3 ("lägg in trettio rutiner åt kunden") beskrivs som kostnadsfri; §12 (sälj tjänsten i stället för verktyget) som ett stort strategiskt vägval | Samma förslag i olika dos, och dosen har ett räknebart pris. Kostnadskalkylen §5.1 anger 15–25 tim onboarding per kund; trettio rutiner är rimligen 15–30 tim till. Kostnadskalkylen §6 punkt 5 säger vad som händer då: *"Om piloten visar att en kund kräver 50 timmar om året i stället för 20, halveras taket från 16 kunder till 8."* §7.3 är alltså inte gratis – den halverar kapacitetstaket |
+| **11.1** | Utfallsgarantin är "nästan gratis" eftersom marginalen är 99 % | Marginalsiffran stämmer, men kostnaden för en utlöst garanti är den nedlagda tiden (15–25 tim à 1 000–1 600 kr enligt kostnadskalkylen §5.1), inte det återbetalda abonnemanget. Garantins fallback – "betalar bara uppstarten" – återbetalar dessutom **allt** för en referenskund, eftersom uppstarten då är noll |
+
+**Tre saker analysen missade, varav ett allvarligare än något i dess egen §8:**
+
+1. **"VANLIGASTE VALET" är osant.** Märkningen satt på prislistans Drift-kort, i
+   presentationernas bild 11, och demomanuset instruerade säljaren att säga *"Drift, som är
+   det de flesta väljer"*. Ingen har valt något – marknadsanalysen §3 slår fast noll kunder.
+   Det var den enda direkta osanningen i det kundvända materialet, och den satt i ett paket
+   vars hela säljproposition är radikal ärlighet. **Rättat 2026-08-23** i prislistan och
+   demomanuset; presentationsfilerna (`.pptx`) ligger inte i repot och måste byggas om.
+2. **Upphandlingssvarets E2 påstod att artikel 50-märkningen var implementerad.** Ordagrant:
+   *"Transparenskravet i artikel 50 hanteras genom att AI-genererat innehåll märks för
+   läsaren."* Ingen sådan märkning finns i koden. Detta är värre än de tre punkterna i §8,
+   eftersom det är ett **aktivt felaktigt påstående i ett dokument avsett att klippas in i
+   skarpa anbud**, inte ett inaktuellt. **Rättat 2026-08-23.**
+3. **Demot kulminerar i en funktion som inte ingår i det pris som nämns först.** Demomanusets
+   "Ögonblick 5 — Innehållshälsan" är märkt *"det viktigaste"*, och priset presenteras direkt
+   efter med Kärna först. Innehållshälsan ligger i Drift. Det är den konkreta mekaniken bakom
+   §6.6, skarpare än analysens egen formulering.
+
+**Två ställen där analysen är för försiktig, inte för hård:**
+
+- **§10:s slutsats** att den optimistiska banan (25 kunder år 3) kräver att någon annan säljer
+  är underdriven. Kostnadskalkylen sätter kapacitetstaket till 10–20 kunder och varnar för att
+  det kan halveras till 8. 25 kunder kan vara strukturellt omöjligt för en person oavsett hur
+  försäljningen går – det är en fråga om att anställa, inte om att sälja bättre.
+- **§6.7 (WCAG)** placerar bristerna som en nackdel att leva med. De faktiskt kvarvarande
+  bristerna på nivå A är fyra små och avgränsade (#4, #5, #6, #10 i
+  `TILLGANGLIGHETSREDOGORELSE.md`) – timmar, inte veckor. Punkten hör hemma högst upp i §11:s
+  "utan att bygga något"-lista, inte på plats sju bland nackdelarna. Numera en rad i
+  `OPPNA-PUNKTER.md`.
+
+**Två formuleringar att justera vid nästa omarbetning:**
+
+- **§1.3/§6.6 är överdrivet formulerat.** "Ingångspaketet är den version av produkten som
+  saknar skälet att köpa den" stämmer inte: Kärna innehåller läskvittering, revisionslogg med
+  hashkedja, rutinägare, godkännandeflöde och kompetensmatris. Det som saknas är hälsosiffran
+  med nedbrytning, granskningsrundorna och ledningsrapporten. Den smalare formuleringen är
+  både sannare och lättare att åtgärda.
+- **§3:s "byt primär mottagare till kvalitetsansvarig" bör villkoras av kandidatens storlek.**
+  Hos Wästerläkarna, Achima och Nötkärnan – varav den första är kandidatlistans egen
+  förstahandskandidat – är ägare och kvalitetsansvarig samma person. Distinktionen bär hos de
+  större institutionella kandidaterna (Carlanderska, Ersta, Stockholms Sjukhem, Sophiahemmet),
+  alltså ungefär fyra av tio A-kandidater. Materialet behöver två ingångar, inte en ny.
+
+**Slutligen, om versionsläget:** analysen är daterad mot v5.128.0 och är alltså aktuell. Det är
+*paketet den granskar* som är skrivet mot v5.117.0. Etapp 66–69 däremellan rör rutinägarnotiser,
+handledarsignering, leverantörsvyn och skrivbordslayout – inget som ändrar analysens slutsatser.

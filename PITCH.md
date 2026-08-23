@@ -88,7 +88,7 @@ det blir gammalt utan att någon märker det. Synappsen har en egen innehållsh�
 - **Inga patientuppgifter, i flera lager:** appen blockerar tekniskt personnummer i alla
   fritextfält – i formuläret, på servern och i databasens egna regler – och varnar vid
   misstänkta namn. Utformad utifrån GDPR och patientdatalagen från dag ett.
-- **Rollstyrd behörighet** (6 roller), tvåfaktorsautentisering, automatisk utloggning på
+- **Rollstyrd behörighet** (7 roller), tvåfaktorsautentisering, automatisk utloggning på
   delade datorer, och möjlighet för admin att omedelbart återkalla en session.
 - **App Check:** ett tekniskt lager (Google reCAPTCHA) som verifierar att anrop till
   servern faktiskt kommer från den riktiga, installerade appen – infört sommaren 2026,

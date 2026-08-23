@@ -146,9 +146,14 @@ En siffra med lista går inte."*
 
 ### Säg priset rakt ut och var sedan tyst
 
-**Säg:** *"Kärna kostar 39 000 kronor per enhet och år. Drift, som är det de flesta väljer,
-kostar 59 000. Per enhet — inte per användare, för ett gemensamt verktyg ska inte kosta mer för
-att fler använder det."*
+**Säg:** *"Kärna kostar 39 000 kronor per enhet och år. Drift, som är den nivå jag
+rekommenderar, kostar 59 000. Per enhet — inte per användare, för ett gemensamt verktyg ska
+inte kosta mer för att fler använder det."*
+
+> **Säg aldrig "det är den de flesta väljer".** Det finns ingen kund som valt något, och ett
+> osant påstående om kundbeteende i ett samtal vars hela poäng är ärlighet är det billigaste
+> sättet att förlora affären. Rekommendera nivån i eget namn i stället — det är sant, och det
+> är dessutom ett starkare argument från någon som byggt produkten.
 
 **Sluta prata.** Låt tystnaden ligga. Deras första reaktion är den ärliga.
 

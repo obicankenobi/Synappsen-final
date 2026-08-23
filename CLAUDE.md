@@ -188,6 +188,44 @@ Dessa två är de enda dokumenten i projektet vars felaktighet kan få juridiska
 | `REDAKTORSGUIDE.md` | Fördjupad guide för redaktörsrollerna (utöver `src/pages/Hjalp.jsx`s allmänna hjälp), skriven 2026-08-11 (Etapp 63b) som förberedelse inför Etapp 52:s pilot. |
 | `PILOTUPPLAGG.md` | Konkret pilotupplägg (4–6 veckor, de tre måtten från `PITCH.md`, checklistor före/efter), skriven 2026-08-11 (Etapp 63b) – förberedelse, ingen pilot är bokad än. |
 
+### Marknads- och säljmaterial (tillagt 2026-08-23)
+
+Ett sammanhållet säljmaterialpaket framtaget 2026-08-17–19 **mot kodläge v5.117.0**. Läs
+varningen i nästa stycke innan något av det används.
+
+| Fil | Innehåll | Målgrupp |
+|---|---|---|
+| `00-LAS-DETTA-FORST.md` | Orienteringsdokument för hela paketet: vad som finns, när det används, ifyllnadschecklista, och tabellen "Påståenden som måste hållas sanna" | **Internt** – läs först |
+| `MARKNADSANALYS.md` | Intern fullversion: marknad, TAM/SAM/SOM, konkurrensläge, värdering, prismodell 39/59/89 kkr, segmentprioritering, riskregister | **Internt** – innehåller bedömningar om bolagsform, bisyssla och jäv, delas ALDRIG externt |
+| `MARKNADSANALYS-EXTERN.md` | Kortversion utan de interna bedömningarna | Investerare/samarbetspartner |
+| `KOSTNADSKALKYL-OCH-PRISSATTNING.md` | Kostnadssida (265 kr/kund/år, 99 % bruttomarginal), fasta kostnader, break-even i kunder, tre scenarier, förslag om en fjärde nivå "Liten" 24 000 kr | **Internt** |
+| `KANDIDATLISTA-PRIVAT-VARD.md` | 28 namngivna kandidater (10 A, 13 B, 5 C) + 11 bortsållade med motivering, med kontaktvägar och ringordning | **Internt** – innehåller bedömningar om enskilda verksamheters svagheter och IVO-historik, skickas ALDRIG till en kandidat |
+| `KOPARANALYS.md` | Attraktivitetsbedömning ur fyra köparrollers perspektiv. **Har en granskningssektion (§15, 2026-08-23) som prövar dess påståenden mot källorna – läs den innan du litar på §7 och §11** | **Internt** |
+| `Synappsen-demomanus.md` | 30-minutersdemo: fem ögonblick, förberedelsechecklista, fällor | **Internt** |
+| `Synappsen-invandningshantering.md` | Invändningar med "vad de menar / vad du svarar / vad du inte ska säga" | **Internt** |
+| `Synappsen-epostmallar.md` | Elva mallar från första kontakt till vänligt avslut | **Internt** |
+| `saljmaterial/kallfiler/*.html` | Källfiler för PDF: tre one-pagers (privat/kommunal/region), prislista, teknisk beskrivning till IT/DSO, upphandlingssvar | Blandat – `Synappsen-upphandlingssvar.html` är **internt** och skickas aldrig i sin helhet |
+| `SALJMATERIAL-UNDERLAG-FOR-BEDOMNING.md` | Faktaverifiering av paketets kritiska påståenden mot faktisk kod, samt vad som medvetet inte laddades upp och varför | **Internt** |
+
+> **Två saker att veta innan paketet används.**
+>
+> **1. Det är skrivet mot v5.117.0.** Kontrollera varje statuspåstående mot koden, inte mot
+> paketet. `SALJMATERIAL-UNDERLAG-FOR-BEDOMNING.md` innehåller en verifieringslogg per
+> påstående med status BEKRÄFTAT/STALE/EJ VERIFIERBART.
+>
+> **2. Word- och PowerPoint-originalen ligger INTE i repot** (två avtalsmallar, tre
+> presentationer à 13 bilder). De var innehållsmässigt redundanta mot text- och HTML-filerna
+> och går varken att diffa eller granska i en framtida session. Konsekvensen är att en
+> rättelse i ett textdokument **inte** automatiskt når presentationerna – de måste byggas om
+> separat. Byggkedjan (`stil.css`, `rendera.py`, `bygg-deck.js`, `bygg-docx.js`) saknas också
+> i repot, så HTML-filerna går inte att rendera till PDF som det ser ut nu.
+
+**Underhållsregel:** paketet lyder under samma händelsestyrda princip som `PITCH.md` – se
+underhållsregeln för `PITCH.md` längre ner. Ett säljdokument som påstår något osant är
+farligare än ett som saknar information, och tre sådana fall hittades vid granskningen
+2026-08-23 ("VANLIGASTE VALET" utan kunder, artikel 50-märkning som inte fanns, och en
+underbiträdesförteckning som beskrev en aktiv funktion som pausad).
+
 ## Etablerade arbetsmönster (se `CLAUDE_STATUS.md` för den fullständiga, levande listan)
 
 - **Releasechecklistan** (versionsbump, changelog, `ETAPPLANx.md`/`CLAUDE_STATUS.md`-

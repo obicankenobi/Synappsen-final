@@ -65,6 +65,26 @@ brister – samtliga uppkomna av eller synliggjorda av gränssnittsförnyelsen (
 alla **åtgärdade samma dag, se #12–#17** i tabellen. Punkterna #4–#6 och #8–#11 från den
 ursprungliga granskningen kvarstår oförändrade.
 
+**Uppdatering 2026-08-23 (rättelse av sammanfattningen ovan):** raden "#4–#6 och #8–#11
+kvarstår" stämde inte längre. **#8 och #9 är åtgärdade** (Etapp 68d/68g respektive 68d, se
+tabellraderna, som var korrekta hela tiden – det var sammanfattningstexten här som låg efter).
+Faktiskt kvarstående är **#4, #5, #6 och #10**, samtliga på nivå A, plus #11 som inte är ett
+formellt kravbrott:
+
+| # | Brist | Nivå |
+|---|---|---|
+| 4 | Anslagstavlan saknar `<h1>` | A |
+| 5 | Notiser kan bara stängas med musklick | A |
+| 6 | Notiser försvinner efter 5 s utan möjlighet att förlänga | A |
+| 10 | En etikett i rutinformuläret omsluter både verktygsrad och textfält | A |
+| 11 | Emoji i rubriker och navigeringslänkar | – (best practice) |
+
+Det är fyra små, avgränsade åtgärder – timmar, inte veckor. Det är värt att veta eftersom
+"kvarstående brister på **nivå A**" är den formulering som väger tyngst emot produkten i ett
+anbud (se `saljmaterial/kallfiler/Synappsen-upphandlingssvar.html` svar D1), och kostnaden för
+att ta bort den formuleringen helt är låg i förhållande till vad den kostar i varje
+upphandling där den står kvar.
+
 ### Vad som fungerar bra
 
 Följande är kontrollerat och uppfyller kraven:

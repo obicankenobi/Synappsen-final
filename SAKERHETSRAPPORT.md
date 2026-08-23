@@ -92,7 +92,14 @@ rollstyrd behörighet och flera lager av kvalitets- och säkerhetskontroller.
   AI-tolkningen (se säkerhetsavsnittet för fullständiga detaljer och kvarvarande begränsning).
 - Dubblettvarning vid skapande av kontakt/länk med samma namn som en befintlig.
 
-### Pausad funktion
+### Pausad funktion – HISTORISKT AVSNITT, GÄLLER INTE LÄNGRE
+
+> **Läs detta först (2026-08-23).** Avsnittet nedan beskriver ett läge som upphörde
+> 2026-08-01. **Klinikstöd-sökningen är i drift**, se rättelsen längre upp i det här
+> dokumentet. Rubriken "Pausad funktion" fick stå kvar när rättelsen skrevs in, och
+> `avtal/UNDERBITRADEN.md` citerade därefter det här avsnittet som källa för ett felaktigt
+> påstående i ett dokument som lämnas till kundens dataskyddsombud. Rättat 2026-08-23.
+> **Texten nedan bevaras som historik – använd den aldrig som statuskälla.**
 
 Klinikstöd-sökningen byggdes, testades och släpptes i flera iterationer (5.3.0–5.3.4), men
 visade sig – trots upprepade fixar av modell/verktygsval, källvalidering och

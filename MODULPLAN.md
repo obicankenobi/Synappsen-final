@@ -53,11 +53,20 @@ Core är ett mycket starkt, komplett pilotpaket – kräver ingen AI-diskussion 
 - ✅ **2FA-policy** (tvinga för valda roller, per organisation)
 - ✅ Bulkimport av dokument (mappuppladdning + granskningskö), rutinmallar per
   verksamhetstyp, "tid-att-hitta"-mätning
-- ⬜ **Delad-enhet/kioskläge** – enda genuint obyggda punkten i paketet. Flaggan
-  `FEATURE.KIOSK_MODE` finns reserverad i koden men inget gränssnitt kontrollerar den ännu.
+- ✅ **Delad-enhet/kioskläge** – byggt i Etapp 55 (2026-08-10), se `ETAPPLAN11.md`. Ett eget
+  kontotyp/roll (`kiosk`) för en delad platta: läser godkänt innehåll, söker och kör
+  checklistor, men kan aldrig kvittera, kommentera, föreslå ändringar eller bristanmäla –
+  eftersom det skulle göra spårbarhetssiffrorna missvisande. PIN hashas på servern.
+  `src/components/KioskPinModal.jsx`, `tests/e2e/kioskbevakning.spec.js`.
 
-**Säljkonsekvens:** Operations är i praktiken helt byggt. Kioskläge är den enda återstående
-raden – lågt prioriterad tills en pilotkund efterfrågar delade surfplattor specifikt.
+**Säljkonsekvens:** Operations är helt byggt. Ingen rad återstår.
+
+> **Rättelse 2026-08-23.** Raden ovan stod som ⬜ obyggd fram till detta datum, drygt fyra
+> månader efter att kioskläget faktiskt byggdes. Det gjorde `MODULPLAN.md` till underlag för
+> en köparanalys som drog slutsatser om modulgränserna ur en felaktig bild. Detta dokument är
+> daterat 2026-07-28 och har inte omgranskats sedan dess – **kontrollera byggstatus mot koden
+> innan någon rad här används som beslutsunderlag.** Samma mönster som `CLAUDE.md` redan har
+> fyra underhållsregler för.
 
 ### Intelligence – kontrollerad AI
 *"Minska manuellt innehållsarbete med kontrollerad AI."*
