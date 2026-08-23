@@ -4334,17 +4334,17 @@ modulgränserna ur en felaktig bild; `TILLGANGLIGHETSREDOGORELSE.md`s sammanfatt
 #8 och #9 kvarstod trots att Etapp 68 åtgärdade dem. Faktiskt kvarvarande på nivå A är fyra
 små punkter (#4, #5, #6, #10), nu en rad i `OPPNA-PUNKTER.md` med kommersiell motivering.
 
-**Två nya ägarbeslut registrerade i `OPPNA-PUNKTER.md`,** medvetet inte avgjorda här:
+**Ett ägarbeslut avgjort samma dag:** uppstartsavgiften (25 000 kr) var motstridig – prislistan
+sa att den utgår helt för de tre första referenskunderna, kostnadskalkylen sa "ge aldrig bort
+den". **Beslut: avgiften kvarstår och betalas av de tre första kunderna**, om inte annat
+uttryckligen framgår i det enskilda kundavtalet. `saljmaterial/kallfiler/Synappsen-
+prislista.html` rättad, `KOPARANALYS.md` §15 räknat om (referenskundens förstaårskostnad är
+55 625 kr, inte 24 375 kr), se `BESLUTSLOGG.md`.
 
-1. **Uppstartsavgiften 25 000 kr är motstridig i materialet.** Prislistan och offertmallen
-   säger att den utgår helt för de tre första referenskunderna; `KOSTNADSKALKYL-OCH-
-   PRISSATTNING.md` §5.2 säger "ge aldrig bort den". Det är ett rent affärsbeslut, och det
-   påverkar tre av köparanalysens argument (§7.1, §7.3, §11.1) eftersom alla tre räknar med
-   full avgift.
-2. **Utfallsgarantin (`KOPARANALYS.md` §11.1)** – ja eller nej. Analysens motivering
-   ("marginalen är 99 %, garantin är nästan gratis") håller inte: kostnaden är den nedlagda
-   tiden, inte det återbetalda abonnemanget. Garantin kan ändå vara rätt, men som
-   riskinstrument.
+**Ett ägarbeslut kvarstår öppet i `OPPNA-PUNKTER.md`:** utfallsgarantin (`KOPARANALYS.md`
+§11.1) – ja eller nej. Analysens motivering ("marginalen är 99 %, garantin är nästan gratis")
+håller inte: kostnaden är den nedlagda tiden, inte det återbetalda abonnemanget. Garantin kan
+ändå vara rätt, men som riskinstrument.
 
 **Det viktigaste att bära med sig till nästa session:** paketet är skrivet mot v5.117.0 medan
 koden är på v5.128.0. Kontrollera statuspåståenden mot koden, inte mot paketet. Och när ett

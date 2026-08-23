@@ -158,7 +158,7 @@ före varje utskick.** Var och en ändras när en funktion byggs.
 | "App Check i mätfas" | ✅ Verifierat i kod 2026-08-23: klienten skickar intyg (`src/firebase/config.js`), ingen serverfunktion kräver dem. Ändra när enforcement aktiveras |
 | "Sju roller" | ✅ Verifierat i kod 2026-08-23 (`src/firebase/roles.js`). `PITCH.md` är rättad från sex till sju samma dag |
 | AI-märkning enligt art. 50 | ❌ **INTE implementerad – verifierat i kod 2026-08-23.** Upphandlingssvar E2 påstod motsatsen och är rättat. Skicka inget svar som beskriver märkningen som byggd förrän den finns i koden. Kravet gäller sedan 2 augusti 2026 |
-| "Uppstartsavgift 25 000 kr" | ⚠️ **Motstridiga uppgifter i materialet.** Prislistan och offertmallen säger att den utgår helt för de tre första referenskunderna; `KOSTNADSKALKYL-OCH-PRISSATTNING.md` §5.2 säger "ge aldrig bort den". Avgör vilket som gäller innan en offert lämnas – se `OPPNA-PUNKTER.md` |
+| "Uppstartsavgift 25 000 kr" | ✅ **Avgjort 2026-08-23** (se `BESLUTSLOGG.md`): avgiften kvarstår och betalas av de tre första kunderna, om inte annat uttryckligen framgår i det enskilda kundavtalet. Referenskundsrabatten gäller enbart abonnemanget. Prislistan är rättad |
 
 ---
 
