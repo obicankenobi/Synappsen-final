@@ -4,10 +4,30 @@
 // att import.meta.env.VITE_FIREBASE_* ersätts med riktiga värden vid bygget – en statisk
 // public/firebase-messaging-sw.js hade krävt hårdkodade konfigurationsvärden i klartext.
 import { precacheAndRoute } from "workbox-precaching";
+import { clientsClaim } from "workbox-core";
 import { initializeApp } from "firebase/app";
 import { getMessaging, onBackgroundMessage } from "firebase/messaging/sw";
 
 precacheAndRoute(self.__WB_MANIFEST);
+
+// "Uppdatera"-knappen i AppUppdateringBanner.jsx anropar updateSW(true), som (via
+// workbox-window) postar {type: "SKIP_WAITING"} till den väntande service workern och
+// väntar sedan på ett "controlling"-event för att ladda om sidan - se
+// useAppUppdatering.js. `generateSW`-läget (Workbox standardbygge) lägger till BÅDA
+// stegen nedan automatiskt; i `injectManifest`-läge (se vite.config.js, Etapp 24a) är den
+// här filen den FAKTISKA service worker-koden, och ingen av dem fanns. Utan lyssnaren
+// gjorde knappen bokstavligen ingenting - self.skipWaiting() anropades aldrig, den nya
+// workern aktiverade sig aldrig, och "controlling" fyrades aldrig av. Upptäckt av ägaren i
+// produktion, inte av något test - `test:e2e` startar aldrig en riktig service worker
+// (Playwright kör mot dev-servern), så det här hade inte kunnat fångas där.
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
+});
+
+// Utan clientsClaim() tar den nya workern bara kontroll över FRAMTIDA sidladdningar, inte
+// den redan öppna fliken - och då fyras "controlling" aldrig av på den, så
+// window.location.reload() i useAppUppdatering.js hade aldrig kört.
+clientsClaim();
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
