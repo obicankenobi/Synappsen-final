@@ -1,0 +1,145 @@
+# Dokumentregister
+
+**Fullständig inventering av projektets 62 dokument.** Bevakat av
+`tests/docs/dokumentregister.test.js`, som failar om ett dokument finns på disk men saknas
+här, eller står här men saknas på disk. **Ett nytt dokument kan alltså inte glömmas bort –
+testet vägrar passera förrän det är infört i tabellerna nedan.**
+
+> **Varför den här filen finns.** Projektet har sex gånger haft ett dokument som påstod något
+> som inte längre stämde – `granskningar/SAKERHETSRAPPORT.md` 46–51 releaser efter koden,
+> `produkt/FRAMTIDSPLAN.md`/`produkt/MODULPLAN.md` 38–43, `src/version.js` 19,
+> `CLAUDE_STATUS.md` två, `saljmaterial/PITCH.md` 48. Svaret har varje gång varit en ny
+> prosaregel i `CLAUDE.md`, och prosareglerna har varje gång misslyckats igen. Det som
+> faktiskt har hållit är de två fall där drift gjordes **mekaniskt omöjlig eller mekaniskt
+> upptäckt**: `src/version.js` importerar versionen i stället för att upprepa den, och
+> `tests/docs/pitch-version.test.js` failar om `saljmaterial/PITCH.md`s versionsrubrik glider.
+> Det här registret plus `tests/docs/dokumentpastaenden.test.js` generaliserar den principen.
+
+## Typerna
+
+| Typ | Betyder | Bevakning |
+|---|---|---|
+| **levande** | Måste uppdateras när en viss händelse inträffar | Utlösaren står i tabellen. Kritiska sakpåståenden bevakas av `dokumentpastaenden.test.js` |
+| **referens** | Ändras bara vid en faktisk sakförändring, inte löpande | Ingen automatisk – läs vid behov |
+| **historisk** | **Ska inte ändras.** Beskriver ett avslutat skede | Testet kontrollerar bara att filen finns kvar |
+| **mall** | Fylls i per kund/tillfälle, ändras sällan i grunden | Ingen automatisk |
+
+**Extern = ja** betyder att dokumentet lämnas ut till kund, dataskyddsombud eller i ett anbud.
+Där kostar ett felaktigt påstående pengar och förtroende, inte bara irritation – de sex
+kundvända filerna i `saljmaterial/kallfiler/` och de fem i `avtal/` är därför de som
+`dokumentpastaenden.test.js` bevakar hårdast.
+
+---
+
+## Levande dokument
+
+Dessa är de enda som kräver löpande uppmärksamhet. Är du osäker på om något du just gjorde
+utlöser en uppdatering – läs kolumnen "Utlöses av".
+
+| Dokument | Extern | Utlöses av |
+|---|---|---|
+| `CLAUDE_STATUS.md` | nej | Varje commit, ägarbeslut, avslutad etapp eller deploy. Håll den kort – historik flyttas till `etapplaner/STATUSARKIV.md` när testet larmar |
+| `OPPNA-PUNKTER.md` | nej | En punkt blockerad av en människa/ett beslut tillkommer, löses eller visar sig inaktuell |
+| `BESLUTSLOGG.md` | nej | Ett ägarbeslut fattas (ja/nej/vänta). Ny rad, ändra aldrig en gammal |
+| `etapplaner/UTVECKLINGSLOGG.md` | nej | En utvecklingsfas avslutas |
+| `avtal/UNDERBITRADEN.md` | **ja** | Nytt eller ändrat underbiträde, ny extern integration, ändrad region, funktion pausas/återaktiveras |
+| `avtal/INCIDENTRESPONSPLAN.md` | **ja** | Ändrad detektions-, begränsnings- eller återställningsförmåga. Höj versionsnumret och fyll i versionshistoriken |
+| `drift/INCIDENT-CHECKLISTA.md` | nej (delas ALDRIG externt) | Samma som ovan, plus flyttade adminkontroller i UI |
+| `saljmaterial/PITCH.md` | **ja** | Kundvänd funktion blir synlig, ändras eller tas bort. Versionsrubriken bevakas av `pitch-version.test.js` |
+| `granskningar/SAKERHETSRAPPORT.md` | nej | Vid varje STÖRRE release: ny collection, ny uppladdningsväg, ny loggpunkt, genomläst npm-audit |
+| `granskningar/TILLGANGLIGHETSREDOGORELSE.md` | **ja** | En WCAG-brist åtgärdas eller upptäcks. **Sammanfattningstexten måste stämma med tabellen** – bevakat av test |
+| `produkt/MODULPLAN.md` | nej | En funktion byggs som ändrar vad ett paket innehåller |
+| `saljmaterial/kallfiler/Synappsen-prislista.html` | **ja** | Pris, nivå, rabatt eller tillägg ändras |
+| `saljmaterial/kallfiler/Synappsen-teknisk-beskrivning.html` | **ja** | Arkitektur, behörighet, region, backup eller "vad som inte finns" ändras |
+| `saljmaterial/kallfiler/Synappsen-upphandlingssvar.html` | **ja** | Något av de statusberoende svaren (A2, B4, B6, C3, C5, D1, E2) ändras |
+
+## Referensdokument
+
+| Dokument | Extern | Innehåll |
+|---|---|---|
+| `CLAUDE.md` | nej | Projektkarta och arbetsmönster. Ändras sällan |
+| `DOKUMENTREGISTER.md` | nej | Den här filen |
+| `README.md` | nej | Komma igång lokalt |
+| `.claude/skills/synappsen-release/SKILL.md` | nej | Releasechecklistan steg för steg |
+| `avtal/DPIA-UNDERLAG.md` | **ja** | Underlag för kundens konsekvensbedömning |
+| `avtal/IT-FAKTABLAD.md` | **ja** | Tekniskt faktablad till IT/DSO |
+| `drift/REDAKTORSGUIDE.md` | nej | Fördjupad guide för redaktörsrollerna |
+| `granskningar/JURIDISK-GRANSKNING.md` | nej (delas ALDRIG i sin helhet) | GDPR, MDR, AI-förordningen, produktansvar, NIS2, jäv/bisyssla |
+| `produkt/VARUMARKE.md` | nej | Varumärkesplattform, tonalitet |
+| `produkt/GRAFISK-PROFIL.md` | nej | Färg, typografi, komponentspråk |
+| `produkt/FRAMTIDSPLAN.md` | nej | **Arkiv över ej antagna planer.** Skriv aldrig tillbaka "här är den aktiva planen" |
+| `saljmaterial/00-LAS-DETTA-FORST.md` | nej | Orienteringsdokument för säljpaketet |
+| `saljmaterial/PILOTUPPLAGG.md` | nej | Konkret pilotupplägg, 4–6 veckor |
+| `saljmaterial/MARKNADSANALYS.md` | nej (bolagsform/jäv) | Marknad, värdering, prismodell |
+| `saljmaterial/MARKNADSANALYS-EXTERN.md` | **ja** | Kortversion utan interna bedömningar |
+| `saljmaterial/KOSTNADSKALKYL-OCH-PRISSATTNING.md` | nej | Kostnadssida, break-even, prisnivåer |
+| `saljmaterial/KANDIDATLISTA-PRIVAT-VARD.md` | nej (skickas ALDRIG till kandidat) | 28 namngivna kandidater |
+| `saljmaterial/KOPARANALYS.md` | nej | Attraktivitet ur fyra köparrollers perspektiv. Läs §15 innan du litar på §7/§11 |
+| `saljmaterial/SALJMATERIAL-UNDERLAG-FOR-BEDOMNING.md` | nej | Faktaverifiering av paketet mot kod |
+| `saljmaterial/Synappsen-demomanus.md` | nej | 30-minutersdemo |
+| `saljmaterial/Synappsen-invandningshantering.md` | nej | Invändningar och svar |
+| `saljmaterial/Synappsen-epostmallar.md` | nej | Elva mallar |
+| `saljmaterial/kallfiler/Synappsen-onepager-PRIVAT-VARDGIVARE.html` | **ja** | One-pager, privat vårdgivare |
+| `saljmaterial/kallfiler/Synappsen-onepager-KOMMUNAL-VARD-OCH-OMSORG.html` | **ja** | One-pager, kommunal omsorg |
+| `saljmaterial/kallfiler/Synappsen-onepager-REGION-OCH-SJUKHUS.html` | **ja** | One-pager, region/sjukhus |
+
+## Mallar
+
+| Dokument | Extern | Innehåll |
+|---|---|---|
+| `avtal/PUB-AVTAL-MALL.md` | **ja** | Personuppgiftsbiträdesavtal, art. 28 |
+
+## Historiska dokument – ändras inte
+
+Dessa beskriver avslutade skeden. **Rör inte innehållet** – värdet ligger i att kunna se vad
+som gällde när. Enda undantaget hittills är rubriknormaliseringen 2026-08-14 (rad 1 i varje
+planfil, på ägarens uttryckliga instruktion) och mappflytten 2026-08-23 (sökväg, inte innehåll).
+
+| Dokument | Innehåll |
+|---|---|
+| `etapplaner/ETAPPLAN.md` | Etapp 0–5: organisationsmodell, grundfunktioner |
+| `etapplaner/ETAPPLAN2.md` | Etapp 6–12: leverantörsadmin, feature-gating, säkerhetshärdning |
+| `etapplaner/ETAPPLAN3.md` | Etapp 13–21: upphandlingspaket, revisionslogg, onboarding |
+| `etapplaner/ETAPPLAN4.md` | Etapp 22–31: medarbetarnära funktioner |
+| `etapplaner/ETAPPLAN5.md` | Etapp 32–36: säkerhet, upptäckt, incidentberedskap |
+| `etapplaner/ETAPPLAN5-ALT-A.md` | Utkast som INTE antogs |
+| `etapplaner/ETAPPLAN5-ALT-B.md` | Utkast som INTE antogs |
+| `etapplaner/ETAPPLAN6.md` | Etapp 37–41: innehållets hälsa, redaktörens vardag |
+| `etapplaner/ETAPPLAN7.md` | Etapp 42–43: gränssnittsförnyelse |
+| `etapplaner/ETAPPLAN8.md` | Etapp 44, 46, 47: mobilkänsla, incidentberedskap, sök |
+| `etapplaner/ETAPPLAN9.md` | Etapp 45: kvalitetsmaskineriet riktas utåt |
+| `etapplaner/ETAPPLAN10.md` | Etapp 48–52: "Redo att drivas" |
+| `etapplaner/ETAPPLAN11.md` | Etapp 53–58: e-post, flerenhet, kiosk, SSO |
+| `etapplaner/ETAPPLAN12.md` | Etapp 59–63: "Från demo till drift" |
+| `etapplaner/ETAPPLAN13.md` | Etapp 64: baspaketet. **Antagen men juridiskt blockerad** |
+| `etapplaner/ETAPPLAN14.md` | Etapp 65: fyra vardagsfunktioner |
+| `etapplaner/ETAPPLAN15.md` | Etapp 66: fyra tillägg på byggd grund |
+| `etapplaner/ETAPPLAN16.md` | Etapp 67: leverantörens överblick |
+| `etapplaner/ETAPPLAN17.md` | Etapp 68: visuell finputsning |
+| `etapplaner/ETAPPLAN18.md` | Etapp 69: appen på en datorskärm |
+| `etapplaner/ETAPP1-ARBETSUPPGIFTER.md` | Uppgiftslista för allra första etappen |
+| `etapplaner/STATUSARKIV.md` | 117 historiska uppföljningar ur `CLAUDE_STATUS.md` |
+| `granskningar/GRANSKNING-2026-08-11.md` | Extern granskning, tidsstämplad |
+| `granskningar/SAKERHETSGRANSKNING-2026-08.md` | Säkerhetsgenomgång, tidsstämplad |
+
+---
+
+## Vad som är bevakat mekaniskt, och vad som inte är det
+
+**Bevakat** (`tests/docs/`):
+
+| Test | Vad det hindrar |
+|---|---|
+| `dokumentregister.test.js` | Att ett dokument tillkommer, flyttas eller raderas utan att registret följer med. Att `CLAUDE_STATUS.md` växer sig oläslig igen |
+| `dokumentpastaenden.test.js` | Att ett dokument påstår något som koden motsäger – rollantal, artikel 50-märkning, kundpåståenden, pausad/aktiv funktion |
+| `pitch-version.test.js` | Att `saljmaterial/PITCH.md`s versionsrubrik glider från `package.json` |
+
+**Inte bevakat, och det ska man veta:** ett test kan bara kontrollera påståenden som någon
+har brytt sig om att koda. Prosa som ingen har omvandlat till en assertion kan fortfarande
+ruttna tyst. Därför gäller fortfarande: **när du bygger något som ett dokument beskriver,
+uppdatera dokumentet i samma commit.** Registret talar om vilket dokument det gäller;
+testerna fångar bara den delmängd som gick att formulera maskinellt.
+
+När du upptäcker ett felaktigt påstående i ett dokument – lägg till en assertion i
+`dokumentpastaenden.test.js` samtidigt som du rättar texten. Det är så listan växer, och det
+är billigare än att upptäcka samma fel igen om tre månader.
