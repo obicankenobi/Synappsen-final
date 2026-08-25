@@ -131,6 +131,10 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
         titel: mall.titel,
         innehall: mall.innehall,
         omrade: mall.omrade,
+        // Utan det här fältet är öva-läget och Veckans repetition tomma dag ett – båda
+        // filtrerar på kviss.length > 0. Se MALL_KVISS i verksamhetsmallar.js för varför
+        // frågorna handlar om att rutinen är en mall, inte om dess kliniska innehåll.
+        kviss: mall.kviss ?? [],
         status: "godkand",
         organisationId: orgRef.id,
         kalla: "verksamhetsmall",

@@ -113,8 +113,15 @@ fyra personerna har inte tagit del av den. Med deadline, och med en lista att ex
 
 Visa kompetensmatrisen kort.
 
-**Säg:** *"Och när ni ändrar en rutin väsentligt räknas gamla kvitteringar bort automatiskt.
-Det är den detaljen som gör att siffran betyder något ett år senare."*
+**Säg:** *"Och när redaktören markerar en ändring som väsentlig slutar tidigare kvitteringar
+räknas — personen måste läsa och kvittera den nya versionen. Det är den detaljen som gör att
+siffran betyder något ett år senare."*
+
+> **Säg inte "automatiskt".** Redaktören kryssar själv i att ändringen är väsentlig; det sker
+> inte av sig självt vid varje redigering. Och ingenting raderas — den gamla kvittensen finns
+> kvar i historiken, den slutar bara räknas i kompetensöversikten. Verifierat mot
+> `src/utils/kompetensStatus.js` 2026-08-23, efter att den tidigare formuleringen visat sig
+> lova mer än koden gör.
 
 ---
 

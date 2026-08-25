@@ -243,3 +243,50 @@ brytt sig om att koda. Prosa som ingen omvandlat till en assertion kan fortfaran
 tyst. Regeln "uppdatera dokumentet i samma commit som ändringen" gäller därför oförändrat –
 testerna fångar bara den delmängd som gick att formulera maskinellt. **När du hittar ett
 felaktigt påstående: rätta texten och lägg till en assertion i samma commit.**
+
+---
+
+## Uppföljning 2026-08-23 (kvissbank + startbibliotekets kvissfrågor)
+
+**Fynd som motiverade arbetet.** Mikrokvissen (Etapp 19b) delar fält (`rutin.kviss`) med öva-
+läget (65d) och Veckans repetition (41b), och båda de senare filtrerar på `kviss.length > 0`.
+Startbiblioteket seedade 17 rutinmallar med **tomma kvissfält** – två byggda funktioner var
+alltså helt tomma dag ett för varje ny organisation. Seedningen i
+`functions/organisationslivscykel.js` skrev dessutom inte fältet alls, så det hade ignorerats
+även om mallarna haft frågor.
+
+**Byggt:**
+
+| Vad | Innehåll |
+|---|---|
+| `src/data/kvissbank.js` | 20 återanvändbara frågor i sex kategorier (kvittering, ansvar, användning, färskhet, patientuppgifter, mallar) + `tillRutinKviss()` och `MAX_KVISSFRAGOR_PER_RUTIN` |
+| `src/data/kvissbank.test.js` | 31 tester: form, unika id:n, rattIndex i intervall, **kliniska termer förbjudna**, personnummermönster förbjudna, och två kopplingstester mot koden |
+| `MALL_KVISS` i `functions/verksamhetsmallar.js` | Två frågor på var och en av de 17 startmallarna |
+| `functions/organisationslivscykel.js` | Seedar nu `kviss` – utan raden hade mallfrågorna aldrig nått databasen |
+
+**Den avgörande avgränsningen.** En kvissfråga har ett rätt svar och är därför ett
+faktapåstående – till skillnad från en rutinmall, som bara är ett skelett. Påhittad klinisk
+vägledning i en fråga skulle passera både MDR-gränsdragningen och regeln om att aldrig påstå
+overifierat sakinnehåll. **Katalogen innehåller därför bara frågor om hur systemet och
+processen fungerar**, och ett test förbjuder kliniska termer (dos, mg, blodtryck, behandla …).
+Kliniska frågor skrivs av verksamheten själv om den egna godkända texten, eventuellt via
+`foreslaKvissfragor`, som redan bara får pröva förståelse av befintlig text.
+
+Startmallarnas två frågor handlar om **att rutinen är en mall och inte får följas som färdig
+rutin**. Det gör startbibliotekets största risk – att någon litar på en platshållare – till
+det första personalen får bekräfta att de förstått.
+
+**Två kopplingstester som skyddar en verklig fallgrop.** `MAX_KVISSFRAGOR_PER_RUTIN` binds mot
+taket i `RutinFormular.jsx` OCH mot `harTroligtPersonnummerIKvissN` i `firestore.rules`, som
+radar upp exakt fyra index eftersom regelspråket saknar loopar. Höjs taket utan att den
+funktionen utökas slutar PII-spärren gälla för frågorna över gränsen, tyst. Verifierat genom
+att höja taket till 6 – båda testerna failade.
+
+**Fel som rättades på vägen:** demomanuset påstod att kvitteringar "räknas bort automatiskt"
+vid väsentlig ändring. Mot `src/utils/kompetensStatus.js`: redaktören måste själv markera
+ändringen som väsentlig, och ingenting raderas – kvittensen slutar räknas i
+kompetensöversikten men finns kvar i historiken. Formuleringen rättad.
+
+**Föreslaget men inte byggt** (kräver ägarbeslut, se nästa avsnitt i chatten): väljare i
+`RutinFormular.jsx` för att plocka frågor ur banken, kviss i introduktionsspåret, och
+kategorifilter i öva-läget.

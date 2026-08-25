@@ -26,6 +26,48 @@ const MALL_ANMARKNING =
   "verksamhets faktiska rutin och låt den granskas/godkännas enligt er vanliga process " +
   "innan personalen förlitar sig på den._";
 
+// Etapp 19b/41b/65d: mikrokvissen (KvissModal.jsx) visas innan en läskvittering räknas, och
+// BÅDE öva-läget och Veckans repetition kräver rutin.kviss.length > 0 för att visa något alls.
+// En ny organisation fick tidigare 8-10 rutinmallar med tomma kvissfält – alltså två byggda
+// funktioner som var helt tomma dag ett. Varje startmall får därför två frågor.
+//
+// Frågorna handlar MEDVETET om att rutinen är en mall och inte får följas som färdig rutin,
+// inte om dess kliniska innehåll. Skälet är detsamma som gör att mallarna själva bara är
+// skelett: en kvissfråga har ett rätt svar och är därmed ett faktapåstående, och påhittad
+// klinisk vägledning skulle passera både MDR-gränsdragningen och projektets regel om att
+// aldrig påstå overifierat sakinnehåll. Att i stället lära ut att seedat innehåll inte är
+// verifierat gör startbibliotekets största risk – att någon litar på en platshållare – till
+// det första personalen får bekräfta att de förstått.
+//
+// En återanvändbar bank av samma slags frågor (systemkunskap, process, ansvar) finns i
+// src/data/kvissbank.js för redaktörer som vill lägga till fler.
+const MALL_KVISS = [
+  {
+    fraga: 'Den h\u00e4r rutinen \u00e4r m\u00e4rkt "(mall)". Vad inneb\u00e4r det?',
+    alternativ: [
+      "Inneh\u00e5llet \u00e4r ett skelett som er verksamhet ska ers\u00e4tta med sin egen rutin",
+      "Att rutinen \u00e4r granskad och godk\u00e4nd av leverant\u00f6ren",
+      "Att rutinen g\u00e4ller tills en egen skrivits, och kan f\u00f6ljas under tiden",
+    ],
+    rattIndex: 0,
+    hanvisning:
+      "Se noteringen sist i rutintexten. Startbibliotekets mallar \u00e4r strukturella exempel \u2013 " +
+      "rubriker och fr\u00e5gor att besvara \u2013 aldrig f\u00e4rdig klinisk v\u00e4gledning.",
+  },
+  {
+    fraga: "Vad g\u00f6r du om inneh\u00e5llet inte st\u00e4mmer med hur ni faktiskt arbetar?",
+    alternativ: [
+      "F\u00f6resl\u00e5r en \u00e4ndring, s\u00e5 att rutinens \u00e4gare f\u00e5r den till granskning",
+      "\u00c4ndrar direkt i texten sj\u00e4lv",
+      "F\u00f6ljer rutinen \u00e4nd\u00e5 tills n\u00e5gon annan r\u00e4ttar den",
+    ],
+    rattIndex: 0,
+    hanvisning:
+      "Alla kan f\u00f6resl\u00e5 en \u00e4ndring. F\u00f6rslaget g\u00e5r till rutinens \u00e4gare och blir synligt " +
+      "f\u00f6rst n\u00e4r det godk\u00e4nts, s\u00e5 att ingen rutin \u00e4ndras utan sp\u00e5rbarhet.",
+  },
+];
+
 const VERKSAMHETSMALLAR = {
   akutmottagning: [
     {
@@ -36,6 +78,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Triage enligt er valda skala\n2. Registrering\n3. Överlämning till ansvarig läkare/sjuksköterska\n\n" +
         "# Varningstecken\n\nLista era lokala kriterier för akut eskalering." +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Larmrutin – hjärtstopp (mall)",
@@ -44,6 +87,7 @@ const VERKSAMHETSMALLAR = {
         "# Larmtyp\n\nHjärtstopp/HLR-larm.\n\n# Vid larm\n\n1. Vem larmas och hur\n" +
         "2. Vilken utrustning ska finnas tillgänglig\n3. Ansvarsfördelning under insatsen" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Överlämning mellan skift (mall)",
@@ -53,6 +97,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Vad ska ingå i en muntlig/skriftlig överlämning\n" +
         "2. Vem ansvarar för att den genomförs\n3. Hur avvikande/instabila patienter flaggas särskilt" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Smittskydd och isolering (mall)",
@@ -62,6 +107,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Kriterier för misstänkt smitta\n2. Skyddsutrustning som ska användas\n" +
         "3. Rengöring/sanering efter vård av en isolerad patient" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Avvikelsehantering (mall)",
@@ -71,6 +117,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Var en avvikelse anmäls\n2. Vem utreder den\n" +
         "3. Hur återkoppling sker till den som anmälde" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Introduktion av ny medarbetare (mall)",
@@ -80,6 +127,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Vad ska genomgås första dagen/veckan\n" +
         "2. Vem är fadder/handledare\n3. Hur avstäms att introduktionen är klar" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
   ],
   vardcentral: [
@@ -91,6 +139,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Vem svarar och när\n2. Bedömningsstöd som används\n" +
         "3. När patienten ska bokas, hänvisas eller uppmanas söka akut vård" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Recept- och läkemedelsrutin (mall)",
@@ -100,6 +149,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Vem hanterar inkommande receptförfrågningar\n" +
         "2. Rutin för läkemedelsavstämning\n3. Eskalering vid osäkerhet" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Provtagning och svarshantering (mall)",
@@ -109,6 +159,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Vem tar prover och enligt vilken ordination\n" +
         "2. Hur svar granskas och signeras\n3. Hur patienten informeras om avvikande svar" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Vaccination (mall)",
@@ -118,6 +169,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Vem får vaccinera\n2. Hur biverkningar/reaktioner hanteras direkt efteråt\n" +
         "3. Hur vaccinationen dokumenteras" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Bokningsöverbelastning (mall)",
@@ -127,6 +179,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Hur akuta ärenden prioriteras ändå\n" +
         "2. Vem beslutar om extra insatta tider\n3. Hur patienten informeras" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Avvikelsehantering (mall)",
@@ -136,6 +189,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Var en avvikelse anmäls\n2. Vem utreder den\n" +
         "3. Hur återkoppling sker till den som anmälde" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
   ],
   hemtjanst: [
@@ -147,6 +201,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Delegering och ansvar\n2. Dokumentation vid varje besök\n" +
         "3. Vad som ska rapporteras vidare och till vem" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Larmrutin – fallolycka (mall)",
@@ -155,6 +210,7 @@ const VERKSAMHETSMALLAR = {
         "# Larmtyp\n\nFall hos brukare.\n\n# Vid larm\n\n1. Första bedömning på plats\n" +
         "2. När ambulans ska larmas\n3. Rapportering och uppföljning" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Hygienrutiner vid brukarbesök (mall)",
@@ -164,6 +220,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Skyddsutrustning som ska bäras\n2. Handhygien före/efter besök\n" +
         "3. Extra åtgärder vid känd smitta hos brukaren" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Schemaändring med kort varsel (mall)",
@@ -173,6 +230,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Vem kontaktas och när\n2. Hur berörda brukare informeras vid behov\n" +
         "3. Hur ändringen dokumenteras" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
     {
       titel: "Avvikelsehantering (mall)",
@@ -182,6 +240,7 @@ const VERKSAMHETSMALLAR = {
         "# Handläggning\n\n1. Var en avvikelse anmäls\n2. Vem utreder den\n" +
         "3. Hur återkoppling sker till den som anmälde" +
         MALL_ANMARKNING,
+      kviss: MALL_KVISS,
     },
   ],
 };
@@ -225,4 +284,4 @@ const KONTAKTMALLAR = [
   { namn: "Fastighet/vaktmästeri (mall, fyll i)", nummer: "", kategori: "Fastighet", beskrivning: "Fyll i aktuell kontaktväg." },
 ];
 
-module.exports = { VERKSAMHETSMALLAR, VERKSAMHETSTYP_NAMN, FORRADSMALLAR, KONTAKTMALLAR };
+module.exports = { VERKSAMHETSMALLAR, VERKSAMHETSTYP_NAMN, FORRADSMALLAR, KONTAKTMALLAR, MALL_KVISS };
