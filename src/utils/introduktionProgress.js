@@ -18,6 +18,10 @@ export function berakraIntroduktionsProgress(etapper, uid, innehallMap) {
       titel: innehall?.titel ?? "(borttaget innehåll)",
       sokvag: innehall?.sokvag ?? null,
       klar: arKlar,
+      // Etapp 65d/19b: en rutin med kviss visar mikrokvissen automatiskt vid kvittering
+      // (RutinKort.jsx) – det behöver inget eget bygge, bara synas i listan så att både den
+      // nyanställda och den som bygger spåret vet att en kunskapskontroll väntar.
+      harKviss: (innehall?.kviss?.length ?? 0) > 0,
     };
   });
   return {

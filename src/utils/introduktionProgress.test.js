@@ -45,6 +45,19 @@ describe("berakraIntroduktionsProgress", () => {
     expect(resultat.detaljer[0]).toMatchObject({ titel: "(borttaget innehåll)", sokvag: null, klar: false });
   });
 
+  it("harKviss är sant bara när innehållet faktiskt har kvissfrågor", () => {
+    const karta = new Map([
+      ["rutin:r1", { titel: "R1", sokvag: "/x", lasteAv: [], kviss: [{ fraga: "?" }] }],
+      ["rutin:r2", { titel: "R2", sokvag: "/x", lasteAv: [], kviss: [] }],
+      ["anslag:a1", { titel: "A1", sokvag: "/anslag", lasteAv: [] }],
+    ]);
+    const resultat = berakraIntroduktionsProgress(ETAPPER, "uid1", karta);
+    expect(resultat.detaljer.find((d) => d.id === "r1").harKviss).toBe(true);
+    expect(resultat.detaljer.find((d) => d.id === "r2").harKviss).toBe(false);
+    // Anslag saknar kviss-fält helt (bara rutiner har det) – ska ge false, inte kasta.
+    expect(resultat.detaljer.find((d) => d.id === "a1").harKviss).toBe(false);
+  });
+
   it("100 % när alla poster är kvitterade av uid", () => {
     const karta = new Map([
       ["rutin:r1", { titel: "R1", sokvag: "/x", lasteAv: [{ uid: "uid1" }] }],

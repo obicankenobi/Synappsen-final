@@ -8,7 +8,12 @@
 
 // Bygger poolen av ALLA kvalificerande frågor, en post per fråga (inte per rutin) – en rutin
 // med tre kvissfrågor bidrar med tre poster till poolen.
-export function byggFragepool(rutiner, omrade) {
+//
+// kategori: valfri, filtrerar på fraga.kategori (se src/data/kvissbank.js). Fältet finns bara
+// på frågor som lagts till via frågebanken (RutinFormular.jsx) – AI-föreslagna och
+// handskrivna frågor saknar det och exkluderas alltså av ett kategorifilter, men syns som
+// vanligt när kategori är null/"blandat".
+export function byggFragepool(rutiner, omrade, kategori = null) {
   return rutiner
     .filter(
       (r) =>
@@ -26,7 +31,19 @@ export function byggFragepool(rutiner, omrade) {
         frageIndex,
         fraga,
       }))
-    );
+    )
+    .filter((post) => !kategori || post.fraga.kategori === kategori);
+}
+
+// Vilka kategorier (ur kvissbank.js) som faktiskt förekommer i den aktuella poolen, i den
+// ordning de definieras där. Används för att bara visa kategoriknappar som ger träffar –
+// annars vore de flesta knapparna tomma i en organisation utan bankfrågor.
+export function tillgangligaKategorier(rutiner, omrade) {
+  const poolUtanKategorifilter = byggFragepool(rutiner, omrade);
+  const forekommer = new Set(
+    poolUtanKategorifilter.map((post) => post.fraga.kategori).filter(Boolean)
+  );
+  return [...forekommer];
 }
 
 // Fisher-Yates – slumpar ordningen och plockar de första `antal` posterna. Ren

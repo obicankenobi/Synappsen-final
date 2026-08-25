@@ -8,6 +8,7 @@ import { useFeatures } from "../hooks/useFeatures";
 import { FEATURE } from "../config/features";
 import { foreslaChecklistSteg, foreslaKvissfragor } from "../firebase/functions";
 import { GODKANDA_KALLDOMANER, domanGodkand } from "../config/kalldomaner";
+import { KVISSBANK, KVISS_KATEGORI_LABEL, tillRutinKviss, MAX_KVISSFRAGOR_PER_RUTIN } from "../data/kvissbank";
 import "./RutinFormular.css";
 
 const MAX_KALLOR = 4;
@@ -148,6 +149,7 @@ export default function RutinFormular({
 
   const [kviss, setKviss] = useState(initialaVarden?.kviss ?? []);
   const [foreslarKviss, setForeslarKviss] = useState(false);
+  const [visaFrageBank, setVisaFrageBank] = useState(false);
   const [vasentligAndring, setVasentligAndring] = useState(false);
 
   const [externaKallor, setExternaKallor] = useState(initialaVarden?.externaKallor ?? []);
@@ -175,8 +177,17 @@ export default function RutinFormular({
   );
 
   function laggTillFraga() {
-    if (kviss.length >= 4) return;
+    if (kviss.length >= MAX_KVISSFRAGOR_PER_RUTIN) return;
     setKviss((k) => [...k, { fraga: "", alternativ: ["", ""], rattIndex: 0, hanvisning: "" }]);
+  }
+
+  // Frågor ur den fördefinierade banken (src/data/kvissbank.js) om systemet och processen –
+  // aldrig kliniskt innehåll, se filens egen motivering. Jämför på frågetext eftersom bankens
+  // id inte följer med in i rutinens sparade kviss (tillRutinKviss skalar bort det).
+  function laggTillFranBank(bankfraga) {
+    if (kviss.length >= MAX_KVISSFRAGOR_PER_RUTIN) return;
+    if (kviss.some((f) => f.fraga === bankfraga.fraga)) return;
+    setKviss((k) => [...k, ...tillRutinKviss([bankfraga])]);
   }
 
   function taBortFraga(index) {
@@ -618,15 +629,61 @@ export default function RutinFormular({
       </fieldset>
 
       <fieldset className="rutin-formular__checklista">
-        <legend>Mikrokviss vid kvittering (valfritt, max 4 frågor)</legend>
+        <legend>Mikrokviss vid kvittering (valfritt, max {MAX_KVISSFRAGOR_PER_RUTIN} frågor)</legend>
         <p className="rutin-formular__hjalptext">
           Visas innan kvitteringen räknas. Fel svar visar bara rätt svar + hänvisning och
           låter personen försöka igen – syftet är förståelse, inte betyg.
         </p>
-        {hasFeature(FEATURE.AI_IMPORT) && (
-          <button type="button" className="knapp knapp--sekundar knapp--liten" disabled={foreslarKviss} onClick={hanteraForeslaKviss}>
-            {foreslarKviss ? "Föreslår..." : "✨ Föreslå frågor från innehållet"}
-          </button>
+        <div className="rutin-formular__kvisskallor">
+          {hasFeature(FEATURE.AI_IMPORT) && (
+            <button type="button" className="knapp knapp--sekundar knapp--liten" disabled={foreslarKviss} onClick={hanteraForeslaKviss}>
+              {foreslarKviss ? "Föreslår..." : "✨ Föreslå frågor från innehållet"}
+            </button>
+          )}
+          {kviss.length < MAX_KVISSFRAGOR_PER_RUTIN && (
+            <button
+              type="button"
+              className="knapp knapp--sekundar knapp--liten"
+              onClick={() => setVisaFrageBank((v) => !v)}
+              aria-expanded={visaFrageBank}
+            >
+              📚 {visaFrageBank ? "Dölj frågebanken" : "Välj från frågebanken"}
+            </button>
+          )}
+        </div>
+        {visaFrageBank && (
+          <div className="rutin-formular__fragebank">
+            <p className="rutin-formular__hjalptext">
+              Färdiga frågor om systemet och processen – inte om det kliniska innehållet. Passar
+              rutiner utan egen kviss ännu.
+            </p>
+            {Object.entries(KVISS_KATEGORI_LABEL).map(([kategori, etikett]) => {
+              const fragor = KVISSBANK.filter(
+                (f) => f.kategori === kategori && !kviss.some((k) => k.fraga === f.fraga)
+              );
+              if (fragor.length === 0) return null;
+              return (
+                <div key={kategori} className="rutin-formular__fragebank-kategori">
+                  <h4>{etikett}</h4>
+                  <ul className="rutin-formular__fragebank-lista">
+                    {fragor.map((f) => (
+                      <li key={f.id} className="rutin-formular__fragebank-rad">
+                        <span>{f.fraga}</span>
+                        <button
+                          type="button"
+                          className="knapp knapp--liten"
+                          disabled={kviss.length >= MAX_KVISSFRAGOR_PER_RUTIN}
+                          onClick={() => laggTillFranBank(f)}
+                        >
+                          + Lägg till
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
         )}
         {kviss.length > 0 && (
           <ul className="rutin-formular__steglista">
@@ -683,7 +740,7 @@ export default function RutinFormular({
             ))}
           </ul>
         )}
-        {kviss.length < 4 && (
+        {kviss.length < MAX_KVISSFRAGOR_PER_RUTIN && (
           <button type="button" className="knapp knapp--liten" onClick={laggTillFraga}>
             + Lägg till fråga
           </button>

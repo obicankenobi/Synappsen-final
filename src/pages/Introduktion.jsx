@@ -84,6 +84,12 @@ function PagagendeTilldelning({ tilldelning, progress, efter, currentUser, organ
               <li key={i} className="introduktion__signeringsrad">
                 <span className={p.klar ? "introduktion__post introduktion__post--klar" : "introduktion__post"}>
                   {p.klar ? "✅" : "⬜"} {p.etappNamn}: {p.titel}
+                  {p.harKviss && (
+                    <span className="introduktion__kviss-flagga" title="Innehåller en kort kunskapskontroll vid kvittering">
+                      {" "}
+                      📝
+                    </span>
+                  )}
                 </span>
                 {signering ? (
                   <span className="introduktion__signerad">
@@ -142,7 +148,7 @@ export default function Introduktion() {
     const karta = new Map();
     allaRutiner.forEach((r) => {
       const sokvag = r.omrade === "kliniskt-stod" ? "/kliniskt-stod" : r.omrade === "logistik" ? "/logistik" : "/administration";
-      karta.set(`rutin:${r.id}`, { titel: r.titel, sokvag, lasteAv: r.lasteAv });
+      karta.set(`rutin:${r.id}`, { titel: r.titel, sokvag, lasteAv: r.lasteAv, kviss: r.kviss });
     });
     anslag.forEach((a) => {
       karta.set(`anslag:${a.id}`, { titel: a.titel, sokvag: "/anslag", lasteAv: a.lasteAv });
@@ -238,6 +244,11 @@ export default function Introduktion() {
                   <span>{p.klar ? "✅" : "⬜"}</span>
                   <span className="introduktion__post-etapp">{p.etappNamn}</span>
                   {p.sokvag ? <Link to={p.sokvag}>{p.titel}</Link> : <span>{p.titel}</span>}
+                  {p.harKviss && (
+                    <span className="introduktion__kviss-flagga" title="Innehåller en kort kunskapskontroll när du kvitterar">
+                      📝 kunskapskontroll
+                    </span>
+                  )}
                   {signering && (
                     <span className="introduktion__signerad">
                       Signerad av {signering.signeradAvNamn || "okänd"}, {formateraDatum(signering.tidpunkt)}

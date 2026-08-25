@@ -75,10 +75,16 @@ describe("Kvissbankens form", () => {
 });
 
 describe("tillRutinKviss() ger exakt den form en rutin sparar", () => {
-  test("skalar bort bankens egna fält", () => {
+  test("skalar bort bankens id men behåller kategori som valfri metadata", () => {
     const ut = tillRutinKviss(KVISSBANK.slice(0, 3));
     for (const post of ut) {
-      expect(Object.keys(post).sort()).toEqual(["alternativ", "fraga", "hanvisning", "rattIndex"]);
+      expect(Object.keys(post).sort()).toEqual([
+        "alternativ",
+        "fraga",
+        "hanvisning",
+        "kategori",
+        "rattIndex",
+      ]);
     }
   });
 
@@ -90,13 +96,21 @@ describe("tillRutinKviss() ger exakt den form en rutin sparar", () => {
 });
 
 describe("Katalogen respekterar gränserna i koden", () => {
-  test("MAX_KVISSFRAGOR_PER_RUTIN matchar taket i RutinFormular.jsx", () => {
+  test("RutinFormular.jsx importerar taket från kvissbank.js i stället för att upprepa det", () => {
+    // Tidigare stod "4" hårdkodat på tre ställen i RutinFormular.jsx – samma glömska-mönster
+    // som fick src/version.js att stå fast i 19 releaser. Kontrollerar nu att INGEN hårdkodad
+    // siffra finns kvar, bara den importerade konstanten.
     const formular = readFileSync(`${ROT}src/components/RutinFormular.jsx`, "utf8");
     expect(
       formular,
-      "RutinFormular.jsx begränsar inte längre antalet kvissfrågor till " +
-        `${MAX_KVISSFRAGOR_PER_RUTIN} – uppdatera MAX_KVISSFRAGOR_PER_RUTIN i kvissbank.js.`
-    ).toMatch(new RegExp(`kviss\\.length\\s*[<>=]+\\s*${MAX_KVISSFRAGOR_PER_RUTIN}`));
+      "RutinFormular.jsx måste importera MAX_KVISSFRAGOR_PER_RUTIN från ../data/kvissbank"
+    ).toMatch(/import\s*\{[^}]*MAX_KVISSFRAGOR_PER_RUTIN[^}]*\}\s*from\s*["']\.\.\/data\/kvissbank["']/);
+    expect(
+      formular,
+      "RutinFormular.jsx har en hårdkodad siffra kvar där MAX_KVISSFRAGOR_PER_RUTIN borde " +
+        "användas – kolla kviss.length-jämförelserna mot taket (0 är en giltig " +
+        "tomhetskontroll och undantas härifrån)."
+    ).not.toMatch(/kviss\.length\s*[<>=]+\s*[1-9]\d*/);
   });
 
   test("firestore.rules PII-kontroll täcker lika många frågor som taket", () => {

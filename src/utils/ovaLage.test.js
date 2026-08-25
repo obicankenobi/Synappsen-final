@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { byggFragepool, slumpaFragor } from "./ovaLage";
+import { byggFragepool, slumpaFragor, tillgangligaKategorier } from "./ovaLage";
 
 const KVISSFRAGA = { fraga: "?", alternativ: ["a", "b"], rattIndex: 0, hanvisning: "" };
 
@@ -49,6 +49,42 @@ describe("byggFragepool", () => {
     const pool = byggFragepool([rutin({ kviss: [KVISSFRAGA, KVISSFRAGA, KVISSFRAGA] })], "blandat");
     expect(pool).toHaveLength(3);
     expect(pool.map((p) => p.frageIndex)).toEqual([0, 1, 2]);
+  });
+
+  it("filtrerar på kategori när en anges", () => {
+    const kvissMedKategori = { ...KVISSFRAGA, kategori: "mallar" };
+    const rutiner = [rutin({ id: "a", kviss: [kvissMedKategori] }), rutin({ id: "b", kviss: [KVISSFRAGA] })];
+    const pool = byggFragepool(rutiner, "blandat", "mallar");
+    expect(pool.map((p) => p.rutinId)).toEqual(["a"]);
+  });
+
+  it("tar med alla frågor, taggade och otaggade, när ingen kategori anges", () => {
+    const kvissMedKategori = { ...KVISSFRAGA, kategori: "mallar" };
+    const rutiner = [rutin({ id: "a", kviss: [kvissMedKategori] }), rutin({ id: "b", kviss: [KVISSFRAGA] })];
+    expect(byggFragepool(rutiner, "blandat")).toHaveLength(2);
+    expect(byggFragepool(rutiner, "blandat", null)).toHaveLength(2);
+  });
+});
+
+describe("tillgangligaKategorier", () => {
+  it("returnerar tomt när ingen fråga har en kategori", () => {
+    expect(tillgangligaKategorier([rutin({})], "blandat")).toEqual([]);
+  });
+
+  it("returnerar varje kategori en gång, oavsett hur många frågor som bär den", () => {
+    const kvissMedKategori = { ...KVISSFRAGA, kategori: "mallar" };
+    const rutiner = [
+      rutin({ id: "a", kviss: [kvissMedKategori, kvissMedKategori] }),
+      rutin({ id: "b", kviss: [{ ...KVISSFRAGA, kategori: "ansvar" }] }),
+    ];
+    expect(tillgangligaKategorier(rutiner, "blandat").sort()).toEqual(["ansvar", "mallar"]);
+  });
+
+  it("respekterar områdesfiltret", () => {
+    const kvissMedKategori = { ...KVISSFRAGA, kategori: "mallar" };
+    const rutiner = [rutin({ id: "a", omrade: "administration", kviss: [kvissMedKategori] })];
+    expect(tillgangligaKategorier(rutiner, "kliniskt-stod")).toEqual([]);
+    expect(tillgangligaKategorier(rutiner, "administration")).toEqual(["mallar"]);
   });
 });
 

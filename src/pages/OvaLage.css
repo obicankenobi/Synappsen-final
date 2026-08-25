@@ -9,6 +9,18 @@
   margin-top: 12px;
 }
 
+.ova-lage__kategorival {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 0.9rem;
+}
+
+.ova-lage__kategorival select {
+  padding: 4px 8px;
+}
+
 .ova-lage__header {
   display: flex;
   align-items: center;

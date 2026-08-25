@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAllaGodkandaRutiner } from "../hooks/useAllaGodkandaRutiner";
-import { byggFragepool, slumpaFragor } from "../utils/ovaLage";
+import { byggFragepool, slumpaFragor, tillgangligaKategorier } from "../utils/ovaLage";
 import { OMRADE_LABELS } from "../hooks/useSokindex";
+import { KVISS_KATEGORI_LABEL } from "../data/kvissbank";
 import "./OvaLage.css";
 
 const ANTAL_FRAGOR = 8;
@@ -26,9 +27,10 @@ export default function OvaLage() {
   const [index, setIndex] = useState(0);
   const [valt, setValt] = useState(null);
   const [visaFacit, setVisaFacit] = useState(false);
+  const [valdKategori, setValdKategori] = useState(null);
 
-  function startaPass(omrade) {
-    const pool = byggFragepool(rutiner, omrade);
+  function startaPass(omrade, kategori) {
+    const pool = byggFragepool(rutiner, omrade, kategori);
     setFragor(slumpaFragor(pool, ANTAL_FRAGOR));
     setIndex(0);
     setValt(null);
@@ -62,9 +64,10 @@ export default function OvaLage() {
     );
   }
 
-  // Steg 1: välj område, inget pass pågår
+  // Steg 1: välj ev. kategori och område, inget pass pågår
   if (!fragor) {
     const totalPool = byggFragepool(rutiner, "blandat").length;
+    const kategorier = tillgangligaKategorier(rutiner, "blandat");
     return (
       <div className="sida sida--ova-lage">
         <h1>🎓 Öva</h1>
@@ -75,22 +78,41 @@ export default function OvaLage() {
         {totalPool === 0 ? (
           <p>Det finns ännu inga kvissfrågor att öva på.</p>
         ) : (
-          <div className="ova-lage__omradesval">
-            {OMRADEN.map((o) => {
-              const antal = byggFragepool(rutiner, o.nyckel).length;
-              return (
-                <button
-                  key={o.nyckel}
-                  type="button"
-                  className="knapp"
-                  disabled={antal === 0}
-                  onClick={() => startaPass(o.nyckel)}
+          <>
+            {kategorier.length > 0 && (
+              <div className="ova-lage__kategorival">
+                <label htmlFor="ova-lage-kategori">Kategori (valfritt)</label>
+                <select
+                  id="ova-lage-kategori"
+                  value={valdKategori ?? ""}
+                  onChange={(e) => setValdKategori(e.target.value || null)}
                 >
-                  {o.namn} ({antal} {antal === 1 ? "fråga" : "frågor"})
-                </button>
-              );
-            })}
-          </div>
+                  <option value="">Alla kategorier</option>
+                  {kategorier.map((k) => (
+                    <option key={k} value={k}>
+                      {KVISS_KATEGORI_LABEL[k] ?? k}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="ova-lage__omradesval">
+              {OMRADEN.map((o) => {
+                const antal = byggFragepool(rutiner, o.nyckel, valdKategori).length;
+                return (
+                  <button
+                    key={o.nyckel}
+                    type="button"
+                    className="knapp"
+                    disabled={antal === 0}
+                    onClick={() => startaPass(o.nyckel, valdKategori)}
+                  >
+                    {o.namn} ({antal} {antal === 1 ? "fråga" : "frågor"})
+                  </button>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
     );

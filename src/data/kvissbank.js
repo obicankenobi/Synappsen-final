@@ -362,16 +362,19 @@ export function fragorIKategori(kategori) {
 }
 
 /**
- * Skalar av bankens egna fält (id, kategori) så att posten får exakt den form en rutins
- * `kviss`-array använder. Använd alltid denna innan något sparas på en rutin – annars
- * skrivs okända fält till Firestore.
+ * Skalar av bankens `id` (internt, aldrig meningsfullt utanför den här filen) så att posten
+ * får den form en rutins `kviss`-array använder. `kategori` behålls som valfri metadata –
+ * den används av öva-lägets kategorifilter (src/utils/ovaLage.js) för just de frågor som
+ * kommer härifrån, men läses inte av KvissModal.jsx eller firestore.rules och är alltså
+ * ofarlig att spara med.
  */
 export function tillRutinKviss(fragor) {
-  return fragor.map(({ fraga, alternativ, rattIndex, hanvisning }) => ({
+  return fragor.map(({ fraga, alternativ, rattIndex, hanvisning, kategori }) => ({
     fraga,
     alternativ,
     rattIndex,
     hanvisning,
+    kategori,
   }));
 }
 
