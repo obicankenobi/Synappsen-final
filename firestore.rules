@@ -467,9 +467,16 @@ service cloud.firestore {
       // opt-out, samma booleana mönster som pushInstallningar). bararForandrarFalt utesluter
       // redan organisationId från den listan, så en användare kan aldrig byta organisation
       // själv.
+      // Etapp 70a: `avstangd` är immutabelt härifrån, av exakt samma skäl som `role` ovan.
+      // Fältet är en SPEGLING av Firebase Auth-kontots disabled-flagga, som bara Admin SDK
+      // kan sätta (satAnvandareAvstangd). Läts det skrivas direkt från klienten skulle
+      // gränssnittet kunna visa "avstängd" för ett konto som fortfarande kan logga in – ett
+      // sämre läge än att inte ha funktionen alls, eftersom det inger falsk trygghet vid en
+      // misstänkt kapning.
       allow update: if (arSuperadmin() && resource.data.get('organisationId', 'default') == minOrganisation()
                         && mfaKravUppfylld()
-                        && resource.data.get('role', null) == request.resource.data.get('role', null))
+                        && resource.data.get('role', null) == request.resource.data.get('role', null)
+                        && resource.data.get('avstangd', false) == request.resource.data.get('avstangd', false))
                      || (request.auth.uid == userId
                          && bararForandrarFalt(['favoriter', 'senasteNotisBesok', 'snabblankar',
                                                 'senasteInloggning', 'senastBesokta', 'namn',

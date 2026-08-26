@@ -38,6 +38,63 @@ function AnsvarsomradenFalt({ anvandarpost, uppdateraAnsvarsomraden, currentUser
   );
 }
 
+// Etapp 70a: raderingen kräver att namnet skrivs, samma mönster som RaderaOrganisationSektion
+// (krav 17, ETAPPLAN10.md). Egen komponent per rad eftersom varje rad behöver sitt eget
+// inmatningsfält – samma skäl som PagagendeTilldelning i Introduktion.jsx.
+function RaderaAnvandareFalt({ anvandarpost, andrarAnvandare, hanteraRaderaAnvandare }) {
+  const [oppen, setOppen] = useState(false);
+  const [skrivetNamn, setSkrivetNamn] = useState("");
+  const namn = anvandarpost.namn || anvandarpost.email || "";
+  const pagar = andrarAnvandare === anvandarpost.id;
+
+  if (!oppen) {
+    return (
+      <button
+        type="button"
+        className="knapp knapp--farlig knapp--liten"
+        disabled={pagar}
+        onClick={() => setOppen(true)}
+      >
+        Radera
+      </button>
+    );
+  }
+
+  return (
+    <span className="anvandare-radera">
+      <input
+        type="text"
+        value={skrivetNamn}
+        placeholder={`Skriv ${namn}`}
+        aria-label={`Skriv ${namn} för att bekräfta radering`}
+        onChange={(e) => setSkrivetNamn(e.target.value)}
+      />
+      <button
+        type="button"
+        className="knapp knapp--farlig knapp--liten"
+        disabled={pagar || skrivetNamn.trim() !== namn}
+        onClick={async () => {
+          await hanteraRaderaAnvandare(anvandarpost);
+          setOppen(false);
+          setSkrivetNamn("");
+        }}
+      >
+        {pagar ? "..." : "Radera permanent"}
+      </button>
+      <button
+        type="button"
+        className="knapp--lank"
+        onClick={() => {
+          setOppen(false);
+          setSkrivetNamn("");
+        }}
+      >
+        Avbryt
+      </button>
+    </span>
+  );
+}
+
 export default function AnvandareRollerSektion({
   anvandare,
   laddar,
@@ -47,6 +104,9 @@ export default function AnvandareRollerSektion({
   uppdateraAnsvarsomraden,
   loggarUtAnvandare,
   hanteraTvingaUtloggning,
+  andrarAnvandare,
+  hanteraSatAvstangd,
+  hanteraRaderaAnvandare,
 }) {
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
@@ -57,6 +117,12 @@ export default function AnvandareRollerSektion({
           <li key={anvandarpost.id} className="admin-lista__rad">
             <div>
               <strong>{anvandarpost.namn || "(namn saknas)"}</strong>
+              {anvandarpost.avstangd && (
+                <span className="admin-lista__avstangd" title="Kontot kan inte logga in">
+                  {" "}
+                  🚫 Avstängd
+                </span>
+              )}
               <div className="admin-lista__email">{anvandarpost.email}</div>
             </div>
             <div className="admin-lista__atgarder">
@@ -79,14 +145,39 @@ export default function AnvandareRollerSektion({
                 organisationId={organisationId}
               />
               {anvandarpost.id !== currentUser.uid && (
-                <button
-                  type="button"
-                  className="knapp knapp--farlig knapp--liten"
-                  disabled={loggarUtAnvandare === anvandarpost.id}
-                  onClick={() => hanteraTvingaUtloggning(anvandarpost)}
-                >
-                  {loggarUtAnvandare === anvandarpost.id ? "..." : "Tvinga utloggning"}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="knapp knapp--sekundar knapp--liten"
+                    disabled={loggarUtAnvandare === anvandarpost.id}
+                    onClick={() => hanteraTvingaUtloggning(anvandarpost)}
+                    title="Avslutar pågående sessioner. Personen kan logga in igen med sitt lösenord."
+                  >
+                    {loggarUtAnvandare === anvandarpost.id ? "..." : "Tvinga utloggning"}
+                  </button>
+                  <button
+                    type="button"
+                    className="knapp knapp--liten"
+                    disabled={andrarAnvandare === anvandarpost.id}
+                    onClick={() => hanteraSatAvstangd(anvandarpost, !anvandarpost.avstangd)}
+                    title={
+                      anvandarpost.avstangd
+                        ? "Låter personen logga in igen"
+                        : "Spärrar inloggning helt. Historiken behålls och åtgärden går att ångra."
+                    }
+                  >
+                    {andrarAnvandare === anvandarpost.id
+                      ? "..."
+                      : anvandarpost.avstangd
+                        ? "Slå på konto"
+                        : "Stäng av"}
+                  </button>
+                  <RaderaAnvandareFalt
+                    anvandarpost={anvandarpost}
+                    andrarAnvandare={andrarAnvandare}
+                    hanteraRaderaAnvandare={hanteraRaderaAnvandare}
+                  />
+                </>
               )}
             </div>
           </li>

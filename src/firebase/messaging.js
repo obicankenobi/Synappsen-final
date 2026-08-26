@@ -3,7 +3,7 @@
 // notisinnehåll (det görs uteslutande server-side i functions/index.js:s skickaPush, se
 // ETAPPLAN4.md Etapp 24b).
 import { getMessaging, getToken, deleteToken, isSupported } from "firebase/messaging";
-import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { app, db } from "./config";
 
 // Etapp 24d: iOS Safari stödjer webbpush bara i en app tillagd på hemskärmen (iOS 16.4+),
@@ -43,6 +43,16 @@ export async function aktiveraPush(uid) {
   const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: registrering });
   if (!token) {
     return { status: "fel" };
+  }
+  // Etapp 70d: users/{uid} skapas av losInInbjudan (Cloud Function) EFTER att Auth-kontot
+  // finns – under registreringen är användaren alltså inloggad en kort stund innan
+  // profildokumentet existerar. En updateDoc i det fönstret nekas av firestore.rules
+  // (resource är null), vilket i produktion syntes som "FirebaseError: Missing or
+  // insufficient permissions" från firebase-messaging-chunken i Sentry 2026-08-26.
+  // Kontrollen nedan gör det till ett begripligt returvärde i stället för ett kastat fel.
+  const profil = await getDoc(doc(db, "users", uid));
+  if (!profil.exists()) {
+    return { status: "profil-saknas" };
   }
   await updateDoc(doc(db, "users", uid), { pushTokens: arrayUnion(token) });
   return { status: "aktiverad" };

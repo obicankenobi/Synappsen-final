@@ -261,6 +261,28 @@
   border-radius: 8px;
 }
 
+/* Etapp 70a: avstängt konto och raderingsbekräftelse i användarlistan. */
+.admin-lista__avstangd {
+  font-size: 0.8rem;
+  color: var(--farlig);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.anvandare-radera {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.anvandare-radera input {
+  padding: 6px 8px;
+  border: 1px solid var(--kant-stark);
+  border-radius: 8px;
+  min-width: 150px;
+}
+
 .admin-lista__ansvarsomraden {
   display: flex;
   flex-direction: column;

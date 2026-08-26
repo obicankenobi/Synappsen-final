@@ -89,6 +89,12 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
     // 15d: statusflagga istället för avtalssignering/betalning i appen (se ETAPPLAN3.md,
     // rekommendationen under 15d) – "offert" tills leverantören manuellt sätter den vidare.
     avtalsstatus: "offert",
+    // Etapp 70e: verksamhetstypen SPARADES tidigare aldrig – den användes bara transient för
+    // att välja mallar här och kastades sedan. Det gjorde det omöjligt att i efterhand veta
+    // vilket startbibliotek en organisation borde ha, och därmed omöjligt att seeda en
+    // organisation som skapades utan att typen valdes (default i gränssnittet var "Inget
+    // startbibliotek"). Sparas nu så seedaStartbibliotek nedan kan användas i efterhand.
+    verksamhetstyp: request.data?.verksamhetstyp ?? null,
     // 15e: sätts av ett separat steg när provperioden faktiskt startar, inte här.
     provperiodSlut: null,
     skapad: admin.firestore.FieldValue.serverTimestamp(),
@@ -105,14 +111,19 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
     skapad: admin.firestore.FieldValue.serverTimestamp(),
   });
 
+  // Etapp 70c: skapaInbjudanIntern returnerar {token, epostSkickat} sedan mejlstatusen
+  // började bubbla upp till gränssnittet – tidigare returnerade den bara token-strängen.
   let inbjudanToken = null;
+  let inbjudanEpostSkickat = false;
   if (kontaktEpost) {
-    inbjudanToken = await skapaInbjudanIntern({
+    const inbjudan = await skapaInbjudanIntern({
       organisationId: orgRef.id,
       epost: kontaktEpost,
       roll: "superadmin",
       skapadAv: request.auth.uid,
     });
+    inbjudanToken = inbjudan.token;
+    inbjudanEpostSkickat = inbjudan.epostSkickat;
   }
 
   // Etapp 10d: valfritt startbibliotek av rutinmallar så en ny kund inte möter en helt tom
@@ -232,6 +243,7 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
     introduktionssparId,
     kompetenskravId,
     inbjudanToken,
+    inbjudanEpostSkickat,
   };
 });
 
@@ -273,6 +285,10 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         sokkvotIdag: data.sokkvotDatum === idag ? (data.sokkvotAntal ?? 0) : 0,
         // Etapp 48c: manuellt inmatat avtalat årspris, se satAvtaladArsavgift.
         avtaladArsavgiftKr: data.avtaladArsavgiftKr ?? null,
+        // Etapp 70e: null betyder att organisationen skapades utan startbibliotek (eller före
+        // fältet infördes) – SeedaStartbibliotekSektion visar det, så en tom organisation går
+        // att känna igen utan att öppna den.
+        verksamhetstyp: data.verksamhetstyp ?? null,
         // Etapp 48d: null betyder "använder standardtaket", inte "inget tak alls".
         sokkvotTakPerDygn: data.sokkvotTakPerDygn ?? null,
         // Etapp 49a: en pågående, avbrytbar radering – visas som en varning i leverantörsvyn.
@@ -495,12 +511,13 @@ async function nollstallDemoOrganisationKarna(inbjudanEpost) {
 
   let inbjudanToken = null;
   if (inbjudanEpost) {
-    inbjudanToken = await skapaInbjudanIntern({
+    const inbjudan = await skapaInbjudanIntern({
       organisationId: DEMO_ORG_ID,
       epost: inbjudanEpost,
       roll: "superadmin",
       skapadAv: "_system",
     });
+    inbjudanToken = inbjudan.token;
   }
 
   await loggaRevision({
@@ -544,3 +561,159 @@ exports.nollstallDemoOrganisationSchemalagt = onSchedule(
     }
   }
 );
+
+// Etapp 70e: seedar startbiblioteket i EFTERHAND, mot en organisation som redan finns.
+//
+// Bakgrunden är ett verkligt fynd 2026-08-26: ägaren skapade en organisation, bjöd in två
+// kollegor, och de möttes av en helt tom app – inga rutiner, inga förråd, inga kontakter.
+// Orsaken var att `verksamhetstyp` har default "" ("Inget startbibliotek") i
+// SkapaOrganisationSektion.jsx, och att HELA seedningen i skapaOrganisation är villkorad av
+// att ett värde valdes. Det fanns ingen väg tillbaka: organisationen existerade redan, och
+// seedningen kunde bara köras vid skapandet.
+//
+// IDEMPOTENT med flit. Hoppar över varje del som redan har innehåll, så att ett andra anrop
+// inte dubblerar rutinlistan. Det är viktigare än det låter – funktionen kommer att köras av
+// en människa som inte vet om den redan kördes.
+exports.seedaStartbibliotek = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+
+  const organisationId = request.data?.organisationId;
+  const verksamhetstyp = request.data?.verksamhetstyp;
+  if (!organisationId) {
+    throw new HttpsError("invalid-argument", "organisationId krävs.");
+  }
+  if (!VERKSAMHETSMALLAR[verksamhetstyp]) {
+    throw new HttpsError("invalid-argument", "En giltig verksamhetstyp krävs.");
+  }
+  const orgRef = db.collection("organisationer").doc(organisationId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists) {
+    throw new HttpsError("not-found", "Organisationen finns inte.");
+  }
+
+  // Varje del kontrolleras för sig: en organisation kan ha hunnit få egna rutiner men fortsatt
+  // sakna förråd, och då ska förrådet fyllas utan att rutinerna dubbleras.
+  const [befintligaRutiner, befintligaArtiklar, befintligaKontakter] = await Promise.all([
+    db.collection("rutiner").where("organisationId", "==", organisationId).limit(1).select().get(),
+    db.collection("forradsartiklar").where("organisationId", "==", organisationId).limit(1).select().get(),
+    db.collection("kontakter").where("organisationId", "==", organisationId).limit(1).select().get(),
+  ]);
+
+  let antalMallrutiner = 0;
+  const skapadeRutiner = [];
+  if (befintligaRutiner.empty) {
+    const batch = db.batch();
+    for (const mall of VERKSAMHETSMALLAR[verksamhetstyp]) {
+      const ref = db.collection("rutiner").doc();
+      batch.set(ref, {
+        titel: mall.titel,
+        innehall: mall.innehall,
+        omrade: mall.omrade,
+        kviss: mall.kviss ?? [],
+        status: "godkand",
+        organisationId,
+        kalla: "verksamhetsmall",
+        borttagen: false,
+        skapadAv: request.auth.uid,
+        skapad: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      skapadeRutiner.push({ id: ref.id, omrade: mall.omrade, titel: mall.titel });
+      antalMallrutiner += 1;
+    }
+    await batch.commit();
+  }
+
+  let antalForradsartiklar = 0;
+  let antalKontakter = 0;
+  const ickeRutinBatch = db.batch();
+  if (befintligaArtiklar.empty) {
+    for (const artikel of FORRADSMALLAR[verksamhetstyp] ?? []) {
+      ickeRutinBatch.set(db.collection("forradsartiklar").doc(), {
+        ...artikel,
+        status: "godkand",
+        organisationId,
+        skapadAv: request.auth.uid,
+        skapad: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      antalForradsartiklar += 1;
+    }
+  }
+  if (befintligaKontakter.empty) {
+    for (const kontakt of KONTAKTMALLAR) {
+      ickeRutinBatch.set(db.collection("kontakter").doc(), {
+        ...kontakt,
+        akutnummer: Boolean(kontakt.akutnummer),
+        organisationId,
+        skapad: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      antalKontakter += 1;
+    }
+  }
+  if (antalForradsartiklar > 0 || antalKontakter > 0) {
+    await ickeRutinBatch.commit();
+  }
+
+  // Samma villkor som i skapaOrganisation: introduktionsspår och kompetenskrav pekar på
+  // riktiga rutin-id:n och byggs därför bara när rutiner faktiskt seedades i det här anropet.
+  let introduktionssparId = null;
+  let kompetenskravId = null;
+  const klinisktStodRutin = skapadeRutiner.find((r) => r.omrade === "kliniskt-stod");
+  if (klinisktStodRutin) {
+    const enAnnanRutin = skapadeRutiner.find((r) => r.id !== klinisktStodRutin.id);
+    const etapper = [{ namn: "Dag 1", poster: [{ typ: "rutin", id: klinisktStodRutin.id, rekommenderadDag: 1 }] }];
+    if (enAnnanRutin) {
+      etapper.push({ namn: "Vecka 1", poster: [{ typ: "rutin", id: enAnnanRutin.id, rekommenderadDag: 5 }] });
+    }
+    const sparRef = db.collection("introduktionsspar").doc();
+    await sparRef.set({
+      namn: "Introduktion för ny personal (mall, anpassa)",
+      malRoll: "personal",
+      etapper,
+      organisationId,
+      skapad: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    introduktionssparId = sparRef.id;
+
+    const kravRef = db.collection("kompetenskrav").doc();
+    await kravRef.set({
+      roll: "personal",
+      rutinId: klinisktStodRutin.id,
+      rutinTitel: klinisktStodRutin.titel,
+      omrade: "kliniskt-stod",
+      frekvensManader: 12,
+      organisationId,
+      skapad: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    kompetenskravId = kravRef.id;
+  }
+
+  // Spara typen så att organisationen i efterhand går att känna igen, precis som en som
+  // seedades vid skapandet.
+  await orgRef.update({ verksamhetstyp });
+
+  await loggaRevision({
+    organisationId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "startbibliotek_seedat",
+    objektTyp: "organisationer",
+    objektId: organisationId,
+    sammanfattning: `Startbibliotek (${verksamhetstyp}) seedat i efterhand: ${antalMallrutiner} rutiner, ${antalForradsartiklar} artiklar, ${antalKontakter} kontakter`,
+  });
+
+  return {
+    antalMallrutiner,
+    antalForradsartiklar,
+    antalKontakter,
+    introduktionssparId,
+    kompetenskravId,
+    hoppadeOver: {
+      rutiner: !befintligaRutiner.empty,
+      forradsartiklar: !befintligaArtiklar.empty,
+      kontakter: !befintligaKontakter.empty,
+    },
+  };
+});

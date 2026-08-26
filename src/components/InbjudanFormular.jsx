@@ -17,9 +17,13 @@ const BJUDBARA_ROLLER_UTAN_KIOSK = [
 // Etapp 6c: ersätter den gamla öppna självbetjänings-registreringen. En superadmin bjuder in
 // en specifik e-postadress till en specifik roll; länken är giltig i 7 dagar och kan bara
 // lösas in av den inbjudna e-postadressen (se losInInbjudan i functions/index.js).
-// Etapp 53b: servern skickar nu ÄVEN inbjudan direkt till e-postadressen (skapaInbjudanIntern).
-// Länken visas ändå alltid – ett mejl kan fastna i ett spamfilter, och den ger en garanterad
-// reservväg om utskicket av någon anledning uteblir.
+// Etapp 53b: servern FÖRSÖKER även skicka inbjudan direkt till e-postadressen
+// (skapaInbjudanIntern). Länken visas ändå alltid – ett mejl kan fastna i ett spamfilter,
+// och den ger en garanterad reservväg om utskicket uteblir.
+// Etapp 70c: texten skilde tidigare INTE på skickat och inte skickat, utan påstod alltid
+// "Inbjudan är skickad". Under hela den tid BREVO_API_KEY saknades var det osant, och
+// superadmin hade ingen aning om att kollegan aldrig fick något mejl. skapaInbjudan
+// returnerar nu epostSkickat, och texten nedan följer det faktiska utfallet.
 export default function InbjudanFormular() {
   const { hasFeature } = useFeatures();
   // Etapp 59b (ETAPPLAN12.md, bugfynd): kiosk-rollen (Etapp 55) hör till Operations
@@ -33,6 +37,7 @@ export default function InbjudanFormular() {
   const [roll, setRoll] = useState(ROLES.PERSONAL);
   const [skapar, setSkapar] = useState(false);
   const [lank, setLank] = useState(null);
+  const [epostSkickat, setEpostSkickat] = useState(false);
   const [fel, setFel] = useState(null);
 
   async function hanteraSubmit(e) {
@@ -43,6 +48,7 @@ export default function InbjudanFormular() {
     try {
       const { data } = await skapaInbjudan(epost.trim(), roll);
       setLank(`${window.location.origin}/registrera?bjudan=${data.token}`);
+      setEpostSkickat(data.epostSkickat === true);
       setEpost("");
     } catch (e2) {
       setFel(e2.message ?? "Kunde inte skapa inbjudan.");
@@ -81,10 +87,18 @@ export default function InbjudanFormular() {
       {fel && <p className="inbjudan-formular__fel">{fel}</p>}
       {lank && (
         <div className="inbjudan-formular__lank">
-          <p>
-            Inbjudan är skickad till e-postadressen. Om mejlet inte kommer fram (t.ex. ett
-            spamfilter) – skicka den här länken direkt istället (giltig i 7 dagar):
-          </p>
+          {epostSkickat ? (
+            <p>
+              Inbjudan är skickad till e-postadressen. Om mejlet inte kommer fram (t.ex. ett
+              spamfilter) – skicka den här länken direkt istället (giltig i 7 dagar):
+            </p>
+          ) : (
+            <p className="inbjudan-formular__fel">
+              <strong>Inbjudan är skapad, men mejlet kunde INTE skickas</strong> – e-post är
+              inte konfigurerat för den här installationen. Skicka länken nedan till personen
+              själv (giltig i 7 dagar):
+            </p>
+          )}
           <input type="text" readOnly value={lank} onFocus={(e) => e.target.select()} />
         </div>
       )}

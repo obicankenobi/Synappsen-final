@@ -68,17 +68,19 @@ jobs:
         run: npm install -g firebase-tools
 
       - name: Sätt Gemini-nyckeln i Secret Manager
-        run: echo "${{ secrets.GEMINI_API_KEY }}" | firebase functions:secrets:set GEMINI_API_KEY --data-file=- --project synappsen-final-build --force
+        run: printf '%s' "${{ secrets.GEMINI_API_KEY }}" | firebase functions:secrets:set GEMINI_API_KEY --data-file=- --project synappsen-final-build --force
 
       - name: Sätt sökmotor-nyckeln i Secret Manager
-        run: echo "${{ secrets.SOKMOTOR_API_KEY }}" | firebase functions:secrets:set SOKMOTOR_API_KEY --data-file=- --project synappsen-final-build --force
+        run: printf '%s' "${{ secrets.SOKMOTOR_API_KEY }}" | firebase functions:secrets:set SOKMOTOR_API_KEY --data-file=- --project synappsen-final-build --force
 
       - name: Sätt Brevo-nyckeln (e-post, Etapp 53a) i Secret Manager
-        # Ingen produktfunktion anropar skickaEpost() ännu (bara det globala nödstoppet i
-        # /leverantor) – saknas GitHub-hemligheten BREVO_API_KEY sätts en tom sträng, och
-        # functions/index.js no-oppar tyst i så fall (se skickaEpost). Sätt den riktiga
-        # hemligheten i repots Settings → Secrets när Etapp 53b börjar skicka på riktigt.
-        run: echo "${{ secrets.BREVO_API_KEY }}" | firebase functions:secrets:set BREVO_API_KEY --data-file=- --project synappsen-final-build --force
+        # OBS: printf '%s' – INTE echo. echo lägger till en radbrytning, så en saknad
+        # GitHub-hemlighet blev "\n" i Secret Manager i stället för tom sträng. "\n" är
+        # truthy i JS, vilket gjorde att skickaEpost():s "inte konfigurerad"-guard aldrig slog
+        # till – den anropade Brevo med api-key: "\n" och fick 401 "authentication not found
+        # in headers", som larmade i Sentry i produktion 2026-08-26. Samma fel fanns i de två
+        # raderna ovan. Sätt den riktiga hemligheten i Settings → Secrets.
+        run: printf '%s' "${{ secrets.BREVO_API_KEY }}" | firebase functions:secrets:set BREVO_API_KEY --data-file=- --project synappsen-final-build --force
 
       - name: Deploya till Firebase
         run: firebase deploy --project synappsen-final-build --non-interactive --force

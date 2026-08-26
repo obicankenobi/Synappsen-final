@@ -222,7 +222,14 @@ async function skickaEpost({ till, amne, text, organisationId = null }) {
     console.warn("E-post skippad: utgående e-post är globalt avstängd.");
     return { skickat: false, anledning: "epost_avstangd_globalt" };
   }
-  const apiNyckel = BREVO_API_KEY.value();
+  // .trim() är inte kosmetik. deploy.yml satte tidigare hemligheten med `echo`, som lägger
+  // till en radbrytning – en SAKNAD GitHub-hemlighet blev därför "\n" i Secret Manager, inte
+  // en tom sträng. "\n" är truthy, så guarden nedan slog aldrig till: koden anropade Brevo
+  // med api-key: "\n" och fick 401 {"message":"authentication not found in headers"}, vilket
+  // larmade i Sentry i produktion 2026-08-26. deploy.yml använder nu printf '%s', men trim()
+  // står kvar som andra försvarslager – en hemlighet som klistrats in med ett efterföljande
+  // blanksteg ska inte heller ge ett obegripligt 401.
+  const apiNyckel = (BREVO_API_KEY.value() ?? "").trim();
   if (!apiNyckel) {
     console.warn("E-post skippad: BREVO_API_KEY är inte konfigurerad än.");
     return { skickat: false, anledning: "epost_ej_konfigurerad" };

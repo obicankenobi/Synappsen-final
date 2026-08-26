@@ -21,6 +21,8 @@ import { useHalsokontrollhistorik } from "../hooks/useHalsokontrollhistorik";
 import { useSokstatistik } from "../hooks/useSokstatistik";
 import {
   tvingaUtloggning,
+  satAnvandareAvstangd,
+  raderaAnvandare,
   testaBeroenden,
   verifieraKlinikstod,
   migreraTillOrganisation,
@@ -155,6 +157,9 @@ export default function Admin() {
   const [nyttTak, setNyttTak] = useState("");
   const [nyaUtloggningMinuter, setNyaUtloggningMinuter] = useState("");
   const [loggarUtAnvandare, setLoggarUtAnvandare] = useState(null);
+  // Etapp 70a: delas av avstängning och radering – båda är per användare och ska låsa
+  // just den radens knappar medan anropet pågår.
+  const [andrarAnvandare, setAndrarAnvandare] = useState(null);
   const [beroendeStatus, setBeroendeStatus] = useState(null);
   const [testarBeroenden, setTestarBeroenden] = useState(false);
 
@@ -421,6 +426,48 @@ export default function Admin() {
     }
   }
 
+  // Etapp 70a: avstängning är reversibel och lämnar historiken orörd – används vid misstänkt
+  // kapning, sjukskrivning eller tjänstledighet. Till skillnad från tvingad utloggning ovan
+  // hindrar den personen från att logga in igen med sitt lösenord.
+  async function hanteraSatAvstangd(anvandarpost, avstangd) {
+    const namn = anvandarpost.namn || anvandarpost.email;
+    const fraga = avstangd
+      ? `Stäng av ${namn}? Personen kan inte logga in förrän du slår på kontot igen. All historik behålls.`
+      : `Slå på ${namn}s konto igen så att personen kan logga in?`;
+    if (!(await confirm(fraga))) return;
+    setAndrarAnvandare(anvandarpost.id);
+    try {
+      await satAnvandareAvstangd(anvandarpost.id, avstangd);
+      visaMeddelande(avstangd ? "Kontot är avstängt." : "Kontot är påslaget igen.");
+    } catch (fel) {
+      visaMeddelande(fel.message ?? "Något gick fel.");
+    } finally {
+      setAndrarAnvandare(null);
+    }
+  }
+
+  // Etapp 70a: oåterkalleligt. Bekräftas i två steg – ett skrivet namn i sektionen (samma
+  // mönster som RaderaOrganisationSektion, krav 17 i ETAPPLAN10.md) OCH en confirm-dialog här,
+  // eftersom konsekvensen är av samma slag: det går inte att ångra.
+  async function hanteraRaderaAnvandare(anvandarpost) {
+    const namn = anvandarpost.namn || anvandarpost.email;
+    const forsta = await confirm(
+      `Radera ${namn} permanent?\n\nKontot tas bort och personen kan aldrig logga in igen. ` +
+        "Läskvitteringar och revisionslogg behålls, eftersom de är verksamhetens underlag för " +
+        "vem som läst vad.\n\nDet går inte att ångra."
+    );
+    if (!forsta) return;
+    setAndrarAnvandare(anvandarpost.id);
+    try {
+      await raderaAnvandare(anvandarpost.id);
+      visaMeddelande(`${namn} är raderad.`);
+    } catch (fel) {
+      visaMeddelande(fel.message ?? "Något gick fel.");
+    } finally {
+      setAndrarAnvandare(null);
+    }
+  }
+
   async function hanteraSvaraPaFeedback(id) {
     const svar = (svarUtkast[id] ?? "").trim();
     if (!svar) return;
@@ -604,6 +651,9 @@ export default function Admin() {
           uppdateraAnsvarsomraden={uppdateraAnsvarsomraden}
           loggarUtAnvandare={loggarUtAnvandare}
           hanteraTvingaUtloggning={hanteraTvingaUtloggning}
+          andrarAnvandare={andrarAnvandare}
+          hanteraSatAvstangd={hanteraSatAvstangd}
+          hanteraRaderaAnvandare={hanteraRaderaAnvandare}
         />
       )}
 

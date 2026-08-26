@@ -41,6 +41,20 @@ export function tvingaUtloggning(userId) {
   return fn({ userId });
 }
 
+// Etapp 70a: spärrar/öppnar inloggning för ett konto (Firebase Auth `disabled`). Reversibelt
+// och lämnar all historik orörd – till skillnad från raderaAnvandare nedan.
+export function satAnvandareAvstangd(userId, avstangd) {
+  const fn = httpsCallable(functions, "satAnvandareAvstangd");
+  return fn({ userId, avstangd });
+}
+
+// Etapp 70a: raderar Auth-kontot och users/{uid} permanent. Kvitteringar och revisionslogg
+// lämnas kvar med flit – se motiveringen i functions/organisationsadmin.js.
+export function raderaAnvandare(userId) {
+  const fn = httpsCallable(functions, "raderaAnvandare");
+  return fn({ userId });
+}
+
 export function skapaKommentar({ rutinId, text, svarPa }) {
   const fn = httpsCallable(functions, "skapaKommentar");
   return fn({ rutinId, text, svarPa });
@@ -117,6 +131,14 @@ export function manadsrapportOrganisationer() {
 export function angeEpostAvstangd(avstangd) {
   const fn = httpsCallable(functions, "angeEpostAvstangd");
   return fn({ avstangd });
+}
+
+// Etapp 70e: seedar startbiblioteket mot en organisation som REDAN finns. Idempotent –
+// hoppar över varje del som redan har innehåll. Finns för att en organisation som skapades
+// utan verksamhetstyp annars var permanent tom, utan väg tillbaka.
+export function seedaStartbibliotek(organisationId, verksamhetstyp) {
+  const fn = httpsCallable(functions, "seedaStartbibliotek");
+  return fn({ organisationId, verksamhetstyp });
 }
 
 // Etapp 6b – organisationsetablering (verksamhetstyp: Etapp 10d, valfritt startbibliotek).

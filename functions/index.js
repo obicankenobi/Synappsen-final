@@ -46,6 +46,8 @@ exports.verifieraKlinikstodSchemalagt = klinikstod.verifieraKlinikstodSchemalagt
 const organisationsadmin = require("./organisationsadmin");
 exports.tvingaUtloggning = organisationsadmin.tvingaUtloggning;
 exports.uppdateraAnvandarRoll = organisationsadmin.uppdateraAnvandarRoll;
+exports.satAnvandareAvstangd = organisationsadmin.satAnvandareAvstangd;
+exports.raderaAnvandare = organisationsadmin.raderaAnvandare;
 exports.satKioskPin = organisationsadmin.satKioskPin;
 exports.verifieraKioskPin = organisationsadmin.verifieraKioskPin;
 exports.uppdateraModuler = organisationsadmin.uppdateraModuler;
@@ -112,6 +114,7 @@ exports.gorTillPlattformsadmin = plattformsdrift.gorTillPlattformsadmin;
 // ── organisationslivscykel.js – etablering av en ny organisation + demo-/övningsmiljön
 const organisationslivscykel = require("./organisationslivscykel");
 exports.skapaOrganisation = organisationslivscykel.skapaOrganisation;
+exports.seedaStartbibliotek = organisationslivscykel.seedaStartbibliotek;
 exports.listaOrganisationer = organisationslivscykel.listaOrganisationer;
 exports.nollstallDemoOrganisation = organisationslivscykel.nollstallDemoOrganisation;
 exports.nollstallDemoOrganisationSchemalagt = organisationslivscykel.nollstallDemoOrganisationSchemalagt;

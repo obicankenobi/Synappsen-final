@@ -52,10 +52,11 @@ async function skapaInbjudanIntern({ organisationId, epost, roll, skapadAv }) {
     skapad: admin.firestore.FieldValue.serverTimestamp(),
     utgangstid: Date.now() + INBJUDAN_GILTIGHETSTID_MS,
   });
+  let epostSkickat = false;
   try {
     const orgSnap = await db.collection("organisationer").doc(organisationId).get();
     const orgNamn = orgSnap.data()?.namn ?? organisationId;
-    await skickaEpost({
+    const resultat = await skickaEpost({
       till: epost,
       amne: `Du är inbjuden till ${orgNamn} på Synappsen`,
       text:
@@ -64,6 +65,11 @@ async function skapaInbjudanIntern({ organisationId, epost, roll, skapadAv }) {
         `Länken är giltig i 7 dagar. Har du frågor, kontakta den som bjöd in dig.`,
       organisationId,
     });
+    // Etapp 70c: skickaEpost() KASTAR inte när nyckeln saknas – den returnerar
+    // {skickat:false}. Utan att läsa returvärdet såg gränssnittet ett lyckat anrop och
+    // påstod för superadmin att mejlet gått iväg, vilket var osant under hela den tid
+    // BREVO_API_KEY saknades. Statusen bubblar nu upp till klienten i stället.
+    epostSkickat = resultat?.skickat === true;
   } catch (fel) {
     // Se motiveringen ovan: inbjudan är redan skapad och giltig även om mejlet uteblir.
     // Adressen utelämnas medvetet ur loggen – se motiveringen i skickaEpost (gemensamt.js):
@@ -71,7 +77,7 @@ async function skapaInbjudanIntern({ organisationId, epost, roll, skapadAv }) {
     // Vilken inbjudan det gäller går att se på inbjudningar/{token} i Firestore.
     console.warn(`Inbjudningsmejl kunde inte skickas (org ${organisationId}):`, fel.message ?? fel);
   }
-  return token;
+  return { token, epostSkickat };
 }
 
 // Skapas av en superadmin i adminpanelen (KAN bara bjuda in till sin EGEN organisation –
@@ -101,8 +107,13 @@ exports.skapaInbjudan = onCall({ region: "europe-west1", secrets: [BREVO_API_KEY
     await kravModul(organisationId, "operations", "Kioskläge kräver Operations-modulen.");
   }
 
-  const token = await skapaInbjudanIntern({ organisationId, epost, roll, skapadAv: request.auth.uid });
-  return { token };
+  const { token, epostSkickat } = await skapaInbjudanIntern({
+    organisationId,
+    epost,
+    roll,
+    skapadAv: request.auth.uid,
+  });
+  return { token, epostSkickat };
 });
 
 // Publikt (INGEN inloggning krävs – personen har ännu inget konto) läs-anrop som bara

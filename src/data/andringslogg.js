@@ -11,6 +11,17 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.129.0",
+    datum: "2026-08-26",
+    andringar: [
+      "Nytt: \"Glömt lösenordet?\" på inloggningssidan – du får ett mejl med en återställningslänk",
+      "Nytt: superadmin kan nu stänga av ett konto (spärrar inloggning, går att ångra) eller radera det permanent. Tvingad utloggning avslutade bara pågående sessioner",
+      "Nytt: startbibliotek med rutiner, förråd och kontakter kan nu läggas till i efterhand för en organisation som skapades tom",
+      "Rättat: inbjudningar sa \"skickad till e-postadressen\" även när mejlet inte gick iväg. Nu står det tydligt när länken måste skickas manuellt",
+      "Rättat: notisregistrering kunde misslyckas direkt efter att man skapat sitt konto",
+    ],
+  },
+  {
     version: "5.128.0",
     datum: "2026-08-23",
     andringar: [

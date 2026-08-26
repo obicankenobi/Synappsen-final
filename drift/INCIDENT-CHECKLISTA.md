@@ -138,7 +138,8 @@ loggen. Skriv ned det och gå vidare med största försiktighet.
 |---|---|---|---|
 | Ett konto beter sig fel | **Tvinga utloggning** på just det kontot | `/admin` → Användare & roller | Låg – men om det är en tjänstgörande sjuksköterska, ring först om du kan |
 | Kontot har för hög behörighet | **Sänk rollen** | `/admin` → Användare & roller | Låg |
-| Misstänkt kapning, kontot behövs inte akut | Tvinga utloggning **+** sänk roll | `/admin` | Låg |
+| Misstänkt kapning, kontot behövs inte akut | **Stäng av kontot** (`/admin` → Användare & roller → Stäng av). Tvingad utloggning räcker INTE – den avslutar bara pågående sessioner, och den som kan lösenordet loggar in igen direkt. Avstängningen spärrar inloggningen helt, är reversibel och behåller all historik | `/admin` | Låg |
+| En person har slutat | **Radera kontot** (`/admin` → Användare & roller → Radera). Kräver att du skriver personens namn. Läskvitteringar och revisionslogg behålls med flit – de är verksamhetens underlag för vem som läst vad | `/admin` | Ingen |
 | Hela organisationen är komprometterad | **Pausa organisationen** | `/leverantor` | **HÖG – hela avdelningen förlorar åtkomst.** Sista utvägen. Ring kunden först |
 | Ett kapat superadmin-konto har begärt permanent radering (Etapp 49a, Sentry-tagg `radering_schemalagd`) | **Avbryt raderingen** – 48-timmarsfönstret ger tid, ingen brådska på sekunder | `/leverantor` (raden med ⚠️-varningen) | Ingen om det avbryts i tid – radering sker INTE förrän fönstret gått ut |
 | En aktiv supportåtkomst ser fel ut (fel tidpunkt, ingen som känns igen som anledning) | **Avsluta åtkomsten** direkt – går att bevilja igen om den var legitim | `/leverantor` (raden med 🔓-varningen) eller `/admin` (kunden själv) | Låg – fönstret ger bara läsrätt, ingen skrivrätt |
@@ -330,7 +331,7 @@ användare. Sakligt, kort, verifierat.
 | Vad | Var |
 |---|---|
 | Snabbstatus: revisionskedjans senaste kontroll + senaste backup | `/admin` → **Incidentberedskap** (ny, Etapp 46) |
-| Tvinga utloggning, ändra roll | `/admin` → Användare & roller |
+| Tvinga utloggning, stänga av konto, radera konto, ändra roll | `/admin` → Användare & roller |
 | Revisionslogg (hashkedja) + export | `/admin` → Revisionslogg |
 | Ändringslogg (bredare aktivitet) | `/admin` → Ändringslogg |
 | **Ta sig till leverantörsvyn över huvud taget** | "Mer" i nedre navigeringen → **🏢 Leverantör**, eller kommandopaletten (Ctrl/Cmd+K) → "Leverantörsvy" – Etapp 67a. Syns bara för leverantörsadmin. **Fram till Etapp 67a fanns ingen länk alls** – vyn nåddes bara genom att skriva `/leverantor` för hand, vilket fortfarande fungerar om menyposten mot förmodan saknas |

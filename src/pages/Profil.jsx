@@ -169,6 +169,10 @@ function PushNotisSektion({ uid, role, pushTokens, pushInstallningar }) {
       const { status } = await aktiveraPush(uid);
       if (status === "nekad") {
         visaMeddelande("Du behöver tillåta notiser i webbläsaren för att kunna aktivera push.");
+      } else if (status === "profil-saknas") {
+        // Etapp 70d: inträffar bara i det korta fönstret under registreringen innan
+        // losInInbjudan hunnit skapa users/{uid}. Ladda om, så finns profilen.
+        visaMeddelande("Din profil är inte färdigskapad än. Ladda om sidan och försök igen.");
       } else if (status === "ej-konfigurerad" || status === "ej-stodd" || status === "fel") {
         visaMeddelande("Push-notiser kan inte aktiveras på den här enheten just nu.");
       }

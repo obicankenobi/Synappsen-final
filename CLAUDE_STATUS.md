@@ -8,18 +8,19 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-23 · version **5.128.0** · **deployad** (körning #87).
+**Senast uppdaterad:** 2026-08-26 · version **5.129.0** · **byggd och pushad, EJ deployad än**.
+Senast deployade version är 5.128.0 (körning #87).
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.128.0, deployad 2026-08-23 (körning #87, commit `5d1e42b`) |
+| **Version i produktion** | 5.128.0 (körning #87). **v5.129.0 är byggd men inte deployad** |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **Senaste kodarbete** | Etapp 69 (`etapplaner/ETAPPLAN18.md`) HELT KLAR – appen på en datorskärm. Därefter en rättad service worker (uppdateringsknappen gjorde ingenting) i v5.128.0 |
+| **Senaste kodarbete** | v5.129.0: fem fel från första riktiga användningen (två kollegor inbjudna) – kontoradering/avstängning, lösenordsåterställning, ärligt inbjudnings-UI, startbibliotek i efterhand, CSP- och hemlighetsfix. Se uppföljningen 2026-08-26 |
 | **Senaste dokumentarbete** | 2026-08-23: säljmaterialet infört och faktagranskat mot koden, dokumentationen strukturerad i ämnesmappar, dokumentregister + påståendetester byggda |
 | **Aktiv plan** | Ingen. Etapp 69 var den sista. `etapplaner/ETAPPLAN13.md` (Etapp 64) är antagen men juridiskt blockerad – inget steg är byggbart förrän en extern bedömning finns |
-| **Nästa steg** | Fråga ägaren vad nästa etapp ska vara. Se `OPPNA-PUNKTER.md` för allt som väntar på en människa |
+| **Nästa steg** | **Ägaren måste ge tjänstekontot `roles/firebaseauth.admin` i GCP** – utan det fungerar varken avstängning, radering eller tvingad utloggning, oavsett kod. Därefter: sätt `BREVO_API_KEY`, deploya v5.129.0. Se `OPPNA-PUNKTER.md` |
 
 ## Var du hittar saker
 
@@ -318,3 +319,43 @@ startmallarna var byggda men inte kopplade till gränssnittet. Tre kopplingar:
 delsviter) och `test:rules` (samtliga delsviter) gröna. Ingen manuell webbläsarverifiering
 gjordes den här gången (emulator-CLI:t inte tillgängligt interaktivt i sessionen) – litar på
 att build + fyra gröna testsviter fångar det en visuell genomgång annars skulle.
+
+---
+
+## Uppföljning 2026-08-26 (v5.129.0: fem fel från första riktiga användningen)
+
+Ägaren bjöd in två kollegor och rapporterade fem problem. Sentry-notiser bifogades och
+avslöjade **ett sjätte, allvarligare** som ingen sett: tvingad utloggning kraschade i
+produktion.
+
+**Rotorsaker, samtliga verifierade mot kod och Sentry:**
+
+| Symptom | Rotorsak |
+|---|---|
+| Tvinga utloggning "fungerade" men gjorde inget | Tjänstekontot saknar `roles/firebaseauth.admin`. `revokeRefreshTokens` kastar "Credential implementation … insufficient permission" (`organisationsadmin.js:49`). **Samma fel drabbar `deleteUser` i organisationsraderingen, där det är tyst nedsvalt** – Auth-konton blev kvar. **Kräver ägaråtgärd i GCP-konsolen, ingen kod hjälper.** |
+| E-postinbjudan kom aldrig fram | `deploy.yml` satte hemligheten med `echo`, som lägger till radbrytning. En saknad GitHub-hemlighet blev `"\n"` i Secret Manager – **truthy** – så `skickaEpost`s "inte konfigurerad"-guard slog aldrig till. Brevo svarade 401 "authentication not found in headers" |
+| Tom organisation | `verksamhetstyp` har default `""` i UI:t, hela seedningen är villkorad på den, och fältet **sparades aldrig** på organisationen. Ingen väg tillbaka fanns |
+| Ingen lösenordsåterställning | Aldrig byggd |
+| Kan inte radera/stänga av konto | Funktionerna fanns inte |
+| CSP-larm i Sentry | `connect-src` tillät `ingest.de.sentry.io` men adressen är en **subdomän** → Sentrys egen SDK blockerades. `frame-src` saknade `firebaseapp.com`, vilket hade brutit lösenordsåterställningen. (`connect.facebook.net` var inte vår kod – injicerat av besökarens webbläsare) |
+| `FirebaseError: Missing or insufficient permissions` | Push-token skrevs innan `losInInbjudan` hunnit skapa `users/{uid}` |
+
+**Byggt (v5.129.0):** `satAnvandareAvstangd` (reversibel spärr, Auth `disabled`) och
+`raderaAnvandare` (Auth + `users/{uid}`, GDPR art. 17 på individnivå) med UI, `avstangd`
+gjort immutabelt från klienten i `firestore.rules`, lösenordsåterställning, ärligt
+inbjudnings-UI (`skapaInbjudan` returnerar `epostSkickat`), `seedaStartbibliotek` (idempotent,
+körbar i efterhand) + `verksamhetstyp` sparas nu, `printf '%s'` i deploy.yml + `.trim()`,
+CSP-rättelser, push-race. 10 nya functions-tester
+(`tests/functions/anvandarhantering.test.cjs`).
+
+**Medvetet INTE byggt: byta organisation på en användare.** Kvitteringar,
+introduktionssigneringar och revisionsloggposter hör till den gamla organisationen, och
+revisionsloggen är en hashkedja som inte får skrivas om. Rätt väg är radera + bjud in på
+nytt, vilket nu finns och är spårbart.
+
+**Dokument rättade i samma commit:** `drift/INCIDENT-CHECKLISTA.md` (tvingad utloggning
+stänger inte ute någon som kan lösenordet – raden pekar nu på avstängning) och
+`saljmaterial/kallfiler/Synappsen-teknisk-beskrivning.html` (superadmins förmågor).
+
+> **KVARSTÅR OCH BLOCKERAR:** utan IAM-rollen fungerar varken avstängning, radering eller
+> tvingad utloggning i produktion – koden är rätt, behörigheten saknas. Se `OPPNA-PUNKTER.md`.

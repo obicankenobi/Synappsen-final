@@ -94,6 +94,119 @@ exports.uppdateraAnvandarRoll = onCall({ region: "europe-west1" }, async (reques
   return { ok: true };
 });
 
+// Etapp 70a: stänger av eller slår på ett konto (Firebase Auth `disabled`). Till skillnad från
+// tvingaUtloggning ovan, som bara återkallar refresh-tokens och därför inte hindrar personen
+// från att logga in igen med samma lösenord, spärrar detta inloggningen helt tills någon slår
+// på kontot igen. Historik, kvitteringar och revisionsloggposter lämnas orörda – det är
+// skillnaden mot raderaAnvandare nedan, och skälet till att båda finns:
+//
+//   * avstängning  = misstänkt kapning, sjukskrivning, tjänstledighet. Reversibelt, historik kvar.
+//   * radering     = personen har slutat, eller begär radering enligt GDPR art. 17. Oåterkalleligt.
+//
+// Bakgrund: fram till 2026-08-26 fanns INGEN av dem. Enda åtgärden var tvingad utloggning, som
+// inte stänger ute någon som kan sitt lösenord – en person som slutade behöll åtkomst till
+// organisationens rutiner i praktiken för alltid. drift/INCIDENT-CHECKLISTA.md rekommenderade
+// "tvinga utloggning + sänk roll" vid misstänkt kapning, vilket var svagare än det lät.
+exports.satAnvandareAvstangd = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan stänga av ett konto.");
+  }
+  const { userId, avstangd } = request.data ?? {};
+  if (!userId || typeof avstangd !== "boolean") {
+    throw new HttpsError("invalid-argument", "userId och avstangd (boolean) krävs.");
+  }
+  // En superadmin får inte låsa ut sig själv – organisationen skulle kunna bli utan
+  // administratör helt, utan någon väg tillbaka som inte kräver leverantören.
+  if (userId === request.auth.uid) {
+    throw new HttpsError("failed-precondition", "Du kan inte stänga av ditt eget konto.");
+  }
+  const mal = await hamtaAnvandarInfo(userId);
+  if (mal.organisationId !== uppringare.organisationId) {
+    throw new HttpsError("permission-denied", "Användaren tillhör inte din organisation.");
+  }
+
+  await admin.auth().updateUser(userId, { disabled: avstangd });
+  if (avstangd) {
+    // Utan detta ligger en redan utfärdad ID-token kvar och fungerar i upp till ~1 timme.
+    await admin.auth().revokeRefreshTokens(userId);
+  }
+  await db.collection("users").doc(userId).update({ avstangd });
+  await loggaRevision({
+    organisationId: uppringare.organisationId,
+    aktorUid: request.auth.uid,
+    aktorRoll: uppringare.roll,
+    handelsetyp: avstangd ? "anvandare_avstangd" : "anvandare_aterupptagen",
+    objektTyp: "users",
+    objektId: userId,
+    sammanfattning: avstangd ? "Stängde av ett konto" : "Slog på ett avstängt konto igen",
+  });
+  return { ok: true, avstangd };
+});
+
+// Etapp 70a: raderar ett konto permanent – både Firebase Auth-kontot (personen kan inte längre
+// logga in) och users/{uid} (namn och e-post försvinner ur organisationen). Detta är
+// mekanismen för GDPR art. 17 på individnivå; fram till 2026-08-26 fanns den bara på
+// organisationsnivå (raderaOrganisationensData i avtalslivscykel.js).
+//
+// Vad som MEDVETET INTE raderas: personens läskvitteringar (rutin.lasteAv) och poster i
+// revisionsloggen. Kvitteringar är en del av verksamhetens patientsäkerhetsunderlag – "vem
+// hade läst rutinen när avvikelsen inträffade" måste gå att svara på i efterhand – och
+// revisionsloggen är en manipuleringsdetekterande hashkedja som inte kan ändras utan att
+// bryta kedjan. Båda innehåller uid och namn, vilket ska framgå av kundens egen
+// gallringsbedömning (se avtal/DPIA-UNDERLAG.md). Att tyst radera dem hade dessutom gjort
+// spårbarheten av själva raderingen omöjlig.
+exports.raderaAnvandare = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan radera ett konto.");
+  }
+  const { userId } = request.data ?? {};
+  if (!userId) {
+    throw new HttpsError("invalid-argument", "userId krävs.");
+  }
+  if (userId === request.auth.uid) {
+    throw new HttpsError("failed-precondition", "Du kan inte radera ditt eget konto.");
+  }
+  const mal = await hamtaAnvandarInfo(userId);
+  if (mal.organisationId !== uppringare.organisationId) {
+    throw new HttpsError("permission-denied", "Användaren tillhör inte din organisation.");
+  }
+
+  // Namnet läses direkt ur dokumentet: hamtaAnvandarInfo() returnerar bara roll och
+  // organisationId, och att utöka den delade hjälpfunktionen för ett enda anropsställes skull
+  // vore en onödigt bred ändring.
+  const malDok = await db.collection("users").doc(userId).get();
+  const malNamn = malDok.data()?.namn || malDok.data()?.email || userId;
+
+  // Loggas FÖRE raderingen: efteråt går namnet inte längre att läsa, och en revisionspost
+  // utan uppgift om vem som raderades är nästan värdelös vid en granskning.
+  await loggaRevision({
+    organisationId: uppringare.organisationId,
+    aktorUid: request.auth.uid,
+    aktorRoll: uppringare.roll,
+    handelsetyp: "anvandare_raderad",
+    objektTyp: "users",
+    objektId: userId,
+    sammanfattning: `Raderade kontot ${malNamn} permanent`,
+  });
+
+  // Auth-kontot först. Misslyckas det ska users/{uid} INTE raderas – annars blir personen
+  // kvar med inloggningsmöjlighet men utan profil, vilket är ett sämre läge än före anropet.
+  // Felet bubblar upp med flit: fram till 2026-08-26 saknade tjänstekontot behörighet mot
+  // Firebase Authentication (roles/firebaseauth.admin), vilket fick revokeRefreshTokens att
+  // krascha i produktion. Ett tyst .catch() här hade dolt exakt det felet igen.
+  await admin.auth().deleteUser(userId);
+  await db.collection("users").doc(userId).delete();
+  return { ok: true };
+});
+
 // Etapp 55 (kioskläge): en kiosk-enhet lämnar det begränsade läget med en PIN-kod istället för
 // en persons lösenord (delad enhet, ingen ska behöva ett eget konto bara för att låsa upp den).
 // PIN:en lagras ENDAST hashad, under en sökväg som är helt stängd för klientåtkomst (se

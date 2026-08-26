@@ -768,6 +768,19 @@ h1 {
   font-size: 0.9rem;
 }
 
+/* Etapp 70b: bekräftelse efter begärd lösenordsåterställning. Egen klass i stället för att
+   återanvända .auth__fel – texten är inte ett fel, och röd färg på ett lyckat utfall är den
+   sortens detalj som får någon att tro att något gick snett. */
+.auth__info {
+  color: var(--text-svag);
+  font-size: 0.9rem;
+}
+
+.auth__glomt {
+  align-self: flex-start;
+  font-size: 0.9rem;
+}
+
 /* Etapp 43a: `<select>` saknade en global stil – varje sida som hade en (Introduktion,
    Kompetensmatris, AnslagFormular, InbjudanFormular, Personalpuls, RutinFormular) föll
    tillbaka på webbläsarens omärkta standardutseende, synligt avvikande från de intilliggande

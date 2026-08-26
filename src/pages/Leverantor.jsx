@@ -7,6 +7,7 @@ import NyckeltalSektion from "../components/leverantor/NyckeltalSektion";
 import KraverAtgardSektion from "../components/leverantor/KraverAtgardSektion";
 import EpostNodstoppSektion from "../components/leverantor/EpostNodstoppSektion";
 import SkapaOrganisationSektion from "../components/leverantor/SkapaOrganisationSektion";
+import SeedaStartbibliotekSektion from "../components/leverantor/SeedaStartbibliotekSektion";
 import DemomiljoSektion from "../components/leverantor/DemomiljoSektion";
 import HuvudmanSektion from "../components/leverantor/HuvudmanSektion";
 import OrganisationsListaSektion from "../components/leverantor/OrganisationsListaSektion";
@@ -186,6 +187,8 @@ export default function Leverantor() {
       <EpostNodstoppSektion epostAvstangd={epostAvstangd} onAndrad={setEpostAvstangd} onFel={setFel} />
 
       <SkapaOrganisationSektion onSkapad={ladda} onFel={setFel} />
+
+      <SeedaStartbibliotekSektion organisationer={organisationer} onSeedat={ladda} onFel={setFel} />
 
       <DemomiljoSektion onNollstallt={ladda} onFel={setFel} />
 
