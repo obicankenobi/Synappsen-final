@@ -1,6 +1,6 @@
 # Dokumentregister
 
-**Fullständig inventering av projektets 62 dokument.** Bevakat av
+**Fullständig inventering av projektets 63 dokument.** Bevakat av
 `tests/docs/dokumentregister.test.js`, som failar om ett dokument finns på disk men saknas
 här, eller står här men saknas på disk. **Ett nytt dokument kan alltså inte glömmas bort –
 testet vägrar passera förrän det är infört i tabellerna nedan.**
@@ -65,6 +65,7 @@ utlöser en uppdatering – läs kolumnen "Utlöses av".
 | `avtal/IT-FAKTABLAD.md` | **ja** | Tekniskt faktablad till IT/DSO |
 | `drift/REDAKTORSGUIDE.md` | nej | Fördjupad guide för redaktörsrollerna |
 | `granskningar/JURIDISK-GRANSKNING.md` | nej (delas ALDRIG i sin helhet) | GDPR, MDR, AI-förordningen, produktansvar, NIS2, jäv/bisyssla |
+| `granskningar/MDR-BEDOMNING-OVNINGSFRAGOR-2026-08.md` | nej | MDR-kvalificering av leverantörskurerat kvissinnehåll. Uppdateras när ett av besluten i § 8 fattas, eller om MDCG 2019-11 revideras |
 | `produkt/VARUMARKE.md` | nej | Varumärkesplattform, tonalitet |
 | `produkt/GRAFISK-PROFIL.md` | nej | Färg, typografi, komponentspråk |
 | `produkt/FRAMTIDSPLAN.md` | nej | **Arkiv över ej antagna planer.** Skriv aldrig tillbaka "här är den aktiva planen" |

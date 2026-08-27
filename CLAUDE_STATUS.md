@@ -8,19 +8,20 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-26 · version **5.129.0** · **byggd och pushad, EJ deployad än**.
-Senast deployade version är 5.128.0 (körning #87).
+**Senast uppdaterad:** 2026-08-27 · version **5.129.0** · **deployad** (körning #89).
+Ocommittat/odeployat sedan dess: Öva-lägets bank-spår och MDR-bedömningen (se uppföljningen
+2026-08-27).
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.128.0 (körning #87). **v5.129.0 är byggd men inte deployad** |
+| **Version i produktion** | 5.129.0 (körning #89, deployad 2026-08-27) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | v5.129.0: fem fel från första riktiga användningen (två kollegor inbjudna) – kontoradering/avstängning, lösenordsåterställning, ärligt inbjudnings-UI, startbibliotek i efterhand, CSP- och hemlighetsfix. Se uppföljningen 2026-08-26 |
 | **Senaste dokumentarbete** | 2026-08-23: säljmaterialet infört och faktagranskat mot koden, dokumentationen strukturerad i ämnesmappar, dokumentregister + påståendetester byggda |
 | **Aktiv plan** | Ingen. Etapp 69 var den sista. `etapplaner/ETAPPLAN13.md` (Etapp 64) är antagen men juridiskt blockerad – inget steg är byggbart förrän en extern bedömning finns |
-| **Nästa steg** | **Ägaren måste ge tjänstekontot `roles/firebaseauth.admin` i GCP** – utan det fungerar varken avstängning, radering eller tvingad utloggning, oavsett kod. Därefter: sätt `BREVO_API_KEY`, deploya v5.129.0. Se `OPPNA-PUNKTER.md` |
+| **Nästa steg** | **Ägaren måste ge tjänstekontot `roles/firebaseauth.admin` i GCP** – utan det fungerar varken avstängning, radering eller tvingad utloggning, oavsett kod. Därefter: ägarbeslut om Öva-lägets innehåll (fyra frågor, se `OPPNA-PUNKTER.md` och `granskningar/MDR-BEDOMNING-OVNINGSFRAGOR-2026-08.md` §8) |
 
 ## Var du hittar saker
 
@@ -109,6 +110,37 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-08-27 (v5.129.0 deployad, Öva-läget, MDR-bedömning)
+
+**Deploy.** v5.129.0 ligger i produktion (körning #89). Två hemligheter stoppade vägen dit:
+`BREVO_API_KEY` saknades (ägaren satte den, och verifierade `synappsen.se` hos Brevo via
+DNS-poster hos Loopia), och `SOKMOTOR_API_KEY` visade sig **aldrig ha varit satt** – felet
+syntes först nu eftersom v5.129.0 bytte `echo` mot `printf '%s'` i `deploy.yml`. Tidigare blev
+en saknad hemlighet strängen `"\n"` i Secret Manager, som Secret Manager accepterade;
+`printf` skickar en tom sträng, som avvisas med "Secret Payload cannot be empty". **Slutsats
+värd att minnas: klinikstödets sökmotor har sannolikt kört mot en trasig nyckel i produktion
+under lång tid utan att något larmade.** Ägaren hittade rätt nyckel i GCP ("API key filter",
+restriktion Custom Search API) och satte den.
+
+**Öva-läget var tomt.** Orsak: `byggFragepool()` läser bara `rutin.kviss`, och organisationen
+har inga rutiner. `KVISSBANK` nåddes bara via en redaktör som manuellt fäst en fråga på en
+rutin – bankens egen motivering ("så att en ny organisation inte står tom dag ett") stämde
+alltså inte i praktiken. Byggt: `byggBankFragepool()` + ett Systemkunskap-spår i `OvaLage.jsx`
+som läser banken direkt, oberoende av Firestore (commit `d8b9106`, ej deployad).
+
+**Åtta nya bankfrågor skrevs och reverterades** (`4754942` → `4815c68`). Ägaren avvisade dem
+med rätt argument: tekniska frågor om hur Synappsen fungerar är ointressanta för vårdpersonal,
+som behöver öva på sitt yrke.
+
+**MDR-bedömning gjord** (`granskningar/MDR-BEDOMNING-OVNINGSFRAGOR-2026-08.md`, ny fil).
+Ägaren ifrågasatte om kliniska frågor verkligen passerar MDR-gränsen. Genomgång mot MDR
+art. 2(1), skäl 19, art. 2(12) och MDCG 2019-11 ger: **nej, de gör inte det.** Beslutssteg 4
+i MDCG 2019-11 ("är åtgärden till nytta för enskilda patienter?") besvaras nekande eftersom
+ingen patientdata finns i flödet. **Kommentaren i `src/data/kvissbank.js` rad 9–22 är alltså
+för hårt dragen och bör rättas** – men rättelsen väntar på ägarbeslut, eftersom regeln råkar
+skydda mot fyra risker som är verkliga (färskhet, lokal variation, upphovsrätt,
+AI-förordningens bilaga III). Fyra beslut ligger i `OPPNA-PUNKTER.md`.
 
 ## Uppföljning 2026-08-23 (rättad: "Uppdatera"-knappen gjorde ingenting, v5.128.0)
 
