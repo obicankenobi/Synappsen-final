@@ -112,36 +112,6 @@ export const KVISSBANK = [
       "Systemet visar vilka som inte kvitterat, så att påminnelser kan riktas rätt. " +
       "Inga svar från mikrokvissen sparas någonstans – den finns för förståelse, inte betyg.",
   },
-  {
-    id: "kvittering-mikrokviss-sparas-ej",
-    kategori: KVISS_KATEGORIER.KVITTERING,
-    fraga: "Sparas dina svar i mikrokvissen som visas innan du kvitterar en rutin?",
-    alternativ: [
-      "Nej, aldrig – den är bara till för din egen förståelse",
-      "Ja, men bara om du svarar fel",
-      "Ja, dina chefer kan se resultatet",
-      "Ja, men bara ditt sista svar sparas",
-    ],
-    rattIndex: 0,
-    hanvisning:
-      "Ingen mikrokviss i appen sparar rätt eller fel någonstans. Det som sparas är att du " +
-      "kvitterat rutinen – inte hur du svarade på vägen dit.",
-  },
-  {
-    id: "kvittering-introduktion-progress",
-    kategori: KVISS_KATEGORIER.KVITTERING,
-    fraga: "Hur räknas hur långt en person kommit i sitt introduktionsspår?",
-    alternativ: [
-      "Automatiskt, utifrån vilka rutiner i spåret personen redan kvitterat",
-      "Genom att en handledare manuellt bockar av varje steg",
-      "Utifrån hur många dagar personen varit anställd",
-      "Det syns inte förrän hela spåret är klart",
-    ],
-    rattIndex: 0,
-    hanvisning:
-      "Introduktionsspårets framsteg beräknas alltid live utifrån befintliga läskvitteringar " +
-      "– det finns ingen separat \"klar\"-status att glömma bocka av.",
-  },
 
   // --- Ansvar och ägarskap -----------------------------------------------------------
   {
@@ -190,22 +160,6 @@ export const KVISSBANK = [
     hanvisning:
       "Bristanmälan görs i två klick av vem som helst. Den som upptäcker en brist är sällan " +
       "den som beställer, och tröskeln ska därför vara så låg som möjligt.",
-  },
-  {
-    id: "ansvar-ta-bort-kommentar",
-    kategori: KVISS_KATEGORIER.ANSVAR,
-    fraga: "Vem kan ta bort en kommentar på en rutin?",
-    alternativ: [
-      "Den som skrev kommentaren, eller den som har särskild behörighet att ta bort alla",
-      "Bara rutinens ägare",
-      "Ingen – kommentarer går inte att ta bort",
-      "Bara den som godkände rutinen",
-    ],
-    rattIndex: 0,
-    hanvisning:
-      "En kommentar kan tas bort av den som skrev den. Utöver det finns en behörighet som " +
-      "får ta bort vilken kommentar som helst, för de fall en kommentar behöver städas bort " +
-      "av någon annan än författaren.",
   },
 
   // --- Hitta och använda -------------------------------------------------------------
@@ -270,64 +224,6 @@ export const KVISSBANK = [
     hanvisning:
       "QR-etiketten är en genväg till rätt artikel – inget skannande registrerar uttag " +
       "eller beställningar.",
-  },
-  {
-    id: "anvandning-sok-stavfel",
-    kategori: KVISS_KATEGORIER.ANVANDNING,
-    fraga: "Vad händer om du stavar lite fel i sökrutan?",
-    alternativ: [
-      "Sökningen hittar ändå relevanta träffar – den kräver inte exakt stavning",
-      "Du får inga träffar alls",
-      "Sökningen rättar automatiskt din stavning och visar det rättade ordet",
-      "Du måste skriva om hela sökningen från början",
-    ],
-    rattIndex: 0,
-    hanvisning:
-      "Sökfunktionen tolererar en del avvikelse i stavningen, så en enstaka felskriven " +
-      "bokstav behöver inte betyda noll träffar.",
-  },
-  {
-    id: "anvandning-veckans-repetition-vs-ova",
-    kategori: KVISS_KATEGORIER.ANVANDNING,
-    fraga: "Vad är skillnaden mellan \"Veckans repetition\" och \"Öva\"?",
-    alternativ: [
-      "Veckans repetition visar samma fråga hela veckan om en rutin du kvitterat för länge " +
-        "sedan – Öva slumpar ett nytt urval varje gång du startar",
-      "Veckans repetition sparar dina resultat, Öva gör det inte",
-      "Öva är bara tillgängligt för chefer",
-      "Det är samma funktion, bara under två olika namn",
-    ],
-    rattIndex: 0,
-    hanvisning:
-      "Ingen av dem sparar svar (samma princip som mikrokvissen). Veckans repetition är en " +
-      "liten påminnelse om något du redan kvitterat länge sedan; Öva är ett självvalt " +
-      "övningspass du kan köra så ofta du vill.",
-  },
-  {
-    id: "anvandning-kommentar-mention",
-    kategori: KVISS_KATEGORIER.ANVANDNING,
-    fraga: "Vad kan du göra med \"@\" när du skriver en kommentar på en rutin?",
-    alternativ: [
-      "Nämna en kollega – du får förslag på namn medan du skriver",
-      "Skicka kommentaren direkt till chefen, förbi alla andra",
-      "Markera kommentaren som brådskande",
-      "Dölja kommentaren för alla utom dig själv",
-    ],
-    rattIndex: 0,
-    hanvisning: "Skriv @ följt av några bokstäver för att få upp förslag på vem du menar.",
-  },
-  {
-    id: "anvandning-feedback-vem-laser",
-    kategori: KVISS_KATEGORIER.ANVANDNING,
-    fraga: "Vem kan läsa den feedback du skickar in via Feedback-sidan i appen?",
-    alternativ: [
-      "Endast superadmin",
-      "Alla i din organisation",
-      "Ingen – den är helt anonym och läses aldrig",
-      "Bara den du själv väljer att dela den med",
-    ],
-    rattIndex: 0,
-    hanvisning: "Feedback-sidan är tydlig med detta redan när du skriver: bara superadmin ser vad du skickar in.",
   },
 
   // --- Innehållets färskhet ----------------------------------------------------------
@@ -425,23 +321,6 @@ export const KVISSBANK = [
     hanvisning:
       "Appen har medvetet ingen journalintegration. Allt som rör en identifierbar patient " +
       "hör hemma i journalsystemet.",
-  },
-  {
-    id: "pii-kommentar-feedback-sparr",
-    kategori: KVISS_KATEGORIER.PATIENTUPPGIFTER,
-    fraga:
-      "Vad händer om du skriver något som liknar en patientuppgift i en kommentar eller ett " +
-      "feedback-meddelande?",
-    alternativ: [
-      "Appen varnar och kan blockera att det skickas in",
-      "Det skickas in som vanligt – ingen kontroll görs där",
-      "Det skickas in men markeras automatiskt som känsligt",
-      "Det går bara igenom om du är superadmin",
-    ],
-    rattIndex: 0,
-    hanvisning:
-      "Samma kontroll som varnar vid rutintext körs även på kommentarer och feedback, " +
-      "eftersom en patientuppgift kan dyka upp var som helst i fritext.",
   },
 
   // --- Mallar och startbibliotek -----------------------------------------------------
