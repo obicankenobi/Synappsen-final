@@ -358,7 +358,12 @@ service cloud.firestore {
                     && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
                          'moduler', 'sakerhet',
                          'raderingSchemalagdTill', 'raderingBegardAv', 'raderingAnledning',
-                         'supportAtkomstTill', 'supportAtkomstBeviljadAv', 'supportAtkomstAnledning'
+                         'supportAtkomstTill', 'supportAtkomstBeviljadAv', 'supportAtkomstAnledning',
+                         // Etapp 71: vilka frågepaket som är på/av i Öva-läget. Skrivs endast
+                         // via satKvisspaket, av samma skäl som moduler ovan – ändringen ska
+                         // revisionsloggas, och VÖL ska kunna göra den utan att (som denna
+                         // regel kräver) vara superadmin.
+                         'kvisspaket'
                        ]);
 
       // organisationer/{orgId}/installningar/kioskPin – Etapp 55: hashad PIN-kod som låser upp
@@ -382,6 +387,31 @@ service cloud.firestore {
         allow read: if arInloggad() && orgId == minOrganisation() && dokId != 'kioskPin';
         allow write: if arSuperadmin() && orgId == minOrganisation()
                       && dokId != 'geminiBudget' && dokId != 'kioskPin';
+      }
+
+      // organisationer/{orgId}/kvissoverlagring/{fragaId} – Etapp 71: kundens avvikelse från
+      // en GLOBAL leverantörsfråga (kvissfragor/{fragaId}, se det blocket för hela modellen).
+      // Dokument-ID:t ÄR den globala frågans ID. Innehåller antingen { dold: true } eller de
+      // fält kunden skrivit om. Frågor kunden aldrig rört saknar dokument här helt – vilket
+      // är precis vad som gör att en central rättelse når dem.
+      //
+      // Läsbar för varje inloggad i organisationen (Öva-läget måste kunna tillämpa
+      // överlagringen), plus en plattformsadmin under ett aktivt supportfönster – annars kan
+      // leverantören inte felsöka varför en kund ser något annat än originalet.
+      // Skrivs endast via Cloud Functions: rolltest (superadmin/VÖL), PII-kontroll och
+      // revisionslogg ligger där.
+      match /kvissoverlagring/{fragaId} {
+        allow read: if (arInloggad() && orgId == minOrganisation()) || farSupportlasa(orgId);
+        allow write: if false;
+      }
+
+      // organisationer/{orgId}/kvissegna/{fragaId} – Etapp 71: kundens EGNA, fristående
+      // övningsfrågor (paketet "eget"). Skilt från rutin.kviss, som hör till en enskild rutin
+      // och visas vid kvittering – det här är frågor om lokal kunskap som inte hör hemma på
+      // någon särskild rutin. Samma läs-/skrivresonemang som kvissoverlagring ovan.
+      match /kvissegna/{fragaId} {
+        allow read: if (arInloggad() && orgId == minOrganisation()) || farSupportlasa(orgId);
+        allow write: if false;
       }
 
       // organisationer/{orgId}/kostnadshistorik/{manad} – Etapp 5: arkiverad AI-kostnad per
@@ -830,6 +860,35 @@ service cloud.firestore {
     // som redan är korrekt organisationsskopad (se useSystemstatus.js).
     match /systemstatus/{id} {
       allow read: if arPlattformsadmin();
+      allow write: if false;
+    }
+
+    // kvissfragor/{fragaId} – Etapp 71: leverantörskurerad, GLOBAL frågebank för Öva-läget.
+    // Medvetet inte organisationsskopad: samma fråga ska nå alla kunder, och en rättelse ska
+    // slå igenom överallt utan en migrering per organisation. Kundens avvikelser ligger i
+    // stället som överlagringar under organisationer/{orgId}/kvissoverlagring (se nedan) –
+    // det var ägarbeslutet 2026-08-27, valt just för att en klinisk rättelse ska nå varje
+    // kund som inte aktivt ändrat frågan (se granskningar/MDR-BEDOMNING-OVNINGSFRAGOR-2026-08.md
+    // §5.1: färskhetsrisken är den allvarligaste i hela funktionen).
+    //
+    // Läsbar för varje inloggad, oavsett organisation. Det är avsiktligt och ofarligt:
+    // innehållet är leverantörens eget, identiskt för alla, och innehåller per definition
+    // inga kunduppgifter (se PII-kontrollen i functions/kvissbank.js, som körs före varje
+    // skrivning). Skrivs ENDAST via Cloud Functions – all frågeredigering ska revisionsloggas,
+    // och en klientskrivning hade gått förbi både loggen och PII-kontrollen.
+    match /kvissfragor/{fragaId} {
+      allow read: if arInloggad();
+      allow write: if false;
+    }
+
+    // kvisspaket/{paketId} – Etapp 71: leverantörens globala nödstopp per frågepaket.
+    // Ligger HÄR och inte i systemstatus/{id}, trots att det är samma slags driftflagga:
+    // systemstatus är läsbart enbart för plattformsadmin (se säkerhetsfixen ovan), och ett
+    // nödstopp som vanliga användare inte kan läsa kan inte dölja något för dem. Samma
+    // funktion som systemstatus/epost.avstangd fyller för utgående e-post – stoppa allt
+    // omedelbart, utan en deploy.
+    match /kvisspaket/{paketId} {
+      allow read: if arInloggad();
       allow write: if false;
     }
 

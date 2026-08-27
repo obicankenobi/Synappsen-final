@@ -267,6 +267,58 @@ export function exporteraReferensunderlag(samtycke) {
 
 // Etapp 55 – kiosk-PIN. Klienten skickar/får aldrig hashen, bara ett booleskt svar från
 // verifieraKioskPin (se functions/index.js för hela motiveringen).
+// Etapp 71 – frågebanken bakom Öva-läget. All redigering går via Cloud Functions eftersom
+// varje ändring ska rolltestas, PII-kontrolleras och revisionsloggas (se functions/kvissbank.js).
+
+// Leverantören (plattformsadmin): globala frågor och globalt nödstopp per paket.
+export function sparaGlobalKvissfraga(fraga) {
+  const fn = httpsCallable(functions, "sparaGlobalKvissfraga");
+  return fn(fraga);
+}
+
+export function taBortGlobalKvissfraga(id) {
+  const fn = httpsCallable(functions, "taBortGlobalKvissfraga");
+  return fn({ id });
+}
+
+export function satGlobaltKvisspaketStopp(paket, avstangt) {
+  const fn = httpsCallable(functions, "satGlobaltKvisspaketStopp");
+  return fn({ paket, avstangt });
+}
+
+// Kunden (superadmin/VÖL): paketval, överlagringar och egna frågor.
+export function satKvisspaket(paket, aktivt) {
+  const fn = httpsCallable(functions, "satKvisspaket");
+  return fn({ paket, aktivt });
+}
+
+export function sparaKvissoverlagring(overlagring) {
+  const fn = httpsCallable(functions, "sparaKvissoverlagring");
+  return fn(overlagring);
+}
+
+export function aterstallKvissoverlagring(fragaId) {
+  const fn = httpsCallable(functions, "aterstallKvissoverlagring");
+  return fn({ fragaId });
+}
+
+export function sparaEgenKvissfraga(fraga) {
+  const fn = httpsCallable(functions, "sparaEgenKvissfraga");
+  return fn(fraga);
+}
+
+export function taBortEgenKvissfraga(id) {
+  const fn = httpsCallable(functions, "taBortEgenKvissfraga");
+  return fn({ id });
+}
+
+// Skriver om startinnehållet i den globala banken. Idempotent – kör om den efter en rättelse
+// i functions/kvissfragorSeed.js, så når ändringen alla kunder som inte skrivit om frågan.
+export function seedaKvissbank(endastNya = false) {
+  const fn = httpsCallable(functions, "seedaKvissbank");
+  return fn({ endastNya });
+}
+
 export function satKioskPin(pin) {
   const fn = httpsCallable(functions, "satKioskPin");
   return fn({ pin });

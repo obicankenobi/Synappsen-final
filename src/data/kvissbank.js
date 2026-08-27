@@ -6,20 +6,28 @@
 // en ny organisation, som får 8–10 rutinmallar ur startbiblioteket men noll kvissfrågor, har
 // TVÅ byggda funktioner som är helt tomma dag ett. Den här katalogen är svaret på det.
 //
-// DEN AVGÖRANDE AVGRÄNSNINGEN. Startbibliotekets doktrin (functions/verksamhetsmallar.js) är
-// att aldrig påstå kliniskt sakinnehåll: mallarna är strukturella skelett, inte färdig
-// vägledning. En kvissfråga har till skillnad från en mall ett RÄTT SVAR – den är därför per
-// definition ett faktapåstående, och en fråga som "vilken kompressionsfrekvens gäller vid
-// HLR?" vore klinisk vägledning oavsett hur den formuleras. Det passerar både
-// MDR-gränsdragningen (se granskningar/JURIDISK-GRANSKNING.md) och projektets egen regel om
-// att aldrig påstå något som inte är verifierat.
+// RÄTTAT 2026-08-27 – DEN HÄR FILENS TIDIGARE MOTIVERING VAR FEL.
 //
-// Därför innehåller katalogen ENDAST frågor om hur systemet och processen fungerar – sådant
-// som är sant för varje organisation oavsett medicinskt innehåll, och som är verifierat mot
-// faktisk kod (se kvissbank.test.js, som binder de mest driftkänsliga svaren till koden).
-// Kliniska frågor ska skrivas av verksamheten själv, om den egna godkända rutintexten,
-// eventuellt med hjälp av foreslaKvissfragor (functions/ai-import.js) som uttryckligen bara
-// får pröva förståelse av text som redan finns.
+// Fram till nu stod här att en kvissfråga om kliniskt innehåll "passerar MDR-gränsdragningen",
+// med resonemanget att en fråga med ett rätt svar per definition är ett faktapåstående och
+// därmed klinisk vägledning. Den slutsatsen granskades mot primärkällorna på ägarens begäran
+// och håller inte – se granskningar/MDR-BEDOMNING-OVNINGSFRAGOR-2026-08.md, som går igenom MDR
+// art. 2(1), skäl 19 och MDCG 2019-11. Kort: kvalificering kräver att åtgärden är till nytta
+// för ENSKILDA PATIENTER (MDCG 2019-11 beslutssteg 4), och ett kviss utan patientdata i flödet
+// uppfyller inte det. Premissen bevisade dessutom för mycket – den hade gjort varje digital
+// lärobok till en CE-märkt produkt.
+//
+// AVGRÄNSNINGEN GÄLLER ÄNDÅ FÖR DEN HÄR FILEN, men av andra skäl: den är statisk kod, utan
+// källhänvisning, granskningsdatum och möjlighet för en verksamhet att stänga av en fråga som
+// inte stämmer lokalt. Kliniskt sakinnehåll hör därför hemma i den REDIGERBARA banken
+// (functions/kvissbank.js, Etapp 71), där varje fråga bär `kalla` + `kallaDatum` och där både
+// kunden och leverantören kan stänga av ett paket utan en deploy.
+//
+// Katalogen här innehåller alltså fortsatt ENDAST frågor om hur systemet och processen
+// fungerar, verifierade mot faktisk kod (se kvissbank.test.js). Den lever kvar för
+// RutinFormular.jsx:s "lägg till från banken", som fäster en fråga på en enskild rutin.
+// Samma frågor finns numera också i functions/kvissfragorSeed.js (paketet "systemkunskap") –
+// src/data/kvissfragorSeed.test.js binder de två källorna så att de inte kan glida isär.
 //
 // KRAV 14 gäller här som överallt annars: inga svar sparas någonstans. Katalogen är statisk
 // data, den läser och skriver ingenting.

@@ -111,6 +111,19 @@ exports.backfillaBorttagenFalt = plattformsdrift.backfillaBorttagenFalt;
 exports.blibForstaPlattformsadmin = plattformsdrift.blibForstaPlattformsadmin;
 exports.gorTillPlattformsadmin = plattformsdrift.gorTillPlattformsadmin;
 
+// ── kvissbank.js – Etapp 71: frågebanken bakom Öva-läget (leverantörens globala frågor,
+// kundens överlagringar och egna frågor, paketpaus på båda nivåerna)
+const kvissbank = require("./kvissbank");
+exports.sparaGlobalKvissfraga = kvissbank.sparaGlobalKvissfraga;
+exports.taBortGlobalKvissfraga = kvissbank.taBortGlobalKvissfraga;
+exports.satGlobaltKvisspaketStopp = kvissbank.satGlobaltKvisspaketStopp;
+exports.satKvisspaket = kvissbank.satKvisspaket;
+exports.sparaKvissoverlagring = kvissbank.sparaKvissoverlagring;
+exports.aterstallKvissoverlagring = kvissbank.aterstallKvissoverlagring;
+exports.sparaEgenKvissfraga = kvissbank.sparaEgenKvissfraga;
+exports.taBortEgenKvissfraga = kvissbank.taBortEgenKvissfraga;
+exports.seedaKvissbank = kvissbank.seedaKvissbank;
+
 // ── organisationslivscykel.js – etablering av en ny organisation + demo-/övningsmiljön
 const organisationslivscykel = require("./organisationslivscykel");
 exports.skapaOrganisation = organisationslivscykel.skapaOrganisation;

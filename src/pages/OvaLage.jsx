@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAllaGodkandaRutiner } from "../hooks/useAllaGodkandaRutiner";
+import { useKvissbank } from "../hooks/useKvissbank";
 import { byggBankFragepool, byggFragepool, slumpaFragor, tillgangligaKategorier } from "../utils/ovaLage";
 import { OMRADE_LABELS } from "../hooks/useSokindex";
-import { KVISS_KATEGORI_LABEL, KVISSBANK } from "../data/kvissbank";
+import { KVISS_KATEGORI_LABEL } from "../data/kvissbank";
+import { PAKET_LABEL, paketMedInnehall } from "../utils/kvissbank";
 import "./OvaLage.css";
 
 const ANTAL_FRAGOR = 8;
@@ -14,23 +16,31 @@ const OMRADEN = [
   { nyckel: "administration", namn: OMRADE_LABELS.administration },
 ];
 
-// Etapp 65d: ett kort övningspass – slumpade frågor ur flera rutiners kviss-banker i följd,
-// initierat av användaren själv (inte bundet till en kvittering som KvissModal.jsx, eller en
-// kalendervecka som VeckansRepetition.jsx). Syftet är förståelse, inte betyg: precis som de
-// två andra kvissytorna sparas INGET svar, rätt eller fel, någonstans (krav 14) – och till
-// skillnad från dem visas heller inget sammanlagt resultat vid slutet, medvetet, för att inte
-// ens en ofarlig sifferantydan ska kunna läsas som ett mätvärde (se ETAPPLAN14.md 65d:s
-// uttryckliga avgränsning: inga poäng, inga streaks, inget synligt för någon annan).
+// Etapp 65d: ett kort övningspass – slumpade frågor i följd, initierat av användaren själv
+// (inte bundet till en kvittering som KvissModal.jsx, eller en kalendervecka som
+// VeckansRepetition.jsx). Syftet är förståelse, inte betyg: precis som de två andra
+// kvissytorna sparas INGET svar, rätt eller fel, någonstans (krav 14) – och till skillnad från
+// dem visas heller inget sammanlagt resultat vid slutet, medvetet, för att inte ens en ofarlig
+// sifferantydan ska kunna läsas som ett mätvärde (se ETAPPLAN14.md 65d:s uttryckliga
+// avgränsning: inga poäng, inga streaks, inget synligt för någon annan).
+//
+// Etapp 71: frågorna kommer numera från TVÅ håll – organisationens egna rutiner (rutin.kviss,
+// som förut) och den redigerbara frågebanken (useKvissbank.js), som är indelad i paket en
+// admin kan slå av och på. Krav 14 gäller oförändrat för båda.
 export default function OvaLage() {
   const { rutiner, laddar } = useAllaGodkandaRutiner();
+  const { bank, laddar: laddarBank } = useKvissbank();
   const [fragor, setFragor] = useState(null);
   const [index, setIndex] = useState(0);
   const [valt, setValt] = useState(null);
   const [visaFacit, setVisaFacit] = useState(false);
   const [valdKategori, setValdKategori] = useState(null);
 
-  function startaPass(omrade, kategori) {
-    const pool = omrade === "systemkunskap" ? byggBankFragepool(kategori) : byggFragepool(rutiner, omrade, kategori);
+  function startaPass(kalla, kategori) {
+    const pool =
+      kalla.typ === "paket"
+        ? byggBankFragepool(bank, kalla.nyckel, kategori)
+        : byggFragepool(rutiner, kalla.nyckel, kategori);
     setFragor(slumpaFragor(pool, ANTAL_FRAGOR));
     setIndex(0);
     setValt(null);
@@ -56,7 +66,7 @@ export default function OvaLage() {
     }
   }
 
-  if (laddar) {
+  if (laddar || laddarBank) {
     return (
       <div className="sida sida--ova-lage">
         <p>Laddar...</p>
@@ -64,16 +74,20 @@ export default function OvaLage() {
     );
   }
 
-  // Steg 1: välj ev. kategori och område, inget pass pågår
+  // Steg 1: välj ev. kategori och källa, inget pass pågår
   if (!fragor) {
-    const totalPool = byggFragepool(rutiner, "blandat").length;
-    const bankAntal = byggBankFragepool(valdKategori).length;
-    // Systemkunskap (KVISSBANK) täcker alla sina kategorier – slås ihop med de kategorier som
-    // faktiskt förekommer bland organisationens egna rutiner, så dropdownen alltid är komplett
-    // även för en organisation utan en enda rutin.
+    const rutinPool = byggFragepool(rutiner, "blandat").length;
+    const paket = paketMedInnehall(bank);
+    // Kategorierna som faktiskt förekommer, oavsett om frågan kommer från en rutin eller
+    // banken – annars hade en kategori som bara finns i banken saknats i listan.
     const kategorier = [
-      ...new Set([...tillgangligaKategorier(rutiner, "blandat"), ...KVISSBANK.map((f) => f.kategori)]),
+      ...new Set([
+        ...tillgangligaKategorier(rutiner, "blandat"),
+        ...bank.map((f) => f.kategori).filter(Boolean),
+      ]),
     ];
+    const inget = paket.length === 0 && rutinPool === 0;
+
     return (
       <div className="sida sida--ova-lage">
         <h1>🎓 Öva</h1>
@@ -81,48 +95,79 @@ export default function OvaLage() {
           Ett kort övningspass med slumpade frågor. Inget svar sparas eller visas för någon
           annan – det här är bara till för dig.
         </p>
-        {kategorier.length > 0 && (
-          <div className="ova-lage__kategorival">
-            <label htmlFor="ova-lage-kategori">Kategori (valfritt)</label>
-            <select
-              id="ova-lage-kategori"
-              value={valdKategori ?? ""}
-              onChange={(e) => setValdKategori(e.target.value || null)}
-            >
-              <option value="">Alla kategorier</option>
-              {kategorier.map((k) => (
-                <option key={k} value={k}>
-                  {KVISS_KATEGORI_LABEL[k] ?? k}
-                </option>
-              ))}
-            </select>
-          </div>
+
+        {inget && (
+          <p>
+            Det finns ännu inga frågor att öva på. En superadmin eller VÖL kan slå på ett
+            frågepaket under Admin → Övningsfrågor.
+          </p>
         )}
-        <div className="ova-lage__omradesval">
-          <button
-            type="button"
-            className="knapp"
-            disabled={bankAntal === 0}
-            onClick={() => startaPass("systemkunskap", valdKategori)}
-          >
-            Systemkunskap ({bankAntal} {bankAntal === 1 ? "fråga" : "frågor"})
-          </button>
-          {totalPool > 0 &&
-            OMRADEN.map((o) => {
-              const antal = byggFragepool(rutiner, o.nyckel, valdKategori).length;
-              return (
-                <button
-                  key={o.nyckel}
-                  type="button"
-                  className="knapp"
-                  disabled={antal === 0}
-                  onClick={() => startaPass(o.nyckel, valdKategori)}
+
+        {!inget && (
+          <>
+            {kategorier.length > 0 && (
+              <div className="ova-lage__kategorival">
+                <label htmlFor="ova-lage-kategori">Kategori (valfritt)</label>
+                <select
+                  id="ova-lage-kategori"
+                  value={valdKategori ?? ""}
+                  onChange={(e) => setValdKategori(e.target.value || null)}
                 >
-                  {o.namn} ({antal} {antal === 1 ? "fråga" : "frågor"})
-                </button>
-              );
-            })}
-        </div>
+                  <option value="">Alla kategorier</option>
+                  {kategorier.map((k) => (
+                    <option key={k} value={k}>
+                      {KVISS_KATEGORI_LABEL[k] ?? k}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {paket.length > 0 && (
+              <>
+                <h2 className="ova-lage__rubrik">Frågepaket</h2>
+                <div className="ova-lage__omradesval">
+                  {paket.map((p) => {
+                    const antal = byggBankFragepool(bank, p, valdKategori).length;
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        className="knapp"
+                        disabled={antal === 0}
+                        onClick={() => startaPass({ typ: "paket", nyckel: p }, valdKategori)}
+                      >
+                        {PAKET_LABEL[p] ?? p} ({antal} {antal === 1 ? "fråga" : "frågor"})
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {rutinPool > 0 && (
+              <>
+                <h2 className="ova-lage__rubrik">Frågor ur våra rutiner</h2>
+                <div className="ova-lage__omradesval">
+                  {OMRADEN.map((o) => {
+                    const antal = byggFragepool(rutiner, o.nyckel, valdKategori).length;
+                    return (
+                      <button
+                        key={o.nyckel}
+                        type="button"
+                        className="knapp"
+                        disabled={antal === 0}
+                        onClick={() => startaPass({ typ: "rutin", nyckel: o.nyckel }, valdKategori)}
+                      >
+                        {o.namn} ({antal} {antal === 1 ? "fråga" : "frågor"})
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </>
+        )}
       </div>
     );
   }
@@ -158,7 +203,7 @@ export default function OvaLage() {
         </button>
       </div>
       <p className="ova-lage__progress">
-        Fråga {index + 1} av {fragor.length} · {post.rutinTitel ?? "Systemkunskap"}
+        Fråga {index + 1} av {fragor.length} · {post.rutinTitel ?? PAKET_LABEL[post.omrade] ?? post.omrade}
       </p>
 
       <div className="ova-lage__fraga-kort">
@@ -189,6 +234,14 @@ export default function OvaLage() {
                 </p>
                 {fraga.hanvisning && <p className="ova-lage__hanvisning">{fraga.hanvisning}</p>}
               </>
+            )}
+            {/* Källhänvisningen visas alltid när den finns, även vid rätt svar – den är
+                poängen med spår 2 och det som gör ett kliniskt facit granskningsbart. */}
+            {fraga.kalla && (
+              <p className="ova-lage__kalla">
+                Källa: {fraga.kalla}
+                {fraga.kallaDatum ? ` (kontrollerad ${fraga.kallaDatum})` : ""}
+              </p>
             )}
           </div>
         )}

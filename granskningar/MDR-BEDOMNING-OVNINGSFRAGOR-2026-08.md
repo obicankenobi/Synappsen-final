@@ -40,7 +40,7 @@ går djupare på en punkt den inte behandlar.
 | Patientdata | Förekommer inte. Ingen inmatningsyta finns |
 | Lagring av svar | Ingen. Krav 14, verifierat: varken `KvissModal.jsx`, `VeckansRepetition.jsx` eller `OvaLage.jsx` skriver till Firestore |
 | Resultat/poäng | Visas inte ens för användaren själv vid passets slut – medvetet avstått (`OvaLage.jsx` rad 130–146) |
-| Källa till frågorna | I dag: kundens egna godkända rutiner, plus `KVISSBANK` (leverantörskurerad, 17 frågor om systemet) |
+| Källa till frågorna | I dag: kundens egna godkända rutiner, plus `KVISSBANK` (leverantörskurerad, 19 frågor om systemet) |
 | Det som föreslås | Att `KVISSBANK` även skulle innehålla generella yrkes-/faktafrågor |
 
 Det som juridiskt ändras med förslaget är **avsändarskapet**: i dag påstår Synappsen bara
@@ -350,10 +350,44 @@ kontext där konsekvensen är störst.
 
 | Fråga | Beslutas av | Status |
 |---|---|---|
-| Ska spår 1 byggas? | Ägaren | Öppen |
-| Ska spår 2 byggas, och i så fall med vilken struktur? | Ägaren, efter extern juridisk bedömning | Öppen |
-| Ska `kvissbank.js` kommentar rättas enligt § 6? | Ägaren | Öppen |
-| Ska de befintliga 17 systemfrågorna behållas? | Ägaren (ägaren har uttryckt att de är av lågt värde för vårdpersonal) | Öppen |
+| Ska spår 1 byggas? | Ägaren | **Avgjort 2026-08-27: ja.** Byggt i Etapp 71, 12 frågor, alla källbelagda mot lagtext |
+| Ska spår 2 byggas, och i så fall med vilken struktur? | Ägaren, efter extern juridisk bedömning | **Delvis avgjort:** maskineriet är byggt (paket `kliniskt`, med `kalla`/`kallaDatum`, granskningsbarhet och avstängning per fråga). INNEHÅLLET väntar fortsatt på den externa bedömningen |
+| Ska `kvissbank.js` kommentar rättas enligt § 6? | Ägaren | **Avgjort 2026-08-27: ja, rättad** |
+| Ska de befintliga 19 systemfrågorna behållas? | Ägaren (ägaren har uttryckt att de är av lågt värde för vårdpersonal) | Öppen – de ligger nu i ett eget paket (`systemkunskap`) som går att stänga av i adminvyn, så beslutet kan skjutas upp utan kostnad |
+
+---
+
+## 8b. Vad som byggdes efter bedömningen (Etapp 71, 2026-08-27)
+
+Ägaren antog rekommendationen och lade till ett krav: paketen ska gå att pausa, och enskilda
+frågor ska gå att se, redigera, lägga till och ta bort – både av kundens administratör och av
+leverantören. Det kravet flyttade lösningen från statisk kod till en Firestore-backad modell.
+
+| Del | Var |
+|---|---|
+| Leverantörens globala frågor | `kvissfragor/{id}` |
+| Kundens avvikelse från en sådan | `organisationer/{orgId}/kvissoverlagring/{fragaId}` |
+| Kundens egna, fristående frågor | `organisationer/{orgId}/kvissegna/{id}` |
+| Kundens paketval | `organisationer/{orgId}.kvisspaket` |
+| Leverantörens globala nödstopp | `kvisspaket/{paketId}` |
+
+Fyra beslut styrde utformningen (ägaren 2026-08-27): **överlagring** framför kopia-per-kund, så
+att en central rättelse når varje kund som inte själv ändrat frågan (§ 5.1); **superadmin +
+VÖL** som behörighetsnivå, samma som redan krävs för att godkänna kliniskt innehåll; **eget
+kundpaket** för frågor som inte hör till någon rutin; och **paus på båda nivåerna**, så att ett
+felaktigt facit kan stoppas hos alla kunder utan en deploy.
+
+Spärrarna i § 4 hölls: ingen fritext- eller sifferinmatning påverkar vilket svar som visas
+(§ 4.1), ytan heter fortsatt "Öva" och beskrivs som träning (§ 4.2), och kvissinnehållet ligger
+kvar utanför checklist- och akutläget (§ 4.3). Krav 14 (inga sparade svar) är oförändrat, vilket
+enligt § 5.4 också är det som håller funktionen utanför AI-förordningens bilaga III.
+
+**Färskhetsrisken bekräftade sig direkt.** Vid författandet av de tolv yrkeskunskapsfrågorna
+visade det sig att `SOSFS 1997:14` om delegering – grunden för i stort sett varje svensk
+delegeringsutbildning – **upphävdes 2026-01-01** genom HSLF-FS 2025:5. En fråga skriven ur
+minnet hade alltså varit felaktig från första dagen. Frågan vilar nu i stället på
+patientsäkerhetslagen 6 kap. 3 §, och `src/data/kvissfragorSeed.test.js` har en assertion som
+failar om någon skriver tillbaka den upphävda referensen.
 
 ---
 
@@ -401,3 +435,4 @@ Länkar till primärkällorna:
 | Version | Datum | Ändring |
 |---|---|---|
 | 1.0 | 2026-08-27 | Första versionen. Besvarar ägarens fråga om generella faktafrågor i Öva-läget |
+| 1.1 | 2026-08-27 | §8 uppdaterad med fattade beslut, nytt §8b om vad som faktiskt byggdes (Etapp 71) |

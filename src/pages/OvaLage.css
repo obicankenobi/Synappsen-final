@@ -80,6 +80,20 @@
   margin-top: 6px;
 }
 
+/* Etapp 71: källhänvisningen på en fråga ur ett leverantörspaket. Dämpad – den ska gå att
+   hitta när någon undrar var facit kommer ifrån, utan att konkurrera med själva svaret. */
+.ova-lage__kalla {
+  font-size: 0.85rem;
+  margin-top: 8px;
+  opacity: 0.75;
+}
+
+/* Etapp 71: rubrik över respektive knappgrupp (frågepaket kontra egna rutiner) */
+.ova-lage__rubrik {
+  font-size: 1rem;
+  margin: 18px 0 6px;
+}
+
 .ova-lage__knappar {
   display: flex;
   justify-content: flex-end;

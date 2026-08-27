@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { byggBankFragepool, byggFragepool, slumpaFragor, tillgangligaKategorier } from "./ovaLage";
-import { KVISSBANK } from "../data/kvissbank";
 
 const KVISSFRAGA = { fraga: "?", alternativ: ["a", "b"], rattIndex: 0, hanvisning: "" };
 
@@ -90,20 +89,36 @@ describe("tillgangligaKategorier", () => {
 });
 
 describe("byggBankFragepool", () => {
-  it("ger en post per fråga i KVISSBANK, oberoende av rutiner", () => {
-    expect(byggBankFragepool()).toHaveLength(KVISSBANK.length);
+  const BANK = [
+    { id: "a", paket: "yrkeskunskap", kategori: "sekretess", fraga: "?", alternativ: ["a", "b", "c"], rattIndex: 0 },
+    { id: "b", paket: "yrkeskunskap", kategori: "avvikelse", fraga: "?", alternativ: ["a", "b", "c"], rattIndex: 0 },
+    { id: "c", paket: "kliniskt", kategori: "sekretess", fraga: "?", alternativ: ["a", "b", "c"], rattIndex: 0 },
+  ];
+
+  it("ger en post per fråga i banken, oberoende av rutiner", () => {
+    expect(byggBankFragepool(BANK, null)).toHaveLength(3);
+  });
+
+  it("filtrerar på paket", () => {
+    expect(byggBankFragepool(BANK, "yrkeskunskap")).toHaveLength(2);
+    expect(byggBankFragepool(BANK, "kliniskt")).toHaveLength(1);
   });
 
   it("posterna saknar rutinId/rutinTitel eftersom de inte hör till någon rutin", () => {
-    const [post] = byggBankFragepool();
+    const [post] = byggBankFragepool(BANK, "yrkeskunskap");
     expect(post.rutinId).toBeNull();
     expect(post.rutinTitel).toBeNull();
+    expect(post.omrade).toBe("yrkeskunskap");
   });
 
-  it("filtrerar på kategori när en anges", () => {
-    const pool = byggBankFragepool("mallar");
-    expect(pool.length).toBeGreaterThan(0);
-    expect(pool.every((p) => p.fraga.kategori === "mallar")).toBe(true);
+  it("filtrerar på kategori inom paketet", () => {
+    const pool = byggBankFragepool(BANK, "yrkeskunskap", "sekretess");
+    expect(pool).toHaveLength(1);
+    expect(pool[0].fraga.id).toBe("a");
+  });
+
+  it("hanterar en tom bank utan att kasta", () => {
+    expect(byggBankFragepool([], "yrkeskunskap")).toEqual([]);
   });
 });
 

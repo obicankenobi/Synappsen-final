@@ -1,0 +1,111 @@
+/* Etapp 71: kundens förvaltning av Öva-lägets frågebank. Följer admin-sektionernas övriga
+   formspråk – ingen egen färgpalett, bara struktur och nedtoning. */
+
+.ovningsfragor__paket {
+  border-top: 1px solid var(--kant, #ddd);
+  margin-top: 16px;
+  padding-top: 12px;
+}
+
+.ovningsfragor__paketrubrik {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.ovningsfragor__antal {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.ovningsfragor__beskrivning {
+  font-size: 0.9rem;
+  margin: 0 0 8px;
+  opacity: 0.8;
+}
+
+.ovningsfragor__stoppat {
+  font-size: 0.9rem;
+  margin: 8px 0;
+}
+
+.ovningsfragor__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ovningsfragor__lista > li {
+  border-top: 1px solid var(--kant-svag, #eee);
+  padding: 8px 0;
+}
+
+/* En dold fråga måste synas här för att kunna slås på igen, men ska inte se aktiv ut. */
+.ovningsfragor__rad--dold {
+  opacity: 0.55;
+}
+
+.ovningsfragor__radtext {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ovningsfragor__markering {
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.ovningsfragor__kalla {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.ovningsfragor__radknappar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.ovningsfragor__formular {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.ovningsfragor__formular label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ovningsfragor__formular textarea,
+.ovningsfragor__formular input[type="text"] {
+  width: 100%;
+}
+
+.ovningsfragor__alternativ {
+  border: 1px solid var(--kant-svag, #eee);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+}
+
+.ovningsfragor__alternativ-rad {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.ovningsfragor__alternativ-rad input[type="text"] {
+  flex: 1;
+}
+
+.ovningsfragor__formularknappar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

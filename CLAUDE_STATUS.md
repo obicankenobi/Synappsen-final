@@ -9,8 +9,8 @@
 > något gjordes.
 
 **Senast uppdaterad:** 2026-08-27 · version **5.129.0** · **deployad** (körning #89).
-Ocommittat/odeployat sedan dess: Öva-lägets bank-spår och MDR-bedömningen (se uppföljningen
-2026-08-27).
+Byggt men EJ deployat sedan dess: Etapp 71 (Öva-lägets redigerbara frågebank) och
+MDR-bedömningen. Se uppföljningen 2026-08-27.
 
 ## Nuläge
 
@@ -111,6 +111,45 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
 
+## Uppföljning 2026-08-27 (Etapp 71: redigerbar frågebank för Öva-läget)
+
+Ägaren antog rekommendationen i MDR-bedömningen och lade till ett krav: paketen ska gå att
+pausa, och enskilda frågor ska gå att se, redigera, lägga till och ta bort – av kundens
+administratör och av leverantören. **Det kravet flyttade lösningen från statisk kod
+(alternativ A) till Firestore (alternativ C)**, som tidigare avråtts – men avrådan gällde
+innan redigering var ett krav.
+
+**Modellen** (fyra ägarbeslut 2026-08-27, alla enligt rekommendation): överlagring framför
+kopia-per-kund, superadmin + VÖL som behörighetsnivå, eget kundpaket för fristående frågor,
+och paus på både kund- och leverantörsnivå.
+
+| Del | Var |
+|---|---|
+| Leverantörens frågor | `kvissfragor/{id}` (global) |
+| Kundens avvikelse | `organisationer/{orgId}/kvissoverlagring/{fragaId}` |
+| Kundens egna frågor | `organisationer/{orgId}/kvissegna/{id}` |
+| Kundens paketval | `organisationer/{orgId}.kvisspaket` |
+| Globalt nödstopp | `kvisspaket/{paketId}` |
+
+**Ingen collection är skrivbar av någon klient** – all redigering går via
+`functions/kvissbank.js`, som rolltestar, PII-kontrollerar och revisionsloggar. 19 nya
+regeltester bevisar både det och organisationsisoleringen.
+
+**Innehåll:** 12 nya yrkeskunskapsfrågor (spår 1), var och en kontrollerad mot faktisk
+lagtext. De 19 gamla systemfrågorna migrerade till ett eget, avstängbart paket. Paketet
+`kliniskt` (spår 2) är byggt men TOMT – innehållet väntar på den externa juridiska
+bedömningen.
+
+**Ett fynd värt att minnas:** `SOSFS 1997:14` om delegering upphävdes 2026-01-01 (HSLF-FS
+2025:5). En delegeringsfråga skriven ur minnet hade varit fel från dag ett – precis den
+färskhetsrisk bedömningens §5.1 pekar ut, demonstrerad på första innehållsomgången. Därav
+`kalla` + `kallaDatum` per fråga, och en assertion som failar om någon skriver tillbaka den
+upphävda referensen.
+
+**Rättat:** MDR-motiveringen i `src/data/kvissbank.js` (rad 9–22) var felaktig och är omskriven.
+
+Lint, build, vitest, regeltester (19 nya) och functions-tester gröna. **Ej deployat.**
+
 ## Uppföljning 2026-08-27 (v5.129.0 deployad, Öva-läget, MDR-bedömning)
 
 **Deploy.** v5.129.0 ligger i produktion (körning #89). Två hemligheter stoppade vägen dit:
@@ -186,143 +225,6 @@ DEPLOYADE service workern som saknade fixen innan nu. En webbläsare som redan h
 workern installerad (utan lyssnaren) sedan tidigare kan behöva en vanlig sidladdning (inte
 bara "Uppdatera"-klicket) EN gång för att hämta den NYA workern som väl har fixen – därefter
 fungerar knappen normalt vid framtida uppdateringar. Det är förväntat, inte ett nytt fel.
-
----
-
-## Uppföljning 2026-08-23 (säljmaterialet infört, granskat och rättat)
-
-**Ingen kodändring.** Enbart dokument – men tre av rättelserna rör påståenden som skickas till
-kunder, och en av dem var direkt osann.
-
-**Vad som hände.** Ägaren tillhandahöll ett säljmaterialpaket framtaget 2026-08-17–19 mot
-kodläge v5.117.0 (marknadsanalys, kostnadskalkyl, kandidatlista, köparanalys, demomanus,
-invändningshantering, e-postmallar, sex HTML-källfiler, samt Word-/PowerPoint-original).
-Textdelarna laddades upp; binärfilerna gjorde det inte, se `CLAUDE.md`s nya avsnitt
-"Marknads- och säljmaterial" för motiveringen och för konsekvensen (presentationerna måste
-byggas om separat vid varje rättelse). Paketets kritiska påståenden verifierades mot faktisk
-kod – resultatet ligger i `saljmaterial/SALJMATERIAL-UNDERLAG-FOR-BEDOMNING.md`. Därefter granskades
-`saljmaterial/KOPARANALYS.md` mot sina egna källor; granskningen står som §15 i den filen, med brödtexten
-orörd enligt vanlig kronologiprincip.
-
-**Tre osanningar i kundvänt material, samtliga rättade:**
-
-| Vad | Var | Rättat till |
-|---|---|---|
-| **"VANLIGASTE VALET"** på Drift-nivån, och demomanusets *"Drift, som är det de flesta väljer"* – med noll kunder har ingen valt något | `saljmaterial/kallfiler/Synappsen-prislista.html`, `saljmaterial/Synappsen-demomanus.md` | "VÅR REKOMMENDATION" respektive "den nivå jag rekommenderar", plus en uttrycklig varning i demomanuset |
-| **Upphandlingssvar E2 påstod att artikel 50-märkningen var implementerad.** Ingen sådan märkning finns i koden – verifierat med genomsökning av hela `src/`. Ett aktivt felaktigt påstående i ett dokument avsett att klippas in i skarpa anbud | `saljmaterial/kallfiler/Synappsen-upphandlingssvar.html` | Redovisad som ej byggd, med en intern varningsruta om att inte skriva tillbaka påståendet utan att först kontrollera i koden |
-| **Underbiträdesförteckningen beskrev klinikstöd-sökningen som pausad.** Den återaktiverades 2026-08-01; `granskningar/SAKERHETSRAPPORT.md` rättade sig själv då men förteckningen följde inte med. Ett dokument som lämnas till kundens dataskyddsombud beskrev alltså en behandling som **mindre** omfattande än den är – fel riktning att ha fel åt | `avtal/UNDERBITRADEN.md` | Rättad, med en not om varför. `granskningar/SAKERHETSRAPPORT.md`s kvarstående rubrik "Pausad funktion" är märkt som historisk så den inte citeras igen |
-
-**Tre stale-fynd i interna dokument, rättade:** `saljmaterial/PITCH.md` sa sex roller (koden har sju,
-`src/firebase/roles.js`); `produkt/MODULPLAN.md` listade kioskläget som obyggt fyra månader efter att
-det byggdes i Etapp 55 – och var därmed underlag för en köparanalys som drog slutsatser om
-modulgränserna ur en felaktig bild; `granskningar/TILLGANGLIGHETSREDOGORELSE.md`s sammanfattning påstod att
-#8 och #9 kvarstod trots att Etapp 68 åtgärdade dem. Faktiskt kvarvarande på nivå A är fyra
-små punkter (#4, #5, #6, #10), nu en rad i `OPPNA-PUNKTER.md` med kommersiell motivering.
-
-**Ett ägarbeslut avgjort samma dag:** uppstartsavgiften (25 000 kr) var motstridig – prislistan
-sa att den utgår helt för de tre första referenskunderna, kostnadskalkylen sa "ge aldrig bort
-den". **Beslut: avgiften kvarstår och betalas av de tre första kunderna**, om inte annat
-uttryckligen framgår i det enskilda kundavtalet. `saljmaterial/kallfiler/Synappsen-
-prislista.html` rättad, `saljmaterial/KOPARANALYS.md` §15 räknat om (referenskundens förstaårskostnad är
-55 625 kr, inte 24 375 kr), se `BESLUTSLOGG.md`.
-
-**Ett ägarbeslut kvarstår öppet i `OPPNA-PUNKTER.md`:** utfallsgarantin (`saljmaterial/KOPARANALYS.md`
-§11.1) – ja eller nej. Analysens motivering ("marginalen är 99 %, garantin är nästan gratis")
-håller inte: kostnaden är den nedlagda tiden, inte det återbetalda abonnemanget. Garantin kan
-ändå vara rätt, men som riskinstrument.
-
-**Det viktigaste att bära med sig till nästa session:** paketet är skrivet mot v5.117.0 medan
-koden är på v5.128.0. Kontrollera statuspåståenden mot koden, inte mot paketet. Och när ett
-säljdokument rättas – kom ihåg att `.pptx`-filerna inte ligger i repot och inte får rättelsen
-automatiskt.
-
----
-
-## Uppföljning 2026-08-23 (dokumenthanteringen gjord mekanisk)
-
-**Ingen kodändring i appen.** Löser projektets mest återkommande problem: dokument som glöms
-bort och blir inaktuella trots regler om att de ska uppdateras löpande.
-
-**Diagnosen.** Projektet hade fem utförliga prosaregler i `CLAUDE.md` och **en** mekanisk
-kontroll. Utfallet var entydigt: allt med maskinkontroll höll (`src/version.js` importerar
-versionen, `pitch-version.test.js` vaktar `PITCH.md`s versionsrubrik), allt med bara prosaregel
-gled (`PITCH.md`s rollantal, `MODULPLAN.md` fyra månader, `UNDERBITRADEN.md` fyra veckor i ett
-DSO-dokument, tillgänglighetsredogörelsens sammanfattning).
-
-**Färskhetsstämplar övervägdes och förkastades.** De är spelbara – när testet failar är det
-billigaste att bumpa stämpeln utan att läsa dokumentet, vilket gör synlig inaktualitet till
-dold. De hade dessutom fångat 2 av de 6 verkliga felen. **Assertioner fångar 6 av 6, kostar
-noll löpande ritual och kan inte göras gröna utan att dokumentet eller koden faktiskt rättas.**
-
-**Byggt:**
-
-| Vad | Effekt |
-|---|---|
-| `DOKUMENTREGISTER.md` | Alla 62 dokument indexerade med typ, externflagga och utlösare |
-| `tests/docs/dokumentregister.test.js` | Nytt/flyttat/raderat dokument utan registerändring failar. `CLAUDE_STATUS.md` över 400 rader failar |
-| `tests/docs/dokumentpastaenden.test.js` | Sex assertioner som binder dokumentpåståenden till koden. **Verifierade genom att återinföra alla sex verkliga felen – samtliga fångades** |
-| `etapplaner/STATUSARKIV.md` | 117 historiska uppföljningar utbrutna, oförändrade. Alla 120 sektioner finns kvar (120 före = 120 efter) |
-
-**Token-effekt:** `CLAUDE_STATUS.md` 75 600 → 3 645 tokens, `CLAUDE.md` 9 900 → 3 784. En ny
-session går från ~85 500 till ~7 400 tokens innan den är orienterad.
-
-**Två fel som rättades på vägen:** `CLAUDE_STATUS.md`s huvud motsade sig självt (rad 9 sa
-deployad #87, rad 10–17 sa "avvakta, blockerad vid #78"), och sektionen "Nuläge i ett stycke"
-beskrev i själva verket läget vid v5.24.0 – ett historiskt avsnitt med en missvisande rubrik,
-alltså precis den drift arbetet handlar om. Båda arkiverade respektive omskrivna.
-
-**Vad detta INTE löser, sagt rakt ut:** ett test kan bara kontrollera påståenden som någon har
-brytt sig om att koda. Prosa som ingen omvandlat till en assertion kan fortfarande ruttna
-tyst. Regeln "uppdatera dokumentet i samma commit som ändringen" gäller därför oförändrat –
-testerna fångar bara den delmängd som gick att formulera maskinellt. **När du hittar ett
-felaktigt påstående: rätta texten och lägg till en assertion i samma commit.**
-
----
-
-## Uppföljning 2026-08-23 (kvissbank + startbibliotekets kvissfrågor)
-
-**Fynd som motiverade arbetet.** Mikrokvissen (Etapp 19b) delar fält (`rutin.kviss`) med öva-
-läget (65d) och Veckans repetition (41b), och båda de senare filtrerar på `kviss.length > 0`.
-Startbiblioteket seedade 17 rutinmallar med **tomma kvissfält** – två byggda funktioner var
-alltså helt tomma dag ett för varje ny organisation. Seedningen i
-`functions/organisationslivscykel.js` skrev dessutom inte fältet alls, så det hade ignorerats
-även om mallarna haft frågor.
-
-**Byggt:**
-
-| Vad | Innehåll |
-|---|---|
-| `src/data/kvissbank.js` | 20 återanvändbara frågor i sex kategorier (kvittering, ansvar, användning, färskhet, patientuppgifter, mallar) + `tillRutinKviss()` och `MAX_KVISSFRAGOR_PER_RUTIN` |
-| `src/data/kvissbank.test.js` | 31 tester: form, unika id:n, rattIndex i intervall, **kliniska termer förbjudna**, personnummermönster förbjudna, och två kopplingstester mot koden |
-| `MALL_KVISS` i `functions/verksamhetsmallar.js` | Två frågor på var och en av de 17 startmallarna |
-| `functions/organisationslivscykel.js` | Seedar nu `kviss` – utan raden hade mallfrågorna aldrig nått databasen |
-
-**Den avgörande avgränsningen.** En kvissfråga har ett rätt svar och är därför ett
-faktapåstående – till skillnad från en rutinmall, som bara är ett skelett. Påhittad klinisk
-vägledning i en fråga skulle passera både MDR-gränsdragningen och regeln om att aldrig påstå
-overifierat sakinnehåll. **Katalogen innehåller därför bara frågor om hur systemet och
-processen fungerar**, och ett test förbjuder kliniska termer (dos, mg, blodtryck, behandla …).
-Kliniska frågor skrivs av verksamheten själv om den egna godkända texten, eventuellt via
-`foreslaKvissfragor`, som redan bara får pröva förståelse av befintlig text.
-
-Startmallarnas två frågor handlar om **att rutinen är en mall och inte får följas som färdig
-rutin**. Det gör startbibliotekets största risk – att någon litar på en platshållare – till
-det första personalen får bekräfta att de förstått.
-
-**Två kopplingstester som skyddar en verklig fallgrop.** `MAX_KVISSFRAGOR_PER_RUTIN` binds mot
-taket i `RutinFormular.jsx` OCH mot `harTroligtPersonnummerIKvissN` i `firestore.rules`, som
-radar upp exakt fyra index eftersom regelspråket saknar loopar. Höjs taket utan att den
-funktionen utökas slutar PII-spärren gälla för frågorna över gränsen, tyst. Verifierat genom
-att höja taket till 6 – båda testerna failade.
-
-**Fel som rättades på vägen:** demomanuset påstod att kvitteringar "räknas bort automatiskt"
-vid väsentlig ändring. Mot `src/utils/kompetensStatus.js`: redaktören måste själv markera
-ändringen som väsentlig, och ingenting raderas – kvittensen slutar räknas i
-kompetensöversikten men finns kvar i historiken. Formuleringen rättad.
-
-**Föreslaget men inte byggt** (kräver ägarbeslut, se nästa avsnitt i chatten): väljare i
-`RutinFormular.jsx` för att plocka frågor ur banken, kviss i introduktionsspåret, och
-kategorifilter i öva-läget.
 
 ---
 

@@ -3,7 +3,10 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-17 (säkerhetsgranskningen 2026-08, Del 1–3, v5.114.0–v5.116.0).
+**Senast uppdaterad:** 2026-08-27 (Etapp 71 – fyra nya collections för Öva-lägets frågebank,
+se rutan i steg 5. Ingen ny kategori av personuppgift, ingen förmåga borttagen, ingen ändring i
+detektions- eller begränsningsförmågan. Ej deployat än.)
+(Föregående: 2026-08-17, säkerhetsgranskningen 2026-08, Del 1–3, v5.114.0–v5.116.0.)
 Detektionen är OMFORMAD, inte försvagad: den nattliga kedjekontrollens detaljer flyttades till
 Sentry och `/admin` → Incidentberedskap visar numera den EGNA organisationens kedjestatus i
 stället för ett globalt omdöme (fynd 2.1/2.2). Behörighetsmodellen skärptes på tre punkter
@@ -241,6 +244,22 @@ Vet jag med rimlig visshet att det faktiskt hänt?             JA / NEJ / OKLART
 > kan inte ändras i efterhand, bara raderas av VEC/superadmin (syns i revisionsloggen).
 > **Öppen fråga:** ingen gallringstid är beslutad än, se `OPPNA-PUNKTER.md` – samma
 > underliggande fråga som revisionsloggens gallringstid.
+>
+> **Etapp 71 (2026-08-27):** fyra nya collections för Öva-lägets frågebank. Verifierat mot
+> `firestore.rules` och `functions/kvissbank.js` samma dag:
+> `kvissfragor/{id}` och `kvisspaket/{paketId}` är GLOBALA (leverantörens innehåll, läsbara för
+> varje inloggad oavsett organisation – innehållet är identiskt för alla och innehåller ingen
+> kunddata); `organisationer/{orgId}/kvissoverlagring/{fragaId}` och
+> `organisationer/{orgId}/kvissegna/{id}` är organisationsskopade, läsbara inom den egna
+> organisationen plus en plattformsadmin under ett aktivt supportfönster.
+> **Ingen av dem är skrivbar av någon klient** (`allow write: if false`) – all redigering går
+> via Cloud Functions, som rolltestar (superadmin/VÖL), PII-kontrollerar frågetexten och
+> revisionsloggar. Enda personuppgiften är `andradAv` (en uid), ingen ny kategori.
+> Patientuppgifter ska aldrig finnas här – `validera()` i `functions/kvissbank.js` avvisar
+> personnummerliknande text i fråga, alternativ och hänvisning, och
+> `src/data/kvissfragorSeed.test.js` kontrollerar samma sak för startinnehållet.
+> **Inga svar från övningarna lagras någonstans** (krav 14) – det finns alltså ingen
+> resultathistorik att röja vid en incident.
 
 ---
 

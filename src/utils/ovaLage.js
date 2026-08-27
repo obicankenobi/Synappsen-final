@@ -6,22 +6,25 @@
 // Krav 14 gäller även här: ingen av dessa funktioner sparar eller läser något svar – de
 // bygger bara upp och slumpar en lista av frågor som redan finns i rutinernas kviss-fält.
 
-import { KVISSBANK } from "../data/kvissbank";
-
-// Etapp 71: ett generellt övningsspår rakt ur KVISSBANK, oberoende av om organisationen har
-// några egna rutiner alls. Tidigare nåddes bankfrågorna bara via en redaktör som fäst dem på
-// en specifik rutin (RutinFormular.jsx) – en helt ny organisation utan rutiner hade alltså
-// noll att öva på trots att banken finns. Samma postform som byggFragepool (rutinId/rutinTitel
-// null eftersom frågan inte hör till en rutin), så OvaLage.jsx kan hantera båda källorna
-// nästan identiskt.
-export function byggBankFragepool(kategori = null) {
-  return KVISSBANK.filter((f) => !kategori || f.kategori === kategori).map((fraga, frageIndex) => ({
-    rutinId: null,
-    rutinTitel: null,
-    omrade: "systemkunskap",
-    frageIndex,
-    fraga,
-  }));
+// Etapp 71: ett övningsspår ur den redigerbara frågebanken (useKvissbank.js), oberoende av om
+// organisationen har några egna rutiner alls. Tidigare nåddes bankfrågorna bara via en
+// redaktör som fäst dem på en specifik rutin (RutinFormular.jsx) – en helt ny organisation
+// utan rutiner hade alltså noll att öva på trots att banken finns.
+//
+// Samma postform som byggFragepool (rutinId/rutinTitel null eftersom frågan inte hör till en
+// rutin), så OvaLage.jsx kan hantera båda källorna nästan identiskt. `bank` är redan
+// filtrerad på aktiva paket och sammanslagen med kundens överlagringar – den här funktionen
+// väljer bara ut ett paket och packar om.
+export function byggBankFragepool(bank, paket, kategori = null) {
+  return bank
+    .filter((f) => (!paket || f.paket === paket) && (!kategori || f.kategori === kategori))
+    .map((fraga, frageIndex) => ({
+      rutinId: null,
+      rutinTitel: null,
+      omrade: fraga.paket,
+      frageIndex,
+      fraga,
+    }));
 }
 
 // Bygger poolen av ALLA kvalificerande frågor, en post per fråga (inte per rutin) – en rutin

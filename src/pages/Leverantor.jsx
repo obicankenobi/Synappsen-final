@@ -11,6 +11,7 @@ import SeedaStartbibliotekSektion from "../components/leverantor/SeedaStartbibli
 import DemomiljoSektion from "../components/leverantor/DemomiljoSektion";
 import HuvudmanSektion from "../components/leverantor/HuvudmanSektion";
 import OrganisationsListaSektion from "../components/leverantor/OrganisationsListaSektion";
+import KvissbankSektion from "../components/leverantor/KvissbankSektion";
 import { berakLeverantorSignaler } from "../utils/leverantorSignaler";
 import { filtreraOchSorteraOrganisationer, SORT_FALT } from "../utils/leverantorFilter";
 import "./Leverantor.css";
@@ -211,6 +212,8 @@ export default function Leverantor() {
         ladda={ladda}
         onFel={setFel}
       />
+
+      <KvissbankSektion onFel={setFel} />
 
       <BaspaketreferenserSektion />
 

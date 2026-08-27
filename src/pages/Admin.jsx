@@ -68,6 +68,7 @@ import PersonalpulsResultatSektion from "../components/admin/PersonalpulsResulta
 import RaderaOrganisationSektion from "../components/admin/RaderaOrganisationSektion";
 import SupportatkomstSektion from "../components/admin/SupportatkomstSektion";
 import KioskPinSektion from "../components/admin/KioskPinSektion";
+import OvningsfragorSektion from "../components/admin/OvningsfragorSektion";
 import "./Admin.css";
 
 // Vilket område en icke-superadmin-redaktörsroll ansvarar för, för den områdesscopade statistiken
@@ -81,6 +82,11 @@ const OMRADE_FOR_ROLL = {
 export default function Admin() {
   const { role, organisationId } = useAuth();
   const arSuperadmin = role === ROLES.SUPERADMIN;
+  // Etapp 71: övningsfrågorna hanteras av superadmin OCH VÖL (ägarbeslut 2026-08-27) – samma
+  // nivå som redan krävs för att godkänna kliniskt innehåll, eftersom en kvissfråga med ett
+  // rätt svar i praktiken är ett godkänt faktapåstående. Serverkontrollen ligger i
+  // functions/kvissbank.js; det här är bara UI-lagret av samma gating.
+  const farHanteraKviss = role === ROLES.SUPERADMIN || role === ROLES.VOL;
   const { anvandare, laddar, uppdateraRoll, uppdateraAnsvarsomraden } = useAnvandare();
   const { rutiner: allaGodkandaRutiner } = useAllaGodkandaRutiner();
   const { currentUser } = useAuth();
@@ -534,6 +540,8 @@ export default function Admin() {
       {arSuperadmin && <StartvyKonfigurationSektion />}
 
       {arSuperadmin && <ChecklistStatistikSektion />}
+
+      {farHanteraKviss && <OvningsfragorSektion />}
 
       {arSuperadmin && (
         <ModulerSektion
