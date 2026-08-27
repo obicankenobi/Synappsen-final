@@ -6,6 +6,24 @@
 // Krav 14 gäller även här: ingen av dessa funktioner sparar eller läser något svar – de
 // bygger bara upp och slumpar en lista av frågor som redan finns i rutinernas kviss-fält.
 
+import { KVISSBANK } from "../data/kvissbank";
+
+// Etapp 71: ett generellt övningsspår rakt ur KVISSBANK, oberoende av om organisationen har
+// några egna rutiner alls. Tidigare nåddes bankfrågorna bara via en redaktör som fäst dem på
+// en specifik rutin (RutinFormular.jsx) – en helt ny organisation utan rutiner hade alltså
+// noll att öva på trots att banken finns. Samma postform som byggFragepool (rutinId/rutinTitel
+// null eftersom frågan inte hör till en rutin), så OvaLage.jsx kan hantera båda källorna
+// nästan identiskt.
+export function byggBankFragepool(kategori = null) {
+  return KVISSBANK.filter((f) => !kategori || f.kategori === kategori).map((fraga, frageIndex) => ({
+    rutinId: null,
+    rutinTitel: null,
+    omrade: "systemkunskap",
+    frageIndex,
+    fraga,
+  }));
+}
+
 // Bygger poolen av ALLA kvalificerande frågor, en post per fråga (inte per rutin) – en rutin
 // med tre kvissfrågor bidrar med tre poster till poolen.
 //

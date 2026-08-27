@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { byggFragepool, slumpaFragor, tillgangligaKategorier } from "./ovaLage";
+import { byggBankFragepool, byggFragepool, slumpaFragor, tillgangligaKategorier } from "./ovaLage";
+import { KVISSBANK } from "../data/kvissbank";
 
 const KVISSFRAGA = { fraga: "?", alternativ: ["a", "b"], rattIndex: 0, hanvisning: "" };
 
@@ -85,6 +86,24 @@ describe("tillgangligaKategorier", () => {
     const rutiner = [rutin({ id: "a", omrade: "administration", kviss: [kvissMedKategori] })];
     expect(tillgangligaKategorier(rutiner, "kliniskt-stod")).toEqual([]);
     expect(tillgangligaKategorier(rutiner, "administration")).toEqual(["mallar"]);
+  });
+});
+
+describe("byggBankFragepool", () => {
+  it("ger en post per fråga i KVISSBANK, oberoende av rutiner", () => {
+    expect(byggBankFragepool()).toHaveLength(KVISSBANK.length);
+  });
+
+  it("posterna saknar rutinId/rutinTitel eftersom de inte hör till någon rutin", () => {
+    const [post] = byggBankFragepool();
+    expect(post.rutinId).toBeNull();
+    expect(post.rutinTitel).toBeNull();
+  });
+
+  it("filtrerar på kategori när en anges", () => {
+    const pool = byggBankFragepool("mallar");
+    expect(pool.length).toBeGreaterThan(0);
+    expect(pool.every((p) => p.fraga.kategori === "mallar")).toBe(true);
   });
 });
 
