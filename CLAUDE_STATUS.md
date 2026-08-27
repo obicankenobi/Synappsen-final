@@ -8,20 +8,19 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-27 · version **5.129.0** · **deployad** (körning #89).
-Byggt men EJ deployat sedan dess: Etapp 71 (Öva-lägets redigerbara frågebank) och
-MDR-bedömningen. Se uppföljningen 2026-08-27.
+**Senast uppdaterad:** 2026-08-27 · version **5.130.0** · **byggd och pushad, deploy pågår**.
+Etapp 71 (Öva-lägets redigerbara frågebank). Se uppföljningen 2026-08-27.
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.129.0 (körning #89, deployad 2026-08-27) |
+| **Version i produktion** | 5.129.0 vid start av denna deploy. v5.130.0 deployar nu (se uppföljningen 2026-08-27) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **Senaste kodarbete** | v5.129.0: fem fel från första riktiga användningen (två kollegor inbjudna) – kontoradering/avstängning, lösenordsåterställning, ärligt inbjudnings-UI, startbibliotek i efterhand, CSP- och hemlighetsfix. Se uppföljningen 2026-08-26 |
-| **Senaste dokumentarbete** | 2026-08-23: säljmaterialet infört och faktagranskat mot koden, dokumentationen strukturerad i ämnesmappar, dokumentregister + påståendetester byggda |
+| **Senaste kodarbete** | v5.130.0: Etapp 71, Öva-lägets redigerbara frågebank (leverantörens globala frågor, kundens överlagringar/egna frågor, paketpaus på båda nivåerna). Se uppföljningen 2026-08-27 |
+| **Senaste dokumentarbete** | 2026-08-27: `saljmaterial/PITCH.md` uppdaterad till v5.130.0 (Öva-läget, kontoadmin, lösenordsåterställning, startbibliotek i efterhand tillagda) |
 | **Aktiv plan** | Ingen. Etapp 69 var den sista. `etapplaner/ETAPPLAN13.md` (Etapp 64) är antagen men juridiskt blockerad – inget steg är byggbart förrän en extern bedömning finns |
-| **Nästa steg** | **Ägaren måste ge tjänstekontot `roles/firebaseauth.admin` i GCP** – utan det fungerar varken avstängning, radering eller tvingad utloggning, oavsett kod. Därefter: ägarbeslut om Öva-lägets innehåll (fyra frågor, se `OPPNA-PUNKTER.md` och `granskningar/MDR-BEDOMNING-OVNINGSFRAGOR-2026-08.md` §8) |
+| **Nästa steg** | **Ägaren måste ge tjänstekontot `roles/firebaseauth.admin` i GCP** – utan det fungerar varken avstängning, radering eller tvingad utloggning, oavsett kod. Därefter: ägarbeslut om `systemkunskap`-paketets vara/icke-vara och innehåll till `kliniskt`-paketet (se `OPPNA-PUNKTER.md`) |
 
 ## Var du hittar saker
 
@@ -293,3 +292,16 @@ stänger inte ute någon som kan lösenordet – raden pekar nu på avstängning
 
 > **KVARSTÅR OCH BLOCKERAR:** utan IAM-rollen fungerar varken avstängning, radering eller
 > tvingad utloggning i produktion – koden är rätt, behörigheten saknas. Se `OPPNA-PUNKTER.md`.
+
+## Uppföljning 2026-08-27 (v5.130.0 – release + deploy av Etapp 71)
+
+Versionsbump och release för Etapp 71 (se uppföljningen ovan för det tekniska innehållet).
+Ändringslogg tillagd (`src/data/andringslogg.js`). `saljmaterial/PITCH.md` hade glidit till 16
+minorversioner efter koden (testets gräns är 15) – innehållet skrevs om, inte bara
+versionsraden: Öva-läget (som tidigare INTE nämndes i pitchen alls, trots att det funnits
+sedan v5.102.0), kontoadmin (avstängning/radering), lösenordsåterställning, och startbibliotek
+i efterhand.
+
+Lint, build och hela vitest-sviten (502/502, dokumenttesterna inkluderade) gröna.
+`test:rules`/`test:functions` inte omkörda i det här steget – inga ändringar i
+`firestore.rules`/`functions/` sedan de kördes gröna i förra commiten.

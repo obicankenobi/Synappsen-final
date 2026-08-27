@@ -1,6 +1,6 @@
 # Synappsen – rätt information, direkt i handen, när det är bråttom
 
-*Beslutsunderlag för verksamhetsledning · Version 5.114.0 · 2026-08-17*
+*Beslutsunderlag för verksamhetsledning · Version 5.130.0 · 2026-08-27*
 
 ---
 
@@ -89,7 +89,9 @@ det blir gammalt utan att någon märker det. Synappsen har en egen innehållsh�
   fritextfält – i formuläret, på servern och i databasens egna regler – och varnar vid
   misstänkta namn. Utformad utifrån GDPR och patientdatalagen från dag ett.
 - **Rollstyrd behörighet** (7 roller), tvåfaktorsautentisering, automatisk utloggning på
-  delade datorer, och möjlighet för admin att omedelbart återkalla en session.
+  delade datorer, och möjlighet för admin att omedelbart återkalla en session, stänga av
+  ett konto (reversibelt) eller radera det permanent. Glömt lösenord löses av användaren
+  själv via en mejlad återställningslänk, utan att admin behöver koppla in sig.
 - **App Check:** ett tekniskt lager (Google reCAPTCHA) som verifierar att anrop till
   servern faktiskt kommer från den riktiga, installerade appen – infört sommaren 2026,
   för närvarande i en kontrollerad mätfas innan det görs obligatoriskt.
@@ -130,6 +132,10 @@ det blir gammalt utan att någon märker det. Synappsen har en egen innehållsh�
   venkateter", och tvärtom.
 - **Driftstörningar kan kategoriseras och kopplas till rätt rutin** i efterhand, med en samlad
   historik utöver de senaste dygnens poster.
+- **Öva-läget:** ett självvalt övningspass med slumpade frågor – dels ur er egna rutiner, dels
+  ett fristående paket om sekretess, dokumentation, avvikelser och samtycke, kontrollerat mot
+  gällande lagtext och oberoende av om ni hunnit skriva egna rutiner än. Inget svar sparas
+  eller syns för någon annan, chef inkluderad – det är ett förståelseverktyg, inte ett prov.
 
 ## Nyttan i siffror (uppskattning att validera i pilot)
 
@@ -178,7 +184,9 @@ etablering fylls organisationen automatiskt med ett startbibliotek: strukturella
 över Kliniskt stöd, Logistik och Administration, ett förrådsförslag att döpa om, generella
 kontaktkategorier, ett introduktionsspår för en nyanställd och ett kompetenskrav – redo att
 justeras till er verkliga verksamhet istället för att skrivas från noll. Varje mall är
-tydligt märkt som just en mall, aldrig påstådd färdig klinisk vägledning.
+tydligt märkt som just en mall, aldrig påstådd färdig klinisk vägledning. Missades
+verksamhetstypen vid etablering går startbiblioteket att lägga till i efterhand, utan att
+något som redan skapats påverkas.
 
 ## Förslag på nästa steg
 

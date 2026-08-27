@@ -1,7 +1,7 @@
 {
   "name": "synappsen-final",
   "private": true,
-  "version": "5.129.0",
+  "version": "5.130.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

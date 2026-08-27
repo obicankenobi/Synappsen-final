@@ -11,6 +11,15 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.130.0",
+    datum: "2026-08-27",
+    andringar: [
+      "Nytt: Öva-läget har ett nytt frågepaket med yrkes- och regelkunskap (sekretess, dokumentation, avvikelser, samtycke) – oberoende av era egna rutiner",
+      "Nytt: superadmin och VÖL kan nu se, redigera, lägga till och ta bort övningsfrågor under Admin → Övningsfrågor, och pausa hela frågepaket",
+      "Ändrat: de tidigare systemfrågorna om hur appen fungerar ligger nu i ett eget, avstängbart paket",
+    ],
+  },
+  {
     version: "5.129.0",
     datum: "2026-08-26",
     andringar: [
