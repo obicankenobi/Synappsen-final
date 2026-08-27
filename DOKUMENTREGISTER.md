@@ -1,6 +1,6 @@
 # Dokumentregister
 
-**Fullständig inventering av projektets 63 dokument.** Bevakat av
+**Fullständig inventering av projektets 65 dokument.** Bevakat av
 `tests/docs/dokumentregister.test.js`, som failar om ett dokument finns på disk men saknas
 här, eller står här men saknas på disk. **Ett nytt dokument kan alltså inte glömmas bort –
 testet vägrar passera förrän det är infört i tabellerna nedan.**
@@ -89,6 +89,19 @@ utlöser en uppdatering – läs kolumnen "Utlöses av".
 | Dokument | Extern | Innehåll |
 |---|---|---|
 | `avtal/PUB-AVTAL-MALL.md` | **ja** | Personuppgiftsbiträdesavtal, art. 28 |
+
+## Internt (leverantörens eget arbete – når aldrig kunden)
+
+Dokument som rör leverantörens egna verktyg och drift. **Separerade från `etapplaner/` med
+flit** (ägarens krav 2026-08-27): kundvänd utveckling och internt arbete ska inte blandas,
+varken i planerna eller i ändringsloggen. Se genomgående krav 36 i `intern/ETAPPLAN-INTERN-1.md`.
+
+| Dokument | Typ | Innehåll |
+|---|---|---|
+| `intern/ETAPPLAN-INTERN-1.md` | referens | Etapp L1 – leverantörspanelen. **UTKAST, EJ ANTAGEN.** Uppdateras om ägaren antar, förkastar eller ändrar den |
+| `intern/ANDRINGSLOGG-INTERN.md` | levande | Ändringslogg för internt arbete. Utlöses av att ett internt delmål byggs. Får ALDRIG slås ihop med `src/data/andringslogg.js`, som är kundvänd |
+
+---
 
 ## Historiska dokument – ändras inte
 
