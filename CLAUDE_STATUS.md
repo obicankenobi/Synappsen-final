@@ -8,15 +8,15 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-28 · version **5.131.0** · **deployad och verifierad**
-(körning #92). Utgående e-post är stoppat i produktion i väntan på Brevos PUB-avtal.
-Se uppföljningarna 2026-08-27/28.
+**Senast uppdaterad:** 2026-08-28 · version **5.132.0** · **deploy pågår**.
+Utgående e-post är stoppat i produktion sedan v5.131.0 (verifierat, körning #92) i väntan på
+Brevos PUB-avtal. v5.132.0 rättar felaktig orsakstext. Se uppföljningarna 2026-08-27/28.
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.131.0 (körning #92, verifierad 2026-08-28) |
+| **Version i produktion** | 5.131.0 (körning #92, verifierad). v5.132.0 deployas nu |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | v5.131.0: rättslig spärr som stoppar allt utgående e-post tills Brevos PUB-avtal är tecknat. Dessförinnan v5.130.0 (Etapp 71, Öva-lägets redigerbara frågebank) |
 | **Senaste dokumentarbete** | 2026-08-27: `saljmaterial/PITCH.md` uppdaterad till v5.130.0 (Öva-läget, kontoadmin, lösenordsåterställning, startbibliotek i efterhand tillagda) |
@@ -358,3 +358,24 @@ som failar om någon produktionsfil under `functions/` någonsin refererar till 
 
 **Kvar att göra för ägaren:** teckna Brevos DPA, sätt sedan `PUB_AVTAL_BREVO_TECKNAT = true`,
 fyll i datum i `avtal/UNDERBITRADEN.md` och ta bort raden ur `OPPNA-PUNKTER.md`.
+
+## Uppföljning 2026-08-28 (v5.132.0 – rätt orsak när ett mejl uteblir)
+
+Ägaren testade att bjuda in någon för att bekräfta att spärren biter. Den gjorde det – men
+texten sa **"e-post är inte konfigurerat för den här installationen"**, vilket är osant:
+nyckeln är satt och domänen verifierad, utskicket är pausat av rättsliga skäl.
+
+Orsak: `skapaInbjudan` returnerade bara `epostSkickat: true/false`, så gränssnittet hade EN
+hårdkodad förklaring för alla utfall. Den råkade stämma medan nyckeln saknades och blev osann
+i samma stund som spärren infördes. Samma klass av fel som Etapp 70c rättade – det borde ha
+setts när spärren byggdes, inte efter att ägaren stötte på det.
+
+**Två fel i själva rättelsen, båda fångade av tester:**
+1. Anledningen skickades inte med alls från servern.
+2. `onCall`-wrappern destrukturerade fortfarande `{ token, epostSkickat }` och tappade
+   `epostAnledning` på sista raden ut. Utan testet hade en "rättelse" deployats som inte
+   ändrade någonting i gränssnittet.
+
+`EPOST_ANLEDNING_TEXT` i `InbjudanFormular.jsx` mappar nu orsak → text. Formuleringen mot kund
+är neutral ("utgående e-post är tillfälligt pausat") – sann utan att lufta att det handlar om
+ett osignerat biträdesavtal.

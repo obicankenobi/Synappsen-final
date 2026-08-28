@@ -11,6 +11,13 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.132.0",
+    datum: "2026-08-28",
+    andringar: [
+      "Rättat: när ett inbjudningsmejl inte kunde skickas sa appen alltid att e-post \"inte är konfigurerat\", oavsett verklig orsak. Nu visas rätt förklaring – och inbjudningslänken går som förut att dela manuellt",
+    ],
+  },
+  {
     version: "5.131.0",
     datum: "2026-08-27",
     andringar: [
