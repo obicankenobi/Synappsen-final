@@ -17,6 +17,8 @@ const admin = require(
   require.resolve("firebase-admin", { paths: [path.join(__dirname, "../../functions")] })
 );
 const funcs = require("../../functions/index.js");
+// _byggPaminnelseDigest exporteras bara härifrån (index.js åter-exporterar inte interna hjälpare).
+const notiser = require("../../functions/notiser.js");
 
 const db = admin.firestore();
 
@@ -82,8 +84,11 @@ async function main() {
 
   console.log("\nskickaEpostPaminnelser – sammanslagen digest, tömmer kön");
   const ursprungligFetch = global.fetch;
-  await test("en digest med två poster skickas som ETT mejl, kön töms efteråt", async () => {
-    process.env.BREVO_API_KEY = "testnyckel";
+  // Testet påstod tidigare att digesten FAKTISKT mejlas. Sedan den rättsliga spärren infördes
+  // (2026-08-27, se PUB_AVTAL_BREVO_TECKNAT i gemensamt.js) skickas inget mejl. Delat i två av
+  // samma skäl som inbjudningstestet i epost.test.cjs: kötömningen och digestens innehåll är
+  // fortfarande sanna och ska fortsätta bevakas medan spärren är på.
+  await test("kön töms även när spärren hindrar utskicket, och inget nätverksanrop görs", async () => {
     let anrop = null;
     global.fetch = async (url, init) => {
       anrop = JSON.parse(init.body);
@@ -93,15 +98,23 @@ async function main() {
       await funcs.skickaEpostPaminnelser();
     } finally {
       global.fetch = ursprungligFetch;
-      delete process.env.BREVO_API_KEY;
     }
-    vantaSig(!!anrop, "inget mejl skickades");
-    vantaSig(anrop.to[0].email === "ko1@exempel.se", "fel mottagare");
-    vantaSig(anrop.subject.includes("2 påminnelser"), `fel ämnesrad: ${anrop.subject}`);
-    vantaSig(anrop.textContent.includes("Första posten") && anrop.textContent.includes("Andra posten"),
-      "digesten saknar en av posterna");
+    vantaSig(anrop === null, "ett nätverksanrop gjordes trots den rättsliga spärren");
     const snap = await db.collection("epostPaminnelseko").doc("epKo1").get();
-    vantaSig(!snap.exists, "kön skulle ha tömts/raderats efter utskick");
+    vantaSig(!snap.exists, "kön skulle ha tömts/raderats även när mejlet inte gick iväg");
+  });
+  await test("digestens ämnesrad och text är rätt (singular, plural och alla poster med)", () => {
+    const tva = notiser._byggPaminnelseDigest([
+      { text: "Första posten", url: "/a" },
+      { text: "Andra posten" },
+    ]);
+    vantaSig(tva.amne.includes("2 påminnelser"), `fel ämnesrad: ${tva.amne}`);
+    vantaSig(
+      tva.text.includes("Första posten") && tva.text.includes("Andra posten"),
+      "digesten saknar en av posterna"
+    );
+    const en = notiser._byggPaminnelseDigest([{ text: "Ensam post" }]);
+    vantaSig(en.amne === "Du har en påminnelse i Synappsen", `fel singularämne: ${en.amne}`);
   });
   await test("ett misslyckat utskick töms ändå ur kön (aldrig en oändlig kö)", async () => {
     await funcs.koaEpostPaminnelse("epKoFel", org, "fel@exempel.se", "Text", "/");

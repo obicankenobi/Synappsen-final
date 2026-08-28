@@ -340,6 +340,22 @@ exports.forslagPaminnelserSchemalagt = onSchedule(
 // köade poster, inte ett mejl per händelse. Körs 09:00, efter båda källjobben ovan (07:00/
 // 08:00) hunnit köa klart för dagen. Ett fel för EN användares mejl (Brevo nere, ogiltig
 // adress) får aldrig hindra att övriga användares köer töms.
+// Bygger påminnelsedigestens ämne och text. Bruten ut som ren funktion 2026-08-27, av samma
+// skäl som byggInbjudningsmejl() i inbjudningar.js: den rättsliga spärren mot Brevo (se
+// PUB_AVTAL_BREVO_TECKNAT i gemensamt.js) gör att inget mejl skickas, och testet som bevakade
+// digestens innehåll (rätt ämnesrad i singular/plural, alla poster med i texten) hade annars
+// inte kunnat köras alls medan spärren är på.
+function byggPaminnelseDigest(poster) {
+  const rader = poster.map((p) => `- ${p.text}${p.url ? ` (${APP_URL}${p.url})` : ""}`).join("\n");
+  return {
+    amne:
+      poster.length === 1
+        ? "Du har en påminnelse i Synappsen"
+        : `Du har ${poster.length} påminnelser i Synappsen`,
+    text: `${rader}\n\nLogga in för att se detaljerna: ${APP_URL}`,
+  };
+}
+
 async function skickaEpostPaminnelser() {
   const snap = await db.collection("epostPaminnelseko").get();
   for (const kodok of snap.docs) {
@@ -349,15 +365,10 @@ async function skickaEpostPaminnelser() {
       await kodok.ref.delete();
       continue;
     }
-    const rader = poster.map((p) => `- ${p.text}${p.url ? ` (${APP_URL}${p.url})` : ""}`).join("\n");
     try {
       await skickaEpost({
         till: data.epost,
-        amne:
-          poster.length === 1
-            ? "Du har en påminnelse i Synappsen"
-            : `Du har ${poster.length} påminnelser i Synappsen`,
-        text: `${rader}\n\nLogga in för att se detaljerna: ${APP_URL}`,
+        ...byggPaminnelseDigest(poster),
         organisationId: data.organisationId,
       });
     } catch (fel) {
@@ -370,6 +381,8 @@ async function skickaEpostPaminnelser() {
   }
 }
 exports.skickaEpostPaminnelser = skickaEpostPaminnelser;
+// Exporterad enbart för tests/functions/epostpaminnelser.test.cjs – se kommentaren ovan.
+exports._byggPaminnelseDigest = byggPaminnelseDigest;
 
 exports.skickaEpostPaminnelserSchemalagt = onSchedule(
   { schedule: "every day 09:00", timeZone: "Europe/Stockholm", region: "europe-west1", secrets: [BREVO_API_KEY] },
