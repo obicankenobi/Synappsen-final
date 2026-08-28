@@ -4,6 +4,12 @@
 byts eller tas bort. Refereras från `avtal/PUB-AVTAL-MALL.md` (Etapp 13a), punkt 5.
 
 **Upprättat:** 2026-07-26, som en del av Etapp 13b (`etapplaner/ETAPPLAN3.md`).
+**Senast uppdaterad:** 2026-08-27 – Brevo togs i drift.
+
+> **⚠️ ÖPPEN BRIST PER 2026-08-27:** Brevo (e-postutskick) är i drift utan tecknat
+> PUB-avtal. Behandlingen omfattar mottagares e-postadresser. Se avsnittet
+> "Brevo (Sendinblue SAS)" nedan för hela beskrivningen, konsekvensen och den
+> begränsningsåtgärd som finns färdig att använda.
 
 **Metod:** varje rad nedan är verifierad direkt mot koden (`functions/`-modulerna,
 `.github/workflows/deploy.yml`, `src/sentry.js`), inte antagen – i enlighet med genomgående
@@ -26,7 +32,7 @@ krav 8 i `etapplaner/ETAPPLAN3.md`. Rader markerade "[FYLLS I]"/"[EJ VERIFIERAT]
 | Sentry (Functional Software, Inc.) | Felmeddelanden och stacktraces vid krascher/undantag | EU (Frankfurt, `ingest.de.sentry.io` – verifierat) | I drift |
 | Google reCAPTCHA (App Check) | Enhets-/webbläsarsignaler för att avgöra äkta klientanrop | Global Google-infrastruktur | I drift (mätläge, se Etapp 12c) |
 | Linear | Interna utvecklingsärenden (backlogg) | [FYLLS I – rör inte kunddata, se not nedan] | Internt leverantörsverktyg |
-| Brevo (Sendinblue SAS) | E-postadresser + en innehållslös notistext (aldrig verksamhetsinnehåll, se Etapp 53 genomgående krav 18) | Frankrike/EU (verifierat, EU-baserat bolag) | **Infrastruktur byggd (Etapp 53a, 2026-08-10), INTE i drift** – kräver att ägaren sätter en riktig `BREVO_API_KEY` som GitHub-hemlighet innan något faktiskt skickas. Utan nyckeln no-oppar `skickaEpost()` tyst (se `functions/gemensamt.js` – funktionen flyttades dit när `functions/index.js` delades upp, sökvägen rättad 2026-08-11). Ersätter den tidigare planerade "E-postleverantör (veckopuls)"-raden – samma infrastruktur täcker både Etapp 53 och en eventuell framtida Etapp 16 |
+| Brevo (Sendinblue SAS) | E-postadresser + en innehållslös notistext (aldrig verksamhetsinnehåll, se Etapp 53 genomgående krav 18) | Frankrike/EU (verifierat, EU-baserat bolag) | **I DRIFT sedan 2026-08-27, MEN PUB-AVTAL SAKNAS** – se den utförliga noten under "Brevo (Sendinblue SAS)" nedan. Detta är en känd, öppen brist, inte ett förbiseende |
 
 ---
 
@@ -125,16 +131,43 @@ framför ett amerikanskt alternativ.
   `etapplaner/ETAPPLAN11.md` genomgående krav 18. Enda undantaget är inbjudningsmejlet (53b), som med
   nödvändighet måste nämna organisationens namn för att vara begripligt; det är ett medvetet,
   dokumenterat undantag, inte en glidning.
-- **Teknisk status:** hjälparfunktionen `skickaEpost()` och det globala nödstoppet
-  (`angeEpostAvstangd`, en knapp i `/leverantor`) byggdes i Etapp 53a. **Sedan Etapp 53b
-  (2026-08-10) skickas inbjudningar faktiskt via den** – `skapaInbjudan`, `skapaOrganisation`
-  och `nollstallDemoOrganisation` mejlar nu automatiskt, med den kopierbara länken kvar som
-  reserv. 53c (påminnelser) och 53d (månadsrapport) återstår. Skickar fortfarande ingenting
-  förrän ägaren satt en riktig `BREVO_API_KEY` som GitHub-hemlighet (Secret Manager-mönster,
-  samma som `GEMINI_API_KEY`); fram tills dess no-oppar varje anrop tyst och loggar en
-  varning – inbjudan skapas ändå, bara mejlet uteblir.
-- **Rättslig grund:** [FYLLS I av ägaren innan skarp drift] – ett PUB-avtal med Brevo måste
-  vara på plats, precis som kravet var för den tidigare planerade "veckopuls"-leverantören.
+- **Teknisk status: I DRIFT sedan 2026-08-27.** Hjälparfunktionen `skickaEpost()` och det
+  globala nödstoppet (`angeEpostAvstangd`, en knapp i `/leverantor`) byggdes i Etapp 53a.
+  Ägaren satte en riktig `BREVO_API_KEY` som GitHub-hemlighet och verifierade avsändardomänen
+  `synappsen.se` hos Brevo (SPF/DKIM/DMARC) 2026-08-27, och v5.129.0 deployades samma dag.
+  Från och med då skickas e-post faktiskt, från tre håll:
+
+  | Vad | Utlöses av | Kod |
+  |---|---|---|
+  | Inbjudningsmejl | Manuell handling (någon bjuder in en kollega) | `functions/inbjudningar.js` |
+  | Dagliga påminnelser | **Automatiskt, varje dag kl. 09:00 Europe/Stockholm** | `skickaEpostPaminnelserSchemalagt`, `functions/notiser.js` |
+  | Månadssammanfattning | **Automatiskt, den 1:a varje månad kl. 09:00** | `skickaManadssammanfattningarSchemalagt`, `functions/matvarden.js` |
+
+  Den tidigare formuleringen här ("skickar fortfarande ingenting förrän ägaren satt en riktig
+  nyckel") gällde fram till 2026-08-27 och är nu inaktuell.
+
+- **Rättslig grund: SAKNAS. Detta är en känd, öppen brist per 2026-08-27.**
+
+  > **⚠️ PUB-avtal med Brevo är INTE tecknat.** Ägaren bekräftade det uttryckligen
+  > 2026-08-27, samma dag som tjänsten togs i drift. Personuppgifter (mottagarens
+  > e-postadress, och i inbjudningsmejlet organisationens namn) behandlas alltså av ett
+  > underbiträde utan det skriftliga avtal som dataskyddsförordningen art. 28.3 kräver.
+  >
+  > **Varför det står här i klartext:** dokumentet lämnas till kund och dataskyddsombud. En
+  > förteckning som utelämnar en känd brist är farligare än ingen förteckning – den inbjuder
+  > mottagaren att lita på något som inte stämmer. Se `CLAUDE.md`s underhållsregel: en
+  > försämring ska dokumenteras i samma commit som den uppstår, även när den ser sämre ut.
+  >
+  > **Vad som krävs för att stänga bristen:** Brevo tillhör de leverantörer som
+  > tillhandahåller ett standardiserat biträdesavtal (DPA) via kontoinställningarna – det är
+  > normalt ett godkännande, inte en förhandling. När det är på plats: ersätt den här rutan
+  > med datum för tecknandet och en hänvisning till var avtalet förvaras.
+  >
+  > **Tillfällig begränsningsåtgärd som finns färdig:** det globala nödstoppet
+  > `angeEpostAvstangd` (knapp i `/leverantor`) stoppar ALL utgående e-post för samtliga
+  > organisationer omedelbart, utan deploy. Det är den åtgärd som ska vidtas om ägaren väljer
+  > att pausa utskicken tills avtalet är på plats. Notera att nödstoppet påverkar de
+  > schemalagda jobben ovan – inbjudningar skapas fortfarande, men mejlas inte.
 
 ---
 
@@ -144,3 +177,12 @@ I enlighet med `avtal/PUB-AVTAL-MALL.md` punkt 5 ska Kunden underrättas innan e
 underbiträde läggs till eller ett befintligt byts ut, med möjlighet att invända. Denna fil
 är källan för vad som gäller vid varje given tidpunkt – uppdatera den **samtidigt** som
 förändringen görs i koden eller CI/CD-konfigurationen, inte i efterhand.
+
+---
+
+## Ändringshistorik
+
+| Datum | Ändring |
+|---|---|
+| 2026-08-27 | Brevo: status ändrad från "infrastruktur byggd, inte i drift" till **i drift**, efter att ägaren satt `BREVO_API_KEY` och verifierat avsändardomänen. Samtidigt infört som **öppen brist** att PUB-avtal saknas – ägaren bekräftade detta uttryckligen samma dag. De tre utskicksvägarna (inbjudan, daglig påminnelse 09:00, månadssammanfattning) verifierade mot `functions/inbjudningar.js`, `functions/notiser.js` och `functions/matvarden.js` |
+| 2026-07-26 | Dokumentet upprättat (Etapp 13b) |

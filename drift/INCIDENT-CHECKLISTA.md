@@ -3,9 +3,12 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-27 (Etapp 71 – fyra nya collections för Öva-lägets frågebank,
-se rutan i steg 5. Ingen ny kategori av personuppgift, ingen förmåga borttagen, ingen ändring i
-detektions- eller begränsningsförmågan. Ej deployat än.)
+**Senast uppdaterad:** 2026-08-27 (två ändringar samma dag: Etapp 71 – fyra nya collections
+för Öva-lägets frågebank, se rutan i steg 5, deployad i v5.130.0; samt att **utgående e-post
+gick i skarp drift** – nödstoppet i steg 3 gäller nu en kanal som faktiskt används, inklusive
+automatiska schemalagda utskick. Ingen ny kategori av personuppgift, ingen förmåga borttagen.
+**Obs:** underbiträdet som bär e-postkanalen saknar tecknat PUB-avtal – se
+`avtal/UNDERBITRADEN.md`.)
 (Föregående: 2026-08-17, säkerhetsgranskningen 2026-08, Del 1–3, v5.114.0–v5.116.0.)
 Detektionen är OMFORMAD, inte försvagad: den nattliga kedjekontrollens detaljer flyttades till
 Sentry och `/admin` → Incidentberedskap visar numera den EGNA organisationens kedjestatus i

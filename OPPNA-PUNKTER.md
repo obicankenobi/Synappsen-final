@@ -51,7 +51,7 @@ och "väntar, bevaka bara" kräver ingen förberedelse; "ägarbeslut", "bokad m�
 
 | Vad | Var det står beskrivet | Öppet sedan | Nästa konkreta handling |
 |---|---|---|---|
-| Brevo (Etapp 53a/53b) – rättslig grund/PUB-avtal med det nya underbiträdet, samt en riktig `BREVO_API_KEY` | `avtal/UNDERBITRADEN.md` | 2026-08-10 | Ägaren tecknar avtal med Brevo och sätter `BREVO_API_KEY` som GitHub-hemlighet. Koden (inbjudningsmejl m.m.) är byggd och testad, men utan nyckeln no-oppar `skickaEpost()` bara tyst – inbjudan skapas ändå, bara mejlet uteblir |
+| **Brevo – PUB-avtal saknas medan tjänsten ÄR I DRIFT** | `avtal/UNDERBITRADEN.md` (öppen brist, dokumenterad 2026-08-27) | 2026-08-10, **eskalerad 2026-08-27** | **Nyckeln är satt och domänen verifierad sedan 2026-08-27 – e-post skickas alltså skarpt nu.** Men PUB-avtalet är inte tecknat (ägaren bekräftade 2026-08-27), så personuppgifter (mottagares e-postadresser) behandlas av ett underbiträde utan skriftligt avtal enligt GDPR art. 28.3. Utskick sker automatiskt: **daglig påminnelse 09:00** (`skickaEpostPaminnelserSchemalagt`) och månadssammanfattning den 1:a. Teckna Brevos standard-DPA i kontoinställningarna – normalt ett godkännande, inte en förhandling. **Tills dess:** överväg det globala nödstoppet `angeEpostAvstangd` i `/leverantor`, som stoppar alla utskick omedelbart utan deploy |
 
 ## Väntar på en extern förutsättning (bevaka bara, ingen åtgärd möjlig än)
 

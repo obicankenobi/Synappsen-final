@@ -2,7 +2,7 @@
 
 **Dokumenttyp:** Policy (extern – får delas med kund, kundens IT-säkerhetsfunktion och vid
 upphandling)
-**Version:** 1.5
+**Version:** 1.6
 **Fastställd:** 2026-08-10
 **Gäller från:** 2026-08-10
 **Nästa översyn:** vid varje större release, dock minst var sjätte månad (se avsnitt 12)
@@ -127,9 +127,10 @@ Biträdet stoppar en obehörig eller felaktig begäran innan något faktiskt rad
 egen läsåtkomst till en kunds innehåll är normalt obefintlig; en kund kan själv, tillfälligt
 och avbrytbart, öppna ett sådant fönster (högst 6 timmar) för att en supportfråga ska kunna
 besvaras – en oväntad eller felaktig öppning avslutas omedelbart av endera parten. Utgående
-e-post (införd 2026-08-10) kan stängas av globalt, för samtliga organisationer samtidigt,
-utan driftstopp eller ny driftsättning, om kanalen någonsin skulle missbrukas eller bete sig
-oväntat.
+e-post (införd 2026-08-10, **i skarp drift sedan 2026-08-27**) kan stängas av globalt, för
+samtliga organisationer samtidigt, utan driftstopp eller ny driftsättning, om kanalen någonsin
+skulle missbrukas eller bete sig oväntat. Avstängningen omfattar även de utskick som sker
+automatiskt enligt schema.
 
 **Bevis säkras före städning.** Ingen loggpost, användarpost eller konfiguration raderas innan
 den dokumenterats, även om raderingen i sig vore en rimlig åtgärd.
@@ -286,3 +287,4 @@ ingen plan alls.
 | 1.3 | 2026-08-09 | Avsnitt 5.2 (Begränsa): kunden kan nu själv, tillfälligt och avbrytbart, öppna ett läsfönster (högst 6 timmar) för att ge Biträdet tillgång till organisationens innehåll vid en supportfråga – tidigare hade Biträdet ingen sådan åtkomst alls (Etapp 50b). |
 | 1.4 | 2026-08-10 | Avsnitt 5.2 (Begränsa): utgående e-post (ny kanal, infrastrukturen byggd men ännu inte kopplad till någon produktfunktion) kan stängas av globalt utan driftsättning, om kanalen någonsin missbrukas. Ett nytt underbiträde (Brevo, EU-baserat) tillkommer, se `avtal/UNDERBITRADEN.md` (Etapp 53a). |
 | 1.5 | 2026-08-10 | Avsnitt 4 (Kompenserande kontroller): ett nytt inloggningssätt tillkommer – ett delat kiosk-enhetskonto för en gemensam platta, låst upp med en PIN-kod istället för ett personligt lösenord. Kundens superadmin kan omedelbart byta PIN-koden vid förlust/stöld. Kontot kan i grunden aldrig kvittera, kommentera, föreslå ändring eller bristanmäla (Etapp 55). |
+| 1.6 | 2026-08-27 | Avsnitt 5.2: utgående e-post är inte längre en vilande kanal utan i skarp drift, med utskick som även sker automatiskt enligt schema. Avstängningsförmågan är oförändrad, men gäller nu en kanal som faktiskt används. Underbiträdet som bär kanalen har en öppen avtalsbrist – se `avtal/UNDERBITRADEN.md`, som är källan för underbiträdenas status. |
