@@ -8,15 +8,15 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-27 · version **5.131.0** · **byggd, deploy pågår**.
-v5.130.0 (Etapp 71) är deployad och verifierad i produktion (körning #91). v5.131.0 lägger
-till den rättsliga e-postspärren. Se uppföljningarna 2026-08-27.
+**Senast uppdaterad:** 2026-08-28 · version **5.131.0** · **deployad och verifierad**
+(körning #92). Utgående e-post är stoppat i produktion i väntan på Brevos PUB-avtal.
+Se uppföljningarna 2026-08-27/28.
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.130.0 (körning #91, verifierad). v5.131.0 deployas nu |
+| **Version i produktion** | 5.131.0 (körning #92, verifierad 2026-08-28) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | v5.131.0: rättslig spärr som stoppar allt utgående e-post tills Brevos PUB-avtal är tecknat. Dessförinnan v5.130.0 (Etapp 71, Öva-lägets redigerbara frågebank) |
 | **Senaste dokumentarbete** | 2026-08-27: `saljmaterial/PITCH.md` uppdaterad till v5.130.0 (Öva-läget, kontoadmin, lösenordsåterställning, startbibliotek i efterhand tillagda) |
@@ -333,3 +333,28 @@ inbjudningslänken måste delas manuellt. Ingen UI-ändring behövdes.
 
 **Att häva:** sätt konstanten till `true`, fyll i datum i `avtal/UNDERBITRADEN.md`, ta bort
 raden ur `OPPNA-PUNKTER.md`. `tests/functions/epost.test.cjs` failar om konstanten ändras.
+
+## Uppföljning 2026-08-28 (v5.131.0 deployad – e-postspärren verifierad i produktion)
+
+Deploykörning #92 lyckades och är verifierad mot **faktiskt utfall**, inte mot jobbstatusen.
+Skälet: körning #90 dagen innan rapporterade `success` men saknade
+`hosting: finalizing version / release complete / Deploy complete!` i loggen, och produktionen
+fortsatte servera föregående version. Att lita på `conclusion: success` räcker alltså inte.
+
+**Verifierat för #92:** alla fyra hosting-releaseraderna finns i loggen, `last-modified` på
+produktionens `index.html` matchar deployens sluttid (12:31:29 UTC), `version-*.js` innehåller
+`5.131.0`, och de tre funktioner som kan skicka e-post – `skapaInbjudan`,
+`skickaEpostPaminnelserSchemalagt`, `skickaManadssammanfattningarSchemalagt` – rapporterade
+alla "Successful update operation".
+
+**Utgående e-post är därmed faktiskt stoppat**, inte bara beslutat.
+
+**Testerna som spärren avslöjade:** tre filer antog att e-post faktiskt skickas. Två löstes
+genom att bryta ut mejlkompositionen till rena funktioner (`byggInbjudningsmejl`,
+`byggPaminnelseDigest`) – bättre design oavsett spärren. Den tredje
+(`manadssammanfattning.test.cjs`) testar mottagarurval och opt-out, vilket kräver att utskicket
+faktiskt sker; där används `_sattPubAvtalOverridForTest`, med en assertion i `epost.test.cjs`
+som failar om någon produktionsfil under `functions/` någonsin refererar till överridet.
+
+**Kvar att göra för ägaren:** teckna Brevos DPA, sätt sedan `PUB_AVTAL_BREVO_TECKNAT = true`,
+fyll i datum i `avtal/UNDERBITRADEN.md` och ta bort raden ur `OPPNA-PUNKTER.md`.

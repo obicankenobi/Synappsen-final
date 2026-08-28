@@ -9,8 +9,8 @@ byts eller tas bort. Refereras från `avtal/PUB-AVTAL-MALL.md` (Etapp 13a), punk
 > **⚠️ ÖPPEN BRIST PER 2026-08-27:** Brevo (e-postutskick) togs i drift utan tecknat
 > PUB-avtal. Behandlingen omfattar mottagares e-postadresser.
 >
-> **Utgående e-post är STOPPAT sedan 2026-08-27 (v5.131.0)** genom en spärr i koden, i
-> väntan på att avtalet tecknas (`BESLUTSLOGG.md`). Se avsnittet "Brevo (Sendinblue SAS)"
+> **Utgående e-post är STOPPAT sedan 2026-08-28** genom en spärr i koden (v5.131.0,
+> verifierad i produktion), i väntan på att avtalet tecknas (`BESLUTSLOGG.md`). Se avsnittet "Brevo (Sendinblue SAS)"
 > nedan för hela beskrivningen och hur spärren hävs.
 
 **Metod:** varje rad nedan är verifierad direkt mot koden (`functions/`-modulerna,
@@ -172,7 +172,14 @@ framför ett amerikanskt alternativ.
   > Inbjudningar skapas fortfarande – bara mejlet uteblir, och den kopierbara inbjudningslänken
   > fungerar som förut.
   >
-  > **Status för verkställigheten: STOPPAT sedan v5.131.0 (2026-08-27).** Spärren är
+  > **Status för verkställigheten: STOPPAT OCH VERIFIERAT I PRODUKTION 2026-08-28 12:31 UTC**
+  > (v5.131.0, deploykörning #92). Verifieringen gjordes mot faktiskt utfall, inte mot att
+  > deployjobbet rapporterade "success": deployloggen bekräftar att de tre funktioner som kan
+  > skicka e-post – inbjudan, den dagliga påminnelsen och månadssammanfattningen – samtliga
+  > uppdaterades, och att hosting-releasen slutfördes. (Skälet till den noggrannheten: en
+  > tidigare körning samma dag rapporterade "success" utan att hostingreleasen genomfördes.)
+  >
+  > Spärren är
   > INTE den manuella driftflaggan, utan en konstant i koden (`PUB_AVTAL_BREVO_TECKNAT` i
   > `functions/gemensamt.js`): `skickaEpost()` returnerar `{skickat: false, anledning:
   > "pub_avtal_saknas"}` utan att kontakta Brevo, oavsett driftflaggans läge.
@@ -203,6 +210,7 @@ förändringen görs i koden eller CI/CD-konfigurationen, inte i efterhand.
 
 | Datum | Ändring |
 |---|---|
+| 2026-08-28 | Spärren **deployad och verifierad i produktion** (körning #92). Kontrollerat mot deployloggen att skapaInbjudan, skickaEpostPaminnelserSchemalagt och skickaManadssammanfattningarSchemalagt samtliga uppdaterades |
 | 2026-08-27 | Spärren verkställd i v5.131.0: `PUB_AVTAL_BREVO_TECKNAT = false` i `functions/gemensamt.js` stoppar allt utskick i koden. Valdes framför den manuella driftflaggan eftersom den senare inte bär någon motivering och kan slås av av misstag |
 | 2026-08-27 | Ägarbeslut: utgående e-post pausas tills PUB-avtal är tecknat |
 | 2026-08-27 | Brevo: status ändrad från "infrastruktur byggd, inte i drift" till **i drift**, efter att ägaren satt `BREVO_API_KEY` och verifierat avsändardomänen. Samtidigt infört som **öppen brist** att PUB-avtal saknas – ägaren bekräftade detta uttryckligen samma dag. De tre utskicksvägarna (inbjudan, daglig påminnelse 09:00, månadssammanfattning) verifierade mot `functions/inbjudningar.js`, `functions/notiser.js` och `functions/matvarden.js` |
