@@ -5,6 +5,20 @@ import { useFeatures } from "../hooks/useFeatures";
 import { FEATURE } from "../config/features";
 import "./InbjudanFormular.css";
 
+// Etapp 53a-tillägg 2026-08-28: texten sa tidigare ALLTID "e-post är inte konfigurerat för
+// den här installationen", oavsett varför utskicket uteblev. Det blev osant i samma stund som
+// den rättsliga spärren mot Brevo infördes – nyckeln är konfigurerad, utskicket är pausat – och
+// skickade den som läste meddelandet på jakt efter ett konfigurationsfel som inte fanns.
+// Anledningen kommer nu från servern (se epostAnledning i functions/inbjudningar.js).
+const EPOST_ANLEDNING_TEXT = {
+  pub_avtal_saknas: "utgående e-post är tillfälligt pausat.",
+  epost_avstangd_globalt: "utgående e-post är tillfälligt avstängt.",
+  epost_ej_konfigurerad: "e-post är inte konfigurerat för den här installationen.",
+  leverantorsfel: "e-postleverantören svarade med ett fel.",
+  utskicksfel: "något gick fel vid utskicket.",
+  okand: "orsaken är okänd.",
+};
+
 const BJUDBARA_ROLLER_UTAN_KIOSK = [
   ROLES.PERSONAL,
   ROLES.FORRADSANSVARIG,
@@ -38,6 +52,7 @@ export default function InbjudanFormular() {
   const [skapar, setSkapar] = useState(false);
   const [lank, setLank] = useState(null);
   const [epostSkickat, setEpostSkickat] = useState(false);
+  const [epostAnledning, setEpostAnledning] = useState(null);
   const [fel, setFel] = useState(null);
 
   async function hanteraSubmit(e) {
@@ -49,6 +64,7 @@ export default function InbjudanFormular() {
       const { data } = await skapaInbjudan(epost.trim(), roll);
       setLank(`${window.location.origin}/registrera?bjudan=${data.token}`);
       setEpostSkickat(data.epostSkickat === true);
+      setEpostAnledning(data.epostAnledning ?? null);
       setEpost("");
     } catch (e2) {
       setFel(e2.message ?? "Kunde inte skapa inbjudan.");
@@ -94,9 +110,9 @@ export default function InbjudanFormular() {
             </p>
           ) : (
             <p className="inbjudan-formular__fel">
-              <strong>Inbjudan är skapad, men mejlet kunde INTE skickas</strong> – e-post är
-              inte konfigurerat för den här installationen. Skicka länken nedan till personen
-              själv (giltig i 7 dagar):
+              <strong>Inbjudan är skapad, men mejlet kunde INTE skickas</strong> –{" "}
+              {EPOST_ANLEDNING_TEXT[epostAnledning] ?? EPOST_ANLEDNING_TEXT.okand} Skicka länken
+              nedan till personen själv (giltig i 7 dagar):
             </p>
           )}
           <input type="text" readOnly value={lank} onFocus={(e) => e.target.select()} />

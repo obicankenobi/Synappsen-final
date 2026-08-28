@@ -209,6 +209,20 @@ async function main() {
       global.fetch = ursprungligFetch;
     }
   });
+  await test("skapaInbjudan returnerar VARFÖR mejlet uteblev, inte bara att det gjorde det", async () => {
+    // Utan anledningen kunde gränssnittet bara säga en enda sak, och sa därför "e-post är inte
+    // konfigurerat" även när nyckeln FANNS och utskicket var pausat av rättsliga skäl. Den som
+    // läste meddelandet skickades på jakt efter ett konfigurationsfel som inte fanns.
+    const svar = await funcs.skapaInbjudan.run({
+      data: { epost: "anledning@exempel.se", roll: "personal" },
+      auth: { uid: "superEpost53" },
+    });
+    vantaSig(svar.epostSkickat === false, "epostSkickat borde vara false medan spärren är på");
+    vantaSig(
+      svar.epostAnledning === "pub_avtal_saknas",
+      `fel anledning: ${svar.epostAnledning} – gränssnittet visar då fel text`
+    );
+  });
   await test("inbjudningsmejlets innehåll har organisationens namn och rätt token", () => {
     const { amne, text } = inbjudningar._byggInbjudningsmejl({ orgNamn: "Mejltest AB", token: "tok123" });
     vantaSig(amne.includes("Mejltest AB"), "organisationens namn saknas i ämnesraden");

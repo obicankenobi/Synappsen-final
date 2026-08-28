@@ -71,6 +71,11 @@ async function skapaInbjudanIntern({ organisationId, epost, roll, skapadAv }) {
     utgangstid: Date.now() + INBJUDAN_GILTIGHETSTID_MS,
   });
   let epostSkickat = false;
+  // Etapp 53a-tillägg 2026-08-28: anledningen bubblar upp, inte bara ja/nej. Gränssnittet
+  // påstod annars alltid "e-post är inte konfigurerat", vilket blev osant i samma stund som
+  // den rättsliga spärren infördes – nyckeln ÄR konfigurerad, utskicket är pausat. Samma
+  // klass av fel som Etapp 70c rättade (UI:t påstod att mejlet gått fram när det inte hade).
+  let epostAnledning = null;
   try {
     const orgSnap = await db.collection("organisationer").doc(organisationId).get();
     const orgNamn = orgSnap.data()?.namn ?? organisationId;
@@ -84,14 +89,16 @@ async function skapaInbjudanIntern({ organisationId, epost, roll, skapadAv }) {
     // påstod för superadmin att mejlet gått iväg, vilket var osant under hela den tid
     // BREVO_API_KEY saknades. Statusen bubblar nu upp till klienten i stället.
     epostSkickat = resultat?.skickat === true;
+    epostAnledning = epostSkickat ? null : (resultat?.anledning ?? "okand");
   } catch (fel) {
     // Se motiveringen ovan: inbjudan är redan skapad och giltig även om mejlet uteblir.
     // Adressen utelämnas medvetet ur loggen – se motiveringen i skickaEpost (gemensamt.js):
     // en e-postadress är en personuppgift och Cloud Logging är inte organisationsskopat.
     // Vilken inbjudan det gäller går att se på inbjudningar/{token} i Firestore.
     console.warn(`Inbjudningsmejl kunde inte skickas (org ${organisationId}):`, fel.message ?? fel);
+    epostAnledning = "utskicksfel";
   }
-  return { token, epostSkickat };
+  return { token, epostSkickat, epostAnledning };
 }
 
 // Skapas av en superadmin i adminpanelen (KAN bara bjuda in till sin EGEN organisation –
