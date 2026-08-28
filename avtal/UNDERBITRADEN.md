@@ -6,10 +6,12 @@ byts eller tas bort. Refereras från `avtal/PUB-AVTAL-MALL.md` (Etapp 13a), punk
 **Upprättat:** 2026-07-26, som en del av Etapp 13b (`etapplaner/ETAPPLAN3.md`).
 **Senast uppdaterad:** 2026-08-27 – Brevo togs i drift.
 
-> **⚠️ ÖPPEN BRIST PER 2026-08-27:** Brevo (e-postutskick) är i drift utan tecknat
-> PUB-avtal. Behandlingen omfattar mottagares e-postadresser. Se avsnittet
-> "Brevo (Sendinblue SAS)" nedan för hela beskrivningen, konsekvensen och den
-> begränsningsåtgärd som finns färdig att använda.
+> **⚠️ ÖPPEN BRIST PER 2026-08-27:** Brevo (e-postutskick) togs i drift utan tecknat
+> PUB-avtal. Behandlingen omfattar mottagares e-postadresser.
+>
+> **Ägaren har beslutat att pausa allt utgående e-post tills avtalet är tecknat**
+> (`BESLUTSLOGG.md` 2026-08-27). Se avsnittet "Brevo (Sendinblue SAS)" nedan för hela
+> beskrivningen, konsekvensen och status för verkställigheten.
 
 **Metod:** varje rad nedan är verifierad direkt mot koden (`functions/`-modulerna,
 `.github/workflows/deploy.yml`, `src/sentry.js`), inte antagen – i enlighet med genomgående
@@ -163,11 +165,18 @@ framför ett amerikanskt alternativ.
   > normalt ett godkännande, inte en förhandling. När det är på plats: ersätt den här rutan
   > med datum för tecknandet och en hänvisning till var avtalet förvaras.
   >
-  > **Tillfällig begränsningsåtgärd som finns färdig:** det globala nödstoppet
-  > `angeEpostAvstangd` (knapp i `/leverantor`) stoppar ALL utgående e-post för samtliga
-  > organisationer omedelbart, utan deploy. Det är den åtgärd som ska vidtas om ägaren väljer
-  > att pausa utskicken tills avtalet är på plats. Notera att nödstoppet påverkar de
-  > schemalagda jobben ovan – inbjudningar skapas fortfarande, men mejlas inte.
+  > **Begränsningsåtgärd – BESLUTAD 2026-08-27:** ägaren har beslutat att pausa allt
+  > utgående e-post tills PUB-avtalet är tecknat (se `BESLUTSLOGG.md`). Åtgärden är det
+  > globala nödstoppet, som stoppar ALL utgående e-post för samtliga organisationer
+  > omedelbart och utan ny driftsättning. Det omfattar även de schemalagda utskicken ovan.
+  > Inbjudningar skapas fortfarande – bara mejlet uteblir, och den kopierbara inbjudningslänken
+  > fungerar som förut.
+  >
+  > **Status för verkställigheten:** nödstoppet slås på manuellt av en plattformsadmin i
+  > gränssnittet. Den här raden uppdateras med datum och tidpunkt när det faktiskt är gjort.
+  > **Så länge den här meningen står kvar oförändrad är utskicken alltså INTE stoppade** – se
+  > `OPPNA-PUNKTER.md`. Formuleringen är avsiktligt gjord så att ett obekräftat "stoppat"
+  > aldrig kan stå här av misstag.
 
 ---
 
@@ -184,5 +193,6 @@ förändringen görs i koden eller CI/CD-konfigurationen, inte i efterhand.
 
 | Datum | Ändring |
 |---|---|
+| 2026-08-27 | Ägarbeslut: utgående e-post pausas tills PUB-avtal är tecknat. Verkställs manuellt via det globala nödstoppet – se statusraden i Brevo-avsnittet |
 | 2026-08-27 | Brevo: status ändrad från "infrastruktur byggd, inte i drift" till **i drift**, efter att ägaren satt `BREVO_API_KEY` och verifierat avsändardomänen. Samtidigt infört som **öppen brist** att PUB-avtal saknas – ägaren bekräftade detta uttryckligen samma dag. De tre utskicksvägarna (inbjudan, daglig påminnelse 09:00, månadssammanfattning) verifierade mot `functions/inbjudningar.js`, `functions/notiser.js` och `functions/matvarden.js` |
 | 2026-07-26 | Dokumentet upprättat (Etapp 13b) |
