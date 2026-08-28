@@ -41,6 +41,24 @@ const INBJUDAN_GILTIGHETSTID_MS = 7 * 24 * 60 * 60 * 1000;
 // e-postkanalen är opålitlig, inte inbjudan i sig. Organisationens namn i mejlet är ett
 // medvetet, dokumenterat undantag från genomgående krav 18 (se ETAPPLAN11.md §53b): utan
 // namnet är mejlet obegripligt.
+// Bygger inbjudningsmejlets ämne och text. Bruten ut som ren funktion 2026-08-27, när den
+// rättsliga spärren mot Brevo (se PUB_AVTAL_BREVO_TECKNAT i gemensamt.js) gjorde att inget
+// mejl längre skickas: testet som bevakade att organisationens namn och rätt token finns i
+// mejlet kunde annars inte längre köras alls, och den täckningen hade tystnat under hela den
+// tid spärren är på. Nu testas innehållet utan att något skickas.
+//
+// Organisationens namn i mejlet är ett medvetet, dokumenterat undantag från genomgående
+// krav 18 (se ETAPPLAN11.md §53b): utan namnet är mejlet obegripligt för mottagaren.
+function byggInbjudningsmejl({ orgNamn, token }) {
+  return {
+    amne: `Du är inbjuden till ${orgNamn} på Synappsen`,
+    text:
+      `Du har blivit inbjuden till ${orgNamn}s kunskapsbank i Synappsen.\n\n` +
+      `Skapa ditt konto här: ${APP_URL}/registrera?bjudan=${token}\n\n` +
+      `Länken är giltig i 7 dagar. Har du frågor, kontakta den som bjöd in dig.`,
+  };
+}
+
 async function skapaInbjudanIntern({ organisationId, epost, roll, skapadAv }) {
   const token = crypto.randomBytes(24).toString("base64url");
   await db.collection("inbjudningar").doc(token).set({
@@ -58,11 +76,7 @@ async function skapaInbjudanIntern({ organisationId, epost, roll, skapadAv }) {
     const orgNamn = orgSnap.data()?.namn ?? organisationId;
     const resultat = await skickaEpost({
       till: epost,
-      amne: `Du är inbjuden till ${orgNamn} på Synappsen`,
-      text:
-        `Du har blivit inbjuden till ${orgNamn}s kunskapsbank i Synappsen.\n\n` +
-        `Skapa ditt konto här: ${APP_URL}/registrera?bjudan=${token}\n\n` +
-        `Länken är giltig i 7 dagar. Har du frågor, kontakta den som bjöd in dig.`,
+      ...byggInbjudningsmejl({ orgNamn, token }),
       organisationId,
     });
     // Etapp 70c: skickaEpost() KASTAR inte när nyckeln saknas – den returnerar
@@ -247,3 +261,6 @@ exports.losInInbjudan = onCall({ region: "europe-west1" }, async (request) => {
 // Etapp 61a: exporteras för de domänfiler som anropar dem över filgränsen
 // (se index.js – dessa åter-exporteras INTE därifrån, de var aldrig exports förut).
 exports.skapaInbjudanIntern = skapaInbjudanIntern;
+
+// Exporterad enbart för tests/functions/epost.test.cjs – se kommentaren ovan.
+exports._byggInbjudningsmejl = byggInbjudningsmejl;

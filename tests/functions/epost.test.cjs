@@ -16,6 +16,7 @@ const admin = require(
 const funcs = require("../../functions/index.js");
 // _utforUtskick exporteras bara härifrån (index.js åter-exporterar inte interna hjälpare).
 const gemensamt = require("../../functions/gemensamt.js");
+const inbjudningar = require("../../functions/inbjudningar.js");
 
 const db = admin.firestore();
 
@@ -169,27 +170,34 @@ async function main() {
 
   console.log("\nskapaInbjudan – Etapp 53b: inbjudan mejlas nu, med organisationens namn i mejlet");
   await db.collection("organisationer").doc("orgEpost53").set({ namn: "Mejltest AB", status: "aktiv" });
-  await test("en lyckad inbjudan skickar ETT mejl till precis den inbjudna adressen, med organisationens namn", async () => {
-    process.env.BREVO_API_KEY = "testnyckel";
+  // Det här testet påstod tidigare att en inbjudan FAKTISKT mejlas. Sedan den rättsliga
+  // spärren infördes (2026-08-27) stämmer det inte – inget mejl skickas medan PUB-avtalet
+  // saknas. Att bara ta bort testet hade tystat två saker som fortfarande är sanna och värda
+  // att bevaka: att inbjudan skapas ändå, och att mejlets INNEHÅLL är rätt. Det är därför
+  // delat i två, och innehållet testas nu på den utbrutna kompositionsfunktionen.
+  await test("en inbjudan skapas ändå, men inget mejl skickas medan spärren är på", async () => {
     let anrop = null;
     global.fetch = async (url, init) => {
       anrop = JSON.parse(init.body);
       return { ok: true };
     };
     try {
-      const { token } = await funcs.skapaInbjudan.run({
+      const svar = await funcs.skapaInbjudan.run({
         data: { epost: "kollega@exempel.se", roll: "personal" },
         auth: { uid: "superEpost53" },
       });
-      vantaSig(!!token, "token saknas");
-      vantaSig(!!anrop, "inget e-postanrop gjordes");
-      vantaSig(anrop.to[0].email === "kollega@exempel.se", "fel mottagare");
-      vantaSig(anrop.subject.includes("Mejltest AB"), "organisationens namn saknas i ämnesraden");
-      vantaSig(anrop.textContent.includes(`/registrera?bjudan=${token}`), "länken med rätt token saknas i texten");
+      vantaSig(!!svar.token, "token saknas – inbjudan ska skapas oavsett e-postläge");
+      vantaSig(svar.epostSkickat === false, "epostSkickat borde vara false medan spärren är på");
+      vantaSig(anrop === null, "ett nätverksanrop gjordes trots den rättsliga spärren");
     } finally {
       global.fetch = ursprungligFetch;
-      delete process.env.BREVO_API_KEY;
     }
+  });
+  await test("inbjudningsmejlets innehåll har organisationens namn och rätt token", () => {
+    const { amne, text } = inbjudningar._byggInbjudningsmejl({ orgNamn: "Mejltest AB", token: "tok123" });
+    vantaSig(amne.includes("Mejltest AB"), "organisationens namn saknas i ämnesraden");
+    vantaSig(text.includes("/registrera?bjudan=tok123"), "länken med rätt token saknas i texten");
+    vantaSig(text.includes("Mejltest AB"), "organisationens namn saknas i brödtexten");
   });
   await test("ett misslyckat e-postutskick blockerar INTE att inbjudan skapas", async () => {
     process.env.BREVO_API_KEY = "testnyckel";
