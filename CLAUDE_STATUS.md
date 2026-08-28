@@ -8,16 +8,17 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-27 · version **5.130.0** · **byggd och pushad, deploy pågår**.
-Etapp 71 (Öva-lägets redigerbara frågebank). Se uppföljningen 2026-08-27.
+**Senast uppdaterad:** 2026-08-27 · version **5.131.0** · **byggd, deploy pågår**.
+v5.130.0 (Etapp 71) är deployad och verifierad i produktion (körning #91). v5.131.0 lägger
+till den rättsliga e-postspärren. Se uppföljningarna 2026-08-27.
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.129.0 vid start av denna deploy. v5.130.0 deployar nu (se uppföljningen 2026-08-27) |
+| **Version i produktion** | 5.130.0 (körning #91, verifierad). v5.131.0 deployas nu |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **Senaste kodarbete** | v5.130.0: Etapp 71, Öva-lägets redigerbara frågebank (leverantörens globala frågor, kundens överlagringar/egna frågor, paketpaus på båda nivåerna). Se uppföljningen 2026-08-27 |
+| **Senaste kodarbete** | v5.131.0: rättslig spärr som stoppar allt utgående e-post tills Brevos PUB-avtal är tecknat. Dessförinnan v5.130.0 (Etapp 71, Öva-lägets redigerbara frågebank) |
 | **Senaste dokumentarbete** | 2026-08-27: `saljmaterial/PITCH.md` uppdaterad till v5.130.0 (Öva-läget, kontoadmin, lösenordsåterställning, startbibliotek i efterhand tillagda) |
 | **Aktiv plan** | Ingen. Etapp 69 var den sista. `etapplaner/ETAPPLAN13.md` (Etapp 64) är antagen men juridiskt blockerad – inget steg är byggbart förrän en extern bedömning finns |
 | **Nästa steg** | **Ägaren måste ge tjänstekontot `roles/firebaseauth.admin` i GCP** – utan det fungerar varken avstängning, radering eller tvingad utloggning, oavsett kod. Därefter: ägarbeslut om `systemkunskap`-paketets vara/icke-vara och innehåll till `kliniskt`-paketet (se `OPPNA-PUNKTER.md`) |
@@ -305,3 +306,30 @@ i efterhand.
 Lint, build och hela vitest-sviten (502/502, dokumenttesterna inkluderade) gröna.
 `test:rules`/`test:functions` inte omkörda i det här steget – inga ändringar i
 `firestore.rules`/`functions/` sedan de kördes gröna i förra commiten.
+
+## Uppföljning 2026-08-27 (v5.131.0 – rättslig spärr på utgående e-post)
+
+Brevo togs i drift tidigare samma dag utan att PUB-avtal fanns. Ägaren beslutade att pausa
+allt utgående e-post tills avtalet är tecknat, men hittade inte det globala nödstoppet i
+leverantörsvyn – och en kodsession kan inte trycka på det (ingen firebase/gcloud CLI, inga
+servicekontonycklar, och `systemstatus/epost` är `allow write: if false`).
+
+**Byggt i stället:** en konstant `PUB_AVTAL_BREVO_TECKNAT = false` i `functions/gemensamt.js`.
+`skickaEpost()` returnerar `{skickat: false, anledning: "pub_avtal_saknas"}` utan att kontakta
+Brevo, oavsett driftflaggans läge.
+
+**Varför en kodkonstant framför driftflaggan:** flaggan bär ingen motivering. Den som ser den
+påslagen om tre månader vet inte varför, och risken att den slås av av misstag är exakt det
+mönster projektet dokumenterat sex gånger. En kodändring kräver granskning och driftsättning –
+proportionerligt mot att teckna ett avtal.
+
+**Strukturellt:** utskicket bröts ut till `utforUtskick()`, exporterad som `_utforUtskick`
+enbart för test. Utan det hade fyra testfall (nödstopp, saknad nyckel, faktiskt utskick,
+revisionslogg) tystnat helt medan spärren är på. Valideringen (ogiltig adress, personnummer)
+ligger kvar FÖRE spärren, så ett anroparfel syns även när kanalen är pausad.
+
+`epostSkickat` blir korrekt `false`, och UI:t (rättat i v5.129.0) säger då sanningen om att
+inbjudningslänken måste delas manuellt. Ingen UI-ändring behövdes.
+
+**Att häva:** sätt konstanten till `true`, fyll i datum i `avtal/UNDERBITRADEN.md`, ta bort
+raden ur `OPPNA-PUNKTER.md`. `tests/functions/epost.test.cjs` failar om konstanten ändras.

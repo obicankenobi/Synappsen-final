@@ -7,9 +7,10 @@ Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller pol
 för Öva-lägets frågebank, se rutan i steg 5, deployad i v5.130.0; samt att **utgående e-post
 gick i skarp drift** – nödstoppet i steg 3 gäller nu en kanal som faktiskt används, inklusive
 automatiska schemalagda utskick. Ingen ny kategori av personuppgift, ingen förmåga borttagen.
-**Obs:** underbiträdet som bär e-postkanalen saknar tecknat PUB-avtal, och ägaren har
-2026-08-27 beslutat att pausa allt utgående e-post tills avtalet är på plats. Verkställs
-manuellt via nödstoppet – status står i `avtal/UNDERBITRADEN.md`, som är källan.)
+**Obs:** underbiträdet som bär e-postkanalen saknar tecknat PUB-avtal. **Allt utgående
+e-post är stoppat sedan v5.131.0** genom en spärr i koden, inte via den manuella
+driftflaggan – flaggans läge påverkar därför inte utfallet så länge spärren är kvar. Källan
+för status är `avtal/UNDERBITRADEN.md`.)
 (Föregående: 2026-08-17, säkerhetsgranskningen 2026-08, Del 1–3, v5.114.0–v5.116.0.)
 Detektionen är OMFORMAD, inte försvagad: den nattliga kedjekontrollens detaljer flyttades till
 Sentry och `/admin` → Incidentberedskap visar numera den EGNA organisationens kedjestatus i

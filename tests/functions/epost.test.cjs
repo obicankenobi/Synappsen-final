@@ -14,6 +14,8 @@ const admin = require(
   require.resolve("firebase-admin", { paths: [path.join(__dirname, "../../functions")] })
 );
 const funcs = require("../../functions/index.js");
+// _utforUtskick exporteras bara härifrån (index.js åter-exporterar inte interna hjälpare).
+const gemensamt = require("../../functions/gemensamt.js");
 
 const db = admin.firestore();
 
@@ -65,23 +67,43 @@ async function main() {
     )
   );
 
-  console.log("\nskickaEpost – tyst no-op utan konfigurerad nyckel (BREVO_API_KEY ej satt i denna testkörning)");
-  await test("utan en konfigurerad nyckel skickas inget, men inget kastas heller", async () => {
+  // ── Rättslig spärr (2026-08-27) ────────────────────────────────────────────────────
+  // PUB-avtal med Brevo saknas, så skickaEpost() returnerar utan att skicka. Testet nedan
+  // är det som håller beslutet på plats: hävs spärren utan att någon tänkt efter, failar
+  // det här och tvingar fram frågan "är avtalet faktiskt tecknat?".
+  //
+  // De tre testfallen därefter anropar _utforUtskick (utskicket utan spärren) i stället för
+  // skickaEpost, så att nödstopp, saknad nyckel och det faktiska utskicket fortfarande är
+  // testtäckta medan spärren är på. Utan det hade fyra vägar tystnat helt.
+  console.log("\nskickaEpost – rättslig spärr: PUB-avtal med Brevo saknas");
+  await test("inget skickas medan PUB-avtalet saknas", async () => {
     const resultat = await funcs.skickaEpost({ till: "test@exempel.se", amne: "Hej", text: "Test" });
+    vantaSig(resultat.skickat === false, "skickat borde vara false");
+    vantaSig(resultat.anledning === "pub_avtal_saknas", `fel anledning: ${resultat.anledning}`);
+  });
+  await test("valideringen körs FÖRE spärren – en ogiltig adress kastar fortfarande", () =>
+    forvantaFel("invalid-argument", () =>
+      funcs.skickaEpost({ till: "trasig-adress", amne: "Hej", text: "Test" })
+    )
+  );
+
+  console.log("\nutforUtskick – tyst no-op utan konfigurerad nyckel (BREVO_API_KEY ej satt i denna testkörning)");
+  await test("utan en konfigurerad nyckel skickas inget, men inget kastas heller", async () => {
+    const resultat = await gemensamt._utforUtskick({ till: "test@exempel.se", amne: "Hej", text: "Test" });
     vantaSig(resultat.skickat === false, "skickat borde vara false");
     vantaSig(resultat.anledning === "epost_ej_konfigurerad", `fel anledning: ${resultat.anledning}`);
   });
 
-  console.log("\nskickaEpost – globalt nödstopp");
+  console.log("\nutforUtskick – globalt nödstopp");
   await test("nödstoppet stoppar utskicket innan någon nätverksanrop görs", async () => {
     await db.collection("systemstatus").doc("epost").set({ avstangd: true });
-    const resultat = await funcs.skickaEpost({ till: "test@exempel.se", amne: "Hej", text: "Test" });
+    const resultat = await gemensamt._utforUtskick({ till: "test@exempel.se", amne: "Hej", text: "Test" });
     vantaSig(resultat.skickat === false, "skickat borde vara false");
     vantaSig(resultat.anledning === "epost_avstangd_globalt", `fel anledning: ${resultat.anledning}`);
     await db.collection("systemstatus").doc("epost").set({ avstangd: false });
   });
 
-  console.log("\nskickaEpost – faktiskt utskick (mockad Brevo-endpoint, ingen riktig nätverkstrafik)");
+  console.log("\nutforUtskick – faktiskt utskick (mockad Brevo-endpoint, ingen riktig nätverkstrafik)");
   const ursprungligFetch = global.fetch;
   let senasteAnrop = null;
   await test("ett lyckat utskick loggas till organisationens revisionslogg, aldrig innehållet", async () => {
@@ -91,7 +113,7 @@ async function main() {
       return { ok: true };
     };
     try {
-      const resultat = await funcs.skickaEpost({
+      const resultat = await gemensamt._utforUtskick({
         till: "mottagare@exempel.se",
         amne: "Du har en uppgift",
         text: "Logga in för att se den.",

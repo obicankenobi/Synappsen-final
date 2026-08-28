@@ -203,7 +203,26 @@ async function epostArAvstangdGlobalt() {
 // fel i anropet (ogiltig adress, misstänkt personnummer) – ett obekräftat/oskickat mejl på
 // grund av nödstoppet eller en saknad nyckel är INTE ett fel för anroparen, så att t.ex. en
 // inbjudan fortfarande skapas och går att dela som länk även om e-postkanalen är nere.
+// ── RÄTTSLIG SPÄRR, 2026-08-27 ─────────────────────────────────────────────────────────
+// Brevo togs i drift 2026-08-27 utan att ett PUB-avtal (personuppgiftsbiträdesavtal enligt
+// GDPR art. 28.3) var tecknat. Ägaren beslutade samma dag att pausa allt utgående e-post
+// tills avtalet finns – se BESLUTSLOGG.md och avtal/UNDERBITRADEN.md.
+//
+// VARFÖR EN KONSTANT I KODEN och inte den befintliga driftflaggan (systemstatus/epost):
+// nödstoppet är avsett för "kanalen beter sig konstigt, stäng av den nu". Det bär ingen
+// motivering, så den som ser det påslaget om tre månader har ingenting som säger VARFÖR –
+// och risken att det slås på igen av misstag är precis det "regeln glömdes bort"-mönster
+// som redan inträffat sex gånger i det här projektet. Spärren här kräver en kodändring och
+// en driftsättning för att hävas, vilket är rimligt i proportion till att teckna ett avtal.
+//
+// ATT HÄVA DEN: sätt konstanten till true, fyll i datum för tecknandet i
+// avtal/UNDERBITRADEN.md och ta bort raden ur OPPNA-PUNKTER.md.
+const PUB_AVTAL_BREVO_TECKNAT = false;
+
 async function skickaEpost({ till, amne, text, organisationId = null }) {
+  // Valideringen ligger FÖRE den rättsliga spärren med flit: en ogiltig adress eller ett
+  // personnummer i texten är ett anroparfel som ska synas även när kanalen är pausad.
+  // Annars hade en trasig anropskod kunnat ligga oupptäckt tills spärren hävs.
   if (!giltigEpostadress(till)) {
     throw new HttpsError("invalid-argument", "Ogiltig mottagaradress för e-post.");
   }
@@ -213,11 +232,27 @@ async function skickaEpost({ till, amne, text, organisationId = null }) {
       "E-postinnehållet verkar innehålla ett personnummer och skickades inte."
     );
   }
-  // Mottagaradressen skrivs MEDVETET inte ut i loggen. En e-postadress är en personuppgift,
-  // och Cloud Logging är varken organisationsskopat eller täckt av appens egna
-  // åtkomstkontroller – samma princip som redan gäller revisionsloggens larm ("aldrig
-  // dokumentinnehåll i larmet") och push-notisernas ordfattighet. Anledningen räcker för
-  // felsökning; VEM som inte fick mejlet går att härleda ur kön/inbjudan i Firestore.
+  if (!PUB_AVTAL_BREVO_TECKNAT) {
+    // Mottagaradressen skrivs MEDVETET inte ut – se motiveringen i utforUtskick nedan.
+    console.warn("E-post skippad: PUB-avtal med Brevo saknas (GDPR art. 28.3).");
+    return { skickat: false, anledning: "pub_avtal_saknas" };
+  }
+  return utforUtskick({ till, amne, text, organisationId });
+}
+
+// Själva utskicket, utan den rättsliga spärren. Bruten ut som egen funktion ENBART för att
+// nedströmsbeteendet (nödstopp, saknad nyckel, leverantörsfel, revisionslogg) ska gå att
+// testa medan spärren är på – annars hade fyra testfall behövt tas bort, och de hade tystnat
+// om ett fel smugit sig in i just de vägarna.
+//
+// Anropas ALDRIG av produktionskod. Enda vägen ut är skickaEpost() ovan.
+//
+// Mottagaradressen skrivs medvetet inte ut i loggen. En e-postadress är en personuppgift,
+// och Cloud Logging är varken organisationsskopat eller täckt av appens egna
+// åtkomstkontroller – samma princip som revisionsloggens larm ("aldrig dokumentinnehåll i
+// larmet") och push-notisernas ordfattighet. Anledningen räcker för felsökning; VEM som inte
+// fick mejlet går att härleda ur kön/inbjudan i Firestore.
+async function utforUtskick({ till, amne, text, organisationId = null }) {
   if (await epostArAvstangdGlobalt()) {
     console.warn("E-post skippad: utgående e-post är globalt avstängd.");
     return { skickat: false, anledning: "epost_avstangd_globalt" };
@@ -264,6 +299,7 @@ async function skickaEpost({ till, amne, text, organisationId = null }) {
   return { skickat: true };
 }
 exports.skickaEpost = skickaEpost;
+exports._utforUtskick = utforUtskick;
 
 // Enkel per-användare hastighetsbegränsning (rullande 1-timmesfönster), återanvänds av
 // skapaKommentar/skickaFeedback för att förhindra spam-skapande direkt mot Cloud Functions.

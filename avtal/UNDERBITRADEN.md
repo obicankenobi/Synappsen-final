@@ -9,9 +9,9 @@ byts eller tas bort. Refereras från `avtal/PUB-AVTAL-MALL.md` (Etapp 13a), punk
 > **⚠️ ÖPPEN BRIST PER 2026-08-27:** Brevo (e-postutskick) togs i drift utan tecknat
 > PUB-avtal. Behandlingen omfattar mottagares e-postadresser.
 >
-> **Ägaren har beslutat att pausa allt utgående e-post tills avtalet är tecknat**
-> (`BESLUTSLOGG.md` 2026-08-27). Se avsnittet "Brevo (Sendinblue SAS)" nedan för hela
-> beskrivningen, konsekvensen och status för verkställigheten.
+> **Utgående e-post är STOPPAT sedan 2026-08-27 (v5.131.0)** genom en spärr i koden, i
+> väntan på att avtalet tecknas (`BESLUTSLOGG.md`). Se avsnittet "Brevo (Sendinblue SAS)"
+> nedan för hela beskrivningen och hur spärren hävs.
 
 **Metod:** varje rad nedan är verifierad direkt mot koden (`functions/`-modulerna,
 `.github/workflows/deploy.yml`, `src/sentry.js`), inte antagen – i enlighet med genomgående
@@ -172,11 +172,21 @@ framför ett amerikanskt alternativ.
   > Inbjudningar skapas fortfarande – bara mejlet uteblir, och den kopierbara inbjudningslänken
   > fungerar som förut.
   >
-  > **Status för verkställigheten:** nödstoppet slås på manuellt av en plattformsadmin i
-  > gränssnittet. Den här raden uppdateras med datum och tidpunkt när det faktiskt är gjort.
-  > **Så länge den här meningen står kvar oförändrad är utskicken alltså INTE stoppade** – se
-  > `OPPNA-PUNKTER.md`. Formuleringen är avsiktligt gjord så att ett obekräftat "stoppat"
-  > aldrig kan stå här av misstag.
+  > **Status för verkställigheten: STOPPAT sedan v5.131.0 (2026-08-27).** Spärren är
+  > INTE den manuella driftflaggan, utan en konstant i koden (`PUB_AVTAL_BREVO_TECKNAT` i
+  > `functions/gemensamt.js`): `skickaEpost()` returnerar `{skickat: false, anledning:
+  > "pub_avtal_saknas"}` utan att kontakta Brevo, oavsett driftflaggans läge.
+  >
+  > **Varför en kodkonstant och inte driftflaggan:** driftflaggan bär ingen motivering. Den
+  > som ser den påslagen om tre månader har ingenting som säger varför, och risken att den
+  > slås av igen av misstag är precis det "regeln glömdes bort"-mönster som redan inträffat
+  > sex gånger i det här projektet. Att häva spärren kräver en kodändring och en
+  > driftsättning, vilket är rimligt i proportion till att teckna ett avtal.
+  >
+  > **Att häva den när avtalet är tecknat:** sätt konstanten till `true`, ersätt den här
+  > rutan med datum för tecknandet och var avtalet förvaras, och ta bort raden ur
+  > `OPPNA-PUNKTER.md`. `tests/functions/epost.test.cjs` failar om konstanten ändras, så
+  > frågan "är avtalet faktiskt på plats?" tvingas fram.
 
 ---
 
@@ -193,6 +203,7 @@ förändringen görs i koden eller CI/CD-konfigurationen, inte i efterhand.
 
 | Datum | Ändring |
 |---|---|
-| 2026-08-27 | Ägarbeslut: utgående e-post pausas tills PUB-avtal är tecknat. Verkställs manuellt via det globala nödstoppet – se statusraden i Brevo-avsnittet |
+| 2026-08-27 | Spärren verkställd i v5.131.0: `PUB_AVTAL_BREVO_TECKNAT = false` i `functions/gemensamt.js` stoppar allt utskick i koden. Valdes framför den manuella driftflaggan eftersom den senare inte bär någon motivering och kan slås av av misstag |
+| 2026-08-27 | Ägarbeslut: utgående e-post pausas tills PUB-avtal är tecknat |
 | 2026-08-27 | Brevo: status ändrad från "infrastruktur byggd, inte i drift" till **i drift**, efter att ägaren satt `BREVO_API_KEY` och verifierat avsändardomänen. Samtidigt infört som **öppen brist** att PUB-avtal saknas – ägaren bekräftade detta uttryckligen samma dag. De tre utskicksvägarna (inbjudan, daglig påminnelse 09:00, månadssammanfattning) verifierade mot `functions/inbjudningar.js`, `functions/notiser.js` och `functions/matvarden.js` |
 | 2026-07-26 | Dokumentet upprättat (Etapp 13b) |
