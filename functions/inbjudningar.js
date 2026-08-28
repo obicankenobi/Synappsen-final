@@ -128,13 +128,16 @@ exports.skapaInbjudan = onCall({ region: "europe-west1", secrets: [BREVO_API_KEY
     await kravModul(organisationId, "operations", "Kioskläge kräver Operations-modulen.");
   }
 
-  const { token, epostSkickat } = await skapaInbjudanIntern({
+  const { token, epostSkickat, epostAnledning } = await skapaInbjudanIntern({
     organisationId,
     epost,
     roll,
     skapadAv: request.auth.uid,
   });
-  return { token, epostSkickat };
+  // epostAnledning måste med hela vägen ut – gränssnittet visar annars en generisk och
+  // därmed ofta felaktig förklaring till varför mejlet uteblev. Testet i
+  // tests/functions/epost.test.cjs failar om den tappas här igen.
+  return { token, epostSkickat, epostAnledning };
 });
 
 // Publikt (INGEN inloggning krävs – personen har ännu inget konto) läs-anrop som bara
