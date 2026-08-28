@@ -219,6 +219,19 @@ async function epostArAvstangdGlobalt() {
 // avtal/UNDERBITRADEN.md och ta bort raden ur OPPNA-PUNKTER.md.
 const PUB_AVTAL_BREVO_TECKNAT = false;
 
+// Testerna måste kunna verifiera vad som händer NÄR e-post fungerar – vem som får ett mejl,
+// att en opt-out respekteras, att innehållet är rätt. Den täckningen får inte tystna under
+// hela den tid spärren är på; när avtalet väl tecknas ska en trasig mottagarlogik upptäckas
+// av testsviten, inte av en kund.
+//
+// Överridet sätts ENBART av tests/functions/*.test.cjs. Produktionskod anropar det aldrig, och
+// tests/functions/epost.test.cjs har en assertion som bevakar att ingen fil under functions/
+// (utom den här) refererar till det.
+let pubAvtalOverridForTest = null;
+function _sattPubAvtalOverridForTest(varde) {
+  pubAvtalOverridForTest = varde;
+}
+
 async function skickaEpost({ till, amne, text, organisationId = null }) {
   // Valideringen ligger FÖRE den rättsliga spärren med flit: en ogiltig adress eller ett
   // personnummer i texten är ett anroparfel som ska synas även när kanalen är pausad.
@@ -232,7 +245,8 @@ async function skickaEpost({ till, amne, text, organisationId = null }) {
       "E-postinnehållet verkar innehålla ett personnummer och skickades inte."
     );
   }
-  if (!PUB_AVTAL_BREVO_TECKNAT) {
+  const avtalTecknat = pubAvtalOverridForTest ?? PUB_AVTAL_BREVO_TECKNAT;
+  if (!avtalTecknat) {
     // Mottagaradressen skrivs MEDVETET inte ut – se motiveringen i utforUtskick nedan.
     console.warn("E-post skippad: PUB-avtal med Brevo saknas (GDPR art. 28.3).");
     return { skickat: false, anledning: "pub_avtal_saknas" };
@@ -300,6 +314,7 @@ async function utforUtskick({ till, amne, text, organisationId = null }) {
 }
 exports.skickaEpost = skickaEpost;
 exports._utforUtskick = utforUtskick;
+exports._sattPubAvtalOverridForTest = _sattPubAvtalOverridForTest;
 
 // Enkel per-användare hastighetsbegränsning (rullande 1-timmesfönster), återanvänds av
 // skapaKommentar/skickaFeedback för att förhindra spam-skapande direkt mot Cloud Functions.

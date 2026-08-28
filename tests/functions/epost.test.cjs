@@ -76,6 +76,22 @@ async function main() {
   // De tre testfallen därefter anropar _utforUtskick (utskicket utan spärren) i stället för
   // skickaEpost, så att nödstopp, saknad nyckel och det faktiska utskicket fortfarande är
   // testtäckta medan spärren är på. Utan det hade fyra vägar tystnat helt.
+  // Överridet som låter testerna kringgå spärren får ALDRIG användas av produktionskod.
+  // Assertionen nedan är billigare än en regel i CLAUDE.md – projektets egen doktrin är att
+  // skriva en assertion hellre än en prosaregel, eftersom prosareglerna misslyckats sex gånger.
+  await test("ingen produktionsfil under functions/ använder testöveridet", () => {
+    const fs = require("node:fs");
+    const katalog = path.join(__dirname, "..", "..", "functions");
+    const traffar = fs
+      .readdirSync(katalog)
+      .filter((f) => f.endsWith(".js") && f !== "gemensamt.js")
+      .filter((f) => fs.readFileSync(path.join(katalog, f), "utf8").includes("_sattPubAvtalOverridForTest"));
+    vantaSig(
+      traffar.length === 0,
+      `Följande produktionsfiler kringgår den rättsliga e-postspärren: ${traffar.join(", ")}`
+    );
+  });
+
   console.log("\nskickaEpost – rättslig spärr: PUB-avtal med Brevo saknas");
   await test("inget skickas medan PUB-avtalet saknas", async () => {
     const resultat = await funcs.skickaEpost({ till: "test@exempel.se", amne: "Hej", text: "Test" });

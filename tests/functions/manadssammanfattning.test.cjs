@@ -16,6 +16,11 @@ const admin = require(
   require.resolve("firebase-admin", { paths: [path.join(__dirname, "../../functions")] })
 );
 const funcs = require("../../functions/index.js");
+// Den rättsliga spärren (PUB_AVTAL_BREVO_TECKNAT, se gemensamt.js) stoppar allt utskick i
+// produktion. Hela den här filen testar vad som händer NÄR e-post fungerar – mottagarurval,
+// opt-out och innehåll – vilket bara går att observera om utskicket faktiskt sker. Överridet
+// slås därför på här. Att spärren i sig fungerar bevakas i epost.test.cjs.
+require("../../functions/gemensamt.js")._sattPubAvtalOverridForTest(true);
 
 const db = admin.firestore();
 
