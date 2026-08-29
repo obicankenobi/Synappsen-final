@@ -9,12 +9,12 @@ const FLIKAR = [
   { till: "historik", namn: "Historik" },
 ];
 
-// Etapp L1a: kundlägets skal. Bygger navigationsträdet och :orgId-hämtningen som planen
-// kräver, men innehållet i de fem flikarna är EN gemensam platshållare (KundStub.jsx) –
-// kunddossién (L1b) är inte byggd i den här omgången. Kundregistrets sida-vy
-// (OrganisationsRad-expansionen) är fortfarande den fungerande vägen till en enskild kunds
-// åtgärder tills L1b ersätter den, precis som L1a:s egen "Ingen beteendeförändring"-princip
-// säger.
+// Etapp L1a byggde skalet (navigationsträdet, :orgId-hämtningen); Etapp L1b fyllde de fem
+// flikarna med riktigt innehåll (kunddossién). Två block ur planens ursprungliga sju
+// (Hälsa/mätvärdestrend, och delen av Användning som är "senaste aktivitet") är fortfarande
+// placeholders – de väntar på öppna beslutspunkter (1 respektive 2), inte på L1b självt.
+// OrganisationsRad.jsx:s inline-expansion i kundregistret rördes MEDVETET INTE (se den filens
+// egen kommentar) – att retirera den är ett separat, större steg som L1b inte kräver.
 export default function KundLayout() {
   const { orgId } = useParams();
   const context = useOutletContext();

@@ -336,6 +336,25 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         // därefter) – null betyder "aldrig ändrad sedan uppföljningen infördes", inte "aldrig
         // ändrad över huvud taget".
         avtalsstatusAndrad: data.avtalsstatusAndrad?.toDate?.().toISOString() ?? null,
+        // BUGFIX (L1b, upptäckt vid premisskontroll 2026-08-29): dessa fält har satts på
+        // organisationsdokumentet sedan Etapp 6b (orgnr/kontaktperson/anvandartak) respektive
+        // Etapp L1p (pubAvtalTecknat m.fl.) men returnerades ALDRIG härifrån. Konsekvensen var
+        // tyst: AvtalOchAtagandeSektion.jsx (byggd i L1p) läste dem från just det här svaret
+        // och visade därför ALLTID "inte tecknat"/tomt, oavsett vad som faktiskt var sparat i
+        // Firestore – ett fel funktionstesterna (som skrev/läste dokumentet direkt) aldrig
+        // kunde fånga, eftersom de aldrig gick via listaOrganisationer.
+        orgnr: data.orgnr ?? null,
+        kontaktperson: data.kontaktperson ?? null,
+        anvandartak: data.anvandartak ?? null,
+        pubAvtalTecknat: data.pubAvtalTecknat?.toDate?.().toISOString() ?? null,
+        pubAvtalVersion: data.pubAvtalVersion ?? null,
+        underbitradeUnderrattad: data.underbitradeUnderrattad
+          ? { version: data.underbitradeUnderrattad.version, datum: data.underbitradeUnderrattad.datum?.toDate?.().toISOString() ?? null }
+          : null,
+        omfattasAvNIS2: data.omfattasAvNIS2 === true,
+        atagandeblock: data.atagandeblock
+          ? { text: data.atagandeblock.text, andrad: data.atagandeblock.andrad?.toDate?.().toISOString() ?? null }
+          : null,
       };
     })
   );

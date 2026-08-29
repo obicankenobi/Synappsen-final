@@ -8,21 +8,21 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-29 · **v5.134.0 committad, inte deployad** (internt arbete, ingen
+**Senast uppdaterad:** 2026-08-29 · **v5.135.0 committad, inte deployad** (internt arbete, ingen
 brådska). Produktion står kvar på 5.132.0 (körning #93, verifierad). Utgående e-post är
-stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. Etapp L1 (leverantörspanelen): **10 av 16
-delmål klara** – L1m, L1a, L1g, L1i, L1n, L1p byggda i denna omgång, ovanpå L1l/L1h/L1k/L1o.
+stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. Etapp L1 (leverantörspanelen): **11 av 16
+delmål klara** – L1b (kunddossién) byggd i denna omgång, ovanpå de tio tidigare.
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0 och v5.134.0 väntar på deploy |
+| **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0–v5.135.0 väntar på deploy |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **Senaste kodarbete** | v5.134.0: sex delmål i Etapp L1 – L1m (leverantörskontot, `_plattform`), L1a (navigationsträdet, 12 rutter), L1g (åtgärdslogg), L1i (ekonomi), L1n (återställning+beredskap), L1p (PUB-spärr+incidentklocka+åtaganden). Internt, ingen kundpåverkan |
-| **Senaste dokumentarbete** | 2026-08-29: `intern/ETAPPLAN-INTERN-1.md` v0.8 (tio delmål markerade klara), `avtal/UNDERBITRADEN.md` fick sin första formella version |
-| **Aktiv plan** | `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) – antagen, intern, 10 av 16 delmål klara. Ingen KUNDVÄND plan aktiv sedan Etapp 69; `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
-| **Nästa steg** | **L1b (kunddossién)** är den enda återstående posten som INTE väntar på ett ägarbeslut – planens egen "störst arbetsbesparing"-rad. Övriga kvarvarande (L1c/L1d/L1j/L1f) väntar på beslutspunkt 1/3/2/4. Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()` när ägaren vill, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" om det inte redan gjorts |
+| **Senaste kodarbete** | v5.135.0: L1b, kunddossién – fem riktiga sidor (Huvud/Kontakt, Användning, Avtal & ekonomi, Historik, Åtgärder) ersatte den delade platshållaren. En verklig bugg hittad och fixad vid premisskontroll: `listaOrganisationer` returnerade aldrig åtta fält som L1p:s `AvtalOchAtagandeSektion.jsx` redan berodde på. Internt, ingen kundpåverkan |
+| **Senaste dokumentarbete** | 2026-08-29: `intern/ETAPPLAN-INTERN-1.md` v0.9 (L1b markerad klar), `intern/ANDRINGSLOGG-INTERN.md` v5.135.0-post |
+| **Aktiv plan** | `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) – antagen, intern, 11 av 16 delmål klara. Ingen KUNDVÄND plan aktiv sedan Etapp 69; `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
+| **Nästa steg** | **L1e (driftkonsol)** är den enda återstående posten som INTE väntar på ett ägarbeslut. Övriga kvarvarande (L1c/L1d/L1j/L1f) väntar på beslutspunkt 1/3/2/4. Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()` när ägaren vill, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" om det inte redan gjorts |
 
 ## Var du hittar saker
 
@@ -111,6 +111,39 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-08-29 (v5.135.0 – L1b byggd)
+
+Kunddossién – planens enskilt största arbetsbesparing, byggd direkt efter de sex
+"Medel"-delmålen i samma session. Detaljer i `intern/ETAPPLAN-INTERN-1.md` v0.9 under L1b.
+
+**En verklig bugg hittad vid premisskontroll, inte en kodmiss i den här omgången:**
+`listaOrganisationer` (`functions/organisationslivscykel.js`) returnerade aldrig åtta fält
+(`orgnr`, `kontaktperson`, `anvandartak`, `pubAvtalTecknat`, `pubAvtalVersion`,
+`underbitradeUnderrattad`, `omfattasAvNIS2`, `atagandeblock`) som L1p:s
+`AvtalOchAtagandeSektion.jsx` redan berodde på att läsa. Den panelen hade alltså visat fel
+sedan den byggdes förra omgången – ett tyst fel som ingen tidigare test kunde fånga eftersom
+funktionstesterna läste/skrev dokumentet direkt i stället för via callet klienten faktiskt
+använder. Fixat, med `tests/functions/listaorganisationer-falt.test.cjs` som bevisar det.
+
+Fem riktiga sidor ersatte den delade platshållaren från v5.134.0: Huvud+Kontakt (delvis)
+(`KundOversikt.jsx`), Användning (delvis) (`KundAnvandning.jsx`), Avtal & ekonomi
+(`KundEkonomi.jsx`, återanvänder L1i + flyttar in L1p:s panel), Historik
+(`KundHistorikSektion.jsx`, ny callable `hamtaKundensLeverantorshistorik`), Åtgärder
+(`KundAtgarderSektion.jsx`, nio befintliga klientfunktioner, ingen ny backend).
+`OrganisationsRad.jsx`s dubblerade avtalspanel togs bort till förmån för en länk till
+dossién.
+
+**Tre delar medvetet obyggda**, alla dokumenterade i planfilen: Hälsa (kräver L1c +
+beslutspunkt 1), "senaste aktivitet" (kräver L1j + beslutspunkt 2), "vem är superadmin"/
+"senast bjöd in" (ingen läsväg till `users/{uid}` i dag – att öppna en sådan vore en ny
+läsväg mot kundinnehåll utan samtycke, krav 37, och inget L1b bad om).
+
+7 nya funktionstester. Fullt testsvep grönt: lint, build, `npx vitest run` (535 tester,
+oförändrat), `npm run test:rules`, `npm run test:functions`.
+
+**11 av 16 delmål i Etapp L1 klara.** Kvarstår: L1e (stor, inget hinder), L1f (stor,
+beslutspunkt 4), L1c/L1d/L1j (beslutspunkt 1/3/2).
 
 ## Uppföljning 2026-08-29 (v5.134.0 – L1m, L1a, L1g, L1i, L1n, L1p byggda)
 

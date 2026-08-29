@@ -114,6 +114,7 @@ exports.gorTillPlattformsadmin = plattformsdrift.gorTillPlattformsadmin;
 exports.skapaLeverantorskonto = plattformsdrift.skapaLeverantorskonto;
 exports.flyttaTillPlattformskonto = plattformsdrift.flyttaTillPlattformskonto;
 exports.hamtaLeverantorsAtgardslogg = plattformsdrift.hamtaLeverantorsAtgardslogg;
+exports.hamtaKundensLeverantorshistorik = plattformsdrift.hamtaKundensLeverantorshistorik;
 
 // ── kvissbank.js – Etapp 71: frågebanken bakom Öva-läget (leverantörens globala frågor,
 // kundens överlagringar och egna frågor, paketpaus på båda nivåerna)

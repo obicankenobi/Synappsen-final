@@ -77,7 +77,11 @@ const LeverantorInnehall = lazy(() => import("./pages/leverantor/LeverantorInneh
 const LeverantorEkonomi = lazy(() => import("./pages/leverantor/LeverantorEkonomi"));
 const LeverantorLogg = lazy(() => import("./pages/leverantor/LeverantorLogg"));
 const KundLayout = lazy(() => import("./pages/leverantor/kund/KundLayout"));
-const KundStub = lazy(() => import("./pages/leverantor/kund/KundStub"));
+const KundOversikt = lazy(() => import("./pages/leverantor/kund/KundOversikt"));
+const KundAnvandning = lazy(() => import("./pages/leverantor/kund/KundAnvandning"));
+const KundEkonomi = lazy(() => import("./pages/leverantor/kund/KundEkonomi"));
+const KundAtgarder = lazy(() => import("./pages/leverantor/kund/KundAtgarder"));
+const KundHistorik = lazy(() => import("./pages/leverantor/kund/KundHistorik"));
 const Introduktion = lazy(() => import("./pages/Introduktion"));
 const Kompetensmatris = lazy(() => import("./pages/Kompetensmatris"));
 const Ledningsrapport = lazy(() => import("./pages/Ledningsrapport"));
@@ -343,11 +347,11 @@ export default function App() {
             <Route path="ekonomi" element={<LeverantorEkonomi />} />
             <Route path="logg" element={<LeverantorLogg />} />
             <Route path="kund/:orgId" element={<KundLayout />}>
-              <Route index element={<KundStub />} />
-              <Route path="anvandning" element={<KundStub />} />
-              <Route path="ekonomi" element={<KundStub />} />
-              <Route path="atgarder" element={<KundStub />} />
-              <Route path="historik" element={<KundStub />} />
+              <Route index element={<KundOversikt />} />
+              <Route path="anvandning" element={<KundAnvandning />} />
+              <Route path="ekonomi" element={<KundEkonomi />} />
+              <Route path="atgarder" element={<KundAtgarder />} />
+              <Route path="historik" element={<KundHistorik />} />
             </Route>
           </Route>
           <Route

@@ -699,7 +699,7 @@ av rutten själv). `npm run build` och `npm run lint` gröna med hela den nya si
 
 ---
 
-### L1b. Kunddossién – en sida per kund
+### L1b. Kunddossién – en sida per kund — ✅ KLAR 2026-08-29
 
 I dag är allt om EN kund utspritt: `OrganisationsRad` (300 rader) expanderar inline i en
 lista, och resten ligger i andra sektioner. Att svara på "hur mår kund X?" kräver att man
@@ -721,6 +721,60 @@ En sida, sju block:
 
 **Detta är planens enskilt största arbetsbesparing** och det jag skulle bygga först om bara
 ett delmål fick byggas.
+
+**Byggt:**
+
+- **Bugfix (upptäckt vid premisskontroll, inte en del av den ursprungliga L1b-uppgiften):**
+  `listaOrganisationer` (`functions/organisationslivscykel.js`) returnerade aldrig `orgnr`,
+  `kontaktperson`, `anvandartak` (satta sedan Etapp 6b) eller `pubAvtalTecknat`,
+  `pubAvtalVersion`, `underbitradeUnderrattad`, `omfattasAvNIS2`, `atagandeblock` (satta sedan
+  L1p, samma session). Det gjorde att `AvtalOchAtagandeSektion.jsx` (byggd i L1p) alltid visade
+  "ej tecknat"/tomt oavsett verkligt Firestore-läge – ett tyst fel som ingen tidigare test fångade
+  eftersom funktionstesterna läste/skrev dokumentet direkt, aldrig via det callet klienten
+  faktiskt använder. Fixat genom att lägga till alla åtta fälten i returobjektet. Regressionstest:
+  `tests/functions/listaorganisationer-falt.test.cjs`.
+- Block 1 "Huvud", block 2 "Kontakt" (utan "vem är superadmin"/"senast bjöd in" – se nedan) och
+  en placeholder för block 5 "Hälsa": `src/pages/leverantor/kund/KundOversikt.jsx`.
+- Block 4 "Användning" (antal/tak, sökkvot, modulstatus) plus en placeholder för "senaste
+  aktivitet": `src/pages/leverantor/kund/KundAnvandning.jsx`.
+- Block 3 "Avtal & ekonomi": `src/pages/leverantor/kund/KundEkonomi.jsx`, återanvänder
+  `beraknaEkonomiOversikt` (L1i) på en enkund-array och `AvtalOchAtagandeSektion` (L1p) –
+  flyttad hit från `OrganisationsRad.jsx` (se nedan).
+- Block 6 "Historik": ny callable `hamtaKundensLeverantorshistorik(orgId)`
+  (`functions/plattformsdrift.js`), plattformsadmin-gated, läser leverantörens EGNA poster i
+  den befintliga `revisionslogg` (filtrerad på `organisationId` + `aktorRoll ==
+  "plattformsadmin"`) – ingen ny personuppgiftsexponering (krav 38, symmetriskt med att kunden
+  redan ser vad leverantören gjort). Ny sammansatt index i `firestore.indexes.json`. Klient:
+  `src/components/leverantor/KundHistorikSektion.jsx` + `src/pages/leverantor/kund/
+  KundHistorik.jsx`.
+- Block 7 "Åtgärder": `src/components/leverantor/KundAtgarderSektion.jsx`, en
+  fristående komponent (samma mönster som `AvtalOchAtagandeSektion` i L1p) som återanvänder
+  alla nio befintliga klientfunktioner (pausa, avtalsstatus, provperiod, årsavgift, sökkvottak,
+  huvudman, seed, exportera, avsluta support) – ingen ny backend. `src/pages/leverantor/kund/
+  KundAtgarder.jsx` är en tunn wrapper.
+- Ruttträdet i `src/App.jsx` bytte de fem `KundStub`-platshållarna mot riktiga sidor;
+  `src/pages/leverantor/kund/KundStub.jsx` borttagen.
+- `OrganisationsRad.jsx`: den tidigare fristående "Avtal & åtaganden"-panelen (byggd i L1p
+  innan kunddossién fanns) togs bort och ersattes med en länk till `/leverantor/kund/:orgId/
+  ekonomi`, för att undvika dubblerad UI för samma funktion. `OrganisationsListaSektion.jsx`
+  städad efter (onödig prop borttagen).
+- Ny CSS-klass `.kund-lista` i `src/pages/Leverantor.css` (kunddossiens sidor laddar inte
+  `Admin.css`, så `admin-statistik-lista` var inte tillgänglig där).
+- **Medvetet INTE byggt, i väntan på öppna beslutspunkter:** block 5 "Hälsa" (kräver L1c +
+  beslutspunkt 1) och delen av block 4 som är "senaste aktivitet" (kräver L1j + beslutspunkt
+  2) – båda visas som platshållare i respektive sida. Del av block 2 – "vem är superadmin"
+  och "senast bjöd in någon" – byggdes INTE: plattformsadmin har i dag ingen läsväg till
+  `users/{uid}`, och att öppna en sådan skulle vara en ny läsväg mot kundinnehåll utan
+  samtycke (krav 37); det är inget delmålet L1b bad om, och görs inte i förbifarten.
+- **Medvetet lämnat orört:** `OrganisationsRad.jsx`s inline-expansion i kundregistret –
+  att retirera den helt till förmån för kunddossién är ett separat, större steg som inte
+  krävdes av L1b (se kommentar i `KundLayout.jsx`).
+
+**Testat:** `tests/functions/listaorganisationer-falt.test.cjs`, 7 tester (4 för
+bugfixen, 3 för `hamtaKundensLeverantorshistorik` – åtkomstnekad för icke-plattformsadmin,
+bara egna poster för rätt organisation, ingen läckage mellan organisationer). Fullt
+testsvep grönt: lint, build, 535 vitest (oförändrat antal – inga nya vitest-filer),
+`test:rules`, `test:functions`.
 
 ---
 
@@ -996,7 +1050,7 @@ dess, och byggordningen i "Beroendeordning" är vald så att inget öppet svar b
 ```
 L1m ✅ (leverantörskontot)   ← byggd FÖRST, flyttade åtkomstgränsen
  └─ L1a ✅ (skelett)
-     ├─ L1b (kunddossié)  ← INTE byggd. Bygg denna först av allt återstående innehåll
+     ├─ L1b ✅ (kunddossié)
      │   ├─ L1c (mätvärden)   [beslutspunkt 1, öppen]
      │   │   └─ L1d (visualisering)  [beslutspunkt 3, öppen]
      │   ├─ L1i ✅ (ekonomi)  – byggd fristående av portföljvyn, väntar inte på L1b
@@ -1014,9 +1068,9 @@ Fristående, kan byggas när som helst:
  L1l ✅ (intern ändringslogg + test)
 ```
 
-**Status per 2026-08-29: 10 av 16 delmål klara** (L1h, L1k, L1l, L1o från den första
-omgången; L1m, L1a, L1g, L1i, L1n, L1p från den andra). Kvarstår: L1b, L1c, L1d, L1e, L1f, L1j
-– samtliga utom L1e och L1b hänger på en öppen beslutspunkt (1, 2 eller 4).
+**Status per 2026-08-29: 11 av 16 delmål klara** (L1h, L1k, L1l, L1o från den första
+omgången; L1m, L1a, L1g, L1i, L1n, L1p från den andra; L1b från den tredje). Kvarstår: L1c,
+L1d, L1e, L1f, L1j – samtliga utom L1e hänger på en öppen beslutspunkt (1, 2, 3 eller 4).
 
 ---
 
@@ -1032,15 +1086,14 @@ Grov, i samma skala som tidigare etapplaner (ett "delmål" ≈ en fokuserad arbe
 | L1n | Medel – tre av fyra punkter är gränssnitt ovanpå kod som redan finns | ✅ Klar |
 | L1o | Liten – en collection, en signal, fyra rader innehåll | ✅ Klar |
 | L1p | Medel – liten kodmängd, men punkt 1 är en spärr mot ett faktiskt regelbrott och bär planens tyngsta test | ✅ Klar |
-| L1b | Stor – kärnan i planen | Ej byggd |
+| L1b | Stor – kärnan i planen | ✅ Klar |
 | L1e, L1f | Stora | Ej byggda (L1f: beslutspunkt 4 öppen) |
 | L1c, L1d, L1j | Beror helt på beslutspunkterna | Ej byggda (1, 3 respektive 2 öppna) |
 
 **Byggordningen som faktiskt kördes:** L1m → (L1l, L1h, L1k, L1o – kunde byggas fristående,
 kördes först) → L1a → L1g, L1i, L1n, L1p (alla fyra byggda parallellt inom samma session,
-eftersom ingen av dem beror på en öppen beslutspunkt eller på L1b). **Kvar:** L1b är nu den
-enskilt största återstående arbetsbesparingen, precis som planen alltid sagt – och den enda
-återstående posten som INTE väntar på ett ägarbeslut.
+eftersom ingen av dem beror på en öppen beslutspunkt eller på L1b) → L1b. **Kvar:** L1e (ingen
+öppen beslutspunkt, men stor) och L1c/L1d/L1f/L1j, som samtliga väntar på ett ägarbeslut.
 
 ---
 
@@ -1056,3 +1109,4 @@ enskilt största återstående arbetsbesparingen, precis som planen alltid sagt 
 | 0.6 | 2026-08-29 | **Antagen.** Ägaren markerade planen som antagen i sin helhet. Beslutspunkterna 5 och 6 avgjorda genom antagandet (planens struktur förutsätter dem); 1–4 och 7 kvarstår öppna och avgörs var för sig, precis innan respektive delmål påbörjas. Se `BESLUTSLOGG.md` 2026-08-29 |
 | 0.7 | 2026-08-29 | **L1l, L1h, L1k (delvis), L1o byggda.** De fyra "Liten"-delmålen. Se "Byggt"/"Testat" i respektive delmål ovan. L1k byggdes bara på `antalAnvandare`-axeln – kostnadshistorik-axeln avgränsades medvetet bort (skulle touchat en budgetkritisk transaktion för en oproportionerlig vinst). Ett verkligt korrekthetsfel (blint `FieldValue.increment` på ett oinitierat fält) hittades och fixades under bygget, inte efteråt. 37 nya tester totalt (8+5+2 vitest, 8 regel, 5+9 funktioner) |
 | 0.8 | 2026-08-29 | **L1m, L1a, L1g, L1i, L1n, L1p byggda.** De sex "Medel"-delmålen. Beslutspunkt 6 gick från "avgjord genom antagandet" till faktiskt byggd (`flyttaTillPlattformskonto`). Två deliberata avsteg dokumenterade i respektive delmåls "Byggt": `IncidentberedskapSektion.jsx` togs INTE bort från kundens adminpanel (en riktig regression för en fungerande kundfunktion), och kundlägets fem flikar delar en gemensam platshållare i väntan på L1b. 10 av 16 delmål nu klara – bara L1b, L1c, L1d, L1e, L1f, L1j kvarstår, och fyra av de sex väntar på en öppen beslutspunkt |
+| 0.9 | 2026-08-29 | **L1b byggd.** Kunddossién – planens enskilt största arbetsbesparing. Fem riktiga sidor ersatte den delade platshållaren från 0.8: Huvud, Kontakt (delvis), Avtal & ekonomi, Användning (delvis), Historik, Åtgärder. Ett verkligt korrekthetsfel hittades och fixades vid premisskontroll: `listaOrganisationer` returnerade aldrig åtta fält som `AvtalOchAtagandeSektion.jsx` (L1p) redan berodde på, vilket gjorde den panelen permanent felaktig sedan L1p byggdes. Två block (Hälsa, senaste aktivitet) och en delfunktion (vem är superadmin) lämnades medvetet obyggda i väntan på öppna beslutspunkter/krav 37. `OrganisationsRad.jsx`s dubblerade avtalspanel togs bort till förmån för en länk till dossién. 7 nya funktionstester. 11 av 16 delmål nu klara |

@@ -89,12 +89,41 @@ för att förebygga – `Write` på en befintlig, redan lästs fil är i sig en 
 
 ---
 
+## v5.135.0 (2026-08-29) – L1b: kunddossién
+
+Planens enskilt största arbetsbesparing, byggd i samma session direkt efter de sex
+"Medel"-delmålen ovan. Detaljerna står i `intern/ETAPPLAN-INTERN-1.md` under L1b.
+
+- **Bugfix funnen vid premisskontroll:** `listaOrganisationer` returnerade aldrig åtta fält
+  (`orgnr`, `kontaktperson`, `anvandartak`, `pubAvtalTecknat`, `pubAvtalVersion`,
+  `underbitradeUnderrattad`, `omfattasAvNIS2`, `atagandeblock`) som `AvtalOchAtagandeSektion.jsx`
+  (L1p) redan berodde på – panelen hade visat "ej tecknat"/tomt sedan den byggdes, oavsett
+  verkligt Firestore-läge. Fixad, med ett regressionstest som bevisar det.
+- Fem riktiga sidor ersatte den delade platshållaren från v5.134.0: Huvud+Kontakt+Hälsa-
+  platshållare (`KundOversikt.jsx`), Användning (`KundAnvandning.jsx`), Avtal & ekonomi
+  (`KundEkonomi.jsx`, återanvänder L1i:s `beraknaEkonomiOversikt` och flyttar in L1p:s
+  `AvtalOchAtagandeSektion`), Historik (`KundHistorikSektion.jsx`, ny callable
+  `hamtaKundensLeverantorshistorik`), Åtgärder (`KundAtgarderSektion.jsx`, återanvänder nio
+  befintliga klientfunktioner, ingen ny backend).
+- `OrganisationsRad.jsx`s dubblerade "Avtal & åtaganden"-panel (en provisorisk lösning från
+  L1p, innan dossién fanns) togs bort till förmån för en länk till dossién.
+- Medvetet obyggt: Hälsa (kräver L1c + beslutspunkt 1), "senaste aktivitet" (kräver L1j +
+  beslutspunkt 2), "vem är superadmin"/"senast bjöd in" (ingen läsväg till `users/{uid}` utan
+  att öppna en ny läsväg mot kundinnehåll, krav 37 – inget L1b bad om).
+
+7 nya funktionstester. Fullt testsvep grönt: lint, build, `npx vitest run` (535 tester,
+oförändrat – inga nya vitest-filer), `npm run test:rules`, `npm run test:functions`.
+
+Ingen kundpåverkan – ingen rad i `src/data/andringslogg.js`. Inte deployat än.
+
+---
+
 ## Ej ännu byggt
 
 `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) **antogs 2026-08-29** i sin
-helhet (16 delmål, L1a–L1p; se `BESLUTSLOGG.md` samma datum). **10 av 16 klara** (ovan).
-Kvarstår: L1b (kunddossién, störst arbetsbesparing, inget hinder att börja), L1e och L1f
-(stora, L1f väntar på beslutspunkt 4), L1c/L1d/L1j (väntar på beslutspunkt 1/3/2).
+helhet (16 delmål, L1a–L1p; se `BESLUTSLOGG.md` samma datum). **11 av 16 klara** (ovan).
+Kvarstår: L1e (stor, inget hinder att börja), L1f (stor, väntar på beslutspunkt 4),
+L1c/L1d/L1j (väntar på beslutspunkt 1/3/2).
 
 ---
 

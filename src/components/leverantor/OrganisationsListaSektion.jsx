@@ -417,7 +417,6 @@ export default function OrganisationsListaSektion({
             arendeSparar={arendeSparar}
             onLaggTillArende={hanteraLaggTillArende}
             onTaBortArende={hanteraTaBortArende}
-            onFel={onFel}
           />
         ))}
       </ul>

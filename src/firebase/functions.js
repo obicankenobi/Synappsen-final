@@ -138,6 +138,12 @@ export function hamtaLeverantorsAtgardslogg(limit) {
   return fn(limit ? { limit } : {});
 }
 
+// Etapp L1b, block 6 "Historik" – samma sak som ovan, men filtrerad till EN organisation.
+export function hamtaKundensLeverantorshistorik(orgId) {
+  const fn = httpsCallable(functions, "hamtaKundensLeverantorshistorik");
+  return fn({ orgId });
+}
+
 // Etapp 51 – demo-/övningsorganisation: nollställ innehållet, valfritt med en färsk
 // superadmin-inbjudan till en specifik e-postadress (samma mekanism som skapaOrganisation).
 export function nollstallDemoOrganisation(inbjudanEpost) {

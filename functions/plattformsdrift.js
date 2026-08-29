@@ -443,3 +443,32 @@ exports.hamtaLeverantorsAtgardslogg = onCall({ region: "europe-west1" }, async (
 
   return { poster: snap.docs.map((d) => ({ id: d.id, ...d.data() })) };
 });
+
+// Etapp L1b (intern/ETAPPLAN-INTERN-1.md), block 6 "Historik": SAMMA data som
+// hamtaLeverantorsAtgardslogg ovan, men filtrerad till EN organisation i stället för tvärs
+// alla – "kundens revisionslogg filtrerad på leverantörens egna åtgärder, så det syns vad VI
+// gjort hos just den här kunden". `revisionslogg` kräver annars ett aktivt supportfönster för
+// en plattformsadmin (krav 37) – men det gäller kundens EGNA poster, inte leverantörens.
+// Att en leverantör kan se sina EGNA tidigare åtgärder mot en kund är symmetriskt med krav 38
+// ("kunden ska kunna se vad leverantören gjort") och läcker ingen ny kundinformation.
+exports.hamtaKundensLeverantorshistorik = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+
+  const orgId = request.data?.orgId;
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+
+  const snap = await db
+    .collection("revisionslogg")
+    .where("organisationId", "==", orgId)
+    .where("aktorRoll", "==", "plattformsadmin")
+    .orderBy("tidpunkt", "desc")
+    .limit(100)
+    .get();
+
+  return { poster: snap.docs.map((d) => ({ id: d.id, ...d.data() })) };
+});
