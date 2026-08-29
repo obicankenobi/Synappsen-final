@@ -305,6 +305,68 @@ startsidan finns.
 
 ---
 
+## Behoven, och vilken funktion som möter varje
+
+Delmålen ovan beskriver VAD som byggs. Det här avsnittet beskriver VARFÖR – vilka
+återkommande arbetsuppgifter ägaren faktiskt har, och vilken funktion som svarar mot var och
+en. Skrivet 2026-08-29 på ägarens begäran.
+
+Behoven är härledda ur vad koden och avtalsdokumenten säger om verksamheten, inte gissade:
+en ensam person är samtidigt leverantör, utvecklare, support, kontakt för dataskydd och
+säljare (`drift/INCIDENT-CHECKLISTA.md` utgår genomgående från en ensam operatör), inga
+betalande kunder finns ännu (låst av `tests/docs/dokumentpastaenden.test.js`), och
+kundlivscykeln har fem lägen i kod: `offert → signerat → aktiv → pausad → avslutad`.
+
+### Sammanställning
+
+| # | Behov | Så ser det ut i dag | Funktion i panelen | Ny kod? |
+|---|---|---|---|---|
+| **B1** | **Återställa en kund efter en incident** | `aterstallOrganisationCallable` finns, är plattformsadmin-grindad – och har **noll gränssnitt**. `backupaOrganisation` likaså. Backupfilerna är dessutom `allow read, write: if false` i `storage.rules`, så klienten kan inte ens lista dem | **Återställningspanel** (L1n) | Ja – och det är planens viktigaste rad |
+| **B2** | **Veta att beredskapen är den dokumenten påstår** | `hamtaBackupstatus`, `verifieraRevisionskedjor`, `testaBeroenden` och `verifieraKlinikstod` sitter i `IncidentberedskapSektion.jsx` – i **kundens** adminpanel, bakom `arSuperadmin`. Leverantören når dem bara genom att vara superadmin i just den organisationen | **Beredskapskontroll** (L1n), flyttad till panelen | Nej – omflyttning |
+| **B3** | **Bli påmind om återställningsövningen** | `CLAUDE.md` säger "riktmärke ~6 månader", `.github/workflows/rto-matning.yml` finns och mäter riktigt. Men ingenting registrerar NÄR den senast kördes, och regeln är prosa som en session ska komma ihåg | **Åttonde signalen:** "senaste RTO-mätning äldre än 6 månader" | Ja – ett fält plus en signal |
+| **B4** | **Upptäcka fel innan kunden hör av sig** | Sentry finns, men taggar `organisationId` bara i `rapporteraNekadListning`. En felfrekvens per kund går inte att få ut | **Driftöversikt** (L1e) | Ja – bredare Sentry-taggning, utanför panelen |
+| **B5** | **Veta att en deploy faktiskt gick fram** | Kört två gånger i månaden att workflowen rapporterat `success` utan att hosting deployades (körning #90). Upptäckt manuellt, båda gångerna | **Versionsöversikt**: vilken version varje kunds klienter faktiskt kör (L1j, beslutspunkt 2) | Ja |
+| **B6** | **Veta vad varje kund kostar och inbringar** | `kostnadshistorik` per organisation och `avtaladArsavgiftKr` finns båda. Marginalen räknas aldrig ut någonstans | **Ekonomiöversikt** (L1i) med marginal per kund och en signal vid negativ marginal | Nej – ren beräkning |
+| **B7** | **Veta var varje prospekt står och vad som väntar på mig** | De fem avtalsstatusarna och `avtalsstatusAndrad` finns, och signalen `offert_stillastaende` larmar. Men ingenting registrerar vad ägaren TÄNKT göra härnäst | **Pipeline** (L1h) + ett fritextfält "nästa steg + datum" per organisation | Ja – ett fält |
+| **B8** | **Få en ny kund i drift utan att glömma ett steg** | Sex separata anrop i rätt ordning (`skapaOrganisation`, `seedaStartbibliotek`, moduler, årsavgift, kvottak, `skapaInbjudan`), utspridda över fyra sektioner, utan checklista | **Härledd onboardingchecklista** (L1h) | Nej – härleds ur befintlig data |
+| **B9** | **Hjälpa en kund utan att se mer än jag får** | `beviljaSupportAtkomst` kan bara startas av kundens egen superadmin. Leverantören kan bara avsluta ett fönster, aldrig begära ett | **Supportarbetsyta** (L1f, beslutspunkt 4) | Ja |
+| **B10** | **Kunna visa vad jag gjort hos en kund** | Varje leverantörsåtgärd loggas redan in i kundens hashkedja. Det finns bara ingen läsvy tvärs kunderna | **Åtgärdslogg** (L1g) | Nej – läsvy |
+
+### De tre som betyder mest, och varför
+
+**B1 är den enda raden där ett dokument påstår en förmåga som i praktiken inte går att
+utöva.** `avtal/INCIDENTRESPONSPLAN.md` avsnitt 5.5 och `drift/INCIDENT-CHECKLISTA.md` steg 8
+beskriver återställning som en existerande förmåga. Den finns också – som kod. Men det finns
+ingen knapp, och ägaren har ingen CLI mot produktionsprojektet. I skarpt läge, klockan tre på
+natten, är avståndet mellan "funktionen finns" och "jag kan köra den" hela poängen med
+dokumentet. Det är precis det fel `CLAUDE.md`s underhållsregel varnar för, fast omvänt:
+dokumentet är sant om koden och falskt om verkligheten.
+
+**B2 och B3 hänger ihop med B1 och hör till samma bygge.** Att beredskapskontrollerna ligger
+i kundens adminpanel är dessutom fel även bortsett från panelen: backupstatus och
+revisionskedjeverifiering är leverantörens driftansvar, inte kundens superadmins vardag. Med
+den nya kontomodellen (L1m) blir det dessutom praktiskt omöjligt – ett `_plattform`-konto är
+inte superadmin i någon kundorganisation och ser dem aldrig.
+
+**B7 och B8 är de enda raderna som handlar om att tjäna pengar.** Resten är drift. Med noll
+kunder i dag är pipeline-vyn den som ger mest per byggd rad, men den är också den som lättast
+blir ett CRM om man inte håller igen – därför ETT fält, inte en modul.
+
+### Vad jag medvetet INTE föreslår
+
+- **Att spegla `OPPNA-PUNKTER.md` in i panelen.** Filen ligger i git, granskas av tester och
+  läses av varje ny session. En andra kopia i Firestore vore ett till ställe som kan glida –
+  exakt det mönster projektet har misslyckats med sex gånger.
+- **Bockrutor i onboardingchecklistan.** Varje steg härleds ur faktisk data (finns
+  startbibliotek? finns minst en användare? är moduler satta? finns årsavgift?). En bockruta
+  man klickar i är ett påstående utan täckning – samma fel som ett felaktigt ✅ i
+  incidentdokumenten, och genomgående krav 8 gäller även gränssnitt.
+- **Att göra `skickaFeedback`-inkorgen leverantörssynlig rakt av.** Se beslutspunkt 7.
+- **Automatiska åtgärder på signaler.** Redan avvisat ovan och gäller även de nya signalerna:
+  en RTO-påminnelse ska påminna, aldrig starta en mätning själv.
+
+---
+
 ## Delmål
 
 Ordningen är inte godtycklig – L1a och L1b är förutsättningar för i stort sett allt annat.
@@ -337,6 +399,44 @@ förekommer som ett giltigt värde i organisationslistan.
 **Ingen ny åtkomst någonstans.** Kontot får exakt samma rättigheter som en plattformsadmin
 har i dag; det som försvinner är den oavsiktliga medlemskapsåtkomsten till den organisation
 kontot råkade tillhöra.
+
+---
+
+### L1n. Återställning och beredskap – panelens enda riktiga kapacitetslucka
+
+Svarar mot B1, B2 och B3. Det här är det enda delmålet i planen som bygger en förmåga som
+dokumenten redan påstår finns.
+
+1. **`listaBackuper(orgId)`** – ny callable, plattformsadmin-grindad. Klienten kan inte lista
+   `backups/{orgId}/` själv (`storage.rules` säger `allow read, write: if false`, medvetet).
+   Returnerar datum och storlek per fil, inget innehåll.
+2. **Återställningspanel per kund** – listan ovan, med `aterstallOrganisationCallable`
+   (finns, oanvänd) bakom en tvåstegsbekräftelse där organisationsnamnet skrivs in. Samma
+   mönster som `RaderaOrganisationSektion`, av samma skäl: en återställning skriver över
+   nuvarande data och går inte att ångra.
+3. **Manuell backup före en riskabel åtgärd** – `backupaOrganisation` (finns, oanvänd) som en
+   knapp i kundens åtgärdsflik. Den naturliga första handlingen före en migrering eller en
+   återställning.
+4. **Beredskapskontroll flyttad till panelen** – `hamtaBackupstatus`,
+   `verifieraRevisionskedjor`, `testaBeroenden` och `verifieraKlinikstod` lyfts ur
+   `src/components/admin/IncidentberedskapSektion.jsx` (kundens adminpanel) till
+   `/leverantor/drift`. De är leverantörens driftansvar, och efter L1m når ett
+   `_plattform`-konto dem inte längre där de ligger.
+5. **RTO-övningens ålder blir en signal.** Registrera datum och uppmätt tid när
+   `.github/workflows/rto-matning.yml` körts, och lägg till en åttonde signal i
+   `src/utils/leverantorSignaler.js` när det är äldre än sex månader.
+
+**Motivering för punkt 5 i projektets egna termer:** riktmärket står i dag som prosa i
+`CLAUDE.md` och ska kommas ihåg av en session. Prosaregler har misslyckats sex gånger här;
+signaler och assertioner har inte misslyckats en enda. Det här är samma val som
+`src/version.js` och `tests/docs/pitch-version.test.js`, fast i gränssnittet.
+
+**Testat.** Att `listaBackuper` nekas för en icke-plattformsadmin; att återställningen kräver
+båda bekräftelsestegen; att signalen slår vid 6 månader och inte tidigare. Återställningen
+själv testas inte skarpt härifrån – den har redan en egen mätning i `rto-matning.cjs`.
+
+**Avgränsning.** Ingen automatisk återställning, och ingen "återställ alla". En återställning
+är alltid en människas beslut om en namngiven organisation.
 
 ---
 
@@ -553,6 +653,7 @@ Det som gör ägarens krav mekaniskt i stället för en vana:
 | 4 | Ska leverantören kunna **begära** supportåtkomst i appen? | **Ja** – kunden godkänner fortfarande, bara den manuella kontakten försvinner |
 | 5 | Ska panelen ligga kvar på `/leverantor` i samma app? | **Ja.** En separat app innebär ett andra bygge, ett andra deploy och en andra autentisering, för en användare |
 | 6 | Ska ägarens **befintliga konto** flyttas till `_plattform`, eller ska ett nytt leverantörskonto skapas vid sidan av? | **Flytta det befintliga.** Begäran var uttryckligen ett enda övergripande konto. Priset är att kontot inte längre ser någon kundvy inifrån – för att se produkten som en användare finns demomiljön (Etapp 51). Ett andra konto återinför precis det kontobyte begäran ville bli av med |
+| 7 | Ska leverantören se kundens **feedback-inkorg** (`skickaFeedback`)? | **Nej, inte rakt av.** Regeln är i dag `arSuperadmin() && matcharMinOrg()` – feedbacken är skriven till kundens egen admin, inte till leverantören. Efter L1m når ett `_plattform`-konto den inte alls, vilket är rätt utfall. Behövs en kanal till leverantören bör den vara en EGEN, tydligt märkt sådan – inte en tyst utvidgning av vem som läser det kunden trodde stannade internt |
 
 ---
 
@@ -584,6 +685,7 @@ L1m (leverantörskontot)   ← bygg FÖRST, den flyttar åtkomstgränsen
      │   ├─ L1i (ekonomi)
      │   └─ L1j (aktivitet/version)  [beslutspunkt 2]
      ├─ L1e (driftkonsol)
+     ├─ L1n (återställning + beredskap)  ← störst nytta per rad
      ├─ L1f (support)  [beslutspunkt 4]
      ├─ L1g (åtgärdslogg)
      └─ L1h (pipeline)
@@ -606,9 +708,11 @@ Grov, i samma skala som tidigare etapplaner (ett "delmål" ≈ en fokuserad arbe
 | L1m | Medel – liten kodmängd, men den flyttar en åtkomstgräns och bär därför mest testarbete per rad i hela planen |
 | L1a, L1g, L1i | Medel |
 | L1b, L1e, L1f | Stora – kärnan i planen |
+| L1n | Medel – tre av fem punkter är gränssnitt ovanpå kod som redan finns |
 | L1c, L1d, L1j | Beror helt på beslutspunkterna |
 
-**Om bara en sak byggs:** L1m först (kontomodellen), sedan L1l (separationen) och L1b (kunddossién). De två ger
+**Om bara en sak byggs:** L1m först (kontomodellen), sedan L1n (återställningen – den enda
+raden som stänger en påstådd men outövbar förmåga), därefter L1l och L1b. De två ger
 merparten av nyttan och binder inga beslut som ännu inte är fattade.
 
 ---
@@ -620,3 +724,4 @@ merparten av nyttan och binder inga beslut som ännu inte är fattade.
 | 0.1 | 2026-08-27 | Första utkastet. Ej antaget |
 | 0.2 | 2026-08-29 | Avsnittet "Panelens upplägg" tillagt: portfölj- kontra kundläge, tolv rutter, tvånivåers åtkomsttak, delad datastomme och tre delade komponenter. L1a skrevs om till att bygga upplägget i stället för att beskriva det. Fortfarande ej antagen |
 | 0.3 | 2026-08-29 | Kontomodellen tillagd på ägarens begäran: ett enda övergripande konto med `organisationId: "_plattform"`, utan medlemskap i någon kundorganisation. Nytt delmål L1m (bygg först), ny beslutspunkt 6. Fyra premissfynd ändrade utformningen – särskilt att ett SAKNAT `organisationId` inte ger organisationslöshet utan medlemskap i `default` |
+| 0.4 | 2026-08-29 | Avsnittet "Behoven, och vilken funktion som möter varje" tillagt (B1–B10, härledda ur kod och avtalsdokument). Nytt delmål L1n: återställningspanel, manuell backup, beredskapskontroller flyttade från kundens adminpanel, och RTO-övningens ålder som åttonde signal. Ny beslutspunkt 7 (feedback-inkorgen). Fyndet som motiverar L1n: `aterstallOrganisationCallable` och `backupaOrganisation` finns i kod men har noll gränssnitt, medan incidentdokumenten beskriver återställning som en existerande förmåga |

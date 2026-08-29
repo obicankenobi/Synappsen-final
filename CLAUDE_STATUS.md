@@ -145,6 +145,22 @@ farligaste alternativet, inte det säkraste. Rollen måste dessutom förbli `sup
 slutar `farForsokaLasaPlattformsadmin` (`src/firebase/roles.js:69`) att ens leta efter
 panelen.
 
+**Tillägg samma dag (v0.4):** en behovsanalys B1–B10 – vilka återkommande arbetsuppgifter
+ägaren faktiskt har, och vilken funktion i panelen som möter var och en. Nytt delmål L1n.
+
+**Det allvarligaste fyndet i hela genomgången:** `aterstallOrganisationCallable` och
+`backupaOrganisation` finns som plattformsadmin-grindade callables men har **noll
+gränssnitt** – och backupfilerna är `allow read, write: if false` i `storage.rules`, så en
+klient kan inte ens lista dem. Samtidigt beskriver `avtal/INCIDENTRESPONSPLAN.md` 5.5 och
+`drift/INCIDENT-CHECKLISTA.md` steg 8 återställning som en existerande förmåga. Den finns som
+kod men går inte att utöva utan CLI mot produktionsprojektet. Dokumenten är alltså sanna om
+koden och falska om verkligheten – samma feltyp underhållsregeln finns för, fast omvänd.
+Ingen dokumentändring gjord: förmågan FINNS, den saknar bara en knapp, och L1n bygger den.
+
+Näst allvarligast: `hamtaBackupstatus`, `verifieraRevisionskedjor`, `testaBeroenden` och
+`verifieraKlinikstod` sitter i `src/components/admin/IncidentberedskapSektion.jsx` – i
+KUNDENS adminpanel bakom `arSuperadmin`. Efter L1m når ett `_plattform`-konto dem aldrig.
+
 Ägaren har också gett Cloud Functions-tjänstekontot `roles/firebaseauth.admin` i GCP.
 **Ännu inte verifierat** – `tvingaUtloggning` på ett testkonto är det icke-destruktiva testet.
 Tills det är gjort står raden kvar i `OPPNA-PUNKTER.md`.
