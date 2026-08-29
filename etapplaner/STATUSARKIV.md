@@ -4270,3 +4270,36 @@ att build + fyra gröna testsviter fångar det en visuell genomgång annars skul
 ---
 
 ---
+
+## Uppföljning 2026-08-23 (rättad: "Uppdatera"-knappen gjorde ingenting, v5.128.0)
+
+Ägaren rapporterade att banderollen "En ny version av Synappsen finns tillgänglig" och dess
+"Uppdatera"-knapp (`AppUppdateringBanner.jsx`) inte fungerade.
+
+**Rotorsak:** `vite.config.js` kör vite-plugin-pwa i `injectManifest`-läge (Etapp 24a, för att
+Firebase-konfigurationen ska processas av Vite) med `src/sw.js` som EGEN, handskriven service
+worker-källa. `useAppUppdatering.js`s `uppdatera()` anropar `updateSW(true)`, som (via
+`workbox-window`) postar `{type: "SKIP_WAITING"}` till den väntande workern och sedan väntar
+på ett `"controlling"`-event för att ladda om sidan. **`src/sw.js` saknade helt en lyssnare
+för det meddelandet**, och saknade `clientsClaim()`. `generateSW`-läget (Workbox
+standardbygge) lägger till båda automatiskt – ett handskrivet `injectManifest`-`sw.js` gör
+det inte. Knappen postade alltså ett meddelande ingen lyssnade på, och även om den hade
+lyssnat hade den nya workern bara tagit kontroll över FRAMTIDA sidladdningar utan
+`clientsClaim()`, aldrig den redan öppna fliken. Resultat: att klicka "Uppdatera" gjorde
+bokstavligen ingenting.
+
+**Varför inget test fångade det:** `test:e2e` kör Playwright mot Vites DEV-server (`npm run
+dev`), som aldrig registrerar en riktig service worker. Ingen befintlig testsvit i projektet
+körde `sw.js`s faktiska kod.
+
+**Fixat:** en `message`-lyssnare som anropar `self.skipWaiting()` vid `SKIP_WAITING`, plus
+`clientsClaim()` vid uppstart. Nytt `src/sw.test.js` (3 test) kör sw.js:s riktiga kod i en
+mockad `self`/workbox/firebase-miljö – bevisat att det fångar exakt den här buggen genom att
+tillfälligt ta bort fixen och se testet faila (alla tre), sedan återställa.
+
+Fullt svep grönt: lint, build (bekräftat i minifierad `dist/sw.js` att både lyssnaren och
+`clientsClaim()` faktiskt kompilerades in), vitest 410/410 (37 filer), `test:rules`,
+`test:functions`, `test:storage`, e2e 41/41 (två `ERR_CONNECTION_REFUSED`-flakes vid full
+parallell körning, bekräftat ORELATERADE genom att köra om dem isolerat – passerade båda).
+
+---

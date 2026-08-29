@@ -352,6 +352,68 @@ inte superadmin i någon kundorganisation och ser dem aldrig.
 kunder i dag är pipeline-vyn den som ger mest per byggd rad, men den är också den som lättast
 blir ett CRM om man inte håller igen – därför ETT fält, inte en modul.
 
+### Behov utanför driften – avtal, juridik och försäljning
+
+Tillägg 2026-08-29. Samma härledning som B1–B10: ur avtalsdokumenten,
+`granskningar/JURIDISK-GRANSKNING.md` och säljmaterialet, inte ur önsketänkande.
+
+| # | Behov | Så ser det ut i dag | Funktion i panelen | Ny kod? |
+|---|---|---|---|---|
+| **B11** | **Hålla 72-timmarsfristen vid en personuppgiftsincident** | `drift/INCIDENT-CHECKLISTA.md` steg 6 säger "skriv ned klockslaget, deadline = +72 timmar". Papper och penna. `avtal/PUB-AVTAL-MALL.md` p. 8 är ett avtalsbrott om den missas | **Incidentklocka** (L1p) med nedräkning per drabbad kund och kvitto på skickad underrättelse | Ja |
+| **B12** | **Veta att PUB-avtal finns innan en kund börjar användas** | **Ingenting i organisationsdokumentet registrerar det.** `avtalsstatus` går till `aktiv` utan att någon kontrollerat art. 28.3 | **Hård spärr** (L1p): `satAvtalsstatus('aktiv')` nekas utan registrerat PUB-avtal | Ja |
+| **B13** | **Underrätta kunder när underbiträdeslistan ändras** | Skyldigheten finns (`PUB-AVTAL-MALL.md` p. 5, invändningsrätt). `avtal/UNDERBITRADEN.md` är källan – men inget registrerar VILKA kunder som underrättats om VILKEN version | **Underrättelseregister** (L1p): versionsnummer på listan, plus datum per kund | Ja |
+| **B14** | **Bli påmind om årliga och halvårsvisa åtaganden** | `drift/INCIDENT-CHECKLISTA.md` om nyckelrotation: *"ingen kalenderpåminnelse är byggd för detta än, det är en manuell rutin tills vidare"*. Samma sak för RTO-övningen (~6 mån), incidentresponsplanens översyn (var 6:e mån + varje större release) och tillgänglighetsredogörelsen | **Åtagandekalender** (L1o) – EN mekanism, inte fyra signaler | Ja |
+| **B15** | **Veta vad jag lovat just den här kunden** | Ingenting. Provperiodens längd finns som fält, men utfallsgaranti, prisnivå, pilotupplägg och svarstider lever i minnet och i mejl | **Åtagandeblock i kunddossién** (L1p) | Ja – ett fält |
+| **B16** | **Hantera prospekt som ännu inte är en organisation** | `saljmaterial/KANDIDATLISTA-PRIVAT-VARD.md` – ett internt dokument med bedömningar om namngivna verksamheters svagheter och IVO-historik | **Lägg till prospekt** som skapar en organisation i `avtalsstatus: offert` utan startbibliotek (L1h). **Kandidatlistan flyttas INTE in** – se nedan | Nej – befintligt läge |
+| **B17** | **Ha rätt e-postmall till hands i kundens sammanhang** | `saljmaterial/Synappsen-epostmallar.md` – en fil att leta upp och klippa ur | **Mallar med kundnamnet ifyllt** i kunddossién, kopiera-knapp | Ja – litet |
+| **B18** | **Svara rätt i en upphandling** | `Synappsen-upphandlingssvar.html` har sju statusberoende svar (A2, B4, B6, C3, C5, D1, E2) som `DOKUMENTREGISTER.md` pekar ut som glidningsbenägna | **Ingen panelfunktion.** Bind svaren till assertioner i `tests/docs/dokumentpastaenden.test.js` | Ja – men i testerna |
+| **B19** | **Be en kund om referensmaterial** | `exporteraReferensunderlag` finns, kräver kundens uttryckliga samtycke och körs av kundens egen superadmin – ett `_plattform`-konto kan aldrig anropa den, vilket är rätt | **Begäran** till kunden, samma mönster som supportfönstret (L1f) | Ja – litet |
+| **B20** | **Ta fram en offert med rätt priser** | `kallfiler/Synappsen-prislista.html` är statisk och underhålls för hand mot `KOSTNADSKALKYL-OCH-PRISSATTNING.md` | **Avvakta.** Se avgränsningen nedan | – |
+
+### Tre saker som är viktigare än de ser ut
+
+**B12 är samma fel som Brevo, fast från andra hållet.** I augusti 2026 upptäcktes att
+Synappsen skickade e-post via ett underbiträde utan tecknat PUB-avtal, och spärren blev en
+kodkonstant i stället för en påminnelse – uttryckligen därför att en driftflagga "kan slås av
+av misstag" (`avtal/UNDERBITRADEN.md`, ändringshistoriken 2026-08-27). Exakt samma
+resonemang gäller när Synappsen är biträdet: ingenting hindrar i dag att en organisation
+sätts till `aktiv` och börjar behandla vårdpersonals personuppgifter innan art. 28.3 är
+uppfylld. Spärren ska sitta i `satAvtalsstatus`, inte i en checklista.
+
+**B11 har en konflikt inbakad som materialet redan har hittat men inte hanterat.**
+`granskningar/JURIDISK-GRANSKNING.md` risk 15: en kund som omfattas av cybersäkerhetslagen
+(2025:1506) har **24 timmars** tidig varning, medan PUB-avtalet lovar leverantören
+**72 timmar**. Incidentklockan måste därför kunna märka en kund som NIS2-omfattad och räkna
+ned från 24 timmar för den, annars bygger man in avtalets fel i verktyget. Ett fält per kund,
+och två olika nedräkningar.
+
+**B14 ska bli en mekanism, inte fyra signaler.** Fyra återkommande åtaganden är i dag
+utspridda som prosa i fyra dokument, varav ett uttryckligen konstaterar att påminnelsen
+saknas. En åtagandekalender med `{ vad, intervall, senast utfört, källa }` matar samma
+signalmotor som allt annat och gör det billigt att lägga till det femte åtagandet. Det ersätter
+punkt 5 i L1n, som skulle ha byggt RTO-påminnelsen som ett engångsfall.
+
+### Vad jag uttryckligen avråder från
+
+- **Att flytta in `saljmaterial/KANDIDATLISTA-PRIVAT-VARD.md` i panelen.** Filen innehåller
+  bedömningar om namngivna verksamheters svagheter, IVO-historik och köpbenägenhet, plus
+  kontaktuppgifter till namngivna personer. Att lägga det i produktionsdatabasen vore en **ny
+  behandling där leverantören är personuppgiftsansvarig**, inte biträde – med egen rättslig
+  grund, egen informationsplikt (art. 14, mot personer som inte vet att de är registrerade)
+  och egen plats i registerförteckningen. Hela produktens juridiska hållning bygger på att
+  leverantören bara är biträde. Listan stannar i git.
+- **Offertgenerator (B20) – inte nu.** Ett prisdokument som appen genererar blir ett dokument
+  som lämnas till kund, och då finns två prissanningar: den i koden och den i
+  `kallfiler/Synappsen-prislista.html`. Med noll kunder är nyttan liten och glidningsrisken
+  säker. Byggs det senare ska båda läsa EN pristabell, på samma sätt som `src/version.js`
+  läser versionen i stället för att upprepa den.
+- **Att lösa B18 i panelen.** Sju upphandlingssvar som blir inaktuella är ett
+  dokumentproblem, inte ett gränssnittsproblem. Assertioner har fångat 6 av 6 verkliga fel i
+  det här projektet; en panelvy hade fångat noll.
+- **Avtalstexter, signering eller fakturering i appen.** Redan avgjort
+  (`etapplaner/ETAPPLAN3.md` beslutspunkt 6) och fortfarande rätt. B12 registrerar ATT ett
+  avtal finns, aldrig avtalet självt.
+
 ### Vad jag medvetet INTE föreslår
 
 - **Att spegla `OPPNA-PUNKTER.md` in i panelen.** Filen ligger i git, granskas av tester och
@@ -422,21 +484,80 @@ dokumenten redan påstår finns.
    `src/components/admin/IncidentberedskapSektion.jsx` (kundens adminpanel) till
    `/leverantor/drift`. De är leverantörens driftansvar, och efter L1m når ett
    `_plattform`-konto dem inte längre där de ligger.
-5. **RTO-övningens ålder blir en signal.** Registrera datum och uppmätt tid när
-   `.github/workflows/rto-matning.yml` körts, och lägg till en åttonde signal i
-   `src/utils/leverantorSignaler.js` när det är äldre än sex månader.
-
-**Motivering för punkt 5 i projektets egna termer:** riktmärket står i dag som prosa i
-`CLAUDE.md` och ska kommas ihåg av en session. Prosaregler har misslyckats sex gånger här;
-signaler och assertioner har inte misslyckats en enda. Det här är samma val som
-`src/version.js` och `tests/docs/pitch-version.test.js`, fast i gränssnittet.
+5. **RTO-övningens ålder** – flyttad till L1o, där den är ett fall av fyra i stället för ett
+   engångsfall. Motiveringen är densamma och står kvar där: riktmärket är i dag prosa i
+   `CLAUDE.md` som en session ska komma ihåg, och prosaregler har misslyckats sex gånger i
+   det här projektet medan signaler och assertioner inte har misslyckats en enda.
 
 **Testat.** Att `listaBackuper` nekas för en icke-plattformsadmin; att återställningen kräver
-båda bekräftelsestegen; att signalen slår vid 6 månader och inte tidigare. Återställningen
+båda bekräftelsestegen; Återställningen
 själv testas inte skarpt härifrån – den har redan en egen mätning i `rto-matning.cjs`.
 
 **Avgränsning.** Ingen automatisk återställning, och ingen "återställ alla". En återställning
 är alltid en människas beslut om en namngiven organisation.
+
+---
+
+### L1o. Åtagandekalendern – återkommande skyldigheter som signaler
+
+Svarar mot B14, och ersätter punkt 5 i L1n (RTO-påminnelsen byggs här i stället, som ett fall
+av fyra i stället för ett engångsfall).
+
+En collection `atagandekalender/{id}` med `{ vad, intervall, senastUtfort, kalla, anteckning }`,
+läsbar endast för plattformsadmin, som matar en ny signal i
+`src/utils/leverantorSignaler.js` när `senastUtfort + intervall` har passerats.
+
+Fyra åtaganden att lägga in vid bygget, alla med sin källa i dokumentationen:
+
+| Åtagande | Intervall | Källa |
+|---|---|---|
+| Nyckelrotation av samtliga fem hemligheter | 12 mån | `drift/INCIDENT-CHECKLISTA.md` "Nyckelrotation" – som själv konstaterar att påminnelsen saknas |
+| Faktisk RTO-mätning (`rto-matning.yml`) | 6 mån | `CLAUDE.md` säkerhetsgenomgången p. 5, `avtal/IT-FAKTABLAD.md` p. 6 |
+| Översyn av incidentresponsplanen | 6 mån + varje större release | `avtal/INCIDENTRESPONSPLAN.md` avsnitt 12 |
+| Översyn av tillgänglighetsredogörelsen | 12 mån | `granskningar/TILLGANGLIGHETSREDOGORELSE.md` |
+
+**Att kvittera ett åtagande är att skriva `senastUtfort`, inte att bocka en ruta.** Där det
+går ska datumet sättas av det som faktiskt utförde arbetet – `rto-matning.yml` skriver sitt
+eget datum och uppmätta tid när den körts klart. Ett åtagande vars datum bara kan sättas för
+hand är svagare, och ska märkas som sådant i vyn.
+
+**Testat.** Att signalen slår exakt vid intervallets utgång och inte tidigare; att
+collectionen nekas för en icke-plattformsadmin; att `rto-matning.cjs` skriver sitt datum.
+
+**Avgränsning.** Ingen automatik som utför åtgärden. En påminnelse påminner.
+
+---
+
+### L1p. Avtal och åtaganden per kund – där juridiken möter en knapp
+
+Svarar mot B11, B12, B13, B15 och B19.
+
+1. **PUB-avtalsstatus som hård spärr (B12).** Fälten `pubAvtalTecknat` (datum) och
+   `pubAvtalVersion` på organisationen. `satAvtalsstatus` **nekar** `aktiv` utan dem, med ett
+   felmeddelande som säger varför. Samma val som Brevo-spärren i `functions/gemensamt.js`,
+   av samma skäl: en kontroll som sitter i koden kan inte glömmas bort, en checklista kan.
+2. **Underrättelseregister för underbiträden (B13).** `avtal/UNDERBITRADEN.md` får ett
+   versionsnummer; organisationen får `underbitradeUnderrattad: { version, datum }`. Panelen
+   visar vilka kunder som ligger efter den aktuella versionen. Med noll kunder i dag är detta
+   nästan gratis att bygga och dyrt att retroaktivt rekonstruera senare.
+3. **Incidentklocka (B11).** Vid en personuppgiftsincident: registrera klockslaget för
+   kännedom, välj drabbade organisationer, och få en nedräkning per kund plus kvitto på
+   skickad underrättelse. Ett fält `omfattasAvNIS2` per kund styr om nedräkningen är 72 eller
+   **24 timmar** – `granskningar/JURIDISK-GRANSKNING.md` risk 15. Klockan ersätter inte
+   `drift/INCIDENT-CHECKLISTA.md`, den utför dess steg 6.
+4. **Åtagandeblock i kunddossién (B15).** Fritext plus datum för vad som lovats just den här
+   kunden: provperiodens villkor, prisnivå, eventuell utfallsgaranti, svarstider. Ett fält,
+   inte en modul – annars blir det ett CRM.
+5. **Begäran om referensunderlag (B19).** Samma mönster som supportfönstret: leverantören ber,
+   kunden utför med sitt eget samtycke via `exporteraReferensunderlag`. Ingen ny åtkomst.
+
+**Testat.** Att `satAvtalsstatus('aktiv')` nekas utan PUB-fälten – det är delmålets kärna och
+det enda testet som skyddar mot ett faktiskt regelbrott. Plus att 24- respektive
+72-timmarsnedräkningen väljs på rätt fält, och att varje åtgärd här loggas i kundens kedja.
+
+**Avgränsning.** Ingen avtalstext, ingen signering, ingen fakturering
+(`etapplaner/ETAPPLAN3.md` beslutspunkt 6). Panelen registrerar ATT ett avtal finns – aldrig
+avtalet självt.
 
 ---
 
@@ -686,12 +807,14 @@ L1m (leverantörskontot)   ← bygg FÖRST, den flyttar åtkomstgränsen
      │   └─ L1j (aktivitet/version)  [beslutspunkt 2]
      ├─ L1e (driftkonsol)
      ├─ L1n (återställning + beredskap)  ← störst nytta per rad
+     ├─ L1p (avtal + åtaganden per kund)  [juridiskt bindande spärr]
      ├─ L1f (support)  [beslutspunkt 4]
      ├─ L1g (åtgärdslogg)
      └─ L1h (pipeline)
 
 Fristående, kan byggas när som helst:
  L1k (skalbarhet)
+ L1o (åtagandekalendern)
  L1l (intern ändringslogg + test)   ← bör byggas FÖRST, den är förutsättningen
                                        för att resten inte läcker till kunden
 ```
@@ -708,11 +831,13 @@ Grov, i samma skala som tidigare etapplaner (ett "delmål" ≈ en fokuserad arbe
 | L1m | Medel – liten kodmängd, men den flyttar en åtkomstgräns och bär därför mest testarbete per rad i hela planen |
 | L1a, L1g, L1i | Medel |
 | L1b, L1e, L1f | Stora – kärnan i planen |
-| L1n | Medel – tre av fem punkter är gränssnitt ovanpå kod som redan finns |
+| L1n | Medel – tre av fyra punkter är gränssnitt ovanpå kod som redan finns |
+| L1o | Liten – en collection, en signal, fyra rader innehåll |
+| L1p | Medel – liten kodmängd, men punkt 1 är en spärr mot ett faktiskt regelbrott och bär planens tyngsta test |
 | L1c, L1d, L1j | Beror helt på beslutspunkterna |
 
 **Om bara en sak byggs:** L1m först (kontomodellen), sedan L1n (återställningen – den enda
-raden som stänger en påstådd men outövbar förmåga), därefter L1l och L1b. De två ger
+raden som stänger en påstådd men outövbar förmåga), därefter L1p punkt 1 (PUB-spärren), L1l och L1b. De två ger
 merparten av nyttan och binder inga beslut som ännu inte är fattade.
 
 ---
@@ -725,3 +850,4 @@ merparten av nyttan och binder inga beslut som ännu inte är fattade.
 | 0.2 | 2026-08-29 | Avsnittet "Panelens upplägg" tillagt: portfölj- kontra kundläge, tolv rutter, tvånivåers åtkomsttak, delad datastomme och tre delade komponenter. L1a skrevs om till att bygga upplägget i stället för att beskriva det. Fortfarande ej antagen |
 | 0.3 | 2026-08-29 | Kontomodellen tillagd på ägarens begäran: ett enda övergripande konto med `organisationId: "_plattform"`, utan medlemskap i någon kundorganisation. Nytt delmål L1m (bygg först), ny beslutspunkt 6. Fyra premissfynd ändrade utformningen – särskilt att ett SAKNAT `organisationId` inte ger organisationslöshet utan medlemskap i `default` |
 | 0.4 | 2026-08-29 | Avsnittet "Behoven, och vilken funktion som möter varje" tillagt (B1–B10, härledda ur kod och avtalsdokument). Nytt delmål L1n: återställningspanel, manuell backup, beredskapskontroller flyttade från kundens adminpanel, och RTO-övningens ålder som åttonde signal. Ny beslutspunkt 7 (feedback-inkorgen). Fyndet som motiverar L1n: `aterstallOrganisationCallable` och `backupaOrganisation` finns i kod men har noll gränssnitt, medan incidentdokumenten beskriver återställning som en existerande förmåga |
+| 0.5 | 2026-08-29 | Behov B11–B20 tillagda: avtal, juridik och försäljning. Två nya delmål – L1o (åtagandekalendern, ersätter L1n punkt 5) och L1p (PUB-spärr, underrättelseregister, incidentklocka med 24/72 timmar, åtagandeblock). Avråder uttryckligen från att flytta in kandidatlistan i produktionsdatabasen: det vore en ny behandling med leverantören som personuppgiftsansvarig |

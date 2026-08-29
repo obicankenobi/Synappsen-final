@@ -161,6 +161,28 @@ Näst allvarligast: `hamtaBackupstatus`, `verifieraRevisionskedjor`, `testaBeroe
 `verifieraKlinikstod` sitter i `src/components/admin/IncidentberedskapSektion.jsx` – i
 KUNDENS adminpanel bakom `arSuperadmin`. Efter L1m når ett `_plattform`-konto dem aldrig.
 
+**Tillägg samma dag (v0.5):** behoven utanför driften – avtal, juridik, försäljning (B11–B20),
+plus delmålen L1o (åtagandekalendern) och L1p (avtal och åtaganden per kund).
+
+Det viktigaste fyndet där: **ingenting hindrar att en organisation sätts till `avtalsstatus:
+aktiv` utan att ett PUB-avtal finns.** Organisationsdokumentet har inget sådant fält alls. Det
+är samma fel som Brevo, fast med Synappsen som biträdet i stället för kunden – och lösningen
+ska vara densamma som valdes då: en spärr i `satAvtalsstatus`, inte en rad i en checklista.
+Motiveringen står redan i `avtal/UNDERBITRADEN.md`s ändringshistorik (2026-08-27).
+
+Två saker till som är värda att komma ihåg utan att öppna planen: (1)
+`granskningar/JURIDISK-GRANSKNING.md` risk 15 – en kund under cybersäkerhetslagen (2025:1506)
+har 24 timmars tidig varning medan PUB-avtalet lovar 72, så en incidentklocka måste kunna
+räkna ned från båda. (2) `drift/INCIDENT-CHECKLISTA.md` säger själv att nyckelrotationens
+påminnelse *"inte är byggd än"* – den och tre andra återkommande åtaganden samlas i L1o
+i stället för att bli fyra ad hoc-signaler.
+
+**Avrått från:** att flytta `saljmaterial/KANDIDATLISTA-PRIVAT-VARD.md` in i panelen. Den
+innehåller bedömningar om namngivna verksamheter och kontaktuppgifter till namngivna personer;
+i produktionsdatabasen vore det en ny behandling med leverantören som personuppgifts-
+ANSVARIG, inte biträde – med egen rättslig grund och informationsplikt enligt art. 14. Hela
+produktens juridiska hållning bygger på biträdesrollen. Listan stannar i git.
+
 Ägaren har också gett Cloud Functions-tjänstekontot `roles/firebaseauth.admin` i GCP.
 **Ännu inte verifierat** – `tvingaUtloggning` på ett testkonto är det icke-destruktiva testet.
 Tills det är gjort står raden kvar i `OPPNA-PUNKTER.md`.
@@ -234,37 +256,6 @@ ingen patientdata finns i flödet. **Kommentaren i `src/data/kvissbank.js` rad 9
 för hårt dragen och bör rättas** – men rättelsen väntar på ägarbeslut, eftersom regeln råkar
 skydda mot fyra risker som är verkliga (färskhet, lokal variation, upphovsrätt,
 AI-förordningens bilaga III). Fyra beslut ligger i `OPPNA-PUNKTER.md`.
-
-## Uppföljning 2026-08-23 (rättad: "Uppdatera"-knappen gjorde ingenting, v5.128.0)
-
-Ägaren rapporterade att banderollen "En ny version av Synappsen finns tillgänglig" och dess
-"Uppdatera"-knapp (`AppUppdateringBanner.jsx`) inte fungerade.
-
-**Rotorsak:** `vite.config.js` kör vite-plugin-pwa i `injectManifest`-läge (Etapp 24a, för att
-Firebase-konfigurationen ska processas av Vite) med `src/sw.js` som EGEN, handskriven service
-worker-källa. `useAppUppdatering.js`s `uppdatera()` anropar `updateSW(true)`, som (via
-`workbox-window`) postar `{type: "SKIP_WAITING"}` till den väntande workern och sedan väntar
-på ett `"controlling"`-event för att ladda om sidan. **`src/sw.js` saknade helt en lyssnare
-för det meddelandet**, och saknade `clientsClaim()`. `generateSW`-läget (Workbox
-standardbygge) lägger till båda automatiskt – ett handskrivet `injectManifest`-`sw.js` gör
-det inte. Knappen postade alltså ett meddelande ingen lyssnade på, och även om den hade
-lyssnat hade den nya workern bara tagit kontroll över FRAMTIDA sidladdningar utan
-`clientsClaim()`, aldrig den redan öppna fliken. Resultat: att klicka "Uppdatera" gjorde
-bokstavligen ingenting.
-
-**Varför inget test fångade det:** `test:e2e` kör Playwright mot Vites DEV-server (`npm run
-dev`), som aldrig registrerar en riktig service worker. Ingen befintlig testsvit i projektet
-körde `sw.js`s faktiska kod.
-
-**Fixat:** en `message`-lyssnare som anropar `self.skipWaiting()` vid `SKIP_WAITING`, plus
-`clientsClaim()` vid uppstart. Nytt `src/sw.test.js` (3 test) kör sw.js:s riktiga kod i en
-mockad `self`/workbox/firebase-miljö – bevisat att det fångar exakt den här buggen genom att
-tillfälligt ta bort fixen och se testet faila (alla tre), sedan återställa.
-
-Fullt svep grönt: lint, build (bekräftat i minifierad `dist/sw.js` att både lyssnaren och
-`clientsClaim()` faktiskt kompilerades in), vitest 410/410 (37 filer), `test:rules`,
-`test:functions`, `test:storage`, e2e 41/41 (två `ERR_CONNECTION_REFUSED`-flakes vid full
-parallell körning, bekräftat ORELATERADE genom att köra om dem isolerat – passerade båda).
 
 ## Uppföljning 2026-08-26 (v5.129.0: fem fel från första riktiga användningen)
 
