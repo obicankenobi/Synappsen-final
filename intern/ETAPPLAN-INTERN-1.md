@@ -96,31 +96,168 @@ sammanfattningstabell som kan glida isär från originalet.
 
 ---
 
+## Panelens upplägg
+
+Det här avsnittet är **strukturen** – vilka vyer som finns, vad som ligger var, och varför.
+Delmålen L1a–L1l nedan bygger den; om upplägget och ett delmål säger emot varandra gäller
+det här avsnittet.
+
+### Grundproblemet: en panel för flera organisationer har två arbetslägen
+
+Dagens vy har bara ett läge. Allt är portföljformat – elva sektioner som var och en tittar
+på *alla* kunder samtidigt – och den enda vägen till EN kund är att expandera en rad i
+listan (`OrganisationsRad`, 300 rader inline). Det fungerar vid tre kunder och slutar
+fungera vid tio.
+
+Ett flerorganisationsverktyg behöver i stället ett **uttalat kontextbyte**:
+
+| Läge | Rutt | Frågan det svarar på | Regel |
+|---|---|---|---|
+| **Portföljläge** | `/leverantor/*` | "Var behöver jag lägga min tid i dag?" | Aggregerat över alla kunder. Visar aldrig kundinnehåll, bara metadata och räknare |
+| **Kundläge** | `/leverantor/kund/:orgId/*` | "Hur mår kund X, och vad gör jag åt det?" | Allt är låst till en organisation. Ingen vy här får tyst falla tillbaka på "alla" |
+
+Kontexten ska vara omöjlig att missta sig på. I kundläget ligger en **fast kundrubrik**
+högst upp på varje underflik – namn, avtalsstatus, demo-märkning och, viktigast, om ett
+supportfönster är öppet just nu. Det är den enda skylten som skiljer "jag ser metadata om
+kunden" från "jag kan läsa kundens innehåll", och den skillnaden är juridisk, inte
+kosmetisk.
+
+Byte mellan kunder sker i en **kundväljare** i panelens överkant som behåller den underflik
+man står på: står du på `kund/a/anvandning` och byter kund landar du på
+`kund/b/anvandning`, inte på kundens startsida. Det är hela poängen med ett
+flerorganisationsverktyg – att kunna jämföra samma sak hos två kunder utan att navigera om.
+
+### Åtkomsttaket – två nivåer, inte en
+
+Hela upplägget vilar på att leverantören har **två olika** behörigheter, och att panelen
+aldrig blandar ihop dem:
+
+| Nivå | Vad den ger | Var den kommer ifrån | Var i panelen |
+|---|---|---|---|
+| **Metadata** | Organisationens namn, status, moduler, antal användare, kostnad, kvot, avtalsstatus | `plattformsadmin/{uid}` – gäller alltid | Nästan hela panelen |
+| **Innehåll** | Kundens rutiner, dokument, mätvärden, enskilda användare | Ett supportfönster som **kunden själv** öppnar (`beviljaSupportAtkomst`, Etapp 50b) | Endast supportarbetsytan och block markerade med hänglås |
+
+Praktisk konsekvens för utformningen: block som kräver innehållsåtkomst ska finnas kvar i
+gränssnittet även när fönstret är stängt, men **tomma och märkta med varför** – inte
+bortgömda. Ett block som försvinner får det att se ut som att funktionen saknas; ett block
+som säger "kräver supportfönster, kunden har inte öppnat något" lär ut var gränsen går varje
+gång man ser den.
+
+### Navigationsträdet
+
+```
+/leverantor                          Översikt        ← startsida, portföljläge
+/leverantor/kunder                   Kundregister    ← listan + pipeline
+/leverantor/support                  Support         ← ärenden och fönster, alla kunder
+/leverantor/drift                    Drift & incident
+/leverantor/innehall                 Innehåll        ← kvissbank, baspaketreferenser
+/leverantor/ekonomi                  Ekonomi
+/leverantor/logg                     Åtgärdslogg     ← vad JAG gjort, tvärs kunderna
+
+/leverantor/kund/:orgId              Kunddossié      ← kundläge börjar här
+/leverantor/kund/:orgId/anvandning
+/leverantor/kund/:orgId/ekonomi
+/leverantor/kund/:orgId/atgarder
+/leverantor/kund/:orgId/historik
+```
+
+Sju portföljvyer och fem kundflikar. Vänsternavigering för portföljen (mönstret finns i
+`src/components/Sidomeny.jsx`), flikrad inuti kundläget. Rutterna i `src/App.jsx` är i dag
+platta – kundläget blir den första nästlade rutten i appen och behöver en egen layoutrutt
+som håller kundrubriken och hämtningen av `:orgId`.
+
+Varje ny rutt gatas server-side precis som `/leverantor` i dag. **Klientens rutt är ingen
+behörighetskontroll** – testet i L1a ska verifiera att en icke-plattformsadmin nekas på var
+och en av de tolv rutterna, inte bara på panelens startsida.
+
+### Vad varje vy innehåller
+
+**Översikt** är en triage-yta, inte en instrumentbräda. Överst: dagens signaler från
+`src/utils/leverantorSignaler.js`, grupperade på allvarlighetsgrad, med kundnamnet som länk
+rakt in i rätt kundflik. Under: de fyra nyckeltalen som redan finns, och driftstatus (delad
+sökkvot mot tak, e-postnödstoppets läge). Inget här ska kräva att man scrollar för att veta
+om något brinner.
+
+**Kundregister** är dagens `OrganisationsListaSektion` med sitt URL-buret filtertillstånd
+– det är redan välbyggt och flyttas oförändrat. Skillnaden är att en rad inte längre
+expanderar; den **länkar** till kunddossién. Här ligger också "skapa organisation" och
+onboarding-pipelinen (L1h), eftersom en kund som inte finns än inte kan ha en dossié.
+
+**Kunddossién** är planens tyngdpunkt och beskrivs i L1b. Fördelningen över de fem flikarna:
+startsidan svarar på "mår kunden bra?" (huvud, kontakt, hälsa, öppna signaler), och de fyra
+övriga är de fördjupningar man går till när svaret är nej. Åtgärdsfliken samlar allt som i
+dag ligger utspritt över `OrganisationsRad` och fyra andra sektioner – pausa, avtalsstatus,
+provperiod, årsavgift, sökkvottak, huvudman, seeda startbibliotek, exportera, avsluta
+supportfönster.
+
+**Support**, **Drift & incident**, **Ekonomi** och **Åtgärdslogg** är portföljvyer av det
+som annars bara syns per kund. Poängen med dem är korsjämförelsen: vilka fönster är öppna
+just nu, vilka kunder ligger nära kvottaket, var marginalen är negativ, vad jag gjort den
+senaste veckan och hos vem. Var och en av dem ska ha kundnamnet som länk in i kundläget, så
+att portfölj → kund är ett klick överallt.
+
+**Innehåll** är det enda som är genuint kundlöst – kvissbanken och baspaketreferenserna är
+globala och delas av alla organisationer. Den ligger därför medvetet utanför både
+portfölj- och kundläget i tanken, även om den bor på en portföljrutt.
+
+### Datastommen
+
+Kontextbytet ovan kräver att datahämtningen delas i två anrop, vilket den inte är i dag:
+
+| Anrop | Ansvar | Läsningar |
+|---|---|---|
+| `listaOrganisationer` (finns) | **Bantas.** Bara det listan och signalerna faktiskt behöver | Ska bli 1 + N, inte 1 + 2N |
+| `hamtaKundDossie(orgId)` (ny) | Allt tungt för EN kund – kostnadshistorik, kvotserie, användarsammanställning, leverantörens åtgärder | Betalas bara när en kund faktiskt öppnas |
+
+Det här är L1k, men det hör hemma i upplägget snarare än som en fristående optimering:
+`listaOrganisationer` gör i dag två extra läsningar per organisation (`users`-count och
+`kostnadshistorik`) **varje gång panelen öppnas**, oavsett om man tänkte titta på en kund
+eller inte. Vid 3 kunder är det 7 läsningar, vid 50 kunder 101. Drilldown-mönstret gör
+kostnaden proportionell mot vad man tittar på i stället för mot hur många kunder man har.
+
+### Tre komponenter som delas av allt
+
+1. **`Kundvaljare`** – kundbyte som behåller underfliken. En plats, används i kundrubriken.
+2. **`Signalmarke`** – samma allvarlighetsfärg och -text i översikten, kundregistret och
+   kunddossién. Signalerna beräknas redan på ett ställe; presentationen ska också göra det.
+3. **`LeverantorsAtgard`** – en omslutning runt varje knapp som ändrar något hos en kund:
+   bekräftelse, obligatorisk anledning, och revisionsloggning in i **kundens** hashkedja
+   (`organisationId: orgId`, mönstret finns i `functions/avtalslivscykel.js`). Att det är en
+   komponent och inte en konvention är hela poängen – en åtgärd som glömmer loggas är
+   omöjlig att upptäcka i efterhand.
+
+### Byggordning för upplägget
+
+Skelettet (L1a) är en ren flytt utan beteendeförändring och kan byggas när som helst.
+Kundläget (L1b) är det som ger nyttan. Allt annat hänger på beslutspunkterna nedan.
+
+**Om bara två saker byggs:** L1l (separationen mot kundens ändringslogg) och L1b
+(kunddossién). Upplägget ovan går att införa stegvis – kundläget kan existera parallellt med
+dagens inline-expansion tills det är komplett, och listan kan länka till det så snart
+startsidan finns.
+
+---
+
 ## Delmål
 
 Ordningen är inte godtycklig – L1a och L1b är förutsättningar för i stort sett allt annat.
 
 ### L1a. Panelens skelett – från sektionslista till arbetsyta
 
-Dagens 11 sektioner staplas i en enda kolumn. Med fler funktioner blir det oläsligt.
+Bygg navigationsträdet i avsnittet "Panelens upplägg" ovan: vänsternavigering för de sju
+portföljvyerna, en nästlad layoutrutt för kundläget som håller kundrubriken och
+`:orgId`-hämtningen, och kundväljaren som behåller underfliken vid byte.
 
-Bygg ett skal med vänsternavigering och underrutter:
-
-| Vy | Rutt | Innehåll |
-|---|---|---|
-| **Översikt** | `/leverantor` | Nyckeltal, "kräver åtgärd", driftstatus. Dagens `NyckeltalSektion` + `KraverAtgardSektion` |
-| **Kunder** | `/leverantor/kunder` | Listan (dagens `OrganisationsListaSektion`), plus pipeline-vyn i L1h |
-| **Kund** | `/leverantor/kund/:orgId` | Kunddossién, L1b |
-| **Support** | `/leverantor/support` | L1f |
-| **Drift & incident** | `/leverantor/drift` | L1e |
-| **Innehåll** | `/leverantor/innehall` | Kvissbanken (Etapp 71) + baspaketreferenser |
-| **Ekonomi** | `/leverantor/ekonomi` | L1i |
+Dagens elva sektioner flyttas oförändrade till sina respektive vyer. `OrganisationsRad`
+behåller tills vidare sin inline-expansion – den ersätts först när kunddossién (L1b) är
+komplett, så att panelen aldrig står utan en väg till en enskild kund.
 
 **Ingen beteendeförändring.** Ren flytt av befintliga komponenter, samma
-plattformsadmin-gating. Sidomenyn från Etapp 69c återanvänds – appen har redan mönstret.
+plattformsadmin-gating, samma URL-burna filtertillstånd i kundregistret.
 
-**Testat:** varje befintlig sektion nås fortfarande, och en icke-plattformsadmin nekas på
-varje ny rutt (inte bara på `/leverantor`).
+**Testat:** varje befintlig sektion nås fortfarande på sin nya rutt, och en
+icke-plattformsadmin nekas på **var och en av de tolv rutterna** – inte bara på
+`/leverantor`. Klientrutten är inget skydd; testet ska bevisa att server-gatingen följer med.
 
 ---
 
@@ -380,3 +517,4 @@ merparten av nyttan och binder inga beslut som ännu inte är fattade.
 | Version | Datum | Ändring |
 |---|---|---|
 | 0.1 | 2026-08-27 | Första utkastet. Ej antaget |
+| 0.2 | 2026-08-29 | Avsnittet "Panelens upplägg" tillagt: portfölj- kontra kundläge, tolv rutter, tvånivåers åtkomsttak, delad datastomme och tre delade komponenter. L1a skrevs om till att bygga upplägget i stället för att beskriva det. Fortfarande ej antagen |

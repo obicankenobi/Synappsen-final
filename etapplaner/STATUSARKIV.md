@@ -4224,3 +4224,49 @@ kompetensöversikten men finns kvar i historiken. Formuleringen rättad.
 kategorifilter i öva-läget.
 
 ---
+
+## Uppföljning 2026-08-23 (deploy av v5.128.0, körning #87)
+
+Deployade fixen för "Uppdatera"-knappen direkt eftersom det var en rapporterad, redan
+verifierad bugg. Körning **#87** på commit `5a63c16`. Produktionen kör nu **v5.128.0**.
+
+Verifierat på artefakten: `sw.js` innehöll noll förekomster av `SKIP_WAITING` före deployen,
+en efter.
+
+**Obs för nästa gång knappen testas:** eftersom `src/sw.js` sjäva filen ändrades är det den
+DEPLOYADE service workern som saknade fixen innan nu. En webbläsare som redan hade den GAMLA
+workern installerad (utan lyssnaren) sedan tidigare kan behöva en vanlig sidladdning (inte
+bara "Uppdatera"-klicket) EN gång för att hämta den NYA workern som väl har fixen – därefter
+fungerar knappen normalt vid framtida uppdateringar. Det är förväntat, inte ett nytt fel.
+
+---
+
+## Uppföljning 2026-08-23 (kvissbanken kopplad in på tre ställen)
+
+**Ingen ny datamodell.** Gårdagens `src/data/kvissbank.js` (20 frågor) och `MALL_KVISS` på
+startmallarna var byggda men inte kopplade till gränssnittet. Tre kopplingar:
+
+1. **Frågebankväljare i `RutinFormular.jsx`.** Ny knapp "📚 Välj från frågebanken" i
+   kvissfältet, expanderar en lista grupperad per kategori (redan tillagda frågor filtreras
+   bort). Ersatte samtidigt alla kvarvarande hårdkodade `4`:or med
+   `MAX_KVISSFRAGOR_PER_RUTIN` – ett nytt test i `kvissbank.test.js` failar om en hårdkodad
+   siffra smyger sig tillbaka.
+2. **Kviss-badge i introduktionsspåret.** `berakraIntroduktionsProgress` (`introduktionProgress.js`)
+   räknar nu fram `harKviss` per post. Ingen ny logik krävdes för själva kvissen – KvissModal
+   visas redan automatiskt vid kvittering via `RutinKort.jsx` – bara en synlig "📝
+   kunskapskontroll"-flagga i både den nyanställdas egen lista och chefsvyns
+   "Signera punkter", så att ingen missar att en punkt har en kunskapskontroll kopplad.
+3. **Kategorifilter i öva-läget.** `byggFragepool(rutiner, omrade, kategori)` tar nu ett
+   valfritt tredje argument, ny `tillgangligaKategorier()` listar bara kategorier som faktiskt
+   förekommer (döljer filtret helt för en organisation utan bankfrågor). `tillRutinKviss()`
+   behåller nu frågans `kategori` som valfri metadata på den sparade kviss-raden – läses
+   ingenstans annars, ofarligt att spara.
+
+**Testsvep:** lint rent, 466/466 vitest (12 nya), build grönt, `test:functions` (samtliga
+delsviter) och `test:rules` (samtliga delsviter) gröna. Ingen manuell webbläsarverifiering
+gjordes den här gången (emulator-CLI:t inte tillgängligt interaktivt i sessionen) – litar på
+att build + fyra gröna testsviter fångar det en visuell genomgång annars skulle.
+
+---
+
+---

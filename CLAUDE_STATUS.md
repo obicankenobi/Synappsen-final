@@ -8,20 +8,20 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-28 · version **5.132.0** · **deploy pågår**.
-Utgående e-post är stoppat i produktion sedan v5.131.0 (verifierat, körning #92) i väntan på
-Brevos PUB-avtal. v5.132.0 rättar felaktig orsakstext. Se uppföljningarna 2026-08-27/28.
+**Senast uppdaterad:** 2026-08-29 · version **5.132.0** i produktion (körning #93, verifierad).
+Utgående e-post är stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. Ingen kod ändrad
+2026-08-29 – bara `intern/ETAPPLAN-INTERN-1.md`, som fick ett upplägg för leverantörspanelen.
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.131.0 (körning #92, verifierad). v5.132.0 deployas nu |
+| **Version i produktion** | 5.132.0 (körning #93, verifierad) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | v5.131.0: rättslig spärr som stoppar allt utgående e-post tills Brevos PUB-avtal är tecknat. Dessförinnan v5.130.0 (Etapp 71, Öva-lägets redigerbara frågebank) |
 | **Senaste dokumentarbete** | 2026-08-27: `saljmaterial/PITCH.md` uppdaterad till v5.130.0 (Öva-läget, kontoadmin, lösenordsåterställning, startbibliotek i efterhand tillagda) |
 | **Aktiv plan** | Ingen. Etapp 69 var den sista. `etapplaner/ETAPPLAN13.md` (Etapp 64) är antagen men juridiskt blockerad – inget steg är byggbart förrän en extern bedömning finns |
-| **Nästa steg** | **Ägaren måste ge tjänstekontot `roles/firebaseauth.admin` i GCP** – utan det fungerar varken avstängning, radering eller tvingad utloggning, oavsett kod. Därefter: ägarbeslut om `systemkunskap`-paketets vara/icke-vara och innehåll till `kliniskt`-paketet (se `OPPNA-PUNKTER.md`) |
+| **Nästa steg** | Ägaren har gett tjänstekontot `roles/firebaseauth.admin` (2026-08-29) – **verifiera med "Tvinga utloggning" på ett testkonto innan det räknas som löst**. Därefter: ägarbeslut om Etapp L1 (leverantörspanelen, `intern/ETAPPLAN-INTERN-1.md`) och om `systemkunskap`-paketet (se `OPPNA-PUNKTER.md`) |
 
 ## Var du hittar saker
 
@@ -110,6 +110,32 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-08-29 (upplägg för leverantörspanelen – förslag, inte bygge)
+
+Ingen kod. `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, **fortfarande ej antagen**) fick ett nytt
+avsnitt "Panelens upplägg" och en omskriven L1a. Version 0.1 → 0.2.
+
+Den bärande idén: en panel för flera organisationer behöver **två uttalade arbetslägen**, inte
+ett. Portföljläge (`/leverantor/*`, sju vyer, aggregerat över alla kunder) och kundläge
+(`/leverantor/kund/:orgId/*`, fem flikar, allt låst till en organisation). Dagens vy har bara
+portföljformen, och den enda vägen till en enskild kund är att expandera en rad i listan –
+vilket slutar fungera någonstans runt tio kunder.
+
+Två saker i upplägget är juridiska snarare än ergonomiska och får inte förhandlas bort i ett
+senare bygge:
+
+- **Åtkomsttaket har två nivåer.** Metadata (alltid, via `plattformsadmin/{uid}`) och innehåll
+  (endast under ett supportfönster som kunden själv öppnar, Etapp 50b). Block som kräver
+  innehållsåtkomst ska synas men stå tomma och märkta med varför – ett block som göms lär inte
+  ut var gränsen går.
+- **`LeverantorsAtgard` blir en komponent, inte en konvention.** Bekräftelse, obligatorisk
+  anledning och revisionsloggning in i kundens hashkedja. En åtgärd som glömmer loggas går inte
+  att upptäcka i efterhand, och konventioner har bevisligen misslyckats sex gånger här.
+
+Ägaren har också gett Cloud Functions-tjänstekontot `roles/firebaseauth.admin` i GCP.
+**Ännu inte verifierat** – `tvingaUtloggning` på ett testkonto är det icke-destruktiva testet.
+Tills det är gjort står raden kvar i `OPPNA-PUNKTER.md`.
 
 ## Uppföljning 2026-08-27 (Etapp 71: redigerbar frågebank för Öva-läget)
 
@@ -211,50 +237,6 @@ Fullt svep grönt: lint, build (bekräftat i minifierad `dist/sw.js` att både l
 `clientsClaim()` faktiskt kompilerades in), vitest 410/410 (37 filer), `test:rules`,
 `test:functions`, `test:storage`, e2e 41/41 (två `ERR_CONNECTION_REFUSED`-flakes vid full
 parallell körning, bekräftat ORELATERADE genom att köra om dem isolerat – passerade båda).
-
-## Uppföljning 2026-08-23 (deploy av v5.128.0, körning #87)
-
-Deployade fixen för "Uppdatera"-knappen direkt eftersom det var en rapporterad, redan
-verifierad bugg. Körning **#87** på commit `5a63c16`. Produktionen kör nu **v5.128.0**.
-
-Verifierat på artefakten: `sw.js` innehöll noll förekomster av `SKIP_WAITING` före deployen,
-en efter.
-
-**Obs för nästa gång knappen testas:** eftersom `src/sw.js` sjäva filen ändrades är det den
-DEPLOYADE service workern som saknade fixen innan nu. En webbläsare som redan hade den GAMLA
-workern installerad (utan lyssnaren) sedan tidigare kan behöva en vanlig sidladdning (inte
-bara "Uppdatera"-klicket) EN gång för att hämta den NYA workern som väl har fixen – därefter
-fungerar knappen normalt vid framtida uppdateringar. Det är förväntat, inte ett nytt fel.
-
----
-
-## Uppföljning 2026-08-23 (kvissbanken kopplad in på tre ställen)
-
-**Ingen ny datamodell.** Gårdagens `src/data/kvissbank.js` (20 frågor) och `MALL_KVISS` på
-startmallarna var byggda men inte kopplade till gränssnittet. Tre kopplingar:
-
-1. **Frågebankväljare i `RutinFormular.jsx`.** Ny knapp "📚 Välj från frågebanken" i
-   kvissfältet, expanderar en lista grupperad per kategori (redan tillagda frågor filtreras
-   bort). Ersatte samtidigt alla kvarvarande hårdkodade `4`:or med
-   `MAX_KVISSFRAGOR_PER_RUTIN` – ett nytt test i `kvissbank.test.js` failar om en hårdkodad
-   siffra smyger sig tillbaka.
-2. **Kviss-badge i introduktionsspåret.** `berakraIntroduktionsProgress` (`introduktionProgress.js`)
-   räknar nu fram `harKviss` per post. Ingen ny logik krävdes för själva kvissen – KvissModal
-   visas redan automatiskt vid kvittering via `RutinKort.jsx` – bara en synlig "📝
-   kunskapskontroll"-flagga i både den nyanställdas egen lista och chefsvyns
-   "Signera punkter", så att ingen missar att en punkt har en kunskapskontroll kopplad.
-3. **Kategorifilter i öva-läget.** `byggFragepool(rutiner, omrade, kategori)` tar nu ett
-   valfritt tredje argument, ny `tillgangligaKategorier()` listar bara kategorier som faktiskt
-   förekommer (döljer filtret helt för en organisation utan bankfrågor). `tillRutinKviss()`
-   behåller nu frågans `kategori` som valfri metadata på den sparade kviss-raden – läses
-   ingenstans annars, ofarligt att spara.
-
-**Testsvep:** lint rent, 466/466 vitest (12 nya), build grönt, `test:functions` (samtliga
-delsviter) och `test:rules` (samtliga delsviter) gröna. Ingen manuell webbläsarverifiering
-gjordes den här gången (emulator-CLI:t inte tillgängligt interaktivt i sessionen) – litar på
-att build + fyra gröna testsviter fångar det en visuell genomgång annars skulle.
-
----
 
 ## Uppföljning 2026-08-26 (v5.129.0: fem fel från första riktiga användningen)
 
