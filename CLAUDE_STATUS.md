@@ -133,6 +133,18 @@ senare bygge:
   anledning och revisionsloggning in i kundens hashkedja. En åtgärd som glömmer loggas går inte
   att upptäcka i efterhand, och konventioner har bevisligen misslyckats sex gånger här.
 
+**Tillägg samma dag (v0.3):** ägaren bad om att panelen ska nås med ETT övergripande konto
+utan organisationstillhörighet. Nytt delmål L1m, som ska byggas före allt annat eftersom det
+flyttar en åtkomstgräns. Lösningen är `organisationId: "_plattform"` – sentinelvärdet finns
+redan som pseudo-organisation för revisionsloggning (Etapp 32c) och matchar ingen
+organisation, så isoleringen blir en följd av befintliga regler i stället för av ett nytt
+undantag. **Det viktigaste premissfyndet:** att bara utelämna `organisationId` gör INTE kontot
+organisationslöst – `minOrganisation()` (`firestore.rules:36`) och åtta klientfiler faller
+tillbaka på `default`, en organisation med verklig data. Det tomma fältet är alltså det
+farligaste alternativet, inte det säkraste. Rollen måste dessutom förbli `superadmin`, annars
+slutar `farForsokaLasaPlattformsadmin` (`src/firebase/roles.js:69`) att ens leta efter
+panelen.
+
 Ägaren har också gett Cloud Functions-tjänstekontot `roles/firebaseauth.admin` i GCP.
 **Ännu inte verifierat** – `tvingaUtloggning` på ett testkonto är det icke-destruktiva testet.
 Tills det är gjort står raden kvar i `OPPNA-PUNKTER.md`.

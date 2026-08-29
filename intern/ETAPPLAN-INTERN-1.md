@@ -127,6 +127,73 @@ man står på: står du på `kund/a/anvandning` och byter kund landar du på
 `kund/b/anvandning`, inte på kundens startsida. Det är hela poängen med ett
 flerorganisationsverktyg – att kunna jämföra samma sak hos två kunder utan att navigera om.
 
+### Kontomodellen – ett konto, ingen organisationstillhörighet
+
+Ägaren har begärt (2026-08-29) att panelen ska nås med **ett enda övergripande konto** som
+varken tillhör en kundorganisation eller behöver gå via en organisations egen vy. Det är inte
+bara en inloggningsdetalj – det ändrar var åtkomstgränsen går, och det ska därför byggas
+FÖRE skelettet (L1a). Delmål: L1m.
+
+**Så ser det ut i dag.** Leverantörsbehörigheten sitter redan rätt: den ÄR existensen av
+`plattformsadmin/{uid}`, inte en roll, och den är oberoende av vilken organisation kontot
+tillhör (`functions/organisationslivscykel.js` `kravPlattformsadmin`). Men *kontot* är ett
+vanligt kundkonto: `users/{uid}` med ett `organisationId`, `/leverantor` ligger inuti
+`SkyddatLayout` med kundens `BottomNav` och `Sidomeny`, och startsidan är kundens `Hem`.
+Leverantören loggar alltså in i en kunds vy och klickar sig därifrån vidare till panelen.
+
+**Premisskontroll (krav 8) – fyra fynd som avgör hur det får byggas:**
+
+| Fynd | Var | Följd |
+|---|---|---|
+| `minOrganisation()` faller tillbaka på `'default'` när fältet saknas | `firestore.rules:36` | Ett konto **utan** `organisationId` blir inte organisationslöst – det blir medlem i organisationen `default`, som innehåller verklig data. Att bara utelämna fältet är alltså det farligaste alternativet, inte det säkraste |
+| Åtta klientfiler gör `organisationId ?? STANDARD_ORG` | `useRutiner`, `useAnslag`, `useAuditlogg`, `useForradsartiklar`, `useKontakter`, `useLankbibliotek`, `useSkiftrapport`, `useSokloggar` + `AuthContext` | Samma sak på klientsidan: ett tomt fält riktar läsningar och skrivningar mot `default` |
+| `farForsokaLasaPlattformsadmin(uid, role)` kräver `role === 'superadmin'` | `src/firebase/roles.js:69` | Leverantörskontot kan **inte** ges en låg roll "för säkerhets skull" – klienten skulle då aldrig ens försöka läsa `plattformsadmin/{uid}` och panelen vore osynlig. Rollen måste vara `superadmin` |
+| `users/{uid}` har `allow create: if false`, och enda vägen in är `losInInbjudan` – som binder kontot till en organisation | `firestore.rules:483` | Kontot går inte att skapa med något befintligt flöde. L1m behöver en egen Cloud Function |
+
+**Lösningen: `_plattform` som organisationstillhörighet.** Sentinelvärdet finns redan i
+koden som pseudo-organisation för revisionsloggning av plattformsåtgärder (Etapp 32c,
+`functions/organisationslivscykel.js:330`: *"'_plattform' är inget riktigt organisationId –
+det finns aldrig en kund vid namn det"*). Leverantörskontot får:
+
+```
+users/{uid}          → { organisationId: "_plattform", role: "superadmin", namn: … }
+plattformsadmin/{uid} → { blevPlattformsadmin: … }
+```
+
+Varför det här är rätt form, och inte en ny flagga:
+
+- **Isoleringen blir en följd av befintliga regler, inte av ny kod.** Varje
+  organisationsgrindad regel jämför dokumentets `organisationId` mot `minOrganisation()`.
+  `_plattform` matchar ingen organisation, så kontot nekas allt kundinnehåll **utan att en
+  enda regel skrivs om**. Ett nytt undantag i reglerna hade i stället lagt till en väg in.
+- **Fallbacken till `default` slutar gälla**, eftersom fältet finns och har ett värde. Både i
+  reglerna och i de åtta klientfilerna.
+- **`superadmin` är ofarligt här.** Rollen ger makt *inom den egna organisationen*, och
+  `_plattform` har inga användare, inga rutiner och inget organisationsdokument. Rollen
+  behövs bara för att klienten ska våga slå upp plattformsadmin-statusen.
+- **Innehållsgränsen är oförändrad.** `farSupportlasa(orgId)` kräver inget medlemskap – bara
+  `plattformsadmin/{uid}` plus ett aktivt, kundbeviljat fönster. Ett organisationslöst konto
+  får alltså varken mer eller mindre innehållsåtkomst än i dag.
+
+**Kundvyerna stängs i BÅDA riktningarna.** Reglerna nekar redan läsningarna, men ett konto
+som kan navigera till `/kliniskt-stod` och får en tom sida med konsolfel är ett sämre
+gränssnitt än ett som inte kan hamna där. `SkyddatLayout` skickar därför ett
+`_plattform`-konto vidare till `/leverantor`, och `/` gör detsamma – panelen är kontots
+startsida, inte en flik i kundens app. Panelen får en egen `LeverantorsLayout` utan
+`BottomNav` och `Sidomeny`.
+
+**Att titta på en kunds innehåll under ett supportfönster** kan då inte längre gå via
+`AuthContext.organisationId`, eftersom det är `_plattform`. Kundläget måste mata `orgId`
+explicit till de hookar som ska återanvändas. Det är ingen extra kostnad – det är samma sak
+kundläget behöver ändå för att kunna byta kund utan att logga om, och det gör dessutom varje
+läsning av kundinnehåll synlig i koden i stället för implicit via inloggningen.
+
+**Vad det kostar ägaren.** Ett `_plattform`-konto ser inte längre någon kundvy inifrån. Vill
+man se hur produkten faktiskt ser ut för en användare krävs antingen demomiljön (Etapp 51,
+finns) eller ett separat konto i en riktig organisation. Det är rimligt – det är precis den
+separation begäran gick ut på – men det ska vara ett medvetet val, inte en överraskning
+första gången panelen används.
+
 ### Åtkomsttaket – två nivåer, inte en
 
 Hela upplägget vilar på att leverantören har **två olika** behörigheter, och att panelen
@@ -241,6 +308,37 @@ startsidan finns.
 ## Delmål
 
 Ordningen är inte godtycklig – L1a och L1b är förutsättningar för i stort sett allt annat.
+
+### L1m. Leverantörskontot utan organisationstillhörighet — bygg FÖRST
+
+Genomför kontomodellen i avsnittet "Panelens upplägg" ovan. Ordningen är inte valfri: byggs
+skelettet (L1a) först får panelen en ny navigation medan kontot fortfarande sitter i en
+kundorganisation, och den halvvägspositionen är svårare att resonera om än båda ändlägena.
+
+1. **`skapaLeverantorskonto`** (ny Cloud Function, Admin SDK). Skapar Auth-kontot,
+   `users/{uid}` med `organisationId: "_plattform"` och `role: "superadmin"`, samt
+   `plattformsadmin/{uid}`. Anropbar endast av en befintlig plattformsadmin, och
+   revisionsloggad mot `_plattform` – samma mönster som `gorTillPlattformsadmin`. Behövs
+   eftersom `users/{uid}` har `allow create: if false` och `losInInbjudan` alltid binder
+   kontot till en organisation.
+2. **`LeverantorsLayout`** – egen layoutrutt för `/leverantor/*` utan `BottomNav` och
+   `Sidomeny`.
+3. **Omdirigering i båda riktningarna.** `SkyddatLayout` och `/` skickar ett
+   `_plattform`-konto till `/leverantor`. Panelen är kontots startsida.
+4. **Migrera ägarens eget konto**, eller skapa ett nytt – ägarbeslut, se beslutspunkt 6.
+
+**Testat.** Regeltester i `tests/rules/` som verifierar att ett `_plattform`-konto nekas
+läsning av rutiner, anslag, kontakter, förrådsartiklar, länkbibliotek, skiftrapporter och
+revisionslogg i en riktig organisation – **och att det inte råkar nå organisationen
+`default`**, vilket är det faktiska felet att skydda sig mot (`minOrganisation()` faller
+tillbaka dit när fältet saknas). Plus ett enhetstest som låser att `_plattform` aldrig
+förekommer som ett giltigt värde i organisationslistan.
+
+**Ingen ny åtkomst någonstans.** Kontot får exakt samma rättigheter som en plattformsadmin
+har i dag; det som försvinner är den oavsiktliga medlemskapsåtkomsten till den organisation
+kontot råkade tillhöra.
+
+---
 
 ### L1a. Panelens skelett – från sektionslista till arbetsyta
 
@@ -454,6 +552,7 @@ Det som gör ägarens krav mekaniskt i stället för en vana:
 | 3 | **Diagram:** egen SVG eller bibliotek? | **Egen SVG.** Tre former räcker, inget nytt beroende, inget CSP-undantag |
 | 4 | Ska leverantören kunna **begära** supportåtkomst i appen? | **Ja** – kunden godkänner fortfarande, bara den manuella kontakten försvinner |
 | 5 | Ska panelen ligga kvar på `/leverantor` i samma app? | **Ja.** En separat app innebär ett andra bygge, ett andra deploy och en andra autentisering, för en användare |
+| 6 | Ska ägarens **befintliga konto** flyttas till `_plattform`, eller ska ett nytt leverantörskonto skapas vid sidan av? | **Flytta det befintliga.** Begäran var uttryckligen ett enda övergripande konto. Priset är att kontot inte längre ser någon kundvy inifrån – för att se produkten som en användare finns demomiljön (Etapp 51). Ett andra konto återinför precis det kontobyte begäran ville bli av med |
 
 ---
 
@@ -477,16 +576,17 @@ Det som gör ägarens krav mekaniskt i stället för en vana:
 ## Beroendeordning
 
 ```
-L1a (skelett)
- ├─ L1b (kunddossié)  ← bygg denna först av allt innehåll
- │   ├─ L1c (mätvärden)   [beslutspunkt 1]
- │   │   └─ L1d (visualisering)  [beslutspunkt 3]
- │   ├─ L1i (ekonomi)
- │   └─ L1j (aktivitet/version)  [beslutspunkt 2]
- ├─ L1e (driftkonsol)
- ├─ L1f (support)  [beslutspunkt 4]
- ├─ L1g (åtgärdslogg)
- └─ L1h (pipeline)
+L1m (leverantörskontot)   ← bygg FÖRST, den flyttar åtkomstgränsen
+ └─ L1a (skelett)
+     ├─ L1b (kunddossié)  ← bygg denna först av allt innehåll
+     │   ├─ L1c (mätvärden)   [beslutspunkt 1]
+     │   │   └─ L1d (visualisering)  [beslutspunkt 3]
+     │   ├─ L1i (ekonomi)
+     │   └─ L1j (aktivitet/version)  [beslutspunkt 2]
+     ├─ L1e (driftkonsol)
+     ├─ L1f (support)  [beslutspunkt 4]
+     ├─ L1g (åtgärdslogg)
+     └─ L1h (pipeline)
 
 Fristående, kan byggas när som helst:
  L1k (skalbarhet)
@@ -503,11 +603,12 @@ Grov, i samma skala som tidigare etapplaner (ett "delmål" ≈ en fokuserad arbe
 | Delmål | Omfång |
 |---|---|
 | L1l, L1h, L1k | Små – timmar var |
+| L1m | Medel – liten kodmängd, men den flyttar en åtkomstgräns och bär därför mest testarbete per rad i hela planen |
 | L1a, L1g, L1i | Medel |
 | L1b, L1e, L1f | Stora – kärnan i planen |
 | L1c, L1d, L1j | Beror helt på beslutspunkterna |
 
-**Om bara en sak byggs:** L1l först (separationen), sedan L1b (kunddossién). De två ger
+**Om bara en sak byggs:** L1m först (kontomodellen), sedan L1l (separationen) och L1b (kunddossién). De två ger
 merparten av nyttan och binder inga beslut som ännu inte är fattade.
 
 ---
@@ -518,3 +619,4 @@ merparten av nyttan och binder inga beslut som ännu inte är fattade.
 |---|---|---|
 | 0.1 | 2026-08-27 | Första utkastet. Ej antaget |
 | 0.2 | 2026-08-29 | Avsnittet "Panelens upplägg" tillagt: portfölj- kontra kundläge, tolv rutter, tvånivåers åtkomsttak, delad datastomme och tre delade komponenter. L1a skrevs om till att bygga upplägget i stället för att beskriva det. Fortfarande ej antagen |
+| 0.3 | 2026-08-29 | Kontomodellen tillagd på ägarens begäran: ett enda övergripande konto med `organisationId: "_plattform"`, utan medlemskap i någon kundorganisation. Nytt delmål L1m (bygg först), ny beslutspunkt 6. Fyra premissfynd ändrade utformningen – särskilt att ett SAKNAT `organisationId` inte ger organisationslöshet utan medlemskap i `default` |
