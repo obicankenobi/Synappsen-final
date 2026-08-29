@@ -1,8 +1,11 @@
 # Intern etapplan 1 – Leverantörspanelen
 
-**Etapp L1. UTKAST, EJ ANTAGEN.** Skriven 2026-08-27 på ägarens begäran. Ingen kod är
-skriven, inget delmål är påbörjat. Antas eller förkastas av ägaren; tills dess är det här
-ett förslag, inte en plan som ska byggas.
+**Etapp L1. ANTAGEN 2026-08-29.** Skriven 2026-08-27 på ägarens begäran, utökad 2026-08-29
+(v0.2–v0.5) och därefter antagen i sin helhet. Ingen kod är ännu skriven – antagandet gör
+planen byggbar, i den beroendeordning avsnittet "Beroendeordning" nedan anger, med start i
+L1m. **Antagandet av planen svarar INTE på alla sju beslutspunkter** – se tabellen: 5 och 6
+är redan avgjorda genom hur planen är byggd, medan 1–4 och 7 kvarstår öppna och avgörs var
+för sig innan respektive delmål (L1c, L1d, L1f, L1j) påbörjas.
 
 > **Varför den här filen ligger i `intern/` och inte i `etapplaner/`.**
 > Ägaren bad uttryckligen om att arbetet ska hållas skilt från den kundvända
@@ -766,15 +769,21 @@ Det som gör ägarens krav mekaniskt i stället för en vana:
 
 ## Beslutspunkter (ägaren)
 
-| # | Fråga | Rekommendation |
-|---|---|---|
-| 1 | Får leverantören se en kunds **mätvärdesaggregat** utan ett aktivt supportfönster? | **Ja, via Cloud Function (väg B)** – spårbart och avgränsat till aggregat. Kräver en rad i `avtal/DPIA-UNDERLAG.md` och sannolikt i PUB-avtalet |
-| 2 | Ska klienten rapportera **senast aktiv** och **appversion**? | **Ja för version, avvakta med senast aktiv.** Versionen är ren drift och kan lagras per organisation utan att peka ut en person; "senast aktiv" per användare är närmare övervakning av personal och behöver ett tydligare syfte |
-| 3 | **Diagram:** egen SVG eller bibliotek? | **Egen SVG.** Tre former räcker, inget nytt beroende, inget CSP-undantag |
-| 4 | Ska leverantören kunna **begära** supportåtkomst i appen? | **Ja** – kunden godkänner fortfarande, bara den manuella kontakten försvinner |
-| 5 | Ska panelen ligga kvar på `/leverantor` i samma app? | **Ja.** En separat app innebär ett andra bygge, ett andra deploy och en andra autentisering, för en användare |
-| 6 | Ska ägarens **befintliga konto** flyttas till `_plattform`, eller ska ett nytt leverantörskonto skapas vid sidan av? | **Flytta det befintliga.** Begäran var uttryckligen ett enda övergripande konto. Priset är att kontot inte längre ser någon kundvy inifrån – för att se produkten som en användare finns demomiljön (Etapp 51). Ett andra konto återinför precis det kontobyte begäran ville bli av med |
-| 7 | Ska leverantören se kundens **feedback-inkorg** (`skickaFeedback`)? | **Nej, inte rakt av.** Regeln är i dag `arSuperadmin() && matcharMinOrg()` – feedbacken är skriven till kundens egen admin, inte till leverantören. Efter L1m når ett `_plattform`-konto den inte alls, vilket är rätt utfall. Behövs en kanal till leverantören bör den vara en EGEN, tydligt märkt sådan – inte en tyst utvidgning av vem som läser det kunden trodde stannade internt |
+**Status per 2026-08-29:** planen är antagen, men det avgör bara ORDNING och OMFÅNG – inte
+de sju enskilda frågorna nedan. 5 och 6 är redan besvarade genom hur L1a/L1m är utformade
+(ingen mening att bygga skelettet och sedan riva det). 1–4 och 7 är fortfarande öppna och tas
+upp igen, ett i taget, precis innan det delmål de gäller påbörjas – de binder inget förrän
+dess, och byggordningen i "Beroendeordning" är vald så att inget öppet svar blockerar start.
+
+| # | Fråga | Rekommendation | Status |
+|---|---|---|---|
+| 1 | Får leverantören se en kunds **mätvärdesaggregat** utan ett aktivt supportfönster? | **Ja, via Cloud Function (väg B)** – spårbart och avgränsat till aggregat. Kräver en rad i `avtal/DPIA-UNDERLAG.md` och sannolikt i PUB-avtalet | Öppen – avgörs innan L1c |
+| 2 | Ska klienten rapportera **senast aktiv** och **appversion**? | **Ja för version, avvakta med senast aktiv.** Versionen är ren drift och kan lagras per organisation utan att peka ut en person; "senast aktiv" per användare är närmare övervakning av personal och behöver ett tydligare syfte | Öppen – avgörs innan L1j |
+| 3 | **Diagram:** egen SVG eller bibliotek? | **Egen SVG.** Tre former räcker, inget nytt beroende, inget CSP-undantag | Öppen – avgörs innan L1d |
+| 4 | Ska leverantören kunna **begära** supportåtkomst i appen? | **Ja** – kunden godkänner fortfarande, bara den manuella kontakten försvinner | Öppen – avgörs innan L1f |
+| 5 | Ska panelen ligga kvar på `/leverantor` i samma app? | **Ja.** En separat app innebär ett andra bygge, ett andra deploy och en andra autentisering, för en användare | **Avgjord genom antagandet** – planens hela struktur (L1a) förutsätter det |
+| 6 | Ska ägarens **befintliga konto** flyttas till `_plattform`, eller ska ett nytt leverantörskonto skapas vid sidan av? | **Flytta det befintliga.** Begäran var uttryckligen ett enda övergripande konto. Priset är att kontot inte längre ser någon kundvy inifrån – för att se produkten som en användare finns demomiljön (Etapp 51). Ett andra konto återinför precis det kontobyte begäran ville bli av med | **Avgjord genom antagandet** – L1m är byggd på den premissen |
+| 7 | Ska leverantören se kundens **feedback-inkorg** (`skickaFeedback`)? | **Nej, inte rakt av.** Regeln är i dag `arSuperadmin() && matcharMinOrg()` – feedbacken är skriven till kundens egen admin, inte till leverantören. Efter L1m når ett `_plattform`-konto den inte alls, vilket är rätt utfall. Behövs en kanal till leverantören bör den vara en EGEN, tydligt märkt sådan – inte en tyst utvidgning av vem som läser det kunden trodde stannade internt | Öppen – ingen kod byggs mot den i dag, avgörs om/när behovet blir konkret |
 
 ---
 
@@ -851,3 +860,4 @@ merparten av nyttan och binder inga beslut som ännu inte är fattade.
 | 0.3 | 2026-08-29 | Kontomodellen tillagd på ägarens begäran: ett enda övergripande konto med `organisationId: "_plattform"`, utan medlemskap i någon kundorganisation. Nytt delmål L1m (bygg först), ny beslutspunkt 6. Fyra premissfynd ändrade utformningen – särskilt att ett SAKNAT `organisationId` inte ger organisationslöshet utan medlemskap i `default` |
 | 0.4 | 2026-08-29 | Avsnittet "Behoven, och vilken funktion som möter varje" tillagt (B1–B10, härledda ur kod och avtalsdokument). Nytt delmål L1n: återställningspanel, manuell backup, beredskapskontroller flyttade från kundens adminpanel, och RTO-övningens ålder som åttonde signal. Ny beslutspunkt 7 (feedback-inkorgen). Fyndet som motiverar L1n: `aterstallOrganisationCallable` och `backupaOrganisation` finns i kod men har noll gränssnitt, medan incidentdokumenten beskriver återställning som en existerande förmåga |
 | 0.5 | 2026-08-29 | Behov B11–B20 tillagda: avtal, juridik och försäljning. Två nya delmål – L1o (åtagandekalendern, ersätter L1n punkt 5) och L1p (PUB-spärr, underrättelseregister, incidentklocka med 24/72 timmar, åtagandeblock). Avråder uttryckligen från att flytta in kandidatlistan i produktionsdatabasen: det vore en ny behandling med leverantören som personuppgiftsansvarig |
+| 0.6 | 2026-08-29 | **Antagen.** Ägaren markerade planen som antagen i sin helhet. Beslutspunkterna 5 och 6 avgjorda genom antagandet (planens struktur förutsätter dem); 1–4 och 7 kvarstår öppna och avgörs var för sig, precis innan respektive delmål påbörjas. Se `BESLUTSLOGG.md` 2026-08-29 |

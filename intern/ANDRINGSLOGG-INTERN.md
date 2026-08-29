@@ -20,8 +20,9 @@ från kundens ändringslogg får den här vara teknisk – läsaren är leverant
 
 ## Ej ännu byggt
 
-Ingenting. `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) är ett **utkast som
-inte är antaget**. Första posten skrivs när det första delmålet faktiskt byggts.
+`intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) **antogs 2026-08-29** i sin
+helhet (16 delmål, L1a–L1p; se `BESLUTSLOGG.md` samma datum). Ingen kod är ännu skriven –
+första posten här skrivs när det första delmålet (L1m, kontomodellen) faktiskt byggts.
 
 ---
 

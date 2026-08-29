@@ -9,8 +9,8 @@
 > något gjordes.
 
 **Senast uppdaterad:** 2026-08-29 · version **5.132.0** i produktion (körning #93, verifierad).
-Utgående e-post är stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. Ingen kod ändrad
-2026-08-29 – bara `intern/ETAPPLAN-INTERN-1.md`, som fick ett upplägg för leverantörspanelen.
+Utgående e-post är stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. Etapp L1
+(leverantörspanelen) är **antagen** i sin helhet – ingen kod skriven än, byggstart är L1m.
 
 ## Nuläge
 
@@ -21,7 +21,7 @@ Utgående e-post är stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. Inge
 | **Senaste kodarbete** | v5.131.0: rättslig spärr som stoppar allt utgående e-post tills Brevos PUB-avtal är tecknat. Dessförinnan v5.130.0 (Etapp 71, Öva-lägets redigerbara frågebank) |
 | **Senaste dokumentarbete** | 2026-08-27: `saljmaterial/PITCH.md` uppdaterad till v5.130.0 (Öva-läget, kontoadmin, lösenordsåterställning, startbibliotek i efterhand tillagda) |
 | **Aktiv plan** | Ingen. Etapp 69 var den sista. `etapplaner/ETAPPLAN13.md` (Etapp 64) är antagen men juridiskt blockerad – inget steg är byggbart förrän en extern bedömning finns |
-| **Nästa steg** | Ägaren har gett tjänstekontot `roles/firebaseauth.admin` (2026-08-29) – **verifiera med "Tvinga utloggning" på ett testkonto innan det räknas som löst**. Därefter: ägarbeslut om Etapp L1 (leverantörspanelen, `intern/ETAPPLAN-INTERN-1.md`) och om `systemkunskap`-paketet (se `OPPNA-PUNKTER.md`) |
+| **Nästa steg** | **Bygg L1m** (leverantörskontot utan organisationstillhörighet, `intern/ETAPPLAN-INTERN-1.md`) – planen är antagen och L1m är låst som första delmål. Verifiera också `roles/firebaseauth.admin` med "Tvinga utloggning" på ett testkonto om det inte redan gjorts, och ägarbeslut om `systemkunskap`-paketet (se `OPPNA-PUNKTER.md`) |
 
 ## Var du hittar saker
 
@@ -111,6 +111,25 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
 
+## Uppföljning 2026-08-29 (Etapp L1 antagen + arbetsuppskattning)
+
+`intern/ETAPPLAN-INTERN-1.md` (leverantörspanelen) **antogs i sin helhet**, v0.6.
+Beslutspunkterna 5 (samma app) och 6 (flytta befintligt konto) avgjordes genom antagandet
+– planens struktur förutsätter dem. **1–4 och 7 kvarstår öppna** och avgörs var för sig,
+precis innan L1c/L1d/L1f/L1j respektive påbörjas – de blockerar inget annat delmål.
+`BESLUTSLOGG.md` fick raden, `DOKUMENTREGISTER.md` och `intern/ANDRINGSLOGG-INTERN.md`
+uppdaterades. Två rader i `OPPNA-PUNKTER.md` (återställningsluckan, PUB-spärren) togs bort –
+de väntade bara på det här antagandet och är nu byggkapacitet, inte ett öppet beslut.
+
+**Arbetsuppskattning, på ägarens begäran.** 16 delmål (L1a–L1p), i samma effortskala som
+tabellen "Uppskattad arbetsinsats" i planfilen: 4 små, 6 medel, 3 stora, 3 beroende av öppna
+beslutspunkter. Grovt ~18–24 fokuserade byggpass (bygg + fullt testsvep + commit, samma
+enhet varje `Uppföljning`-post i den här filen redan representerar) om
+rekommendationerna följs på de öppna punkterna – jämförbart i total omfattning med de
+senaste 15–20 etapperna tillsammans. Kalendertiden styrs av sessionstakten, inte av hur
+mycket ett enskilt pass hinner. Byggordningen (L1m → fritt inom varje gren i
+"Beroendeordning") gör att flera delmål kan drivas parallellt utan att vänta på varandra.
+
 ## Uppföljning 2026-08-29 (upplägg för leverantörspanelen – förslag, inte bygge)
 
 Ingen kod. `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, **fortfarande ej antagen**) fick ett nytt
@@ -186,45 +205,6 @@ produktens juridiska hållning bygger på biträdesrollen. Listan stannar i git.
 Ägaren har också gett Cloud Functions-tjänstekontot `roles/firebaseauth.admin` i GCP.
 **Ännu inte verifierat** – `tvingaUtloggning` på ett testkonto är det icke-destruktiva testet.
 Tills det är gjort står raden kvar i `OPPNA-PUNKTER.md`.
-
-## Uppföljning 2026-08-27 (Etapp 71: redigerbar frågebank för Öva-läget)
-
-Ägaren antog rekommendationen i MDR-bedömningen och lade till ett krav: paketen ska gå att
-pausa, och enskilda frågor ska gå att se, redigera, lägga till och ta bort – av kundens
-administratör och av leverantören. **Det kravet flyttade lösningen från statisk kod
-(alternativ A) till Firestore (alternativ C)**, som tidigare avråtts – men avrådan gällde
-innan redigering var ett krav.
-
-**Modellen** (fyra ägarbeslut 2026-08-27, alla enligt rekommendation): överlagring framför
-kopia-per-kund, superadmin + VÖL som behörighetsnivå, eget kundpaket för fristående frågor,
-och paus på både kund- och leverantörsnivå.
-
-| Del | Var |
-|---|---|
-| Leverantörens frågor | `kvissfragor/{id}` (global) |
-| Kundens avvikelse | `organisationer/{orgId}/kvissoverlagring/{fragaId}` |
-| Kundens egna frågor | `organisationer/{orgId}/kvissegna/{id}` |
-| Kundens paketval | `organisationer/{orgId}.kvisspaket` |
-| Globalt nödstopp | `kvisspaket/{paketId}` |
-
-**Ingen collection är skrivbar av någon klient** – all redigering går via
-`functions/kvissbank.js`, som rolltestar, PII-kontrollerar och revisionsloggar. 19 nya
-regeltester bevisar både det och organisationsisoleringen.
-
-**Innehåll:** 12 nya yrkeskunskapsfrågor (spår 1), var och en kontrollerad mot faktisk
-lagtext. De 19 gamla systemfrågorna migrerade till ett eget, avstängbart paket. Paketet
-`kliniskt` (spår 2) är byggt men TOMT – innehållet väntar på den externa juridiska
-bedömningen.
-
-**Ett fynd värt att minnas:** `SOSFS 1997:14` om delegering upphävdes 2026-01-01 (HSLF-FS
-2025:5). En delegeringsfråga skriven ur minnet hade varit fel från dag ett – precis den
-färskhetsrisk bedömningens §5.1 pekar ut, demonstrerad på första innehållsomgången. Därav
-`kalla` + `kallaDatum` per fråga, och en assertion som failar om någon skriver tillbaka den
-upphävda referensen.
-
-**Rättat:** MDR-motiveringen i `src/data/kvissbank.js` (rad 9–22) var felaktig och är omskriven.
-
-Lint, build, vitest, regeltester (19 nya) och functions-tester gröna. **Ej deployat.**
 
 ## Uppföljning 2026-08-27 (v5.129.0 deployad, Öva-läget, MDR-bedömning)
 

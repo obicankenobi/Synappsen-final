@@ -98,7 +98,7 @@ varken i planerna eller i ändringsloggen. Se genomgående krav 36 i `intern/ETA
 
 | Dokument | Typ | Innehåll |
 |---|---|---|
-| `intern/ETAPPLAN-INTERN-1.md` | referens | Etapp L1 – leverantörspanelen. **UTKAST, EJ ANTAGEN.** Uppdateras om ägaren antar, förkastar eller ändrar den |
+| `intern/ETAPPLAN-INTERN-1.md` | referens | Etapp L1 – leverantörspanelen. **Antagen 2026-08-29** (v0.6). Sju beslutspunkter, varav fem fortfarande öppna och avgörs var för sig innan respektive delmål. Uppdateras när ett delmål byggs eller en beslutspunkt avgörs |
 | `intern/ANDRINGSLOGG-INTERN.md` | levande | Ändringslogg för internt arbete. Utlöses av att ett internt delmål byggs. Får ALDRIG slås ihop med `src/data/andringslogg.js`, som är kundvänd |
 
 ---

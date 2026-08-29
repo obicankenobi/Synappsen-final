@@ -4303,3 +4303,44 @@ Fullt svep grönt: lint, build (bekräftat i minifierad `dist/sw.js` att både l
 parallell körning, bekräftat ORELATERADE genom att köra om dem isolerat – passerade båda).
 
 ---
+
+## Uppföljning 2026-08-27 (Etapp 71: redigerbar frågebank för Öva-läget)
+
+Ägaren antog rekommendationen i MDR-bedömningen och lade till ett krav: paketen ska gå att
+pausa, och enskilda frågor ska gå att se, redigera, lägga till och ta bort – av kundens
+administratör och av leverantören. **Det kravet flyttade lösningen från statisk kod
+(alternativ A) till Firestore (alternativ C)**, som tidigare avråtts – men avrådan gällde
+innan redigering var ett krav.
+
+**Modellen** (fyra ägarbeslut 2026-08-27, alla enligt rekommendation): överlagring framför
+kopia-per-kund, superadmin + VÖL som behörighetsnivå, eget kundpaket för fristående frågor,
+och paus på både kund- och leverantörsnivå.
+
+| Del | Var |
+|---|---|
+| Leverantörens frågor | `kvissfragor/{id}` (global) |
+| Kundens avvikelse | `organisationer/{orgId}/kvissoverlagring/{fragaId}` |
+| Kundens egna frågor | `organisationer/{orgId}/kvissegna/{id}` |
+| Kundens paketval | `organisationer/{orgId}.kvisspaket` |
+| Globalt nödstopp | `kvisspaket/{paketId}` |
+
+**Ingen collection är skrivbar av någon klient** – all redigering går via
+`functions/kvissbank.js`, som rolltestar, PII-kontrollerar och revisionsloggar. 19 nya
+regeltester bevisar både det och organisationsisoleringen.
+
+**Innehåll:** 12 nya yrkeskunskapsfrågor (spår 1), var och en kontrollerad mot faktisk
+lagtext. De 19 gamla systemfrågorna migrerade till ett eget, avstängbart paket. Paketet
+`kliniskt` (spår 2) är byggt men TOMT – innehållet väntar på den externa juridiska
+bedömningen.
+
+**Ett fynd värt att minnas:** `SOSFS 1997:14` om delegering upphävdes 2026-01-01 (HSLF-FS
+2025:5). En delegeringsfråga skriven ur minnet hade varit fel från dag ett – precis den
+färskhetsrisk bedömningens §5.1 pekar ut, demonstrerad på första innehållsomgången. Därav
+`kalla` + `kallaDatum` per fråga, och en assertion som failar om någon skriver tillbaka den
+upphävda referensen.
+
+**Rättat:** MDR-motiveringen i `src/data/kvissbank.js` (rad 9–22) var felaktig och är omskriven.
+
+Lint, build, vitest, regeltester (19 nya) och functions-tester gröna. **Ej deployat.**
+
+---
