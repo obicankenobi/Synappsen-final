@@ -64,6 +64,7 @@ exports.gallraGamlaBackuper = backup.gallraGamlaBackuper;
 exports.backupGallringSchemalagt = backup.backupGallringSchemalagt;
 exports.aterstallOrganisation = backup.aterstallOrganisation;
 exports.aterstallOrganisationCallable = backup.aterstallOrganisationCallable;
+exports.listaBackuper = backup.listaBackuper;
 
 // ── revisionslogg.js – revisionsloggens kedjekontroll
 const revisionslogg = require("./revisionslogg");
@@ -110,6 +111,9 @@ exports.migreraTillOrganisation = plattformsdrift.migreraTillOrganisation;
 exports.backfillaBorttagenFalt = plattformsdrift.backfillaBorttagenFalt;
 exports.blibForstaPlattformsadmin = plattformsdrift.blibForstaPlattformsadmin;
 exports.gorTillPlattformsadmin = plattformsdrift.gorTillPlattformsadmin;
+exports.skapaLeverantorskonto = plattformsdrift.skapaLeverantorskonto;
+exports.flyttaTillPlattformskonto = plattformsdrift.flyttaTillPlattformskonto;
+exports.hamtaLeverantorsAtgardslogg = plattformsdrift.hamtaLeverantorsAtgardslogg;
 
 // ── kvissbank.js – Etapp 71: frågebanken bakom Öva-läget (leverantörens globala frågor,
 // kundens överlagringar och egna frågor, paketpaus på båda nivåerna)
@@ -144,6 +148,16 @@ exports.satProvperiod = avtalslivscykel.satProvperiod;
 exports.satAvtaladArsavgift = avtalslivscykel.satAvtaladArsavgift;
 exports.satSokkvotTakPerDygn = avtalslivscykel.satSokkvotTakPerDygn;
 exports.satHuvudman = avtalslivscykel.satHuvudman;
+exports.satPubAvtal = avtalslivscykel.satPubAvtal;
+exports.satUnderbitradeUnderrattad = avtalslivscykel.satUnderbitradeUnderrattad;
+exports.satOmfattasAvNIS2 = avtalslivscykel.satOmfattasAvNIS2;
+exports.satAtagandeblock = avtalslivscykel.satAtagandeblock;
+exports.begarReferensunderlag = avtalslivscykel.begarReferensunderlag;
+
+// ── incidentklocka.js – Etapp L1p punkt 3: 72/24-timmarsklockan vid en personuppgiftsincident
+const incidentklocka = require("./incidentklocka");
+exports.startaIncident = incidentklocka.startaIncident;
+exports.kvitteraIncidentunderrattelse = incidentklocka.kvitteraIncidentunderrattelse;
 exports.kontrolleraProvperioder = avtalslivscykel.kontrolleraProvperioder;
 exports.kontrolleraProvperioderSchemalagt = avtalslivscykel.kontrolleraProvperioderSchemalagt;
 exports.manadsrapportOrganisationer = avtalslivscykel.manadsrapportOrganisationer;

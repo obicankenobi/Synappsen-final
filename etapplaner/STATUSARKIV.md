@@ -4344,3 +4344,74 @@ upphävda referensen.
 Lint, build, vitest, regeltester (19 nya) och functions-tester gröna. **Ej deployat.**
 
 ---
+
+## Uppföljning 2026-08-27 (v5.129.0 deployad, Öva-läget, MDR-bedömning)
+
+**Deploy.** v5.129.0 ligger i produktion (körning #89). Två hemligheter stoppade vägen dit:
+`BREVO_API_KEY` saknades (ägaren satte den, och verifierade `synappsen.se` hos Brevo via
+DNS-poster hos Loopia), och `SOKMOTOR_API_KEY` visade sig **aldrig ha varit satt** – felet
+syntes först nu eftersom v5.129.0 bytte `echo` mot `printf '%s'` i `deploy.yml`. Tidigare blev
+en saknad hemlighet strängen `"\n"` i Secret Manager, som Secret Manager accepterade;
+`printf` skickar en tom sträng, som avvisas med "Secret Payload cannot be empty". **Slutsats
+värd att minnas: klinikstödets sökmotor har sannolikt kört mot en trasig nyckel i produktion
+under lång tid utan att något larmade.** Ägaren hittade rätt nyckel i GCP ("API key filter",
+restriktion Custom Search API) och satte den.
+
+**Öva-läget var tomt.** Orsak: `byggFragepool()` läser bara `rutin.kviss`, och organisationen
+har inga rutiner. `KVISSBANK` nåddes bara via en redaktör som manuellt fäst en fråga på en
+rutin – bankens egen motivering ("så att en ny organisation inte står tom dag ett") stämde
+alltså inte i praktiken. Byggt: `byggBankFragepool()` + ett Systemkunskap-spår i `OvaLage.jsx`
+som läser banken direkt, oberoende av Firestore (commit `d8b9106`, ej deployad).
+
+**Åtta nya bankfrågor skrevs och reverterades** (`4754942` → `4815c68`). Ägaren avvisade dem
+med rätt argument: tekniska frågor om hur Synappsen fungerar är ointressanta för vårdpersonal,
+som behöver öva på sitt yrke.
+
+**MDR-bedömning gjord** (`granskningar/MDR-BEDOMNING-OVNINGSFRAGOR-2026-08.md`, ny fil).
+Ägaren ifrågasatte om kliniska frågor verkligen passerar MDR-gränsen. Genomgång mot MDR
+art. 2(1), skäl 19, art. 2(12) och MDCG 2019-11 ger: **nej, de gör inte det.** Beslutssteg 4
+i MDCG 2019-11 ("är åtgärden till nytta för enskilda patienter?") besvaras nekande eftersom
+ingen patientdata finns i flödet. **Kommentaren i `src/data/kvissbank.js` rad 9–22 är alltså
+för hårt dragen och bör rättas** – men rättelsen väntar på ägarbeslut, eftersom regeln råkar
+skydda mot fyra risker som är verkliga (färskhet, lokal variation, upphovsrätt,
+AI-förordningens bilaga III). Fyra beslut ligger i `OPPNA-PUNKTER.md`.
+
+## Uppföljning 2026-08-26 (v5.129.0: fem fel från första riktiga användningen)
+
+Ägaren bjöd in två kollegor och rapporterade fem problem. Sentry-notiser bifogades och
+avslöjade **ett sjätte, allvarligare** som ingen sett: tvingad utloggning kraschade i
+produktion.
+
+**Rotorsaker, samtliga verifierade mot kod och Sentry:**
+
+| Symptom | Rotorsak |
+|---|---|
+| Tvinga utloggning "fungerade" men gjorde inget | Tjänstekontot saknar `roles/firebaseauth.admin`. `revokeRefreshTokens` kastar "Credential implementation … insufficient permission" (`organisationsadmin.js:49`). **Samma fel drabbar `deleteUser` i organisationsraderingen, där det är tyst nedsvalt** – Auth-konton blev kvar. **Kräver ägaråtgärd i GCP-konsolen, ingen kod hjälper.** |
+| E-postinbjudan kom aldrig fram | `deploy.yml` satte hemligheten med `echo`, som lägger till radbrytning. En saknad GitHub-hemlighet blev `"\n"` i Secret Manager – **truthy** – så `skickaEpost`s "inte konfigurerad"-guard slog aldrig till. Brevo svarade 401 "authentication not found in headers" |
+| Tom organisation | `verksamhetstyp` har default `""` i UI:t, hela seedningen är villkorad på den, och fältet **sparades aldrig** på organisationen. Ingen väg tillbaka fanns |
+| Ingen lösenordsåterställning | Aldrig byggd |
+| Kan inte radera/stänga av konto | Funktionerna fanns inte |
+| CSP-larm i Sentry | `connect-src` tillät `ingest.de.sentry.io` men adressen är en **subdomän** → Sentrys egen SDK blockerades. `frame-src` saknade `firebaseapp.com`, vilket hade brutit lösenordsåterställningen. (`connect.facebook.net` var inte vår kod – injicerat av besökarens webbläsare) |
+| `FirebaseError: Missing or insufficient permissions` | Push-token skrevs innan `losInInbjudan` hunnit skapa `users/{uid}` |
+
+**Byggt (v5.129.0):** `satAnvandareAvstangd` (reversibel spärr, Auth `disabled`) och
+`raderaAnvandare` (Auth + `users/{uid}`, GDPR art. 17 på individnivå) med UI, `avstangd`
+gjort immutabelt från klienten i `firestore.rules`, lösenordsåterställning, ärligt
+inbjudnings-UI (`skapaInbjudan` returnerar `epostSkickat`), `seedaStartbibliotek` (idempotent,
+körbar i efterhand) + `verksamhetstyp` sparas nu, `printf '%s'` i deploy.yml + `.trim()`,
+CSP-rättelser, push-race. 10 nya functions-tester
+(`tests/functions/anvandarhantering.test.cjs`).
+
+**Medvetet INTE byggt: byta organisation på en användare.** Kvitteringar,
+introduktionssigneringar och revisionsloggposter hör till den gamla organisationen, och
+revisionsloggen är en hashkedja som inte får skrivas om. Rätt väg är radera + bjud in på
+nytt, vilket nu finns och är spårbart.
+
+**Dokument rättade i samma commit:** `drift/INCIDENT-CHECKLISTA.md` (tvingad utloggning
+stänger inte ute någon som kan lösenordet – raden pekar nu på avstängning) och
+`saljmaterial/kallfiler/Synappsen-teknisk-beskrivning.html` (superadmins förmågor).
+
+> **KVARSTÅR OCH BLOCKERAR:** utan IAM-rollen fungerar varken avstängning, radering eller
+> tvingad utloggning i produktion – koden är rätt, behörigheten saknas. Se `OPPNA-PUNKTER.md`.
+
+---

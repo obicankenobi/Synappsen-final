@@ -80,9 +80,13 @@ export function migreraTillOrganisation(dryRun = true) {
   return fn({ dryRun });
 }
 
-export function verifieraRevisionslogg() {
+// organisationId är valfritt – en vanlig superadmin behöver det aldrig (servern använder då
+// deras egen organisation); en plattformsadmin MÅSTE ange det för att välja VILKEN kund
+// (se kravLasningAvRevisionslogg i functions/revisionslogg.js). Tillagt i Etapp L1n för
+// beredskapskontrollen i /leverantor/drift – ingen ändring av befintliga anropsställen.
+export function verifieraRevisionslogg(organisationId) {
   const fn = httpsCallable(functions, "verifieraRevisionsloggAdmin");
-  return fn();
+  return fn(organisationId ? { organisationId } : {});
 }
 
 export function exporteraRevisionslogg() {
@@ -90,16 +94,31 @@ export function exporteraRevisionslogg() {
   return fn();
 }
 
-// Etapp 46
-export function hamtaBackupstatus() {
+// Etapp 46. organisationId valfritt, se motiveringen vid verifieraRevisionslogg ovan
+// (samma kravLasningAvRevisionslogg-mönster, tillagt för Etapp L1n).
+export function hamtaBackupstatus(organisationId) {
   const fn = httpsCallable(functions, "hamtaBackupstatus");
-  return fn();
+  return fn(organisationId ? { organisationId } : {});
 }
 
 // Etapp 6a – leverantörsadmin
 export function blibForstaPlattformsadmin() {
   const fn = httpsCallable(functions, "blibForstaPlattformsadmin");
   return fn();
+}
+
+// Etapp L1m: skapar ett helt nytt, organisationslöst leverantörskonto. Svaret innehåller ett
+// engångslösenord som ALDRIG lagras – visa/kopiera det en gång, dela manuellt.
+export function skapaLeverantorskonto(epost, namn) {
+  const fn = httpsCallable(functions, "skapaLeverantorskonto");
+  return fn({ epost, namn });
+}
+
+// Flyttar ANROPARENS EGET konto till den organisationslösa modellen (kräver att kontot redan
+// är plattformsadmin). Se BESLUTSLOGG.md 2026-08-29, beslutspunkt 6.
+export function flyttaTillPlattformskonto() {
+  const fn = httpsCallable(functions, "flyttaTillPlattformskonto");
+  return fn({});
 }
 
 export function listaOrganisationer() {
@@ -111,6 +130,12 @@ export function listaOrganisationer() {
 export function hamtaOrganisationsdiagnostik(orgId) {
   const fn = httpsCallable(functions, "hamtaOrganisationsdiagnostik");
   return fn({ orgId });
+}
+
+// Etapp L1g – leverantörens egen åtgärdslogg, tvärs alla kundorganisationer (läsvy, krav 39)
+export function hamtaLeverantorsAtgardslogg(limit) {
+  const fn = httpsCallable(functions, "hamtaLeverantorsAtgardslogg");
+  return fn(limit ? { limit } : {});
 }
 
 // Etapp 51 – demo-/övningsorganisation: nollställ innehållet, valfritt med en färsk
@@ -206,6 +231,51 @@ export function satHuvudman(orgId, huvudman) {
   return fn({ orgId, huvudman });
 }
 
+// Etapp L1p punkt 1, B12 – registrerar ATT ett PUB-avtal finns (aldrig avtalet självt).
+// Låser upp satAvtalsstatus('aktiv'), som annars nekas.
+export function satPubAvtal(orgId, tecknat, version) {
+  const fn = httpsCallable(functions, "satPubAvtal");
+  return fn({ orgId, tecknat, version });
+}
+
+// Etapp L1p punkt 2, B13 – registrerar att en kund underrättats om en given version av
+// avtal/UNDERBITRADEN.md (PUB-avtalsmallens punkt 5, invändningsrätt).
+export function satUnderbitradeUnderrattad(orgId, version) {
+  const fn = httpsCallable(functions, "satUnderbitradeUnderrattad");
+  return fn({ orgId, version });
+}
+
+// Etapp L1p punkt 3, B11 – styr om organisationens incidentklocka räknar 24h (NIS2,
+// cybersäkerhetslagen 2025:1506) eller 72h (PUB-avtalets ordinarie frist).
+export function satOmfattasAvNIS2(orgId, omfattasAvNIS2) {
+  const fn = httpsCallable(functions, "satOmfattasAvNIS2");
+  return fn({ orgId, omfattasAvNIS2 });
+}
+
+// Etapp L1p punkt 4, B15 – fritext + datum för vad som lovats just den här kunden.
+export function satAtagandeblock(orgId, text) {
+  const fn = httpsCallable(functions, "satAtagandeblock");
+  return fn({ orgId, text });
+}
+
+// Etapp L1p punkt 5, B19 – leverantören BER, kunden UTFÖR med sitt eget samtycke via
+// exporteraReferensunderlag (ingen ny åtkomst).
+export function begarReferensunderlag(orgId, anledning) {
+  const fn = httpsCallable(functions, "begarReferensunderlag");
+  return fn({ orgId, anledning });
+}
+
+// Etapp L1p punkt 3 – 72/24-timmarsklockan vid en misstänkt personuppgiftsincident.
+export function startaIncident(kannedomTidpunkt, orgIds) {
+  const fn = httpsCallable(functions, "startaIncident");
+  return fn({ kannedomTidpunkt, orgIds });
+}
+
+export function kvitteraIncidentunderrattelse(incidentId, orgId) {
+  const fn = httpsCallable(functions, "kvitteraIncidentunderrattelse");
+  return fn({ incidentId, orgId });
+}
+
 // Etapp 49a – schemalägger permanent radering av den egna organisationen (48 h väntetid)
 export function begarRaderingAvOrganisation(anledning) {
   const fn = httpsCallable(functions, "begarRaderingAvOrganisation");
@@ -233,6 +303,19 @@ export function avslutaSupportAtkomst(orgId) {
 export function exporteraOrganisation(orgId) {
   const fn = httpsCallable(functions, "exporteraOrganisation");
   return fn({ orgId });
+}
+
+// Etapp L1n – listar en organisations sparade backupfiler (datum, storlek – aldrig innehåll)
+export function listaBackuper(orgId) {
+  const fn = httpsCallable(functions, "listaBackuper");
+  return fn({ orgId });
+}
+
+// Etapp L1n – återställer en organisation från en tidigare backup. Skriver ÖVER nuvarande
+// data och går inte att ångra; UI:t ska alltid kräva en dubbel bekräftelse innan anropet.
+export function aterstallOrganisation(orgId, sokvag) {
+  const fn = httpsCallable(functions, "aterstallOrganisationCallable");
+  return fn({ orgId, sokvag });
 }
 
 // Etapp 6c – inbjudningsflöde

@@ -8,21 +8,21 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-29 · **v5.133.0 committad, inte deployad** (internt arbete, ingen
+**Senast uppdaterad:** 2026-08-29 · **v5.134.0 committad, inte deployad** (internt arbete, ingen
 brådska). Produktion står kvar på 5.132.0 (körning #93, verifierad). Utgående e-post är
-stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. Etapp L1 (leverantörspanelen) är antagen;
-de fyra "Liten"-delmålen (L1l, L1h, L1k, L1o) är nu klara, näst i tur är L1m.
+stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. Etapp L1 (leverantörspanelen): **10 av 16
+delmål klara** – L1m, L1a, L1g, L1i, L1n, L1p byggda i denna omgång, ovanpå L1l/L1h/L1k/L1o.
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0 väntar på deploy |
+| **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0 och v5.134.0 väntar på deploy |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **Senaste kodarbete** | v5.133.0: fyra delmål i Etapp L1 (leverantörspanelen) – L1l, L1h, L1k (delvis), L1o. Internt, ingen kundpåverkan. Dessförinnan v5.131.0 (e-postspärren) |
-| **Senaste dokumentarbete** | 2026-08-29: `intern/ETAPPLAN-INTERN-1.md` v0.7 (fyra delmål markerade klara), `intern/ANDRINGSLOGG-INTERN.md` fick sin första riktiga post |
-| **Aktiv plan** | `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) – antagen, intern, 4 av 16 delmål klara. Ingen KUNDVÄND plan aktiv sedan Etapp 69; `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
-| **Nästa steg** | **Bygg L1m** (leverantörskontot utan organisationstillhörighet) – låst som nästa delmål, flyttar en åtkomstgräns. Verifiera också `roles/firebaseauth.admin` med "Tvinga utloggning" om det inte redan gjorts, och ägarbeslut om `systemkunskap`-paketet (se `OPPNA-PUNKTER.md`) |
+| **Senaste kodarbete** | v5.134.0: sex delmål i Etapp L1 – L1m (leverantörskontot, `_plattform`), L1a (navigationsträdet, 12 rutter), L1g (åtgärdslogg), L1i (ekonomi), L1n (återställning+beredskap), L1p (PUB-spärr+incidentklocka+åtaganden). Internt, ingen kundpåverkan |
+| **Senaste dokumentarbete** | 2026-08-29: `intern/ETAPPLAN-INTERN-1.md` v0.8 (tio delmål markerade klara), `avtal/UNDERBITRADEN.md` fick sin första formella version |
+| **Aktiv plan** | `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) – antagen, intern, 10 av 16 delmål klara. Ingen KUNDVÄND plan aktiv sedan Etapp 69; `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
+| **Nästa steg** | **L1b (kunddossién)** är den enda återstående posten som INTE väntar på ett ägarbeslut – planens egen "störst arbetsbesparing"-rad. Övriga kvarvarande (L1c/L1d/L1j/L1f) väntar på beslutspunkt 1/3/2/4. Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()` när ägaren vill, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" om det inte redan gjorts |
 
 ## Var du hittar saker
 
@@ -111,6 +111,41 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-08-29 (v5.134.0 – L1m, L1a, L1g, L1i, L1n, L1p byggda)
+
+De sex "Medel"-delmålen, byggda direkt efter de fyra "Liten"-delmålen i samma session.
+Detaljer i `intern/ETAPPLAN-INTERN-1.md` v0.8 under respektive delmål.
+
+**L1m (kontomodellen) är den mest säkerhetskritiska delen** – ett `_plattform`-konto bevisat
+isolerat från all kundorganisations innehåll skarpt mot Firestore-regler
+(`tests/rules/plattformskonto.test.mjs`), inklusive den faktiska fällan att INTE falla
+tillbaka på organisationen "default". `flyttaTillPlattformskonto()` finns för att flytta
+ägarens eget konto – **inte körd än**, ett operativt beslut, inte en teknisk fråga.
+
+**L1p:s PUB-avtalsspärr är samma feltyp som Brevo, fast omvänt** – `satAvtalsstatus('aktiv')`
+nekas nu utan ett registrerat PUB-avtal (`pubAvtalTecknat`), av exakt samma skäl som
+Brevo-spärren: en kontroll i koden kan inte glömmas bort. Ingen skarp risk (noll kunder), men
+billigast att stänga innan den första.
+
+**Två deliberata avsteg från planens ordalydelse**, båda dokumenterade i `intern/
+ETAPPLAN-INTERN-1.md`: `IncidentberedskapSektion.jsx` togs INTE bort från kundens adminpanel
+(planen antog fel – en riktig kund läser sin EGEN organisations status oberoende av
+plattformsadmin, att ta bort den hade varit en regression). Kundlägets fem flikar (L1a) delar
+en gemensam platshållare i väntan på L1b, i stället för fem tomma sidor.
+
+**Ett självrättat verktygsmisstag**, dokumenterat ärligt i `intern/ANDRINGSLOGG-INTERN.md`:
+ett `Write`-anrop skrev av misstag över `src/firebase/functions.js`. Upptäckt omedelbart via
+`git status`, återställd från `git show HEAD:...`, alla tillägg återapplicerade och
+verifierade innan arbetet fortsatte. Ingen förlorad kod.
+
+77 nya tester. Fullt testsvep grönt: lint, build, `npx vitest run` (535 tester, upp från 517),
+`npm run test:rules` (alla filer inkl. 2 nya), `npm run test:functions` (alla 40 filer inkl.
+5 nya).
+
+**10 av 16 delmål i Etapp L1 klara.** Kvarstår: L1b (kunddossién – inget hinder, störst
+kvarvarande arbetsbesparing), L1e/L1f (stora, L1f väntar på beslutspunkt 4), L1c/L1d/L1j
+(väntar på beslutspunkt 1/3/2).
 
 ## Uppföljning 2026-08-29 (v5.133.0 – L1l, L1h, L1k, L1o byggda)
 
@@ -231,75 +266,6 @@ produktens juridiska hållning bygger på biträdesrollen. Listan stannar i git.
 Ägaren har också gett Cloud Functions-tjänstekontot `roles/firebaseauth.admin` i GCP.
 **Ännu inte verifierat** – `tvingaUtloggning` på ett testkonto är det icke-destruktiva testet.
 Tills det är gjort står raden kvar i `OPPNA-PUNKTER.md`.
-
-## Uppföljning 2026-08-27 (v5.129.0 deployad, Öva-läget, MDR-bedömning)
-
-**Deploy.** v5.129.0 ligger i produktion (körning #89). Två hemligheter stoppade vägen dit:
-`BREVO_API_KEY` saknades (ägaren satte den, och verifierade `synappsen.se` hos Brevo via
-DNS-poster hos Loopia), och `SOKMOTOR_API_KEY` visade sig **aldrig ha varit satt** – felet
-syntes först nu eftersom v5.129.0 bytte `echo` mot `printf '%s'` i `deploy.yml`. Tidigare blev
-en saknad hemlighet strängen `"\n"` i Secret Manager, som Secret Manager accepterade;
-`printf` skickar en tom sträng, som avvisas med "Secret Payload cannot be empty". **Slutsats
-värd att minnas: klinikstödets sökmotor har sannolikt kört mot en trasig nyckel i produktion
-under lång tid utan att något larmade.** Ägaren hittade rätt nyckel i GCP ("API key filter",
-restriktion Custom Search API) och satte den.
-
-**Öva-läget var tomt.** Orsak: `byggFragepool()` läser bara `rutin.kviss`, och organisationen
-har inga rutiner. `KVISSBANK` nåddes bara via en redaktör som manuellt fäst en fråga på en
-rutin – bankens egen motivering ("så att en ny organisation inte står tom dag ett") stämde
-alltså inte i praktiken. Byggt: `byggBankFragepool()` + ett Systemkunskap-spår i `OvaLage.jsx`
-som läser banken direkt, oberoende av Firestore (commit `d8b9106`, ej deployad).
-
-**Åtta nya bankfrågor skrevs och reverterades** (`4754942` → `4815c68`). Ägaren avvisade dem
-med rätt argument: tekniska frågor om hur Synappsen fungerar är ointressanta för vårdpersonal,
-som behöver öva på sitt yrke.
-
-**MDR-bedömning gjord** (`granskningar/MDR-BEDOMNING-OVNINGSFRAGOR-2026-08.md`, ny fil).
-Ägaren ifrågasatte om kliniska frågor verkligen passerar MDR-gränsen. Genomgång mot MDR
-art. 2(1), skäl 19, art. 2(12) och MDCG 2019-11 ger: **nej, de gör inte det.** Beslutssteg 4
-i MDCG 2019-11 ("är åtgärden till nytta för enskilda patienter?") besvaras nekande eftersom
-ingen patientdata finns i flödet. **Kommentaren i `src/data/kvissbank.js` rad 9–22 är alltså
-för hårt dragen och bör rättas** – men rättelsen väntar på ägarbeslut, eftersom regeln råkar
-skydda mot fyra risker som är verkliga (färskhet, lokal variation, upphovsrätt,
-AI-förordningens bilaga III). Fyra beslut ligger i `OPPNA-PUNKTER.md`.
-
-## Uppföljning 2026-08-26 (v5.129.0: fem fel från första riktiga användningen)
-
-Ägaren bjöd in två kollegor och rapporterade fem problem. Sentry-notiser bifogades och
-avslöjade **ett sjätte, allvarligare** som ingen sett: tvingad utloggning kraschade i
-produktion.
-
-**Rotorsaker, samtliga verifierade mot kod och Sentry:**
-
-| Symptom | Rotorsak |
-|---|---|
-| Tvinga utloggning "fungerade" men gjorde inget | Tjänstekontot saknar `roles/firebaseauth.admin`. `revokeRefreshTokens` kastar "Credential implementation … insufficient permission" (`organisationsadmin.js:49`). **Samma fel drabbar `deleteUser` i organisationsraderingen, där det är tyst nedsvalt** – Auth-konton blev kvar. **Kräver ägaråtgärd i GCP-konsolen, ingen kod hjälper.** |
-| E-postinbjudan kom aldrig fram | `deploy.yml` satte hemligheten med `echo`, som lägger till radbrytning. En saknad GitHub-hemlighet blev `"\n"` i Secret Manager – **truthy** – så `skickaEpost`s "inte konfigurerad"-guard slog aldrig till. Brevo svarade 401 "authentication not found in headers" |
-| Tom organisation | `verksamhetstyp` har default `""` i UI:t, hela seedningen är villkorad på den, och fältet **sparades aldrig** på organisationen. Ingen väg tillbaka fanns |
-| Ingen lösenordsåterställning | Aldrig byggd |
-| Kan inte radera/stänga av konto | Funktionerna fanns inte |
-| CSP-larm i Sentry | `connect-src` tillät `ingest.de.sentry.io` men adressen är en **subdomän** → Sentrys egen SDK blockerades. `frame-src` saknade `firebaseapp.com`, vilket hade brutit lösenordsåterställningen. (`connect.facebook.net` var inte vår kod – injicerat av besökarens webbläsare) |
-| `FirebaseError: Missing or insufficient permissions` | Push-token skrevs innan `losInInbjudan` hunnit skapa `users/{uid}` |
-
-**Byggt (v5.129.0):** `satAnvandareAvstangd` (reversibel spärr, Auth `disabled`) och
-`raderaAnvandare` (Auth + `users/{uid}`, GDPR art. 17 på individnivå) med UI, `avstangd`
-gjort immutabelt från klienten i `firestore.rules`, lösenordsåterställning, ärligt
-inbjudnings-UI (`skapaInbjudan` returnerar `epostSkickat`), `seedaStartbibliotek` (idempotent,
-körbar i efterhand) + `verksamhetstyp` sparas nu, `printf '%s'` i deploy.yml + `.trim()`,
-CSP-rättelser, push-race. 10 nya functions-tester
-(`tests/functions/anvandarhantering.test.cjs`).
-
-**Medvetet INTE byggt: byta organisation på en användare.** Kvitteringar,
-introduktionssigneringar och revisionsloggposter hör till den gamla organisationen, och
-revisionsloggen är en hashkedja som inte får skrivas om. Rätt väg är radera + bjud in på
-nytt, vilket nu finns och är spårbart.
-
-**Dokument rättade i samma commit:** `drift/INCIDENT-CHECKLISTA.md` (tvingad utloggning
-stänger inte ute någon som kan lösenordet – raden pekar nu på avstängning) och
-`saljmaterial/kallfiler/Synappsen-teknisk-beskrivning.html` (superadmins förmågor).
-
-> **KVARSTÅR OCH BLOCKERAR:** utan IAM-rollen fungerar varken avstängning, radering eller
-> tvingad utloggning i produktion – koden är rätt, behörigheten saknas. Se `OPPNA-PUNKTER.md`.
 
 ## Uppföljning 2026-08-27 (v5.130.0 – release + deploy av Etapp 71)
 

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { DialogProvider } from "./context/DialogProvider";
 import { useAuth } from "./hooks/useAuth";
@@ -25,6 +25,7 @@ import ScrollHantering from "./components/ScrollHantering";
 import KommandopalettLyssnare from "./components/KommandopalettLyssnare";
 import KioskBevakning from "./components/KioskBevakning";
 import { REDAKTORSROLLER } from "./firebase/roles";
+import { PLATTFORMSORGANISATION } from "./firebase/organisation";
 
 // Kontrollerar var 5:e minut om sessionen fortfarande är giltig – om en superadmin har
 // tvingat utloggning (återkallade refresh-tokens) upptäcks det här istället för att kunna
@@ -67,7 +68,16 @@ const Kontakter = lazy(() => import("./pages/Kontakter"));
 const Lankbibliotek = lazy(() => import("./pages/Lankbibliotek"));
 const Papperskorg = lazy(() => import("./pages/Papperskorg"));
 const OfflineCenter = lazy(() => import("./pages/OfflineCenter"));
-const Leverantor = lazy(() => import("./pages/Leverantor"));
+const LeverantorLayout = lazy(() => import("./pages/leverantor/LeverantorLayout"));
+const LeverantorOversikt = lazy(() => import("./pages/leverantor/LeverantorOversikt"));
+const LeverantorKunder = lazy(() => import("./pages/leverantor/LeverantorKunder"));
+const LeverantorSupport = lazy(() => import("./pages/leverantor/LeverantorSupport"));
+const LeverantorDrift = lazy(() => import("./pages/leverantor/LeverantorDrift"));
+const LeverantorInnehall = lazy(() => import("./pages/leverantor/LeverantorInnehall"));
+const LeverantorEkonomi = lazy(() => import("./pages/leverantor/LeverantorEkonomi"));
+const LeverantorLogg = lazy(() => import("./pages/leverantor/LeverantorLogg"));
+const KundLayout = lazy(() => import("./pages/leverantor/kund/KundLayout"));
+const KundStub = lazy(() => import("./pages/leverantor/kund/KundStub"));
 const Introduktion = lazy(() => import("./pages/Introduktion"));
 const Kompetensmatris = lazy(() => import("./pages/Kompetensmatris"));
 const Ledningsrapport = lazy(() => import("./pages/Ledningsrapport"));
@@ -81,7 +91,16 @@ function SidLaddare() {
   return <div className="sida sida--laddar">Laddar...</div>;
 }
 
+// Etapp L1m (intern/ETAPPLAN-INTERN-1.md), punkt 3: ett organisationslöst leverantörskonto
+// har ingen kundvy att gå till – SkyddatLayout omsluter i praktiken all annan skyddad rutt i
+// appen (inklusive "/", dit inloggning alltid navigerar), så en enda kontroll här räcker för
+// "SkyddatLayout och / skickar ett _plattform-konto till /leverantor". Rör aldrig
+// /leverantor/* själv, eftersom den rutten använder LeverantorLayout, inte den här.
 function SkyddatLayout({ children }) {
+  const { organisationId } = useAuth();
+  if (organisationId === PLATTFORMSORGANISATION) {
+    return <Navigate to="/leverantor" replace />;
+  }
   return (
     <SkyddadRoute>
       <main id="huvudinnehall" className="app-innehall" tabIndex={-1}>
@@ -309,11 +328,28 @@ export default function App() {
           <Route
             path="/leverantor"
             element={
-              <SkyddatLayout>
-                <Leverantor />
-              </SkyddatLayout>
+              <ErrorBoundary>
+                <Suspense fallback={<SidLaddare />}>
+                  <LeverantorLayout />
+                </Suspense>
+              </ErrorBoundary>
             }
-          />
+          >
+            <Route index element={<LeverantorOversikt />} />
+            <Route path="kunder" element={<LeverantorKunder />} />
+            <Route path="support" element={<LeverantorSupport />} />
+            <Route path="drift" element={<LeverantorDrift />} />
+            <Route path="innehall" element={<LeverantorInnehall />} />
+            <Route path="ekonomi" element={<LeverantorEkonomi />} />
+            <Route path="logg" element={<LeverantorLogg />} />
+            <Route path="kund/:orgId" element={<KundLayout />}>
+              <Route index element={<KundStub />} />
+              <Route path="anvandning" element={<KundStub />} />
+              <Route path="ekonomi" element={<KundStub />} />
+              <Route path="atgarder" element={<KundStub />} />
+              <Route path="historik" element={<KundStub />} />
+            </Route>
+          </Route>
           <Route
             path="/admin"
             element={

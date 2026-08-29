@@ -1,0 +1,19 @@
+.aterstallning__backuplista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.aterstallning__backuprad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--kant);
+  border-radius: var(--radius-liten);
+  font-size: 0.9rem;
+}

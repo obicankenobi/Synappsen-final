@@ -1,0 +1,40 @@
+.incidentklocka__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.incidentklocka__incident {
+  border: 1px solid var(--kant);
+  border-radius: var(--radius-liten);
+  padding: 10px 12px;
+}
+
+.incidentklocka__orgrad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid var(--kant);
+}
+
+.incidentklocka__forfallen {
+  color: var(--farlig);
+  font-weight: 600;
+}
+
+.incidentklocka__halvtid {
+  color: var(--amber-text);
+  font-weight: 600;
+}
+
+.incidentklocka__orgval {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
+import { useOrganisationsstatus } from "../../hooks/useOrganisationsstatus";
 import { exporteraReferensunderlag } from "../../firebase/functions";
 import { ROLES } from "../../firebase/roles";
 
@@ -18,7 +19,10 @@ const FALT_NAMN = {
 // Medgivandet bekräftas aktivt vid VARJE export (kryssrutan återställs efter varje export,
 // sparas aldrig som en förutsättning) och loggas i revisionsloggen server-side.
 export default function ReferensunderlagSektion() {
-  const { role } = useAuth();
+  const { role, organisationId } = useAuth();
+  // Etapp L1p punkt 5: leverantören kan BE om ett referensunderlag, aldrig ta ut det själv –
+  // exporten kräver fortfarande aktivt samtycke här, varje gång.
+  const { referensunderlagBegart } = useOrganisationsstatus(organisationId);
   const [samtycke, setSamtycke] = useState(false);
   const [genererar, setGenererar] = useState(false);
   const [underlag, setUnderlag] = useState(null);
@@ -60,6 +64,13 @@ export default function ReferensunderlagSektion() {
         Anonymiserad sammanställning – kundens namn ingår ALDRIG. Kräver att kundens
         uttryckliga medgivande bekräftas aktivt varje gång, och loggas i revisionsloggen.
       </p>
+      {referensunderlagBegart && (
+        <p className="leverantor__info">
+          Leverantören har bett om ett referensunderlag
+          {referensunderlagBegart.anledning ? ` (${referensunderlagBegart.anledning})` : ""}. Ni väljer själva om
+          och när ni genererar och delar det – ingenting skickas automatiskt.
+        </p>
+      )}
       <label className="admin-formular-rad">
         <input type="checkbox" checked={samtycke} onChange={(e) => setSamtycke(e.target.checked)} />
         Jag bekräftar att kunden gett sitt uttryckliga medgivande till att dessa (anonymiserade)

@@ -7,3 +7,10 @@
 // eller en användare saknar organisationId (t.ex. innan migreringsfunktionen körts), så att
 // driftsättningen aldrig kan låsa ute befintliga användare – se kommentaren i firestore.rules.
 export const STANDARD_ORG = "default";
+
+// Etapp L1m (intern/ETAPPLAN-INTERN-1.md): organisationstillhörigheten för ett
+// leverantörskonto. Matchar ingen riktig organisation – varje organisationsgrindad regel
+// jämför mot minOrganisation(), så isoleringen är en följd av BEFINTLIGA regler, inte av ett
+// nytt undantag. Samma "_"-konvention som redan används i functions/*.js (loggaRevision mot
+// plattformsåtgärder, Etapp 32c).
+export const PLATTFORMSORGANISATION = "_plattform";

@@ -59,6 +59,17 @@ exports.satAvtalsstatus = onCall({ region: "europe-west1" }, async (request) => 
   if (!orgSnap.exists) {
     throw new HttpsError("not-found", "Organisationen hittades inte.");
   }
+  // Etapp L1p punkt 1 (intern/ETAPPLAN-INTERN-1.md), B12: HÅRD SPÄRR. Samma val som gjordes
+  // för Brevo (functions/gemensamt.js PUB_AVTAL_BREVO_TECKNAT) och av samma skäl: art. 28.3
+  // kräver ett skriftligt PUB-avtal INNAN behandlingen börjar, och en kontroll i koden kan
+  // inte glömmas bort på det sätt en checklista kan. Gäller bara vägen TILL "aktiv" – att gå
+  // till "pausad" eller "avslutad" är alltid tillåtet, och redan tecknat avtal blockerar inget.
+  if (avtalsstatus === "aktiv" && !orgSnap.data().pubAvtalTecknat) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Kan inte sätta avtalsstatus till \"aktiv\" utan ett registrerat PUB-avtal (art. 28.3). Registrera avtalet med satPubAvtal först."
+    );
+  }
   // Etapp 67 beslutspunkt 2 (ETAPPLAN16.md, ägarbeslut 2026-08-16): väg (a) – framåtriktad
   // tidsstämpel, ingen historik för byten som redan skett. Alternativet (härleda ur
   // revisionsloggens organisation_avtalsstatus_andrad-poster) hade krävt en extra läsning PER
@@ -239,6 +250,190 @@ exports.satHuvudman = onCall({ region: "europe-west1" }, async (request) => {
     objektTyp: "organisationer",
     objektId: orgId,
     sammanfattning: varde === null ? "Huvudman borttagen" : `Huvudman satt till "${varde}"`,
+  });
+  return { ok: true };
+});
+
+// Etapp L1p punkt 1 (intern/ETAPPLAN-INTERN-1.md), B12: registrerar ATT ett PUB-avtal finns
+// – aldrig avtalet självt (ingen avtalstext, ingen signering, se avgränsningen i planen).
+// Det här är den enda vägen att sätta pubAvtalTecknat/pubAvtalVersion, och därmed den enda
+// vägen att låsa upp "aktiv" i satAvtalsstatus ovan.
+exports.satPubAvtal = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId, tecknat, version } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+  if (typeof tecknat !== "boolean") {
+    throw new HttpsError("invalid-argument", "tecknat måste vara true eller false.");
+  }
+  if (tecknat && (typeof version !== "string" || !version.trim())) {
+    throw new HttpsError("invalid-argument", "version krävs när tecknat är true.");
+  }
+  const orgRef = db.collection("organisationer").doc(orgId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists) {
+    throw new HttpsError("not-found", "Organisationen hittades inte.");
+  }
+  const pubAvtalTecknat = tecknat ? admin.firestore.FieldValue.serverTimestamp() : null;
+  await orgRef.set({ pubAvtalTecknat, pubAvtalVersion: tecknat ? version.trim() : null }, { merge: true });
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "organisation_pub_avtal_andrat",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: tecknat ? `PUB-avtal registrerat (version ${version.trim()})` : "PUB-avtal borttaget/återkallat",
+  });
+  return { ok: true };
+});
+
+// Etapp L1p punkt 2, B13: avtal/UNDERBITRADEN.md har ett versionsnummer (se filens egen
+// ändringshistorik) – det här registrerar att EN KUND underrättats om en given version,
+// enligt PUB-avtalsmallens punkt 5 (invändningsrätt vid nytt/bytt underbiträde). Panelen
+// jämför sedan mot den aktuella versionen för att visa vilka kunder som ligger efter.
+exports.satUnderbitradeUnderrattad = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId, version } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+  if (typeof version !== "string" || !version.trim()) {
+    throw new HttpsError("invalid-argument", "version krävs.");
+  }
+  const orgRef = db.collection("organisationer").doc(orgId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists) {
+    throw new HttpsError("not-found", "Organisationen hittades inte.");
+  }
+  await orgRef.set(
+    { underbitradeUnderrattad: { version: version.trim(), datum: admin.firestore.FieldValue.serverTimestamp() } },
+    { merge: true }
+  );
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "underbitrade_underrattelse_registrerad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: `Underrättad om underbiträdesversion ${version.trim()}`,
+  });
+  return { ok: true };
+});
+
+// Etapp L1p punkt 3, B11 (granskningar/JURIDISK-GRANSKNING.md risk 15): styr om en
+// organisations incidentklocka räknar ned från 24 timmar (kundens EGEN, snävare tidiga
+// varning enligt cybersäkerhetslagen 2025:1506) eller 72 (PUB-avtalets ordinarie frist).
+exports.satOmfattasAvNIS2 = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId, omfattasAvNIS2 } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+  if (typeof omfattasAvNIS2 !== "boolean") {
+    throw new HttpsError("invalid-argument", "omfattasAvNIS2 måste vara true eller false.");
+  }
+  const orgRef = db.collection("organisationer").doc(orgId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists) {
+    throw new HttpsError("not-found", "Organisationen hittades inte.");
+  }
+  await orgRef.set({ omfattasAvNIS2 }, { merge: true });
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "organisation_nis2_andrad",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: `NIS2-märkning satt till ${omfattasAvNIS2}`,
+  });
+  return { ok: true };
+});
+
+// Etapp L1p punkt 4, B15: fritext + datum för vad som lovats just DEN HÄR kunden
+// (provperiodens villkor, prisnivå, ev. utfallsgaranti, svarstider). Ett fält, inte en
+// modul – annars blir det ett CRM (se planens avgränsning "Vad jag INTE föreslår").
+exports.satAtagandeblock = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId, text } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+  if (typeof text !== "string") {
+    throw new HttpsError("invalid-argument", "text krävs (tom sträng är tillåtet, för att rensa).");
+  }
+  const orgRef = db.collection("organisationer").doc(orgId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists) {
+    throw new HttpsError("not-found", "Organisationen hittades inte.");
+  }
+  await orgRef.set(
+    { atagandeblock: { text: text.trim(), andrad: admin.firestore.FieldValue.serverTimestamp(), andradAv: request.auth.uid } },
+    { merge: true }
+  );
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "atagandeblock_andrat",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: "Åtagandeblocket uppdaterat",
+  });
+  return { ok: true };
+});
+
+// Etapp L1p punkt 5, B19: leverantören BER, kunden UTFÖR med sitt eget samtycke (samma
+// mönster som supportfönstret, Etapp 50b) – ingen ny åtkomst, bara en begäran kunden ser i
+// sin egen adminpanel (se ReferensunderlagSektion.jsx). exporteraReferensunderlag kräver
+// fortfarande kundens aktiva samtycke vid varje export, oavsett om en begäran finns.
+exports.begarReferensunderlag = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId, anledning } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+  const orgRef = db.collection("organisationer").doc(orgId);
+  const orgSnap = await orgRef.get();
+  if (!orgSnap.exists) {
+    throw new HttpsError("not-found", "Organisationen hittades inte.");
+  }
+  await orgRef.set(
+    {
+      referensunderlagBegart: {
+        anledning: (anledning ?? "").trim() || null,
+        datum: admin.firestore.FieldValue.serverTimestamp(),
+        begartAv: request.auth.uid,
+      },
+    },
+    { merge: true }
+  );
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "referensunderlag_begart",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: "Begärde referensunderlag från kunden",
   });
   return { ok: true };
 });

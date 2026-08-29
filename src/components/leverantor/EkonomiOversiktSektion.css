@@ -1,0 +1,45 @@
+.ekonomi-oversikt__nyckeltal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ekonomi-oversikt__ruta {
+  flex: 1 1 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border: 1px solid var(--kant);
+  border-radius: 10px;
+  background: var(--yta);
+}
+
+.ekonomi-oversikt__varde {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.ekonomi-oversikt__etikett {
+  font-size: 0.85rem;
+  color: var(--text-svag);
+}
+
+.ekonomi-oversikt__tabell {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ekonomi-oversikt__tabell th,
+.ekonomi-oversikt__tabell td {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--kant);
+  font-size: 0.9rem;
+}
+
+.ekonomi-oversikt__negativ {
+  color: var(--farlig);
+  font-weight: 600;
+}

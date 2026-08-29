@@ -140,6 +140,15 @@
         { "fieldPath": "organisationId", "order": "ASCENDING" },
         { "fieldPath": "tidpunkt", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "revisionslogg",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "aktorUid", "order": "ASCENDING" },
+        { "fieldPath": "aktorRoll", "order": "ASCENDING" },
+        { "fieldPath": "tidpunkt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

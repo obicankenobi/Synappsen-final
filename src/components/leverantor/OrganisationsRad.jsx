@@ -1,10 +1,18 @@
+import { useState } from "react";
 import { AVTALSSTATUS_ETIKETT } from "./avtalsstatusEtikett";
+import AvtalOchAtagandeSektion from "./AvtalOchAtagandeSektion";
 
 // Etapp 67e (ETAPPLAN16.md, ren flytt ur Leverantor.jsx – ingen beteendeförändring). En rad i
 // organisationslistan, med sina tre utfällbara paneler (diagnostik/innehåll/ärenden). Äger
 // ingen egen state – "bara ETT öppet åt gången i hela listan" (den ursprungliga
 // diagnostikOppen/innehallOppen/arendenOppen-semantiken) kräver att öppet/stängt avgörs av
 // OrganisationsListaSektion, inte av raden själv. Se den filens kommentar för varför.
+//
+// UNDANTAG (Etapp L1p): "Avtal & åtaganden" är en FJÄRDE panel, men helt självförsörjande
+// (egen state, egna API-anrop via AvtalOchAtagandeSektion) och behöver därför INTE tvinga in
+// öppen/stängd-läget i OrganisationsListaSektion:s "bara en åt gången"-modell. Att lägga den
+// utanför den modellen är medvetet – annars hade fyra prop-par (öppen/data/laddar/toggle)
+// behövt tröskas genom ett lager som inte äger den datan.
 export default function OrganisationsRad({
   org,
   sokkvot,
@@ -43,8 +51,10 @@ export default function OrganisationsRad({
   arendeSparar,
   onLaggTillArende,
   onTaBortArende,
+  onFel,
 }) {
   const upptagen = atgard === org.orgId;
+  const [avtalApen, setAvtalApen] = useState(false);
 
   return (
     <li id={`org-${org.orgId}`} className="admin-lista__rad leverantor__rad">
@@ -187,7 +197,11 @@ export default function OrganisationsRad({
         <button type="button" className="knapp knapp--liten" onClick={() => onVaxlaArenden(org.orgId)}>
           {arendenApen ? "Dölj ärenden" : "🗒️ Ärenden"}
         </button>
+        <button type="button" className="knapp knapp--liten" onClick={() => setAvtalApen((f) => !f)}>
+          {avtalApen ? "Dölj avtal & åtaganden" : "⚖️ Avtal & åtaganden"}
+        </button>
       </div>
+      {avtalApen && <AvtalOchAtagandeSektion org={org} onFel={onFel} />}
       {diagnostikApen && (
         <div className="leverantor__diagnostik">
           {diagnostikLaddar && !diagnostikData ? (

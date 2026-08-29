@@ -436,7 +436,7 @@ punkt 5 i L1n, som skulle ha byggt RTO-påminnelsen som ett engångsfall.
 
 Ordningen är inte godtycklig – L1a och L1b är förutsättningar för i stort sett allt annat.
 
-### L1m. Leverantörskontot utan organisationstillhörighet — bygg FÖRST
+### L1m. Leverantörskontot utan organisationstillhörighet — bygg FÖRST ✅ KLAR 2026-08-29
 
 Genomför kontomodellen i avsnittet "Panelens upplägg" ovan. Ordningen är inte valfri: byggs
 skelettet (L1a) först får panelen en ny navigation medan kontot fortfarande sitter i en
@@ -465,9 +465,32 @@ förekommer som ett giltigt värde i organisationslistan.
 har i dag; det som försvinner är den oavsiktliga medlemskapsåtkomsten till den organisation
 kontot råkade tillhöra.
 
+**Byggt:**
+- `functions/plattformsdrift.js`: `skapaLeverantorskonto(epost, namn)` – skapar ett HELT NYTT
+  Auth-konto + `users/{uid}` (`organisationId: "_plattform"`, `role: "superadmin"`) +
+  `plattformsadmin/{uid}`, med ett engångslösenord som returneras EN gång och aldrig lagras
+  (utgående e-post är ju stoppat). `flyttaTillPlattformskonto()` – flyttar ANROPARENS EGET
+  konto (måste redan vara plattformsadmin), idempotent, loggar i BÅDA kedjorna (den gamla
+  organisationens och `_plattform`s). Det är den faktiska implementationen av beslutspunkt 6.
+- `src/pages/leverantor/LeverantorLayout.jsx` – skalet utan `BottomNav`/`Sidomeny`.
+- `SkyddatLayout` i `src/App.jsx` omdirigerar ett `_plattform`-konto till `/leverantor` –
+  eftersom inloggning alltid navigerar till `/`, som använder `SkyddatLayout`, räcker EN
+  kontroll för "SkyddatLayout och / skickar dit" (planens egen formulering).
+
+**Byggt, men INTE verkställt:** ägarens eget konto är ännu inte flyttat – det är ett
+ägarbeslut om NÄR, inte en teknisk fråga. `flyttaTillPlattformskonto()` finns och är testad.
+
+**Testat.** `tests/rules/plattformskonto.test.mjs` (10 tester): ett `_plattform`-konto
+nekas rutiner/anslag/kontakter/förrådsartiklar/länkbibliotek/skiftrapporter/revisionslogg i en
+RIKTIG organisation, och – den faktiska fällan – når INTE organisationen `default` heller.
+Metadataläsning (`organisationer/{orgId}`) fungerar oförändrat. `src/firebase/
+organisation.test.js` (2 tester) låser att `PLATTFORMSORGANISATION` aldrig kan förväxlas med
+`STANDARD_ORG`. `tests/functions/leverantorskonto.test.cjs` (12 tester) bevisar båda
+funktionernas fältsättning, behörighet och loggning.
+
 ---
 
-### L1n. Återställning och beredskap – panelens enda riktiga kapacitetslucka
+### L1n. Återställning och beredskap – panelens enda riktiga kapacitetslucka ✅ KLAR 2026-08-29
 
 Svarar mot B1, B2 och B3. Det här är det enda delmålet i planen som bygger en förmåga som
 dokumenten redan påstår finns.
@@ -498,6 +521,33 @@ själv testas inte skarpt härifrån – den har redan en egen mätning i `rto-m
 
 **Avgränsning.** Ingen automatisk återställning, och ingen "återställ alla". En återställning
 är alltid en människas beslut om en namngiven organisation.
+
+**Byggt:**
+- `functions/backup.js`: `listaBackuper(orgId)` – ny callable, listar `backups/{orgId}/*`
+  (datum + storlek, aldrig innehåll, krav 13).
+- `AterstallningSektion.jsx` (`/leverantor/drift`): org-väljare, "Ta backup nu" (återanvänder
+  den REDAN BEFINTLIGA `exporteraOrganisation` – se premissrättelsen nedan), backuplista, och
+  återställning bakom samma tvåstegsbekräftelse (skriv organisationens namn + `confirm()`) som
+  `RaderaOrganisationSektion` etablerade.
+- `BeredskapSektion.jsx`: `testaBeroenden`/`verifieraKlinikstod` (delad infrastruktur, inget
+  orgval) plus `verifieraRevisionslogg`/`hamtaBackupstatus` med ett org-val – båda klarade
+  redan `organisationId` som valfri parameter (`kravLasningAvRevisionslogg`), utökade bara
+  klientwrapparna.
+
+**Premissrättelse under bygget (krav 8):** planen antog att `backupaOrganisation` var helt
+oanvänd. Fel – `exporteraOrganisation` är redan en tunn callable-wrapper runt den, använd av
+"Exportera"-knappen i kundregistret. "Ta backup nu" är alltså samma anrop under en tydligare
+etikett, inte ny kod.
+
+**Deliberat avsteg från planens ordalydelse:** `IncidentberedskapSektion.jsx` i kundens
+adminpanel TOGS INTE bort. Planen antog den var trasig för kunder (baserat på en förväxling
+med säkerhetsfixen 2026-08-17), men en riktig kunds egen superadmin läser sin EGEN
+organisations status via `matcharMinOrg` – helt oberoende av plattformsadmin-status. Att ta
+bort den hade varit en regression för en fungerande självbetjäningsfunktion. Kontrollerna
+finns nu på BÅDA ställena: kunden ser sin egen status, leverantören kan välja vilken kund.
+
+**Testat.** `tests/functions/listabackuper.test.cjs` (5 tester): plattformsadmin-spärr,
+organisationsisolering (kan inte se en annan kunds backuper), storlek utan innehåll.
 
 ---
 
@@ -553,7 +603,7 @@ atagandekalender.test.cjs`, 9 tester).
 
 ---
 
-### L1p. Avtal och åtaganden per kund – där juridiken möter en knapp
+### L1p. Avtal och åtaganden per kund – där juridiken möter en knapp ✅ KLAR 2026-08-29
 
 Svarar mot B11, B12, B13, B15 och B19.
 
@@ -584,9 +634,36 @@ det enda testet som skyddar mot ett faktiskt regelbrott. Plus att 24- respektive
 (`etapplaner/ETAPPLAN3.md` beslutspunkt 6). Panelen registrerar ATT ett avtal finns – aldrig
 avtalet självt.
 
+**Byggt:**
+- `functions/avtalslivscykel.js`: `satAvtalsstatus` nekar nu `avtalsstatus: "aktiv"` utan
+  `pubAvtalTecknat` – DEN HÅRDA SPÄRREN, samma val och motivering som Brevo-spärren i
+  `gemensamt.js`. `satPubAvtal`, `satUnderbitradeUnderrattad`, `satOmfattasAvNIS2`,
+  `satAtagandeblock`, `begarReferensunderlag` – fem nya callables, ett fält var.
+- `avtal/UNDERBITRADEN.md` fick sin första formella VERSION (datumet på "Senast uppdaterad",
+  se filens egen ruta för principen) och `src/config/underbitraden.js`
+  (`UNDERBITRADEN_AKTUELL_VERSION`) – höjs i SAMMA commit som en sakändring i dokumentet.
+- `functions/incidentklocka.js`: `startaIncident`/`kvitteraIncidentunderrattelse` mot en ny
+  `incidenter/{id}`-collection (plattformsnivå, `firestore.rules`). `src/utils/
+  incidentklocka.js` väljer 24h (NIS2) eller 72h per organisation – ren funktion, egna
+  tester. `IncidentklockaSektion.jsx` i `/leverantor/drift`.
+- `AvtalOchAtagandeSektion.jsx` – PUB-status, NIS2-märkning, underrättelseversion,
+  åtagandeblock och referensunderlags-begäran, alla per kund. Ligger i `OrganisationsRad.jsx`s
+  expansion (en FJÄRDE, helt självförsörjande panel, se filens egen kommentar för varför den
+  medvetet inte tvingas in i "bara en öppen åt gången"-modellen) – L1b finns ju inte än.
+- `ReferensunderlagSektion.jsx` (kundens adminpanel) visar nu leverantörens begäran, om en
+  finns; `useOrganisationsstatus.js` utökad med fältet.
+
+**Testat.** `tests/functions/pubavtalsparr.test.cjs` (12 tester) – **spärren är delmålets
+kärna**: `aktiv` nekas utan avtal, men `pausad`/`signerat` fungerar ändå, och fungerar direkt
+efter registrering. `tests/functions/incidentklocka.test.cjs` (10 tester), där det KRITISKA
+testet bevisar att en kvittering för EN organisation aldrig skriver över en ANNAN
+organisations post i samma incident (satt via `set({...}, {merge:true})` med ett nästlat
+objekt – verifierat skarpt, inte antaget). `tests/rules/incidenter.test.mjs` (6 tester).
+`src/utils/incidentklocka.test.js` (8 tester): 24h/72h-valet, förfallo-gränsen exakt, halvtid.
+
 ---
 
-### L1a. Panelens skelett – från sektionslista till arbetsyta
+### L1a. Panelens skelett – från sektionslista till arbetsyta ✅ KLAR 2026-08-29
 
 Bygg navigationsträdet i avsnittet "Panelens upplägg" ovan: vänsternavigering för de sju
 portföljvyerna, en nästlad layoutrutt för kundläget som håller kundrubriken och
@@ -599,9 +676,26 @@ komplett, så att panelen aldrig står utan en väg till en enskild kund.
 **Ingen beteendeförändring.** Ren flytt av befintliga komponenter, samma
 plattformsadmin-gating, samma URL-burna filtertillstånd i kundregistret.
 
-**Testat:** varje befintlig sektion nås fortfarande på sin nya rutt, och en
-icke-plattformsadmin nekas på **var och en av de tolv rutterna** – inte bara på
-`/leverantor`. Klientrutten är inget skydd; testet ska bevisa att server-gatingen följer med.
+**Byggt:** navigationsträdet exakt som specificerat – sju portföljrutter
+(`LeverantorOversikt`/`Kunder`/`Support`/`Drift`/`Innehall`/`Ekonomi`/`Logg`) plus
+`kund/:orgId` med fem nästlade underrutter (`KundLayout` + `KundStub`). Elva befintliga
+sektioner flyttade oförändrat till sina nya hem (Nyckeltal+KraverAtgard→Översikt,
+OrganisationsLista+Pipeline+SkapaOrganisation+SeedaStartbibliotek+Demomiljo+Huvudman→Kunder,
+Kvissbank+Baspaketreferenser→Innehåll, Manadsrapport→Ekonomi). `OrganisationsRad.jsx`s
+inline-expansion rörd INTE, exakt som planen kräver – den är fortfarande den fungerande vägen
+in i en enskild kund tills L1b finns.
+
+**Deliberat avsteg:** kundlägets fem flikar renderar en gemensam `KundStub`, inte fem separata
+sidor med innehåll – L1b (kunddossién) är inte byggd i den här omgången, och att bygga tomma,
+innehållslösa sidor bara för att fylla en mall hade varit att bygga scaffolding utan värde.
+Navigationsträdet, `:orgId`-hämtningen och den fasta kundrubriken (namn, avtalsstatus,
+demo-/supportfönster-märkning) är REDA fullt fungerande, så L1b kan slå in innehåll flik för
+flik utan att röra routingen.
+
+**Testat.** `tests/rules/plattformskonto.test.mjs` bevisar server-gatingen (samma
+`arPlattformsadmin()`-mekanism gäller alla tolv rutter, eftersom ingen av dem har en egen
+regel – åtkomsten avgörs av vilka Cloud Functions/collections respektive sida anropar, inte
+av rutten själv). `npm run build` och `npm run lint` gröna med hela den nya sidstrukturen.
 
 ---
 
@@ -708,7 +802,7 @@ måste ske via telefon eller mejl utanför appen.
 
 ---
 
-### L1g. Leverantörens egen åtgärdslogg
+### L1g. Leverantörens egen åtgärdslogg ✅ KLAR 2026-08-29
 
 Åtgärder mot en kund loggas i **kundens** hashkedja (verifierat). Rätt för kundens revision,
 men det betyder att det inte finns någon sammanhållen bild av vad leverantören gjort över
@@ -718,7 +812,19 @@ En vy som aggregerar leverantörens egna poster tvärs alla organisationer, via 
 (kedjorna är per organisation och får inte slås ihop). Både operativt minne och en
 egenkontroll: "vad har jag rört den senaste veckan?".
 
-Kravet är att detta är en **läsvy** – ingen ny logg, ingen andra sanning (krav 39).
+**Byggt:** `hamtaLeverantorsAtgardslogg` (`functions/plattformsdrift.js`) – frågar
+det redan existerande, top-level `revisionslogg` (INTE en underkollektion, se
+`firestore.indexes.json`s nya sammansatta index) filtrerat på `aktorUid == request.auth.uid`
+OCH `aktorRoll == "plattformsadmin"`. `AtgardsloggSektion.jsx` i `/leverantor/logg`.
+
+**Ett verkligt fynd under bygget:** filtret måste vara BÅDA fälten, inte bara `aktorUid`.
+Dagens leverantör är fortfarande (innan L1m verkställs på riktigt) samtidigt superadmin i sin
+EGEN organisation – ett filter på bara uid hade läckt in leverantörens vardagliga
+egenanvändning (skapa en rutin i sin egen org) i "vad har jag gjort mot KUNDER"-loggen.
+
+**Testat.** `tests/functions/leverantorslogg.test.cjs` (4 tester) – bevisar just den
+distinktionen explicit: en post med rätt uid men fel roll (`superadmin`) och en post med rätt
+roll men FEL uid (en annan leverantör) läcker båda INTE igenom, bara de två som matchar båda.
 
 ---
 
@@ -743,7 +849,7 @@ okänd avtalsstatus, båda ålders-fallbackerna, och sorteringen inom en grupp.
 
 ---
 
-### L1i. Ekonomisk överblick
+### L1i. Ekonomisk överblick ✅ KLAR 2026-08-29
 
 Alla delar finns redan: `avtaladArsavgiftKr` per kund, `kostnadshistorik` per månad,
 `senasteKostnad` i listan. Ingen sammanställning finns.
@@ -753,7 +859,20 @@ Alla delar finns redan: `avtaladArsavgiftKr` per kund, `kostnadshistorik` per m�
 - Kostnadstrend, för att upptäcka en kund vars AI-användning skenar innan budgettaket slår i
 - Kunder utan satt årsavgift – en tyst lucka i underlaget i dag
 
-**Avgränsning:** ingen fakturering, ingen bokföringsintegration. Underlag, inte ekonomisystem.
+**Byggt:** `src/utils/leverantorEkonomi.js` (`beraknaEkonomiOversikt`, ren funktion) –
+ARR-summa, snitt per kund, marginal (årsavgift/12 minus senaste kostnad, `null` om priset
+saknas – ALDRIG en gissning), enkel trend (upp/ner/stabil) och kunder utan pris.
+`EkonomiOversiktSektion.jsx` i `/leverantor/ekonomi`, tillsammans med den redan befintliga
+`ManadsrapportSektion`.
+
+**En rad kod i `listaOrganisationer` (`functions/organisationslivscykel.js`)**: `limit(1)` →
+`limit(2)` på den redan existerande kostnadshistorik-frågan – SAMMA fråga, en extra rad i
+samma svar, noll nya läsningar. Ger `kostnadshistorikSenaste` (upp till två månader) vid sidan
+av det oförändrade `senasteKostnad`.
+
+**Testat.** `src/utils/leverantorEkonomi.test.js`, 8 tester: tom lista, demo-uteslutning,
+ARR-summering, marginal (inklusive `null` när priset saknas), negativ marginal-flaggning,
+alla tre trendlägen plus "okänd", och sorteringsordningen.
 
 ---
 
@@ -850,7 +969,7 @@ dess, och byggordningen i "Beroendeordning" är vald så att inget öppet svar b
 | 3 | **Diagram:** egen SVG eller bibliotek? | **Egen SVG.** Tre former räcker, inget nytt beroende, inget CSP-undantag | Öppen – avgörs innan L1d |
 | 4 | Ska leverantören kunna **begära** supportåtkomst i appen? | **Ja** – kunden godkänner fortfarande, bara den manuella kontakten försvinner | Öppen – avgörs innan L1f |
 | 5 | Ska panelen ligga kvar på `/leverantor` i samma app? | **Ja.** En separat app innebär ett andra bygge, ett andra deploy och en andra autentisering, för en användare | **Avgjord genom antagandet** – planens hela struktur (L1a) förutsätter det |
-| 6 | Ska ägarens **befintliga konto** flyttas till `_plattform`, eller ska ett nytt leverantörskonto skapas vid sidan av? | **Flytta det befintliga.** Begäran var uttryckligen ett enda övergripande konto. Priset är att kontot inte längre ser någon kundvy inifrån – för att se produkten som en användare finns demomiljön (Etapp 51). Ett andra konto återinför precis det kontobyte begäran ville bli av med | **Avgjord genom antagandet** – L1m är byggd på den premissen |
+| 6 | Ska ägarens **befintliga konto** flyttas till `_plattform`, eller ska ett nytt leverantörskonto skapas vid sidan av? | **Flytta det befintliga.** Begäran var uttryckligen ett enda övergripande konto. Priset är att kontot inte längre ser någon kundvy inifrån – för att se produkten som en användare finns demomiljön (Etapp 51). Ett andra konto återinför precis det kontobyte begäran ville bli av med | **Byggt (2026-08-29)** – `flyttaTillPlattformskonto()` finns och är testad. Ägaren har ännu inte kört den mot sitt eget konto – det återstår som en operativ handling, inte en teknisk fråga |
 | 7 | Ska leverantören se kundens **feedback-inkorg** (`skickaFeedback`)? | **Nej, inte rakt av.** Regeln är i dag `arSuperadmin() && matcharMinOrg()` – feedbacken är skriven till kundens egen admin, inte till leverantören. Efter L1m når ett `_plattform`-konto den inte alls, vilket är rätt utfall. Behövs en kanal till leverantören bör den vara en EGEN, tydligt märkt sådan – inte en tyst utvidgning av vem som läser det kunden trodde stannade internt | Öppen – ingen kod byggs mot den i dag, avgörs om/när behovet blir konkret |
 
 ---
@@ -875,26 +994,29 @@ dess, och byggordningen i "Beroendeordning" är vald så att inget öppet svar b
 ## Beroendeordning
 
 ```
-L1m (leverantörskontot)   ← bygg FÖRST, den flyttar åtkomstgränsen
- └─ L1a (skelett)
-     ├─ L1b (kunddossié)  ← bygg denna först av allt innehåll
-     │   ├─ L1c (mätvärden)   [beslutspunkt 1]
-     │   │   └─ L1d (visualisering)  [beslutspunkt 3]
-     │   ├─ L1i (ekonomi)
-     │   └─ L1j (aktivitet/version)  [beslutspunkt 2]
-     ├─ L1e (driftkonsol)
-     ├─ L1n (återställning + beredskap)  ← störst nytta per rad
-     ├─ L1p (avtal + åtaganden per kund)  [juridiskt bindande spärr]
-     ├─ L1f (support)  [beslutspunkt 4]
-     ├─ L1g (åtgärdslogg)
-     └─ L1h (pipeline)
+L1m ✅ (leverantörskontot)   ← byggd FÖRST, flyttade åtkomstgränsen
+ └─ L1a ✅ (skelett)
+     ├─ L1b (kunddossié)  ← INTE byggd. Bygg denna först av allt återstående innehåll
+     │   ├─ L1c (mätvärden)   [beslutspunkt 1, öppen]
+     │   │   └─ L1d (visualisering)  [beslutspunkt 3, öppen]
+     │   ├─ L1i ✅ (ekonomi)  – byggd fristående av portföljvyn, väntar inte på L1b
+     │   └─ L1j (aktivitet/version)  [beslutspunkt 2, öppen]
+     ├─ L1e (driftkonsol)  ← INTE byggd (72h-klockan flyttades in i L1p, se dess "Byggt")
+     ├─ L1n ✅ (återställning + beredskap)
+     ├─ L1p ✅ (avtal + åtaganden per kund)
+     ├─ L1f (support)  [beslutspunkt 4, öppen] ← INTE byggd
+     ├─ L1g ✅ (åtgärdslogg)
+     └─ L1h ✅ (pipeline)
 
 Fristående, kan byggas när som helst:
- L1k (skalbarhet)
- L1o (åtagandekalendern)
- L1l (intern ändringslogg + test)   ← bör byggas FÖRST, den är förutsättningen
-                                       för att resten inte läcker till kunden
+ L1k ✅ (skalbarhet, antalAnvandare-axeln)
+ L1o ✅ (åtagandekalendern)
+ L1l ✅ (intern ändringslogg + test)
 ```
+
+**Status per 2026-08-29: 10 av 16 delmål klara** (L1h, L1k, L1l, L1o från den första
+omgången; L1m, L1a, L1g, L1i, L1n, L1p från den andra). Kvarstår: L1b, L1c, L1d, L1e, L1f, L1j
+– samtliga utom L1e och L1b hänger på en öppen beslutspunkt (1, 2 eller 4).
 
 ---
 
@@ -902,20 +1024,23 @@ Fristående, kan byggas när som helst:
 
 Grov, i samma skala som tidigare etapplaner (ett "delmål" ≈ en fokuserad arbetsinsats):
 
-| Delmål | Omfång |
-|---|---|
-| L1l, L1h, L1k | Små – timmar var |
-| L1m | Medel – liten kodmängd, men den flyttar en åtkomstgräns och bär därför mest testarbete per rad i hela planen |
-| L1a, L1g, L1i | Medel |
-| L1b, L1e, L1f | Stora – kärnan i planen |
-| L1n | Medel – tre av fyra punkter är gränssnitt ovanpå kod som redan finns |
-| L1o | Liten – en collection, en signal, fyra rader innehåll |
-| L1p | Medel – liten kodmängd, men punkt 1 är en spärr mot ett faktiskt regelbrott och bär planens tyngsta test |
-| L1c, L1d, L1j | Beror helt på beslutspunkterna |
+| Delmål | Omfång | Status |
+|---|---|---|
+| L1l, L1h, L1k | Små – timmar var | ✅ Klara (2026-08-29, första omgången) |
+| L1m | Medel – liten kodmängd, men den flyttar en åtkomstgräns och bär därför mest testarbete per rad i hela planen | ✅ Klar |
+| L1a, L1g, L1i | Medel | ✅ Klara |
+| L1n | Medel – tre av fyra punkter är gränssnitt ovanpå kod som redan finns | ✅ Klar |
+| L1o | Liten – en collection, en signal, fyra rader innehåll | ✅ Klar |
+| L1p | Medel – liten kodmängd, men punkt 1 är en spärr mot ett faktiskt regelbrott och bär planens tyngsta test | ✅ Klar |
+| L1b | Stor – kärnan i planen | Ej byggd |
+| L1e, L1f | Stora | Ej byggda (L1f: beslutspunkt 4 öppen) |
+| L1c, L1d, L1j | Beror helt på beslutspunkterna | Ej byggda (1, 3 respektive 2 öppna) |
 
-**Om bara en sak byggs:** L1m först (kontomodellen), sedan L1n (återställningen – den enda
-raden som stänger en påstådd men outövbar förmåga), därefter L1p punkt 1 (PUB-spärren), L1l och L1b. De två ger
-merparten av nyttan och binder inga beslut som ännu inte är fattade.
+**Byggordningen som faktiskt kördes:** L1m → (L1l, L1h, L1k, L1o – kunde byggas fristående,
+kördes först) → L1a → L1g, L1i, L1n, L1p (alla fyra byggda parallellt inom samma session,
+eftersom ingen av dem beror på en öppen beslutspunkt eller på L1b). **Kvar:** L1b är nu den
+enskilt största återstående arbetsbesparingen, precis som planen alltid sagt – och den enda
+återstående posten som INTE väntar på ett ägarbeslut.
 
 ---
 
@@ -930,3 +1055,4 @@ merparten av nyttan och binder inga beslut som ännu inte är fattade.
 | 0.5 | 2026-08-29 | Behov B11–B20 tillagda: avtal, juridik och försäljning. Två nya delmål – L1o (åtagandekalendern, ersätter L1n punkt 5) och L1p (PUB-spärr, underrättelseregister, incidentklocka med 24/72 timmar, åtagandeblock). Avråder uttryckligen från att flytta in kandidatlistan i produktionsdatabasen: det vore en ny behandling med leverantören som personuppgiftsansvarig |
 | 0.6 | 2026-08-29 | **Antagen.** Ägaren markerade planen som antagen i sin helhet. Beslutspunkterna 5 och 6 avgjorda genom antagandet (planens struktur förutsätter dem); 1–4 och 7 kvarstår öppna och avgörs var för sig, precis innan respektive delmål påbörjas. Se `BESLUTSLOGG.md` 2026-08-29 |
 | 0.7 | 2026-08-29 | **L1l, L1h, L1k (delvis), L1o byggda.** De fyra "Liten"-delmålen. Se "Byggt"/"Testat" i respektive delmål ovan. L1k byggdes bara på `antalAnvandare`-axeln – kostnadshistorik-axeln avgränsades medvetet bort (skulle touchat en budgetkritisk transaktion för en oproportionerlig vinst). Ett verkligt korrekthetsfel (blint `FieldValue.increment` på ett oinitierat fält) hittades och fixades under bygget, inte efteråt. 37 nya tester totalt (8+5+2 vitest, 8 regel, 5+9 funktioner) |
+| 0.8 | 2026-08-29 | **L1m, L1a, L1g, L1i, L1n, L1p byggda.** De sex "Medel"-delmålen. Beslutspunkt 6 gick från "avgjord genom antagandet" till faktiskt byggd (`flyttaTillPlattformskonto`). Två deliberata avsteg dokumenterade i respektive delmåls "Byggt": `IncidentberedskapSektion.jsx` togs INTE bort från kundens adminpanel (en riktig regression för en fungerande kundfunktion), och kundlägets fem flikar delar en gemensam platshållare i väntan på L1b. 10 av 16 delmål nu klara – bara L1b, L1c, L1d, L1e, L1f, L1j kvarstår, och fyra av de sex väntar på en öppen beslutspunkt |

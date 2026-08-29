@@ -275,7 +275,10 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
       const behoverBackfill = typeof data.antalAnvandare !== "number";
       const [anvandareSnap, kostnadSnap] = await Promise.all([
         behoverBackfill ? db.collection("users").where("organisationId", "==", orgDoc.id).get() : null,
-        orgDoc.ref.collection("kostnadshistorik").orderBy("manad", "desc").limit(1).get(),
+        // limit(2) i stället för 1 (Etapp L1i): kostar noll extra läsningar – samma fråga,
+        // en rad till i samma svar – men ger ekonomiöversikten en riktning (upp/ner/stabilt)
+        // att jämföra mot, inte bara en enda månads ögonblicksbild.
+        orgDoc.ref.collection("kostnadshistorik").orderBy("manad", "desc").limit(2).get(),
       ]);
       let antalAnvandare = data.antalAnvandare;
       if (behoverBackfill) {
@@ -295,6 +298,10 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         moduler: data.moduler ?? {},
         antalAnvandare,
         senasteKostnad: kostnadSnap.empty ? null : kostnadSnap.docs[0].data(),
+        // Etapp L1i: de(t) senaste (upp till) två månaderna, äldst sist – samma dokument som
+        // senasteKostnad ovan, bara med en rad till. Räcker för en enkel riktning, inte en
+        // fullständig graf (se L1d, som ännu inte är byggd).
+        kostnadshistorikSenaste: kostnadSnap.docs.map((d) => d.data()),
         // Saknas fältet helt (organisationer etablerade före Etapp 15a) antas de redan vara
         // en riktig, aktiv kund – annars skulle en befintlig kund plötsligt visas som "offert".
         avtalsstatus: data.avtalsstatus ?? "aktiv",

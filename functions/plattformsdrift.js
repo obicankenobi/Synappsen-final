@@ -20,6 +20,14 @@ const {
   kravPlattformsadmin,
 } = require("./gemensamt");
 const { kravLasningAvRevisionslogg } = require("./revisionslogg");
+const crypto = require("node:crypto");
+
+// Etapp L1m: sentinelvärdet som gör ett leverantörskonto organisationslöst. Matchar ingen
+// organisation, så isoleringen blir en följd av VARJE befintlig organisationsgrindad regel
+// (de jämför alla mot minOrganisation()) – inget nytt undantag behöver skrivas i dem.
+// Samma "_"-konvention som "_plattform" redan använder i loggaRevision (Etapp 32c) för att
+// markera "det här är inte en riktig kund".
+const PLATTFORMSORGANISATION = "_plattform";
 
 // Plattformsadminens globala nödstopp – ingen kod, ingen deploy, bara en knapptryckning för
 // att stänga av (eller sätta på igen) ALL utgående e-post oavsett vilken funktion som
@@ -301,4 +309,137 @@ exports.gorTillPlattformsadmin = onCall({ region: "europe-west1" }, async (reque
     satteSig: request.auth.uid,
   });
   return { ok: true };
+});
+
+// Etapp L1m, delmål 1: skapar ett HELT NYTT leverantörskonto, organisationslöst från start.
+// Behövs eftersom users/{uid} har `allow create: if false` och den enda andra vägen in,
+// losInInbjudan, ALLTID binder det nya kontot till inbjudarens organisation – det finns ingen
+// befintlig väg att skapa ett konto som aldrig tillhör en kundorganisation alls.
+//
+// Ingen e-post skickas (utgående e-post är dessutom stoppat, se PUB_AVTAL_BREVO_TECKNAT i
+// gemensamt.js) – ett engångslösenord genereras och returneras EN GÅNG i svaret, för att
+// delas manuellt med den nya leverantörsadminen. Det lagras ALDRIG, varken i Firestore eller
+// i revisionsloggen.
+exports.skapaLeverantorskonto = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+
+  const epost = (request.data?.epost ?? "").trim().toLowerCase();
+  const namn = (request.data?.namn ?? "").trim();
+  if (!epost || !epost.includes("@")) {
+    throw new HttpsError("invalid-argument", "En giltig e-postadress krävs.");
+  }
+  if (!namn) {
+    throw new HttpsError("invalid-argument", "Ett namn krävs.");
+  }
+
+  // 24 slumpmässiga byte, url-säker text – rikligt över vad ett engångslösenord som visas
+  // en gång och sedan aldrig lagras behöver vara.
+  const engangsLosenord = crypto.randomBytes(24).toString("base64url");
+
+  const authAnvandare = await admin.auth().createUser({
+    email: epost,
+    password: engangsLosenord,
+    displayName: namn,
+  });
+
+  await db.collection("users").doc(authAnvandare.uid).set({
+    namn,
+    email: epost,
+    role: "superadmin",
+    organisationId: PLATTFORMSORGANISATION,
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  await db.collection("plattformsadmin").doc(authAnvandare.uid).set({
+    blevPlattformsadmin: admin.firestore.FieldValue.serverTimestamp(),
+    satteSig: request.auth.uid,
+  });
+
+  await loggaRevision({
+    organisationId: PLATTFORMSORGANISATION,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "leverantorskonto_skapat",
+    objektTyp: "users",
+    objektId: authAnvandare.uid,
+    sammanfattning: `Nytt leverantörskonto skapat för ${namn} (${epost})`,
+  });
+
+  return { uid: authAnvandare.uid, engangsLosenord };
+});
+
+// Etapp L1m, delmål 4 (beslutspunkt 6: flytta det BEFINTLIGA kontot, inte skapa ett nytt).
+// Flyttar den ANROPANDES EGET konto till den organisationslösa modellen. Medvetet begränsad
+// till självbetjäning – ingen generell "byt vem som helsts organisation"-funktion, som hade
+// varit ett mycket bredare och farligare verktyg än vad den här migreringen kräver.
+//
+// Kräver att anroparen REDAN är plattformsadmin (annars kunde vem som helst med rätt gissning
+// fly sin egen organisations dataisolering). Idempotent – ett andra anrop är en no-op.
+exports.flyttaTillPlattformskonto = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+
+  const { organisationId: foregaendeOrganisationId } = await hamtaAnvandarInfo(request.auth.uid);
+  if (foregaendeOrganisationId === PLATTFORMSORGANISATION) {
+    return { ok: true, redanFlyttat: true };
+  }
+
+  await db.collection("users").doc(request.auth.uid).set(
+    { organisationId: PLATTFORMSORGANISATION },
+    { merge: true }
+  );
+
+  // Loggas mot BÅDA kedjorna: den gamla organisationen ska kunna se att kontot lämnade den
+  // (krav 38 gäller retroaktivt lika mycket som framåt), och den nya (tomma) kedjan får sin
+  // första post.
+  await loggaRevision({
+    organisationId: foregaendeOrganisationId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "superadmin",
+    handelsetyp: "konto_flyttat_till_plattform",
+    objektTyp: "users",
+    objektId: request.auth.uid,
+    sammanfattning: "Kontot flyttades till leverantörens organisationslösa modell (Etapp L1m)",
+  });
+  await loggaRevision({
+    organisationId: PLATTFORMSORGANISATION,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "konto_flyttat_till_plattform",
+    objektTyp: "users",
+    objektId: request.auth.uid,
+    sammanfattning: `Konto flyttat hit från ${foregaendeOrganisationId}`,
+  });
+
+  return { ok: true, redanFlyttat: false, foregaendeOrganisationId };
+});
+
+// Etapp L1g (intern/ETAPPLAN-INTERN-1.md): leverantörens EGEN åtgärdslogg, tvärs alla
+// kundorganisationer. Åtgärder mot en kund loggas redan (och ska fortsätta loggas) i
+// KUNDENS egen hashkedja – kedjorna är per organisation och slås ALDRIG ihop här (det skulle
+// bryta varje kunds kedjeverifiering). Det här är en REN läsvy ovanpå den redan existerande
+// `revisionslogg`-collectionen (top-level, inte en underkollektion – se firestore.rules),
+// filtrerad på den anropandes eget uid. Ingen ny logg, ingen andra sanning (krav 39).
+exports.hamtaLeverantorsAtgardslogg = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+
+  const gransRaw = request.data?.limit;
+  const grans = Number.isInteger(gransRaw) && gransRaw > 0 && gransRaw <= 200 ? gransRaw : 100;
+
+  const snap = await db
+    .collection("revisionslogg")
+    .where("aktorUid", "==", request.auth.uid)
+    .where("aktorRoll", "==", "plattformsadmin")
+    .orderBy("tidpunkt", "desc")
+    .limit(grans)
+    .get();
+
+  return { poster: snap.docs.map((d) => ({ id: d.id, ...d.data() })) };
 });

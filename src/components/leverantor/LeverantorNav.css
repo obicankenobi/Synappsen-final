@@ -1,0 +1,41 @@
+/* Etapp L1a (intern/ETAPPLAN-INTERN-1.md): panelens egen navigering. Medvetet INTE samma
+   .sidomeny som Sidomeny.jsx (Etapp 69c) – den är dold under 1024px eftersom BottomNav.jsx
+   täcker mobilen där. LeverantorLayout monterar varken BottomNav eller Sidomeny (L1m punkt 2),
+   så den här navigeringen måste synas på ALLA bredder, annars finns ingen väg alls in i
+   panelen på en mindre skärm. En enkel horisontell, skrollbar rad – ingen sidopanel – tills
+   ett faktiskt behov av mer visar sig. */
+.leverantor-nav {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 8px 12px;
+  background: var(--yta);
+  border-bottom: 1px solid var(--kant);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+}
+
+.leverantor-nav__lank {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-liten);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.leverantor-nav__lank:hover {
+  background: var(--bg);
+}
+
+.leverantor-nav__lank.active {
+  background: var(--primar-ljus);
+  color: var(--primar-mork);
+  font-weight: 600;
+}

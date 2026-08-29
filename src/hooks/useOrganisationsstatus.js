@@ -15,6 +15,9 @@ export function useOrganisationsstatus(organisationId) {
   const [raderingAnledning, setRaderingAnledning] = useState(null);
   const [supportAtkomstTill, setSupportAtkomstTill] = useState(null);
   const [supportAtkomstAnledning, setSupportAtkomstAnledning] = useState(null);
+  // Etapp L1p punkt 5: en begäran leverantören gjort om referensunderlag – kunden utför
+  // fortfarande exporten själv, med eget samtycke (se ReferensunderlagSektion.jsx).
+  const [referensunderlagBegart, setReferensunderlagBegart] = useState(null);
   const [fel, setFel] = useState(null);
 
   useEffect(() => {
@@ -29,6 +32,7 @@ export function useOrganisationsstatus(organisationId) {
         setRaderingAnledning(data.raderingAnledning ?? null);
         setSupportAtkomstTill(data.supportAtkomstTill ?? null);
         setSupportAtkomstAnledning(data.supportAtkomstAnledning ?? null);
+        setReferensunderlagBegart(data.referensunderlagBegart ?? null);
         setFel(null);
       },
       (error) => {
@@ -45,6 +49,7 @@ export function useOrganisationsstatus(organisationId) {
     raderingAnledning,
     supportAtkomstTill,
     supportAtkomstAnledning,
+    referensunderlagBegart,
     fel,
   };
 }

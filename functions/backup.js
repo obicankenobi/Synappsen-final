@@ -231,6 +231,36 @@ exports.aterstallOrganisationCallable = onCall({ region: "europe-west1", timeout
   return { antalAterstallda };
 });
 
+// Etapp L1n (intern/ETAPPLAN-INTERN-1.md): listar en organisations sparade backupfiler
+// (datum och storlek, ALDRIG innehåll – krav 13) så att en återställningspanel kan visa vad
+// som faktiskt finns att återställa FRÅN, innan man väljer en. Klienten kan inte lista
+// backups/{orgId}/ själv (storage.rules: `allow read, write: if false`, medvetet), så det
+// här är den enda vägen in.
+exports.listaBackuper = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const { orgId } = request.data ?? {};
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+
+  const [filer] = await bucket.getFiles({ prefix: `backups/${orgId}/` });
+  const backuper = filer
+    .map((fil) => ({
+      sokvag: fil.name,
+      // Filnamnet BÄR datumet (backups/{orgId}/{ÅÅÅÅ-MM-DD}.json) – samma "lita på det
+      // ANGIVNA datumet, inte filens skapelsemetadata"-princip som gallringen i
+      // gallraGamlaBackuper redan använder, så en kopierad/återställd fil räknas rätt.
+      datum: fil.name.split("/").pop().replace(".json", ""),
+      storlekBytes: Number(fil.metadata.size ?? 0),
+    }))
+    .sort((a, b) => (a.datum < b.datum ? 1 : -1));
+
+  return { backuper };
+});
+
 // Etapp 61a: exporteras för de domänfiler som anropar dem över filgränsen
 // (se index.js – dessa åter-exporteras INTE därifrån, de var aldrig exports förut).
 exports.BACKUP_COLLECTIONS = BACKUP_COLLECTIONS;

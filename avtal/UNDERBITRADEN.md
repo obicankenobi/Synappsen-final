@@ -4,7 +4,13 @@
 byts eller tas bort. Refereras från `avtal/PUB-AVTAL-MALL.md` (Etapp 13a), punkt 5.
 
 **Upprättat:** 2026-07-26, som en del av Etapp 13b (`etapplaner/ETAPPLAN3.md`).
-**Senast uppdaterad:** 2026-08-27 – Brevo togs i drift.
+**Senast uppdaterad:** 2026-08-29 – **version 2026-08-29** (se nedan).
+
+> **Vad "version" betyder här** (Etapp L1p punkt 2, `intern/ETAPPLAN-INTERN-1.md`): datumet på
+> raden "Senast uppdaterad" ovan ÄR versionen. `satUnderbitradeUnderrattad` (leverantörspanelen)
+> registrerar per kund vilken version de underrättats om, jämfört mot
+> `src/config/underbitraden.js`s `UNDERBITRADEN_AKTUELL_VERSION` – som ska höjas till SAMMA
+> datum i SAMMA commit som en sakändring görs här, annars visar panelen fel kunder som à jour.
 
 > **⚠️ ÖPPEN BRIST PER 2026-08-27:** Brevo (e-postutskick) togs i drift utan tecknat
 > PUB-avtal. Behandlingen omfattar mottagares e-postadresser.
@@ -210,6 +216,7 @@ förändringen görs i koden eller CI/CD-konfigurationen, inte i efterhand.
 
 | Datum | Ändring |
 |---|---|
+| 2026-08-29 | Etapp L1p punkt 2: mekanism för underrättelse tillagd i leverantörspanelen (`satUnderbitradeUnderrattad`). Ingen sakändring av innehållet – datumet på "Senast uppdaterad" blev samtidigt dokumentets första formella VERSION (se rutan ovan). Inga kunder finns ännu att underrätta |
 | 2026-08-28 | Spärren **deployad och verifierad i produktion** (körning #92). Kontrollerat mot deployloggen att skapaInbjudan, skickaEpostPaminnelserSchemalagt och skickaManadssammanfattningarSchemalagt samtliga uppdaterades |
 | 2026-08-27 | Spärren verkställd i v5.131.0: `PUB_AVTAL_BREVO_TECKNAT = false` i `functions/gemensamt.js` stoppar allt utskick i koden. Valdes framför den manuella driftflaggan eftersom den senare inte bär någon motivering och kan slås av av misstag |
 | 2026-08-27 | Ägarbeslut: utgående e-post pausas tills PUB-avtal är tecknat |

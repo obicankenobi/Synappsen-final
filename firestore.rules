@@ -892,6 +892,15 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // incidenter/{id} – Etapp L1p punkt 3: 72/24-timmarsklockan vid en misstänkt
+    // personuppgiftsincident. Skrivs ENDAST via startaIncident/kvitteraIncidentunderrattelse
+    // (Admin SDK), så varje registrerad underrättelse revisionsloggas i den drabbade kundens
+    // egen kedja (krav 38) och aldrig kan sättas utan spår.
+    match /incidenter/{id} {
+      allow read: if arPlattformsadmin();
+      allow write: if false;
+    }
+
     // atagandekalender/{id} – Etapp L1o (intern/ETAPPLAN-INTERN-1.md): återkommande
     // leverantörsskyldigheter (nyckelrotation, RTO-mätning, planöversyner). Ingen
     // organisationskoppling – det är plattformsnivå, aldrig kundinnehåll, därför
