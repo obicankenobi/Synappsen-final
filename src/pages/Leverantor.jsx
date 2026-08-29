@@ -12,8 +12,11 @@ import DemomiljoSektion from "../components/leverantor/DemomiljoSektion";
 import HuvudmanSektion from "../components/leverantor/HuvudmanSektion";
 import OrganisationsListaSektion from "../components/leverantor/OrganisationsListaSektion";
 import KvissbankSektion from "../components/leverantor/KvissbankSektion";
-import { berakLeverantorSignaler } from "../utils/leverantorSignaler";
+import PipelineSektion from "../components/leverantor/PipelineSektion";
+import AtagandekalenderSektion from "../components/leverantor/AtagandekalenderSektion";
+import { berakLeverantorSignaler, berakAtagandeSignaler, sorteraSignaler } from "../utils/leverantorSignaler";
 import { filtreraOchSorteraOrganisationer, SORT_FALT } from "../utils/leverantorFilter";
+import { useAtagandekalender } from "../hooks/useAtagandekalender";
 import "./Leverantor.css";
 
 // Etapp 6a: leverantörsvy – en enda plats för att se/administrera ALLA kundorganisationer.
@@ -74,8 +77,18 @@ export default function Leverantor() {
   // Etapp 67b/67c: EN beräkning, delad mellan nyckeltalsrutan ("Kräver åtgärd": {n}) och
   // 67c:s lista – annars räknas samma sju villkor ut på två ställen och riskerar att glida
   // isär.
-  const signaler = useMemo(() => berakLeverantorSignaler(organisationer, sokkvot), [organisationer, sokkvot]);
-  const orgIdMedSignal = useMemo(() => new Set(signaler.map((s) => s.orgId)), [signaler]);
+  const { atagandekalender, laddar: atagandekalenderLaddar } = useAtagandekalender();
+  const orgSignaler = useMemo(() => berakLeverantorSignaler(organisationer, sokkvot), [organisationer, sokkvot]);
+  // Etapp L1o: åtagandekalenderns signaler är plattformsnivå (orgId null) och läggs till
+  // HÄR, i den redan delade listan – inte som en egen parallell "kräver åtgärd"-yta. En
+  // operatör ska se allt som kräver uppmärksamhet på ett ställe, oavsett om det gäller en
+  // kund eller driften i stort.
+  const atagandeSignaler = useMemo(() => berakAtagandeSignaler(atagandekalender), [atagandekalender]);
+  const signaler = useMemo(
+    () => sorteraSignaler([...orgSignaler, ...atagandeSignaler]),
+    [orgSignaler, atagandeSignaler]
+  );
+  const orgIdMedSignal = useMemo(() => new Set(orgSignaler.map((s) => s.orgId)), [orgSignaler]);
 
   const visadeOrganisationer = useMemo(
     () =>
@@ -184,6 +197,14 @@ export default function Leverantor() {
       />
 
       <KraverAtgardSektion signaler={signaler} />
+
+      <PipelineSektion organisationer={organisationer} />
+
+      <AtagandekalenderSektion
+        atagandekalender={atagandekalender}
+        laddar={atagandekalenderLaddar}
+        onFel={setFel}
+      />
 
       <EpostNodstoppSektion epostAvstangd={epostAvstangd} onAndrad={setEpostAvstangd} onFel={setFel} />
 

@@ -265,16 +265,35 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
   const organisationer = await Promise.all(
     orgSnap.docs.map(async (orgDoc) => {
       const data = orgDoc.data();
+      // Etapp L1k (intern/ETAPPLAN-INTERN-1.md): den här frågan gjorde tidigare en extra
+      // users-läsning per organisation, VARJE gång vyn öppnades – 50 kunder gav 50 extra
+      // läsningar för en siffra som bara ändras vid en inbjudan eller en radering.
+      // losInInbjudan/raderaAnvandare underhåller nu en räknare på organisationsdokumentet;
+      // frågan görs bara kvar för organisationer som ännu saknar fältet (skapade innan
+      // räknaren fanns), och resultatet skrivs tillbaka så nästa öppning slipper den helt.
+      // Lativt mönster, samma princip som kostnadshistorikens månadsarkivering i gemensamt.js.
+      const behoverBackfill = typeof data.antalAnvandare !== "number";
       const [anvandareSnap, kostnadSnap] = await Promise.all([
-        db.collection("users").where("organisationId", "==", orgDoc.id).get(),
+        behoverBackfill ? db.collection("users").where("organisationId", "==", orgDoc.id).get() : null,
         orgDoc.ref.collection("kostnadshistorik").orderBy("manad", "desc").limit(1).get(),
       ]);
+      let antalAnvandare = data.antalAnvandare;
+      if (behoverBackfill) {
+        antalAnvandare = anvandareSnap.size;
+        // En samtidig inbjudan/radering mellan läsningen ovan och skrivningen här skulle
+        // kunna göra just den här enstaka backfillen ett steg fel – i praktiken orealistiskt
+        // (en ensam plattformsadmin, ingen samtidig självregistrering), och ofarligt även om
+        // det händer: fältet är rent visningsunderlag och styr ingen behörighet. Det rättar
+        // sig inte automatiskt (framtida increment/decrement fortsätter bara från det redan
+        // satta talet) men avviker i så fall högst med ett enda konto, aldrig fler.
+        await orgDoc.ref.set({ antalAnvandare }, { merge: true }).catch(() => {});
+      }
       return {
         orgId: orgDoc.id,
         namn: data.namn ?? orgDoc.id,
         status: data.status ?? "aktiv",
         moduler: data.moduler ?? {},
-        antalAnvandare: anvandareSnap.size,
+        antalAnvandare,
         senasteKostnad: kostnadSnap.empty ? null : kostnadSnap.docs[0].data(),
         // Saknas fältet helt (organisationer etablerade före Etapp 15a) antas de redan vara
         // en riktig, aktiv kund – annars skulle en befintlig kund plötsligt visas som "offert".

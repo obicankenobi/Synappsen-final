@@ -30,6 +30,13 @@ function dagarMellan(fran, till) {
   return Math.floor((till.getTime() - fran.getTime()) / (24 * 60 * 60 * 1000));
 }
 
+// Delad mellan berakLeverantorSignaler och berakAtagandeSignaler (Etapp L1o), och mellan
+// dem när de slås ihop i Leverantor.jsx – EN sorteringsordning, inte samma jämförelse skriven
+// på två ställen som kan glida isär.
+export function sorteraSignaler(signaler) {
+  return [...signaler].sort((a, b) => ALLVARLIGHET_ORDNING[a.allvarlighet] - ALLVARLIGHET_ORDNING[b.allvarlighet]);
+}
+
 // nu injiceras (istället för att läsas via `new Date()` inne i funktionen) så att testerna
 // kan styra "idag" deterministiskt, samma mönster som utils/kompetensStatus.js.
 export function berakLeverantorSignaler(organisationer, sokkvot, nu = new Date()) {
@@ -124,5 +131,44 @@ export function berakLeverantorSignaler(organisationer, sokkvot, nu = new Date()
     }
   }
 
-  return signaler.sort((a, b) => ALLVARLIGHET_ORDNING[a.allvarlighet] - ALLVARLIGHET_ORDNING[b.allvarlighet]);
+  return sorteraSignaler(signaler);
+}
+
+// Etapp L1o (intern/ETAPPLAN-INTERN-1.md): återkommande skyldigheter (nyckelrotation,
+// RTO-mätning, översyn av incidentresponsplanen/tillgänglighetsredogörelsen) som signaler,
+// istället för prosa i fyra olika dokument som en session ska komma ihåg att läsa.
+//
+// Ingen orgId – det här är PLATTFORMSNIVÅ, inte en enskild kunds signal. KraverAtgardSektion
+// hanterar orgId === null genom att rendera texten utan länk (se komponentens egen kommentar).
+//
+// "senastUtfort saknas helt" räknas som omedelbart förfallet, av samma skäl som
+// L1o-avsnittet i planen ger: ett åtagande vars status är okänd är precis lika angeläget att
+// se som ett känt försenat, och att tysta ned det tills någon råkar sätta ett första datum
+// hade gjort just det ögonblicket – seedningen – till en osynlig lucka.
+// Delad med AtagandekalenderSektion.jsx, som märker en enskild rad i listan på samma sätt
+// – en enda plats som vet vad "förfallet" betyder, inte en kopia i komponenten.
+export function arAtagandeForfallet(post, nu = new Date()) {
+  if (!post.senastUtfort) return true;
+  const forfallodatum = new Date(post.senastUtfort);
+  forfallodatum.setMonth(forfallodatum.getMonth() + post.intervallManader);
+  return nu >= forfallodatum;
+}
+
+export function berakAtagandeSignaler(atagandekalender, nu = new Date()) {
+  const signaler = [];
+  for (const post of atagandekalender ?? []) {
+    if (!arAtagandeForfallet(post, nu)) continue;
+    const senastUtfortDatum = post.senastUtfort ? new Date(post.senastUtfort) : null;
+
+    signaler.push({
+      orgId: null,
+      orgNamn: "Plattform",
+      typ: `atagande_forfallet_${post.id}`,
+      allvarlighet: SIGNAL_ALLVARLIGHET.MEDEL,
+      text: senastUtfortDatum
+        ? `${post.vad} – förfallet (senast utfört ${post.senastUtfort.slice(0, 10)}, intervall ${post.intervallManader} mån)`
+        : `${post.vad} – aldrig registrerat som utfört`,
+    });
+  }
+  return sorteraSignaler(signaler);
 }

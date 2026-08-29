@@ -892,6 +892,17 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // atagandekalender/{id} – Etapp L1o (intern/ETAPPLAN-INTERN-1.md): återkommande
+    // leverantörsskyldigheter (nyckelrotation, RTO-mätning, planöversyner). Ingen
+    // organisationskoppling – det är plattformsnivå, aldrig kundinnehåll, därför
+    // arPlattformsadmin() och inte arInloggad() som kvisspaket ovan. Skrivs ENDAST via
+    // seedaAtagandekalender/sattAtagandeUtfort (Admin SDK), så varje kvittering
+    // revisionsloggas och aldrig kan bockas av utan spår.
+    match /atagandekalender/{id} {
+      allow read: if arPlattformsadmin();
+      allow write: if false;
+    }
+
     // halsokontrollhistorik/{id} – Etapp 3c: sparade resultat från "Testa anslutningar" och
     // den dagliga klinikstöd-verifieringen, så trender syns över tid. Samma resonemang som
     // systemvarningar ovan – delad infrastruktur, medvetet INTE organisationsskopat. Skrivs

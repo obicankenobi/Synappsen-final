@@ -501,7 +501,7 @@ själv testas inte skarpt härifrån – den har redan en egen mätning i `rto-m
 
 ---
 
-### L1o. Åtagandekalendern – återkommande skyldigheter som signaler
+### L1o. Åtagandekalendern – återkommande skyldigheter som signaler ✅ KLAR 2026-08-29
 
 Svarar mot B14, och ersätter punkt 5 i L1n (RTO-påminnelsen byggs här i stället, som ett fall
 av fyra i stället för ett engångsfall).
@@ -524,8 +524,30 @@ går ska datumet sättas av det som faktiskt utförde arbetet – `rto-matning.y
 eget datum och uppmätta tid när den körts klart. Ett åtagande vars datum bara kan sättas för
 hand är svagare, och ska märkas som sådant i vyn.
 
-**Testat.** Att signalen slår exakt vid intervallets utgång och inte tidigare; att
-collectionen nekas för en icke-plattformsadmin; att `rto-matning.cjs` skriver sitt datum.
+**Byggt:**
+- `atagandekalender/{id}` i `firestore.rules` – `allow read: if arPlattformsadmin()`,
+  `allow write: if false`. Ingen organisationskoppling, plattformsnivå.
+- `functions/atagandekalender.js` – `seedaAtagandekalender` (idempotent, rör aldrig ett
+  redan satt `senastUtfort` eftersom fältet medvetet utelämnas från seed-datat) och
+  `sattAtagandeUtfort` (manuell kvittering, revisionsloggad).
+- `functions/scripts/rto-matning.cjs` kvitterar `rto-matning`-posten SJÄLV efter en lyckad
+  mätning, direkt mot Firestore (ingen plattformsadmin-uid att autentisera som i skriptet) –
+  aldrig i `finally`-blocket, så en misslyckad mätning inte räknas som utförd.
+- `berakAtagandeSignaler`/`arAtagandeForfallet` i `src/utils/leverantorSignaler.js` – ett
+  åtagande utan `senastUtfort` räknas som omedelbart förfallet (planens egen motivering: en
+  okänd status är minst lika angelägen att se som en känd försenad). Slås ihop med
+  organisationssignalerna i `Leverantor.jsx` via en delad `sorteraSignaler`, så en operatör
+  ser allt som kräver uppmärksamhet på ETT ställe.
+- `src/hooks/useAtagandekalender.js` + `AtagandekalenderSektion.jsx` – direkt klientläsning
+  (samma mönster som `useKvissbank.js`), sedd-knapp och en kvitteringsknapp per manuellt
+  åtagande. `rto-matning`-raden har ingen knapp, bara texten "Sätts automatiskt".
+
+**Testat.** Att signalen slår exakt vid intervallets utgång och inte tidigare (`src/utils/
+leverantorSignaler.test.js`); att collectionen nekas för allt utom plattformsadmin OCH att
+INGEN klient (inte ens en plattformsadmin) kan skriva direkt (`tests/rules/
+atagandekalender.test.mjs`, 8 tester); att en omkörning av seeden aldrig nollställer ett
+redan satt `senastUtfort`, och att kvitteringen revisionsloggas (`tests/functions/
+atagandekalender.test.cjs`, 9 tester).
 
 **Avgränsning.** Ingen automatik som utför åtgärden. En påminnelse påminner.
 
@@ -700,7 +722,7 @@ Kravet är att detta är en **läsvy** – ingen ny logg, ingen andra sanning (k
 
 ---
 
-### L1h. Onboarding-pipeline
+### L1h. Onboarding-pipeline ✅ KLAR 2026-08-29
 
 `avtalsstatus` (offert → signerat → aktiv → pausad → avslutad) och `avtalsstatusAndrad`
 finns redan. Bygg en pipeline-vy med ålder i nuvarande steg, så att en offert som legat i 60
@@ -708,6 +730,16 @@ dagar syns som det den är. Signalmotorn flaggar redan stillastående offerter e
 det här ger samma information en form man kan arbeta i.
 
 Litet bygge, hög nytta, inga nya datakällor.
+
+**Byggt:** `src/utils/leverantorPipeline.js` (`grupperaPipeline`, ren funktion, egna tester)
+grupperar organisationer på `avtalsstatus` och räknar ålder från `avtalsstatusAndrad ?? skapad`
+– samma fallback-princip som signalen `offert_stillastaende` redan använder. Demo-organisationen
+utesluts (krav 29). `PipelineSektion.jsx` renderar de fem stegen sida vid sida, äldst överst
+inom varje steg, länkad till kundraden (`#org-{orgId}`) och märkt visuellt vid ≥30 dagar (samma
+tröskel som signalen). Ingen ny datakälla – bara den redan laddade `organisationer`-listan.
+
+**Testat.** `src/utils/leverantorPipeline.test.js`, 8 tester: gruppering, demo-uteslutning,
+okänd avtalsstatus, båda ålders-fallbackerna, och sorteringen inom en grupp.
 
 ---
 
@@ -739,7 +771,7 @@ Se beslutspunkt 2. **Bygg inte förrän det är avgjort** – och om det byggs s
 
 ---
 
-### L1k. Skalbarhet i `listaOrganisationer`
+### L1k. Skalbarhet i `listaOrganisationer` ✅ KLAR 2026-08-29 (halva axeln)
 
 Två extra läsningar per organisation, varje gång vyn öppnas. Vid 50 kunder blir det 101
 läsningar. Alternativ: skriv en `organisationer/{orgId}.antalAnvandare`-räknare vid
@@ -747,9 +779,34 @@ inbjudan/radering, eller cacha listsvaret några minuter.
 
 Byggs innan det märks, inte efter. Litet nu, obehagligt senare.
 
+**Byggt – bara `antalAnvandare`-axeln:** `losInInbjudan` och `raderaAnvandare` underhåller nu
+räknaren atomiskt (`FieldValue.increment(±1)`). `listaOrganisationer` läser den direkt när den
+finns, och backfillar lativt (en enda users-fråga, skriver tillbaka) för organisationer som
+saknar fältet – exakt samma "läs en gång, cacha genom att skriva tillbaka"-princip som
+kostnadshistorikens egen lativa arkivering i `gemensamt.js`.
+
+**Ett verkligt fel hittat och fixat under bygget, inte bara i produktionen senare:** ett blint
+`FieldValue.increment(±1)` på ett ÄNNU INTE initierat fält hade skapat en felaktig ABSOLUT
+siffra (t.ex. "1 användare" för en organisation som redan har tio), eftersom Firestore
+behandlar increment på ett saknat fält som att basen är 0. Båda skrivvägarna läser därför
+räknarens nuvarande värde först och rör den bara om den redan är ett tal – annars lämnas
+fältet orört åt nästa `listaOrganisationer`-anrops backfill, som räknar rätt från grunden.
+
+**Kostnadshistorik-axeln byggdes MEDVETET INTE.** Den skrivs lativt inuti `reserveraBudget`
+(en budgetkritisk transaktion som körs före varje Gemini-anrop) – att denormalisera dit hade
+touchat en hot path där felaktighet kostar riktiga pengar, för en optimering som bara gynnar
+en enda leverantörsvys visning. Proportionerligt fel för ett delmål stämplat "Litet".
+Kvarstår som en möjlig framtida rad om `listaOrganisationer` någonsin blir en faktisk
+flaskhals – se `orderBy("manad", "desc").limit(1)`-frågan i funktionen.
+
+**Testat.** `tests/functions/antalanvandare-raknare.test.cjs`, 5 tester: att räknaren INTE
+skapas felaktigt på en oinitierad organisation (varken vid inbjudan eller radering), att
+`listaOrganisationer` backfillar korrekt OCH skriver tillbaka, och att en redan initierad
+räknare ökar/minskar atomiskt via de riktiga anropsvägarna (inte bara enhetstestad isolerat).
+
 ---
 
-### L1l. Intern ändringslogg och separationen från kundens
+### L1l. Intern ändringslogg och separationen från kundens ✅ KLAR 2026-08-29
 
 Det som gör ägarens krav mekaniskt i stället för en vana:
 
@@ -764,6 +821,17 @@ Det som gör ägarens krav mekaniskt i stället för en vana:
 > uteslutande om leverantörsvyn. Filens egen regel säger att den är en logg som aldrig skrivs
 > om retroaktivt. Testet måste därför gälla framåt, och den existerande överträdelsen ska stå
 > kvar och vara känd, inte städas bort.
+
+**Byggt.** `intern/ANDRINGSLOGG-INTERN.md` (fanns redan, skapad 2026-08-27 tillsammans med
+planen). `tests/docs/andringslogg-leverantorsseparation.test.js` – `GRANSVERSION = "5.132.0"`
+(package.json-versionen just innan det här delmålet byggdes) är hårdkodad avsiktligt, inte
+läst dynamiskt: läses den från `package.json` vid testkörning skulle den alltid vara lika med
+den senast tillagda postens version (samma commit bumpar båda), och "högre än dagens" skulle
+då aldrig kunna sluta vara sant för någon post – testet skulle tyst aldrig kunna slå till. Se
+`tests/docs/pitch-version.test.js` för samma "frysta tröskelkonstant, inte dynamisk"-princip.
+
+**Testat.** 2 tester: de fyra kända posterna bekräftas ligga UNDER gränsen (grandfather-skyddet
+fungerar), och `test.each` är förberett för varje framtida post som skulle hamna över den.
 
 ---
 
@@ -861,3 +929,4 @@ merparten av nyttan och binder inga beslut som ännu inte är fattade.
 | 0.4 | 2026-08-29 | Avsnittet "Behoven, och vilken funktion som möter varje" tillagt (B1–B10, härledda ur kod och avtalsdokument). Nytt delmål L1n: återställningspanel, manuell backup, beredskapskontroller flyttade från kundens adminpanel, och RTO-övningens ålder som åttonde signal. Ny beslutspunkt 7 (feedback-inkorgen). Fyndet som motiverar L1n: `aterstallOrganisationCallable` och `backupaOrganisation` finns i kod men har noll gränssnitt, medan incidentdokumenten beskriver återställning som en existerande förmåga |
 | 0.5 | 2026-08-29 | Behov B11–B20 tillagda: avtal, juridik och försäljning. Två nya delmål – L1o (åtagandekalendern, ersätter L1n punkt 5) och L1p (PUB-spärr, underrättelseregister, incidentklocka med 24/72 timmar, åtagandeblock). Avråder uttryckligen från att flytta in kandidatlistan i produktionsdatabasen: det vore en ny behandling med leverantören som personuppgiftsansvarig |
 | 0.6 | 2026-08-29 | **Antagen.** Ägaren markerade planen som antagen i sin helhet. Beslutspunkterna 5 och 6 avgjorda genom antagandet (planens struktur förutsätter dem); 1–4 och 7 kvarstår öppna och avgörs var för sig, precis innan respektive delmål påbörjas. Se `BESLUTSLOGG.md` 2026-08-29 |
+| 0.7 | 2026-08-29 | **L1l, L1h, L1k (delvis), L1o byggda.** De fyra "Liten"-delmålen. Se "Byggt"/"Testat" i respektive delmål ovan. L1k byggdes bara på `antalAnvandare`-axeln – kostnadshistorik-axeln avgränsades medvetet bort (skulle touchat en budgetkritisk transaktion för en oproportionerlig vinst). Ett verkligt korrekthetsfel (blint `FieldValue.increment` på ett oinitierat fält) hittades och fixades under bygget, inte efteråt. 37 nya tester totalt (8+5+2 vitest, 8 regel, 5+9 funktioner) |

@@ -124,6 +124,11 @@ exports.sparaEgenKvissfraga = kvissbank.sparaEgenKvissfraga;
 exports.taBortEgenKvissfraga = kvissbank.taBortEgenKvissfraga;
 exports.seedaKvissbank = kvissbank.seedaKvissbank;
 
+// ── atagandekalender.js – Etapp L1o: återkommande leverantörsskyldigheter som signaler
+const atagandekalender = require("./atagandekalender");
+exports.seedaAtagandekalender = atagandekalender.seedaAtagandekalender;
+exports.sattAtagandeUtfort = atagandekalender.sattAtagandeUtfort;
+
 // ── organisationslivscykel.js – etablering av en ny organisation + demo-/övningsmiljön
 const organisationslivscykel = require("./organisationslivscykel");
 exports.skapaOrganisation = organisationslivscykel.skapaOrganisation;

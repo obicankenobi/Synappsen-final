@@ -319,6 +319,18 @@ export function seedaKvissbank(endastNya = false) {
   return fn({ endastNya });
 }
 
+// Etapp L1o: skriver in de fyra åtagandena. Idempotent, rör aldrig ett redan kvitterat datum.
+export function seedaAtagandekalender() {
+  const fn = httpsCallable(functions, "seedaAtagandekalender");
+  return fn({});
+}
+
+// senastUtfort är valfritt (ÅÅÅÅ-MM-DD) – utelämnas den sätts "nu".
+export function sattAtagandeUtfort(id, senastUtfort = null) {
+  const fn = httpsCallable(functions, "sattAtagandeUtfort");
+  return fn({ id, senastUtfort });
+}
+
 export function satKioskPin(pin) {
   const fn = httpsCallable(functions, "satKioskPin");
   return fn({ pin });

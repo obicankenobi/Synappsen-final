@@ -1,0 +1,39 @@
+.atagandekalender__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.atagandekalender__rad {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--kant);
+  border-radius: var(--radius-liten);
+}
+
+.atagandekalender__rad--forfallet {
+  border-color: var(--amber-text);
+}
+
+.atagandekalender__vad {
+  font-weight: 600;
+}
+
+.atagandekalender__meta {
+  color: var(--text-svag);
+  font-size: 0.85rem;
+  display: block;
+}
+
+.atagandekalender__automatisk {
+  color: var(--text-svag);
+  font-size: 0.85rem;
+  font-style: italic;
+}

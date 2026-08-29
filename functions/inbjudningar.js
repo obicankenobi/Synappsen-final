@@ -214,6 +214,16 @@ exports.losInInbjudan = onCall({ region: "europe-west1" }, async (request) => {
     inbjudanOrganisationId = data.organisationId;
     inbjudanRoll = data.roll;
 
+    // Etapp L1k (intern/ETAPPLAN-INTERN-1.md): läses INNAN någon skrivning (Firestore-
+    // transaktioner kräver det), för att avgöra om räknaren redan är initierad. Att bara
+    // öka den blint med FieldValue.increment(1) hade varit FEL för en organisation vars
+    // räknare aldrig satts än: increment på ett saknat fält utgår ifrån 0, så resultatet
+    // hade blivit "1 användare" även om organisationen redan har tio – en tyst, felaktig
+    // absolut siffra i stället för en korrekt delta.
+    const orgRef = db.collection("organisationer").doc(data.organisationId);
+    const orgSnap = await tx.get(orgRef);
+    const raknarenArInitierad = typeof orgSnap.data()?.antalAnvandare === "number";
+
     tx.set(db.collection("users").doc(request.auth.uid), {
       namn,
       email: data.epost,
@@ -226,6 +236,12 @@ exports.losInInbjudan = onCall({ region: "europe-west1" }, async (request) => {
       { anvand: true, anvandAv: request.auth.uid, anvandTid: admin.firestore.FieldValue.serverTimestamp() },
       { merge: true }
     );
+    if (raknarenArInitierad) {
+      tx.set(orgRef, { antalAnvandare: admin.firestore.FieldValue.increment(1) }, { merge: true });
+    }
+    // Är räknaren INTE initierad lämnas fältet orört – listaOrganisationers lativa backfill
+    // räknar då rätt nästa gång vyn öppnas, med det här nya kontot redan inräknat (eftersom
+    // users/{uid} redan är skrivet ovan, i samma transaktion).
   });
 
   await loggaRevision({

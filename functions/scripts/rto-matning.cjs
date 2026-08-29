@@ -69,6 +69,21 @@ async function main() {
     const tidMs = Date.now() - start;
 
     console.log(`RTO_MATNING_RESULTAT: ${tidMs} ms för ${antalAterstallda} dokument (${ORG_ID})`);
+
+    // Etapp L1o (intern/ETAPPLAN-INTERN-1.md): kvitterar sig SJÄLV i åtagandekalendern –
+    // "senastUtfort" sätts här, av det som faktiskt utförde mätningen, i stället för att
+    // vänta på att någon manuellt registrerar att den kördes. Direkt mot Firestore (samma
+    // Admin SDK-anslutning som resten av skriptet redan har) – ingen plattformsadmin-uid att
+    // autentisera som, så sattAtagandeUtfort (Cloud Function) används medvetet inte här. Görs
+    // efter RTO_MATNING_RESULTAT-raden, aldrig i finally: nedan – en misslyckad mätning ska
+    // INTE kvitteras som utförd.
+    await db.collection("atagandekalender").doc("rto-matning").set(
+      {
+        senastUtfort: new Date().toISOString(),
+        senasteMatningMs: tidMs,
+      },
+      { merge: true }
+    );
   } finally {
     console.log("RTO-mätning: städar bort testorganisationen...");
     const BATCHSTORLEK = 400;

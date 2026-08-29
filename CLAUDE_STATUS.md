@@ -8,20 +8,21 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-29 · version **5.132.0** i produktion (körning #93, verifierad).
-Utgående e-post är stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. Etapp L1
-(leverantörspanelen) är **antagen** i sin helhet – ingen kod skriven än, byggstart är L1m.
+**Senast uppdaterad:** 2026-08-29 · **v5.133.0 committad, inte deployad** (internt arbete, ingen
+brådska). Produktion står kvar på 5.132.0 (körning #93, verifierad). Utgående e-post är
+stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. Etapp L1 (leverantörspanelen) är antagen;
+de fyra "Liten"-delmålen (L1l, L1h, L1k, L1o) är nu klara, näst i tur är L1m.
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.132.0 (körning #93, verifierad) |
+| **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0 väntar på deploy |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **Senaste kodarbete** | v5.131.0: rättslig spärr som stoppar allt utgående e-post tills Brevos PUB-avtal är tecknat. Dessförinnan v5.130.0 (Etapp 71, Öva-lägets redigerbara frågebank) |
-| **Senaste dokumentarbete** | 2026-08-27: `saljmaterial/PITCH.md` uppdaterad till v5.130.0 (Öva-läget, kontoadmin, lösenordsåterställning, startbibliotek i efterhand tillagda) |
-| **Aktiv plan** | Ingen. Etapp 69 var den sista. `etapplaner/ETAPPLAN13.md` (Etapp 64) är antagen men juridiskt blockerad – inget steg är byggbart förrän en extern bedömning finns |
-| **Nästa steg** | **Bygg L1m** (leverantörskontot utan organisationstillhörighet, `intern/ETAPPLAN-INTERN-1.md`) – planen är antagen och L1m är låst som första delmål. Verifiera också `roles/firebaseauth.admin` med "Tvinga utloggning" på ett testkonto om det inte redan gjorts, och ägarbeslut om `systemkunskap`-paketet (se `OPPNA-PUNKTER.md`) |
+| **Senaste kodarbete** | v5.133.0: fyra delmål i Etapp L1 (leverantörspanelen) – L1l, L1h, L1k (delvis), L1o. Internt, ingen kundpåverkan. Dessförinnan v5.131.0 (e-postspärren) |
+| **Senaste dokumentarbete** | 2026-08-29: `intern/ETAPPLAN-INTERN-1.md` v0.7 (fyra delmål markerade klara), `intern/ANDRINGSLOGG-INTERN.md` fick sin första riktiga post |
+| **Aktiv plan** | `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) – antagen, intern, 4 av 16 delmål klara. Ingen KUNDVÄND plan aktiv sedan Etapp 69; `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
+| **Nästa steg** | **Bygg L1m** (leverantörskontot utan organisationstillhörighet) – låst som nästa delmål, flyttar en åtkomstgräns. Verifiera också `roles/firebaseauth.admin` med "Tvinga utloggning" om det inte redan gjorts, och ägarbeslut om `systemkunskap`-paketet (se `OPPNA-PUNKTER.md`) |
 
 ## Var du hittar saker
 
@@ -110,6 +111,31 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-08-29 (v5.133.0 – L1l, L1h, L1k, L1o byggda)
+
+Ägaren bad om de fyra "Liten"-delmålen i Etapp L1. Byggda, testade, committade – **inte
+deployade** (internt arbete, ingen brådska; nästa deploy kan vänta tills ett kundvänt behov
+finns eller L1m är klar). Detaljer i `intern/ETAPPLAN-INTERN-1.md` (v0.7) under respektive
+delmål och i `intern/ANDRINGSLOGG-INTERN.md` (v5.133.0-posten).
+
+**Ett verkligt korrekthetsfel hittades och fixades under L1k**, inte i produktion senare: ett
+blint `FieldValue.increment(±1)` på en organisations ännu-inte-initierade `antalAnvandare`
+hade skrivit en felaktig ABSOLUT siffra (Firestore behandlar increment på ett saknat fält som
+att basen är 0 – "1 användare" för en organisation som redan har tio). Både `losInInbjudan`
+och `raderaAnvandare` läser nu räknarens nuvarande värde först och rör den bara om den redan
+är ett tal; annars lämnas fältet åt `listaOrganisationer`s lativa backfill, som räknar rätt
+från grunden. Fångat av `tests/functions/antalanvandare-raknare.test.cjs` INNAN kodgranskning
+hann missa det – testet skrevs samtidigt som implementationen, inte efteråt.
+
+L1k byggdes bara på `antalAnvandare`-axeln. Kostnadshistorik-axeln (den andra extra läsningen
+i `listaOrganisationer`) avgränsades medvetet bort: den skrivs lativt inuti `reserveraBudget`,
+en budgetkritisk transaktion som körs före varje Gemini-anrop, och att denormalisera dit för
+en enda leverantörsvys visning vore oproportionerligt för ett delmål stämplat "Litet".
+
+37 nya tester. Fullt testsvep grönt: `npm run lint`, `npm run build`, `npx vitest run` (517
+tester, upp från 480), `npm run test:rules` (alla filer, inkl. den nya
+`atagandekalender.test.mjs`), `npm run test:functions` (alla 35 filer, inkl. de två nya).
 
 ## Uppföljning 2026-08-29 (Etapp L1 antagen + arbetsuppskattning)
 

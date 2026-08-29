@@ -204,6 +204,16 @@ exports.raderaAnvandare = onCall({ region: "europe-west1" }, async (request) => 
   // krascha i produktion. Ett tyst .catch() här hade dolt exakt det felet igen.
   await admin.auth().deleteUser(userId);
   await db.collection("users").doc(userId).delete();
+  // Etapp L1k: motsvarande decrement till incrementet i losInInbjudan – samma räknare, samma
+  // organisation (redan verifierad ovan att mal.organisationId === uppringare.organisationId).
+  // Samma skydd som där: rör INTE fältet om det aldrig initierats – FieldValue.increment(-1)
+  // på ett saknat fält hade skapat -1 i stället för att lämna det åt listaOrganisationers
+  // lativa backfill, som räknar rätt (redan exklusive det just raderade kontot).
+  const orgRef = db.collection("organisationer").doc(uppringare.organisationId);
+  const orgSnap = await orgRef.get();
+  if (typeof orgSnap.data()?.antalAnvandare === "number") {
+    await orgRef.set({ antalAnvandare: admin.firestore.FieldValue.increment(-1) }, { merge: true });
+  }
   return { ok: true };
 });
 

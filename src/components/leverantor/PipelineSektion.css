@@ -1,0 +1,49 @@
+.pipeline__grupper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pipeline__grupp {
+  flex: 1 1 200px;
+  min-width: 180px;
+}
+
+.pipeline__grupp h3 {
+  font-size: 0.9rem;
+  margin: 0 0 6px;
+}
+
+.pipeline__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pipeline__rad {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--kant);
+  border-radius: var(--radius-liten);
+  font-size: 0.9rem;
+}
+
+.pipeline__rad--gammal {
+  border-color: var(--amber-text);
+}
+
+.pipeline__alder {
+  color: var(--text-svag);
+  white-space: nowrap;
+}
+
+.pipeline__tom {
+  color: var(--text-svag);
+  font-size: 0.85rem;
+  margin: 0;
+}

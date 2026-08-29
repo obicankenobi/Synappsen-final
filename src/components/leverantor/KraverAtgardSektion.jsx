@@ -18,11 +18,17 @@ export default function KraverAtgardSektion({ signaler }) {
       ) : (
         <ul className="krav-atgard__lista">
           {signaler.map((signal, i) => (
-            <li key={`${signal.orgId}-${signal.typ}-${i}`} className="krav-atgard__rad">
+            <li key={`${signal.orgId ?? "plattform"}-${signal.typ}-${i}`} className="krav-atgard__rad">
               <span aria-hidden="true">{ALLVARLIGHET_IKON[signal.allvarlighet]}</span>
-              <a href={`#org-${signal.orgId}`} className="krav-atgard__lank">
-                {signal.orgNamn}
-              </a>
+              {/* Etapp L1o: plattformsnivå-signaler (t.ex. åtagandekalendern) har ingen
+                  organisation att länka till – orgNamn visas då som ren text, inte som länk. */}
+              {signal.orgId ? (
+                <a href={`#org-${signal.orgId}`} className="krav-atgard__lank">
+                  {signal.orgNamn}
+                </a>
+              ) : (
+                <span className="krav-atgard__lank">{signal.orgNamn}</span>
+              )}
               <span className="krav-atgard__text">{signal.text}</span>
             </li>
           ))}

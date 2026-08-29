@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { berakLeverantorSignaler, SIGNAL_ALLVARLIGHET } from "./leverantorSignaler";
+import { berakLeverantorSignaler, berakAtagandeSignaler, SIGNAL_ALLVARLIGHET } from "./leverantorSignaler";
 
 const NU = new Date("2026-08-16T12:00:00.000Z");
 
@@ -155,5 +155,61 @@ describe("berakLeverantorSignaler", () => {
       SIGNAL_ALLVARLIGHET.MEDEL,
       SIGNAL_ALLVARLIGHET.LAG,
     ]);
+  });
+});
+
+describe("berakAtagandeSignaler (Etapp L1o)", () => {
+  function atagande(overrides) {
+    return {
+      id: "test-atagande",
+      vad: "Teståtagande",
+      intervallManader: 6,
+      senastUtfort: null,
+      ...overrides,
+    };
+  }
+
+  it("ett åtagande utan senastUtfort är omedelbart förfallet", () => {
+    const signaler = berakAtagandeSignaler([atagande({})], NU);
+    expect(signaler).toHaveLength(1);
+    expect(signaler[0].orgId).toBeNull();
+    expect(signaler[0].text).toContain("aldrig registrerat");
+  });
+
+  it("ett nyligen utfört åtagande ger ingen signal", () => {
+    const signaler = berakAtagandeSignaler(
+      [atagande({ senastUtfort: "2026-08-20T00:00:00.000Z", intervallManader: 6 })],
+      NU
+    );
+    expect(signaler).toEqual([]);
+  });
+
+  it("slår exakt vid intervallets utgång, inte tidigare", () => {
+    // NU = 2026-08-16. 6 månader före är 2026-02-16 – en dag senare ska INTE förfalla än.
+    const strax_innan = berakAtagandeSignaler(
+      [atagande({ senastUtfort: "2026-02-17T12:00:00.000Z", intervallManader: 6 })],
+      NU
+    );
+    expect(strax_innan).toEqual([]);
+
+    const exakt = berakAtagandeSignaler(
+      [atagande({ senastUtfort: "2026-02-16T12:00:00.000Z", intervallManader: 6 })],
+      NU
+    );
+    expect(exakt).toHaveLength(1);
+  });
+
+  it("flera åtaganden ger flera oberoende signaler", () => {
+    const signaler = berakAtagandeSignaler(
+      [atagande({ id: "a", vad: "A" }), atagande({ id: "b", vad: "B" })],
+      NU
+    );
+    expect(signaler).toHaveLength(2);
+    expect(signaler.map((s) => s.typ)).toEqual(["atagande_forfallet_a", "atagande_forfallet_b"]);
+  });
+
+  it("tom eller saknad kalender ger inga signaler, kraschar inte", () => {
+    expect(berakAtagandeSignaler([], NU)).toEqual([]);
+    expect(berakAtagandeSignaler(undefined, NU)).toEqual([]);
   });
 });
