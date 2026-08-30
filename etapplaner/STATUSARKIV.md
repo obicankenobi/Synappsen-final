@@ -4501,3 +4501,79 @@ setts när spärren byggdes, inte efter att ägaren stötte på det.
 `EPOST_ANLEDNING_TEXT` i `InbjudanFormular.jsx` mappar nu orsak → text. Formuleringen mot kund
 är neutral ("utgående e-post är tillfälligt pausat") – sann utan att lufta att det handlar om
 ett osignerat biträdesavtal.
+
+## Uppföljning 2026-08-29 (upplägg för leverantörspanelen – förslag, inte bygge)
+
+Ingen kod. `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, **fortfarande ej antagen**) fick ett nytt
+avsnitt "Panelens upplägg" och en omskriven L1a. Version 0.1 → 0.2.
+
+Den bärande idén: en panel för flera organisationer behöver **två uttalade arbetslägen**, inte
+ett. Portföljläge (`/leverantor/*`, sju vyer, aggregerat över alla kunder) och kundläge
+(`/leverantor/kund/:orgId/*`, fem flikar, allt låst till en organisation). Dagens vy har bara
+portföljformen, och den enda vägen till en enskild kund är att expandera en rad i listan –
+vilket slutar fungera någonstans runt tio kunder.
+
+Två saker i upplägget är juridiska snarare än ergonomiska och får inte förhandlas bort i ett
+senare bygge:
+
+- **Åtkomsttaket har två nivåer.** Metadata (alltid, via `plattformsadmin/{uid}`) och innehåll
+  (endast under ett supportfönster som kunden själv öppnar, Etapp 50b). Block som kräver
+  innehållsåtkomst ska synas men stå tomma och märkta med varför – ett block som göms lär inte
+  ut var gränsen går.
+- **`LeverantorsAtgard` blir en komponent, inte en konvention.** Bekräftelse, obligatorisk
+  anledning och revisionsloggning in i kundens hashkedja. En åtgärd som glömmer loggas går inte
+  att upptäcka i efterhand, och konventioner har bevisligen misslyckats sex gånger här.
+
+**Tillägg samma dag (v0.3):** ägaren bad om att panelen ska nås med ETT övergripande konto
+utan organisationstillhörighet. Nytt delmål L1m, som ska byggas före allt annat eftersom det
+flyttar en åtkomstgräns. Lösningen är `organisationId: "_plattform"` – sentinelvärdet finns
+redan som pseudo-organisation för revisionsloggning (Etapp 32c) och matchar ingen
+organisation, så isoleringen blir en följd av befintliga regler i stället för av ett nytt
+undantag. **Det viktigaste premissfyndet:** att bara utelämna `organisationId` gör INTE kontot
+organisationslöst – `minOrganisation()` (`firestore.rules:36`) och åtta klientfiler faller
+tillbaka på `default`, en organisation med verklig data. Det tomma fältet är alltså det
+farligaste alternativet, inte det säkraste. Rollen måste dessutom förbli `superadmin`, annars
+slutar `farForsokaLasaPlattformsadmin` (`src/firebase/roles.js:69`) att ens leta efter
+panelen.
+
+**Tillägg samma dag (v0.4):** en behovsanalys B1–B10 – vilka återkommande arbetsuppgifter
+ägaren faktiskt har, och vilken funktion i panelen som möter var och en. Nytt delmål L1n.
+
+**Det allvarligaste fyndet i hela genomgången:** `aterstallOrganisationCallable` och
+`backupaOrganisation` finns som plattformsadmin-grindade callables men har **noll
+gränssnitt** – och backupfilerna är `allow read, write: if false` i `storage.rules`, så en
+klient kan inte ens lista dem. Samtidigt beskriver `avtal/INCIDENTRESPONSPLAN.md` 5.5 och
+`drift/INCIDENT-CHECKLISTA.md` steg 8 återställning som en existerande förmåga. Den finns som
+kod men går inte att utöva utan CLI mot produktionsprojektet. Dokumenten är alltså sanna om
+koden och falska om verkligheten – samma feltyp underhållsregeln finns för, fast omvänd.
+Ingen dokumentändring gjord: förmågan FINNS, den saknar bara en knapp, och L1n bygger den.
+
+Näst allvarligast: `hamtaBackupstatus`, `verifieraRevisionskedjor`, `testaBeroenden` och
+`verifieraKlinikstod` sitter i `src/components/admin/IncidentberedskapSektion.jsx` – i
+KUNDENS adminpanel bakom `arSuperadmin`. Efter L1m når ett `_plattform`-konto dem aldrig.
+
+**Tillägg samma dag (v0.5):** behoven utanför driften – avtal, juridik, försäljning (B11–B20),
+plus delmålen L1o (åtagandekalendern) och L1p (avtal och åtaganden per kund).
+
+Det viktigaste fyndet där: **ingenting hindrar att en organisation sätts till `avtalsstatus:
+aktiv` utan att ett PUB-avtal finns.** Organisationsdokumentet har inget sådant fält alls. Det
+är samma fel som Brevo, fast med Synappsen som biträdet i stället för kunden – och lösningen
+ska vara densamma som valdes då: en spärr i `satAvtalsstatus`, inte en rad i en checklista.
+Motiveringen står redan i `avtal/UNDERBITRADEN.md`s ändringshistorik (2026-08-27).
+
+Två saker till som är värda att komma ihåg utan att öppna planen: (1)
+`granskningar/JURIDISK-GRANSKNING.md` risk 15 – en kund under cybersäkerhetslagen (2025:1506)
+har 24 timmars tidig varning medan PUB-avtalet lovar 72, så en incidentklocka måste kunna
+räkna ned från båda. (2) `drift/INCIDENT-CHECKLISTA.md` säger själv att nyckelrotationens
+påminnelse *"inte är byggd än"* – den och tre andra återkommande åtaganden samlas i L1o
+i stället för att bli fyra ad hoc-signaler.
+
+**Avrått från:** att flytta `saljmaterial/KANDIDATLISTA-PRIVAT-VARD.md` in i panelen. Den
+innehåller bedömningar om namngivna verksamheter och kontaktuppgifter till namngivna personer;
+i produktionsdatabasen vore det en ny behandling med leverantören som personuppgifts-
+ANSVARIG, inte biträde – med egen rättslig grund och informationsplikt enligt art. 14. Hela
+produktens juridiska hållning bygger på biträdesrollen. Listan stannar i git.
+
+Ägaren har också gett Cloud Functions-tjänstekontot `roles/firebaseauth.admin` i GCP.
+**Ännu inte verifierat** – `tvingaUtloggning` på ett testkonto är det icke-destruktiva testet.
+Tills det är gjort står raden kvar i `OPPNA-PUNKTER.md`.

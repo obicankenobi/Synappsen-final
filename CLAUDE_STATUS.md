@@ -4,7 +4,7 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (121 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (122 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
@@ -21,9 +21,9 @@ SLUTFÖRD: 16 av 16 delmål klara, samtliga 7 beslutspunkter avgjorda.** Sista f
 | **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0–v5.137.0 väntar på deploy |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | v5.137.0: beslutspunkt 7 – en helt egen kanal till leverantören (`leverantorsfeedback`, skild från kundens interna `feedback`). Ny sida `KontaktaLeverantoren.jsx`; `Feedback.jsx`/`Hjalp.jsx` fick ett explicit förtydligande av vart respektive kanal går, på ägarens begäran. Internt, ingen kundpåverkan |
-| **Senaste dokumentarbete** | 2026-08-30: `intern/ETAPPLAN-INTERN-1.md` v1.1 (samtliga 7 beslutspunkter avgjorda), `intern/ANDRINGSLOGG-INTERN.md` v5.137.0-post, `BESLUTSLOGG.md` (beslutspunkt 7), `drift/INCIDENT-CHECKLISTA.md` steg 5 (ny collection `leverantorsfeedback`) |
-| **Aktiv plan** | `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) – **slutförd i sin helhet, inga delmål eller beslutspunkter kvarstår.** Ingen KUNDVÄND plan aktiv sedan Etapp 69; `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
-| **Nästa steg** | Ingen aktiv intern plan kvarstår. Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()` när ägaren vill, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" om det inte redan gjorts |
+| **Senaste dokumentarbete** | 2026-08-30: **`etapplaner/ETAPPLAN19.md` (Etapp 72) skriven som UTKAST – EJ ANTAGEN.** Dessutom `intern/ETAPPLAN-INTERN-1.md` v1.1, `BESLUTSLOGG.md`, `drift/INCIDENT-CHECKLISTA.md` steg 5 |
+| **Aktiv plan** | **Ingen.** `intern/ETAPPLAN-INTERN-1.md` (Etapp L1) är slutförd i sin helhet. `etapplaner/ETAPPLAN19.md` (Etapp 72) är ett utkast som väntar på ägarens beslut – **den är INTE antagen och inget i den får byggas.** `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
+| **Nästa steg** | **Ägaren tar ställning till `etapplaner/ETAPPLAN19.md`** – sex beslutspunkter, varav 1 (patientuppgifter i avvikelsehantering) och 2 (modultillhörighet) blockerar antagandet. Beslutspunkt 1 bör ställas i samma externa juridiska uppdrag som Etapp 64 väntar på. Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
 
 ## Var du hittar saker
 
@@ -112,6 +112,46 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-08-30 (Etapp 72 – utkast, ingen kod)
+
+Ägaren bad om en genomgång av produktens nuvarande form och en identifiering av luckor:
+funktioner som möter behov hos potentiella kunder som ännu inte bedömts. Resultatet är
+`etapplaner/ETAPPLAN19.md` – **ett utkast, EJ ANTAGET. Ingen kod skriven, inget får byggas.**
+
+**Analysens kärna, två fynd ur koden:**
+
+1. `functions/verksamhetsmallar.js` ger nya kunder en rutinmall som heter "Avvikelsehantering"
+   och vars innehåll är *"Beskriv er rutin för att rapportera och följa upp avvikelser"*.
+   Produkten ber alltså kunden **beskriva** en process som sedan sker någon annanstans. Samma
+   mönster för delegering (finns bara som kvissfråga) och patientsäkerhetsberättelse (finns
+   bara i säljmaterialet, som något vi läser HOS kandidater). Synappsen har byggt ett ben av
+   ett ledningssystem, mycket väl – de andra ligger i Excel hos målgruppen.
+2. **Frekvensproblemet.** Rutindatabasen konsulteras; de saknade skyldigheterna utförs, med
+   signatur, varje pass. `KOPARANALYS.md` §6.1 svarar på kallstarten med mer innehåll. Planen
+   föreslår ett annat svar: en app som kräver en signatur varje pass har inget
+   kallstartsproblem.
+
+**Tolv premissantaganden kontrollerade mot kod, fyra ändrade planen** – bland annat att
+`checklistkorningar` bara är en räknare (ingen signerad post), att kompetensmatrisen är
+härledd och inte lagrad (kan inte bära delegeringar), och att `bristanmalningar` är hårt knuten
+till förrådsartiklar (mönster att härma, inte grund att bygga på).
+
+**Tolv delmål i tre grupper.** Tyngdpunkt: 72a (återkommande kontroller med loggbok) för att
+den ensam ändrar användningsfrekvensen. Högst värde per byggtimme: 72b
+(patientsäkerhetsberättelse som utkast ur data vi redan samlar). 72e (avvikelsehantering) är
+**blockerad** – den kolliderar med produktens grundlöfte om att patientuppgifter aldrig finns,
+och bör ingå i samma externa juridiska uppdrag som Etapp 64 väntar på.
+
+**Ett dokumentfel hittades och rättades mekaniskt:** `DOKUMENTREGISTER.md` påstod 65 dokument
+och `CLAUDE.md` 62, medan 67 fanns på disk. Båda rättade till 68, och
+`tests/docs/dokumentregister.test.js` fick två nya assertioner som failar om siffrorna glider
+igen – det sjunde fallet av projektets återkommande felmönster, den här gången i just det
+dokument som finns för att förhindra det.
+
+**Ingen kod, ingen versionsbump.** Planens källpåståenden om svensk vårdlagstiftning är
+**inte verifierade mot primärkällor** – se planens eget avsnitt "Källor och verifieringsbehov".
+Ingen rad får citeras i kundvänt material innan den tabellen är avbockad.
 
 ## Uppföljning 2026-08-30 (v5.137.0 – beslutspunkt 7: egen kanal till leverantören)
 
@@ -283,78 +323,3 @@ senaste 15–20 etapperna tillsammans. Kalendertiden styrs av sessionstakten, in
 mycket ett enskilt pass hinner. Byggordningen (L1m → fritt inom varje gren i
 "Beroendeordning") gör att flera delmål kan drivas parallellt utan att vänta på varandra.
 
-## Uppföljning 2026-08-29 (upplägg för leverantörspanelen – förslag, inte bygge)
-
-Ingen kod. `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, **fortfarande ej antagen**) fick ett nytt
-avsnitt "Panelens upplägg" och en omskriven L1a. Version 0.1 → 0.2.
-
-Den bärande idén: en panel för flera organisationer behöver **två uttalade arbetslägen**, inte
-ett. Portföljläge (`/leverantor/*`, sju vyer, aggregerat över alla kunder) och kundläge
-(`/leverantor/kund/:orgId/*`, fem flikar, allt låst till en organisation). Dagens vy har bara
-portföljformen, och den enda vägen till en enskild kund är att expandera en rad i listan –
-vilket slutar fungera någonstans runt tio kunder.
-
-Två saker i upplägget är juridiska snarare än ergonomiska och får inte förhandlas bort i ett
-senare bygge:
-
-- **Åtkomsttaket har två nivåer.** Metadata (alltid, via `plattformsadmin/{uid}`) och innehåll
-  (endast under ett supportfönster som kunden själv öppnar, Etapp 50b). Block som kräver
-  innehållsåtkomst ska synas men stå tomma och märkta med varför – ett block som göms lär inte
-  ut var gränsen går.
-- **`LeverantorsAtgard` blir en komponent, inte en konvention.** Bekräftelse, obligatorisk
-  anledning och revisionsloggning in i kundens hashkedja. En åtgärd som glömmer loggas går inte
-  att upptäcka i efterhand, och konventioner har bevisligen misslyckats sex gånger här.
-
-**Tillägg samma dag (v0.3):** ägaren bad om att panelen ska nås med ETT övergripande konto
-utan organisationstillhörighet. Nytt delmål L1m, som ska byggas före allt annat eftersom det
-flyttar en åtkomstgräns. Lösningen är `organisationId: "_plattform"` – sentinelvärdet finns
-redan som pseudo-organisation för revisionsloggning (Etapp 32c) och matchar ingen
-organisation, så isoleringen blir en följd av befintliga regler i stället för av ett nytt
-undantag. **Det viktigaste premissfyndet:** att bara utelämna `organisationId` gör INTE kontot
-organisationslöst – `minOrganisation()` (`firestore.rules:36`) och åtta klientfiler faller
-tillbaka på `default`, en organisation med verklig data. Det tomma fältet är alltså det
-farligaste alternativet, inte det säkraste. Rollen måste dessutom förbli `superadmin`, annars
-slutar `farForsokaLasaPlattformsadmin` (`src/firebase/roles.js:69`) att ens leta efter
-panelen.
-
-**Tillägg samma dag (v0.4):** en behovsanalys B1–B10 – vilka återkommande arbetsuppgifter
-ägaren faktiskt har, och vilken funktion i panelen som möter var och en. Nytt delmål L1n.
-
-**Det allvarligaste fyndet i hela genomgången:** `aterstallOrganisationCallable` och
-`backupaOrganisation` finns som plattformsadmin-grindade callables men har **noll
-gränssnitt** – och backupfilerna är `allow read, write: if false` i `storage.rules`, så en
-klient kan inte ens lista dem. Samtidigt beskriver `avtal/INCIDENTRESPONSPLAN.md` 5.5 och
-`drift/INCIDENT-CHECKLISTA.md` steg 8 återställning som en existerande förmåga. Den finns som
-kod men går inte att utöva utan CLI mot produktionsprojektet. Dokumenten är alltså sanna om
-koden och falska om verkligheten – samma feltyp underhållsregeln finns för, fast omvänd.
-Ingen dokumentändring gjord: förmågan FINNS, den saknar bara en knapp, och L1n bygger den.
-
-Näst allvarligast: `hamtaBackupstatus`, `verifieraRevisionskedjor`, `testaBeroenden` och
-`verifieraKlinikstod` sitter i `src/components/admin/IncidentberedskapSektion.jsx` – i
-KUNDENS adminpanel bakom `arSuperadmin`. Efter L1m når ett `_plattform`-konto dem aldrig.
-
-**Tillägg samma dag (v0.5):** behoven utanför driften – avtal, juridik, försäljning (B11–B20),
-plus delmålen L1o (åtagandekalendern) och L1p (avtal och åtaganden per kund).
-
-Det viktigaste fyndet där: **ingenting hindrar att en organisation sätts till `avtalsstatus:
-aktiv` utan att ett PUB-avtal finns.** Organisationsdokumentet har inget sådant fält alls. Det
-är samma fel som Brevo, fast med Synappsen som biträdet i stället för kunden – och lösningen
-ska vara densamma som valdes då: en spärr i `satAvtalsstatus`, inte en rad i en checklista.
-Motiveringen står redan i `avtal/UNDERBITRADEN.md`s ändringshistorik (2026-08-27).
-
-Två saker till som är värda att komma ihåg utan att öppna planen: (1)
-`granskningar/JURIDISK-GRANSKNING.md` risk 15 – en kund under cybersäkerhetslagen (2025:1506)
-har 24 timmars tidig varning medan PUB-avtalet lovar 72, så en incidentklocka måste kunna
-räkna ned från båda. (2) `drift/INCIDENT-CHECKLISTA.md` säger själv att nyckelrotationens
-påminnelse *"inte är byggd än"* – den och tre andra återkommande åtaganden samlas i L1o
-i stället för att bli fyra ad hoc-signaler.
-
-**Avrått från:** att flytta `saljmaterial/KANDIDATLISTA-PRIVAT-VARD.md` in i panelen. Den
-innehåller bedömningar om namngivna verksamheter och kontaktuppgifter till namngivna personer;
-i produktionsdatabasen vore det en ny behandling med leverantören som personuppgifts-
-ANSVARIG, inte biträde – med egen rättslig grund och informationsplikt enligt art. 14. Hela
-produktens juridiska hållning bygger på biträdesrollen. Listan stannar i git.
-
-Ägaren har också gett Cloud Functions-tjänstekontot `roles/firebaseauth.admin` i GCP.
-**Ännu inte verifierat** – `tvingaUtloggning` på ett testkonto är det icke-destruktiva testet.
-Tills det är gjort står raden kvar i `OPPNA-PUNKTER.md`.

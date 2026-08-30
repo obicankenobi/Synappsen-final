@@ -92,6 +92,30 @@ describe("Dokumentregistret speglar verkligheten", () => {
   });
 });
 
+describe("Dokumentantalet i prosan stämmer med verkligheten", () => {
+  // Upptäckt 2026-08-30: DOKUMENTREGISTER.md påstod 65 dokument och CLAUDE.md påstod 62,
+  // medan 67 fanns på disk. Båda siffrorna hade glidit tyst – exakt det sjunde fallet av
+  // projektets återkommande felmönster, och i det dokument som finns för att förhindra det.
+  //
+  // Strukturtesterna ovan fångar inte detta: de kontrollerar VILKA filer som är indexerade,
+  // aldrig att den inledande sammanfattningen räknat rätt. Enligt CLAUDE.md ("skriv hellre en
+  // assertion än en ny regel") är svaret ett test, inte en påminnelse.
+  const FILER = [
+    ["DOKUMENTREGISTER.md", /inventering av projektets (\d+) dokument/],
+    ["CLAUDE.md", /inventering av alla (\d+) dokument/],
+  ];
+
+  test.each(FILER)("%s uppger rätt antal dokument", (fil, monster) => {
+    const traff = readFileSync(join(ROT, fil), "utf8").match(monster);
+    expect(traff, `Hittade ingen antalsuppgift i ${fil} (matchande ${monster}).`).not.toBeNull();
+    expect(
+      Number(traff[1]),
+      `${fil} uppger ${traff[1]} dokument, men ${paDisk.length} finns på disk. Rätta siffran ` +
+        "i BÅDA filerna – de ska alltid vara överens med varandra och med disken."
+    ).toBe(paDisk.length);
+  });
+});
+
 describe("CLAUDE_STATUS.md hålls läsbar", () => {
   // Filen växte till 4 352 rader (~75 600 tokens) med 120 uppföljningssektioner medan
   // CLAUDE.md instruerade varje ny session att läsa den FÖRST. Ett dokument som ingen orkar

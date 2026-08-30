@@ -1,6 +1,6 @@
 # Dokumentregister
 
-**Fullständig inventering av projektets 65 dokument.** Bevakat av
+**Fullständig inventering av projektets 68 dokument.** Bevakat av
 `tests/docs/dokumentregister.test.js`, som failar om ett dokument finns på disk men saknas
 här, eller står här men saknas på disk. **Ett nytt dokument kan alltså inte glömmas bort –
 testet vägrar passera förrän det är infört i tabellerna nedan.**
@@ -69,6 +69,7 @@ utlöser en uppdatering – läs kolumnen "Utlöses av".
 | `produkt/VARUMARKE.md` | nej | Varumärkesplattform, tonalitet |
 | `produkt/GRAFISK-PROFIL.md` | nej | Färg, typografi, komponentspråk |
 | `produkt/FRAMTIDSPLAN.md` | nej | **Arkiv över ej antagna planer.** Skriv aldrig tillbaka "här är den aktiva planen" |
+| `etapplaner/ETAPPLAN19.md` | nej | Etapp 72 – från rutindatabas till ledningssystem. **UTKAST, EJ ANTAGEN** (v0.1). Sex öppna beslutspunkter, varav 1 (patientuppgifter i avvikelser) och 2 (modultillhörighet) blockerar antagandet. Uppdateras när en beslutspunkt avgörs. Flyttas till historiska tabellen om den antas och byggs klart, eller till `produkt/FRAMTIDSPLAN.md` om den väljs bort |
 | `saljmaterial/00-LAS-DETTA-FORST.md` | nej | Orienteringsdokument för säljpaketet |
 | `saljmaterial/PILOTUPPLAGG.md` | nej | Konkret pilotupplägg, 4–6 veckor |
 | `saljmaterial/MARKNADSANALYS.md` | nej (bolagsform/jäv) | Marknad, värdering, prismodell |
@@ -98,7 +99,7 @@ varken i planerna eller i ändringsloggen. Se genomgående krav 36 i `intern/ETA
 
 | Dokument | Typ | Innehåll |
 |---|---|---|
-| `intern/ETAPPLAN-INTERN-1.md` | referens | Etapp L1 – leverantörspanelen. **Antagen 2026-08-29** (v0.6). Sju beslutspunkter, varav fem fortfarande öppna och avgörs var för sig innan respektive delmål. Uppdateras när ett delmål byggs eller en beslutspunkt avgörs |
+| `intern/ETAPPLAN-INTERN-1.md` | referens | Etapp L1 – leverantörspanelen. **Antagen 2026-08-29, SLUTFÖRD 2026-08-30** (v1.1): samtliga 16 delmål byggda och alla 7 beslutspunkter avgjorda. Ändras inte längre löpande |
 | `intern/ANDRINGSLOGG-INTERN.md` | levande | Ändringslogg för internt arbete. Utlöses av att ett internt delmål byggs. Får ALDRIG slås ihop med `src/data/andringslogg.js`, som är kundvänd |
 
 ---
