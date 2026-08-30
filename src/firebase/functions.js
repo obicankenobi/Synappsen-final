@@ -65,6 +65,23 @@ export function skickaFeedback({ typ, text }) {
   return fn({ typ, text });
 }
 
+// Etapp L1 beslutspunkt 7 – en EGEN kanal till leverantören, skild från skickaFeedback ovan
+// (som går till organisationens egen superadmin, aldrig till Synappsen).
+export function skickaLeverantorsfeedback(text) {
+  const fn = httpsCallable(functions, "skickaLeverantorsfeedback");
+  return fn({ text });
+}
+
+export function hamtaLeverantorsfeedback() {
+  const fn = httpsCallable(functions, "hamtaLeverantorsfeedback");
+  return fn();
+}
+
+export function markeraLeverantorsfeedbackLast(id) {
+  const fn = httpsCallable(functions, "markeraLeverantorsfeedbackLast");
+  return fn({ id });
+}
+
 export function testaBeroenden() {
   const fn = httpsCallable(functions, "testaBeroenden");
   return fn();

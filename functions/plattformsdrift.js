@@ -444,6 +444,40 @@ exports.hamtaLeverantorsAtgardslogg = onCall({ region: "europe-west1" }, async (
   return { poster: snap.docs.map((d) => ({ id: d.id, ...d.data() })) };
 });
 
+// Etapp L1 beslutspunkt 7 (avgjord 2026-08-30): leverantörens sida av `leverantorsfeedback`
+// (skriven av skickaLeverantorsfeedback i organisationsadmin.js) – en EGEN kanal, skild från
+// kundens interna `feedback`-collection. Tvärs alla organisationer, precis som
+// hamtaLeverantorsAtgardslogg ovan.
+exports.hamtaLeverantorsfeedback = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+
+  const snap = await db.collection("leverantorsfeedback").orderBy("skapad", "desc").limit(200).get();
+
+  return {
+    poster: snap.docs.map((d) => {
+      const data = d.data();
+      return { id: d.id, ...data, skapad: data.skapad?.toDate?.().toISOString() ?? null };
+    }),
+  };
+});
+
+exports.markeraLeverantorsfeedbackLast = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+
+  const id = request.data?.id;
+  if (!id || typeof id !== "string") {
+    throw new HttpsError("invalid-argument", "id krävs.");
+  }
+  await db.collection("leverantorsfeedback").doc(id).update({ last: true });
+  return { ok: true };
+});
+
 // Etapp L1b (intern/ETAPPLAN-INTERN-1.md), block 6 "Historik": SAMMA data som
 // hamtaLeverantorsAtgardslogg ovan, men filtrerad till EN organisation i stället för tvärs
 // alla – "kundens revisionslogg filtrerad på leverantörens egna åtgärder, så det syns vad VI

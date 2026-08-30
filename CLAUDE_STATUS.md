@@ -8,22 +8,22 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-30 · **v5.136.0 committad, inte deployad** (internt arbete, ingen
+**Senast uppdaterad:** 2026-08-30 · **v5.137.0 committad, inte deployad** (internt arbete, ingen
 brådska). Produktion står kvar på 5.132.0 (körning #93, verifierad). Utgående e-post är
 stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är
-SLUTFÖRD: 16 av 16 delmål klara.** Beslutspunkterna 1–4 avgjordes samlat 2026-08-30, vilket
-löste upp de sista fem delmålen (L1c, L1d, L1e, L1f, L1j) i en och samma omgång.
+SLUTFÖRD: 16 av 16 delmål klara, samtliga 7 beslutspunkter avgjorda.** Sista frågan
+(beslutspunkt 7, feedback-inkorgen) avgjordes och byggdes 2026-08-30.
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0–v5.136.0 väntar på deploy |
+| **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0–v5.137.0 väntar på deploy |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **Senaste kodarbete** | v5.136.0: de sista fem delmålen i Etapp L1 – L1c (mätvärdesaggregat via Cloud Function), L1d (egna SVG-sparklines), L1e (nödstoppsöversikt + åtgärdstidslinje), L1f (leverantören kan begära ett supportfönster i appen; ärendetråden fanns redan sedan Etapp 50c), L1j (bara appversion rapporteras, inte "senast aktiv"). Internt, ingen kundpåverkan |
-| **Senaste dokumentarbete** | 2026-08-30: `intern/ETAPPLAN-INTERN-1.md` v1.0 (samtliga 16 delmål klara), `intern/ANDRINGSLOGG-INTERN.md` v5.136.0-post, `BESLUTSLOGG.md` (beslutspunkterna 1–4), `drift/INCIDENT-CHECKLISTA.md` steg 5 (L1j:s nya fält) |
-| **Aktiv plan** | `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) – **slutförd, inga delmål kvarstår.** Ingen KUNDVÄND plan aktiv sedan Etapp 69; `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
-| **Nästa steg** | Ingen aktiv intern plan kvarstår. Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()` när ägaren vill, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" om det inte redan gjorts. Beslutspunkt 7 (feedback-inkorgen) är öppen men inget bygge väntar på den |
+| **Senaste kodarbete** | v5.137.0: beslutspunkt 7 – en helt egen kanal till leverantören (`leverantorsfeedback`, skild från kundens interna `feedback`). Ny sida `KontaktaLeverantoren.jsx`; `Feedback.jsx`/`Hjalp.jsx` fick ett explicit förtydligande av vart respektive kanal går, på ägarens begäran. Internt, ingen kundpåverkan |
+| **Senaste dokumentarbete** | 2026-08-30: `intern/ETAPPLAN-INTERN-1.md` v1.1 (samtliga 7 beslutspunkter avgjorda), `intern/ANDRINGSLOGG-INTERN.md` v5.137.0-post, `BESLUTSLOGG.md` (beslutspunkt 7), `drift/INCIDENT-CHECKLISTA.md` steg 5 (ny collection `leverantorsfeedback`) |
+| **Aktiv plan** | `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) – **slutförd i sin helhet, inga delmål eller beslutspunkter kvarstår.** Ingen KUNDVÄND plan aktiv sedan Etapp 69; `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
+| **Nästa steg** | Ingen aktiv intern plan kvarstår. Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()` när ägaren vill, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" om det inte redan gjorts |
 
 ## Var du hittar saker
 
@@ -112,6 +112,30 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-08-30 (v5.137.0 – beslutspunkt 7: egen kanal till leverantören)
+
+Ägaren avgjorde den sista öppna frågan i Etapp L1: ska leverantören se kundens
+feedback-inkorg? Svar: nej, inte rakt av – bygg en EGEN, tydligt märkt kanal i stället.
+Ägaren bad uttryckligen om att göra det tydligt i BÅDA verktygen (den nya och den
+befintliga) vart respektive feedback faktiskt går.
+
+**Byggt:** ny collection `leverantorsfeedback`, medvetet HELT ÅTSKILD från kundens interna
+`feedback` – ingen tyst utvidgning av vem som läser den redan existerande. En ny sida,
+`KontaktaLeverantoren.jsx` (`/kontakta-leverantoren`), säger uttryckligen "Det här går till
+Synappsen – inte till din organisations admin". Den befintliga `Feedback.jsx` (och
+`Hjalp.jsx`) fick motsvarande förtydligande åt andra hållet, plus en länk mellan de två
+sidorna. Leverantörens sida: `LeverantorsfeedbackSektion.jsx` i `/leverantor/logg`, olästa
+markerade och kan bockas av.
+
+15 nya tester (9 funktioner, 6 regel) – bevisar bland annat att en post i
+`leverantorsfeedback` aldrig läcker in i `feedback` eller tvärtom, och att en annan
+superadmin i SAMMA organisation inte kan läsa någon annans meddelande till leverantören.
+Fullt testsvep grönt: lint, build, `npx vitest run`, `npm run test:rules`,
+`npm run test:functions`, `npm run test:storage`.
+
+**Samtliga 7 beslutspunkter i Etapp L1 är därmed avgjorda och byggda. Etapp L1 är helt
+slutförd** – 16 av 16 delmål, 7 av 7 beslutspunkter.
 
 ## Uppföljning 2026-08-30 (v5.136.0 – Etapp L1 SLUTFÖRD)
 

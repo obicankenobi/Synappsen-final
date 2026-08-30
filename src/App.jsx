@@ -61,6 +61,7 @@ const LaddaUpp = lazy(() => import("./pages/LaddaUpp"));
 const Nyheter = lazy(() => import("./pages/Nyheter"));
 const Hjalp = lazy(() => import("./pages/Hjalp"));
 const Feedback = lazy(() => import("./pages/Feedback"));
+const KontaktaLeverantoren = lazy(() => import("./pages/KontaktaLeverantoren"));
 const Anslagstavla = lazy(() => import("./pages/Anslagstavla"));
 const Skiftrapport = lazy(() => import("./pages/Skiftrapport"));
 const Profil = lazy(() => import("./pages/Profil"));
@@ -246,6 +247,14 @@ export default function App() {
             element={
               <SkyddatLayout>
                 <Feedback />
+              </SkyddatLayout>
+            }
+          />
+          <Route
+            path="/kontakta-leverantoren"
+            element={
+              <SkyddatLayout>
+                <KontaktaLeverantoren />
               </SkyddatLayout>
             }
           />

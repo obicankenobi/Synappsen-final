@@ -4,8 +4,10 @@
 (v0.2–v0.5), antagen i sin helhet 2026-08-29, och byggd i fyra omgångar under samma vecka
 (se "Uppskattad arbetsinsats" och "Versionshistorik" nedan). Samtliga 16 delmål (L1a–L1p) är
 klara. Beslutspunkterna 5 och 6 avgjordes genom antagandet; 1–4 avgjordes samlat 2026-08-30
-(se `BESLUTSLOGG.md`), vilket löste upp de sista fem delmålen. Bara beslutspunkt 7
-(feedback-inkorgen) är fortfarande öppen, och inget delmål väntar på den.
+(se `BESLUTSLOGG.md`), vilket löste upp de sista fem delmålen. **Beslutspunkt 7 (feedback-
+inkorgen) avgjordes samma dag** och byggdes: en helt egen kanal (`leverantorsfeedback`) till
+leverantören, se dess rad i beslutspunktstabellen. Samtliga sju beslutspunkter är därmed
+avgjorda.
 
 > **Varför den här filen ligger i `intern/` och inte i `etapplaner/`.**
 > Ägaren bad uttryckligen om att arbetet ska hållas skilt från den kundvända
@@ -1117,7 +1119,24 @@ inget kvarvarande delmål väntar på den.
 | 4 | Ska leverantören kunna **begära** supportåtkomst i appen? | **Ja** – kunden godkänner fortfarande, bara den manuella kontakten försvinner | **Avgjord 2026-08-30** – ja. Låser upp L1f |
 | 5 | Ska panelen ligga kvar på `/leverantor` i samma app? | **Ja.** En separat app innebär ett andra bygge, ett andra deploy och en andra autentisering, för en användare | **Avgjord genom antagandet** – planens hela struktur (L1a) förutsätter det |
 | 6 | Ska ägarens **befintliga konto** flyttas till `_plattform`, eller ska ett nytt leverantörskonto skapas vid sidan av? | **Flytta det befintliga.** Begäran var uttryckligen ett enda övergripande konto. Priset är att kontot inte längre ser någon kundvy inifrån – för att se produkten som en användare finns demomiljön (Etapp 51). Ett andra konto återinför precis det kontobyte begäran ville bli av med | **Byggt (2026-08-29)** – `flyttaTillPlattformskonto()` finns och är testad. Ägaren har ännu inte kört den mot sitt eget konto – det återstår som en operativ handling, inte en teknisk fråga |
-| 7 | Ska leverantören se kundens **feedback-inkorg** (`skickaFeedback`)? | **Nej, inte rakt av.** Regeln är i dag `arSuperadmin() && matcharMinOrg()` – feedbacken är skriven till kundens egen admin, inte till leverantören. Efter L1m når ett `_plattform`-konto den inte alls, vilket är rätt utfall. Behövs en kanal till leverantören bör den vara en EGEN, tydligt märkt sådan – inte en tyst utvidgning av vem som läser det kunden trodde stannade internt | Öppen – ingen kod byggs mot den i dag, avgörs om/när behovet blir konkret |
+| 7 | Ska leverantören se kundens **feedback-inkorg** (`skickaFeedback`)? | **Nej, inte rakt av.** Regeln är i dag `arSuperadmin() && matcharMinOrg()` – feedbacken är skriven till kundens egen admin, inte till leverantören. Efter L1m når ett `_plattform`-konto den inte alls, vilket är rätt utfall. Behövs en kanal till leverantören bör den vara en EGEN, tydligt märkt sådan – inte en tyst utvidgning av vem som läser det kunden trodde stannade internt | **Avgjord 2026-08-30: nej, inte rakt av – bygg den EGNA kanalen i stället.** ✅ Byggt |
+
+**Byggt (beslutspunkt 7, 2026-08-30):** en helt egen collection `leverantorsfeedback`,
+skild från kundens interna `feedback` – ingen tyst utvidgning av vem som läser den
+existerande feedbacken. `skickaLeverantorsfeedback(text)` (`functions/organisationsadmin.js`,
+samma personnummerspärr/hastighetsbegränsning/kiosk-spärr som `skickaFeedback`) skriver dit;
+`hamtaLeverantorsfeedback()`/`markeraLeverantorsfeedbackLast(id)`
+(`functions/plattformsdrift.js`) är leverantörens läsande sida, plattformsadmin-gated, tvärs
+alla organisationer. Klient: `src/pages/KontaktaLeverantoren.jsx` (ny sida, `/kontakta-
+leverantoren`) med rubriken "Det här går till Synappsen – inte till din organisations admin".
+`src/pages/Feedback.jsx` och `src/pages/Hjalp.jsx` fick motsvarande förtydligande åt andra
+hållet ("Det här går till DIN ORGANISATIONS EGEN superadmin – inte till Synappsen") plus en
+länk mellan de två sidorna, så ingen av de två kanalerna kan förväxlas med den andra.
+Leverantörssidan: `LeverantorsfeedbackSektion.jsx` i `/leverantor/logg`, olästa markerade.
+**Testat:** `tests/functions/leverantorsfeedback.test.cjs` (9 tester) och
+`tests/rules/leverantorsfeedback.test.mjs` (6 tester) – bevisar bland annat att en post i
+`leverantorsfeedback` aldrig läcker in i `feedback` eller tvärtom, och att en annan
+superadmin i SAMMA organisation inte kan läsa någon annans meddelande till leverantören.
 
 ---
 
@@ -1161,11 +1180,11 @@ Fristående, kan byggas när som helst:
  L1l ✅ (intern ändringslogg + test)
 ```
 
-**Status per 2026-08-30: 16 av 16 delmål klara.** Etapp L1 är därmed slutförd i sin helhet
-(L1h, L1k, L1l, L1o i första omgången; L1m, L1a, L1g, L1i, L1n, L1p i andra; L1b i tredje;
-L1c, L1d, L1e, L1f, L1j i fjärde, efter att beslutspunkterna 1–4 avgjordes samlat 2026-08-30).
-Beslutspunkt 7 (feedback-inkorgen) är den enda kvarvarande öppna frågan i hela planen – inget
-delmål väntar på den, den togs upp om/när ett behov faktiskt blir konkret.
+**Status per 2026-08-30: 16 av 16 delmål klara, samtliga 7 beslutspunkter avgjorda.** Etapp
+L1 är därmed slutförd i sin helhet (L1h, L1k, L1l, L1o i första omgången; L1m, L1a, L1g, L1i,
+L1n, L1p i andra; L1b i tredje; L1c, L1d, L1e, L1f, L1j i fjärde, efter att beslutspunkterna
+1–4 avgjordes samlat; beslutspunkt 7 samma dag, se dess rad i tabellen ovan för vad som
+byggdes).
 
 ---
 
@@ -1207,3 +1226,4 @@ session eftersom inget av dem längre väntade på något. **Etapp L1 är därme
 | 0.8 | 2026-08-29 | **L1m, L1a, L1g, L1i, L1n, L1p byggda.** De sex "Medel"-delmålen. Beslutspunkt 6 gick från "avgjord genom antagandet" till faktiskt byggd (`flyttaTillPlattformskonto`). Två deliberata avsteg dokumenterade i respektive delmåls "Byggt": `IncidentberedskapSektion.jsx` togs INTE bort från kundens adminpanel (en riktig regression för en fungerande kundfunktion), och kundlägets fem flikar delar en gemensam platshållare i väntan på L1b. 10 av 16 delmål nu klara – bara L1b, L1c, L1d, L1e, L1f, L1j kvarstår, och fyra av de sex väntar på en öppen beslutspunkt |
 | 0.9 | 2026-08-29 | **L1b byggd.** Kunddossién – planens enskilt största arbetsbesparing. Fem riktiga sidor ersatte den delade platshållaren från 0.8: Huvud, Kontakt (delvis), Avtal & ekonomi, Användning (delvis), Historik, Åtgärder. Ett verkligt korrekthetsfel hittades och fixades vid premisskontroll: `listaOrganisationer` returnerade aldrig åtta fält som `AvtalOchAtagandeSektion.jsx` (L1p) redan berodde på, vilket gjorde den panelen permanent felaktig sedan L1p byggdes. Två block (Hälsa, senaste aktivitet) och en delfunktion (vem är superadmin) lämnades medvetet obyggda i väntan på öppna beslutspunkter/krav 37. `OrganisationsRad.jsx`s dubblerade avtalspanel togs bort till förmån för en länk till dossién. 7 nya funktionstester. 11 av 16 delmål nu klara |
 | 1.0 | 2026-08-30 | **Etapp L1 SLUTFÖRD – L1c, L1d, L1e, L1f, L1j byggda.** Beslutspunkterna 1–4 avgjordes samlat (samtliga enligt planens rekommendation, se `BESLUTSLOGG.md` 2026-08-30), vilket löste upp de sista fem delmålen på en gång. L1c+L1d fyllde kunddossiens sista platshållare (Hälsa) med spårbara mätvärdesaggregat och egna SVG-sparklines. L1j fyllde "Användning"s platshållare med appversion (inte "senast aktiv" – avgjort avvaktat). L1f: en premisskontroll visade att punkt 4 (ärendetråd) redan fanns sedan Etapp 50c – bara punkt 1 (begäran i appen) och 2 (aktiva fönster samlade) byggdes nytt, punkt 3 (läslogg) avgränsades bort som ett eget, större delmål. L1e: punkt 3 (72h-klockan) fanns redan sedan L1p; punkt 1 (nödstoppsöversikt) och 4 (åtgärdstidslinje) byggdes, punkt 2 (generaliserat nödstoppsmönster) avgränsades bort – en omskrivning av skarp, säkerhetskritisk kod utan att en tredje mekanism ännu finns som kräver den. 16 av 16 delmål klara. Enda kvarvarande öppna frågan i hela planen: beslutspunkt 7 (feedback-inkorgen), som inget delmål väntar på |
+| 1.1 | 2026-08-30 | **Beslutspunkt 7 avgjord och byggd.** Ny, helt egen collection `leverantorsfeedback` (skild från kundens interna `feedback`) – `skickaLeverantorsfeedback`/`hamtaLeverantorsfeedback`/`markeraLeverantorsfeedbackLast`. Ny sida `src/pages/KontaktaLeverantoren.jsx`. Både den nya och den befintliga feedback-sidan (`Feedback.jsx`, `Hjalp.jsx`) fick ett explicit förtydligande av vart respektive kanal går, på ägarens uttryckliga begäran. `LeverantorsfeedbackSektion.jsx` i `/leverantor/logg`. 15 nya tester (9 funktioner, 6 regel). **Samtliga 7 beslutspunkter i planen är nu avgjorda** |

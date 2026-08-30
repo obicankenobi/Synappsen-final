@@ -266,6 +266,15 @@ Vet jag med rimlig visshet att det faktiskt hänt?             JA / NEJ / OKLART
 > **Inga svar från övningarna lagras någonstans** (krav 14) – det finns alltså ingen
 > resultathistorik att röja vid en incident.
 >
+> **Etapp L1, beslutspunkt 7 (2026-08-30, internt):** ny collection `leverantorsfeedback` –
+> ett fritextmeddelande (`text`, personnummerspärrat server-side) från en användare direkt
+> till leverantören, via `skickaLeverantorsfeedback`. Personuppgifter: `skapadAv` (uid),
+> `skapadAvNamn`, `organisationId`. Medvetet en HELT ANNAN collection än den befintliga
+> `feedback` (som stannar hos kundens egen superadmin) – ingen tyst utvidgning av vem som
+> läser den. Läsbar av plattformsadmin (tvärs alla organisationer, som en inkorg) och av
+> avsändaren själv; ingen annan i samma organisation når den. Skrivs ENDAST via Cloud
+> Function (Admin SDK), `allow write: if false` i `firestore.rules`.
+>
 > **Etapp L1j (2026-08-30, internt):** organisationsdokumentet fick två nya fält,
 > `senasteAppVersion` och `senasteAppVersionTid`, skrivna via `rapporteraAppVersion`
 > (Cloud Function, Admin SDK) vid varje inloggning. Innehållet är appversionen (t.ex.

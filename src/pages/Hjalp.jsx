@@ -80,8 +80,10 @@ export default function Hjalp() {
         <details>
           <summary>Hur rapporterar jag ett fel eller ger ett förslag?</summary>
           <p>
-            Använd <Link to="/feedback">Feedback</Link>-sidan. Bara superadmin kan läsa det du
-            skickar in.
+            Använd <Link to="/feedback">Feedback</Link>-sidan – den går till DIN ORGANISATIONS
+            EGEN superadmin, inte till Synappsen. Vill du i stället kontakta Synappsen
+            (leverantören av appen) direkt, använd{" "}
+            <Link to="/kontakta-leverantoren">Kontakta Synappsen</Link>.
           </p>
         </details>
 

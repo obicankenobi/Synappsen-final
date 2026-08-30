@@ -47,8 +47,10 @@ export default function Feedback() {
       <Link to="/">← Hem</Link>
       <h1>💬 Feedback</h1>
       <p className="sida__beskrivning">
-        Har du ett förslag eller hittat ett problem? Skriv det här. Endast superadmin kan läsa det
-        du skickar in.
+        Har du ett förslag eller hittat ett problem? Skriv det här.{" "}
+        <strong>Det här går till DIN ORGANISATIONS EGEN superadmin – inte till Synappsen
+        (leverantören av appen).</strong> Vill du i stället kontakta Synappsen direkt, använd{" "}
+        <Link to="/kontakta-leverantoren">Kontakta Synappsen</Link>.
       </p>
 
       {skickat && (

@@ -485,3 +485,48 @@ exports.skickaFeedback = onCall({ region: "europe-west1" }, async (request) => {
   });
   return { id: ref.id };
 });
+
+// Etapp L1 beslutspunkt 7 (avgjord 2026-08-30): en EGEN, tydligt märkt kanal till
+// LEVERANTÖREN – till skillnad från skickaFeedback ovan, som går till organisationens EGEN
+// superadmin och aldrig når leverantören (se firestore.rules `feedback`-regeln: den matchar
+// bara den egna organisationen). Skriven till en HELT ANNAN collection, av samma skäl: en
+// tyst utvidgning av vem som läser `feedback` hade brutit mot vad en kund som redan skickat
+// in feedback trodde stannade internt. Samma server-side skydd som skickaFeedback
+// (personnummerspärr, hastighetsbegränsning, ingen kiosk).
+const MAX_LEVERANTORSFEEDBACK_PER_TIMME = 10;
+
+exports.skickaLeverantorsfeedback = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const rensadText = (request.data?.text ?? "").trim();
+  if (!rensadText || rensadText.length > 2000) {
+    throw new HttpsError("invalid-argument", "Ange text (max 2000 tecken).");
+  }
+  if (innehallerPersonnummer(rensadText)) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Texten verkar innehålla ett personnummer. Patientuppgifter får inte sparas."
+    );
+  }
+
+  const { roll, organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+  if (roll === "kiosk") {
+    throw new HttpsError("permission-denied", "Kioskläge kan inte skicka in feedback.");
+  }
+
+  await kontrolleraOchOkaHastighet(request.auth.uid, "leverantorsfeedback", MAX_LEVERANTORSFEEDBACK_PER_TIMME);
+
+  const skaparSnap = await db.collection("users").doc(request.auth.uid).get();
+  const skapadAvNamn = skaparSnap.data()?.namn ?? skaparSnap.data()?.email ?? "";
+
+  const ref = await db.collection("leverantorsfeedback").add({
+    text: rensadText,
+    last: false,
+    organisationId,
+    skapadAv: request.auth.uid,
+    skapadAvNamn,
+    skapad: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  return { id: ref.id };
+});

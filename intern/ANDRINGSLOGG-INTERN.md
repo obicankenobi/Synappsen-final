@@ -158,11 +158,44 @@ Ingen kundpåverkan – ingen rad i `src/data/andringslogg.js`. Inte deployat ä
 
 ---
 
+## v5.137.0 (2026-08-30) – beslutspunkt 7: en egen kanal till leverantören
+
+Ägaren bad om beslut på den sista öppna frågan i Etapp L1 och bad uttryckligen om att göra
+tydligt i BÅDA verktygen (nya och befintliga) vart respektive feedback går. Detaljer i
+`intern/ETAPPLAN-INTERN-1.md` (v1.1) och `BESLUTSLOGG.md`.
+
+- Ny collection `leverantorsfeedback`, medvetet HELT ÅTSKILD från kundens interna
+  `feedback` – ingen tyst utvidgning av vem som läser den redan existerande feedbacken.
+  `skickaLeverantorsfeedback(text)` (`functions/organisationsadmin.js`, samma
+  personnummerspärr/hastighetsbegränsning/kiosk-spärr som `skickaFeedback`).
+  `hamtaLeverantorsfeedback()`/`markeraLeverantorsfeedbackLast(id)`
+  (`functions/plattformsdrift.js`), plattformsadmin-gated, tvärs alla organisationer.
+- Ny sida `src/pages/KontaktaLeverantoren.jsx` (`/kontakta-leverantoren`) – rubriken säger
+  uttryckligen "Det här går till Synappsen – inte till din organisations admin".
+- `src/pages/Feedback.jsx` och `src/pages/Hjalp.jsx` fick motsvarande förtydligande åt andra
+  hållet: "Det här går till DIN ORGANISATIONS EGEN superadmin – inte till Synappsen", plus en
+  länk mellan de två sidorna.
+- Leverantörssidan: `LeverantorsfeedbackSektion.jsx` i `/leverantor/logg`, olästa markerade
+  och kan bockas av.
+
+15 nya tester (9 funktioner, 6 regel) – bevisar bland annat att en post i
+`leverantorsfeedback` aldrig läcker in i `feedback` eller tvärtom, och att en annan
+superadmin i SAMMA organisation inte kan läsa någon annans meddelande till leverantören.
+Fullt testsvep grönt: lint, build, `npx vitest run`, `npm run test:rules`,
+`npm run test:functions`, `npm run test:storage`.
+
+**Samtliga 7 beslutspunkter i Etapp L1 är därmed avgjorda.**
+
+Ingen kundpåverkan på befintlig data – `feedback`-collectionen och dess innehåll är orörda.
+Inte deployat än.
+
+---
+
 ## Historik: Etapp L1 (leverantörspanelen)
 
 `intern/ETAPPLAN-INTERN-1.md` antogs 2026-08-29 i sin helhet (16 delmål, L1a–L1p; se
-`BESLUTSLOGG.md` samma datum) och slutfördes 2026-08-30 (ovan). Se planfilen för fullständiga
-"Byggt"/"Testat"-avsnitt per delmål.
+`BESLUTSLOGG.md` samma datum) och slutfördes 2026-08-30 (ovan) – samtliga 16 delmål och alla
+7 beslutspunkter. Se planfilen för fullständiga "Byggt"/"Testat"-avsnitt per delmål.
 
 ---
 

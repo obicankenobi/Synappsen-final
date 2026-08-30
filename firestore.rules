@@ -825,6 +825,19 @@ service cloud.firestore {
       allow create: if false;
     }
 
+    // leverantorsfeedback/{id} – Etapp L1 beslutspunkt 7 (avgjord 2026-08-30): EN EGEN kanal
+    // till leverantören, medvetet en HELT ANNAN collection än feedback ovan – som fortfarande
+    // bara går till organisationens egen superadmin. En tyst utvidgning av vem som läser
+    // feedback hade brutit mot vad en kund som redan skickat in feedback trodde stannade
+    // internt (se BESLUTSLOGG.md 2026-08-30). Skrivs ENDAST via skickaLeverantorsfeedback
+    // (Admin SDK, personnummerspärr + hastighetsbegränsning). Läsbar av plattformsadmin
+    // (tvärs alla organisationer, som en inkorg) och av avsändaren själv (sina egna
+    // inskick) – samma "läs sina egna" som feedback-regeln redan ger.
+    match /leverantorsfeedback/{id} {
+      allow read: if arPlattformsadmin() || (arInloggad() && resource.data.skapadAv == request.auth.uid);
+      allow write: if false;
+    }
+
     // klinikfragefeedback/{id} – "var detta hjälpsamt?"-svar på klinikstöd-sökningen.
     match /klinikfragefeedback/{feedbackId} {
       allow read: if arSuperadmin() && matcharMinOrg(resource.data.get('organisationId', 'default'));

@@ -55,6 +55,7 @@ exports.uppdateraMfaPolicy = organisationsadmin.uppdateraMfaPolicy;
 exports.uppdateraGeminiBudgetTak = organisationsadmin.uppdateraGeminiBudgetTak;
 exports.skapaKommentar = organisationsadmin.skapaKommentar;
 exports.skickaFeedback = organisationsadmin.skickaFeedback;
+exports.skickaLeverantorsfeedback = organisationsadmin.skickaLeverantorsfeedback;
 
 // ── backup.js – backup, gallring och återställning
 const backup = require("./backup");
@@ -116,6 +117,8 @@ exports.skapaLeverantorskonto = plattformsdrift.skapaLeverantorskonto;
 exports.flyttaTillPlattformskonto = plattformsdrift.flyttaTillPlattformskonto;
 exports.hamtaLeverantorsAtgardslogg = plattformsdrift.hamtaLeverantorsAtgardslogg;
 exports.hamtaKundensLeverantorshistorik = plattformsdrift.hamtaKundensLeverantorshistorik;
+exports.hamtaLeverantorsfeedback = plattformsdrift.hamtaLeverantorsfeedback;
+exports.markeraLeverantorsfeedbackLast = plattformsdrift.markeraLeverantorsfeedbackLast;
 
 // ── kvissbank.js – Etapp 71: frågebanken bakom Öva-läget (leverantörens globala frågor,
 // kundens överlagringar och egna frågor, paketpaus på båda nivåerna)

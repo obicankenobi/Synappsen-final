@@ -1,6 +1,14 @@
 {
   "indexes": [
     {
+      "collectionGroup": "leverantorsfeedback",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "skapadAv", "order": "ASCENDING" },
+        { "fieldPath": "skapad", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "supportbegaran",
       "queryScope": "COLLECTION",
       "fields": [
