@@ -21,9 +21,9 @@ SLUTFÖRD: 16 av 16 delmål klara, samtliga 7 beslutspunkter avgjorda.** Sista f
 | **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0–v5.137.0 väntar på deploy |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | v5.137.0: beslutspunkt 7 – en helt egen kanal till leverantören (`leverantorsfeedback`, skild från kundens interna `feedback`). Ny sida `KontaktaLeverantoren.jsx`; `Feedback.jsx`/`Hjalp.jsx` fick ett explicit förtydligande av vart respektive kanal går, på ägarens begäran. Internt, ingen kundpåverkan |
-| **Senaste dokumentarbete** | 2026-08-30: **`etapplaner/ETAPPLAN19.md` (Etapp 72) skriven som UTKAST – EJ ANTAGEN.** Dessutom `intern/ETAPPLAN-INTERN-1.md` v1.1, `BESLUTSLOGG.md`, `drift/INCIDENT-CHECKLISTA.md` steg 5 |
+| **Senaste dokumentarbete** | 2026-08-30: **`etapplaner/ETAPPLAN19.md` (Etapp 72) v0.2 – UTKAST, EJ ANTAGEN**, omskriven mot `granskningar/GRANSKNING-IDEBANK-2026-08-30.md` (också ny i repot). Dessutom `intern/ETAPPLAN-INTERN-1.md` v1.1, `BESLUTSLOGG.md` |
 | **Aktiv plan** | **Ingen.** `intern/ETAPPLAN-INTERN-1.md` (Etapp L1) är slutförd i sin helhet. `etapplaner/ETAPPLAN19.md` (Etapp 72) är ett utkast som väntar på ägarens beslut – **den är INTE antagen och inget i den får byggas.** `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
-| **Nästa steg** | **Ägaren tar ställning till `etapplaner/ETAPPLAN19.md`** – sex beslutspunkter, varav 1 (patientuppgifter i avvikelsehantering) och 2 (modultillhörighet) blockerar antagandet. Beslutspunkt 1 bör ställas i samma externa juridiska uppdrag som Etapp 64 väntar på. Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
+| **Nästa steg** | **Tre saker som varken kräver kund eller antagen plan** (ETAPPLAN19 beslutspunkt 5, undantag 1): skriv ned det avsedda ändamålet för klinikstöd-sökningen (stänger den största regulatoriska risken, kostar timmar), kontrollera artikel 50-märkningen i rutinvyn, uppskatta kostnaden för en Vertex AI-migrering. Därefter: **ägaren tar ställning till ETAPPLAN19** – sju öppna beslutspunkter. Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
 
 ## Var du hittar saker
 
@@ -112,6 +112,45 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-08-30 (Etapp 72 v0.2 – omskriven mot extern granskning)
+
+Ägaren lämnade in `granskningar/GRANSKNING-IDEBANK-2026-08-30.md` (nu i repot). Den granskar
+formellt ett ANNAT dokument – produktidébanken, 18 förslag, som inte finns i repot – men sex
+av dess förslag motsvarar delmål i ETAPPLAN19, och den gjorde det arbete v0.1 utpekade som sin
+egen svaghet: **verifierade regulatoriska påståenden mot primärkälla.**
+
+**Sju ändringar i v0.2. Två av dem rättar verkliga fel i v0.1:**
+
+1. **72c omskrivet från register till koppling.** delegering.se säljer redan hela det
+   ursprungliga förslaget till exakt målgruppen. v0.1 missade det, eftersom premisskontrollen
+   bara kontrollerade mot vår egen kod. Delmålet bygger nu kopplingen delegering↔rutin↔
+   kvittering — det en fristående delegeringstjänst strukturellt inte kan göra — plus en
+   rutinmall för icke-läkemedelsdelegering, den lucka upphävandet av SOSFS 1997:14 lämnade.
+2. **"Högst värde per byggtimme" struket från 72b.** Det mätte byggtid, inte ägandekostnad.
+   Ett delmål som återger en föreskrifts struktur måste följa den föreskriftens ändringar för
+   alltid. Arbetsinsatstabellen har fått en kolumn för underhållssvans, och slutsatsen vänder:
+   **72a är dyrast att bygga och billigast att äga; 72b och 72c är tvärtom.**
+
+Övriga fem: premisskontrollen har fått **ett andra ben mot marknaden** ("säljer någon redan
+detta?"); **72e delat** i statistik (strukturerad, byggbar) och nya **72m** (händelseanalys/
+lex Maria, byggs inte — det är ett produktbeslut, inte ett delmål); **nytt genomgående krav
+44** om arkivlag vid kommunal kund; **beslutspunkt 5 omskriven** från byggordning till
+efterfrågegrind; **ny beslutspunkt 7** om segment.
+
+**Krav 44 är det enda fyndet som pekar på en konflikt med kod i drift.**
+`BACKUP_RETENTION_DAGAR = 90` och `RADERING_VANTETID_TIMMAR = 48` är leverantörsbeslut — men
+hos en kommunal kund fattar arkivmyndigheten gallringsbeslut. Båda siffrorna verifierade mot
+kod innan kravet skrevs.
+
+**En regulatorisk risk utanför planen som är mer brådskande än varje delmål i den:**
+granskningens avsnitt 3.1 visar att MDR:s undantag för "simple search" inte omfattar
+NLP-sökning som bidrar till ett medicinskt syfte — vilket klinikstöd-sökningen gör. Slutsatsen
+ändras sannolikt inte, men skälet gör det, och det avsedda ändamålet bör skrivas ned. Det är
+timmar, inte veckor, och det står som undantag 1 i beslutspunkt 5.
+
+**Ingen kod, ingen versionsbump.** Planen är fortfarande **EJ ANTAGEN** – nu tretton delmål
+och sju öppna beslutspunkter.
 
 ## Uppföljning 2026-08-30 (Etapp 72 – utkast, ingen kod)
 

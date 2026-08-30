@@ -1,9 +1,16 @@
 # Etapplan 19 – Från rutindatabas till ledningssystem
 
-**Etapp 72. UTKAST 2026-08-30 – EJ ANTAGEN.** Skriven på ägarens begäran efter en genomgång
-av produktens nuvarande form mot de behov en svensk vårdgivare faktiskt har. Bygger på faktisk
-kodstatus i v5.137.0 (30 rutter, 74 hooks, 40 admin-/leverantörssektioner, 11 schemalagda
-jobb).
+**Etapp 72. UTKAST v0.2, 2026-08-30 – EJ ANTAGEN.** Skriven på ägarens begäran efter en
+genomgång av produktens nuvarande form mot de behov en svensk vårdgivare faktiskt har. Bygger
+på faktisk kodstatus i v5.137.0 (30 rutter, 74 hooks, 40 admin-/leverantörssektioner, 11
+schemalagda jobb).
+
+> **v0.2 är omskriven mot `granskningar/GRANSKNING-IDEBANK-2026-08-30.md`.** Den granskningen
+> gäller formellt ett ANNAT dokument – produktidébanken, 18 förslag – men sex av dess förslag
+> motsvarar delmål här, och den gjorde det arbete v0.1 utpekade som sin egen svaghet: den
+> verifierade regulatoriska påståenden mot primärkälla. Fem fynd ändrade den här planen, och
+> ett av dem (delegering.se) var ett verkligt misstag i v0.1. Se versionshistoriken för hela
+> listan.
 
 > **Antagandet av den här planen är inte en formalitet.** Den föreslår att produkten växer
 > ut ur sin nuvarande kategori. Det är ett affärsbeslut lika mycket som ett byggbeslut, och
@@ -23,8 +30,12 @@ jobb).
 
 ## Premisskontroll (genomgående krav 8)
 
-Tolv antaganden kontrollerade mot faktisk kod innan planen skrevs. Åtta höll, fyra ändrade
-innehållet.
+**Premisskontrollen har två ben sedan v0.2.** v0.1 kontrollerade tolv antaganden mot vår egen
+kod och missade ändå att en svensk specialist redan säljer delmål 72c som färdig produkt
+(delegering.se). Kodkontroll fångar "bygger vi på fel grund"; den fångar aldrig "är det här
+redan byggt av någon annan". Båda frågorna måste ställas innan ett delmål antas.
+
+**Ben 1 – mot koden.** Tolv antaganden kontrollerade. Åtta höll, fyra ändrade innehållet.
 
 ### Höll
 
@@ -47,6 +58,21 @@ innehållet.
 | 10 | *"Checklistkörningar loggas redan"* | `checklistkorningar/{rutinId}` innehåller bara `antalPaborjade` – en räknare, ingen signerad post med tidpunkt, utförare eller värde | 72a kan inte återanvända den. Ny collection krävs, och räknaren ska INTE byggas om (den föder `matvardenSnapshots`) |
 | 11 | *"Kompetensmatrisen kan bära delegeringar"* | Kompetensmatrisen är härledd, inte lagrad: den räknar ut "har person X kvitterat de rutiner rollen kräver". Den har inget eget dokument per person, inget utgångsdatum och ingen utfärdare | 72c blir ett eget register. Kompetensmatrisen blir dess **villkor** ("delegering får utfärdas först när kraven är gröna"), inte dess datamodell |
 | 12 | *"Förrådsartiklar kan bära utrustning med kontrollintervall"* | Artikeln har `namn, skap, hylla, antal, utgangsdatum` – plats och utgångsdatum finns, men inget serienummer, intervall, ansvarig eller servicehistorik | 72g blir ett eget objekt som ÅTERANVÄNDER platsmodellen (`skap`/`hylla`) men inte artikelsamlingen. Utrustning är inte förbrukningsmaterial |
+
+### Ben 2 – mot marknaden (tillkom i v0.2)
+
+**Regeln:** innan ett delmål antas ska frågan *"säljer någon redan detta till den här
+målgruppen, i Sverige, idag?"* ställas och besvaras skriftligt i delmålet. Ett svar räcker
+inte som "trolig konkurrent" – det ska vara en namngiven aktör med en kontrollerad
+funktionsjämförelse, eller ett konstaterande att ingen hittades och hur det söktes.
+
+| Delmål | Fynd | Följd |
+|---|---|---|
+| **72c** delegering | **delegering.se** gör hela det ursprungliga förslaget: kunskapstester, översikt över vem som delegerat till vem, bedömningsstöd för reell kompetens, påminnelser inför utgångsdatum, loggade delegeringar per person. Målgruppen anges uttryckligen som vårdpersonal, chefer och MAS | **72c omskrivet i v0.2** från register till koppling. Se delmålet |
+| 72a, 72d | Stratsys, CANEA och Centuri säljer motsvarande – men uttryckligen till administratörer, i prisklasser målgruppen inte når. Granskningen konstaterar samma sak i sitt avsnitt 6.1 | Ingen ändring. En funktion som finns i ett system målgruppen inte kan köpa är inte en tagen marknad |
+| 72b | Ingen aktör hittad som genererar utkast ur kundens egen driftdata. Ledningssystemen tillhandahåller mallar, inte underlag | Ingen ändring |
+| 72k | Verksamhetssystemen (Sekoia, Lifecare, Combine, Alfa eCare) är en **kanalrisk**, inte en funktionskonkurrent: om något av dem lägger till en enkel rutinbank blir Synappsen ett tillägg kunden inte behöver köpa | Noterat som risk, inte som hinder |
+| — | **Eolas Medical** (~154 kr/användare/år) är den närmaste internationella analogen och saknades helt i v0.1:s underlag | Inget akut hot – ingen svensk datalagring, inget svenskt PUB-avtal. Men det är prisgolvet om de kommer in |
 
 ---
 
@@ -101,6 +127,12 @@ ser färdig ut är farligare än ingen alls – den flyttar ansvaret dit det int
 kan användas mot kunden i en tillsyn. Samma princip som genomgående krav 8 (bocka aldrig av
 utan att ha verifierat) fast riktad mot kunden i stället för mot oss.
 
+> **Gränsen, formulerad så den går att pröva** (ur granskningen, avsnitt 3.7, marknadsförings-
+> lagen): *"Systemet kan stödja kundens efterlevnad. Det uppfyller inte en föreskrift som
+> riktar sig till vårdgivaren."* Ett påstående om att Synappsen "uppfyller" en föreskrift är
+> ett påstående som måste kunna styrkas – och det kan det inte, eftersom föreskriften riktar
+> sig till kunden. Gäller i kod, i gränssnittstext och i säljmaterial samtidigt.
+
 **41. Ingen ny collection tar emot fritext om en enskild patient förrän beslutspunkt 1 är
 avgjord.** Produktens hela juridiska hållning – PUB-avtalet, DPIA-underlaget, den tekniska
 beskrivningen, upphandlingssvaret – bygger på att patientuppgifter aldrig finns. En avvikelse
@@ -119,9 +151,31 @@ efterhand har noll bevisvärde, och bevisvärdet är hela poängen med att flytt
 Samma princip som revisionsloggens hashkedja redan bygger på – och `firestore.rules` har redan
 mönstret (`allow update: if false`).
 
+**44. Vid en KOMMUNAL kund gäller andra bevaranderegler än produktens egna.** *(Nytt i v0.2,
+ur granskningens avsnitt 3.7. Premissen är verifierad mot kod 2026-08-30.)*
+
+Två av produktens egna regler är leverantörsbeslut som kolliderar med arkivlagen (1990:782):
+
+| Vår regel | Var den bor | Konflikten |
+|---|---|---|
+| Backuper gallras efter 90 dagar | `BACKUP_RETENTION_DAGAR = 90` i `functions/backup.js` | Gallringsbeslut fattas av kundens arkivmyndighet, inte av leverantören |
+| En organisation kan raderas efter 48 timmars ångerfrist | `RADERING_VANTETID_TIMMAR = 48` i `functions/avtalslivscykel.js` | Samma sak, och betydligt allvarligare – raderingen är irreversibel |
+
+Dessutom: uppgifter som förvaras hos en privat leverantör för en kommuns räkning kan behöva
+lämnas ut vid en begäran om allmän handling (tryckfrihetsförordningen, OSL). En loggbok (72a)
+och en årlig berättelse (72b) hos en kommunal kund blir sannolikt allmänna handlingar.
+
+**Följd:** ingen kommunal pilot tecknas innan detta är utrett, och ingetdera av 72a och 72b
+säljs mot kommun förrän bevarandefrågan har ett svar. **Detta saknades helt i v0.1** och är
+det enda fyndet i granskningen som pekar på en konflikt mellan planen och kod som redan är i
+drift.
+
 ---
 
 ## Delmål
+
+**Tretton delmål sedan v0.2** (72a–72m), efter att 72e delades. 72m är placerat sist i stället
+för i bokstavsordning, så att inga befintliga beteckningar behövde numreras om.
 
 Grupperade efter vad som driver dem. Bokstavsordningen inom en grupp är inte en byggordning –
 se "Beroendeordning".
@@ -189,35 +243,63 @@ data – men den är en *driftrapport*, inte en *lagstadgad handling*.
 härledas ur hur andra vårdgivares publicerade berättelser ser ut. Se "Källor och
 verifieringsbehov".
 
-**Varför det är planens högsta värde per byggtimme.** Nästan ingen ny datafångst – det är en
-rapport över data ni redan samlar. Och det byter argument från "ett verktyg som gör arbetet
-möjligt" till "en handling ni ändå måste producera, färdig att granska". Det är exakt vägvalet
-`saljmaterial/KOPARANALYS.md` avsnitt 12 efterlyser, utan att sälja konsulttid.
+**Billig att bygga.** Nästan ingen ny datafångst – det är en rapport över data ni redan samlar.
+Och det byter argument från "ett verktyg som gör arbetet möjligt" till "en handling ni ändå
+måste producera, färdig att granska". Det är exakt vägvalet `saljmaterial/KOPARANALYS.md`
+avsnitt 12 efterlyser, utan att sälja konsulttid.
+
+> **Dyr att äga — rättelse i v0.2.** v0.1 satte "högst värde per byggtimme" på det här
+> delmålet. Den mätningen var fel storhet. Ett delmål som återger strukturen i en föreskrift
+> måste **följa den föreskriftens ändringar för alltid**, och den kostnaden syns inte i en
+> byggtidsuppskattning. Granskningens avsnitt 5.3 har rätt: den bindande resursen är ägarens
+> tid, och regulatoriska moduler sänker kapacitetstaket i stället för att bara belasta det en
+> gång. 72a:s kontroller definieras av kunden och har ingen sådan svans; 72b och 72c har en
+> permanent. Se den nya kolumnen i arbetsinsatstabellen.
 
 ---
 
-### 72c. Delegeringsregister
+### 72c. Delegeringskopplingen — OMSKRIVEN i v0.2
 
-**Behovet.** Delegering av medicinska arbetsuppgifter är personlig, tidsbegränsad, knuten till
-bevisad kompetens och återkallelsebar. Den ska kunna visas upp vid tillsyn. Idag: pärm.
+> **Vad som ändrades och varför.** v0.1 föreslog ett fullständigt delegeringsregister. Den
+> marknadskontroll som saknades då visar att **delegering.se redan säljer exakt det** till
+> exakt den målgruppen – kunskapstester, vem-har-delegerat-till-vem, bedömningsstöd för reell
+> kompetens, utgångspåminnelser, loggade delegeringar per person. En specialist med färdig
+> produkt, innehåll och kundrelationer vinner en funktionsjämförelse mot vår första version.
+> Delmålet är därför omskrivet från *register* till *koppling*.
+
+**Behovet, omformulerat.** Det Synappsen kan göra som en fristående delegeringstjänst
+strukturellt inte kan: koppla delegeringen till **rutinen och kvitteringen**. Frågan
+*"har personen som fått delegering för uppgiften också läst och kvitterat rutinen som hör till
+den?"* kräver att delegeringen och rutinbeståndet bor i samma system. Det gör de bara hos oss.
+
+**Den andra halvan – en lucka granskningen hittade.** När SOSFS 1997:14 upphävdes (genom
+**HSLF-FS 2025:5**, inte 2025:6 som en tidigare version av underlaget angav) försvann den
+bindande föreskriften för delegering av *andra arbetsuppgifter än läkemedel*. Kvar finns
+patientsäkerhetslagens generella bestämmelser och Socialstyrelsens vägledning. **Varje
+vårdgivare måste alltså nu själv utforma sin rutin för icke-läkemedelsdelegering.**
+
+Det är ett behov som (a) är nytt, (b) inte är tidsbegränsat, (c) ingen specialist täcker,
+och (d) ligger i produktens absoluta kärna – att skriva, äga, granska och kvittera en rutin.
 
 **Bygg:**
 
-1. **Delegeringsdokument** per person och uppgift: utfärdare, mottagare, uppgift, giltig
-   från/till, villkor, återkallelse med datum och skäl.
-2. **Villkorskoppling** – en delegering får utfärdas först när kompetensmatrisens krav för
-   uppgiften är uppfyllda och kunskapsprovet i öva-läget är godkänt. Det gör de två befintliga
-   funktionerna juridiskt meningsfulla i stället för informativa.
-3. **Utgångslarm** – notis till utfärdare och mottagare i god tid, plus en lista över
-   delegeringar som löper ut.
-4. **Mottagarens vy** – "detta får jag göra, till och med detta datum".
-5. **Register för tillsyn** – exporterbart (matar 72d).
+1. **En rutinmall för icke-läkemedelsdelegering** i `verksamhetsmallar.js`, med de moment
+   patientsäkerhetslagen och vägledningen kräver. Kunden fyller i sin egen tillämpning; vi
+   tillhandahåller strukturen. Detta är ren innehållsproduktion, inte kod.
+2. **Kopplingsfältet:** en uppgift som kräver delegering pekar ut vilken rutin som hör till
+   den, och vilka kompetenskrav som måste vara gröna.
+3. **Uppföljningsvyn:** "dessa personer har delegering för uppgift X – så här ser deras
+   kvitteringsläge ut för den tillhörande rutinen." Matar 72d.
 
-**Bygger på:** kompetensmatrisen (som villkor, inte som lagring – se premissfynd 11),
-öva-läget, introduktionssigneringarnas signaturmönster, notismotorn.
+**Bygg INTE:** själva delegeringsdokumentet, utgångslarmen eller kunskapsprovet. Det finns
+redan hos delegering.se, och våra kompetenskrav och öva-läget täcker halva behovet ändå. Om en
+kund använder båda systemen är kopplingsfältet det som gör dem värda mer tillsammans än var
+för sig — och om en kund senare kräver hela registret är det ett eget beslut, inte en
+biprodukt av det här delmålet.
 
-**Segmentnytta:** störst i ASIH, hemsjukvård och äldreomsorg – en betydande del av
-kandidatlistan. Marginell för en renodlad specialistmottagning med enbart legitimerad personal.
+**Segmentnytta:** störst i ASIH, hemsjukvård och äldreomsorg. **Marginell för de privata
+vårdcentraler och specialistkliniker som säljarbetet faktiskt riktar sig mot just nu** – se
+beslutspunkt 7.
 
 ---
 
@@ -239,31 +321,67 @@ det är ett demoögonblick som inte kräver att kunden först lagt in innehåll.
 
 ---
 
-### 72e. Avvikelsehantering — BLOCKERAD av beslutspunkt 1
+### 72e. Avvikelsestatistik — DELAT i v0.2
 
-**Behovet.** Den mest använda kvalitetsfunktionen i svensk vård, och den enda i den här planen
-som kunden med säkerhet redan gör varje vecka – någon annanstans.
+> **Vad som ändrades och varför.** v0.1 behandlade "avvikelsehantering" som ett delmål med tre
+> vägar att välja mellan. Granskningen invänder att *"det går inte att bygga en lex Maria-modul
+> utan patientuppgifter … mellanläget finns inte"*. Den invändningen är riktig — men den gäller
+> **utredningen av en enskild händelse**, inte avvikelsearbetet som helhet. v0.1 blandade ihop
+> två saker med olika juridisk status. De är nu delade: **72e (statistik, byggbar)** och
+> **72m (händelseanalys, blockerad)**.
 
-**Bygg (om beslutspunkt 1 tillåter):**
+**Behovet.** Ett kvalitetsledningssystem kräver att avvikelser sammanställs, följs över tid och
+används för att förbättra rutiner. Det arbetet är **aggregerat till sin natur** och kräver
+ingen patientidentitet.
 
-1. Anmälan i två klick, med en fältuppsättning som är **strukturerad i stället för fritext**.
-2. Utredningsflöde: mottagen → utredd → åtgärd → uppföljd, med ansvarig och frist.
-3. Koppling till rutin – "den här avvikelsen ledde till att rutin X ändrades" (se även 72i).
-4. Statistik per typ, enhet och period. Matar 72b och 72d.
+**Bygg — strikt strukturerat, inga fritextfält om en person:**
 
-**Den avgörande designfrågan.** En avvikelse beskriver till sin natur en händelse som rör en
-patient. Produktens hela juridiska hållning bygger på att patientuppgifter aldrig finns.
-Alternativen:
+1. **Registrering:** händelsetyp (förvald lista), enhet, tidpunkt, allvarlighetsgrad, förlopp
+   valt ur förvalda kategorier, vidtagen åtgärd. Ingen fritext som kan bära en beskrivning av
+   en patient.
+2. **Koppling till rutin** – "den här avvikelsetypen ledde till att rutin X ändrades"
+   (se även 72i).
+3. **Trend och sammanställning** per typ, enhet och period. Matar 72b och 72d.
 
-| Väg | Innebär | Nackdel |
-|---|---|---|
-| **A. Strukturerad, avidentifierad** | Endast händelsetyp, enhet, tidpunkt, förlopp i förvalda kategorier, åtgärd. Inga fritextfält om personen | Räcker för statistik och systematik, men kan vara otillräckligt för den enskilda utredningen – och kunden kommer att skriva ändå om det finns ett fritextfält någonstans |
-| **B. Fritext med PII-spärr** | Som idag i kommentarer/skiftrapport | **Spärren fångar personnummer, inte "den äldre damen på rum 4".** Bryter mot hela hållningen i praktiken även om den håller i teorin |
-| **C. Bygg inte** | Kunden fortsätter i sitt Excel-ark | Den största kvarvarande luckan lämnas öppen, och konkurrentens starkaste argument står kvar |
+**Varför det håller.** Ett fält som bara accepterar ett val ur en lista kan inte innehålla
+"den äldre damen på rum 4". Spärren är då strukturell i stället för en filtrering i efterhand
+— samma princip som gör kioskläget säkert (Etapp 55): förmågan finns inte, snarare än att den
+finns och blockeras.
 
-**Rekommendation: väg A, men först efter samma externa juridiska bedömning som Etapp 64
-väntar på.** Om bedömningen ändå ska beställas är detta en andra fråga att ställa i samma
-uppdrag, till marginell extra kostnad. Se genomgående krav 41.
+**Kvarstående risk att pröva innan bygget:** kunden vill skriva mer än fälten tillåter och
+lägger patientuppgifter i ett fält avsett för något annat. Det är samma risk som redan finns
+i kommentarer och skiftrapporter, och den hanteras med samma medel — men den ska stå i
+beslutsunderlaget, inte upptäckas efteråt. Se genomgående krav 41.
+
+---
+
+### 72m. Händelseanalys och lex Maria — BLOCKERAD, byggs sannolikt inte
+
+> **Utbrutet ur 72e i v0.2.** Placerat sist i stället för att skjutas in mellan 72e och 72f,
+> så att inga delmålsbeteckningar behöver numreras om.
+
+**Behovet.** En avvikelse som kan leda till en anmälan enligt patientsäkerhetslagen kräver en
+utredning av en identifierad händelse och en identifierad patient. Det är den delen av
+avvikelsearbetet som 72e medvetet inte täcker.
+
+**Bedömning: bygg inte.** Granskningen formulerar det rätt — antingen bygger man det och
+accepterar att produkten byter riskklass, eller så bygger man det inte. Konsekvenserna av det
+första:
+
+- Nytt DPIA-underlag, omskrivet PUB-avtal, ny bedömning av datalagring och åtkomstloggning
+- Frågan om innehållet blir en **journalhandling** enligt patientdatalagen, med krav på
+  förvaring och åtkomstlogg produkten inte är byggd för
+- Hela positioneringen "inga patientuppgifter" faller, och med den de svar i
+  `saljmaterial/kallfiler/Synappsen-upphandlingssvar.html` som vilar på den
+
+**Det är inte ett delmål utan ett produktbeslut**, och det bör i så fall behandlas som en egen
+etapp med egen juridisk grund — inte som en punkt i en lista. Det står här för att gränsen ska
+vara skriven, inte för att den ska övervägas.
+
+**Ett ärligt alternativ att erbjuda kunden i stället:** 72e ger sammanställningen, och
+händelseanalysen sker där patientuppgifterna redan får finnas — i journalsystemet eller på
+papper. Att säga det rakt ut är ett bättre säljargument än att antyda att vi täcker hela
+kedjan.
 
 ---
 
@@ -384,12 +502,39 @@ Ingen av dessa är avgjord. **Planen kan inte antas i sin helhet utan svar på 1
 
 | # | Fråga | Rekommendation | Status |
 |---|---|---|---|
-| 1 | Ska **avvikelsehantering** (72e) byggas, och i så fall enligt väg A (strukturerad, avidentifierad)? | **Ja, väg A – men först efter en extern juridisk bedömning**, lämpligen i samma uppdrag som Etapp 64:s. Utan bedömning: bygg inte. Risken är inte teknisk utan att produktens grundlöfte ("inga patientuppgifter") blir osant i praktiken | Öppen |
+| 1 | Ska **avvikelsestatistiken** (72e) byggas strikt strukturerad, och **händelseanalysen** (72m) lämnas obyggd? | **Ja på båda.** Den strukturella spärren (bara val ur listor, ingen fritext om person) gör 72e byggbart utan att röra grundlöftet. 72m byter produktens riskklass och är ett produktbeslut, inte ett delmål. En extern juridisk bedömning bör ändå bekräfta 72e:s fältuppsättning – lämpligen i samma uppdrag som Etapp 64:s | Öppen |
 | 2 | **Vilket paket** hör de nya funktionerna till? Core, Operations, eller en ny modul? | **En ny modul, "Efterlevnad".** Men flytta samtidigt innehållshälsan till Core, enligt `saljmaterial/KOPARANALYS.md` avsnitt 11 punkt 4 – skälet att köpa måste finnas i det paket köparen köper. Att lägga även det nya bakom en tilläggsmodul upprepar samma misstag | Öppen |
 | 3 | Ska **arbetsmiljödelen** (72j) byggas? | **Vänta.** Den breddar produkten bortom vård och riktar sig till en annan köpare. Bygg den när en verklig kund efterfrågar den, inte i förväg – samma resonemang som 54c/54d i `BESLUTSLOGG.md` | Öppen |
 | 4 | Ska **patientsäkerhetsberättelsen** (72b) generera en färdig handling eller ett underlag? | **Utkast, aldrig färdig handling** (genomgående krav 40). Ansvaret för innehållet är vårdgivarens och får inte se ut att ha flyttat | Öppen |
-| 5 | Ska hela planen byggas, eller **bara grupp A**? | **Grupp A först, i ordningen 72a → 72d → 72b → 72c.** Grupp B och C är värdefulla men inget av dem ändrar produktens kategori | Öppen |
+| 5 | **Vad utlöser att ett delmål byggs?** | **En namngiven kund som bett om det skriftligt** – inte en position i en lista. Se nedan; detta ersätter v0.1:s föreslagna byggordning | Öppen |
 | 6 | Är detta rätt riktning **över huvud taget**, jämfört med att fördjupa rutindatabasen? | **Ja, men det är ett vägval.** Se "Den större frågan" nedan | Öppen |
+| 7 | **Vilket segment** gäller planen? *(Ny i v0.2)* | **Privat vårdgivare, oförändrat** enligt `saljmaterial/MARKNADSANALYS.md` avsnitt 8. Nio av tretton delmål tjänar det segmentet direkt; 72c och 72h skevar mot kommunal omsorg och ska inte driva prioriteringen. Ett segmentbyte får ske – men som ett beslut, inte som en bieffekt av att delegeringsfrågan är intressant | Öppen |
+
+### Beslutspunkt 5, utskriven: efterfrågegrinden
+
+**v0.1 föreslog en byggordning (72a → 72d → 72b → 72c). Den är struken.** En byggordning
+formulerad innan någon kund finns är samma mönster som gav projektet 67 etapper och noll
+externa användare, och `saljmaterial/MARKNADSANALYS.md` avsnitt 6.3 är kategorisk om att varje
+timme före första kunden har negativt förväntat värde.
+
+**Regeln i stället:** inget delmål i den här planen byggs innan en **namngiven kund har bett om
+det skriftligt.** Vad ordningen ovan i så fall betyder är vilket delmål som byggs *först när
+efterfrågan finns* – inte vilket som byggs först.
+
+**Tre undantag**, eftersom regeln annars blir dogmatisk:
+
+1. **Arbete som inte är en funktion.** Att skriva ned det avsedda ändamålet för
+   klinikstöd-sökningen, kontrollera artikel 50-märkningen och uppskatta kostnaden för en
+   Vertex AI-migrering kostar timmar, kräver ingen kund och stänger regulatorisk risk. Det bör
+   göras oavsett vad som händer med den här planen.
+2. **72d (tillsynspaketet)** är en export över data som redan samlas – ingen ny datamodell,
+   inget nytt regulatoriskt underhåll. Det ligger närmare punkt 1 än ett nytt delmål, och kan
+   byggas på egen risk om ett säljmöte behöver det.
+3. **Rutinmallar** (delar av 72c) är innehållsproduktion, inte kod. Samma resonemang.
+
+**Och det billigaste steget av alla, som varken kräver kod eller kund:** fråga de tre
+mottagarna i det pågående utskicket vad de skulle vilja ha härnäst. Tre meningar från någon
+som överväger att betala är ett bättre underlag än tretton delmål framtagna genom research.
 
 ---
 
@@ -436,24 +581,30 @@ köparanalysen använder, och den gäller här också.
 
 ## Beroendeordning
 
+**Ordningen nedan är inte en byggordning** (se beslutspunkt 5) – den säger vad som blir sämre
+om det byggs i fel ordning, den dagen efterfrågan finns.
+
 ```
-72a (återkommande kontroller)   ← bygg FÖRST, allt annat blir bättre av att den finns
+72a (återkommande kontroller)   ← om något byggs, börja här
  ├─ 72d (tillsynspaket)          – blir tunt utan 72a:s kontrollhistorik
  ├─ 72g (utrustning + QR)        – kontrollerna behöver något att sitta på
  └─ 72f (driftstoppsläge)        – krav 42 gör dem beroende av varandra
 
-72b (patientsäkerhetsberättelse) – kan byggas fristående, blir rikare med 72a och 72e
-72c (delegeringsregister)        – fristående, vilar på befintlig kompetensmatris
-72e (avvikelsehantering)         [beslutspunkt 1 – BLOCKERAD]
+72b (patientsäkerhetsberättelse) – fristående, blir rikare med 72a och 72e
+72c (delegeringskopplingen)      – fristående, vilar på befintlig kompetensmatris
+72e (avvikelsestatistik)         – strukturerad, byggbar
  └─ 72j (arbetsmiljö)            [beslutspunkt 3] – samma motor, bygg aldrig före 72e
 
 Fristående, när som helst:
- 72h (språkstöd)     – vilar bara på useTalsyntes som redan finns
- 72i (beslut→rutin)  – litet
+ 72h (språkstöd)      – vilar bara på useTalsyntes som redan finns
+ 72i (beslut→rutin)   – litet
  72k (avtalsregister) – i praktiken en kundvänd kopia av atagandekalender
 
 Kräver kunder:
- 72l (benchmarking)  – tidigast vid fem kunder
+ 72l (benchmarking)   – tidigast vid fem kunder
+
+BYGGS INTE:
+ 72m (händelseanalys, lex Maria) – produktbeslut, inte delmål. Se dess egen sektion
 ```
 
 ---
@@ -462,45 +613,77 @@ Kräver kunder:
 
 Samma skala som tidigare etapplaner (ett "delmål" ≈ en eller flera fokuserade arbetsinsatser).
 
-| Delmål | Omfång | Kommentar |
-|---|---|---|
-| 72i, 72k | Små | 72k är i praktiken en kundvänd variant av kod som redan finns |
-| 72d, 72f, 72h | Medel | Alla tre är gränssnitt och sammanställningar ovanpå befintlig data |
-| 72b, 72c, 72g | Medel–stora | Ny datamodell, men avgränsad. 72b är mest research, minst kod |
-| 72a | **Stor – planens kärna** | Ny datamodell, schemaläggning, offline-signering, oföränderlig logg |
-| 72e | Stor + juridiskt blockerad | Bygg inte förrän beslutspunkt 1 är avgjord |
-| 72j | Stor, annan köpare | Bygg inte förrän en kund efterfrågar den |
-| 72l | Liten kod, kräver kunder | Datastrukturen finns redan |
+**Kolumnen "underhållssvans" är ny i v0.2** och är den viktigare av de två. Byggkostnaden
+betalas en gång; underhållet betalas för alltid, ur samma timmar som supporten. Ett delmål som
+återger strukturen i en föreskrift måste följa den föreskriftens ändringar så länge produkten
+finns. `saljmaterial/KOSTNADSKALKYL-OCH-PRISSATTNING.md` visar att break-even ligger runt 16
+kunder, vilket är i övre delen av vad en person klarar av att supporta — **regulatoriska
+moduler sänker det taket, de belastar det inte bara en gång.**
 
-**Föreslagen ordning om planen antas:** 72a → 72d → 72b → 72c → (paus för utvärdering mot en
-verklig kund) → 72f, 72g, 72h.
+| Delmål | Byggomfång | Underhållssvans | Kommentar |
+|---|---|---|---|
+| 72i, 72k | Små | Ingen | 72k är en kundvänd variant av kod som redan finns |
+| 72d | Medel | Ingen | Export över befintlig data |
+| 72f, 72h | Medel | Ingen | Gränssnitt ovanpå befintlig data och talsyntes |
+| 72a | **Stor – planens kärna** | **Låg** | Kunden definierar sina egna kontroller. Vi äger mekanismen, inte innehållet |
+| 72g | Medel–stor | Låg | Ny datamodell, men ingen föreskrift att följa |
+| 72e | Medel | **Medel** | Fältuppsättningen måste hållas strukturerad, och den kan behöva följa praxis |
+| 72c | **Liten efter omskrivningen** | **Hög** | Rutinmallen måste följa föreskriftsändringar för alltid. Kopplingsfältet i sig är trivialt |
+| 72b | Liten kod, mest research | **Hög** | Avsnittsstrukturen speglar en föreskrift som rör sig |
+| 72j | Stor, annan köpare | Hög | Eget regelverk att följa. Bygg inte förrän en kund efterfrågar den |
+| 72l | Liten kod | Ingen | Datastrukturen finns redan, men kräver kunder |
+| 72m | — | — | Byggs inte. Se dess egen sektion |
+
+**Slutsatsen av kolumnen:** 72a är dyrast att bygga och billigast att äga. 72b och 72c är
+tvärtom. Det motsäger v0.1:s ranking, som bara mätte byggtid.
 
 ---
 
 ## Källor och verifieringsbehov
 
-**Det här avsnittet är avsiktligt obekvämt.** Planen vilar på påståenden om svensk
-vårdlagstiftning som **inte har verifierats mot primärkällor** i den session som skrev den.
-De är härledda ur allmän kunskap om regelverket, inte ur lästa föreskrifter.
+**v0.1 skrev en lista över vad som behövde verifieras. v0.2 har delvis fått det gjort** –
+`granskningar/GRANSKNING-IDEBANK-2026-08-30.md` kontrollerade angränsande påståenden mot
+primärkälla. Nedan står vad som därmed är belagt, och vad som fortfarande inte är det.
 
-Samma disciplin som `saljmaterial/MARKNADSANALYS.md` och
-`saljmaterial/KANDIDATLISTA-PRIVAT-VARD.md` redan tillämpar gäller här:
+### Belagt mot primärkälla (via granskningen, 2026-08-30)
+
+| Påstående | Utfall |
+|---|---|
+| SOSFS 1997:14 om delegering är upphävd | **Stämmer** – genom HSLF-FS 2025:**5** (inte 2025:6, som är ändringen i HSLF-FS 2017:37) |
+| Delegeringsbeslut ska vara skriftligt, personligt, tidsbegränsat, följas upp minst årligen, bevaras minst tre år | **Stämmer** |
+| Cybersäkerhetslagen (2025:1506) gäller, med 24h tidig varning och 72h rapport | **Stämmer.** Slutrapport anges som "senast en månad", inte 30 dagar |
+| Synappsen omfattas självt av NIS2 | **Nej** – storleksgränsen går vid 50 anställda eller 10 M€. Men leverantörskedjekravet gör att kunderna ställer kraven ändå, vilket är den kommersiellt relevanta effekten |
+| AI-förordningens artikel 50 gäller sedan 2 augusti 2026 | **Stämmer.** Maskinläsbar märkning har övergång till 2 december 2026 |
+| "Simple search" är undantaget från MDR | **Ofullständigt.** MDCG 2019-11 Rev.1 undantar inte NLP-sökning som bidrar till ett medicinskt syfte – vilket är vad klinikstöd-sökningen gör. Se nedan |
+
+### Fortfarande inte belagt — måste kontrolleras före respektive delmål
 
 | Påstående | Måste verifieras innan |
 |---|---|
-| Att patientsäkerhetsberättelse är en lagstadgad årlig handling, dess deadline och dess avsnittsstruktur | 72b påbörjas, och innan påståendet används i säljmaterial |
-| Vilka krav som gäller för delegering: form, längsta giltighetstid, återkallelse, dokumentation | 72c påbörjas |
-| Vilka egenkontroller som är föreskrivna kontra branschpraxis (temperatur, medicinteknik, narkotika) | 72a:s standardmallar skrivs |
-| Vad ledningssystemsföreskriften faktiskt kräver av en liten privat vårdgivare | Planen antas – den är hela premissen |
-| Att avvikelsehantering är ett formellt krav och i vilken form | Beslutspunkt 1 avgörs |
+| Patientsäkerhetsberättelsens exakta avsnittsstruktur och deadline | 72b påbörjas, och innan det används i säljmaterial |
+| Att ettårsgränsen för delegeringsbeslut gäller ordagrant efter 2025 års reform | 72c:s rutinmall skrivs. Granskningen kunde belägga den hos Vårdhandboken men inte i föreskriftstexten |
+| Vad som gäller för delegering av **andra uppgifter än läkemedel** efter upphävandet | 72c:s rutinmall skrivs. Socialstyrelsens meddelandeblad från december 2025 är källan att läsa |
+| Vilka egenkontroller som är föreskrivna kontra branschpraxis | 72a:s standardmallar skrivs |
+| Vad ledningssystemsföreskriften kräver av en liten privat vårdgivare | Planen antas – den är hela premissen |
+| Arkivlagens krav vid kommunal kund kontra våra 90/48 (krav 44) | En kommunal pilot tecknas |
 
-**Ett varningsexempel ur projektets egen kod:** `functions/kvissfragorSeed.js` noterar att
-SOSFS 1997:14 om delegering – den föreskrift i stort sett varje svensk delegeringsutbildning
-har vilat på – är upphävd. Regelverket rör sig. En plan som bygger på ett minne av det är
-inte ett beslutsunderlag.
+### En regulatorisk risk utanför planen som ändå berör den
 
-**Ingen rad i den här planen får citeras i kundvänt material innan tabellen ovan är
-avbockad mot faktiska källor.**
+Granskningens avsnitt 3.1 är dess viktigaste fynd, och det gäller en funktion som **redan är i
+drift**: klinikstöd-sökningen använder en språkmodell för att sammanfatta medicinska källor åt
+vårdpersonal, och det ligger inte automatiskt i MDR:s undantag för sökning.
+
+Slutsatsen förändras sannolikt inte – produkten ligger rimligen på rätt sida – **men skälet
+gör det.** Skyddet är inte att sökning är undantagen; skyddet är att funktionen är beskriven,
+avgränsad och marknadsförd som hjälp att hitta i dokument, inte som stöd för ett kliniskt
+beslut om en patient.
+
+Det hör inte hemma i den här planen, men det påverkar den på två sätt: det är **billigare och
+mer brådskande än varje delmål här** (se undantag 1 i beslutspunkt 5), och det skärper
+genomgående krav 40:s gräns mot marknadsföring.
+
+**Ingen rad i den här planen får citeras i kundvänt material innan den står i den övre
+tabellen, eller har verifierats separat.**
 
 ---
 
@@ -509,3 +692,4 @@ avbockad mot faktiska källor.**
 | Version | Datum | Ändring |
 |---|---|---|
 | 0.1 | 2026-08-30 | Första utkastet, skrivet på ägarens begäran efter en genomgång av produktens nuvarande form mot vårdgivares faktiska behov. Tolv premissantaganden kontrollerade mot kod, varav fyra ändrade innehållet. **Ej antagen** – sex beslutspunkter öppna, varav 1 och 2 blockerar antagandet i sin helhet |
+| 0.2 | 2026-08-30 | **Omskriven mot `granskningar/GRANSKNING-IDEBANK-2026-08-30.md`.** Sju ändringar: (1) **72c omskrivet från register till koppling** – delegering.se säljer redan hela det ursprungliga förslaget, vilket v0.1 missade; delmålet bygger nu kopplingen delegering↔rutin↔kvittering plus en rutinmall för icke-läkemedelsdelegering, den lucka upphävandet av SOSFS 1997:14 lämnade. (2) **72e delat** i statistik (strukturerad, byggbar) och nya **72m** (händelseanalys/lex Maria, byggs inte) – v0.1 blandade två saker med olika juridisk status. (3) **Premisskontrollen har fått ett andra ben, mot marknaden** – kodkontroll fångar aldrig "redan byggt av någon annan". (4) **Nytt genomgående krav 44** om arkivlag och offentlighetsprincip vid kommunal kund; premissen (90 dagars backupgallring, 48 timmars raderingsfönster) verifierad mot kod. (5) **Beslutspunkt 5 omskriven** från byggordning till efterfrågegrind med tre undantag – v0.1 föreslog en byggordning utan kund, vilket är projektets dominerande felmönster. (6) **Arbetsinsatstabellen har fått en kolumn för underhållssvans**, och "högst värde per byggtimme" är struket från 72b: det mätte byggtid, inte ägandekostnad. (7) **Ny beslutspunkt 7 om segment**, eftersom 72c och 72h skevar mot kommunal omsorg medan säljarbetet går mot privat vård. Verifieringstabellen ersatt av granskningens belagda fynd. **Fortfarande ej antagen** – nu sju öppna beslutspunkter |
