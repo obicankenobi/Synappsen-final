@@ -30,6 +30,37 @@
   text-align: right;
 }
 
+/* Etapp L1d: sparklines i kunddossiens "Hälsa"-block. Egen inline-SVG, inget diagram-
+   bibliotek (beslutspunkt 3). */
+.kund-halsa {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kund-halsa__rad h3 {
+  font-size: 0.9rem;
+  margin: 0 0 4px;
+}
+
+.kund-halsa__rad svg {
+  color: var(--primar);
+}
+
+.kund-halsa__tabell {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+.kund-halsa__tabell th,
+.kund-halsa__tabell td {
+  text-align: left;
+  padding: 2px 8px 2px 0;
+  border-bottom: 1px solid var(--kant);
+}
+
 /* Etapp L1a/L1m: panelens skal. LeverantorLayout.jsx monterar varken BottomNav eller
    Sidomeny, så det finns inget nedärvt sidopadding/innehållscontainer att luta sig mot –
    `.app-innehall` (index.css) hör till kundens app. */

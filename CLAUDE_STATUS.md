@@ -4,25 +4,26 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (117 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (121 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-29 · **v5.135.0 committad, inte deployad** (internt arbete, ingen
+**Senast uppdaterad:** 2026-08-30 · **v5.136.0 committad, inte deployad** (internt arbete, ingen
 brådska). Produktion står kvar på 5.132.0 (körning #93, verifierad). Utgående e-post är
-stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. Etapp L1 (leverantörspanelen): **11 av 16
-delmål klara** – L1b (kunddossién) byggd i denna omgång, ovanpå de tio tidigare.
+stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är
+SLUTFÖRD: 16 av 16 delmål klara.** Beslutspunkterna 1–4 avgjordes samlat 2026-08-30, vilket
+löste upp de sista fem delmålen (L1c, L1d, L1e, L1f, L1j) i en och samma omgång.
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0–v5.135.0 väntar på deploy |
+| **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0–v5.136.0 väntar på deploy |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **Senaste kodarbete** | v5.135.0: L1b, kunddossién – fem riktiga sidor (Huvud/Kontakt, Användning, Avtal & ekonomi, Historik, Åtgärder) ersatte den delade platshållaren. En verklig bugg hittad och fixad vid premisskontroll: `listaOrganisationer` returnerade aldrig åtta fält som L1p:s `AvtalOchAtagandeSektion.jsx` redan berodde på. Internt, ingen kundpåverkan |
-| **Senaste dokumentarbete** | 2026-08-29: `intern/ETAPPLAN-INTERN-1.md` v0.9 (L1b markerad klar), `intern/ANDRINGSLOGG-INTERN.md` v5.135.0-post |
-| **Aktiv plan** | `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) – antagen, intern, 11 av 16 delmål klara. Ingen KUNDVÄND plan aktiv sedan Etapp 69; `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
-| **Nästa steg** | **L1e (driftkonsol)** är den enda återstående posten som INTE väntar på ett ägarbeslut. Övriga kvarvarande (L1c/L1d/L1j/L1f) väntar på beslutspunkt 1/3/2/4. Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()` när ägaren vill, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" om det inte redan gjorts |
+| **Senaste kodarbete** | v5.136.0: de sista fem delmålen i Etapp L1 – L1c (mätvärdesaggregat via Cloud Function), L1d (egna SVG-sparklines), L1e (nödstoppsöversikt + åtgärdstidslinje), L1f (leverantören kan begära ett supportfönster i appen; ärendetråden fanns redan sedan Etapp 50c), L1j (bara appversion rapporteras, inte "senast aktiv"). Internt, ingen kundpåverkan |
+| **Senaste dokumentarbete** | 2026-08-30: `intern/ETAPPLAN-INTERN-1.md` v1.0 (samtliga 16 delmål klara), `intern/ANDRINGSLOGG-INTERN.md` v5.136.0-post, `BESLUTSLOGG.md` (beslutspunkterna 1–4), `drift/INCIDENT-CHECKLISTA.md` steg 5 (L1j:s nya fält) |
+| **Aktiv plan** | `intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) – **slutförd, inga delmål kvarstår.** Ingen KUNDVÄND plan aktiv sedan Etapp 69; `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
+| **Nästa steg** | Ingen aktiv intern plan kvarstår. Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()` när ägaren vill, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" om det inte redan gjorts. Beslutspunkt 7 (feedback-inkorgen) är öppen men inget bygge väntar på den |
 
 ## Var du hittar saker
 
@@ -111,6 +112,40 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-08-30 (v5.136.0 – Etapp L1 SLUTFÖRD)
+
+Ägaren bad om beslut på de fyra öppna beslutspunkterna som blockerade de sista fem
+delmålen. Ställde dem samlat; ägaren godkände samtliga fyra rekommendationer utan avvikelse.
+Detaljer i `BESLUTSLOGG.md` 2026-08-30 och `intern/ETAPPLAN-INTERN-1.md` v1.0.
+
+- **Beslutspunkt 1** (L1c): mätvärdesaggregat via Cloud Function (väg B), inte en lossad
+  regel. `hamtaKundmatvarden(orgId)` returnerar bara de redan aggregerade fälten, loggat mot
+  kundens EGEN kedja.
+- **Beslutspunkt 2** (L1j): bara appversion rapporteras (`rapporteraAppVersion`, skrivet på
+  organisationens dokument), inte "senast aktiv" per användare.
+- **Beslutspunkt 3** (L1d): egen inline-SVG (`src/utils/sparkline.js`), inget
+  diagrambibliotek.
+- **Beslutspunkt 4** (L1f): leverantören kan nu BEGÄRA ett supportfönster i appen
+  (`begarSupportAtkomst`/`svaraSupportbegaran`) – kunden godkänner fortfarande själv.
+
+**Två premisskontrollfynd ändrade omfånget innan bygget:** L1f:s punkt 4 (ärendetråd per
+kund) visade sig redan finnas sedan Etapp 50c (`arendeanteckningar`) – planen hade missat
+det. L1e:s punkt 3 (72-timmarsklockan) byggdes redan i L1p. Båda delmålen fick därför ett
+mindre omfång än planen ursprungligen skisserade.
+
+**Två punkter avgränsades MEDVETET bort**, båda dokumenterade i `intern/ETAPPLAN-INTERN-1.md`:
+L1f punkt 3 (läslogg under ett aktivt supportfönster – kräver att instrumentera varje läsväg
+`farSupportlasa()` täcker, ett eget, större delmål) och L1e punkt 2 (ett generaliserat
+`nodstopp/{funktion}`-mönster – en omskrivning av skarp, säkerhetskritisk kod utan att en
+tredje nödstoppsmekanism ännu finns som kräver den).
+
+26 nya tester. Fullt testsvep grönt: lint, build, `npx vitest run` (546 tester, upp från
+535), `npm run test:rules` (inkl. 5 nya för `supportbegaran`), `npm run test:functions`
+(inkl. 17 nya, delade mellan L1c/L1f/L1j i en gemensam testfil), `npm run test:storage`.
+
+**Etapp L1 är därmed slutförd i sin helhet: 16 av 16 delmål.** Enda kvarvarande öppna frågan
+i hela planen är beslutspunkt 7 (feedback-inkorgen) – inget bygge väntar på den.
 
 ## Uppföljning 2026-08-29 (v5.135.0 – L1b byggd)
 
@@ -299,89 +334,3 @@ produktens juridiska hållning bygger på biträdesrollen. Listan stannar i git.
 Ägaren har också gett Cloud Functions-tjänstekontot `roles/firebaseauth.admin` i GCP.
 **Ännu inte verifierat** – `tvingaUtloggning` på ett testkonto är det icke-destruktiva testet.
 Tills det är gjort står raden kvar i `OPPNA-PUNKTER.md`.
-
-## Uppföljning 2026-08-27 (v5.130.0 – release + deploy av Etapp 71)
-
-Versionsbump och release för Etapp 71 (se uppföljningen ovan för det tekniska innehållet).
-Ändringslogg tillagd (`src/data/andringslogg.js`). `saljmaterial/PITCH.md` hade glidit till 16
-minorversioner efter koden (testets gräns är 15) – innehållet skrevs om, inte bara
-versionsraden: Öva-läget (som tidigare INTE nämndes i pitchen alls, trots att det funnits
-sedan v5.102.0), kontoadmin (avstängning/radering), lösenordsåterställning, och startbibliotek
-i efterhand.
-
-Lint, build och hela vitest-sviten (502/502, dokumenttesterna inkluderade) gröna.
-`test:rules`/`test:functions` inte omkörda i det här steget – inga ändringar i
-`firestore.rules`/`functions/` sedan de kördes gröna i förra commiten.
-
-## Uppföljning 2026-08-27 (v5.131.0 – rättslig spärr på utgående e-post)
-
-Brevo togs i drift tidigare samma dag utan att PUB-avtal fanns. Ägaren beslutade att pausa
-allt utgående e-post tills avtalet är tecknat, men hittade inte det globala nödstoppet i
-leverantörsvyn – och en kodsession kan inte trycka på det (ingen firebase/gcloud CLI, inga
-servicekontonycklar, och `systemstatus/epost` är `allow write: if false`).
-
-**Byggt i stället:** en konstant `PUB_AVTAL_BREVO_TECKNAT = false` i `functions/gemensamt.js`.
-`skickaEpost()` returnerar `{skickat: false, anledning: "pub_avtal_saknas"}` utan att kontakta
-Brevo, oavsett driftflaggans läge.
-
-**Varför en kodkonstant framför driftflaggan:** flaggan bär ingen motivering. Den som ser den
-påslagen om tre månader vet inte varför, och risken att den slås av av misstag är exakt det
-mönster projektet dokumenterat sex gånger. En kodändring kräver granskning och driftsättning –
-proportionerligt mot att teckna ett avtal.
-
-**Strukturellt:** utskicket bröts ut till `utforUtskick()`, exporterad som `_utforUtskick`
-enbart för test. Utan det hade fyra testfall (nödstopp, saknad nyckel, faktiskt utskick,
-revisionslogg) tystnat helt medan spärren är på. Valideringen (ogiltig adress, personnummer)
-ligger kvar FÖRE spärren, så ett anroparfel syns även när kanalen är pausad.
-
-`epostSkickat` blir korrekt `false`, och UI:t (rättat i v5.129.0) säger då sanningen om att
-inbjudningslänken måste delas manuellt. Ingen UI-ändring behövdes.
-
-**Att häva:** sätt konstanten till `true`, fyll i datum i `avtal/UNDERBITRADEN.md`, ta bort
-raden ur `OPPNA-PUNKTER.md`. `tests/functions/epost.test.cjs` failar om konstanten ändras.
-
-## Uppföljning 2026-08-28 (v5.131.0 deployad – e-postspärren verifierad i produktion)
-
-Deploykörning #92 lyckades och är verifierad mot **faktiskt utfall**, inte mot jobbstatusen.
-Skälet: körning #90 dagen innan rapporterade `success` men saknade
-`hosting: finalizing version / release complete / Deploy complete!` i loggen, och produktionen
-fortsatte servera föregående version. Att lita på `conclusion: success` räcker alltså inte.
-
-**Verifierat för #92:** alla fyra hosting-releaseraderna finns i loggen, `last-modified` på
-produktionens `index.html` matchar deployens sluttid (12:31:29 UTC), `version-*.js` innehåller
-`5.131.0`, och de tre funktioner som kan skicka e-post – `skapaInbjudan`,
-`skickaEpostPaminnelserSchemalagt`, `skickaManadssammanfattningarSchemalagt` – rapporterade
-alla "Successful update operation".
-
-**Utgående e-post är därmed faktiskt stoppat**, inte bara beslutat.
-
-**Testerna som spärren avslöjade:** tre filer antog att e-post faktiskt skickas. Två löstes
-genom att bryta ut mejlkompositionen till rena funktioner (`byggInbjudningsmejl`,
-`byggPaminnelseDigest`) – bättre design oavsett spärren. Den tredje
-(`manadssammanfattning.test.cjs`) testar mottagarurval och opt-out, vilket kräver att utskicket
-faktiskt sker; där används `_sattPubAvtalOverridForTest`, med en assertion i `epost.test.cjs`
-som failar om någon produktionsfil under `functions/` någonsin refererar till överridet.
-
-**Kvar att göra för ägaren:** teckna Brevos DPA, sätt sedan `PUB_AVTAL_BREVO_TECKNAT = true`,
-fyll i datum i `avtal/UNDERBITRADEN.md` och ta bort raden ur `OPPNA-PUNKTER.md`.
-
-## Uppföljning 2026-08-28 (v5.132.0 – rätt orsak när ett mejl uteblir)
-
-Ägaren testade att bjuda in någon för att bekräfta att spärren biter. Den gjorde det – men
-texten sa **"e-post är inte konfigurerat för den här installationen"**, vilket är osant:
-nyckeln är satt och domänen verifierad, utskicket är pausat av rättsliga skäl.
-
-Orsak: `skapaInbjudan` returnerade bara `epostSkickat: true/false`, så gränssnittet hade EN
-hårdkodad förklaring för alla utfall. Den råkade stämma medan nyckeln saknades och blev osann
-i samma stund som spärren infördes. Samma klass av fel som Etapp 70c rättade – det borde ha
-setts när spärren byggdes, inte efter att ägaren stötte på det.
-
-**Två fel i själva rättelsen, båda fångade av tester:**
-1. Anledningen skickades inte med alls från servern.
-2. `onCall`-wrappern destrukturerade fortfarande `{ token, epostSkickat }` och tappade
-   `epostAnledning` på sista raden ut. Utan testet hade en "rättelse" deployats som inte
-   ändrade någonting i gränssnittet.
-
-`EPOST_ANLEDNING_TEXT` i `InbjudanFormular.jsx` mappar nu orsak → text. Formuleringen mot kund
-är neutral ("utgående e-post är tillfälligt pausat") – sann utan att lufta att det handlar om
-ett osignerat biträdesavtal.

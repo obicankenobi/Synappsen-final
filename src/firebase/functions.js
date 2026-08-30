@@ -126,6 +126,13 @@ export function listaOrganisationer() {
   return fn();
 }
 
+// Etapp L1j – rapporterar bara appversionen (aldrig "senast aktiv" per användare, se
+// beslutspunkt 2 i intern/ETAPPLAN-INTERN-1.md). Anropas tyst en gång per inloggning.
+export function rapporteraAppVersion(version) {
+  const fn = httpsCallable(functions, "rapporteraAppVersion");
+  return fn({ version });
+}
+
 // Etapp 50a – strukturell diagnostik per organisation (metadata, aldrig dokumentinnehåll)
 export function hamtaOrganisationsdiagnostik(orgId) {
   const fn = httpsCallable(functions, "hamtaOrganisationsdiagnostik");
@@ -142,6 +149,25 @@ export function hamtaLeverantorsAtgardslogg(limit) {
 export function hamtaKundensLeverantorshistorik(orgId) {
   const fn = httpsCallable(functions, "hamtaKundensLeverantorshistorik");
   return fn({ orgId });
+}
+
+// Etapp L1c (beslutspunkt 1) – kundens mätvärdesaggregat, senaste 12 veckorna. Loggas mot
+// kundens EGEN revisionskedja i functions/matvarden.js, inte "_plattform".
+export function hamtaKundmatvarden(orgId) {
+  const fn = httpsCallable(functions, "hamtaKundmatvarden");
+  return fn({ orgId });
+}
+
+// Etapp L1f (beslutspunkt 4) – leverantören begär ett supportfönster i appen, kundens
+// superadmin godkänner/avslår fortfarande själv (svaraSupportbegaran).
+export function begarSupportAtkomst(orgId, anledning) {
+  const fn = httpsCallable(functions, "begarSupportAtkomst");
+  return fn({ orgId, anledning });
+}
+
+export function svaraSupportbegaran(begaranId, godkann) {
+  const fn = httpsCallable(functions, "svaraSupportbegaran");
+  return fn({ begaranId, godkann });
 }
 
 // Etapp 51 – demo-/övningsorganisation: nollställ innehållet, valfritt med en färsk

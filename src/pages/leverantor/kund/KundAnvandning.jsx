@@ -1,9 +1,13 @@
 import { useOutletContext } from "react-router-dom";
 
-// Etapp L1b, block 4 "Användning". "Senaste aktivitet" byggdes MEDVETET INTE – planen kräver
-// L1j, som i sin tur väntar på beslutspunkt 2 (ägaren har inte tagit ställning till om
-// klienten ska rapportera "senast aktiv" per användare – en form av personalövervakning som
-// behöver ett tydligare syfte innan den byggs).
+function formateraTid(tidpunkt) {
+  if (!tidpunkt) return "-";
+  return new Date(tidpunkt).toLocaleString("sv-SE");
+}
+
+// Etapp L1b, block 4 "Användning". Etapp L1j fyllde "Senaste aktivitet" med appversion (se
+// beslutspunkt 2, avgjord 2026-08-30: BARA version, aldrig "senast aktiv" per användare –
+// det vore en form av personalövervakning som behöver ett tydligare syfte).
 export default function KundAnvandning() {
   const { org, sokkvot } = useOutletContext();
   const egetTak = org.sokkvotTakPerDygn ?? sokkvot?.orgTakStandard ?? null;
@@ -38,11 +42,21 @@ export default function KundAnvandning() {
       </section>
 
       <section className="admin-sektion">
-        <h2>Senaste aktivitet</h2>
+        <h2>Version</h2>
         <p className="sida__beskrivning">
-          Inte byggt – kräver L1j och ett ägarbeslut (beslutspunkt 2) om huruvida klienten ska
-          rapportera "senast aktiv" per användare. Se <code>intern/ETAPPLAN-INTERN-1.md</code>.
+          Vilken appversion en klient hos kunden senast rapporterade vid inloggning. PWA:n
+          cachar, så en kund kan ligga efter en release utan att någon märker det.
         </p>
+        <dl className="kund-lista">
+          <div>
+            <dt>Senast rapporterade version</dt>
+            <dd>{org.senasteAppVersion ?? "Okänd (ingen inloggning sedan L1j byggdes)"}</dd>
+          </div>
+          <div>
+            <dt>Rapporterad</dt>
+            <dd>{formateraTid(org.senasteAppVersionTid)}</dd>
+          </div>
+        </dl>
       </section>
     </div>
   );

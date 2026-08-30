@@ -28,6 +28,7 @@ const {
   aktuellManadNyckel,
   loggaRevision,
   kravPlattformsadmin,
+  hamtaAnvandarInfo,
 } = require("./gemensamt");
 const { skapaInbjudanIntern } = require("./inbjudningar");
 
@@ -355,6 +356,10 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
         atagandeblock: data.atagandeblock
           ? { text: data.atagandeblock.text, andrad: data.atagandeblock.andrad?.toDate?.().toISOString() ?? null }
           : null,
+        // Etapp L1j (beslutspunkt 2, avgjord 2026-08-30): bara appversion, medvetet INTE
+        // "senast aktiv" per användare (se rapporteraAppVersion nedan för motiveringen).
+        senasteAppVersion: data.senasteAppVersion ?? null,
+        senasteAppVersionTid: data.senasteAppVersionTid?.toDate?.().toISOString() ?? null,
       };
     })
   );
@@ -384,6 +389,32 @@ exports.listaOrganisationer = onCall({ region: "europe-west1" }, async (request)
     sammanfattning: `Listade ${organisationer.length} organisationer`,
   });
   return { organisationer, sokkvot, epostAvstangd };
+});
+
+// Etapp L1j (beslutspunkt 2, avgjord 2026-08-30): bara APPVERSION rapporteras, aldrig
+// "senast aktiv" per användare – versionen är ren drift (PWA:n cachar, en kund kan ligga
+// efter utan att någon vet) och pekar inte ut en specifik person, medan "senast aktiv" är
+// närmare övervakning av personal och avvaktas tills ett tydligare syfte finns (se
+// BESLUTSLOGG.md 2026-08-30). Skriver på ORGANISATIONENS dokument (inte per användare) –
+// senaste inloggade klientens version, "senast vunnen" om flera klienter är öppna samtidigt,
+// vilket räcker för syftet: se om en kund ligger kvar på en gammal version.
+exports.rapporteraAppVersion = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const version = request.data?.version;
+  if (!version || typeof version !== "string" || version.length > 40) {
+    throw new HttpsError("invalid-argument", "version krävs (sträng, max 40 tecken).");
+  }
+  const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
+  await db.collection("organisationer").doc(organisationId).set(
+    {
+      senasteAppVersion: version,
+      senasteAppVersionTid: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { ok: true };
 });
 
 // Etapp 51: en demo-/övningsorganisation som aldrig är en riktig kund – en säljdemo eller en

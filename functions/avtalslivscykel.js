@@ -793,6 +793,112 @@ exports.avslutaSupportAtkomst = onCall({ region: "europe-west1" }, async (reques
   return { ok: true };
 });
 
+// Etapp L1f (beslutspunkt 4, avgjord 2026-08-30): premisskontrollen visade att leverantören
+// inte ens kunde BEGÄRA ett supportfönster – bara telefon/mejl utanför appen. Samtycket ligger
+// KVAR HOS KUNDEN (bara den manuella kontakten försvinner): en begäran skapar ett väntande
+// dokument som kundens superadmin ser och själv godkänner eller avslår, exakt som idag, bara
+// med ett steg mindre utanför appen.
+exports.begarSupportAtkomst = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+  const orgId = request.data?.orgId;
+  const anledning = (request.data?.anledning ?? "").trim();
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+  if (!anledning) {
+    throw new HttpsError("invalid-argument", "En anledning måste anges.");
+  }
+  const ref = await db.collection("organisationer").doc(orgId).collection("supportbegaran").add({
+    anledning,
+    begardAv: request.auth.uid,
+    begardTid: admin.firestore.FieldValue.serverTimestamp(),
+    status: "vantar",
+  });
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "support_atkomst_begard",
+    objektTyp: "supportbegaran",
+    objektId: ref.id,
+    sammanfattning: `Supportåtkomst begärd. Anledning: ${anledning}`,
+  });
+  return { id: ref.id };
+});
+
+exports.svaraSupportbegaran = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  const uppringare = await hamtaAnvandarInfo(request.auth.uid);
+  if (uppringare.roll !== "superadmin") {
+    throw new HttpsError("permission-denied", "Endast superadmin kan svara på en supportbegäran.");
+  }
+  const begaranId = request.data?.begaranId;
+  const godkann = request.data?.godkann;
+  if (!begaranId || typeof begaranId !== "string") {
+    throw new HttpsError("invalid-argument", "begaranId krävs.");
+  }
+  if (typeof godkann !== "boolean") {
+    throw new HttpsError("invalid-argument", "godkann (boolean) krävs.");
+  }
+  const orgId = uppringare.organisationId;
+  const ref = db.collection("organisationer").doc(orgId).collection("supportbegaran").doc(begaranId);
+  const snap = await ref.get();
+  if (!snap.exists) {
+    throw new HttpsError("not-found", "Begäran hittades inte.");
+  }
+  if (snap.data().status !== "vantar") {
+    throw new HttpsError("failed-precondition", "Begäran är redan besvarad.");
+  }
+
+  if (godkann) {
+    const till = new Date(Date.now() + SUPPORTATKOMST_FONSTER_TIMMAR * 60 * 60 * 1000);
+    await db.collection("organisationer").doc(orgId).set(
+      {
+        supportAtkomstTill: admin.firestore.Timestamp.fromDate(till),
+        supportAtkomstBeviljadAv: request.auth.uid,
+        supportAtkomstAnledning: snap.data().anledning,
+      },
+      { merge: true }
+    );
+    await ref.update({
+      status: "godkand",
+      besvaradTid: admin.firestore.FieldValue.serverTimestamp(),
+      besvaradAv: request.auth.uid,
+    });
+    await loggaRevision({
+      organisationId: orgId,
+      aktorUid: request.auth.uid,
+      aktorRoll: "superadmin",
+      handelsetyp: "support_atkomst_beviljad",
+      objektTyp: "organisationer",
+      objektId: orgId,
+      sammanfattning: `Supportåtkomst beviljad efter begäran, till ${till.toISOString()}. Anledning: ${snap.data().anledning}`,
+    });
+    return { till: till.toISOString() };
+  }
+
+  await ref.update({
+    status: "avslagen",
+    besvaradTid: admin.firestore.FieldValue.serverTimestamp(),
+    besvaradAv: request.auth.uid,
+  });
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "superadmin",
+    handelsetyp: "support_atkomst_avslagen",
+    objektTyp: "supportbegaran",
+    objektId: begaranId,
+    sammanfattning: "Supportbegäran avslagen",
+  });
+  return { ok: true };
+});
+
 // Etapp 49a: den faktiska, irreversibla raderingen – körs ENDAST av
 // utforSchemalagdRaderingSchemalagt nedan efter att väntetiden gått ut, aldrig direkt av en
 // callable. Ordning, av en anledning:

@@ -1,6 +1,14 @@
 {
   "indexes": [
     {
+      "collectionGroup": "supportbegaran",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "begardTid", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "andringsforslag",
       "queryScope": "COLLECTION",
       "fields": [

@@ -4415,3 +4415,89 @@ stänger inte ute någon som kan lösenordet – raden pekar nu på avstängning
 > tvingad utloggning i produktion – koden är rätt, behörigheten saknas. Se `OPPNA-PUNKTER.md`.
 
 ---
+
+## Uppföljning 2026-08-27 (v5.130.0 – release + deploy av Etapp 71)
+
+Versionsbump och release för Etapp 71 (se uppföljningen ovan för det tekniska innehållet).
+Ändringslogg tillagd (`src/data/andringslogg.js`). `saljmaterial/PITCH.md` hade glidit till 16
+minorversioner efter koden (testets gräns är 15) – innehållet skrevs om, inte bara
+versionsraden: Öva-läget (som tidigare INTE nämndes i pitchen alls, trots att det funnits
+sedan v5.102.0), kontoadmin (avstängning/radering), lösenordsåterställning, och startbibliotek
+i efterhand.
+
+Lint, build och hela vitest-sviten (502/502, dokumenttesterna inkluderade) gröna.
+`test:rules`/`test:functions` inte omkörda i det här steget – inga ändringar i
+`firestore.rules`/`functions/` sedan de kördes gröna i förra commiten.
+
+## Uppföljning 2026-08-27 (v5.131.0 – rättslig spärr på utgående e-post)
+
+Brevo togs i drift tidigare samma dag utan att PUB-avtal fanns. Ägaren beslutade att pausa
+allt utgående e-post tills avtalet är tecknat, men hittade inte det globala nödstoppet i
+leverantörsvyn – och en kodsession kan inte trycka på det (ingen firebase/gcloud CLI, inga
+servicekontonycklar, och `systemstatus/epost` är `allow write: if false`).
+
+**Byggt i stället:** en konstant `PUB_AVTAL_BREVO_TECKNAT = false` i `functions/gemensamt.js`.
+`skickaEpost()` returnerar `{skickat: false, anledning: "pub_avtal_saknas"}` utan att kontakta
+Brevo, oavsett driftflaggans läge.
+
+**Varför en kodkonstant framför driftflaggan:** flaggan bär ingen motivering. Den som ser den
+påslagen om tre månader vet inte varför, och risken att den slås av av misstag är exakt det
+mönster projektet dokumenterat sex gånger. En kodändring kräver granskning och driftsättning –
+proportionerligt mot att teckna ett avtal.
+
+**Strukturellt:** utskicket bröts ut till `utforUtskick()`, exporterad som `_utforUtskick`
+enbart för test. Utan det hade fyra testfall (nödstopp, saknad nyckel, faktiskt utskick,
+revisionslogg) tystnat helt medan spärren är på. Valideringen (ogiltig adress, personnummer)
+ligger kvar FÖRE spärren, så ett anroparfel syns även när kanalen är pausad.
+
+`epostSkickat` blir korrekt `false`, och UI:t (rättat i v5.129.0) säger då sanningen om att
+inbjudningslänken måste delas manuellt. Ingen UI-ändring behövdes.
+
+**Att häva:** sätt konstanten till `true`, fyll i datum i `avtal/UNDERBITRADEN.md`, ta bort
+raden ur `OPPNA-PUNKTER.md`. `tests/functions/epost.test.cjs` failar om konstanten ändras.
+
+## Uppföljning 2026-08-28 (v5.131.0 deployad – e-postspärren verifierad i produktion)
+
+Deploykörning #92 lyckades och är verifierad mot **faktiskt utfall**, inte mot jobbstatusen.
+Skälet: körning #90 dagen innan rapporterade `success` men saknade
+`hosting: finalizing version / release complete / Deploy complete!` i loggen, och produktionen
+fortsatte servera föregående version. Att lita på `conclusion: success` räcker alltså inte.
+
+**Verifierat för #92:** alla fyra hosting-releaseraderna finns i loggen, `last-modified` på
+produktionens `index.html` matchar deployens sluttid (12:31:29 UTC), `version-*.js` innehåller
+`5.131.0`, och de tre funktioner som kan skicka e-post – `skapaInbjudan`,
+`skickaEpostPaminnelserSchemalagt`, `skickaManadssammanfattningarSchemalagt` – rapporterade
+alla "Successful update operation".
+
+**Utgående e-post är därmed faktiskt stoppat**, inte bara beslutat.
+
+**Testerna som spärren avslöjade:** tre filer antog att e-post faktiskt skickas. Två löstes
+genom att bryta ut mejlkompositionen till rena funktioner (`byggInbjudningsmejl`,
+`byggPaminnelseDigest`) – bättre design oavsett spärren. Den tredje
+(`manadssammanfattning.test.cjs`) testar mottagarurval och opt-out, vilket kräver att utskicket
+faktiskt sker; där används `_sattPubAvtalOverridForTest`, med en assertion i `epost.test.cjs`
+som failar om någon produktionsfil under `functions/` någonsin refererar till överridet.
+
+**Kvar att göra för ägaren:** teckna Brevos DPA, sätt sedan `PUB_AVTAL_BREVO_TECKNAT = true`,
+fyll i datum i `avtal/UNDERBITRADEN.md` och ta bort raden ur `OPPNA-PUNKTER.md`.
+
+## Uppföljning 2026-08-28 (v5.132.0 – rätt orsak när ett mejl uteblir)
+
+Ägaren testade att bjuda in någon för att bekräfta att spärren biter. Den gjorde det – men
+texten sa **"e-post är inte konfigurerat för den här installationen"**, vilket är osant:
+nyckeln är satt och domänen verifierad, utskicket är pausat av rättsliga skäl.
+
+Orsak: `skapaInbjudan` returnerade bara `epostSkickat: true/false`, så gränssnittet hade EN
+hårdkodad förklaring för alla utfall. Den råkade stämma medan nyckeln saknades och blev osann
+i samma stund som spärren infördes. Samma klass av fel som Etapp 70c rättade – det borde ha
+setts när spärren byggdes, inte efter att ägaren stötte på det.
+
+**Två fel i själva rättelsen, båda fångade av tester:**
+1. Anledningen skickades inte med alls från servern.
+2. `onCall`-wrappern destrukturerade fortfarande `{ token, epostSkickat }` och tappade
+   `epostAnledning` på sista raden ut. Utan testet hade en "rättelse" deployats som inte
+   ändrade någonting i gränssnittet.
+
+`EPOST_ANLEDNING_TEXT` i `InbjudanFormular.jsx` mappar nu orsak → text. Formuleringen mot kund
+är neutral ("utgående e-post är tillfälligt pausat") – sann utan att lufta att det handlar om
+ett osignerat biträdesavtal.

@@ -9,6 +9,7 @@ import {
   seedaStartbibliotek,
   exporteraOrganisation,
   avslutaSupportAtkomst,
+  begarSupportAtkomst,
 } from "../../firebase/functions";
 import { AVTALSSTATUS_ETIKETT } from "./avtalsstatusEtikett";
 import { VERKSAMHETSTYPER } from "../../config/verksamhetstyper";
@@ -30,6 +31,8 @@ export default function KundAtgarderSektion({ org, onAndrad, onFel }) {
   const [huvudmanDraft, setHuvudmanDraft] = useState(org.huvudman ?? "");
   const [verksamhetstyp, setVerksamhetstyp] = useState("");
   const [seedResultat, setSeedResultat] = useState(null);
+  const [supportAnledning, setSupportAnledning] = useState("");
+  const [supportBegard, setSupportBegard] = useState(false);
 
   async function korMed(fn) {
     setPagar(true);
@@ -102,6 +105,22 @@ export default function KundAtgarderSektion({ org, onAndrad, onFel }) {
     await korMed(() => avslutaSupportAtkomst(org.orgId));
   }
 
+  async function hanteraBegarSupport() {
+    const anledning = supportAnledning.trim();
+    if (!anledning) return;
+    setPagar(true);
+    onFel?.(null);
+    try {
+      await begarSupportAtkomst(org.orgId, anledning);
+      setSupportAnledning("");
+      setSupportBegard(true);
+    } catch (fel) {
+      onFel?.(fel.message ?? "Kunde inte begära supportåtkomst.");
+    } finally {
+      setPagar(false);
+    }
+  }
+
   return (
     <div>
       <section className="admin-sektion">
@@ -128,6 +147,32 @@ export default function KundAtgarderSektion({ org, onAndrad, onFel }) {
             </button>
           </p>
         )}
+      </section>
+
+      <section className="admin-sektion">
+        <h2>Support</h2>
+        <p className="sida__beskrivning">
+          Begär ett supportfönster i stället för att kontakta kunden manuellt. Kundens
+          superadmin ser begäran och godkänner eller avslår den fortfarande själv – bara den
+          manuella kontakten utanför appen försvinner.
+        </p>
+        <label>
+          Anledning (obligatoriskt)
+          <textarea
+            rows={2}
+            value={supportAnledning}
+            onChange={(e) => setSupportAnledning(e.target.value)}
+          />
+        </label>
+        <button
+          type="button"
+          className="knapp knapp--liten"
+          disabled={pagar || !supportAnledning.trim()}
+          onClick={hanteraBegarSupport}
+        >
+          Begär supportåtkomst
+        </button>
+        {supportBegard && <p className="sida__beskrivning">Begäran skickad. Väntar på kundens svar.</p>}
       </section>
 
       <section className="admin-sektion">

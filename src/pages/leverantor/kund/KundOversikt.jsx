@@ -1,6 +1,9 @@
 import { useOutletContext } from "react-router-dom";
+import KundHalsaSektion from "../../../components/leverantor/KundHalsaSektion";
 
-// Etapp L1b (intern/ETAPPLAN-INTERN-1.md), block 1 "Huvud" + block 2 "Kontakt".
+// Etapp L1b (intern/ETAPPLAN-INTERN-1.md), block 1 "Huvud" + block 2 "Kontakt". Block 5
+// "Hälsa" fylldes av L1c+L1d (2026-08-30) med KundHalsaSektion, sedan beslutspunkt 1 och 3
+// avgjordes samma dag.
 //
 // Block 2 är MEDVETET avgränsat till kontaktperson (redan lagrad, leverantörsvänt metadata
 // sedan Etapp 6b). "Vem som är superadmin" och "när de senast bjöd in någon" byggdes INTE:
@@ -11,7 +14,7 @@ import { useOutletContext } from "react-router-dom";
 // personers namn i en annan organisation är inte det). Kräver ett eget ägarbeslut, inte en
 // biprodukt av L1b.
 export default function KundOversikt() {
-  const { org } = useOutletContext();
+  const { org, setFel } = useOutletContext();
 
   return (
     <div>
@@ -68,11 +71,10 @@ export default function KundOversikt() {
       <section className="admin-sektion">
         <h2>Hälsa</h2>
         <p className="sida__beskrivning">
-          Mätvärdestrend – inte byggt. Kräver L1c och ett ägarbeslut (beslutspunkt 1): i dag
-          är <code>matvardenSnapshots</code> inte läsbara för en plattformsadmin, och att lossa
-          den regeln utan spårning vore en utvidgning av vad biträdet ser om kundens
-          verksamhet. Se <code>intern/ETAPPLAN-INTERN-1.md</code>.
+          Mätvärdesaggregat, senaste 12 veckorna. Varje läsning loggas i kundens egen
+          revisionskedja (samma sätt som ett supportfönster redan hade synts).
         </p>
+        <KundHalsaSektion orgId={org.orgId} onFel={setFel} />
       </section>
     </div>
   );

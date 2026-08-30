@@ -101,6 +101,7 @@ exports.skickaManadssammanfattningarSchemalagt = matvarden.skickaManadssammanfat
 exports.beraknaKvartal = matvarden.beraknaKvartal;
 exports.svaraPersonalpuls = matvarden.svaraPersonalpuls;
 exports.exporteraReferensunderlag = matvarden.exporteraReferensunderlag;
+exports.hamtaKundmatvarden = matvarden.hamtaKundmatvarden;
 
 // ── plattformsdrift.js – plattformsdrift och support
 const plattformsdrift = require("./plattformsdrift");
@@ -139,6 +140,7 @@ const organisationslivscykel = require("./organisationslivscykel");
 exports.skapaOrganisation = organisationslivscykel.skapaOrganisation;
 exports.seedaStartbibliotek = organisationslivscykel.seedaStartbibliotek;
 exports.listaOrganisationer = organisationslivscykel.listaOrganisationer;
+exports.rapporteraAppVersion = organisationslivscykel.rapporteraAppVersion;
 exports.nollstallDemoOrganisation = organisationslivscykel.nollstallDemoOrganisation;
 exports.nollstallDemoOrganisationSchemalagt = organisationslivscykel.nollstallDemoOrganisationSchemalagt;
 
@@ -168,6 +170,8 @@ exports.begarRaderingAvOrganisation = avtalslivscykel.begarRaderingAvOrganisatio
 exports.avbrytRaderingAvOrganisation = avtalslivscykel.avbrytRaderingAvOrganisation;
 exports.beviljaSupportAtkomst = avtalslivscykel.beviljaSupportAtkomst;
 exports.avslutaSupportAtkomst = avtalslivscykel.avslutaSupportAtkomst;
+exports.begarSupportAtkomst = avtalslivscykel.begarSupportAtkomst;
+exports.svaraSupportbegaran = avtalslivscykel.svaraSupportbegaran;
 exports.raderaOrganisationensData = avtalslivscykel.raderaOrganisationensData;
 exports.utforSchemalagdRaderingSchemalagt = avtalslivscykel.utforSchemalagdRaderingSchemalagt;
 

@@ -1,11 +1,11 @@
 # Intern etapplan 1 – Leverantörspanelen
 
-**Etapp L1. ANTAGEN 2026-08-29.** Skriven 2026-08-27 på ägarens begäran, utökad 2026-08-29
-(v0.2–v0.5) och därefter antagen i sin helhet. Ingen kod är ännu skriven – antagandet gör
-planen byggbar, i den beroendeordning avsnittet "Beroendeordning" nedan anger, med start i
-L1m. **Antagandet av planen svarar INTE på alla sju beslutspunkter** – se tabellen: 5 och 6
-är redan avgjorda genom hur planen är byggd, medan 1–4 och 7 kvarstår öppna och avgörs var
-för sig innan respektive delmål (L1c, L1d, L1f, L1j) påbörjas.
+**Etapp L1. SLUTFÖRD 2026-08-30.** Skriven 2026-08-27 på ägarens begäran, utökad 2026-08-29
+(v0.2–v0.5), antagen i sin helhet 2026-08-29, och byggd i fyra omgångar under samma vecka
+(se "Uppskattad arbetsinsats" och "Versionshistorik" nedan). Samtliga 16 delmål (L1a–L1p) är
+klara. Beslutspunkterna 5 och 6 avgjordes genom antagandet; 1–4 avgjordes samlat 2026-08-30
+(se `BESLUTSLOGG.md`), vilket löste upp de sista fem delmålen. Bara beslutspunkt 7
+(feedback-inkorgen) är fortfarande öppen, och inget delmål väntar på den.
 
 > **Varför den här filen ligger i `intern/` och inte i `etapplaner/`.**
 > Ägaren bad uttryckligen om att arbetet ska hållas skilt från den kundvända
@@ -778,7 +778,7 @@ testsvep grönt: lint, build, 535 vitest (oförändrat antal – inga nya vitest
 
 ---
 
-### L1c. Mätvärden per kund — kräver ett ägarbeslut
+### L1c. Mätvärden per kund — ✅ KLAR 2026-08-30
 
 Premisskontrollen visade att `matvardenSnapshots` inte är läsbar för plattformsadmin. Två
 vägar:
@@ -788,13 +788,22 @@ vägar:
 | **A. Lossa regeln** | `allow read: if … \|\| arPlattformsadmin()` | Leverantören får läsa varje kunds mätvärden när som helst, utan supportfönster och utan spår |
 | **B. Cloud Function** (rekommenderas) | `hamtaKundmatvarden(orgId)` läser med Admin SDK, returnerar bara aggregat, revisionsloggar varje anrop mot kundens kedja | Mer kod. Men åtkomsten blir spårbar, avgränsad och möjlig att villkora |
 
-Väg B uppfyller krav 37 och 38; väg A gör det inte. Se beslutspunkt 1 – det är ägarens beslut
-eftersom det utvidgar vad biträdet ser om den personuppgiftsansvariges verksamhet, och därför
-berör `avtal/DPIA-UNDERLAG.md` och PUB-avtalet.
+Väg B uppfyller krav 37 och 38; väg A gör det inte. Beslutspunkt 1 avgjordes 2026-08-30: väg B.
+
+**Byggt:** `hamtaKundmatvarden(orgId)` (`functions/matvarden.js`), plattformsadmin-gated,
+returnerar ENDAST de redan aggregerade fälten från de senaste 12 veckornas
+`matvardenSnapshots` (ingen enskild rutin, inget användarnamn, ingen sökfråga) och
+revisionsloggar varje anrop mot **kundens egen** kedja (inte `_plattform`) – kunden ser i sin
+egen historik att aggregaten lästs, precis som ett supportfönster redan hade synts. Klient:
+`hamtaKundmatvarden` i `src/firebase/functions.js`, använd av `KundHalsaSektion.jsx` (se L1d).
+
+**Testat.** `tests/functions/kundmatvarden-och-appversion.test.cjs`: åtkomstnekad för
+icke-plattformsadmin, bara de aggregerade fälten (inget läckt rutininnehåll), loggas mot
+kundens kedja.
 
 ---
 
-### L1d. Visualisering
+### L1d. Visualisering — ✅ KLAR 2026-08-30
 
 Appen har inget diagrambibliotek och en CSP som blockerar externa resurser. Två vägar:
 
@@ -803,15 +812,28 @@ Appen har inget diagrambibliotek och en CSP som blockerar externa resurser. Två
 | **Egen inline-SVG** (rekommenderas) | ~150 rader, noll beroenden, inget CSP-problem | De tre former som faktiskt behövs: sparkline (veckoserie), stapel (jämför kunder), donut (fördelning) |
 | **Recharts e.d.** | ~100 kB gzip, nytt beroende att hålla uppdaterat | Om behovet växer till interaktiva, zoombara diagram |
 
-Datamängden är liten (veckovisa punkter, en stapel per kund). Rekommendationen är egen SVG
-tills något faktiskt kräver mer. Se beslutspunkt 3.
+Datamängden är liten (veckovisa punkter, en stapel per kund). Beslutspunkt 3 avgjordes
+2026-08-30: egen SVG.
 
 **Krav:** varje diagram ska ha en textalternativ-tabell bakom en `<details>` – dels WCAG, dels
 för att siffran ofta är det man faktiskt vill läsa av.
 
+**Byggt:** `src/utils/sparkline.js` (`genereraSparklinePath`, ren funktion – tar en lista tal
+inklusive `null` för saknade veckor, räknar ut en SVG-path, ingen DOM-beroende). Bara
+sparklinen byggdes (den enda av de tre formerna kunddossién faktiskt behöver just nu; stapel/
+donut väntar tills ett verkligt behov, t.ex. en portföljjämförelse, faktiskt uppstår – samma
+"bygg inte i förväg"-princip som resten av planen). `KundHalsaSektion.jsx` renderar en
+sparkline per mätvärde (kvitteringsgrad klin/adm, andel nollträffar, innehållshälsa) plus en
+`<details>` med en fullständig tabell bakom varje kurva (WCAG-kravet ovan), fyller L1b:s
+"Hälsa"-block i `KundOversikt.jsx`.
+
+**Testat.** `src/utils/sparkline.test.js`, 7 tester: tom lista, alla värden `null`,
+utspridda `null`-luckor, en enda punkt, en konstant serie (ingen division med noll), stigande
+serie (rätt SVG-y-riktning), respekterar angiven bredd/höjd/marginal.
+
 ---
 
-### L1e. Driftkonsol och incidentrespons
+### L1e. Driftkonsol och incidentrespons — ✅ KLAR 2026-08-30 (punkt 1, 3, 4 – punkt 2 avgränsad bort)
 
 I dag är nödstoppen utspridda och olikformiga: e-poststoppet är ett fält i `systemstatus/epost`,
 kvisspaketstoppet är ett dokument per paket, pausning ligger på organisationen, tvingad
@@ -833,9 +855,28 @@ utloggning är en callable per användare.
 **Avgränsning:** ingen APM, ingen uptime-övervakning, ingen larmkanal. Det är en annan
 produktkategori, och Sentry täcker felrapporteringen redan.
 
+**Byggt:** punkt 3 (72-timmarsklockan) byggdes redan i L1p (`IncidentklockaSektion.jsx`) –
+ingen ny kod här. Punkt 1: `NodstoppsoversiktSektion.jsx` visar e-postnödstoppets och varje
+Öva-lägespakets läge i EN lista, live-lyssnad, utan att man behöver öppna Innehåll-fliken för
+att se paketstatusen. Pausning per kund och tvingad utloggning per användare är riktade
+åtgärder utan ett eget globalt "läge" att visa – de hänvisas till kunddossién i stället för
+att tvingas in i en översikt de inte passar i. Punkt 4: samma komponent filtrerar
+`hamtaLeverantorsAtgardslogg` (L1g) till de sju händelsetyper som faktiskt är en
+nödstopps-/pausningsåtgärd (`src/utils/atgardstidslinje.js`) – ingen ny logg, bara ett filter
+ovanpå en redan existerande, redan testad datakälla (krav 39).
+
+**Punkt 2 byggdes MEDVETET INTE.** Att migrera de två befintliga, skarpa nödstoppen
+(e-post, Öva-läge) till ett nytt `nodstopp/{funktion}`-mönster är en omskrivning av
+säkerhetskritisk kod utan att lösa något akut problem – ingen tredje mekanism finns ännu som
+skulle tvinga fram ett gemensamt mönster. Risken (att göra om ett fungerande nödstopp) väger
+tyngre än vinsten just nu. Görs om och när en tredje nödstoppsmekanism faktiskt tillkommer.
+
+**Testat.** `src/utils/atgardstidslinje.test.js`, 4 tester: tom/saknad indata, släpper igenom
+nödstopps-/pausningshändelser, filtrerar bort allt annat, bevarar ordningen.
+
 ---
 
-### L1f. Supportarbetsyta
+### L1f. Supportarbetsyta — ✅ KLAR 2026-08-30 (punkt 1, 2 – punkt 3 avgränsad bort, punkt 4 redan byggd sedan Etapp 50c)
 
 Supportåtkomsten (Etapp 50b) är tidsbegränsad och kundinitierad – bra modell, dålig
 ergonomi. Premisskontrollen visade att leverantören inte ens kan **begära** ett fönster: det
@@ -853,6 +894,40 @@ måste ske via telefon eller mejl utanför appen.
    ställning och är rimlig att visa i ett PUB-sammanhang.
 4. **Ärendetråd per kund** – anteckningar, kopplade till kunddossién. Inte ett ärendesystem;
    en anteckningsbok som överlever att man glömmer.
+
+**Premisskontrollfynd (2026-08-30): punkt 4 fanns redan.** `organisationer/{orgId}/
+arendeanteckningar` byggdes i Etapp 50c – exakt "en anteckningsbok som överlever att man
+glömmer", plattformsadmin-bara, redan i produktion, reachable från `OrganisationsListaSektion.jsx`.
+Planen hade inte upptäckt detta när L1f skrevs. Ingen ny kod, bara ett rättat antagande.
+
+**Byggt (punkt 1):** `begarSupportAtkomst(orgId, anledning)` (plattformsadmin-gated) skapar
+`organisationer/{orgId}/supportbegaran/{id}` med status `vantar`. `svaraSupportbegaran
+(begaranId, godkann)` (superadmin-gated, bara den EGNA organisationen – kan aldrig gissa ett
+`orgId` och godkänna en annan kunds begäran) öppnar vid godkännande samma
+6-timmarsfönster som `beviljaSupportAtkomst` redan gör. Samtycket ligger fortfarande hos
+kunden – bara den manuella kontakten utanför appen försvinner, precis som planen kräver.
+Kundens `SupportatkomstSektion.jsx` fick en live-lyssnad lista över väntande begäranden
+(fälls automatiskt upp om det finns en) med Godkänn/Avslå-knappar. Leverantörens
+`KundAtgarderSektion.jsx` (kunddossién) fick ett "Support"-block med formuläret.
+
+**Byggt (punkt 2):** `AktivaSupportfonsterSektion.jsx` i driftkonsolen listar ALLA
+organisationer med ett aktivt supportfönster just nu, med nedräkning och en
+"Avsluta i förtid"-knapp per rad – tidigare bara synligt en kund i taget i registret.
+
+**Punkt 3 (läslogg under aktivt fönster) byggdes MEDVETET INTE.** Att logga VAD som lästs
+(inte bara att fönstret öppnades) kräver att instrumentera varje läsväg i firestore.rules
+`farSupportlasa()` täcker (rutiner, förråd, anslag, kontakter) – ett större, eget ingrepp i
+läsvägar som i dag inte loggar något alls, med en verklig risk att missa en väg och skapa en
+falsk trygghet ("loggen visar allt som lästes" när den inte gör det). Kräver ett eget,
+avgränsat delmål, inte en biprodukt av L1f:s övriga tre punkter.
+
+**Testat.** `tests/functions/kundmatvarden-och-appversion.test.cjs` (samma fil som L1c/L1j,
+se ovan): åtkomstnekad för icke-plattformsadmin, kräver en anledning, en begäran skapas med
+rätt status, en annan organisations superadmin kan inte godkänna (not-found, inget läckt id),
+godkännande öppnar samma fönster som `beviljaSupportAtkomst`, en redan besvarad begäran kan
+inte besvaras igen, avslag fungerar. `tests/rules/supportatkomst.test.mjs` utökad med 5 nya
+regeltester för `supportbegaran`-subcollectionen (läsning för rätt superadmin/plattformsadmin,
+nekad för fel organisation, ingen klient kan skriva direkt).
 
 ---
 
@@ -930,7 +1005,7 @@ alla tre trendlägen plus "okänd", och sorteringsordningen.
 
 ---
 
-### L1j. Aktivitet och version per kund — kräver ett ägarbeslut
+### L1j. Aktivitet och version per kund — ✅ KLAR 2026-08-30 (bara version, "senast aktiv" avvaktas)
 
 Två uppgifter saknas och båda är telemetri:
 
@@ -939,8 +1014,27 @@ Två uppgifter saknas och båda är telemetri:
   att någon vet. Skulle kräva att klienten rapporterar sin version.
 
 Båda är rimliga driftuppgifter och båda är personuppgiftsbehandling som i dag inte sker.
-Se beslutspunkt 2. **Bygg inte förrän det är avgjort** – och om det byggs ska
-`avtal/UNDERBITRADEN.md` och `drift/INCIDENT-CHECKLISTA.md` steg 5 uppdateras i samma commit.
+Beslutspunkt 2 avgjordes 2026-08-30: **bara appversion.** "Senast aktiv" per användare
+byggdes INTE – det är närmare personalövervakning och behöver ett tydligare syfte innan det
+byggs (se BESLUTSLOGG.md 2026-08-30).
+
+**Byggt:** `rapporteraAppVersion(version)` (`functions/organisationslivscykel.js`), anropas
+tyst en gång per inloggning från `AuthContext.jsx` (samma ställe som redan skriver
+`senasteInloggning`, fel sväljs – får aldrig blockera inloggningsflödet). Skriver
+`senasteAppVersion`/`senasteAppVersionTid` på **organisationens** dokument, inte per
+användare – "senaste inloggade klientens version, senast vunnen om flera är öppna samtidigt"
+räcker för syftet (se en kund ligger kvar på en gammal version). `listaOrganisationer`
+returnerar fälten; `KundAnvandning.jsx` (L1b) visar dem i ett nytt "Version"-block, ersätter
+den tidigare "Senaste aktivitet"-platshållaren.
+
+**Dokumentation uppdaterad i samma commit** (planens eget krav): `drift/
+INCIDENT-CHECKLISTA.md` steg 5 fick ett nytt stycke om de två fälten (ingen person pekas ut,
+organisationsskopat, inte per användare). `avtal/UNDERBITRADEN.md` rördes INTE – inget nytt
+underbiträde eller ny integration tillkom, bara två fält på ett dokument hos en redan
+befintlig (Firebase/GCP).
+
+**Testat.** `tests/functions/kundmatvarden-och-appversion.test.cjs`: kräver inloggning,
+skriver på organisationens dokument (inte per användare), avvisar en ogiltig version.
 
 ---
 
@@ -1010,18 +1104,17 @@ fungerar), och `test.each` är förberett för varje framtida post som skulle ha
 
 ## Beslutspunkter (ägaren)
 
-**Status per 2026-08-29:** planen är antagen, men det avgör bara ORDNING och OMFÅNG – inte
-de sju enskilda frågorna nedan. 5 och 6 är redan besvarade genom hur L1a/L1m är utformade
-(ingen mening att bygga skelettet och sedan riva det). 1–4 och 7 är fortfarande öppna och tas
-upp igen, ett i taget, precis innan det delmål de gäller påbörjas – de binder inget förrän
-dess, och byggordningen i "Beroendeordning" är vald så att inget öppet svar blockerar start.
+**Status per 2026-08-30:** planen är antagen sedan 2026-08-29, och 1–4 avgjordes samlat
+2026-08-30 (se `BESLUTSLOGG.md` samma datum) – samtliga enligt planens egen rekommendation.
+5 och 6 var redan besvarade genom hur L1a/L1m är utformade. Bara 7 är fortfarande öppen, och
+inget kvarvarande delmål väntar på den.
 
 | # | Fråga | Rekommendation | Status |
 |---|---|---|---|
-| 1 | Får leverantören se en kunds **mätvärdesaggregat** utan ett aktivt supportfönster? | **Ja, via Cloud Function (väg B)** – spårbart och avgränsat till aggregat. Kräver en rad i `avtal/DPIA-UNDERLAG.md` och sannolikt i PUB-avtalet | Öppen – avgörs innan L1c |
-| 2 | Ska klienten rapportera **senast aktiv** och **appversion**? | **Ja för version, avvakta med senast aktiv.** Versionen är ren drift och kan lagras per organisation utan att peka ut en person; "senast aktiv" per användare är närmare övervakning av personal och behöver ett tydligare syfte | Öppen – avgörs innan L1j |
-| 3 | **Diagram:** egen SVG eller bibliotek? | **Egen SVG.** Tre former räcker, inget nytt beroende, inget CSP-undantag | Öppen – avgörs innan L1d |
-| 4 | Ska leverantören kunna **begära** supportåtkomst i appen? | **Ja** – kunden godkänner fortfarande, bara den manuella kontakten försvinner | Öppen – avgörs innan L1f |
+| 1 | Får leverantören se en kunds **mätvärdesaggregat** utan ett aktivt supportfönster? | **Ja, via Cloud Function (väg B)** – spårbart och avgränsat till aggregat. Kräver en rad i `avtal/DPIA-UNDERLAG.md` och sannolikt i PUB-avtalet | **Avgjord 2026-08-30** – väg B. Låser upp L1c |
+| 2 | Ska klienten rapportera **senast aktiv** och **appversion**? | **Ja för version, avvakta med senast aktiv.** Versionen är ren drift och kan lagras per organisation utan att peka ut en person; "senast aktiv" per användare är närmare övervakning av personal och behöver ett tydligare syfte | **Avgjord 2026-08-30** – bara version. Låser upp L1j |
+| 3 | **Diagram:** egen SVG eller bibliotek? | **Egen SVG.** Tre former räcker, inget nytt beroende, inget CSP-undantag | **Avgjord 2026-08-30** – egen SVG. Låser upp L1d |
+| 4 | Ska leverantören kunna **begära** supportåtkomst i appen? | **Ja** – kunden godkänner fortfarande, bara den manuella kontakten försvinner | **Avgjord 2026-08-30** – ja. Låser upp L1f |
 | 5 | Ska panelen ligga kvar på `/leverantor` i samma app? | **Ja.** En separat app innebär ett andra bygge, ett andra deploy och en andra autentisering, för en användare | **Avgjord genom antagandet** – planens hela struktur (L1a) förutsätter det |
 | 6 | Ska ägarens **befintliga konto** flyttas till `_plattform`, eller ska ett nytt leverantörskonto skapas vid sidan av? | **Flytta det befintliga.** Begäran var uttryckligen ett enda övergripande konto. Priset är att kontot inte längre ser någon kundvy inifrån – för att se produkten som en användare finns demomiljön (Etapp 51). Ett andra konto återinför precis det kontobyte begäran ville bli av med | **Byggt (2026-08-29)** – `flyttaTillPlattformskonto()` finns och är testad. Ägaren har ännu inte kört den mot sitt eget konto – det återstår som en operativ handling, inte en teknisk fråga |
 | 7 | Ska leverantören se kundens **feedback-inkorg** (`skickaFeedback`)? | **Nej, inte rakt av.** Regeln är i dag `arSuperadmin() && matcharMinOrg()` – feedbacken är skriven till kundens egen admin, inte till leverantören. Efter L1m når ett `_plattform`-konto den inte alls, vilket är rätt utfall. Behövs en kanal till leverantören bör den vara en EGEN, tydligt märkt sådan – inte en tyst utvidgning av vem som läser det kunden trodde stannade internt | Öppen – ingen kod byggs mot den i dag, avgörs om/när behovet blir konkret |
@@ -1051,14 +1144,14 @@ dess, och byggordningen i "Beroendeordning" är vald så att inget öppet svar b
 L1m ✅ (leverantörskontot)   ← byggd FÖRST, flyttade åtkomstgränsen
  └─ L1a ✅ (skelett)
      ├─ L1b ✅ (kunddossié)
-     │   ├─ L1c (mätvärden)   [beslutspunkt 1, öppen]
-     │   │   └─ L1d (visualisering)  [beslutspunkt 3, öppen]
+     │   ├─ L1c ✅ (mätvärden)
+     │   │   └─ L1d ✅ (visualisering)
      │   ├─ L1i ✅ (ekonomi)  – byggd fristående av portföljvyn, väntar inte på L1b
-     │   └─ L1j (aktivitet/version)  [beslutspunkt 2, öppen]
-     ├─ L1e (driftkonsol)  ← INTE byggd (72h-klockan flyttades in i L1p, se dess "Byggt")
+     │   └─ L1j ✅ (aktivitet/version)
+     ├─ L1e ✅ (driftkonsol – punkt 1,3,4; punkt 2 avgränsad bort)
      ├─ L1n ✅ (återställning + beredskap)
      ├─ L1p ✅ (avtal + åtaganden per kund)
-     ├─ L1f (support)  [beslutspunkt 4, öppen] ← INTE byggd
+     ├─ L1f ✅ (support – punkt 1,2; punkt 3 avgränsad bort, punkt 4 redan fanns)
      ├─ L1g ✅ (åtgärdslogg)
      └─ L1h ✅ (pipeline)
 
@@ -1068,9 +1161,11 @@ Fristående, kan byggas när som helst:
  L1l ✅ (intern ändringslogg + test)
 ```
 
-**Status per 2026-08-29: 11 av 16 delmål klara** (L1h, L1k, L1l, L1o från den första
-omgången; L1m, L1a, L1g, L1i, L1n, L1p från den andra; L1b från den tredje). Kvarstår: L1c,
-L1d, L1e, L1f, L1j – samtliga utom L1e hänger på en öppen beslutspunkt (1, 2, 3 eller 4).
+**Status per 2026-08-30: 16 av 16 delmål klara.** Etapp L1 är därmed slutförd i sin helhet
+(L1h, L1k, L1l, L1o i första omgången; L1m, L1a, L1g, L1i, L1n, L1p i andra; L1b i tredje;
+L1c, L1d, L1e, L1f, L1j i fjärde, efter att beslutspunkterna 1–4 avgjordes samlat 2026-08-30).
+Beslutspunkt 7 (feedback-inkorgen) är den enda kvarvarande öppna frågan i hela planen – inget
+delmål väntar på den, den togs upp om/när ett behov faktiskt blir konkret.
 
 ---
 
@@ -1087,13 +1182,14 @@ Grov, i samma skala som tidigare etapplaner (ett "delmål" ≈ en fokuserad arbe
 | L1o | Liten – en collection, en signal, fyra rader innehåll | ✅ Klar |
 | L1p | Medel – liten kodmängd, men punkt 1 är en spärr mot ett faktiskt regelbrott och bär planens tyngsta test | ✅ Klar |
 | L1b | Stor – kärnan i planen | ✅ Klar |
-| L1e, L1f | Stora | Ej byggda (L1f: beslutspunkt 4 öppen) |
-| L1c, L1d, L1j | Beror helt på beslutspunkterna | Ej byggda (1, 3 respektive 2 öppna) |
+| L1e, L1f | Stora | ✅ Klara (avgränsade – se respektive delmåls "Byggt") |
+| L1c, L1d, L1j | Berodde helt på beslutspunkterna | ✅ Klara (1–4 avgjorda 2026-08-30) |
 
 **Byggordningen som faktiskt kördes:** L1m → (L1l, L1h, L1k, L1o – kunde byggas fristående,
 kördes först) → L1a → L1g, L1i, L1n, L1p (alla fyra byggda parallellt inom samma session,
-eftersom ingen av dem beror på en öppen beslutspunkt eller på L1b) → L1b. **Kvar:** L1e (ingen
-öppen beslutspunkt, men stor) och L1c/L1d/L1f/L1j, som samtliga väntar på ett ägarbeslut.
+eftersom ingen av dem beror på en öppen beslutspunkt eller på L1b) → L1b → (beslutspunkterna
+1–4 avgjordes samlat) → L1c, L1d, L1e, L1f, L1j, de sista fem, byggda parallellt inom samma
+session eftersom inget av dem längre väntade på något. **Etapp L1 är därmed slutförd.**
 
 ---
 
@@ -1110,3 +1206,4 @@ eftersom ingen av dem beror på en öppen beslutspunkt eller på L1b) → L1b. *
 | 0.7 | 2026-08-29 | **L1l, L1h, L1k (delvis), L1o byggda.** De fyra "Liten"-delmålen. Se "Byggt"/"Testat" i respektive delmål ovan. L1k byggdes bara på `antalAnvandare`-axeln – kostnadshistorik-axeln avgränsades medvetet bort (skulle touchat en budgetkritisk transaktion för en oproportionerlig vinst). Ett verkligt korrekthetsfel (blint `FieldValue.increment` på ett oinitierat fält) hittades och fixades under bygget, inte efteråt. 37 nya tester totalt (8+5+2 vitest, 8 regel, 5+9 funktioner) |
 | 0.8 | 2026-08-29 | **L1m, L1a, L1g, L1i, L1n, L1p byggda.** De sex "Medel"-delmålen. Beslutspunkt 6 gick från "avgjord genom antagandet" till faktiskt byggd (`flyttaTillPlattformskonto`). Två deliberata avsteg dokumenterade i respektive delmåls "Byggt": `IncidentberedskapSektion.jsx` togs INTE bort från kundens adminpanel (en riktig regression för en fungerande kundfunktion), och kundlägets fem flikar delar en gemensam platshållare i väntan på L1b. 10 av 16 delmål nu klara – bara L1b, L1c, L1d, L1e, L1f, L1j kvarstår, och fyra av de sex väntar på en öppen beslutspunkt |
 | 0.9 | 2026-08-29 | **L1b byggd.** Kunddossién – planens enskilt största arbetsbesparing. Fem riktiga sidor ersatte den delade platshållaren från 0.8: Huvud, Kontakt (delvis), Avtal & ekonomi, Användning (delvis), Historik, Åtgärder. Ett verkligt korrekthetsfel hittades och fixades vid premisskontroll: `listaOrganisationer` returnerade aldrig åtta fält som `AvtalOchAtagandeSektion.jsx` (L1p) redan berodde på, vilket gjorde den panelen permanent felaktig sedan L1p byggdes. Två block (Hälsa, senaste aktivitet) och en delfunktion (vem är superadmin) lämnades medvetet obyggda i väntan på öppna beslutspunkter/krav 37. `OrganisationsRad.jsx`s dubblerade avtalspanel togs bort till förmån för en länk till dossién. 7 nya funktionstester. 11 av 16 delmål nu klara |
+| 1.0 | 2026-08-30 | **Etapp L1 SLUTFÖRD – L1c, L1d, L1e, L1f, L1j byggda.** Beslutspunkterna 1–4 avgjordes samlat (samtliga enligt planens rekommendation, se `BESLUTSLOGG.md` 2026-08-30), vilket löste upp de sista fem delmålen på en gång. L1c+L1d fyllde kunddossiens sista platshållare (Hälsa) med spårbara mätvärdesaggregat och egna SVG-sparklines. L1j fyllde "Användning"s platshållare med appversion (inte "senast aktiv" – avgjort avvaktat). L1f: en premisskontroll visade att punkt 4 (ärendetråd) redan fanns sedan Etapp 50c – bara punkt 1 (begäran i appen) och 2 (aktiva fönster samlade) byggdes nytt, punkt 3 (läslogg) avgränsades bort som ett eget, större delmål. L1e: punkt 3 (72h-klockan) fanns redan sedan L1p; punkt 1 (nödstoppsöversikt) och 4 (åtgärdstidslinje) byggdes, punkt 2 (generaliserat nödstoppsmönster) avgränsades bort – en omskrivning av skarp, säkerhetskritisk kod utan att en tredje mekanism ännu finns som kräver den. 16 av 16 delmål klara. Enda kvarvarande öppna frågan i hela planen: beslutspunkt 7 (feedback-inkorgen), som inget delmål väntar på |

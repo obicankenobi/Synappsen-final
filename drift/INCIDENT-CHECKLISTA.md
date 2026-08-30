@@ -265,10 +265,14 @@ Vet jag med rimlig visshet att det faktiskt hänt?             JA / NEJ / OKLART
 > `src/data/kvissfragorSeed.test.js` kontrollerar samma sak för startinnehållet.
 > **Inga svar från övningarna lagras någonstans** (krav 14) – det finns alltså ingen
 > resultathistorik att röja vid en incident.
-
----
-
-## Steg 6 · 72-timmarsklockan
+>
+> **Etapp L1j (2026-08-30, internt):** organisationsdokumentet fick två nya fält,
+> `senasteAppVersion` och `senasteAppVersionTid`, skrivna via `rapporteraAppVersion`
+> (Cloud Function, Admin SDK) vid varje inloggning. Innehållet är appversionen (t.ex.
+> "5.135.0") och en tidsstämpel – ingen person pekas ut, fältet är organisationsskopat, inte
+> per användare (beslutspunkt 2, avgjord samma dag: "senast aktiv" per användare avvaktas
+> uttryckligen). Läsbar bara av plattformsadmin (via `listaOrganisationer`), samma regel som
+> övriga organisationsfält.
 
 - [ ] Deadline uträknad och nedskriven: `____-__-__ kl. __:__`
 - [ ] Påminnelse satt vid halva tiden (36 h)

@@ -459,6 +459,16 @@ service cloud.firestore {
         allow delete: if arPlattformsadmin();
       }
 
+      // organisationer/{orgId}/supportbegaran/{id} – Etapp L1f (beslutspunkt 4): leverantören
+      // BEGÄR ett supportfönster i appen i stället för telefon/mejl. Skrivs ENDAST av
+      // begarSupportAtkomst/svaraSupportbegaran (Admin SDK) – klienten läser bara, live, så
+      // kundens superadmin ser en väntande begäran utan att ladda om sidan. Samtycket ligger
+      // kvar hos kunden: godkännandet sker fortfarande i svaraSupportbegaran, inte här.
+      match /supportbegaran/{id} {
+        allow read: if (arSuperadmin() && orgId == minOrganisation()) || arPlattformsadmin();
+        allow write: if false;
+      }
+
       // organisationer/{orgId}/personalpulsResultat/{omrade}_{kvartal} – Etapp 39c: aggregerad
       // anonym personalpuls. Skrivs ENDAST av Cloud Function svaraPersonalpuls (transaktion,
       // increment) – aldrig av klienten, precis som matvardenSnapshots. Läsning: ägarbeslut

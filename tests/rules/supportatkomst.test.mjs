@@ -111,6 +111,45 @@ async function main() {
     )
   );
 
+  console.log("\norganisationer/{orgId}/supportbegaran – Etapp L1f (beslutspunkt 4)");
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "users", "annanOrgSupport"), {
+      role: "superadmin",
+      organisationId: "enAnnanOrgSupport",
+    });
+    await setDoc(doc(context.firestore(), "organisationer", "orgSupport", "supportbegaran", "b1"), {
+      anledning: "Testar en kunduppgift",
+      begardAv: "levSupport",
+      status: "vantar",
+    });
+  });
+  const annanSuper = testEnv.authenticatedContext("annanOrgSupport").firestore();
+
+  await test("kundens egen superadmin KAN läsa en väntande begäran", () =>
+    assertSucceeds(getDoc(doc(super1, "organisationer", "orgSupport", "supportbegaran", "b1")))
+  );
+  await test("en plattformsadmin KAN läsa begäran (det är dennes egen)", () =>
+    assertSucceeds(getDoc(doc(lev, "organisationer", "orgSupport", "supportbegaran", "b1")))
+  );
+  await test("en superadmin i en ANNAN organisation kan INTE läsa begäran", () =>
+    assertFails(getDoc(doc(annanSuper, "organisationer", "orgSupport", "supportbegaran", "b1")))
+  );
+  await test("ingen klient kan skriva direkt (bara Admin SDK)", () =>
+    assertFails(
+      setDoc(doc(super1, "organisationer", "orgSupport", "supportbegaran", "b2"), {
+        anledning: "Försök att kringgå Cloud Function",
+        status: "vantar",
+      })
+    )
+  );
+  await test("en superadmin kan INTE ändra en begärans status direkt (t.ex. sätta den godkänd)", () =>
+    assertFails(
+      updateDoc(doc(super1, "organisationer", "orgSupport", "supportbegaran", "b1"), {
+        status: "godkand",
+      })
+    )
+  );
+
   await testEnv.cleanup();
 
   console.log(`\n${antalKlarade} klarade, ${antalMisslyckade} misslyckade`);

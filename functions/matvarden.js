@@ -21,6 +21,7 @@ const {
   skickaEpost,
   loggaRevision,
   hamtaAnvandareForEpostPaminnelse,
+  kravPlattformsadmin,
 } = require("./gemensamt");
 
 // Etapp 39a: veckovis ögonblicksbild av nyckeltalen, så en trend kan visas i stället för bara
@@ -117,6 +118,61 @@ exports.matvardenSnapshotSchemalagt = onSchedule(
   { schedule: "every monday 02:00", timeZone: "Europe/Stockholm", region: "europe-west1", timeoutSeconds: 300 },
   skapaMatvardenSnapshot
 );
+
+// Etapp L1c (beslutspunkt 1, avgjord 2026-08-30, väg B): leverantören får läsa en kunds
+// mätvärdesAGGREGAT utan ett aktivt supportfönster – men bara via den här spårbara,
+// avgränsade vägen, aldrig genom att lossa firestore.rules rakt av (väg A, avvisad). Returnerar
+// ENDAST de redan aggregerade fälten som skapaMatvardenSnapshot() räknar fram ovan – ingen
+// enskild rutin, inget användarnamn, ingen sökfråga. Varje anrop revisionsloggas mot KUNDENS
+// egen kedja (inte "_plattform") så kunden ser i sin egen historik att aggregaten lästs, precis
+// som ett supportfönster redan hade synts.
+exports.hamtaKundmatvarden = onCall({ region: "europe-west1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
+  }
+  await kravPlattformsadmin(request.auth.uid);
+
+  const orgId = request.data?.orgId;
+  if (!orgId || typeof orgId !== "string") {
+    throw new HttpsError("invalid-argument", "orgId krävs.");
+  }
+
+  const snap = await db
+    .collection("organisationer")
+    .doc(orgId)
+    .collection("matvardenSnapshots")
+    .orderBy("datum", "desc")
+    .limit(12)
+    .get();
+
+  const snapshots = snap.docs
+    .map((d) => {
+      const data = d.data();
+      return {
+        datum: data.datum,
+        kvitteringsgradKlinisktStod: data.kvitteringsgradKlinisktStod ?? null,
+        kvitteringsgradAdministration: data.kvitteringsgradAdministration ?? null,
+        andelNollTraffar: data.andelNollTraffar ?? null,
+        tidAttHittaSekunder: data.tidAttHittaSekunder ?? null,
+        antalChecklistkorningar: data.antalChecklistkorningar ?? null,
+        innehallshalsaKlinisktStod: data.innehallshalsaKlinisktStod ?? null,
+        innehallshalsaAdministration: data.innehallshalsaAdministration ?? null,
+      };
+    })
+    .reverse(); // äldst först, för en trendkurva
+
+  await loggaRevision({
+    organisationId: orgId,
+    aktorUid: request.auth.uid,
+    aktorRoll: "plattformsadmin",
+    handelsetyp: "plattform_matvarden_lasta",
+    objektTyp: "organisationer",
+    objektId: orgId,
+    sammanfattning: `Leverantören läste ${snapshots.length} veckors mätvärdesaggregat`,
+  });
+
+  return { snapshots };
+});
 
 // Etapp 53d: en kundvänd månadssammanfattning, byggd ovanpå de befintliga veckovisa
 // matvardenSnapshots (Etapp 39a) – ingen ny mätpunkt, bara en ny mottagare för en siffra som

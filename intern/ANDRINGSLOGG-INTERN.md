@@ -118,12 +118,51 @@ Ingen kundpåverkan – ingen rad i `src/data/andringslogg.js`. Inte deployat ä
 
 ---
 
-## Ej ännu byggt
+## v5.136.0 (2026-08-30) – Etapp L1 SLUTFÖRD: L1c, L1d, L1e, L1f, L1j
 
-`intern/ETAPPLAN-INTERN-1.md` (Etapp L1, leverantörspanelen) **antogs 2026-08-29** i sin
-helhet (16 delmål, L1a–L1p; se `BESLUTSLOGG.md` samma datum). **11 av 16 klara** (ovan).
-Kvarstår: L1e (stor, inget hinder att börja), L1f (stor, väntar på beslutspunkt 4),
-L1c/L1d/L1j (väntar på beslutspunkt 1/3/2).
+Beslutspunkterna 1–4 avgjordes samlat (se `BESLUTSLOGG.md` 2026-08-30, samtliga enligt
+planens rekommendation), vilket löste upp de fem sista delmålen på en gång. Detaljerna står i
+`intern/ETAPPLAN-INTERN-1.md` (v1.0) under respektive delmål.
+
+- **L1c** – `hamtaKundmatvarden(orgId)` (väg B): plattformsadmin-gated, returnerar ENDAST
+  redan aggregerade fält från de senaste 12 veckornas `matvardenSnapshots`, revisionsloggat
+  mot **kundens egen** kedja (inte `_plattform`).
+- **L1d** – `src/utils/sparkline.js` (`genereraSparklinePath`, ren funktion, egen inline-SVG,
+  inget diagrambibliotek). `KundHalsaSektion.jsx` fyller L1b:s sista platshållare (Hälsa) med
+  sparklines + en textalternativ-tabell bakom `<details>` per kurva (WCAG).
+- **L1j** – `rapporteraAppVersion(version)`, anropad tyst vid varje inloggning
+  (`AuthContext.jsx`). Skriver på ORGANISATIONENS dokument, inte per användare – bara version,
+  medvetet INTE "senast aktiv" (beslutspunkt 2). `drift/INCIDENT-CHECKLISTA.md` steg 5
+  uppdaterad i samma commit, planens eget krav.
+- **L1f** – premisskontrollen visade att punkt 4 (ärendetråd) redan fanns sedan Etapp 50c
+  (`arendeanteckningar`) – planen hade missat detta. Byggde punkt 1 (`begarSupportAtkomst`/
+  `svaraSupportbegaran` – leverantören begär, kunden godkänner fortfarande själv) och punkt 2
+  (`AktivaSupportfonsterSektion.jsx`, alla aktiva fönster samlade). Punkt 3 (läslogg under
+  fönstret) avgränsades bort som ett eget, större delmål.
+- **L1e** – punkt 3 (72h-klockan) fanns redan sedan L1p. Byggde punkt 1
+  (`NodstoppsoversiktSektion.jsx`) och punkt 4 (åtgärdstidslinje, filtrerar den redan
+  existerande `hamtaLeverantorsAtgardslogg` från L1g). Punkt 2 (generaliserat
+  `nodstopp/{funktion}`-mönster) avgränsades MEDVETET bort – en omskrivning av skarp,
+  säkerhetskritisk kod (e-post- och Öva-lägesnödstoppen) utan att en tredje mekanism ännu
+  finns som kräver ett gemensamt mönster.
+
+26 nya tester (7 vitest, 5 regel, 17 funktioner – varav flera delade mellan L1c/L1f/L1j i
+`tests/functions/kundmatvarden-och-appversion.test.cjs`). Fullt testsvep grönt: lint, build,
+`npx vitest run` (546 tester, upp från 535), `npm run test:rules`, `npm run test:functions`,
+`npm run test:storage`.
+
+**Etapp L1 är därmed slutförd i sin helhet – 16 av 16 delmål.** Enda kvarvarande öppna frågan
+i hela planen är beslutspunkt 7 (feedback-inkorgen), som inget delmål väntar på.
+
+Ingen kundpåverkan – ingen rad i `src/data/andringslogg.js`. Inte deployat än.
+
+---
+
+## Historik: Etapp L1 (leverantörspanelen)
+
+`intern/ETAPPLAN-INTERN-1.md` antogs 2026-08-29 i sin helhet (16 delmål, L1a–L1p; se
+`BESLUTSLOGG.md` samma datum) och slutfördes 2026-08-30 (ovan). Se planfilen för fullständiga
+"Byggt"/"Testat"-avsnitt per delmål.
 
 ---
 

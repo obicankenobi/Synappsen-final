@@ -9,7 +9,8 @@ import {
 import { doc, getDoc, onSnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, rensaLokalaAnvandardata } from "../firebase/config";
 import { STANDARD_ORG } from "../firebase/organisation";
-import { losInInbjudan } from "../firebase/functions";
+import { losInInbjudan, rapporteraAppVersion } from "../firebase/functions";
+import { APP_VERSION } from "../version";
 import { AuthContext } from "./authContextDef";
 
 export function AuthProvider({ children }) {
@@ -104,6 +105,9 @@ export function AuthProvider({ children }) {
             updateDoc(doc(db, "users", user.uid), { senasteInloggning: serverTimestamp() }).catch(
               () => {}
             );
+            // Etapp L1j (beslutspunkt 2): rapporterar bara appversionen, aldrig en per-
+            // användare-aktivitetsstämpel. Får inte blockera inloggningsflödet.
+            rapporteraAppVersion(APP_VERSION).catch(() => {});
           }
         } catch (fel) {
           console.error("Kunde inte läsa användarprofilen:", fel);
