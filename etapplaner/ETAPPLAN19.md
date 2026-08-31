@@ -1,9 +1,16 @@
 # Etapplan 19 – Från rutindatabas till ledningssystem
 
-**Etapp 72. UTKAST v0.2, 2026-08-30 – EJ ANTAGEN.** Skriven på ägarens begäran efter en
-genomgång av produktens nuvarande form mot de behov en svensk vårdgivare faktiskt har. Bygger
-på faktisk kodstatus i v5.137.0 (30 rutter, 74 hooks, 40 admin-/leverantörssektioner, 11
-schemalagda jobb).
+**Etapp 72. ANTAGEN 2026-08-30 (v0.2).** Skriven på ägarens begäran efter en genomgång av
+produktens nuvarande form mot de behov en svensk vårdgivare faktiskt har. Bygger på faktisk
+kodstatus i v5.137.0 (30 rutter, 74 hooks, 40 admin-/leverantörssektioner, 11 schemalagda
+jobb).
+
+> **Antagen i sin helhet.** Ägaren godkände planens egna rekommendationer på samtliga sju
+> beslutspunkter (se `BESLUTSLOGG.md` 2026-08-30 och tabellen nedan, kolumnen "Status"). Det
+> låser fast RIKTNINGEN – **det låser inte upp bygget av något enskilt delmål**, eftersom
+> beslutspunkt 5 (efterfrågegrinden) själv säger att inget delmål byggs innan en namngiven
+> kund bett om det skriftligt. Det som faktiskt går att göra direkt är undantagen i
+> beslutspunkt 5 – och samtliga tre är gjorda, se dess sektion.
 
 > **v0.2 är omskriven mot `granskningar/GRANSKNING-IDEBANK-2026-08-30.md`.** Den granskningen
 > gäller formellt ett ANNAT dokument – produktidébanken, 18 förslag – men sex av dess förslag
@@ -12,11 +19,13 @@ schemalagda jobb).
 > ett av dem (delegering.se) var ett verkligt misstag i v0.1. Se versionshistoriken för hela
 > listan.
 
-> **Antagandet av den här planen är inte en formalitet.** Den föreslår att produkten växer
-> ut ur sin nuvarande kategori. Det är ett affärsbeslut lika mycket som ett byggbeslut, och
-> beslutspunkt 1 (avvikelsehantering och patientuppgifter) kan behöva samma externa juridiska
-> bedömning som `etapplaner/ETAPPLAN13.md` Etapp 64 väntar på. **Bygg ingenting härifrån
-> förrän planen är antagen delmål för delmål.**
+> **Antagandet var inte en formalitet, och det är fortfarande inte ett byggbeslut per delmål.**
+> Planen föreslår att produkten växer ut ur sin nuvarande kategori – ett affärsbeslut lika
+> mycket som ett byggbeslut. **72e (avvikelsestatistik) väntar fortfarande på att en extern
+> juridisk bedömning bekräftar fältuppsättningen**, lämpligen i samma uppdrag som
+> `etapplaner/ETAPPLAN13.md` Etapp 64 redan väntar på (se beslutspunkt 1). Och även utan den
+> spärren: **bygg inget delmål utan en namngiven kund som bett om det skriftligt** – se
+> beslutspunkt 5.
 
 > **Vad den här planen är:** ett förslag på hur Synappsen går från att svara på *"var finns
 > rutinen och har den lästs?"* till att bära de återkommande, daterade och signerade
@@ -498,17 +507,18 @@ organisation – vilket med två kunder är omöjligt. Byggs tidigast vid fem ku
 
 ## Beslutspunkter (ägaren)
 
-Ingen av dessa är avgjord. **Planen kan inte antas i sin helhet utan svar på 1 och 2.**
+**Samtliga sju avgjorda 2026-08-30** – ägaren godkände planens egna rekommendationer i sin
+helhet. Se `BESLUTSLOGG.md` samma datum.
 
 | # | Fråga | Rekommendation | Status |
 |---|---|---|---|
-| 1 | Ska **avvikelsestatistiken** (72e) byggas strikt strukturerad, och **händelseanalysen** (72m) lämnas obyggd? | **Ja på båda.** Den strukturella spärren (bara val ur listor, ingen fritext om person) gör 72e byggbart utan att röra grundlöftet. 72m byter produktens riskklass och är ett produktbeslut, inte ett delmål. En extern juridisk bedömning bör ändå bekräfta 72e:s fältuppsättning – lämpligen i samma uppdrag som Etapp 64:s | Öppen |
-| 2 | **Vilket paket** hör de nya funktionerna till? Core, Operations, eller en ny modul? | **En ny modul, "Efterlevnad".** Men flytta samtidigt innehållshälsan till Core, enligt `saljmaterial/KOPARANALYS.md` avsnitt 11 punkt 4 – skälet att köpa måste finnas i det paket köparen köper. Att lägga även det nya bakom en tilläggsmodul upprepar samma misstag | Öppen |
-| 3 | Ska **arbetsmiljödelen** (72j) byggas? | **Vänta.** Den breddar produkten bortom vård och riktar sig till en annan köpare. Bygg den när en verklig kund efterfrågar den, inte i förväg – samma resonemang som 54c/54d i `BESLUTSLOGG.md` | Öppen |
-| 4 | Ska **patientsäkerhetsberättelsen** (72b) generera en färdig handling eller ett underlag? | **Utkast, aldrig färdig handling** (genomgående krav 40). Ansvaret för innehållet är vårdgivarens och får inte se ut att ha flyttat | Öppen |
-| 5 | **Vad utlöser att ett delmål byggs?** | **En namngiven kund som bett om det skriftligt** – inte en position i en lista. Se nedan; detta ersätter v0.1:s föreslagna byggordning | Öppen |
-| 6 | Är detta rätt riktning **över huvud taget**, jämfört med att fördjupa rutindatabasen? | **Ja, men det är ett vägval.** Se "Den större frågan" nedan | Öppen |
-| 7 | **Vilket segment** gäller planen? *(Ny i v0.2)* | **Privat vårdgivare, oförändrat** enligt `saljmaterial/MARKNADSANALYS.md` avsnitt 8. Nio av tretton delmål tjänar det segmentet direkt; 72c och 72h skevar mot kommunal omsorg och ska inte driva prioriteringen. Ett segmentbyte får ske – men som ett beslut, inte som en bieffekt av att delegeringsfrågan är intressant | Öppen |
+| 1 | Ska **avvikelsestatistiken** (72e) byggas strikt strukturerad, och **händelseanalysen** (72m) lämnas obyggd? | **Ja på båda.** Den strukturella spärren (bara val ur listor, ingen fritext om person) gör 72e byggbart utan att röra grundlöftet. 72m byter produktens riskklass och är ett produktbeslut, inte ett delmål. En extern juridisk bedömning bör ändå bekräfta 72e:s fältuppsättning – lämpligen i samma uppdrag som Etapp 64:s | **Avgjord 2026-08-30.** 72m byggs inte. 72e väntar fortfarande på den juridiska bekräftelsen innan bygget – riktningen är beslutad, bygget är det inte |
+| 2 | **Vilket paket** hör de nya funktionerna till? Core, Operations, eller en ny modul? | **En ny modul, "Efterlevnad".** Men flytta samtidigt innehållshälsan till Core, enligt `saljmaterial/KOPARANALYS.md` avsnitt 11 punkt 4 – skälet att köpa måste finnas i det paket köparen köper. Att lägga även det nya bakom en tilläggsmodul upprepar samma misstag | **Avgjord 2026-08-30.** `src/config/features.js` uppdateras när ett första delmål i modulen faktiskt byggs – ingen kod ändras för en modul utan innehåll |
+| 3 | Ska **arbetsmiljödelen** (72j) byggas? | **Vänta.** Den breddar produkten bortom vård och riktar sig till en annan köpare. Bygg den när en verklig kund efterfrågar den, inte i förväg – samma resonemang som 54c/54d i `BESLUTSLOGG.md` | **Avgjord 2026-08-30.** Vänta |
+| 4 | Ska **patientsäkerhetsberättelsen** (72b) generera en färdig handling eller ett underlag? | **Utkast, aldrig färdig handling** (genomgående krav 40). Ansvaret för innehållet är vårdgivarens och får inte se ut att ha flyttat | **Avgjord 2026-08-30.** Utkast |
+| 5 | **Vad utlöser att ett delmål byggs?** | **En namngiven kund som bett om det skriftligt** – inte en position i en lista. Se nedan; detta ersätter v0.1:s föreslagna byggordning | **Avgjord 2026-08-30.** Se sektionen nedan – undantag 1 är genomfört samma dag |
+| 6 | Är detta rätt riktning **över huvud taget**, jämfört med att fördjupa rutindatabasen? | **Ja, men det är ett vägval.** Se "Den större frågan" nedan | **Avgjord 2026-08-30.** Ja |
+| 7 | **Vilket segment** gäller planen? *(Ny i v0.2)* | **Privat vårdgivare, oförändrat** enligt `saljmaterial/MARKNADSANALYS.md` avsnitt 8. Nio av tretton delmål tjänar det segmentet direkt; 72c och 72h skevar mot kommunal omsorg och ska inte driva prioriteringen. Ett segmentbyte får ske – men som ett beslut, inte som en bieffekt av att delegeringsfrågan är intressant | **Avgjord 2026-08-30.** Privat vårdgivare |
 
 ### Beslutspunkt 5, utskriven: efterfrågegrinden
 
@@ -523,10 +533,22 @@ efterfrågan finns* – inte vilket som byggs först.
 
 **Tre undantag**, eftersom regeln annars blir dogmatisk:
 
-1. **Arbete som inte är en funktion.** Att skriva ned det avsedda ändamålet för
-   klinikstöd-sökningen, kontrollera artikel 50-märkningen och uppskatta kostnaden för en
-   Vertex AI-migrering kostar timmar, kräver ingen kund och stänger regulatorisk risk. Det bör
-   göras oavsett vad som händer med den här planen.
+1. **Arbete som inte är en funktion — ✅ GENOMFÖRT 2026-08-30.** Att skriva ned det avsedda
+   ändamålet för klinikstöd-sökningen, kontrollera artikel 50-märkningen och uppskatta
+   kostnaden för en Vertex AI-migrering kostar timmar, kräver ingen kund och stänger
+   regulatorisk risk.
+   - **Avsett ändamål:** `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`. Hittade och
+     rättade en självmotsägelse i `functions/klinikstod.js`s Gemini-prompt, som uttryckligen
+     sa "Detta är beslutsstöd" – rakt emot avgränsningen som håller funktionen utanför MDR.
+   - **Artikel 50:** var en bekräftad brist (`granskningar/JURIDISK-GRANSKNING.md` §7.4).
+     Byggd: en AI-tolkad rutins ursprung märks nu i läsvyn (`src/components/RutinKort.jsx`),
+     oavsett om rutinen sedan godkänts av en redaktör. `saljmaterial/kallfiler/
+     Synappsen-upphandlingssvar.html` svar E2 uppdaterat från "ej byggt" till "byggt".
+   - **Vertex AI-kostnad:** `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md`
+     – grovt 2–3 arbetsdagar, refererad från `avtal/UNDERBITRADEN.md`.
+   - **Bifynd, rättat i samma svep:** `avtal/UNDERBITRADEN.md` sa "fem godkända medicinska
+     källdomäner" – koden har haft sju sedan källbevakningen byggdes ut. Rättat, med en ny
+     assertion i `tests/docs/dokumentpastaenden.test.js`.
 2. **72d (tillsynspaketet)** är en export över data som redan samlas – ingen ny datamodell,
    inget nytt regulatoriskt underhåll. Det ligger närmare punkt 1 än ett nytt delmål, och kan
    byggas på egen risk om ett säljmöte behöver det.
@@ -693,3 +715,4 @@ tabellen, eller har verifierats separat.**
 |---|---|---|
 | 0.1 | 2026-08-30 | Första utkastet, skrivet på ägarens begäran efter en genomgång av produktens nuvarande form mot vårdgivares faktiska behov. Tolv premissantaganden kontrollerade mot kod, varav fyra ändrade innehållet. **Ej antagen** – sex beslutspunkter öppna, varav 1 och 2 blockerar antagandet i sin helhet |
 | 0.2 | 2026-08-30 | **Omskriven mot `granskningar/GRANSKNING-IDEBANK-2026-08-30.md`.** Sju ändringar: (1) **72c omskrivet från register till koppling** – delegering.se säljer redan hela det ursprungliga förslaget, vilket v0.1 missade; delmålet bygger nu kopplingen delegering↔rutin↔kvittering plus en rutinmall för icke-läkemedelsdelegering, den lucka upphävandet av SOSFS 1997:14 lämnade. (2) **72e delat** i statistik (strukturerad, byggbar) och nya **72m** (händelseanalys/lex Maria, byggs inte) – v0.1 blandade två saker med olika juridisk status. (3) **Premisskontrollen har fått ett andra ben, mot marknaden** – kodkontroll fångar aldrig "redan byggt av någon annan". (4) **Nytt genomgående krav 44** om arkivlag och offentlighetsprincip vid kommunal kund; premissen (90 dagars backupgallring, 48 timmars raderingsfönster) verifierad mot kod. (5) **Beslutspunkt 5 omskriven** från byggordning till efterfrågegrind med tre undantag – v0.1 föreslog en byggordning utan kund, vilket är projektets dominerande felmönster. (6) **Arbetsinsatstabellen har fått en kolumn för underhållssvans**, och "högst värde per byggtimme" är struket från 72b: det mätte byggtid, inte ägandekostnad. (7) **Ny beslutspunkt 7 om segment**, eftersom 72c och 72h skevar mot kommunal omsorg medan säljarbetet går mot privat vård. Verifieringstabellen ersatt av granskningens belagda fynd. **Fortfarande ej antagen** – nu sju öppna beslutspunkter |
+| 0.2.1 | 2026-08-30 | **ANTAGEN.** Ägaren godkände planens egna rekommendationer på samtliga sju beslutspunkter (se `BESLUTSLOGG.md` samma datum). Antagandet låser riktningen, inte bygget av enskilda delmål – beslutspunkt 5 (efterfrågegrinden) gäller fortfarande. **Beslutspunkt 5, undantag 1 genomfört samma dag:** `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md` skriven, en självmotsägande rad ("Detta är beslutsstöd") rättad i `functions/klinikstod.js`s Gemini-prompt, artikel 50-märkning byggd i `src/components/RutinKort.jsx` (bekräftad brist sedan `granskningar/JURIDISK-GRANSKNING.md` §7.4) och upphandlingssvaret uppdaterat, `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md` skriven (~2–3 dagar). Bifynd rättat: `avtal/UNDERBITRADEN.md` hade fel antal källdomäner (fem → sju), ny assertion i `tests/docs/dokumentpastaenden.test.js` |

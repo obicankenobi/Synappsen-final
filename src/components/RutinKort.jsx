@@ -124,6 +124,20 @@ export default function RutinKort({
           {farRedigera && rutin.kallVarning && (
             <span className="rutin-kort__badge rutin-kort__badge--varning">Källan har uppdaterats</span>
           )}
+          {/* Etapp 72, undantag 1 (ETAPPLAN19.md): AI-förordningen artikel 50 kräver att
+              AI-genererat innehåll märks. Rutinen kan ha börjat som ett AI-tolkat utkast
+              (tolkaDokument, functions/ai-import.js sätter kalla: "gemini") men sedan ha
+              godkänts av en redaktör – fältet ska ändå synas här, det byter aldrig ursprung.
+              Ordvalet "AI-tolkat" är medvetet (inte "AI-driven"/"smart"/"intelligent", se
+              produkt/VARUMARKE.md s. 319). */}
+          {rutin.kalla === "gemini" && (
+            <span
+              className="rutin-kort__badge"
+              title="Innehållet extraherades ursprungligen ur ett foto eller PDF med AI-tolkning, och har därefter granskats och godkänts av en redaktör."
+            >
+              AI-tolkat ursprung
+            </span>
+          )}
         </div>
         <FavoritKnapp typ="rutin" id={rutin.id} />
       </header>

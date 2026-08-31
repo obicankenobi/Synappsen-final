@@ -340,6 +340,14 @@ exports.fragaKlinisktStod = onCall(
       .map((t, i) => `[${i + 1}] ${t.titel} (${t.url})\n${t.utdrag}`)
       .join("\n\n");
 
+    // RÄTTAT (Etapp 72, undantag 1 – ETAPPLAN19.md/granskningar/GRANSKNING-IDEBANK-2026-08-30.md
+    // avsnitt 3.1): regel 4 sa tidigare uttryckligen "Detta är beslutsstöd". MDCG 2019-11 Rev.1
+    // undantar INTE en NLP-sökning som bidrar till ett medicinskt syfte från MDR – ordet
+    // "beslutsstöd" i systemets EGEN instruktion var alltså en självmotsägelse mot den
+    // avgränsning som håller funktionen utanför MDR (se granskningar/AVSETT-ANDAMAL-
+    // KLINIKSTOD-2026-08-30.md): "hjälper att HITTA och SAMMANFATTA, ger aldrig ett kliniskt
+    // beslut". Risken var konkret, inte teoretisk – ett ord i prompten kunde ekas tillbaka i
+    // Gemini-svaret till användaren.
     const prompt = `Du är ett kliniskt uppslagsverktyg för vårdpersonal på en akutmottagning i Sverige.
 
 Fråga: "${fraga}"
@@ -353,7 +361,9 @@ Regler du MÅSTE följa:
    information från minnet eller andra källor.
 2. Om träffarna inte innehåller ett tillförlitligt svar: säg det tydligt istället för att gissa.
 3. Ange efter varje påstående vilken träff ([1], [2], osv.) det kommer ifrån.
-4. Detta är beslutsstöd, inte en diagnos – uppmana alltid till egen klinisk bedömning.
+4. Detta är ett hjälpmedel för att HITTA och SAMMANFATTA information ur källorna – aldrig ett
+   beslutsstöd, en rekommendation eller en diagnos. Ge aldrig ett prioriterat eller rangordnat
+   svar. Uppmana alltid till egen klinisk bedömning.
 5. Svara på svenska, kortfattat och praktiskt.
 6. Ställ aldrig frågor om eller referera till en specifik patient – om frågan verkar handla om
    en namngiven eller identifierbar person, svara att du bara kan besvara generella frågor.`;

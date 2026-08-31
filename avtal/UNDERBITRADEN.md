@@ -84,13 +84,15 @@ rutiner/förrådsartiklar (`functions/ai-import.js`, modell `gemini-2.5-flash`).
   .googleapis.com` har historiskt inte samma regionsgaranti. **Detta bör kontrolleras mot
   Googles aktuella villkor för Gemini API innan avtalet undertecknas mot en kund med
   strikta krav på regional databehandling** – om en garanti saknas är en migrering till
-  Vertex AI (samma modell, regional endpoint) den tekniska lösningen.
+  Vertex AI (samma modell, regional endpoint) den tekniska lösningen. Se
+  `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md` för en grov
+  arbetsuppskattning (~2–3 dagar) – kostnaden är alltså inte skälet att vänta.
 
 ### Google Programmerbara sökmotorn (Custom Search JSON API)
 
 Används av klinikstöd-sökningens källbegränsade verifiering (`SOKMOTOR_API_KEY`,
 `googleapis.com/customsearch/v1`, se `functions/klinikstod.js`). Skickar användarens fritextfråga
-till Google för att hitta träffar begränsade till fem godkända medicinska källdomäner.
+till Google för att hitta träffar begränsade till sju godkända medicinska källdomäner.
 **Rättelse 2026-08-23: funktionen är i drift och tar emot skarpa användarfrågor.** Den var
 pausad i användargränssnittet från v5.3.5, men återaktiverades och byggdes om med enforcement i
 två lager plus en daglig automatisk källverifiering (`verifieraKlinikstodSchemalagt` i

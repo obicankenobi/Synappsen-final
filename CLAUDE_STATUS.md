@@ -4,26 +4,28 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (122 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (123 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-30 · **v5.137.0 committad, inte deployad** (internt arbete, ingen
-brådska). Produktion står kvar på 5.132.0 (körning #93, verifierad). Utgående e-post är
-stoppat sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är
-SLUTFÖRD: 16 av 16 delmål klara, samtliga 7 beslutspunkter avgjorda.** Sista frågan
-(beslutspunkt 7, feedback-inkorgen) avgjordes och byggdes 2026-08-30.
+**Senast uppdaterad:** 2026-08-30 · **v5.138.0 committad, inte deployad.** Produktion står kvar
+på 5.132.0 (körning #93, verifierad). Utgående e-post är stoppat sedan v5.131.0 i väntan på
+Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.** **Etapp 72
+(`etapplaner/ETAPPLAN19.md`) är ANTAGEN** – riktningen är beslutad, men beslutspunkt 5
+(efterfrågegrinden) betyder att inget delmål byggs utan en namngiven kund. Undantag 1 (avsett
+ändamål, artikel 50-märkning, Vertex AI-kostnad) genomfört samma dag – det första kundvända
+kodarbetet sedan Etapp 69.
 
 ## Nuläge
 
 | | |
 |---|---|
-| **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0–v5.137.0 väntar på deploy |
+| **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0–v5.138.0 väntar på deploy |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **Senaste kodarbete** | v5.137.0: beslutspunkt 7 – en helt egen kanal till leverantören (`leverantorsfeedback`, skild från kundens interna `feedback`). Ny sida `KontaktaLeverantoren.jsx`; `Feedback.jsx`/`Hjalp.jsx` fick ett explicit förtydligande av vart respektive kanal går, på ägarens begäran. Internt, ingen kundpåverkan |
-| **Senaste dokumentarbete** | 2026-08-30: **`etapplaner/ETAPPLAN19.md` (Etapp 72) v0.2 – UTKAST, EJ ANTAGEN**, omskriven mot `granskningar/GRANSKNING-IDEBANK-2026-08-30.md` (också ny i repot). Dessutom `intern/ETAPPLAN-INTERN-1.md` v1.1, `BESLUTSLOGG.md` |
-| **Aktiv plan** | **Ingen.** `intern/ETAPPLAN-INTERN-1.md` (Etapp L1) är slutförd i sin helhet. `etapplaner/ETAPPLAN19.md` (Etapp 72) är ett utkast som väntar på ägarens beslut – **den är INTE antagen och inget i den får byggas.** `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
-| **Nästa steg** | **Tre saker som varken kräver kund eller antagen plan** (ETAPPLAN19 beslutspunkt 5, undantag 1): skriv ned det avsedda ändamålet för klinikstöd-sökningen (stänger den största regulatoriska risken, kostar timmar), kontrollera artikel 50-märkningen i rutinvyn, uppskatta kostnaden för en Vertex AI-migrering. Därefter: **ägaren tar ställning till ETAPPLAN19** – sju öppna beslutspunkter. Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
+| **Senaste kodarbete** | v5.138.0: Etapp 72 beslutspunkt 5 undantag 1. Artikel 50-märkning byggd (`src/components/RutinKort.jsx`, en AI-tolkad rutins ursprung visas i läsvyn – bekräftad brist sedan `granskningar/JURIDISK-GRANSKNING.md` §7.4). Rättade en självmotsägelse i `functions/klinikstod.js`s Gemini-prompt ("Detta är beslutsstöd" stod rakt emot MDR-avgränsningen). **Detta är kundvänt** – första sådana ändringen sedan Etapp 69 |
+| **Senaste dokumentarbete** | 2026-08-30: `etapplaner/ETAPPLAN19.md` v0.2.1 (**ANTAGEN**), `BESLUTSLOGG.md`, `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`, `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md`, `saljmaterial/kallfiler/Synappsen-upphandlingssvar.html` (E2: ej byggt → byggt), `avtal/UNDERBITRADEN.md` (rättat källdomänantal + länk till kostnadsuppskattningen) |
+| **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
+| **Nästa steg** | Bevaka undantag 2 (72d, tillsynspaket) och 3 (rutinmallar) i ETAPPLAN19 om ett säljmöte behöver dem – annars vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
 
 ## Var du hittar saker
 
@@ -112,6 +114,46 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-08-30 (v5.138.0 – Etapp 72 antagen, undantag 1 genomfört)
+
+Ägaren bad att anta ETAPPLAN19-utkastet och genomföra "första delmålet". Frågade tillbaka
+eftersom planens egen beslutspunkt 5 (efterfrågegrinden) säger att inget delmål byggs utan en
+namngiven kund – två frågor: vad "första delmålet" betyder, och om samtliga sju
+beslutspunkter ska godkännas enligt planens rekommendationer eller tas en och en. Svar:
+undantag 1 (arbetet som inte kräver kund), samtliga rekommendationer godkända.
+
+**Planen antagen i sin helhet** (`BESLUTSLOGG.md`). Låser fast riktningen – Efterlevnad blir
+en ny modul, innehållshälsa flyttas till Core, 72e byggs strukturerat men väntar på en extern
+juridisk bekräftelse, 72j och 72m byggs inte i denna omgång. Låser INTE upp bygget av
+enskilda delmål.
+
+**Undantag 1 genomfört, tre delar:**
+
+1. **Avsett ändamål** för klinikstöd-sökningen skrivet
+   (`granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`).
+2. **Artikel 50-märkning byggd** – var en bekräftad brist sedan
+   `granskningar/JURIDISK-GRANSKNING.md` §7.4 (2026-08-11). En AI-tolkad rutins ursprung
+   (`kalla: "gemini"`) visas nu som en badge i läsvyn, oavsett om rutinen sedan godkänts.
+   Upphandlingssvarets E2 uppdaterat från "ej byggt" till "byggt" – texten hade redan en
+   `[FYLL I]`-platshållare som väntade på just detta.
+3. **Vertex AI-migreringens kostnad uppskattad** till grovt 2–3 arbetsdagar
+   (`granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md`) – sex
+   anropsställen i två filer, ingen automatisk testtäckning finns för någon av dem.
+
+**Ett verkligt fynd under arbetet med punkt 1:** `functions/klinikstod.js`s Gemini-prompt sa
+uttryckligen *"Detta är beslutsstöd, inte en diagnos"* – rakt emot den avgränsning
+(sammanfattar, rekommenderar aldrig) som håller funktionen utanför MDR. Ordet i systemets
+EGEN instruktion var en självmotsägelse, och en konkret risk: modellen kunde eka det tillbaka
+i sitt svar till användaren. Rättat i samma commit.
+
+**Ett bifynd rättat:** `avtal/UNDERBITRADEN.md` sa "fem godkända medicinska källdomäner",
+koden har haft sju sedan källbevakningen byggdes ut. Ny assertion i
+`tests/docs/dokumentpastaenden.test.js`.
+
+**Detta är den första kundvända kodändringen sedan Etapp 69** (märkningen i `RutinKort.jsx`
+och prompträttelsen i `klinikstod.js` påverkar vad en riktig användare ser/får). Ny post i
+`src/data/andringslogg.js`. Fullt testsvep grönt.
 
 ## Uppföljning 2026-08-30 (Etapp 72 v0.2 – omskriven mot extern granskning)
 
@@ -342,23 +384,3 @@ en enda leverantörsvys visning vore oproportionerligt för ett delmål stämpla
 37 nya tester. Fullt testsvep grönt: `npm run lint`, `npm run build`, `npx vitest run` (517
 tester, upp från 480), `npm run test:rules` (alla filer, inkl. den nya
 `atagandekalender.test.mjs`), `npm run test:functions` (alla 35 filer, inkl. de två nya).
-
-## Uppföljning 2026-08-29 (Etapp L1 antagen + arbetsuppskattning)
-
-`intern/ETAPPLAN-INTERN-1.md` (leverantörspanelen) **antogs i sin helhet**, v0.6.
-Beslutspunkterna 5 (samma app) och 6 (flytta befintligt konto) avgjordes genom antagandet
-– planens struktur förutsätter dem. **1–4 och 7 kvarstår öppna** och avgörs var för sig,
-precis innan L1c/L1d/L1f/L1j respektive påbörjas – de blockerar inget annat delmål.
-`BESLUTSLOGG.md` fick raden, `DOKUMENTREGISTER.md` och `intern/ANDRINGSLOGG-INTERN.md`
-uppdaterades. Två rader i `OPPNA-PUNKTER.md` (återställningsluckan, PUB-spärren) togs bort –
-de väntade bara på det här antagandet och är nu byggkapacitet, inte ett öppet beslut.
-
-**Arbetsuppskattning, på ägarens begäran.** 16 delmål (L1a–L1p), i samma effortskala som
-tabellen "Uppskattad arbetsinsats" i planfilen: 4 små, 6 medel, 3 stora, 3 beroende av öppna
-beslutspunkter. Grovt ~18–24 fokuserade byggpass (bygg + fullt testsvep + commit, samma
-enhet varje `Uppföljning`-post i den här filen redan representerar) om
-rekommendationerna följs på de öppna punkterna – jämförbart i total omfattning med de
-senaste 15–20 etapperna tillsammans. Kalendertiden styrs av sessionstakten, inte av hur
-mycket ett enskilt pass hinner. Byggordningen (L1m → fritt inom varje gren i
-"Beroendeordning") gör att flera delmål kan drivas parallellt utan att vänta på varandra.
-

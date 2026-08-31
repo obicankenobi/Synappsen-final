@@ -4577,3 +4577,23 @@ produktens juridiska hållning bygger på biträdesrollen. Listan stannar i git.
 Ägaren har också gett Cloud Functions-tjänstekontot `roles/firebaseauth.admin` i GCP.
 **Ännu inte verifierat** – `tvingaUtloggning` på ett testkonto är det icke-destruktiva testet.
 Tills det är gjort står raden kvar i `OPPNA-PUNKTER.md`.
+
+## Uppföljning 2026-08-29 (Etapp L1 antagen + arbetsuppskattning)
+
+`intern/ETAPPLAN-INTERN-1.md` (leverantörspanelen) **antogs i sin helhet**, v0.6.
+Beslutspunkterna 5 (samma app) och 6 (flytta befintligt konto) avgjordes genom antagandet
+– planens struktur förutsätter dem. **1–4 och 7 kvarstår öppna** och avgörs var för sig,
+precis innan L1c/L1d/L1f/L1j respektive påbörjas – de blockerar inget annat delmål.
+`BESLUTSLOGG.md` fick raden, `DOKUMENTREGISTER.md` och `intern/ANDRINGSLOGG-INTERN.md`
+uppdaterades. Två rader i `OPPNA-PUNKTER.md` (återställningsluckan, PUB-spärren) togs bort –
+de väntade bara på det här antagandet och är nu byggkapacitet, inte ett öppet beslut.
+
+**Arbetsuppskattning, på ägarens begäran.** 16 delmål (L1a–L1p), i samma effortskala som
+tabellen "Uppskattad arbetsinsats" i planfilen: 4 små, 6 medel, 3 stora, 3 beroende av öppna
+beslutspunkter. Grovt ~18–24 fokuserade byggpass (bygg + fullt testsvep + commit, samma
+enhet varje `Uppföljning`-post i den här filen redan representerar) om
+rekommendationerna följs på de öppna punkterna – jämförbart i total omfattning med de
+senaste 15–20 etapperna tillsammans. Kalendertiden styrs av sessionstakten, inte av hur
+mycket ett enskilt pass hinner. Byggordningen (L1m → fritt inom varje gren i
+"Beroendeordning") gör att flera delmål kan drivas parallellt utan att vänta på varandra.
+

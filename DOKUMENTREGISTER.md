@@ -1,6 +1,6 @@
 # Dokumentregister
 
-**Fullständig inventering av projektets 69 dokument.** Bevakat av
+**Fullständig inventering av projektets 71 dokument.** Bevakat av
 `tests/docs/dokumentregister.test.js`, som failar om ett dokument finns på disk men saknas
 här, eller står här men saknas på disk. **Ett nytt dokument kan alltså inte glömmas bort –
 testet vägrar passera förrän det är infört i tabellerna nedan.**
@@ -69,7 +69,7 @@ utlöser en uppdatering – läs kolumnen "Utlöses av".
 | `produkt/VARUMARKE.md` | nej | Varumärkesplattform, tonalitet |
 | `produkt/GRAFISK-PROFIL.md` | nej | Färg, typografi, komponentspråk |
 | `produkt/FRAMTIDSPLAN.md` | nej | **Arkiv över ej antagna planer.** Skriv aldrig tillbaka "här är den aktiva planen" |
-| `etapplaner/ETAPPLAN19.md` | nej | Etapp 72 – från rutindatabas till ledningssystem. **UTKAST, EJ ANTAGEN** (v0.2, omskriven mot `granskningar/GRANSKNING-IDEBANK-2026-08-30.md`). Tretton delmål, sju öppna beslutspunkter. Uppdateras när en beslutspunkt avgörs. Flyttas till historiska tabellen om den antas och byggs klart, eller till `produkt/FRAMTIDSPLAN.md` om den väljs bort |
+| `etapplaner/ETAPPLAN19.md` | nej | Etapp 72 – från rutindatabas till ledningssystem. **ANTAGEN 2026-08-30** (v0.2.1). Tretton delmål, samtliga sju beslutspunkter avgjorda – men beslutspunkt 5 (efterfrågegrinden) betyder att inget delmål byggs utan en namngiven kund. Undantag 1 (avsett ändamål, artikel 50-märkning, Vertex AI-kostnad) genomfört. Uppdateras när ett delmål byggs eller en kund efterfrågar ett. Flyttas till historiska tabellen när planen är helt genomförd eller formellt avslutad |
 | `saljmaterial/00-LAS-DETTA-FORST.md` | nej | Orienteringsdokument för säljpaketet |
 | `saljmaterial/PILOTUPPLAGG.md` | nej | Konkret pilotupplägg, 4–6 veckor |
 | `saljmaterial/MARKNADSANALYS.md` | nej (bolagsform/jäv) | Marknad, värdering, prismodell |
@@ -136,6 +136,8 @@ planfil, på ägarens uttryckliga instruktion) och mappflytten 2026-08-23 (sökv
 | `etapplaner/STATUSARKIV.md` | 117 historiska uppföljningar ur `CLAUDE_STATUS.md` |
 | `granskningar/GRANSKNING-2026-08-11.md` | Extern granskning, tidsstämplad |
 | `granskningar/GRANSKNING-IDEBANK-2026-08-30.md` | Granskning av produktidébanken, tidsstämplad. **OBS:** det granskade dokumentet (idébanken, 18 förslag) finns INTE i repot – granskningen är ändå självbärande eftersom den citerar det den prövar, och den är källan till `etapplaner/ETAPPLAN19.md` v0.2 |
+| `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md` | Klinikstöd-sökningens avsedda ändamål enligt MDR art. 2.12, tidsstämplad. Skriven som Etapp 72 undantag 1. Ändra bara om funktionens faktiska ändamål ändras – annars är en ändring där ett tecken på att koden och det formulerade ändamålet glidit isär |
+| `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md` | Grov arbetsuppskattning för en migrering från publika Gemini API:et till Vertex AI, tidsstämplad. Skriven som Etapp 72 undantag 1. Refererad från `avtal/UNDERBITRADEN.md` |
 | `granskningar/SAKERHETSGRANSKNING-2026-08.md` | Säkerhetsgenomgång, tidsstämplad |
 
 ---

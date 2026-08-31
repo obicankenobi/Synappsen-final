@@ -91,6 +91,26 @@ describe("Påståenden om AI-märkning enligt AI-förordningens artikel 50", () 
   });
 });
 
+describe("Antalet godkända källdomäner för klinikstöd-sökningen stämmer", () => {
+  // Verkligt fel, upptäckt 2026-08-30: avtal/UNDERBITRADEN.md sa "fem godkända medicinska
+  // källdomäner" medan functions/klinikstod.js GODKANDA_KALLDOMANER hade sju sedan
+  // källbevakningen byggdes ut. Ett dokument som lämnas till kundens dataskyddsombud
+  // beskrev därmed en mindre behandling än den faktiska.
+  const kallkod = las("functions/klinikstod.js");
+  const traff = kallkod.match(/const GODKANDA_KALLDOMANER = \[([\s\S]*?)\];/);
+  const antalDomaner = traff ? traff[1].split(",").filter((r) => r.trim().startsWith('"')).length : 0;
+
+  test("koden har det antal källdomäner vi tror", () => {
+    expect(antalDomaner).toBe(7);
+  });
+
+  test("avtal/UNDERBITRADEN.md anger rätt antal källdomäner", () => {
+    const svar = las("avtal/UNDERBITRADEN.md");
+    expect(svar).not.toMatch(/fem godkända medicinska källdomäner/i);
+    expect(svar).toMatch(/sju godkända medicinska källdomäner/i);
+  });
+});
+
 describe("Inga påståenden om kundbeteende utan kunder", () => {
   // Verkligt fel: prislistan märkte Drift-nivån "VANLIGASTE VALET", presentationerna
   // upprepade det, och demomanuset instruerade säljaren att säga "Drift, som är det de flesta
