@@ -1,0 +1,97 @@
+/* Etapp 72f: mirrorar Akutlage.css i struktur, men med egna (svagare, blå/gul-toner)
+   färger istället för akutlägets larmröda – driftstopp är ett IT-avbrott, inte ett kliniskt
+   nödläge, och ska inte se ut som en patientsäkerhetslarm. Fortfarande fast hög kontrast
+   oavsett tema, av samma skäl som akutläget: förutsägbart läsbart under stress. */
+.driftstopp {
+  --driftstopp-bg: #10151c;
+  --driftstopp-panel: #1c2530;
+  --driftstopp-text: #ffffff;
+  --driftstopp-accent: #ffb84d;
+  --driftstopp-lank: #6bb8ff;
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal-topp);
+  overflow-y: auto;
+  background: var(--driftstopp-bg);
+  color: var(--driftstopp-text);
+  padding: 24px;
+  font-size: 1.15rem;
+}
+
+.driftstopp__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.driftstopp__header h1 {
+  font-size: 2rem;
+  margin: 0;
+  color: var(--driftstopp-accent);
+}
+
+.driftstopp__stang {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  min-width: 48px;
+  padding: 8px 20px;
+  border: 2px solid var(--driftstopp-text);
+  border-radius: 8px;
+  color: var(--driftstopp-text);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.driftstopp__tomt {
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+.driftstopp__sektion {
+  margin-bottom: 32px;
+}
+
+.driftstopp__sektion h2 {
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--driftstopp-text);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.driftstopp__intro p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.driftstopp__rutinlista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.driftstopp__rutin {
+  background: var(--driftstopp-panel);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.driftstopp__rutin h3 {
+  font-size: 1.4rem;
+  margin: 0 0 12px;
+  color: var(--driftstopp-text);
+}
+
+.driftstopp__rutin-innehall {
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+
+.driftstopp__rutin-innehall :is(a) {
+  color: var(--driftstopp-lank);
+}

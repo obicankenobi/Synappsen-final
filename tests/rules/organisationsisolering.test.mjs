@@ -74,6 +74,8 @@ async function main() {
       innehall: "Innehåll",
       akutlage: false,
       akutlageOrdning: 0,
+      driftstopp: false,
+      driftstoppOrdning: 0,
     });
 
     await setDoc(doc(db, "rutiner", "rutinA"), {
@@ -805,6 +807,44 @@ async function main() {
         titel: "Ny",
         innehall: "x",
         akutlage: true,
+      })
+    )
+  );
+
+  console.log("\nrutiner/{rutinId} – Etapp 72f: bara VÖL/superadmin kurerar driftstoppsläget");
+  await test("sektionsledareA (får redigera kliniskt-stod, men inte VÖL/superadmin) kan INTE sätta driftstopp=true", () =>
+    assertFails(
+      updateDoc(doc(sektionsledareA, "rutiner", "rutinKurateradA"), { driftstopp: true })
+    )
+  );
+  await test("sektionsledareA kan INTE ändra driftstoppOrdning", () =>
+    assertFails(
+      updateDoc(doc(sektionsledareA, "rutiner", "rutinKurateradA"), { driftstoppOrdning: 3 })
+    )
+  );
+  await test("volA (VÖL) KAN sätta driftstopp=true", () =>
+    assertSucceeds(updateDoc(doc(volA, "rutiner", "rutinKurateradA"), { driftstopp: true }))
+  );
+  await test("superadminA KAN ändra driftstoppOrdning", () =>
+    assertSucceeds(updateDoc(doc(superA, "rutiner", "rutinKurateradA"), { driftstoppOrdning: 1 }))
+  );
+  await test("sektionsledareA kan INTE skapa en ny rutin direkt in i driftstoppsläget", () =>
+    assertFails(
+      addDoc(collection(sektionsledareA, "rutiner"), {
+        omrade: "kliniskt-stod",
+        status: "utkast",
+        organisationId: ORG_A,
+        titel: "Ny",
+        innehall: "x",
+        driftstopp: true,
+      })
+    )
+  );
+  await test("sektionsledareA (ingen VÖL/superadmin) KAN ändå redigera lattlastText/begrepp – regelbart innehåll, ingen extra spärr (Etapp 72h)", () =>
+    assertSucceeds(
+      updateDoc(doc(sektionsledareA, "rutiner", "rutinKurateradA"), {
+        lattlastText: "Enklare text",
+        begrepp: [{ term: "SAT", forklaring: "Saturation" }],
       })
     )
   );

@@ -545,6 +545,12 @@ service cloud.firestore {
                   // område fylla akutläget med ocertifierat innehåll.
                   && nytt.get('akutlage', false) == gammalt.get('akutlage', false)
                   && nytt.get('akutlageOrdning', 0) == gammalt.get('akutlageOrdning', 0)
+                  // Etapp 72f: driftstoppsläget (samma kuraterade säkerhetsnät som akutläget,
+                  // fast för IT-avbrott) skyddas av exakt samma VÖL/superadmin-spärr och av
+                  // samma skäl – annars kan vem som helst med redigeringsrätt för ETT område
+                  // fylla driftstoppsläget med ogranskat innehåll.
+                  && nytt.get('driftstopp', false) == gammalt.get('driftstopp', false)
+                  && nytt.get('driftstoppOrdning', 0) == gammalt.get('driftstoppOrdning', 0)
                   // Etapp 19c: bara VÖL/superadmin (samma som farGodkannaKlinisktInnehall) får
                   // flagga en ändring som "väsentlig" – det fältet tvingar fram omkvittering i
                   // hela organisationens kompetensmatris (se utils/kompetensStatus.js), så det
@@ -579,6 +585,8 @@ service cloud.firestore {
                      // Etapp 17c: en helt ny rutin kan inte skapas direkt in i akutläget av
                      // någon annan än VÖL/superadmin (samma spärr som update ovan).
                      && (request.resource.data.get('akutlage', false) == false || farGodkannaKlinisktInnehall())
+                     // Etapp 72f: samma spärr för driftstoppsläget.
+                     && (request.resource.data.get('driftstopp', false) == false || farGodkannaKlinisktInnehall())
                      && arKortStegLista(request.resource.data.get('steg', []))
                      && arKortKvissLista(request.resource.data.get('kviss', []))
                      && arKortKallLista(request.resource.data.get('externaKallor', []))

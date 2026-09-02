@@ -312,7 +312,10 @@ beslutspunkt 7.
 
 ---
 
-### 72d. Tillsyns- och revisionspaket
+### 72d. Tillsyns- och revisionspaket ✅ KLAR 2026-09-02
+
+**Byggt på ägarens uttryckliga engångsinstruktion, som ett undantag från efterfrågegrinden i
+beslutspunkt 5 (se `BESLUTSLOGG.md` 2026-09-02).**
 
 **Behovet.** När IVO eller en certifieringsrevisor hör av sig ska ett antal handlingar fram
 snabbt. Idag betyder det en veckas letande.
@@ -327,6 +330,26 @@ ledningsrapporten.
 
 **Låg byggkostnad, hög säljeffekt.** Det adresserar direkt den rädsla som driver köpet, och
 det är ett demoögonblick som inte kräver att kunden först lagt in innehåll.
+
+**Byggt:**
+- `src/utils/kvitteringsgrad.js` (+ `.test.js`) — ren funktion, kvitteringsläge per rutin
+  (andel av organisationens personal som kvitterat läsning), modellerad på den
+  server-side aggregerade motsvarigheten `kvitteringsgradServer` i `functions/matvarden.js`
+  men per rutin istället för ett totalgenomsnitt.
+- `src/components/admin/TillsynspaketSektion.jsx` — ny adminsektion (superadmin), gated
+  precis som `IncidentberedskapSektion`. Exporterar ett enda Markdown-dokument med
+  innehållsförteckning och tidsstämpel: rutinbestånd (ägare/giltighet/granskningsdatum),
+  kvitteringsläge per rutin, och revisionsloggens verifierade kedja (återanvänder
+  `verifieraRevisionslogg` — samma anrop som `Admin.jsx` och `BeredskapSektion.jsx` redan
+  använder). Client-side-only export, samma `Blob`+UTF-8-BOM-mönster som
+  `KvitteringarMedDeadlineSektion.jsx`, ingen ny Cloud Function.
+- Registrerad i `src/pages/Admin.jsx`, matar in redan laddade `klinisktRutiner`/
+  `adminRutiner`/`anvandare` istället för att fråga Firestore igen.
+
+**Byggt INTE (explicita placeholders i exporten, inte tyst uteslutna):** kompetens- och
+delegeringsläge (72c), kontrollhistorik (72a), avvikelsestatistik (72e) och senaste
+patientsäkerhetsberättelsen (72b) — inget av dessa delmål finns i kodbasen ännu. Varje
+sådant avsnitt skriver ut "Ej tillgängligt ännu — kräver delmål 72x" i exportdokumentet.
 
 ---
 
@@ -398,7 +421,10 @@ kedjan.
 
 ---
 
-### 72f. Driftstoppsläge
+### 72f. Driftstoppsläge ✅ KLAR 2026-09-02
+
+**Byggt på ägarens uttryckliga engångsinstruktion, som ett undantag från efterfrågegrinden i
+beslutspunkt 5 (se `BESLUTSLOGG.md` 2026-09-02).**
 
 **Behovet.** När journalsystemet ligger nere ska personalen kunna arbeta på reservrutiner.
 Det är också exakt det scenario där en offline-kapabel rutinapp bevisar sitt pris.
@@ -414,6 +440,29 @@ signera 72a:s kontroller offline (krav 42).
 Som *scenario* säljer den sig själv, och det svarar mot iakttagelsen i
 `saljmaterial/KOPARANALYS.md` avsnitt 6 punkt 6 om att det starkaste demoögonblicket ligger i
 fel paket.
+
+**Byggt:** exakt spegling av akutlägets mönster, med egna fält (`driftstopp`/
+`driftstoppOrdning` istället för `akutlage`/`akutlageOrdning`) och egen färgsättning
+(blå/gul, inte akutlägets larmröda — ett IT-avbrott är inte ett kliniskt nödläge).
+- `src/hooks/useDriftstoppRutiner.js` — samma frågemönster/motivering som
+  `useAkutlageRutiner.js`.
+- `firestore.rules`: `driftstopp`/`driftstoppOrdning` skyddas av samma
+  `farGodkannaKlinisktInnehall()`-spärr som `akutlage`/`akutlageOrdning`, i både
+  update- och create-grenen av `farUppdateraRutin`/`rutiner`-skapandet. Testat i
+  `tests/rules/organisationsisolering.test.mjs` (mirrorar akutlägets rader).
+- `src/components/RutinFormular.jsx` — checkbox + ordningsfält, gated av samma
+  `farKureraAkutlage`-prop som akutläget (ingen ny behörighet uppfunnen).
+- `src/pages/Driftstopp.jsx` + `.css`, `src/components/DriftstoppPrefetch.jsx` (mountad
+  globalt i `src/App.jsx`, håller frågan varm i IndexedDB-cachen), ny route `/driftstopp`
+  (utanför `SkyddatLayout`, precis som `/akutlage`).
+- Upptäckbarhet: **ingen ny flytande knapp** (skulle konkurrera visuellt med den
+  befintliga "🚨 Akut"-knappen) — istället ett nytt `"driftstopp"`-block i
+  `src/config/startvy.js`, vilket räcker för att ytan syns på `Hem.jsx` och blir
+  omorganiserbar i `StartvyKonfigurationSektion.jsx` utan ytterligare kod.
+
+**Byggt INTE:** "signera 72a:s kontroller offline" (krav 42 i planens ursprungliga text).
+72a (kontrollsystem/loggbok) finns inte i kodbasen ännu — det finns inget att signera. Byggs
+när 72a finns.
 
 ---
 
@@ -436,7 +485,10 @@ dokumenthanteringssystem.
 
 ---
 
-### 72h. Språkstöd: lättläst och uppläsning
+### 72h. Språkstöd: lättläst och uppläsning ✅ KLAR 2026-09-02
+
+**Byggt på ägarens uttryckliga engångsinstruktion, som ett undantag från efterfrågegrinden i
+beslutspunkt 5 (se `BESLUTSLOGG.md` 2026-09-02).**
 
 **Behovet.** En betydande andel vårdpersonal har svenska som andraspråk. En rutin som inte
 förstås är inte läst, oavsett vad kvitteringsgraden säger.
@@ -452,6 +504,28 @@ Detta är ett redaktörsstöd, inte en översättningsmotor.
 **Ingen konkurrent i segmentet gör detta**, och det är ett argument som talar direkt till
 verksamhetschefen i en verksamhet med hög andel vikarier – ett av kandidatlistans
 urvalskriterier (nr 5).
+
+**Byggt:** rent redaktörsstyrt, inga automatiska språkfunktioner.
+- Två nya, valfria fält på `rutiner`-dokument: `lattlastText` (redaktörsskriven förenklad
+  omskrivning) och `begrepp` (array av `{term, forklaring}`). Inte gated bakom
+  VÖL/superadmin — samma redigeringsbehörighet som huvudinnehållet (`innehall`) gäller,
+  eftersom det bara är en alternativ presentation av innehåll en redaktör redan får ändra.
+  Inget tillägg i `firestore.rules` behövdes (verifierat: `farUppdateraRutin` begränsar
+  `innehall` inte alls utöver PII-filtret, så nya fält utan egen `.get(...)`-jämförelse ärver
+  samma öppna gate) — testat explicit i `tests/rules/organisationsisolering.test.mjs` att en
+  vanlig redaktör (inte VÖL/superadmin) kan sätta dem.
+- `src/components/RutinFormular.jsx` — en textarea för `lattlastText`, och en
+  rad-för-rad `term: förklaring`-textarea för `begrepp` (parsas/serialiseras klientsidan;
+  ingen egen repeterbar-lista-UI byggdes, filens övriga listfält har ingen sådan komponent
+  att återanvända).
+- `src/components/RutinKort.jsx` — "🔤 Lättläst"-knapp (visas bara om `lattlastText` finns),
+  växlar den renderade `MarkdownInnehall` mellan normalt och lättläst innehåll. Begrepp
+  renderas som en rad `<details>`-chips (hover via `title` på `<summary>`, tryck/tap via
+  `<details>`s inbyggda öppna/stäng — ingen ny tooltip-komponent byggd, projektet hade ingen
+  befintlig att återanvända). "🔊 Lyssna"-knappen (redan kopplad till `useTalsyntes`) läser nu
+  upp den *just visade* versionen (lättläst om vald, annars normal).
+
+**Byggt INTE:** ingen maskinöversättning, inget språkval — exakt planens avgränsning.
 
 ---
 

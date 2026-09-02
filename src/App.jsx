@@ -14,6 +14,7 @@ import ProvperiodBanner from "./components/ProvperiodBanner";
 import InstalleraAppBanner from "./components/InstalleraAppBanner";
 import AppUppdateringBanner from "./components/AppUppdateringBanner";
 import AkutlagePrefetch from "./components/AkutlagePrefetch";
+import DriftstoppPrefetch from "./components/DriftstoppPrefetch";
 import AkutKnappFloating from "./components/AkutKnappFloating";
 import OrganisationsBranding from "./components/OrganisationsBranding";
 import OfflineKoLyssnare from "./components/OfflineKoLyssnare";
@@ -88,6 +89,7 @@ const Kompetensmatris = lazy(() => import("./pages/Kompetensmatris"));
 const Ledningsrapport = lazy(() => import("./pages/Ledningsrapport"));
 const Godkannanden = lazy(() => import("./pages/Godkannanden"));
 const Akutlage = lazy(() => import("./pages/Akutlage"));
+const Driftstopp = lazy(() => import("./pages/Driftstopp"));
 const Korvy = lazy(() => import("./pages/Korvy"));
 const SedanForraPasset = lazy(() => import("./pages/SedanForraPasset"));
 const OvaLage = lazy(() => import("./pages/OvaLage"));
@@ -156,6 +158,7 @@ export default function App() {
         <ProvperiodBanner />
         <InstalleraAppBanner />
         <AkutlagePrefetch />
+        <DriftstoppPrefetch />
         <AkutKnappFloating />
         <Routes>
           <Route
@@ -418,6 +421,18 @@ export default function App() {
                 <ErrorBoundary>
                   <Suspense fallback={<SidLaddare />}>
                     <Akutlage />
+                  </Suspense>
+                </ErrorBoundary>
+              </SkyddadRoute>
+            }
+          />
+          <Route
+            path="/driftstopp"
+            element={
+              <SkyddadRoute>
+                <ErrorBoundary>
+                  <Suspense fallback={<SidLaddare />}>
+                    <Driftstopp />
                   </Suspense>
                 </ErrorBoundary>
               </SkyddadRoute>

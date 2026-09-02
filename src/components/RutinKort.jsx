@@ -61,6 +61,13 @@ export default function RutinKort({
   const arKiosk = role === ROLES.KIOSK;
   const mittNamn = namn || currentUser?.email;
   const { stods: talstods, laserUpp, vaxla } = useTalsyntes();
+  // Etapp 72h: lättläst-läge – redaktörsstyrt (lattlastText skrivs i RutinFormular.jsx),
+  // produkten bara växlar visningen. Knappen visas bara om en lättläst version faktiskt
+  // finns – annars finns inget att växla till.
+  const [visaLattlast, setVisaLattlast] = useState(false);
+  const harLattlast = Boolean(rutin.lattlastText?.trim());
+  const visatInnehall = visaLattlast && harLattlast ? rutin.lattlastText : rutin.innehall;
+  const begrepp = rutin.begrepp ?? [];
   const [visaHistorik, setVisaHistorik] = useState(false);
   const [visaOlasta, setVisaOlasta] = useState(false);
   const [qrUrl, setQrUrl] = useState(null);
@@ -205,7 +212,31 @@ export default function RutinKort({
           )}
         </div>
       )}
-      <MarkdownInnehall className="rutin-kort__innehall" text={rutin.innehall} />
+      {harLattlast && (
+        <button
+          type="button"
+          className={`knapp knapp--sekundar knapp--liten rutin-kort__lattlast-vaxel${
+            visaLattlast ? " rutin-kort__lattlast-vaxel--vald" : ""
+          }`}
+          onClick={() => setVisaLattlast((v) => !v)}
+          aria-pressed={visaLattlast}
+        >
+          {visaLattlast ? "📖 Visa vanlig text" : "🔤 Lättläst"}
+        </button>
+      )}
+      <MarkdownInnehall className="rutin-kort__innehall" text={visatInnehall} />
+
+      {begrepp.length > 0 && (
+        <div className="rutin-kort__begrepp">
+          <strong>Begrepp:</strong>{" "}
+          {begrepp.map((b, i) => (
+            <details key={i} className="rutin-kort__begrepp-post">
+              <summary title={b.forklaring}>{b.term}</summary>
+              <span>{b.forklaring}</span>
+            </details>
+          ))}
+        </div>
+      )}
 
       {rutin.taggar?.length > 0 && (
         <div className="rutin-kort__taggar">
@@ -370,7 +401,7 @@ export default function RutinKort({
           <button
             type="button"
             className="knapp knapp--sekundar knapp--liten"
-            onClick={() => vaxla(talText(rutin.innehall))}
+            onClick={() => vaxla(talText(visatInnehall))}
           >
             {laserUpp ? "⏹️ Sluta lyssna" : "🔊 Lyssna"}
           </button>

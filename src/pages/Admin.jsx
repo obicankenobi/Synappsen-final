@@ -38,6 +38,7 @@ import InbjudanFormular from "../components/InbjudanFormular";
 import { useDialog } from "../hooks/useDialog";
 import SystemstatusSektion from "../components/admin/SystemstatusSektion";
 import IncidentberedskapSektion from "../components/admin/IncidentberedskapSektion";
+import TillsynspaketSektion from "../components/admin/TillsynspaketSektion";
 import PilotMatvardenSektion from "../components/admin/PilotMatvardenSektion";
 import ModulerSektion from "../components/admin/ModulerSektion";
 import SakerhetSektion from "../components/admin/SakerhetSektion";
@@ -524,6 +525,14 @@ export default function Admin() {
       )}
 
       {arSuperadmin && <IncidentberedskapSektion />}
+
+      {arSuperadmin && (
+        <TillsynspaketSektion
+          rutiner={[...klinisktRutiner, ...adminRutiner].filter((r) => r.status === "godkand")}
+          anvandare={anvandare}
+          organisationId={organisationId}
+        />
+      )}
 
       {arSuperadmin && (
         <PilotMatvardenSektion

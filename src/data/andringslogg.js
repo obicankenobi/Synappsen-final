@@ -11,6 +11,16 @@
 // poster, ändringsloggen är en logg, inte ett levande dokument som redigeras i efterhand.
 export const ANDRINGSLOGG = [
   {
+    version: "5.139.0",
+    datum: "2026-09-02",
+    andringar: [
+      "Nytt: Driftstoppsläge (🔌, från startsidan) – ett eget helskärmsläge med de reservrutiner som gäller vid IT-avbrott, alltid läsbara offline. VÖL/superadmin kuraterar vilka rutiner som visas där, precis som i akutläget",
+      "Nytt: superadmin kan exportera ett tillsyns- och revisionspaket (Admin) – rutinbestånd, kvitteringsläge och revisionsloggens verifierade kedja i ett dokument, med innehållsförteckning och tidsstämpel",
+      "Nytt: lättläst-läge för rutiner – redaktörer kan skriva en förenklad version av en rutin, som personal kan växla till med en knapp och lyssna på uppläst",
+      "Nytt: begreppsordlista för rutiner – facktermer kan förklaras och visas som en klickbar ordlista under rutinens innehåll",
+    ],
+  },
+  {
     version: "5.138.0",
     datum: "2026-08-30",
     andringar: [

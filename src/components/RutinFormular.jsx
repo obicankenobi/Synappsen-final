@@ -73,6 +73,16 @@ export default function RutinFormular({
   const [agareUid, setAgareUid] = useState(initialaVarden?.agare?.uid ?? "");
   const [akutlage, setAkutlage] = useState(initialaVarden?.akutlage ?? false);
   const [akutlageOrdning, setAkutlageOrdning] = useState(initialaVarden?.akutlageOrdning ?? 0);
+  // Etapp 72f: driftstoppsläget – samma VÖL/superadmin-kuratering som akutläget
+  // (farKureraAkutlage-propen återanvänds som den är, se Sektionssida.jsx).
+  const [driftstopp, setDriftstopp] = useState(initialaVarden?.driftstopp ?? false);
+  const [driftstoppOrdning, setDriftstoppOrdning] = useState(initialaVarden?.driftstoppOrdning ?? 0);
+  // Etapp 72h: lättläst-läge och begreppsordlista – redaktörsstyrt innehåll, samma
+  // redigeringsbehörighet som huvudinnehållet (ingen extra gate).
+  const [lattlastText, setLattlastText] = useState(initialaVarden?.lattlastText ?? "");
+  const [begreppText, setBegreppText] = useState(
+    (initialaVarden?.begrepp ?? []).map((b) => `${b.term}: ${b.forklaring}`).join("\n")
+  );
   const [steg, setSteg] = useState(initialaVarden?.steg ?? []);
   const [foreslarSteg, setForeslarSteg] = useState(false);
 
@@ -376,6 +386,16 @@ export default function RutinFormular({
         agare,
         akutlage,
         akutlageOrdning: Number(akutlageOrdning) || 0,
+        driftstopp,
+        driftstoppOrdning: Number(driftstoppOrdning) || 0,
+        lattlastText,
+        begrepp: begreppText
+          .split("\n")
+          .map((rad) => {
+            const [term, ...resten] = rad.split(":");
+            return { term: (term ?? "").trim(), forklaring: resten.join(":").trim() };
+          })
+          .filter((b) => b.term && b.forklaring),
         steg: steg
           .filter((s) => s.text.trim())
           .map((s) => ({
@@ -889,6 +909,62 @@ export default function RutinFormular({
           </span>
         </label>
       )}
+
+      {farKureraAkutlage && (
+        <label className="rutin-formular__akutlage">
+          <span className="rutin-formular__checkbox-rad">
+            <input
+              type="checkbox"
+              checked={driftstopp}
+              onChange={(e) => setDriftstopp(e.target.checked)}
+            />
+            Visa i driftstoppsläget
+          </span>
+          {driftstopp && (
+            <span>
+              Ordning i driftstoppsläget (lägre visas högre upp)
+              <input
+                type="number"
+                min="0"
+                value={driftstoppOrdning}
+                onChange={(e) => setDriftstoppOrdning(e.target.value)}
+              />
+            </span>
+          )}
+          <span className="rutin-formular__hjalptext">
+            Driftstoppsläget visar de rutiner som gäller vid IT-avbrott – kuratera med
+            omtanke, det ska gå snabbt att hitta rätt reservrutin.
+          </span>
+        </label>
+      )}
+
+      <label>
+        Lättläst version (valfritt)
+        <textarea
+          rows={4}
+          placeholder="Kortare meningar, förklarade facktermer – en förenklad omskrivning av innehållet ovan"
+          value={lattlastText}
+          onChange={(e) => setLattlastText(e.target.value)}
+        />
+        <span className="rutin-formular__hjalptext">
+          Visas som en alternativ, uppläsningsvänlig version av rutinen bakom en "Lättläst"-
+          knapp. Lämna tomt om ingen lättläst version behövs – då visas ingen knapp alls.
+        </span>
+      </label>
+
+      <label>
+        Begrepp (valfritt, en post per rad: term: förklaring)
+        <textarea
+          rows={3}
+          placeholder={"T.ex.\nSAT: Saturation, syremättnad i blodet\nEWS: Early Warning Score"}
+          value={begreppText}
+          onChange={(e) => setBegreppText(e.target.value)}
+        />
+        <span className="rutin-formular__hjalptext">
+          Facktermer i rutinen som kan behöva förklaras – visas som en klickbar ordlista under
+          innehållet.
+        </span>
+      </label>
 
       {valbaraRutiner.length > 0 && (
         <label>

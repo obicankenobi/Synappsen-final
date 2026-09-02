@@ -4,17 +4,16 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (123 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (124 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-08-30 · **v5.138.0 committad, inte deployad.** Produktion står kvar
-på 5.132.0 (körning #93, verifierad). Utgående e-post är stoppat sedan v5.131.0 i väntan på
-Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.** **Etapp 72
-(`etapplaner/ETAPPLAN19.md`) är ANTAGEN** – riktningen är beslutad, men beslutspunkt 5
-(efterfrågegrinden) betyder att inget delmål byggs utan en namngiven kund. Undantag 1 (avsett
-ändamål, artikel 50-märkning, Vertex AI-kostnad) genomfört samma dag – det första kundvända
-kodarbetet sedan Etapp 69.
+**Senast uppdaterad:** 2026-09-02 · **v5.139.0, deploy triggad.** Utgående e-post är stoppat
+sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
+**Etapp 72 (`etapplaner/ETAPPLAN19.md`):** riktningen är antagen, beslutspunkt 5
+(efterfrågegrinden) gäller fortfarande som huvudregel för alla ÖVRIGA delmål. 72f, 72d och
+72h byggda och deployade som ett uttryckligt, engångsbeslutat undantag från grinden (se
+`BESLUTSLOGG.md` 2026-09-02) – ägaren instruerade direkt, ingen namngiven kund låg bakom.
 
 ## Nuläge
 
@@ -114,6 +113,43 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-02 (v5.139.0 – 72f/72d/72h byggda på ägarens engångsinstruktion)
+
+Ägaren instruerade direkt: "bygg och deploya delmål 72f, 72d och 72h" – ett uttryckligt
+engångsundantag från Etapp 72s efterfrågegrind (beslutspunkt 5 i `etapplaner/ETAPPLAN19.md`,
+se `BESLUTSLOGG.md` 2026-09-02). Grindens huvudregel gäller oförändrad för alla övriga
+delmål i etappen.
+
+**72f – Driftstoppsläge.** Exakt spegling av akutlägets mönster (`useAkutlageRutiner.js`,
+`Akutlage.jsx`, `AkutlagePrefetch.jsx`) med egna fält (`driftstopp`/`driftstoppOrdning`) och
+egen visuell identitet (blå/gul, inte akutlägets larmröda). Ny route `/driftstopp`, nytt
+startvyblock (ingen ny flytande knapp – skulle konkurrera med "🚨 Akut"). `firestore.rules`
+skyddar de nya fälten med samma VÖL/superadmin-spärr som akutläget, testat i
+`tests/rules/organisationsisolering.test.mjs`. Byggde INTE "signera 72a:s kontroller
+offline" – 72a finns inte i kodbasen.
+
+**72d – Tillsyns- och revisionspaket.** Ny adminsektion `TillsynspaketSektion.jsx`
+(superadmin), exporterar ett Markdown-dokument med innehållsförteckning: rutinbestånd
+(ägare/giltighet/granskning), kvitteringsläge per rutin (ny ren funktion
+`src/utils/kvitteringsgrad.js`), och revisionsloggens verifierade kedja
+(`verifieraRevisionslogg`, redan använd i `Admin.jsx`/`BeredskapSektion.jsx`). Sektioner som
+kräver obyggda delmål (72a/72b/72c/72e) skrivs ut som explicita "Ej tillgängligt ännu"-
+placeholders i exporten, inte tysta uteslutningar.
+
+**72h – Lättläst-läge och uppläsning.** Två nya fria fält på `rutiner`
+(`lattlastText`/`begrepp`), redigerbara av samma behörighet som huvudinnehållet (inget
+rutilltillägg i `firestore.rules` behövdes – verifierat att `farUppdateraRutin` inte
+begränsar `innehall` utöver PII-filtret). `RutinKort.jsx` fick en "🔤 Lättläst"-växel, en
+begreppsordlista (`<details>`-chips) och "🔊 Lyssna" läser nu upp den visade versionen via
+den redan befintliga `useTalsyntes`-hooken. Ingen maskinöversättning, inget språkval –
+planens uttryckliga avgränsning.
+
+Fullt testsvep grönt: `npm run lint`, `npm run build`, `npx vitest run` (557 tester, upp från
+535), `npm run test:rules` (alla filer, inkl. de sex nya driftstopp-/lattlast-raderna i
+`organisationsisolering.test.mjs`), `npm run test:functions`, `npm run test:storage`. E2E
+kördes inte (inte ett bindande krav för den här ändringstypen, tidsprioriterat bort). Deploy
+triggad via `deploy.yml` på grenen `claude/compassionate-euler-rho0q5`.
 
 ## Uppföljning 2026-08-30 (v5.138.0 – Etapp 72 antagen, undantag 1 genomfört)
 
@@ -359,28 +395,3 @@ verifierade innan arbetet fortsatte. Ingen förlorad kod.
 **10 av 16 delmål i Etapp L1 klara.** Kvarstår: L1b (kunddossién – inget hinder, störst
 kvarvarande arbetsbesparing), L1e/L1f (stora, L1f väntar på beslutspunkt 4), L1c/L1d/L1j
 (väntar på beslutspunkt 1/3/2).
-
-## Uppföljning 2026-08-29 (v5.133.0 – L1l, L1h, L1k, L1o byggda)
-
-Ägaren bad om de fyra "Liten"-delmålen i Etapp L1. Byggda, testade, committade – **inte
-deployade** (internt arbete, ingen brådska; nästa deploy kan vänta tills ett kundvänt behov
-finns eller L1m är klar). Detaljer i `intern/ETAPPLAN-INTERN-1.md` (v0.7) under respektive
-delmål och i `intern/ANDRINGSLOGG-INTERN.md` (v5.133.0-posten).
-
-**Ett verkligt korrekthetsfel hittades och fixades under L1k**, inte i produktion senare: ett
-blint `FieldValue.increment(±1)` på en organisations ännu-inte-initierade `antalAnvandare`
-hade skrivit en felaktig ABSOLUT siffra (Firestore behandlar increment på ett saknat fält som
-att basen är 0 – "1 användare" för en organisation som redan har tio). Både `losInInbjudan`
-och `raderaAnvandare` läser nu räknarens nuvarande värde först och rör den bara om den redan
-är ett tal; annars lämnas fältet åt `listaOrganisationer`s lativa backfill, som räknar rätt
-från grunden. Fångat av `tests/functions/antalanvandare-raknare.test.cjs` INNAN kodgranskning
-hann missa det – testet skrevs samtidigt som implementationen, inte efteråt.
-
-L1k byggdes bara på `antalAnvandare`-axeln. Kostnadshistorik-axeln (den andra extra läsningen
-i `listaOrganisationer`) avgränsades medvetet bort: den skrivs lativt inuti `reserveraBudget`,
-en budgetkritisk transaktion som körs före varje Gemini-anrop, och att denormalisera dit för
-en enda leverantörsvys visning vore oproportionerligt för ett delmål stämplat "Litet".
-
-37 nya tester. Fullt testsvep grönt: `npm run lint`, `npm run build`, `npx vitest run` (517
-tester, upp från 480), `npm run test:rules` (alla filer, inkl. den nya
-`atagandekalender.test.mjs`), `npm run test:functions` (alla 35 filer, inkl. de två nya).

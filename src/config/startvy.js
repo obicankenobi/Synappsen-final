@@ -51,6 +51,15 @@ export const STARTVY_BLOCK = {
     ikon: "📥",
     lank: "/offline-center",
   },
+  // Etapp 72f: ingen egen flytande knapp (skulle konkurrera visuellt med "🚨 Akut"-knappen,
+  // se AkutKnappFloating.jsx) – i stället surfas driftstoppsläget upp via detta generiska
+  // startvyblock, samma väg som alla andra block på Hem.jsx.
+  driftstopp: {
+    titel: "Driftstopp",
+    beskrivning: "Reservrutiner för när journalsystemet eller nätet ligger nere",
+    ikon: "🔌",
+    lank: "/driftstopp",
+  },
 };
 
 const STANDARDORDNING = [
@@ -61,6 +70,7 @@ const STANDARDORDNING = [
   "ladda-upp",
   "skiftrapport",
   "offline-center",
+  "driftstopp",
 ];
 
 // Sensible standardordning per roll (se ETAPPLAN3.md Etapp 17a) – ingen konfiguration krävs

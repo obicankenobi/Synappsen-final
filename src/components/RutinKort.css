@@ -115,8 +115,50 @@
   padding: 8px 12px;
 }
 
+.rutin-kort__lattlast-vaxel {
+  margin-bottom: 8px;
+}
+
+.rutin-kort__lattlast-vaxel--vald {
+  border-color: var(--accent, currentColor);
+}
+
 .rutin-kort__innehall {
   color: var(--text);
+}
+
+/* Etapp 72h: begreppsordlista – varje term är ett eget <details>, vilket ger både hover
+   (title-attributet på <summary>) och tryck/tap (öppnar/stänger förklaringen inline) utan
+   att behöva en egen tooltip-komponent. */
+.rutin-kort__begrepp {
+  margin-top: 12px;
+  font-size: 0.9em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.rutin-kort__begrepp-post {
+  display: inline-block;
+}
+
+.rutin-kort__begrepp-post summary {
+  display: inline-block;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--kant, #ccc);
+  list-style: none;
+}
+
+.rutin-kort__begrepp-post summary::-webkit-details-marker {
+  display: none;
+}
+
+.rutin-kort__begrepp-post span {
+  display: block;
+  padding: 4px 8px;
 }
 
 .rutin-kort__innehall :first-child {

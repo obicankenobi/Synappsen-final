@@ -197,6 +197,10 @@ export default function Sektionssida({
     agare,
     akutlage,
     akutlageOrdning,
+    driftstopp,
+    driftstoppOrdning,
+    lattlastText,
+    begrepp,
     steg,
     kviss,
     vasentligAndring,
@@ -220,6 +224,9 @@ export default function Sektionssida({
           kviss,
           externaKallor,
           ...(farKureraAkutlage ? { akutlage, akutlageOrdning } : {}),
+          ...(farKureraAkutlage ? { driftstopp, driftstoppOrdning } : {}),
+          lattlastText,
+          begrepp,
           // Etapp 19c: bara den som får godkänna kliniskt innehåll kan kryssa i "väsentlig
           // ändring" (samma roller som farKureraAkutlage, se firestore.rules) – annars kunde
           // vem som helst med redigeringsrätt tvinga fram omkvittering för hela organisationen.
@@ -259,6 +266,8 @@ export default function Sektionssida({
         steg: await laddaUppStegBilder(ref.id, steg),
         kviss,
         externaKallor,
+        lattlastText,
+        begrepp,
       });
       if (forifylldSokning?.sokloggId) {
         await markeraSokloggAtgardad(forifylldSokning.sokloggId, ref.id);

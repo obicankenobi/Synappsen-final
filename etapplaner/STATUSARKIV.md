@@ -4597,3 +4597,28 @@ senaste 15–20 etapperna tillsammans. Kalendertiden styrs av sessionstakten, in
 mycket ett enskilt pass hinner. Byggordningen (L1m → fritt inom varje gren i
 "Beroendeordning") gör att flera delmål kan drivas parallellt utan att vänta på varandra.
 
+## Uppföljning 2026-08-29 (v5.133.0 – L1l, L1h, L1k, L1o byggda)
+
+Ägaren bad om de fyra "Liten"-delmålen i Etapp L1. Byggda, testade, committade – **inte
+deployade** (internt arbete, ingen brådska; nästa deploy kan vänta tills ett kundvänt behov
+finns eller L1m är klar). Detaljer i `intern/ETAPPLAN-INTERN-1.md` (v0.7) under respektive
+delmål och i `intern/ANDRINGSLOGG-INTERN.md` (v5.133.0-posten).
+
+**Ett verkligt korrekthetsfel hittades och fixades under L1k**, inte i produktion senare: ett
+blint `FieldValue.increment(±1)` på en organisations ännu-inte-initierade `antalAnvandare`
+hade skrivit en felaktig ABSOLUT siffra (Firestore behandlar increment på ett saknat fält som
+att basen är 0 – "1 användare" för en organisation som redan har tio). Både `losInInbjudan`
+och `raderaAnvandare` läser nu räknarens nuvarande värde först och rör den bara om den redan
+är ett tal; annars lämnas fältet åt `listaOrganisationer`s lativa backfill, som räknar rätt
+från grunden. Fångat av `tests/functions/antalanvandare-raknare.test.cjs` INNAN kodgranskning
+hann missa det – testet skrevs samtidigt som implementationen, inte efteråt.
+
+L1k byggdes bara på `antalAnvandare`-axeln. Kostnadshistorik-axeln (den andra extra läsningen
+i `listaOrganisationer`) avgränsades medvetet bort: den skrivs lativt inuti `reserveraBudget`,
+en budgetkritisk transaktion som körs före varje Gemini-anrop, och att denormalisera dit för
+en enda leverantörsvys visning vore oproportionerligt för ett delmål stämplat "Litet".
+
+37 nya tester. Fullt testsvep grönt: `npm run lint`, `npm run build`, `npx vitest run` (517
+tester, upp från 480), `npm run test:rules` (alla filer, inkl. den nya
+`atagandekalender.test.mjs`), `npm run test:functions` (alla 35 filer, inkl. de två nya).
+
