@@ -236,3 +236,51 @@ describe("Påståenden om att det saknas betalande kunder", () => {
     }
   });
 });
+
+describe("Produktdefinitionens diskrepansavsnitt speglar faktisk kod", () => {
+  // PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md § 9 listar två ställen där koden INTE gör det
+  // projektets övriga dokument påstår. Ett sådant avsnitt har en inbyggd förfallotid: den dag
+  // koden rättas blir dokumentet fel åt andra hållet – det skulle då påstå att en brist finns
+  // som inte längre gör det, i ett underlag som lämnas till en anlitad jurist.
+  //
+  // Assertionerna nedan är därför VILLKORADE: de läser koden först och kräver att dokumentet
+  // säger samma sak. De är gröna i dag (bristerna finns) och blir röda i samma sekund som
+  // någon rättar koden utan att skriva om § 9. Det är exakt den drift registret i övrigt
+  // bevakar, fast tillämpad på ett dokument som beskriver brister i stället för förmågor.
+  const DEF = "granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md";
+
+  test("§ 9.1 gäller så länge gränssnittet säger 'Beslutsstöd'", () => {
+    const uiSagerBeslutsstod = /Beslutsstöd/.test(las("src/components/KlinikfragaSok.jsx"));
+    const dokPastarBristen = /9\.1 Gränssnittet säger fortfarande "Beslutsstöd"/.test(las(DEF));
+
+    expect(
+      dokPastarBristen,
+      uiSagerBeslutsstod
+        ? `${DEF} § 9.1 har tagits bort, men KlinikfragaSok.jsx säger fortfarande ` +
+            '"Beslutsstöd". Diskrepansen finns kvar och ska stå kvar i underlaget.'
+        : 'KlinikfragaSok.jsx säger inte längre "Beslutsstöd" – bra. Skriv då om ' +
+            `${DEF} § 9.1 så att den beskriver rättelsen i stället för bristen, och ta bort ` +
+            "raden ur OPPNA-PUNKTER.md. Ett underlag till en jurist får inte påstå en brist " +
+            "som inte längre finns."
+    ).toBe(uiSagerBeslutsstod);
+  });
+
+  test("§ 9.2 gäller så länge steg-arrayen saknar nyckelspärr i regellagret", () => {
+    // Fyndet: firestore.rules begränsar ANTALET steg och personnummer i stegens text, men
+    // ingen regel begränsar vilka NYCKLAR ett stegobjekt får ha. Sanningskällan är att inget
+    // hasOnly() i regelfilen nämner något av checklistsegets fält.
+    const regler = las("firestore.rules");
+    const stegHarNyckelsparr = /hasOnly\(\[[^\]]*timerSekunder/.test(regler);
+    const dokPastarBristen = /9\.2 Checklistsegets fältuppsättning är inte spärrad/.test(las(DEF));
+
+    expect(
+      dokPastarBristen,
+      stegHarNyckelsparr
+        ? "firestore.rules har nu en nyckelspärr för checklistegen – skriv om " +
+            `${DEF} § 9.2, och notera att MDR-argumentet därmed FAKTISKT kan framföras som ` +
+            "strukturellt. Det är en förstärkning värd att dokumentera, inte radera."
+        : `${DEF} § 9.2 har tagits bort, men firestore.rules saknar fortfarande en ` +
+            "nyckelspärr för checklistegen. Diskrepansen finns kvar och bär MDR-slutsatsen."
+    ).toBe(!stegHarNyckelsparr);
+  });
+});

@@ -4622,3 +4622,75 @@ en enda leverantörsvys visning vore oproportionerligt för ett delmål stämpla
 tester, upp från 480), `npm run test:rules` (alla filer, inkl. den nya
 `atagandekalender.test.mjs`), `npm run test:functions` (alla 35 filer, inkl. de två nya).
 
+
+---
+
+## Uppföljning 2026-08-29 (v5.134.0 – L1m, L1a, L1g, L1i, L1n, L1p byggda)
+
+De sex "Medel"-delmålen, byggda direkt efter de fyra "Liten"-delmålen i samma session.
+Detaljer i `intern/ETAPPLAN-INTERN-1.md` v0.8 under respektive delmål.
+
+**L1m (kontomodellen) är den mest säkerhetskritiska delen** – ett `_plattform`-konto bevisat
+isolerat från all kundorganisations innehåll skarpt mot Firestore-regler
+(`tests/rules/plattformskonto.test.mjs`), inklusive den faktiska fällan att INTE falla
+tillbaka på organisationen "default". `flyttaTillPlattformskonto()` finns för att flytta
+ägarens eget konto – **inte körd än**, ett operativt beslut, inte en teknisk fråga.
+
+**L1p:s PUB-avtalsspärr är samma feltyp som Brevo, fast omvänt** – `satAvtalsstatus('aktiv')`
+nekas nu utan ett registrerat PUB-avtal (`pubAvtalTecknat`), av exakt samma skäl som
+Brevo-spärren: en kontroll i koden kan inte glömmas bort. Ingen skarp risk (noll kunder), men
+billigast att stänga innan den första.
+
+**Två deliberata avsteg från planens ordalydelse**, båda dokumenterade i `intern/
+ETAPPLAN-INTERN-1.md`: `IncidentberedskapSektion.jsx` togs INTE bort från kundens adminpanel
+(planen antog fel – en riktig kund läser sin EGEN organisations status oberoende av
+plattformsadmin, att ta bort den hade varit en regression). Kundlägets fem flikar (L1a) delar
+en gemensam platshållare i väntan på L1b, i stället för fem tomma sidor.
+
+**Ett självrättat verktygsmisstag**, dokumenterat ärligt i `intern/ANDRINGSLOGG-INTERN.md`:
+ett `Write`-anrop skrev av misstag över `src/firebase/functions.js`. Upptäckt omedelbart via
+`git status`, återställd från `git show HEAD:...`, alla tillägg återapplicerade och
+verifierade innan arbetet fortsatte. Ingen förlorad kod.
+
+77 nya tester. Fullt testsvep grönt: lint, build, `npx vitest run` (535 tester, upp från 517),
+`npm run test:rules` (alla filer inkl. 2 nya), `npm run test:functions` (alla 40 filer inkl.
+5 nya).
+
+**10 av 16 delmål i Etapp L1 klara.** Kvarstår: L1b (kunddossién – inget hinder, störst
+kvarvarande arbetsbesparing), L1e/L1f (stora, L1f väntar på beslutspunkt 4), L1c/L1d/L1j
+(väntar på beslutspunkt 1/3/2).
+
+---
+
+## Uppföljning 2026-08-29 (v5.135.0 – L1b byggd)
+
+Kunddossién – planens enskilt största arbetsbesparing, byggd direkt efter de sex
+"Medel"-delmålen i samma session. Detaljer i `intern/ETAPPLAN-INTERN-1.md` v0.9 under L1b.
+
+**En verklig bugg hittad vid premisskontroll, inte en kodmiss i den här omgången:**
+`listaOrganisationer` (`functions/organisationslivscykel.js`) returnerade aldrig åtta fält
+(`orgnr`, `kontaktperson`, `anvandartak`, `pubAvtalTecknat`, `pubAvtalVersion`,
+`underbitradeUnderrattad`, `omfattasAvNIS2`, `atagandeblock`) som L1p:s
+`AvtalOchAtagandeSektion.jsx` redan berodde på att läsa. Den panelen hade alltså visat fel
+sedan den byggdes förra omgången – ett tyst fel som ingen tidigare test kunde fånga eftersom
+funktionstesterna läste/skrev dokumentet direkt i stället för via callet klienten faktiskt
+använder. Fixat, med `tests/functions/listaorganisationer-falt.test.cjs` som bevisar det.
+
+Fem riktiga sidor ersatte den delade platshållaren från v5.134.0: Huvud+Kontakt (delvis)
+(`KundOversikt.jsx`), Användning (delvis) (`KundAnvandning.jsx`), Avtal & ekonomi
+(`KundEkonomi.jsx`, återanvänder L1i + flyttar in L1p:s panel), Historik
+(`KundHistorikSektion.jsx`, ny callable `hamtaKundensLeverantorshistorik`), Åtgärder
+(`KundAtgarderSektion.jsx`, nio befintliga klientfunktioner, ingen ny backend).
+`OrganisationsRad.jsx`s dubblerade avtalspanel togs bort till förmån för en länk till
+dossién.
+
+**Tre delar medvetet obyggda**, alla dokumenterade i planfilen: Hälsa (kräver L1c +
+beslutspunkt 1), "senaste aktivitet" (kräver L1j + beslutspunkt 2), "vem är superadmin"/
+"senast bjöd in" (ingen läsväg till `users/{uid}` i dag – att öppna en sådan vore en ny
+läsväg mot kundinnehåll utan samtycke, krav 37, och inget L1b bad om).
+
+7 nya funktionstester. Fullt testsvep grönt: lint, build, `npx vitest run` (535 tester,
+oförändrat), `npm run test:rules`, `npm run test:functions`.
+
+**11 av 16 delmål i Etapp L1 klara.** Kvarstår: L1e (stor, inget hinder), L1f (stor,
+beslutspunkt 4), L1c/L1d/L1j (beslutspunkt 1/3/2).

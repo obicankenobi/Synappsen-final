@@ -8,7 +8,7 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-02 · **v5.139.0, deploy triggad.** Utgående e-post är stoppat
+**Senast uppdaterad:** 2026-09-03 · **v5.139.0 i produktion.** Utgående e-post är stoppat
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
 **Etapp 72 (`etapplaner/ETAPPLAN19.md`):** riktningen är antagen, beslutspunkt 5
 (efterfrågegrinden) gäller fortfarande som huvudregel för alla ÖVRIGA delmål. 72f, 72d och
@@ -19,12 +19,12 @@ sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) 
 
 | | |
 |---|---|
-| **Version i produktion** | 5.132.0 (körning #93, verifierad). v5.133.0–v5.138.0 väntar på deploy |
+| **Version i produktion** | **5.139.0** (körning #97, verifierad 2026-09-02: asset-hash `index-D_9UU18e.js` live) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | v5.138.0: Etapp 72 beslutspunkt 5 undantag 1. Artikel 50-märkning byggd (`src/components/RutinKort.jsx`, en AI-tolkad rutins ursprung visas i läsvyn – bekräftad brist sedan `granskningar/JURIDISK-GRANSKNING.md` §7.4). Rättade en självmotsägelse i `functions/klinikstod.js`s Gemini-prompt ("Detta är beslutsstöd" stod rakt emot MDR-avgränsningen). **Detta är kundvänt** – första sådana ändringen sedan Etapp 69 |
-| **Senaste dokumentarbete** | 2026-08-30: `etapplaner/ETAPPLAN19.md` v0.2.1 (**ANTAGEN**), `BESLUTSLOGG.md`, `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`, `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md`, `saljmaterial/kallfiler/Synappsen-upphandlingssvar.html` (E2: ej byggt → byggt), `avtal/UNDERBITRADEN.md` (rättat källdomänantal + länk till kostnadsuppskattningen) |
+| **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
-| **Nästa steg** | Bevaka undantag 2 (72d, tillsynspaket) och 3 (rutinmallar) i ETAPPLAN19 om ett säljmöte behöver dem – annars vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
+| **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. Ta samtidigt ägarbeslutet om "Beslutsstöd"-raden i `OPPNA-PUNKTER.md`. Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
 
 ## Var du hittar saker
 
@@ -113,6 +113,46 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-03 (produktdefinition som underlag för extern juridisk granskning)
+
+Ägaren bad om ett dokument som definierar vad Synappsen är och samlar det som avgör produktens
+regulatoriska klassning. Resultat: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md`
+(dokument nr 72). **Ingen kodändring** – ren dokumentation plus två nya testassertioner.
+
+**Varför dokumentet behövdes trots att `granskningar/JURIDISK-GRANSKNING.md` finns.** Den
+filens eget avsnitt 0 redovisar att den är skriven mot dokumentationen, inte mot koden. När
+dess [PK]-punkter senare kontrollerades visade sig **den premiss som bar MDR-slutsatsen vara
+felaktig** (checklistsegets fältspärr). En extern jurist som utgår från analysen ärver den
+kedjan. Det nya dokumentet är kodverifierat mot v5.139.0 med filhänvisning per påstående, så
+att juristen kan kontrollera själv i stället för att lita på en sammanfattning.
+
+**Två diskrepanser mellan kod och projektdokumentation, båda verifierade som kvarstående:**
+
+1. **`src/components/KlinikfragaSok.jsx:92` säger fortfarande "Beslutsstöd – ersätter aldrig
+   klinisk bedömning" i gränssnittet.** Ordet står på
+   `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`s egen lista över ord som aldrig får
+   användas om klinikstöd-sökningen, och `JURIDISK-GRANSKNING.md` § 6.4 identifierade exakt
+   den raden redan 2026-08-11 med en färdig ersättningstext. Systemprompten rättades
+   2026-08-30; gränssnittsraden låg utanför det avgränsade delmålet och föll mellan stolarna.
+   MDR art. 2(12) gör gränssnittstext till en del av kvalificeringsunderlaget, så produkten
+   påstår i dag om sig själv precis det resten av materialet är noga med att den inte gör.
+   **Inte rättad här** – produktcopy är ägarens beslut. Förd till `OPPNA-PUNKTER.md`.
+2. **Checklistsegets fältuppsättning saknar fortfarande nyckelspärr i `firestore.rules`.**
+   Fyndet från 2026-08-11 står kvar oförändrat i v5.139.0. Argumentet "spärren sitter
+   strukturellt i datamodellen" får därför inte framföras mot en upphandlare.
+
+**Assertionerna är villkorade, vilket är nytt för det här projektet.** Ett avsnitt som
+beskriver *brister* har omvänd förfallotid mot ett som beskriver förmågor: den dag koden
+rättas blir dokumentet fel åt andra hållet, och det är ett underlag som lämnas till en anlitad
+jurist. De två nya testerna i `tests/docs/dokumentpastaenden.test.js` läser därför koden först
+och kräver att § 9 säger samma sak – gröna i dag, röda i samma sekund som någon rättar koden
+utan att skriva om dokumentet.
+
+**Nästa steg:** dokumentet är skrivet för att gå med i samma externa juridiska uppdrag som
+Etapp 64 redan väntar på (`OPPNA-PUNKTER.md`, "Kräver en bokad människa"). § 11 innehåller 15
+frågor grupperade i fem områden; § 12 listar vad granskaren behöver få tillgång till – notera
+särskilt att säljmaterialet är en primärkälla i MDR-bedömningen, inte en bilaga.
 
 ## Uppföljning 2026-09-02 (v5.139.0 – 72f/72d/72h byggda på ägarens engångsinstruktion)
 
@@ -327,71 +367,3 @@ tredje nödstoppsmekanism ännu finns som kräver den).
 
 **Etapp L1 är därmed slutförd i sin helhet: 16 av 16 delmål.** Enda kvarvarande öppna frågan
 i hela planen är beslutspunkt 7 (feedback-inkorgen) – inget bygge väntar på den.
-
-## Uppföljning 2026-08-29 (v5.135.0 – L1b byggd)
-
-Kunddossién – planens enskilt största arbetsbesparing, byggd direkt efter de sex
-"Medel"-delmålen i samma session. Detaljer i `intern/ETAPPLAN-INTERN-1.md` v0.9 under L1b.
-
-**En verklig bugg hittad vid premisskontroll, inte en kodmiss i den här omgången:**
-`listaOrganisationer` (`functions/organisationslivscykel.js`) returnerade aldrig åtta fält
-(`orgnr`, `kontaktperson`, `anvandartak`, `pubAvtalTecknat`, `pubAvtalVersion`,
-`underbitradeUnderrattad`, `omfattasAvNIS2`, `atagandeblock`) som L1p:s
-`AvtalOchAtagandeSektion.jsx` redan berodde på att läsa. Den panelen hade alltså visat fel
-sedan den byggdes förra omgången – ett tyst fel som ingen tidigare test kunde fånga eftersom
-funktionstesterna läste/skrev dokumentet direkt i stället för via callet klienten faktiskt
-använder. Fixat, med `tests/functions/listaorganisationer-falt.test.cjs` som bevisar det.
-
-Fem riktiga sidor ersatte den delade platshållaren från v5.134.0: Huvud+Kontakt (delvis)
-(`KundOversikt.jsx`), Användning (delvis) (`KundAnvandning.jsx`), Avtal & ekonomi
-(`KundEkonomi.jsx`, återanvänder L1i + flyttar in L1p:s panel), Historik
-(`KundHistorikSektion.jsx`, ny callable `hamtaKundensLeverantorshistorik`), Åtgärder
-(`KundAtgarderSektion.jsx`, nio befintliga klientfunktioner, ingen ny backend).
-`OrganisationsRad.jsx`s dubblerade avtalspanel togs bort till förmån för en länk till
-dossién.
-
-**Tre delar medvetet obyggda**, alla dokumenterade i planfilen: Hälsa (kräver L1c +
-beslutspunkt 1), "senaste aktivitet" (kräver L1j + beslutspunkt 2), "vem är superadmin"/
-"senast bjöd in" (ingen läsväg till `users/{uid}` i dag – att öppna en sådan vore en ny
-läsväg mot kundinnehåll utan samtycke, krav 37, och inget L1b bad om).
-
-7 nya funktionstester. Fullt testsvep grönt: lint, build, `npx vitest run` (535 tester,
-oförändrat), `npm run test:rules`, `npm run test:functions`.
-
-**11 av 16 delmål i Etapp L1 klara.** Kvarstår: L1e (stor, inget hinder), L1f (stor,
-beslutspunkt 4), L1c/L1d/L1j (beslutspunkt 1/3/2).
-
-## Uppföljning 2026-08-29 (v5.134.0 – L1m, L1a, L1g, L1i, L1n, L1p byggda)
-
-De sex "Medel"-delmålen, byggda direkt efter de fyra "Liten"-delmålen i samma session.
-Detaljer i `intern/ETAPPLAN-INTERN-1.md` v0.8 under respektive delmål.
-
-**L1m (kontomodellen) är den mest säkerhetskritiska delen** – ett `_plattform`-konto bevisat
-isolerat från all kundorganisations innehåll skarpt mot Firestore-regler
-(`tests/rules/plattformskonto.test.mjs`), inklusive den faktiska fällan att INTE falla
-tillbaka på organisationen "default". `flyttaTillPlattformskonto()` finns för att flytta
-ägarens eget konto – **inte körd än**, ett operativt beslut, inte en teknisk fråga.
-
-**L1p:s PUB-avtalsspärr är samma feltyp som Brevo, fast omvänt** – `satAvtalsstatus('aktiv')`
-nekas nu utan ett registrerat PUB-avtal (`pubAvtalTecknat`), av exakt samma skäl som
-Brevo-spärren: en kontroll i koden kan inte glömmas bort. Ingen skarp risk (noll kunder), men
-billigast att stänga innan den första.
-
-**Två deliberata avsteg från planens ordalydelse**, båda dokumenterade i `intern/
-ETAPPLAN-INTERN-1.md`: `IncidentberedskapSektion.jsx` togs INTE bort från kundens adminpanel
-(planen antog fel – en riktig kund läser sin EGEN organisations status oberoende av
-plattformsadmin, att ta bort den hade varit en regression). Kundlägets fem flikar (L1a) delar
-en gemensam platshållare i väntan på L1b, i stället för fem tomma sidor.
-
-**Ett självrättat verktygsmisstag**, dokumenterat ärligt i `intern/ANDRINGSLOGG-INTERN.md`:
-ett `Write`-anrop skrev av misstag över `src/firebase/functions.js`. Upptäckt omedelbart via
-`git status`, återställd från `git show HEAD:...`, alla tillägg återapplicerade och
-verifierade innan arbetet fortsatte. Ingen förlorad kod.
-
-77 nya tester. Fullt testsvep grönt: lint, build, `npx vitest run` (535 tester, upp från 517),
-`npm run test:rules` (alla filer inkl. 2 nya), `npm run test:functions` (alla 40 filer inkl.
-5 nya).
-
-**10 av 16 delmål i Etapp L1 klara.** Kvarstår: L1b (kunddossién – inget hinder, störst
-kvarvarande arbetsbesparing), L1e/L1f (stora, L1f väntar på beslutspunkt 4), L1c/L1d/L1j
-(väntar på beslutspunkt 1/3/2).
