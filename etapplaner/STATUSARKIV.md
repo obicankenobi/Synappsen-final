@@ -4839,3 +4839,45 @@ timmar, inte veckor, och det står som undantag 1 i beslutspunkt 5.
 
 **Ingen kod, ingen versionsbump.** Planen är fortfarande **EJ ANTAGEN** – nu tretton delmål
 och sju öppna beslutspunkter.
+
+---
+
+## Uppföljning 2026-08-30 (v5.138.0 – Etapp 72 antagen, undantag 1 genomfört)
+
+Ägaren bad att anta ETAPPLAN19-utkastet och genomföra "första delmålet". Frågade tillbaka
+eftersom planens egen beslutspunkt 5 (efterfrågegrinden) säger att inget delmål byggs utan en
+namngiven kund – två frågor: vad "första delmålet" betyder, och om samtliga sju
+beslutspunkter ska godkännas enligt planens rekommendationer eller tas en och en. Svar:
+undantag 1 (arbetet som inte kräver kund), samtliga rekommendationer godkända.
+
+**Planen antagen i sin helhet** (`BESLUTSLOGG.md`). Låser fast riktningen – Efterlevnad blir
+en ny modul, innehållshälsa flyttas till Core, 72e byggs strukturerat men väntar på en extern
+juridisk bekräftelse, 72j och 72m byggs inte i denna omgång. Låser INTE upp bygget av
+enskilda delmål.
+
+**Undantag 1 genomfört, tre delar:**
+
+1. **Avsett ändamål** för klinikstöd-sökningen skrivet
+   (`granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`).
+2. **Artikel 50-märkning byggd** – var en bekräftad brist sedan
+   `granskningar/JURIDISK-GRANSKNING.md` §7.4 (2026-08-11). En AI-tolkad rutins ursprung
+   (`kalla: "gemini"`) visas nu som en badge i läsvyn, oavsett om rutinen sedan godkänts.
+   Upphandlingssvarets E2 uppdaterat från "ej byggt" till "byggt" – texten hade redan en
+   `[FYLL I]`-platshållare som väntade på just detta.
+3. **Vertex AI-migreringens kostnad uppskattad** till grovt 2–3 arbetsdagar
+   (`granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md`) – sex
+   anropsställen i två filer, ingen automatisk testtäckning finns för någon av dem.
+
+**Ett verkligt fynd under arbetet med punkt 1:** `functions/klinikstod.js`s Gemini-prompt sa
+uttryckligen *"Detta är beslutsstöd, inte en diagnos"* – rakt emot den avgränsning
+(sammanfattar, rekommenderar aldrig) som håller funktionen utanför MDR. Ordet i systemets
+EGEN instruktion var en självmotsägelse, och en konkret risk: modellen kunde eka det tillbaka
+i sitt svar till användaren. Rättat i samma commit.
+
+**Ett bifynd rättat:** `avtal/UNDERBITRADEN.md` sa "fem godkända medicinska källdomäner",
+koden har haft sju sedan källbevakningen byggdes ut. Ny assertion i
+`tests/docs/dokumentpastaenden.test.js`.
+
+**Detta är den första kundvända kodändringen sedan Etapp 69** (märkningen i `RutinKort.jsx`
+och prompträttelsen i `klinikstod.js` påverkar vad en riktig användare ser/får). Ny post i
+`src/data/andringslogg.js`. Fullt testsvep grönt.

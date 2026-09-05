@@ -22,7 +22,7 @@ sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) 
 | **Version i produktion** | **5.139.0** (körning #97, verifierad 2026-09-02: asset-hash `index-D_9UU18e.js` live) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | v5.138.0: Etapp 72 beslutspunkt 5 undantag 1. Artikel 50-märkning byggd (`src/components/RutinKort.jsx`, en AI-tolkad rutins ursprung visas i läsvyn – bekräftad brist sedan `granskningar/JURIDISK-GRANSKNING.md` §7.4). Rättade en självmotsägelse i `functions/klinikstod.js`s Gemini-prompt ("Detta är beslutsstöd" stod rakt emot MDR-avgränsningen). **Detta är kundvänt** – första sådana ändringen sedan Etapp 69 |
-| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor (startsida + integritetspolicy), egen hosting-target `web`, egen `deploy-web.yml`. Priser publicerade och bundna till prislistan. **Inte publicerad än** – hosting-siten måste skapas en gång, och kontaktuppgifter/bakgrundsstycke väntar på ägaren, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
+| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor (startsida + integritetspolicy), egen hosting-target `web`, egen `deploy-web.yml`, härdad med HSTS/COOP. Priser publicerade och bundna till prislistan. Kontaktadress `kontakt@synappsen.se` ifylld på sajten OCH i säljmaterialet. **Inte publicerad än** – hosting-siten måste skapas en gång, mottagning för adressen saknas, och bakgrundsstycket/namn-orgnr-fältet väntar på ägaren, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
 | **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. Ta samtidigt ägarbeslutet om "Beslutsstöd"-raden i `OPPNA-PUNKTER.md`. Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
@@ -139,6 +139,12 @@ orgnr och postadress – medvetet iögonfallande så att den inte kan publiceras
 
 **Ny öppen punkt:** mottagning för `kontakt@synappsen.se` måste finnas innan publicering. En
 publicerad adress som studsar är sämre än ingen adress alls. MX-poster, ingen kod.
+
+**Samma adress ifylld i säljmaterialet.** `kontakt@synappsen.se` ersatte `[E-POST]` i de fem
+`saljmaterial/kallfiler/*.html`-filer som hade platshållaren (tre one-pagers, prislistan,
+tekniska beskrivningen) – alla i samma footer-metarad, `[BOLAGSNAMN]`/`[ORG.NR]`/`[TELEFON]`
+orörda. `Synappsen-upphandlingssvar.html` hade aldrig `[E-POST]`. Checklistan i
+`saljmaterial/00-LAS-DETTA-FORST.md` uppdaterad, raden avbockad.
 
 ## Uppföljning 2026-09-05 (säkerhetsgenomgång av webbplatsen)
 
@@ -353,43 +359,3 @@ Fullt testsvep grönt: `npm run lint`, `npm run build`, `npx vitest run` (557 te
 `organisationsisolering.test.mjs`), `npm run test:functions`, `npm run test:storage`. E2E
 kördes inte (inte ett bindande krav för den här ändringstypen, tidsprioriterat bort). Deploy
 triggad via `deploy.yml` på grenen `claude/compassionate-euler-rho0q5`.
-
-## Uppföljning 2026-08-30 (v5.138.0 – Etapp 72 antagen, undantag 1 genomfört)
-
-Ägaren bad att anta ETAPPLAN19-utkastet och genomföra "första delmålet". Frågade tillbaka
-eftersom planens egen beslutspunkt 5 (efterfrågegrinden) säger att inget delmål byggs utan en
-namngiven kund – två frågor: vad "första delmålet" betyder, och om samtliga sju
-beslutspunkter ska godkännas enligt planens rekommendationer eller tas en och en. Svar:
-undantag 1 (arbetet som inte kräver kund), samtliga rekommendationer godkända.
-
-**Planen antagen i sin helhet** (`BESLUTSLOGG.md`). Låser fast riktningen – Efterlevnad blir
-en ny modul, innehållshälsa flyttas till Core, 72e byggs strukturerat men väntar på en extern
-juridisk bekräftelse, 72j och 72m byggs inte i denna omgång. Låser INTE upp bygget av
-enskilda delmål.
-
-**Undantag 1 genomfört, tre delar:**
-
-1. **Avsett ändamål** för klinikstöd-sökningen skrivet
-   (`granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`).
-2. **Artikel 50-märkning byggd** – var en bekräftad brist sedan
-   `granskningar/JURIDISK-GRANSKNING.md` §7.4 (2026-08-11). En AI-tolkad rutins ursprung
-   (`kalla: "gemini"`) visas nu som en badge i läsvyn, oavsett om rutinen sedan godkänts.
-   Upphandlingssvarets E2 uppdaterat från "ej byggt" till "byggt" – texten hade redan en
-   `[FYLL I]`-platshållare som väntade på just detta.
-3. **Vertex AI-migreringens kostnad uppskattad** till grovt 2–3 arbetsdagar
-   (`granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md`) – sex
-   anropsställen i två filer, ingen automatisk testtäckning finns för någon av dem.
-
-**Ett verkligt fynd under arbetet med punkt 1:** `functions/klinikstod.js`s Gemini-prompt sa
-uttryckligen *"Detta är beslutsstöd, inte en diagnos"* – rakt emot den avgränsning
-(sammanfattar, rekommenderar aldrig) som håller funktionen utanför MDR. Ordet i systemets
-EGEN instruktion var en självmotsägelse, och en konkret risk: modellen kunde eka det tillbaka
-i sitt svar till användaren. Rättat i samma commit.
-
-**Ett bifynd rättat:** `avtal/UNDERBITRADEN.md` sa "fem godkända medicinska källdomäner",
-koden har haft sju sedan källbevakningen byggdes ut. Ny assertion i
-`tests/docs/dokumentpastaenden.test.js`.
-
-**Detta är den första kundvända kodändringen sedan Etapp 69** (märkningen i `RutinKort.jsx`
-och prompträttelsen i `klinikstod.js` påverkar vad en riktig användare ser/får). Ny post i
-`src/data/andringslogg.js`. Fullt testsvep grönt.

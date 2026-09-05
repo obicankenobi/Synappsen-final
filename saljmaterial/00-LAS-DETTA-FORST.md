@@ -101,7 +101,7 @@ En sida, tänkt att läsas på tre minuter av någon som inte var med i mötet m
 - [ ] `[BOLAGSNAMN]` — förekommer i **alla** filer
 - [ ] `[ORG.NR]` — prislista, offertmall
 - [ ] `[KONTAKTPERSON]` / `[DITT NAMN]` — presentationer, one-pagers, mejlmallar
-- [ ] `[E-POST]` — alla filer
+- [x] `[E-POST]` — **klart 2026-09-05:** `kontakt@synappsen.se` ifylld i samtliga fem `kallfiler/`-filer som hade platshållaren (tre one-pagers, prislistan, tekniska beskrivningen). `Synappsen-upphandlingssvar.html` hade aldrig platshållaren – den har bara `[BOLAGSNAMN]`/`[ORG.NR]`/innehållsspecifika `[FYLL I: ...]`
 - [ ] `[TELEFON]` — alla filer
 - [ ] `[WEBBPLATS]` — presentationernas sista bild
 - [ ] `[DATUM]` — alla filer (versionsdatum)
