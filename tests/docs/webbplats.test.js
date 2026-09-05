@@ -254,6 +254,26 @@ describe("Integritetspolicyn stämmer med vad sidan faktiskt gör", () => {
     ).not.toContain("avslojas");
   });
 
+  test("kontaktadressen är densamma på båda sidorna och är klickbar", () => {
+    // Adressen är sidans enda kontaktväg OCH kanalen för GDPR-förfrågningar (art. 12,
+    // svar inom en månad). Två sidor som anger olika adresser, eller en adress som bara
+    // står som text utan mailto:, gör att en begäran kan hamna fel eller inte skickas alls.
+    for (const sida of SIDOR) {
+      expect(
+        las(sida),
+        `${sida} saknar en klickbar mailto-länk till kontakt@synappsen.se.`
+      ).toContain('href="mailto:kontakt@synappsen.se"');
+    }
+    // Ingen ANNAN adress får smyga in – då blir det oklart vilken som gäller.
+    const andra = [...SIDOR.map(las).join("\n").matchAll(/mailto:([^"]+)/g)]
+      .map((m) => m[1])
+      .filter((a) => a !== "kontakt@synappsen.se");
+    expect(
+      andra,
+      `Webbplatsen anger fler e-postadresser än kontakt@synappsen.se: ${andra.join(", ")}.`
+    ).toEqual([]);
+  });
+
   test("startsidan länkar till policyn", () => {
     expect(
       las(HTML),

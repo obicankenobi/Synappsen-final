@@ -448,10 +448,15 @@
   .kontakt { border-top: 2px solid var(--text); padding: 40px 0 56px;
              display: flex; flex-direction: column; gap: 18px; }
   .kontakt h2 { font-size: clamp(24px, 3vw, 32px); }
+  /* Platshållare som ännu inte är ifylld. Medvetet streckad och avvikande – den ska
+     skava i redigeringen och vara omöjlig att missa i en granskning före publicering. */
   .kontakt__falt { font-family: var(--f-mono); font-size: 13px; color: var(--text-svag);
-                   border: 1px dashed var(--kant-stark); padding: 12px 16px;
-                   width: fit-content; background: var(--yta);
+                   border: 1px dashed var(--kant-stark); padding: 6px 10px;
+                   display: inline-block; background: var(--yta);
                    border-radius: var(--radius-liten); }
+  .kontakt__epost { font-size: 19px; font-weight: 600; color: var(--primar);
+                    text-decoration: none; }
+  .kontakt__epost:hover { text-decoration: underline; }
 
   footer { border-top: 1px solid var(--kant); padding: 26px 0 48px;
            font-family: var(--f-mono); font-size: 11px; line-height: 1.7;

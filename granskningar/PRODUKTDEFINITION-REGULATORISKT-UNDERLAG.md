@@ -462,6 +462,15 @@ Ordnade efter hur mycket som hänger på svaret.
 15. Vilka avtalsvillkor krävs för att hantera att patientuppgifter *kan* hamna i systemet
     trots spärrarna – särskilt leverantörens rätt att radera uppenbara patientuppgifter utan
     föregående medgivande?
+16. **Vad måste anges på den publika webbplatsen, givet att verksamheten drivs som enskild
+    firma?** E-handelslagen (2002:562) § 8 kräver namn, geografisk adress, e-post och
+    organisationsnummer av en tjänsteleverantör. För en enskild näringsidkare **är
+    organisationsnumret personnumret**. Att publicera det på en öppen, skrapbar sida är en
+    annan sak än att lämna det i ett avtal, och går inte att ta tillbaka. Frågan är alltså:
+    är kravet uppfyllt med namn, adress och e-post, med organisationsnumret lämnat på
+    begäran – eller måste det stå på sidan? Bolagsformen är avgjord som ett medvetet
+    tillsvidarebeslut (`BESLUTSLOGG.md` 2026-09-05), så detta är en fråga om vad som
+    faktiskt krävs, inte om formen bör ändras.
 
 ---
 
