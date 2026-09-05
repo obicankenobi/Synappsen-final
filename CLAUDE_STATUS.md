@@ -22,7 +22,7 @@ sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) 
 | **Version i produktion** | **5.139.0** (körning #97, verifierad 2026-09-02: asset-hash `index-D_9UU18e.js` live) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | v5.138.0: Etapp 72 beslutspunkt 5 undantag 1. Artikel 50-märkning byggd (`src/components/RutinKort.jsx`, en AI-tolkad rutins ursprung visas i läsvyn – bekräftad brist sedan `granskningar/JURIDISK-GRANSKNING.md` §7.4). Rättade en självmotsägelse i `functions/klinikstod.js`s Gemini-prompt ("Detta är beslutsstöd" stod rakt emot MDR-avgränsningen). **Detta är kundvänt** – första sådana ändringen sedan Etapp 69 |
-| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor (startsida + integritetspolicy), egen hosting-target `web`, egen `deploy-web.yml`, härdad med HSTS/COOP. Priser publicerade och bundna till prislistan. Kontaktadress `kontakt@synappsen.se` ifylld på sajten OCH i säljmaterialet. **Inte publicerad än** – hosting-siten måste skapas en gång, mottagning för adressen saknas, och bakgrundsstycket/namn-orgnr-fältet väntar på ägaren, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
+| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på `https://synappsen-web.web.app`, men medvetet `noindex, nofollow`** (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket, namn/orgnr på policyn och mottagningen för `kontakt@synappsen.se` saknas fortfarande. `deploy-web.yml` skapar hosting-siten idempotent, ingen manuell CLI-åtgärd krävs längre. Ta bort `noindex` när de tre punkterna är klara, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
 | **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. Ta samtidigt ägarbeslutet om "Beslutsstöd"-raden i `OPPNA-PUNKTER.md`. Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
@@ -114,6 +114,28 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-05 (webbplatsen live på .web.app, medvetet noindex)
+
+Ägaren bad om att köra `hosting:sites:create` och deployen, med `noindex` – sidan är ännu
+inte färdig att visa upp brett (bakgrundsstycket, namn/orgnr på policyn och mottagningen
+för `kontakt@synappsen.se` saknas), men ägaren ville kunna se den live.
+
+**`noindex, nofollow` tillagt på båda sidorna**, plus `robots.txt` ändrad till
+`Disallow: /` (var `Allow: /` med en `Sitemap`-rad, som är borttagen tills vidare). Alla tre
+är märkta TILLFÄLLIGT med kommentar om exakt vad som ska vara klart innan de tas bort, och
+en rad i `OPPNA-PUNKTER.md` pekar på samma tre villkor.
+
+**`hosting:sites:create` gjordes idempotent i `deploy-web.yml`** i stället för att köras
+manuellt en gång: ett nytt steg försöker skapa siten och fortsätter tyst om den redan finns
+("already exists" är förväntat på varje körning efter den första). Det tar bort ett manuellt
+engångsmoment permanent – ingen framtida session behöver komma ihåg att siten måste finnas
+innan workflowen kan köras.
+
+**Resultat:** webbplatsen är publicerad på `https://synappsen-web.web.app`, men medvetet
+osynlig för sökmotorer. Egen domän (`synappsen.se`) är inte kopplad – det är ett separat steg
+i Firebase Console när domänen ska pekas dit, och bör göras tillsammans med domänsäkringen
+(registrar lock, DNSSEC, 2FA) som redan står i `OPPNA-PUNKTER.md`.
 
 ## Uppföljning 2026-09-05 (bolagsform avgjord, kontaktadress ifylld)
 

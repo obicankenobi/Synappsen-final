@@ -7,8 +7,8 @@
 #      röra firestore.rules, Cloud Functions eller appens hosting-site.
 #   3. Den kör ingen `firebase deploy` utan --only. Se noten i deploy.yml.
 #
-# FÖRUTSÄTTNING, en gång: hosting-siten måste finnas innan första körningen.
-#   firebase hosting:sites:create synappsen-web --project synappsen-final-build
+# Hosting-siten skapas idempotent nedan (steget lyckas oavsett om den redan finns), så
+# ingen manuell konsol- eller CLI-åtgärd krävs för att köra denna workflow första gången.
 # Target-mappningen ligger redan i .firebaserc.
 #
 # ÖPPEN PUNKT: jobbet använder samma FIREBASE_SERVICE_ACCOUNT som appdeployen,
@@ -50,6 +50,15 @@ jobs:
 
       - name: Installera Firebase CLI
         run: npm install -g firebase-tools
+
+      # Idempotent: lyckas tyst om siten redan finns (Firebase svarar med ett fel som
+      # innehåller "already exists"), annars skapar den siten. Gör att ingen människa
+      # behöver köra `firebase hosting:sites:create` manuellt innan första deployen.
+      - name: Skapa hosting-siten om den saknas
+        run: |
+          firebase hosting:sites:create synappsen-web \
+            --project synappsen-final-build --non-interactive \
+            || echo "Siten finns troligen redan – fortsätter."
 
       - name: Deploya webbplatsen
         run: >
