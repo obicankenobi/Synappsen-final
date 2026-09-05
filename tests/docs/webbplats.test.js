@@ -123,6 +123,39 @@ describe("Webbplatsen följer den antagna grafiska profilen", () => {
   });
 });
 
+describe("Webbplatsens säkerhetsheaders finns kvar", () => {
+  // Sajten har ingen server, ingen inmatning och ingen databas – hela dess försvar ligger i
+  // svarsheadrarna. De är därför den enda säkerhetskontroll som FINNS här, och en header som
+  // tyst försvinner vid en omstrukturering av firebase.json märks inte förrän någon skannar.
+  const web = () => {
+    const konf = JSON.parse(las("firebase.json"));
+    const plats = konf.hosting.find((h) => h.target === "web");
+    return plats.headers.find((b) => b.source === "**").headers;
+  };
+  const varde = (nyckel) => web().find((h) => h.key === nyckel)?.value;
+
+  test.each([
+    ["Content-Security-Policy", /default-src 'none'/],
+    ["Strict-Transport-Security", /max-age=31536000/],
+    ["X-Content-Type-Options", /nosniff/],
+    ["X-Frame-Options", /DENY/],
+    ["Referrer-Policy", /strict-origin/],
+  ])("%s är satt", (nyckel, monster) => {
+    expect(varde(nyckel), `hosting:web saknar ${nyckel} i firebase.json.`).toMatch(monster);
+  });
+
+  test("CSP:n tillåter varken inline-skript eller externa källor", () => {
+    const csp = varde("Content-Security-Policy");
+    for (const forbjudet of ["'unsafe-inline'", "'unsafe-eval'", "http://", "*"]) {
+      expect(
+        csp,
+        `hosting:web-CSP:n innehåller ${forbjudet}. Sidan har inga inline-skript och laddar ` +
+          "inget externt – policyn ska förbli lika strikt som verkligheten."
+      ).not.toContain(forbjudet);
+    }
+  });
+});
+
 describe("Webbplatsens priser stämmer med prislistan", () => {
   // Priser på två ställen är en drifthärd. Prislistan är sanningskällan (den går i anbud);
   // webbplatsen upprepar dem för att prisöppenhet är en uttalad del av positioneringen

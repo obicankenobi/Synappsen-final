@@ -33,8 +33,12 @@ jobs:
       # Vaktar att sajten inte har glidit ifrån appens varumärkestillgångar eller
       # brutit mot de gränser MDR art. 2(12) gör relevanta. Kör före deployen så
       # att ett fel stoppar publiceringen i stället för att upptäckas efteråt.
+      # --ignore-scripts: vakterna behöver bara vitest och node:fs, men `npm ci` drar in
+      # hela utvecklingsträdet (~1 200 paket). Att köra deras install-skript för att
+      # publicera en statisk HTML-sida är en oproportionerlig leveranskedjerisk – flaggan
+      # tar bort den utan att påverka testkörningen.
       - name: Installera beroenden
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Webbplatsens tester
         run: npx vitest run tests/docs/webbplats.test.js

@@ -4798,3 +4798,44 @@ dokument som finns för att förhindra det.
 **Ingen kod, ingen versionsbump.** Planens källpåståenden om svensk vårdlagstiftning är
 **inte verifierade mot primärkällor** – se planens eget avsnitt "Källor och verifieringsbehov".
 Ingen rad får citeras i kundvänt material innan den tabellen är avbockad.
+
+---
+
+## Uppföljning 2026-08-30 (Etapp 72 v0.2 – omskriven mot extern granskning)
+
+Ägaren lämnade in `granskningar/GRANSKNING-IDEBANK-2026-08-30.md` (nu i repot). Den granskar
+formellt ett ANNAT dokument – produktidébanken, 18 förslag, som inte finns i repot – men sex
+av dess förslag motsvarar delmål i ETAPPLAN19, och den gjorde det arbete v0.1 utpekade som sin
+egen svaghet: **verifierade regulatoriska påståenden mot primärkälla.**
+
+**Sju ändringar i v0.2. Två av dem rättar verkliga fel i v0.1:**
+
+1. **72c omskrivet från register till koppling.** delegering.se säljer redan hela det
+   ursprungliga förslaget till exakt målgruppen. v0.1 missade det, eftersom premisskontrollen
+   bara kontrollerade mot vår egen kod. Delmålet bygger nu kopplingen delegering↔rutin↔
+   kvittering — det en fristående delegeringstjänst strukturellt inte kan göra — plus en
+   rutinmall för icke-läkemedelsdelegering, den lucka upphävandet av SOSFS 1997:14 lämnade.
+2. **"Högst värde per byggtimme" struket från 72b.** Det mätte byggtid, inte ägandekostnad.
+   Ett delmål som återger en föreskrifts struktur måste följa den föreskriftens ändringar för
+   alltid. Arbetsinsatstabellen har fått en kolumn för underhållssvans, och slutsatsen vänder:
+   **72a är dyrast att bygga och billigast att äga; 72b och 72c är tvärtom.**
+
+Övriga fem: premisskontrollen har fått **ett andra ben mot marknaden** ("säljer någon redan
+detta?"); **72e delat** i statistik (strukturerad, byggbar) och nya **72m** (händelseanalys/
+lex Maria, byggs inte — det är ett produktbeslut, inte ett delmål); **nytt genomgående krav
+44** om arkivlag vid kommunal kund; **beslutspunkt 5 omskriven** från byggordning till
+efterfrågegrind; **ny beslutspunkt 7** om segment.
+
+**Krav 44 är det enda fyndet som pekar på en konflikt med kod i drift.**
+`BACKUP_RETENTION_DAGAR = 90` och `RADERING_VANTETID_TIMMAR = 48` är leverantörsbeslut — men
+hos en kommunal kund fattar arkivmyndigheten gallringsbeslut. Båda siffrorna verifierade mot
+kod innan kravet skrevs.
+
+**En regulatorisk risk utanför planen som är mer brådskande än varje delmål i den:**
+granskningens avsnitt 3.1 visar att MDR:s undantag för "simple search" inte omfattar
+NLP-sökning som bidrar till ett medicinskt syfte — vilket klinikstöd-sökningen gör. Slutsatsen
+ändras sannolikt inte, men skälet gör det, och det avsedda ändamålet bör skrivas ned. Det är
+timmar, inte veckor, och det står som undantag 1 i beslutspunkt 5.
+
+**Ingen kod, ingen versionsbump.** Planen är fortfarande **EJ ANTAGEN** – nu tretton delmål
+och sju öppna beslutspunkter.
