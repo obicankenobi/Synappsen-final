@@ -1,0 +1,54 @@
+# Publicerar den PUBLIKA marknadsplatsen (synappsen-web/), inte appen.
+#
+# Medvetet åtskild från deploy.yml av tre skäl:
+#   1. Sajten är statisk. Den varken byggs eller testas mot emulatorer, så en
+#      copyrättelse tar sekunder i stället för de ~7 minuter appens pipeline tar.
+#   2. Den deployar ENBART hosting:web. En ändring i säljtexten ska aldrig kunna
+#      röra firestore.rules, Cloud Functions eller appens hosting-site.
+#   3. Den kör ingen `firebase deploy` utan --only. Se noten i deploy.yml.
+#
+# FÖRUTSÄTTNING, en gång: hosting-siten måste finnas innan första körningen.
+#   firebase hosting:sites:create synappsen-web --project synappsen-final-build
+# Target-mappningen ligger redan i .firebaserc.
+#
+# ÖPPEN PUNKT: jobbet använder samma FIREBASE_SERVICE_ACCOUNT som appdeployen,
+# vilket är mer behörighet än det behöver – kontot kan deploya Cloud Functions
+# och databasregler. Ett eget konto med enbart Firebase Hosting Admin
+# (roles/firebasehosting.admin) bör sättas upp. Se OPPNA-PUNKTER.md.
+name: Deploy webbplats
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  deploy-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Vaktar att sajten inte har glidit ifrån appens varumärkestillgångar eller
+      # brutit mot de gränser MDR art. 2(12) gör relevanta. Kör före deployen så
+      # att ett fel stoppar publiceringen i stället för att upptäckas efteråt.
+      - name: Installera beroenden
+        run: npm ci
+
+      - name: Webbplatsens tester
+        run: npx vitest run tests/docs/webbplats.test.js
+
+      - name: Autentisera mot Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Installera Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploya webbplatsen
+        run: >
+          firebase deploy
+          --only hosting:web
+          --project synappsen-final-build --non-interactive --force

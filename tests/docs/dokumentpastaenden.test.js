@@ -50,10 +50,14 @@ describe("Rollantalet i dokumenten stämmer med koden", () => {
   test.each([
     ["saljmaterial/PITCH.md", /\((\d+) roller\)/],
     ["saljmaterial/kallfiler/Synappsen-teknisk-beskrivning.html", /(\w+) roller —/],
+    // Tillagd 2026-09-05: den publika webbplatsen ärvde felet "Sex roller" från sin första
+    // version (2026-08-11), alltså exakt samma fel som PITCH.md gjorde efter Etapp 55 –
+    // och det på en sida som samtidigt beskriver kioskläget i egen sektion.
+    ["synappsen-web/index.html", /(\w+) roller —/],
   ])("%s anger rätt antal roller", (fil, monster) => {
     const traff = las(fil).match(monster);
     expect(traff, `Hittade ingen rollangivelse i ${fil} (mönster: ${monster})`).not.toBeNull();
-    const angivet = traff[1] === "sju" ? 7 : Number(traff[1]);
+    const angivet = traff[1].toLowerCase() === "sju" ? 7 : Number(traff[1]);
     expect(
       angivet,
       `${fil} anger ${traff[1]} roller men src/firebase/roles.js definierar ${antalRoller}.`
@@ -124,6 +128,7 @@ describe("Inga påståenden om kundbeteende utan kunder", () => {
     "saljmaterial/kallfiler/Synappsen-onepager-REGION-OCH-SJUKHUS.html",
     "saljmaterial/Synappsen-demomanus.md",
     "saljmaterial/PITCH.md",
+    "synappsen-web/index.html",
   ];
 
   test.each(kundvant)("%s påstår inget om vad kunder väljer", (fil) => {

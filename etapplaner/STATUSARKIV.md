@@ -4694,3 +4694,39 @@ oförändrat), `npm run test:rules`, `npm run test:functions`.
 
 **11 av 16 delmål i Etapp L1 klara.** Kvarstår: L1e (stor, inget hinder), L1f (stor,
 beslutspunkt 4), L1c/L1d/L1j (beslutspunkt 1/3/2).
+
+---
+
+## Uppföljning 2026-08-30 (v5.136.0 – Etapp L1 SLUTFÖRD)
+
+Ägaren bad om beslut på de fyra öppna beslutspunkterna som blockerade de sista fem
+delmålen. Ställde dem samlat; ägaren godkände samtliga fyra rekommendationer utan avvikelse.
+Detaljer i `BESLUTSLOGG.md` 2026-08-30 och `intern/ETAPPLAN-INTERN-1.md` v1.0.
+
+- **Beslutspunkt 1** (L1c): mätvärdesaggregat via Cloud Function (väg B), inte en lossad
+  regel. `hamtaKundmatvarden(orgId)` returnerar bara de redan aggregerade fälten, loggat mot
+  kundens EGEN kedja.
+- **Beslutspunkt 2** (L1j): bara appversion rapporteras (`rapporteraAppVersion`, skrivet på
+  organisationens dokument), inte "senast aktiv" per användare.
+- **Beslutspunkt 3** (L1d): egen inline-SVG (`src/utils/sparkline.js`), inget
+  diagrambibliotek.
+- **Beslutspunkt 4** (L1f): leverantören kan nu BEGÄRA ett supportfönster i appen
+  (`begarSupportAtkomst`/`svaraSupportbegaran`) – kunden godkänner fortfarande själv.
+
+**Två premisskontrollfynd ändrade omfånget innan bygget:** L1f:s punkt 4 (ärendetråd per
+kund) visade sig redan finnas sedan Etapp 50c (`arendeanteckningar`) – planen hade missat
+det. L1e:s punkt 3 (72-timmarsklockan) byggdes redan i L1p. Båda delmålen fick därför ett
+mindre omfång än planen ursprungligen skisserade.
+
+**Två punkter avgränsades MEDVETET bort**, båda dokumenterade i `intern/ETAPPLAN-INTERN-1.md`:
+L1f punkt 3 (läslogg under ett aktivt supportfönster – kräver att instrumentera varje läsväg
+`farSupportlasa()` täcker, ett eget, större delmål) och L1e punkt 2 (ett generaliserat
+`nodstopp/{funktion}`-mönster – en omskrivning av skarp, säkerhetskritisk kod utan att en
+tredje nödstoppsmekanism ännu finns som kräver den).
+
+26 nya tester. Fullt testsvep grönt: lint, build, `npx vitest run` (546 tester, upp från
+535), `npm run test:rules` (inkl. 5 nya för `supportbegaran`), `npm run test:functions`
+(inkl. 17 nya, delade mellan L1c/L1f/L1j i en gemensam testfil), `npm run test:storage`.
+
+**Etapp L1 är därmed slutförd i sin helhet: 16 av 16 delmål.** Enda kvarvarande öppna frågan
+i hela planen är beslutspunkt 7 (feedback-inkorgen) – inget bygge väntar på den.

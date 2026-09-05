@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Synappsens symbol: en synaps i genomskärning. Presynaptisk terminal (den fyllda
+       kroppen), klyftan (det konstanta mellanrummet) och det postsynaptiska membranet
+       (den öppna bågen), med riktning från övre vänster till nedre höger.
+       Variant utan axon, för storlekar under 48 px. Se GRAFISK-PROFIL.md.
+       Klyftans bredd är 1,70 av 24 enheter och mäts från terminalens centrum, vilket
+       är det som gör att den tunnas ut jämnt i stället för att slutas på ett ställe. -->
+  <style>
+    .mark { fill: #2f5fd6; stroke: #2f5fd6; }
+    @media (prefers-color-scheme: dark) {
+      .mark { fill: #6c9bf7; stroke: #6c9bf7; }
+    }
+  </style>
+  <g transform="translate(0.3 -1.0)">
+    <circle class="mark" cx="9.8" cy="11.2" r="3.15" stroke="none"/>
+    <path class="mark" d="M 15.697 9.284 A 6.2 6.2 0 0 1 11.089 17.264"
+          fill="none" stroke-width="2.7" stroke-linecap="round"/>
+  </g>
+</svg>

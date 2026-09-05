@@ -7,10 +7,12 @@
 >
 > **Vad det inte är:** mission, vision, värdeord, arketyper, illustrationsmanér.
 >
-> **Var källdokumenten ligger:** `saljmaterial/MARKNADSANALYS.md`, `saljmaterial/KOSTNADSKALKYL-OCH-PRISSATTNING.md`,
-> `saljmaterial/KANDIDATLISTA-PRIVAT-VARD.md` och `produkt/GRAFISK-PROFIL.md` finns i dag **enbart i
-> Claude-projektet, inte i git-repot**. Webbplatsen (`synappsen-web/`) likaså. Pekarna nedan
-> går alltså inte att följa från en arbetskopia. Det är en känd brist, se **P2** i §14.
+> **Var källdokumenten ligger:** samtliga finns numera i git-repot och pekarna nedan går att
+> följa från en arbetskopia — `saljmaterial/MARKNADSANALYS.md`,
+> `saljmaterial/KOSTNADSKALKYL-OCH-PRISSATTNING.md`, `saljmaterial/KANDIDATLISTA-PRIVAT-VARD.md`,
+> `produkt/GRAFISK-PROFIL.md` och, sedan 2026-09-05, webbplatsen (`synappsen-web/`).
+> **P2 i §14 är därmed helt avklarad.** Den här raden påstod motsatsen fram till 2026-09-05,
+> då den sista av dem committades; bevakas nu av `tests/docs/webbplats.test.js`.
 >
 > **Underhållsregel:** visuella beslut bor i `produkt/GRAFISK-PROFIL.md`, priser i
 > `saljmaterial/KOSTNADSKALKYL-OCH-PRISSATTNING.md`. Detta dokument pekar dit och upprepar dem aldrig.
@@ -446,7 +448,7 @@ tecknas förrän B1 finns, och B2 är den fråga varje kunds jurist ställer fö
 | # | Åtgärd | Insats |
 |---|---|---|
 | **P1** | Skriv bakgrundsstycket på webbplatsens startsida | 20 min, bara du kan göra det |
-| **P2** | ~~Committa `produkt/GRAFISK-PROFIL.md`~~ **KLAR 2026-08-22 (Etapp 68f).** Den fanns inte i repot alls och är nu skriven från faktisk kod, inte återskapad ur minnet. **Kvar:** committa `saljmaterial/MARKNADSANALYS.md`, `saljmaterial/KOSTNADSKALKYL-OCH-PRISSATTNING.md` och `synappsen-web/`, så att resterande pekare i detta dokument går att följa | 20 min kvar |
+| ~~**P2**~~ | ~~Committa `produkt/GRAFISK-PROFIL.md`~~ **KLAR 2026-08-22 (Etapp 68f).** ~~**Kvar:** committa `saljmaterial/MARKNADSANALYS.md`, `saljmaterial/KOSTNADSKALKYL-OCH-PRISSATTNING.md` och `synappsen-web/`~~ **HELT KLAR 2026-09-05.** Webbplatsen var den sista och låg bara som en publicerad artefakt – enda kopian. Den ligger nu i `synappsen-web/`, är rättad mot den grafiska profilen (den skrevs före Etapp 68b/68d och bar utgångna färgvärden), och är bevakad av `tests/docs/webbplats.test.js` | Klart |
 | **P3** | **Rätta de inaktuella siffrorna i `saljmaterial/MARKNADSANALYS.md`.** Den anger 149 regeltester och fyra säkerhetsgenomgångar. Faktiskt läge 2026-08-21: **179** test i `organisationsisolering.test.mjs`, **322** i hela regelsviten, och **åtta** `## Tillägg`-block i `granskningar/SAKERHETSRAPPORT.md`. Eftersom marknadsanalysen är källdokument för prismodell och värdering bör även övriga siffror kontrolleras | 1 timme |
 | **P4** | Skriv om `saljmaterial/PITCH.md`s exempel för privat vårdcentral och klinik, se `saljmaterial/MARKNADSANALYS.md` §10 | Dagar |
 | ~~**P5**~~ | ~~Rätta knappkontrasten i mörkt läge~~ **KLAR 2026-08-22 (Etapp 68c).** Premissen var dessutom delvis fel: primärknappen hade aldrig defekten, eftersom `.knapp` sätter `color: var(--yta)` som växlar med temat. Den riktiga defekten var vit text på färgad yta i sju andra regler, värst 1,74:1 på grön accent, inklusive hoppa-till-innehall-länken. | Klart |

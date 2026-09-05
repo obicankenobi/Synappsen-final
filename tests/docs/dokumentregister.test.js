@@ -50,7 +50,17 @@ function samlaDokument(katalog = ROT, traff = []) {
     if (IGNORERA_FIL.has(rel)) continue;
     // .md överallt, plus de kundvända HTML-källfilerna – de senare är de dokument där ett
     // felaktigt påstående faktiskt kostar pengar (de går till kund, DSO och i anbud).
-    if (rel.endsWith(".md") || rel.startsWith("saljmaterial/kallfiler/")) traff.push(rel);
+    // Sedan 2026-09-05 även den publika webbplatsens startsida: den är det MEST externa
+    // dokument projektet har (den läses av vem som helst, utan att någon lämnat ut den) och
+    // är enligt MDR art. 2(12) en del av produktens kvalificeringsunderlag. Övriga filer
+    // under synappsen-web/ är tillgångar och kod, inte dokument, och räknas inte.
+    if (
+      rel.endsWith(".md") ||
+      rel.startsWith("saljmaterial/kallfiler/") ||
+      rel === "synappsen-web/index.html"
+    ) {
+      traff.push(rel);
+    }
   }
   return traff;
 }

@@ -1,0 +1,489 @@
+  /* ============================================================
+     SYNAPPSEN – webbplats
+
+     Tokens hämtade ur produkt/GRAFISK-PROFIL.md, som i sin tur är läst ur
+     src/index.css. Namnen är appens (--primar, --yta, --kant-stark …) med flit:
+     avviker webbplatsen från appen ska det synas som en skillnad i VÄRDE, inte
+     döljas bakom ett eget namnskick.
+
+     Tre värden är rättade mot den tidigare versionen av den här sidan, som
+     skrevs 2026-08-11 och därmed FÖRE Etapp 68b/68d:
+       --primar      #2563eb -> #2f5fd6  (68b, 2026-08-21. Mätning, inte smak:
+                                          5,17:1 -> 5,63:1 mot vit yta)
+       --kant-stark  #cbd5e1 -> #7d8a99  (68d. Det gamla värdet gav 1,48:1 och
+                                          var en defekt i produktion)
+       --primar-ljus #eff6ff -> #f0f4fc  (#eff6ff är domänfärgen för Kliniskt
+                                          stöd och ska inte göra dubbel tjänst)
+     Ändra dem inte tillbaka. GRAFISK-PROFIL.md §2 förklarar varför var och en
+     är det den är.
+     ============================================================ */
+  :root {
+    /* Ljust läge – bas, identisk med src/index.css :root */
+    --primar:        #2f5fd6;
+    --primar-mork:   #274eaf;
+    --primar-ljus:   #f0f4fc;
+    --text:          #0f172a;
+    --text-svag:     #475569;
+    --bg:            #f5f9fa;
+    --yta:           #ffffff;
+    --kant:          #e2e8f0;
+    --kant-stark:    #7d8a99;
+    --pa-primar:     #ffffff;
+    --success:       #15803d;
+    --success-ljus:  #f0fdf4;
+    --amber-ljus:    #fffbeb;
+    --amber-text:    #92400e;
+    --farlig-ljus:   #fef2f2;
+    --farlig-mork:   #b91c1c;
+
+    /* Domänfärgerna är FASTA och frikopplade från --primar (GRAFISK-PROFIL.md §1):
+       området är en egenskap hos innehållet, inte hos betraktaren. De ligger
+       dessutom i en annan hue-familj än statusfärgerna, så en Logistik-badge
+       aldrig kan förväxlas med en "väntar på godkännande"-badge på samma rad. */
+    --doman-klin-ljus: #eff6ff;  --doman-klin-text: #1d4ed8;
+    --doman-log-ljus:  #f5f3ff;  --doman-log-text:  #6d28d9;
+    --doman-adm-ljus:  #ecfeff;  --doman-adm-text:  #0e7490;
+
+    --skugga: 0 1px 2px rgba(15, 23, 42, .04), 0 1px 3px rgba(15, 23, 42, .06);
+    --radius: 14px;
+    --radius-liten: 10px;
+
+    /* Appens typsnittskedja rakt av, inklusive emojileden sist – webbläsaren gör
+       reservval per tecken, och utan dem hamnar emojin på sista utvägen. */
+    --f: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+         Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif,
+         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --f-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+              "Liberation Mono", monospace;
+
+    --measure: 66ch;
+    --rail: 258px;
+    --pad: clamp(20px, 5vw, 64px);
+
+    color-scheme: light dark;
+  }
+
+  /* Mörkt läge. Den tidigare versionen av sidan avstod medvetet från det, med
+     motiveringen att en säljsida läses i dagsljus eller skrivs ut. Utskriften är
+     numera löst på riktigt (@media print längst ned), och kvar blir bara att en
+     besökare med mörkt systemläge får en helvit sida. Värdena nedan är appens
+     egna mörka tokens ur GRAFISK-PROFIL.md §1 – inte nya färger. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --primar:        #3b82f6;
+      --primar-mork:   #60a5fa;
+      --primar-ljus:   #14243a;
+      --text:          #f1f5f9;
+      --text-svag:     #94a3b8;
+      --bg:            #0a0e16;
+      --yta:           #131722;
+      --kant:          #242a3a;
+      --kant-stark:    #606f89;
+      /* Mörk text på färgad knapp, inte vit. Vit på mörkt läges blå ger 3,68:1,
+         under AA. #131722 ger 4,87:1. Kontraintuitivt och rätt – §2 i profilen. */
+      --pa-primar:     #131722;
+      --success:       #4ade80;
+      --success-ljus:  #14532d;
+      --amber-ljus:    #451a03;
+      --amber-text:    #fcd34d;
+      --farlig-ljus:   #450a0a;
+      --farlig-mork:   #fca5a5;
+
+      --doman-klin-ljus: #1e3a5f;  --doman-klin-text: #93c5fd;
+      --doman-log-ljus:  #2e1065;  --doman-log-text:  #c4b5fd;
+      --doman-adm-ljus:  #083344;  --doman-adm-text:  #67e8f9;
+
+      --skugga: 0 1px 2px rgba(0, 0, 0, .3), 0 1px 3px rgba(0, 0, 0, .4);
+    }
+  }
+
+  @font-face {
+    font-family: "Public Sans";
+    src: url("/fonts/public-sans-400.woff2") format("woff2");
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: "Public Sans";
+    src: url("/fonts/public-sans-600.woff2") format("woff2");
+    font-weight: 600; font-style: normal; font-display: swap;
+  }
+
+  /* ============================================================
+     Bas
+     ============================================================ */
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--f);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { font-weight: 600; letter-spacing: -0.021em; text-wrap: balance; margin: 0; }
+  p { margin: 0; }
+  a { color: inherit; }
+  img, svg { max-width: 100%; }
+
+  /* Fokusringen är appens: 3px solid --primar-mork med 2px offset, bara
+     :focus-visible så en musklickad länk inte får ring. (Profilen §3.) */
+  :focus-visible {
+    outline: 3px solid var(--primar-mork);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Appen har .hoppa-till-innehall; sidan behöver samma. Utan den måste en
+     tangentbordsanvändare passera nio registerlänkar för att nå brödtexten. */
+  .hoppa {
+    position: absolute; left: -9999px; top: 0; z-index: 100;
+    background: var(--primar); color: var(--pa-primar);
+    padding: 12px 18px; border-radius: var(--radius-liten);
+    font-size: 15px; font-weight: 600; text-decoration: none;
+  }
+  .hoppa:focus { left: 12px; top: 12px; }
+
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--text-svag);
+  }
+
+  .lede {
+    font-size: clamp(18px, 2.1vw, 21px);
+    line-height: 1.55; color: var(--text-svag); max-width: var(--measure);
+  }
+
+  /* ============================================================
+     Märket
+     ============================================================ */
+  .marke { display: flex; align-items: center; gap: 10px; }
+  .marke__symbol { width: 30px; height: 30px; flex: none; }
+  .marke__text { display: flex; flex-direction: column; gap: 1px; }
+  .marke__namn { font-weight: 600; font-size: 19px; letter-spacing: -0.028em; }
+  .marke__typ {
+    font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text-svag);
+  }
+
+  /* ============================================================
+     Skal: registerflikar + huvudkolumn
+     ============================================================ */
+  .skal { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr);
+          max-width: 1240px; margin: 0 auto; }
+
+  .rail {
+    position: sticky; top: 0; align-self: start; height: 100vh;
+    padding: 40px 0 40px var(--pad);
+    border-right: 1px solid var(--kant);
+    display: flex; flex-direction: column; gap: 28px;
+  }
+
+  .index { display: flex; flex-direction: column; gap: 1px; }
+  .index a {
+    display: grid; grid-template-columns: 26px 1fr; gap: 8px;
+    padding: 5px 12px 5px 10px; margin-left: -12px;
+    font-family: var(--f-mono); font-size: 12px;
+    color: var(--text-svag); text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .index a:hover { color: var(--primar); border-left-color: var(--kant-stark); }
+  .index a[aria-current="true"] { color: var(--primar); border-left-color: var(--primar); }
+  .index span:first-child { color: var(--text-svag); font-variant-numeric: tabular-nums; }
+
+  .rail__fot {
+    margin-top: auto; font-family: var(--f-mono);
+    font-size: 10.5px; line-height: 1.6; color: var(--text-svag);
+  }
+
+  .huvud { padding: 0 var(--pad) 0 clamp(24px, 4vw, 56px); min-width: 0; }
+
+  /* Mobilt: registret blir en horisontellt rullande flikrad. Den tidigare
+     versionen dolde navigationen helt under 900 px, vilket lämnade en
+     nio-sektioners sida utan annat sätt att navigera än att skrolla. */
+  .topp { display: none; }
+
+  @media (max-width: 900px) {
+    .skal { grid-template-columns: 1fr; }
+    .rail { display: none; }
+    .huvud { padding: 0 var(--pad); }
+    .topp {
+      display: block; position: sticky; top: 0; z-index: 20;
+      background: var(--bg); border-bottom: 1px solid var(--kant);
+    }
+    .topp__rad { padding: 12px var(--pad); }
+    .topp__index {
+      display: flex; gap: 4px; overflow-x: auto;
+      padding: 0 var(--pad) 10px;
+      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    }
+    .topp__index::-webkit-scrollbar { display: none; }
+    .topp__index a {
+      flex: none; font-family: var(--f-mono); font-size: 11.5px;
+      color: var(--text-svag); text-decoration: none;
+      padding: 5px 11px; border: 1px solid var(--kant); border-radius: 999px;
+      white-space: nowrap;
+    }
+    .topp__index a[aria-current="true"] {
+      color: var(--primar); border-color: var(--primar); background: var(--primar-ljus);
+    }
+  }
+
+  /* ============================================================
+     Sektioner
+     ============================================================ */
+  section { padding: clamp(56px, 8vw, 92px) 0; border-bottom: 1px solid var(--kant); }
+  section:last-of-type { border-bottom: 0; }
+
+  .sek-huvud { display: flex; flex-direction: column; gap: 14px; margin-bottom: 36px; }
+  .sek-huvud h2 { font-size: clamp(26px, 3.4vw, 35px); line-height: 1.15; }
+  .sek-nr { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; color: var(--primar); }
+
+  .prosa { max-width: var(--measure); display: flex; flex-direction: column; gap: 18px; }
+  .prosa p { color: var(--text-svag); }
+  .prosa strong { color: var(--text); font-weight: 600; }
+
+  /* ============================================================
+     Hero
+     ============================================================ */
+  .hero { padding-top: clamp(44px, 7vw, 84px); }
+  .hero h1 {
+    font-size: clamp(34px, 5.6vw, 58px); line-height: 1.05;
+    letter-spacing: -0.033em; max-width: 17ch; margin-bottom: 22px;
+  }
+  .hero .lede { margin-bottom: 32px; }
+  .hero__eyebrow { margin-bottom: 20px; display: block; }
+
+  .knappar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .knapp {
+    font-size: 15px; font-weight: 600; text-decoration: none;
+    padding: 12px 22px; border-radius: var(--radius-liten);
+    border: 1px solid var(--primar); background: var(--primar); color: var(--pa-primar);
+    transition: background .15s;
+  }
+  .knapp:hover { background: var(--primar-mork); border-color: var(--primar-mork); }
+  .knapp:active { transform: translateY(1px); }
+  .knapp--tom { background: transparent; color: var(--primar); }
+  .knapp--tom:hover { background: var(--primar-ljus); border-color: var(--primar); }
+
+  /* Sökdemonstration – produktens kärninteraktion */
+  .sok {
+    margin-top: 48px; border: 1px solid var(--kant); background: var(--yta);
+    box-shadow: var(--skugga); border-radius: var(--radius);
+    overflow: hidden; max-width: 560px;
+  }
+  .sok__falt { display: flex; align-items: center; gap: 11px;
+               padding: 15px 18px; border-bottom: 1px solid var(--kant); }
+  .sok__ikon { width: 15px; height: 15px; flex: none; color: var(--text-svag); }
+  .sok__term { font-family: var(--f-mono); font-size: 15px; color: var(--text); }
+  .sok__markor { width: 1.5px; height: 17px; background: var(--primar);
+                 animation: blink 1.15s steps(2, start) infinite; }
+  @keyframes blink { to { visibility: hidden; } }
+
+  .traff { display: flex; justify-content: space-between; gap: 16px;
+           padding: 13px 18px; border-bottom: 1px solid var(--kant); }
+  .traff:last-child { border-bottom: 0; }
+  .traff__titel { font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em; }
+  .traff__titel mark { background: var(--primar-ljus); color: var(--primar);
+                       padding: 0 2px; font-weight: 600; }
+  .traff__plats { font-family: var(--f-mono); font-size: 11px;
+                  color: var(--text-svag); margin-top: 3px; }
+  .traff .badge { height: fit-content; flex: none; }
+  .sok__not { font-family: var(--f-mono); font-size: 11px; color: var(--text-svag);
+              margin-top: 12px; max-width: 560px; line-height: 1.55; }
+
+  /* ============================================================
+     Badges – samma form och tokens som appens Badge.jsx
+     Statusbadgen är MEDVETET tyngre än domänbadgen: 600 plus inre kant mot
+     domänbadgens 500. Kravet i profilen §1 är att statusbadgen aldrig får vara
+     svagare eller mindre framträdande än domänbadgen på samma rad.
+     ============================================================ */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: .75rem; font-weight: 500; line-height: 1.5;
+    padding: 2px 10px; border-radius: 999px; white-space: nowrap;
+  }
+  .badge--doman-kliniskt-stod { background: var(--doman-klin-ljus); color: var(--doman-klin-text); }
+  .badge--doman-logistik      { background: var(--doman-log-ljus);  color: var(--doman-log-text); }
+  .badge--status { font-weight: 600; box-shadow: inset 0 0 0 1px currentColor; }
+  .badge--status-vantar  { background: var(--amber-ljus);   color: var(--amber-text); }
+  .badge--status-godkand { background: var(--success-ljus); color: var(--success); }
+  .badge--status-avvisad { background: var(--farlig-ljus);  color: var(--farlig-mork); }
+
+  /* ============================================================
+     Rutnät och kort
+     ============================================================ */
+  .rutnat { display: grid; gap: 1px; background: var(--kant);
+            border: 1px solid var(--kant); border-radius: var(--radius); overflow: hidden; }
+  .rutnat--2 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .rutnat--3 { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .ruta { background: var(--yta); padding: 24px; display: flex; flex-direction: column; gap: 9px; }
+  .ruta h3 { font-size: 16px; letter-spacing: -0.012em; }
+  .ruta p { font-size: 15px; line-height: 1.55; color: var(--text-svag); }
+
+  .ruta--klin { background: var(--doman-klin-ljus); }
+  .ruta--klin h3 { color: var(--doman-klin-text); }
+  .ruta--klin p { color: var(--text); }
+  .ruta--log { background: var(--doman-log-ljus); }
+  .ruta--log h3 { color: var(--doman-log-text); }
+  .ruta--log p { color: var(--text); }
+  .ruta--adm { background: var(--doman-adm-ljus); }
+  .ruta--adm h3 { color: var(--doman-adm-text); }
+  .ruta--adm p { color: var(--text); }
+
+  .punkter { list-style: none; padding: 0; margin: 0;
+             display: flex; flex-direction: column; gap: 20px; max-width: var(--measure); }
+  .punkter li { display: grid; grid-template-columns: 15px 1fr; gap: 14px; }
+  .punkter li::before { content: "—"; font-family: var(--f-mono); font-size: 13px;
+                        color: var(--primar); line-height: 1.6; }
+  .punkter h3 { font-size: 16px; margin-bottom: 3px; }
+  .punkter p { font-size: 15.5px; color: var(--text-svag); }
+
+  /* ============================================================
+     Innehållshälsa – speglar appens InnehallshalsaSektion
+     ============================================================ */
+  .halsa { border: 1px solid var(--kant); background: var(--yta);
+           border-radius: var(--radius); overflow: hidden;
+           box-shadow: var(--skugga); max-width: 560px; }
+  .halsa__topp { padding: 20px 22px; border-bottom: 1px solid var(--kant);
+                 display: flex; flex-direction: column; gap: 3px; }
+  .halsa__siffra { font-size: 30px; font-weight: 600; letter-spacing: -0.03em;
+                   font-variant-numeric: tabular-nums; }
+  .halsa__text { font-size: 14px; color: var(--text-svag); }
+  .halsa__lista { list-style: none; margin: 0; padding: 0; }
+  .halsa__lista li { display: flex; align-items: center; justify-content: space-between;
+                     gap: 14px; padding: 11px 22px; border-bottom: 1px solid var(--kant);
+                     font-size: 14.5px; color: var(--text-svag); }
+  .halsa__lista li:last-child { border-bottom: 0; }
+
+  /* ============================================================
+     Tabell
+     ============================================================ */
+  .tabell-svep { overflow-x: auto; border: 1px solid var(--kant);
+                 background: var(--yta); border-radius: var(--radius); }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; }
+  th, td { text-align: left; padding: 13px 18px;
+           border-bottom: 1px solid var(--kant); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  th { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em;
+       text-transform: uppercase; color: var(--text-svag); font-weight: 400;
+       background: var(--primar-ljus); }
+  td { font-size: 15px; color: var(--text-svag); font-variant-numeric: tabular-nums; }
+  td:first-child { color: var(--text); font-weight: 600; font-size: 14.5px; }
+  caption { text-align: left; padding: 13px 18px; caption-side: top; }
+
+  /* ============================================================
+     Fallstudie + medvetna avgränsningar
+     ============================================================ */
+  .fall { border: 1px solid var(--kant); display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+          gap: 1px; background: var(--kant); box-shadow: var(--skugga);
+          border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; }
+  .fall__led { background: var(--yta); padding: 24px;
+               display: flex; flex-direction: column; gap: 10px; }
+  .fall__etikett { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em;
+                   text-transform: uppercase; color: var(--text-svag); }
+  .fall__led:last-child .fall__etikett { color: var(--success); }
+  .fall__led p { font-size: 15px; line-height: 1.55; color: var(--text-svag); }
+
+  .fall__slutsats { border-left: 2px solid var(--success); background: var(--success-ljus);
+                    padding: 20px 24px; margin-top: 1px;
+                    border-radius: 0 0 var(--radius) var(--radius); }
+  .fall__slutsats p { font-size: 15.5px; color: var(--text); max-width: var(--measure); }
+
+  .saknas { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+  .saknas li { padding: 20px 0; border-top: 1px solid var(--kant);
+               display: grid; grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+               gap: 8px 28px; }
+  .saknas li:last-child { border-bottom: 1px solid var(--kant); }
+  .saknas h3 { font-size: 15.5px; font-weight: 600; }
+  .saknas p { font-size: 15px; color: var(--text-svag); }
+  .saknas__skal { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .1em;
+                  text-transform: uppercase; color: var(--success);
+                  display: block; margin-bottom: 5px; }
+  @media (max-width: 700px) { .saknas li { grid-template-columns: 1fr; } }
+
+  /* ============================================================
+     Paket
+     ============================================================ */
+  .paket { display: flex; flex-direction: column; border: 1px solid var(--kant);
+           background: var(--yta); border-radius: var(--radius); overflow: hidden; }
+  .paket__rad { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+                gap: 10px 28px; padding: 26px 28px; border-bottom: 1px solid var(--kant); }
+  .paket__rad:last-child { border-bottom: 0; }
+  .paket__namn { display: flex; flex-direction: column; gap: 5px; }
+  .paket__namn h3 { font-size: 17px; }
+  .paket__flagga { font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em;
+                   text-transform: uppercase; color: var(--primar); }
+  .paket__flagga--karna { color: var(--success); }
+  .paket__innehall p { font-size: 15px; color: var(--text-svag); }
+  .paket__lista { margin: 10px 0 0; padding: 0; list-style: none;
+                  display: flex; flex-wrap: wrap; gap: 6px; }
+  .paket__lista li { font-family: var(--f-mono); font-size: 11px; color: var(--text-svag);
+                     border: 1px solid var(--kant-stark); padding: 4px 9px;
+                     border-radius: var(--radius-liten); }
+  @media (max-width: 700px) { .paket__rad { grid-template-columns: 1fr; } }
+
+  /* ============================================================
+     Pilot / avslut
+     ============================================================ */
+  .steg { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 1px; background: var(--kant); border: 1px solid var(--kant);
+          border-radius: var(--radius); overflow: hidden; }
+  .steg > div { background: var(--yta); padding: 24px;
+                display: flex; flex-direction: column; gap: 8px; }
+  .steg__nr { font-family: var(--f-mono); font-size: 22px;
+              font-variant-numeric: tabular-nums; color: var(--primar); }
+  .steg h3 { font-size: 15.5px; }
+  .steg p { font-size: 14.5px; color: var(--text-svag); line-height: 1.5; }
+
+  .kontakt { border-top: 2px solid var(--text); padding: 40px 0 56px;
+             display: flex; flex-direction: column; gap: 18px; }
+  .kontakt h2 { font-size: clamp(24px, 3vw, 32px); }
+  .kontakt__falt { font-family: var(--f-mono); font-size: 13px; color: var(--text-svag);
+                   border: 1px dashed var(--kant-stark); padding: 12px 16px;
+                   width: fit-content; background: var(--yta);
+                   border-radius: var(--radius-liten); }
+
+  footer { border-top: 1px solid var(--kant); padding: 26px 0 48px;
+           font-family: var(--f-mono); font-size: 11px; line-height: 1.7;
+           color: var(--text-svag); display: flex; flex-wrap: wrap;
+           gap: 6px 28px; justify-content: space-between; }
+
+  /* ============================================================
+     Rörelse. Appen stänger av all rörelse under prefers-reduced-motion med
+     !important – för vestibulär yrsel är rörelse inte kosmetika. Samma här.
+     ============================================================ */
+  .avslojas { opacity: 0; transform: translateY(10px);
+              transition: opacity .5s ease, transform .5s ease; }
+  .avslojas.inne { opacity: 1; transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important; scroll-behavior: auto !important;
+    }
+    .avslojas { opacity: 1; transform: none; }
+  }
+
+  /* ============================================================
+     Utskrift. Sidan skrivs ut inför ett upphandlingsbeslut – det var skälet den
+     tidigare versionen angav för att avstå mörkt läge, men något
+     utskriftsstöd fanns inte. Här är det på riktigt: registret bort, allt
+     avslöjat, inga sidbrytningar mitt i ett kort.
+     ============================================================ */
+  @media print {
+    .rail, .topp, .knappar, .hoppa { display: none !important; }
+    .skal { display: block; max-width: none; }
+    .huvud { padding: 0; }
+    .avslojas { opacity: 1 !important; transform: none !important; }
+    body { background: #fff; color: #000; font-size: 11pt; }
+    section { padding: 18pt 0; break-inside: auto; }
+    .ruta, .fall__led, .steg > div, .halsa, .sok { break-inside: avoid; }
+    h1, h2, h3 { break-after: avoid; }
+    a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; }
+  }

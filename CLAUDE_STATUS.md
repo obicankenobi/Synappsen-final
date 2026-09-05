@@ -8,7 +8,7 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-03 · **v5.139.0 i produktion.** Utgående e-post är stoppat
+**Senast uppdaterad:** 2026-09-05 · **v5.139.0 i produktion.** Utgående e-post är stoppat
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
 **Etapp 72 (`etapplaner/ETAPPLAN19.md`):** riktningen är antagen, beslutspunkt 5
 (efterfrågegrinden) gäller fortfarande som huvudregel för alla ÖVRIGA delmål. 72f, 72d och
@@ -22,6 +22,7 @@ sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) 
 | **Version i produktion** | **5.139.0** (körning #97, verifierad 2026-09-02: asset-hash `index-D_9UU18e.js` live) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | v5.138.0: Etapp 72 beslutspunkt 5 undantag 1. Artikel 50-märkning byggd (`src/components/RutinKort.jsx`, en AI-tolkad rutins ursprung visas i läsvyn – bekräftad brist sedan `granskningar/JURIDISK-GRANSKNING.md` §7.4). Rättade en självmotsägelse i `functions/klinikstod.js`s Gemini-prompt ("Detta är beslutsstöd" stod rakt emot MDR-avgränsningen). **Detta är kundvänt** – första sådana ändringen sedan Etapp 69 |
+| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, egen hosting-target `web`, egen `deploy-web.yml`. **Inte publicerad än** – hosting-siten måste skapas en gång, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
 | **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. Ta samtidigt ägarbeslutet om "Beslutsstöd"-raden i `OPPNA-PUNKTER.md`. Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
@@ -113,6 +114,59 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-05 (publik webbplats i repot, steg 1–2)
+
+Ägaren vill utveckla den publika marknadsplatsen vidare och driva den skild från kundappen.
+Steg 1 (in i repot, bevakad) och steg 2 (hosting + deployväg) är gjorda. **Ingen ändring i
+appen** – ny katalog `synappsen-web/`, ny workflow, en enradsändring i `deploy.yml`.
+
+**Sidan låg bara som en publicerad artefakt.** Enda kopian, utanför repot, utanför varje
+testvakt. `produkt/VARUMARKE.md` P2 pekade ut det som en känd brist sedan 2026-08-22.
+
+**Två faktafel hittade vid granskningen, båda rättade:**
+
+1. **"Sex roller" – koden definierar sju.** Exakt samma fel som `saljmaterial/PITCH.md` gjorde
+   efter att kioskrollen byggdes i Etapp 55, på en sida som samtidigt beskriver kioskläget i
+   egen sektion. Sidan är nu tillagd i rollantalsvakten i `dokumentpastaenden.test.js`.
+2. **Färgerna var från före Etapp 68b/68d.** Artefakten skrevs 2026-08-11, färgbytena gjordes
+   2026-08-21/22. Den bar `#2563eb` som primärblå och `#cbd5e1` som kant-stark – det senare
+   var en **defekt som fanns i produktion** (1,48:1 mot krävda 3:1). Båda rättade mot profilen.
+
+**Övrigt mot den grafiska profilen:** Public Sans självhostad i stället för systemtypsnitt +
+serif (sidan skrevs före Etapp 68e), symbolen `symbol-axon.svg` inlagd (sidan hade bara en
+textlogotyp – och profilen §6 pekar uttryckligen ut den varianten för webbplats), mörkt läge
+tillagt med appens egna mörka tokens, `prefers-reduced-motion` skärpt till appens nivå.
+
+**Tillgänglighet och struktur:** `lang="sv"` (saknades – artefaktvärden satte det förr),
+skip-link, mobilnavigering (nio sektioner var tidigare helt onåbara under 900 px annat än
+genom att skrolla), utskriftsstöd (den gamla filens egen motivering för att avstå mörkt läge
+var att sidan skrivs ut – men något utskriftsstöd fanns inte), Open Graph-taggar,
+`robots.txt`, `sitemap.xml`. CSS och JS utbrutna ur HTML:en, vilket gör CSP:n strikt
+(`default-src 'none'`, allt annat `'self'`, inga hashar att räkna om vid varje redigering).
+
+**Copy:** ett stycke ströks som bröt mot `produkt/VARUMARKE.md` regel 8 (*"beröm aldrig din
+egen ärlighet"*) – "vi berättar det här på en säljsida, inte vid tredje mötet" och
+fortsättningen. Ersatt med vad avstängningen faktiskt kostade. Klinikstödssektionen fick
+formuleringen ur `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`.
+
+**Två nya vakter, 16 nya tester** (`tests/docs/webbplats.test.js`): förbjudna ord
+("beslutsstöd", "triageringsstöd" – MDR art. 2(12) gör sidan till en del av
+kvalificeringsunderlaget), källdomänantal mot `functions/klinikstod.js`, utgångna profilfärger,
+inga externa resurser, `lang="sv"`, och **byte-för-byte-jämförelse av varumärkestillgångarna**
+mot `public/` – sajten har egna kopior eftersom den ligger på en egen hosting-site, och två
+kopior som ska vara lika glider annars i tysthet. Sidan är även registrerad i
+`DOKUMENTREGISTER.md` (72 → 73 dokument) och tillagd i kundpåståendevakten.
+
+**Hosting:** `firebase.json` har nu två targets, `app` (dist) och `web` (synappsen-web).
+**`deploy.yml` fick `--only hosting:app,functions,firestore,storage`** – utan det hade varje
+appdeploy även publicerat marknadsplatsen, inklusive halvfärdiga utkast i repot.
+
+**Kvar innan publicering** (i `OPPNA-PUNKTER.md`): hosting-siten måste skapas en gång
+(`firebase hosting:sites:create synappsen-web`); kontaktuppgifterna är fortfarande en
+platshållare och blockeras av bolagsformen – med enskild firma blir orgnr ditt personnummer,
+publikt och permanent; och `deploy-web.yml` bör få ett eget tjänstekonto med enbart
+`roles/firebasehosting.admin` i stället för appdeployens breda konto.
 
 ## Uppföljning 2026-09-03 (produktdefinition som underlag för extern juridisk granskning)
 
@@ -333,37 +387,3 @@ Fullt testsvep grönt: lint, build, `npx vitest run`, `npm run test:rules`,
 
 **Samtliga 7 beslutspunkter i Etapp L1 är därmed avgjorda och byggda. Etapp L1 är helt
 slutförd** – 16 av 16 delmål, 7 av 7 beslutspunkter.
-
-## Uppföljning 2026-08-30 (v5.136.0 – Etapp L1 SLUTFÖRD)
-
-Ägaren bad om beslut på de fyra öppna beslutspunkterna som blockerade de sista fem
-delmålen. Ställde dem samlat; ägaren godkände samtliga fyra rekommendationer utan avvikelse.
-Detaljer i `BESLUTSLOGG.md` 2026-08-30 och `intern/ETAPPLAN-INTERN-1.md` v1.0.
-
-- **Beslutspunkt 1** (L1c): mätvärdesaggregat via Cloud Function (väg B), inte en lossad
-  regel. `hamtaKundmatvarden(orgId)` returnerar bara de redan aggregerade fälten, loggat mot
-  kundens EGEN kedja.
-- **Beslutspunkt 2** (L1j): bara appversion rapporteras (`rapporteraAppVersion`, skrivet på
-  organisationens dokument), inte "senast aktiv" per användare.
-- **Beslutspunkt 3** (L1d): egen inline-SVG (`src/utils/sparkline.js`), inget
-  diagrambibliotek.
-- **Beslutspunkt 4** (L1f): leverantören kan nu BEGÄRA ett supportfönster i appen
-  (`begarSupportAtkomst`/`svaraSupportbegaran`) – kunden godkänner fortfarande själv.
-
-**Två premisskontrollfynd ändrade omfånget innan bygget:** L1f:s punkt 4 (ärendetråd per
-kund) visade sig redan finnas sedan Etapp 50c (`arendeanteckningar`) – planen hade missat
-det. L1e:s punkt 3 (72-timmarsklockan) byggdes redan i L1p. Båda delmålen fick därför ett
-mindre omfång än planen ursprungligen skisserade.
-
-**Två punkter avgränsades MEDVETET bort**, båda dokumenterade i `intern/ETAPPLAN-INTERN-1.md`:
-L1f punkt 3 (läslogg under ett aktivt supportfönster – kräver att instrumentera varje läsväg
-`farSupportlasa()` täcker, ett eget, större delmål) och L1e punkt 2 (ett generaliserat
-`nodstopp/{funktion}`-mönster – en omskrivning av skarp, säkerhetskritisk kod utan att en
-tredje nödstoppsmekanism ännu finns som kräver den).
-
-26 nya tester. Fullt testsvep grönt: lint, build, `npx vitest run` (546 tester, upp från
-535), `npm run test:rules` (inkl. 5 nya för `supportbegaran`), `npm run test:functions`
-(inkl. 17 nya, delade mellan L1c/L1f/L1j i en gemensam testfil), `npm run test:storage`.
-
-**Etapp L1 är därmed slutförd i sin helhet: 16 av 16 delmål.** Enda kvarvarande öppna frågan
-i hela planen är beslutspunkt 7 (feedback-inkorgen) – inget bygge väntar på den.

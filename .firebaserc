@@ -1,0 +1,13 @@
+{
+  "projects": {
+    "default": "synappsen-final-build"
+  },
+  "targets": {
+    "synappsen-final-build": {
+      "hosting": {
+        "app": ["synappsen-final-build"],
+        "web": ["synappsen-web"]
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+# Synappsens publika webbplats. Hela sidan får indexeras – den finns för att
+# hittas. Appen ligger på en egen hosting-site och har inget innehåll som nås
+# utan inloggning, så den behöver ingen regel här.
+User-agent: *
+Allow: /
+
+Sitemap: https://synappsen.se/sitemap.xml

@@ -83,7 +83,14 @@ jobs:
         run: printf '%s' "${{ secrets.BREVO_API_KEY }}" | firebase functions:secrets:set BREVO_API_KEY --data-file=- --project synappsen-final-build --force
 
       - name: Deploya till Firebase
-        run: firebase deploy --project synappsen-final-build --non-interactive --force
+        # --only är INTE valfritt sedan firebase.json fick två hosting-targets.
+        # Ett bart `firebase deploy` publicerar även `hosting:web` (marknadsplatsen),
+        # vilket skulle skicka ut ett halvfärdigt utkast i repot varje gång appen
+        # deployas. Webbplatsen har en egen workflow: deploy-web.yml.
+        run: >
+          firebase deploy
+          --only hosting:app,functions,firestore,storage
+          --project synappsen-final-build --non-interactive --force
 
       - name: Sätt cleanup policy för container-images
         run: firebase functions:artifacts:setpolicy --location=europe-west1 --project=synappsen-final-build --force
