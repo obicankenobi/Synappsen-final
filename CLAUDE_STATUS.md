@@ -22,7 +22,7 @@ sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) 
 | **Version i produktion** | **5.139.0** (körning #97, verifierad 2026-09-02: asset-hash `index-D_9UU18e.js` live) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | v5.138.0: Etapp 72 beslutspunkt 5 undantag 1. Artikel 50-märkning byggd (`src/components/RutinKort.jsx`, en AI-tolkad rutins ursprung visas i läsvyn – bekräftad brist sedan `granskningar/JURIDISK-GRANSKNING.md` §7.4). Rättade en självmotsägelse i `functions/klinikstod.js`s Gemini-prompt ("Detta är beslutsstöd" stod rakt emot MDR-avgränsningen). **Detta är kundvänt** – första sådana ändringen sedan Etapp 69 |
-| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, egen hosting-target `web`, egen `deploy-web.yml`. **Inte publicerad än** – hosting-siten måste skapas en gång, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
+| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor (startsida + integritetspolicy), egen hosting-target `web`, egen `deploy-web.yml`. Priser publicerade och bundna till prislistan. **Inte publicerad än** – hosting-siten måste skapas en gång, och kontaktuppgifter/bakgrundsstycke väntar på ägaren, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
 | **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. Ta samtidigt ägarbeslutet om "Beslutsstöd"-raden i `OPPNA-PUNKTER.md`. Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
@@ -114,6 +114,50 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-05 (webbplatsen steg 3 – priser, integritetspolicy)
+
+Innehållsarbetet på den publika sajten. Fortfarande ingen ändring i appen.
+
+**Priser publicerade.** Sektion 08 hette "Paket" och listade **modulnamnen**
+(Core/Operations/Intelligence) utan priser, medan prislistan säljer **nivåerna**
+Kärna/Drift/Full för 39 000 / 59 000 / 89 000 kr per enhet och år. En läsare mötte alltså
+andra ord på webbplatsen än i prislistan. Sektionen visar nu nivåerna med faktiska priser och
+de fyra tilläggen. Prisöppenhet är en uttalad del av positioneringen (`produkt/VARUMARKE.md`
+rad 38, "ett publicerat pris") – men priser på två ställen är en drifthärd, så
+`tests/docs/webbplats.test.js` binder nu sidans belopp till prislistan, som är sanningskällan.
+En vakt hindrar också att modulnamnen kryper tillbaka in i kundvänd text.
+
+**Integritetspolicy** (`synappsen-web/integritet.html`, GDPR art. 13). Kort, för att sidan
+faktiskt behandlar nästan ingenting: inga kakor, ingen analys, inget laddat från annan domän,
+inga formulär – bara Firebase Hostings serverloggar. Det påståendet är ovanligt starkt, så det
+är **mekaniskt bevakat**: testet failar om koden börjar sätta kakor, lagra i webbläsaren eller
+ladda något externt utan att policyn följer med. Policyn skiljer också uttryckligen webbplatsens
+behandling (vi som ansvariga) från produktens (kunden som ansvarig, vi som biträde).
+
+**Ett verkligt fel hittat och åtgärdat: sidorna krävde JavaScript för att synas.** Sajten ärvde
+en inscrollningsanimation som satte `opacity: 0` på varje sektion och avslöjade den med en
+IntersectionObserver. Det upptäcktes när policysidan lades till – den laddar inget skript och
+var därför **helt osynlig**, alltså en juridisk text som inte gick att läsa. Samma svaghet gjorde
+allt under hjältesektionen på startsidan beroende av att JS kördes.
+
+Animationen är **borttagen helt** i stället för lappad. Progressiv förstärkning hade krävt en
+inline-snutt i `<head>`, vilket den strikta CSP:n inte tillåter utan att bli krångligare att
+redigera. Och borttagningen är det som stämmer med profilen: `GRAFISK-PROFIL.md` §5 avvisade
+lyfta kort med `VARUMARKE.md` §5 som skäl ("behärskad, ingen brådska"), och appens enda
+rörelseuttryck i basen är en knapp som trycks ned 1 px. Verifierat med Playwright och
+`javaScriptEnabled: false`. En vakt failar om `opacity: 0` återinförs.
+
+**Bakgrundsstycket (P1) är medvetet oskrivet.** `produkt/VARUMARKE.md` §14 säger "20 min, bara
+du kan göra det". Det är den enda plats på sidan där avsändaren talar i egen sak om varför
+produkten finns, och en påhittad ursprungshistoria vore precis vad bevisregeln (§7) finns för
+att stoppa. Platsen finns med instruktion i HTML-kommentaren.
+
+**Registret gjordes robust:** `dokumentregister.test.js` fångar nu varje `synappsen-web/*.html`
+automatiskt, inte bara `index.html`, så en framtida sida inte kan läggas till utan att någon
+tar ställning till vad som håller den aktuell. 73 → 74 dokument.
+
+Testsvep grönt: lint, 585 tester (upp från 576).
 
 ## Uppföljning 2026-09-05 (publik webbplats i repot, steg 1–2)
 
@@ -323,67 +367,3 @@ timmar, inte veckor, och det står som undantag 1 i beslutspunkt 5.
 
 **Ingen kod, ingen versionsbump.** Planen är fortfarande **EJ ANTAGEN** – nu tretton delmål
 och sju öppna beslutspunkter.
-
-## Uppföljning 2026-08-30 (Etapp 72 – utkast, ingen kod)
-
-Ägaren bad om en genomgång av produktens nuvarande form och en identifiering av luckor:
-funktioner som möter behov hos potentiella kunder som ännu inte bedömts. Resultatet är
-`etapplaner/ETAPPLAN19.md` – **ett utkast, EJ ANTAGET. Ingen kod skriven, inget får byggas.**
-
-**Analysens kärna, två fynd ur koden:**
-
-1. `functions/verksamhetsmallar.js` ger nya kunder en rutinmall som heter "Avvikelsehantering"
-   och vars innehåll är *"Beskriv er rutin för att rapportera och följa upp avvikelser"*.
-   Produkten ber alltså kunden **beskriva** en process som sedan sker någon annanstans. Samma
-   mönster för delegering (finns bara som kvissfråga) och patientsäkerhetsberättelse (finns
-   bara i säljmaterialet, som något vi läser HOS kandidater). Synappsen har byggt ett ben av
-   ett ledningssystem, mycket väl – de andra ligger i Excel hos målgruppen.
-2. **Frekvensproblemet.** Rutindatabasen konsulteras; de saknade skyldigheterna utförs, med
-   signatur, varje pass. `KOPARANALYS.md` §6.1 svarar på kallstarten med mer innehåll. Planen
-   föreslår ett annat svar: en app som kräver en signatur varje pass har inget
-   kallstartsproblem.
-
-**Tolv premissantaganden kontrollerade mot kod, fyra ändrade planen** – bland annat att
-`checklistkorningar` bara är en räknare (ingen signerad post), att kompetensmatrisen är
-härledd och inte lagrad (kan inte bära delegeringar), och att `bristanmalningar` är hårt knuten
-till förrådsartiklar (mönster att härma, inte grund att bygga på).
-
-**Tolv delmål i tre grupper.** Tyngdpunkt: 72a (återkommande kontroller med loggbok) för att
-den ensam ändrar användningsfrekvensen. Högst värde per byggtimme: 72b
-(patientsäkerhetsberättelse som utkast ur data vi redan samlar). 72e (avvikelsehantering) är
-**blockerad** – den kolliderar med produktens grundlöfte om att patientuppgifter aldrig finns,
-och bör ingå i samma externa juridiska uppdrag som Etapp 64 väntar på.
-
-**Ett dokumentfel hittades och rättades mekaniskt:** `DOKUMENTREGISTER.md` påstod 65 dokument
-och `CLAUDE.md` 62, medan 67 fanns på disk. Båda rättade till 68, och
-`tests/docs/dokumentregister.test.js` fick två nya assertioner som failar om siffrorna glider
-igen – det sjunde fallet av projektets återkommande felmönster, den här gången i just det
-dokument som finns för att förhindra det.
-
-**Ingen kod, ingen versionsbump.** Planens källpåståenden om svensk vårdlagstiftning är
-**inte verifierade mot primärkällor** – se planens eget avsnitt "Källor och verifieringsbehov".
-Ingen rad får citeras i kundvänt material innan den tabellen är avbockad.
-
-## Uppföljning 2026-08-30 (v5.137.0 – beslutspunkt 7: egen kanal till leverantören)
-
-Ägaren avgjorde den sista öppna frågan i Etapp L1: ska leverantören se kundens
-feedback-inkorg? Svar: nej, inte rakt av – bygg en EGEN, tydligt märkt kanal i stället.
-Ägaren bad uttryckligen om att göra det tydligt i BÅDA verktygen (den nya och den
-befintliga) vart respektive feedback faktiskt går.
-
-**Byggt:** ny collection `leverantorsfeedback`, medvetet HELT ÅTSKILD från kundens interna
-`feedback` – ingen tyst utvidgning av vem som läser den redan existerande. En ny sida,
-`KontaktaLeverantoren.jsx` (`/kontakta-leverantoren`), säger uttryckligen "Det här går till
-Synappsen – inte till din organisations admin". Den befintliga `Feedback.jsx` (och
-`Hjalp.jsx`) fick motsvarande förtydligande åt andra hållet, plus en länk mellan de två
-sidorna. Leverantörens sida: `LeverantorsfeedbackSektion.jsx` i `/leverantor/logg`, olästa
-markerade och kan bockas av.
-
-15 nya tester (9 funktioner, 6 regel) – bevisar bland annat att en post i
-`leverantorsfeedback` aldrig läcker in i `feedback` eller tvärtom, och att en annan
-superadmin i SAMMA organisation inte kan läsa någon annans meddelande till leverantören.
-Fullt testsvep grönt: lint, build, `npx vitest run`, `npm run test:rules`,
-`npm run test:functions`, `npm run test:storage`.
-
-**Samtliga 7 beslutspunkter i Etapp L1 är därmed avgjorda och byggda. Etapp L1 är helt
-slutförd** – 16 av 16 delmål, 7 av 7 beslutspunkter.

@@ -123,6 +123,113 @@ describe("Webbplatsen följer den antagna grafiska profilen", () => {
   });
 });
 
+describe("Webbplatsens priser stämmer med prislistan", () => {
+  // Priser på två ställen är en drifthärd. Prislistan är sanningskällan (den går i anbud);
+  // webbplatsen upprepar dem för att prisöppenhet är en uttalad del av positioneringen
+  // (produkt/VARUMARKE.md rad 38: "ett publicerat pris"). Den här vakten gör upprepningen
+  // ofarlig – ändras prislistan utan att sidan följer med, failar testet.
+  const PRISLISTA = "saljmaterial/kallfiler/Synappsen-prislista.html";
+  // Prislistan sätter beloppet och enheten i skilda element ("39 000" respektive "kr per
+  // enhet och år"), så jämförelsen görs på beloppet där och på hela strängen på webbplatsen,
+  // vars markup vi själva äger.
+  const NIVAER = [
+    ["Kärna", "39 000"],
+    ["Drift", "59 000"],
+    ["Full", "89 000"],
+  ];
+
+  test.each(NIVAER)("%s kostar %s kr på båda ställena", (niva, belopp) => {
+    expect(
+      las(PRISLISTA),
+      `${PRISLISTA} anger inte längre ${belopp} för ${niva}.`
+    ).toContain(belopp);
+    expect(
+      las(HTML),
+      `${HTML} anger inte ${belopp} kr för ${niva}, men ${PRISLISTA} gör det. Priserna måste ` +
+        "vara överens – prislistan är sanningskällan."
+    ).toContain(`${belopp} kr`);
+  });
+
+  test("de fyra tilläggen finns med samma pris som i prislistan", () => {
+    for (const pris of ["6 000 kr", "350 kr", "3 000 kr", "25 000 kr"]) {
+      expect(
+        las(HTML),
+        `${HTML} saknar tilläggspriset ${pris} som står i ${PRISLISTA}.`
+      ).toContain(pris);
+    }
+  });
+
+  test("sidan använder prislistans nivånamn, inte modulnamnen", () => {
+    // Kärna/Drift/Full är vad kunden KÖPER. Core/Operations/Intelligence är de tekniska
+    // modulnycklarna i functions/gemensamt.js och produkt/MODULPLAN.md. Sidan bar länge de
+    // senare, vilket gjorde att en läsare mötte andra ord i prislistan än på webbplatsen.
+    for (const modulnamn of ["Operations", "Intelligence"]) {
+      expect(
+        las(HTML),
+        `${HTML} använder modulnamnet "${modulnamn}" i kundvänd text. Använd prislistans ` +
+          "nivånamn (Kärna/Drift/Full) – modulnamnen är intern teknisk struktur."
+      ).not.toContain(`>${modulnamn}<`);
+    }
+  });
+});
+
+describe("Integritetspolicyn stämmer med vad sidan faktiskt gör", () => {
+  // En integritetspolicy som beskriver en behandling som inte sker är lika fel som en som
+  // utelämnar en som sker – och den här påstår något ovanligt starkt (inga kakor, ingen
+  // analys, inget externt). Det påståendet ska vara mekaniskt sant, inte bara välmenat.
+  const POLICY = "synappsen-web/integritet.html";
+  const SIDOR = ["synappsen-web/index.html", POLICY];
+
+  test("ingen sida sätter kakor eller lagrar något i webbläsaren", () => {
+    const kallor = [...SIDOR, "synappsen-web/sida.js"].map(las).join("\n");
+    for (const monster of [/document\.cookie/, /localStorage/, /sessionStorage/, /indexedDB/]) {
+      expect(
+        kallor,
+        `Webbplatsen använder ${monster.source}, men ${POLICY} påstår att den varken sätter ` +
+          "kakor eller lagrar något i webbläsaren. Rätta policyn i samma commit."
+      ).not.toMatch(monster);
+    }
+  });
+
+  test("ingen sida laddar något från en annan domän", () => {
+    for (const sida of SIDOR) {
+      const externa = [...las(sida).matchAll(/(?:src|href)="(https?:\/\/[^"]+)"/g)]
+        .map((m) => m[1])
+        .filter((u) => !u.startsWith("https://synappsen.se"));
+      expect(
+        externa,
+        `${sida} laddar ${externa.join(", ")} från en annan domän. ${POLICY} påstår att inget ` +
+          "laddas från någon annan – det påståendet skyddar besökaren och måste vara sant."
+      ).toEqual([]);
+    }
+  });
+
+  test("policyn är läsbar utan JavaScript", () => {
+    // Verkligt fel, hittat 2026-09-05: sidan ärvde en inscrollningsanimation som satte
+    // opacity:0 på varje sektion och avslöjade den med en IntersectionObserver. Policysidan
+    // laddar inget skript – hela den juridiska texten var därför osynlig. Samma fel gjorde
+    // allt under hjältesektionen på startsidan beroende av att JS kördes.
+    expect(
+      las(CSS),
+      "stil.css döljer innehåll med opacity:0 igen. Sidorna måste vara läsbara utan " +
+        "JavaScript – en integritetspolicy som kräver ett skript för att synas uppfyller " +
+        "inte informationsplikten."
+    ).not.toMatch(/opacity:\s*0\s*;/);
+    expect(
+      las(POLICY),
+      `${POLICY} laddar inget skript, så den får inte förlita sig på en klass som JS sätter.`
+    ).not.toContain("avslojas");
+  });
+
+  test("startsidan länkar till policyn", () => {
+    expect(
+      las(HTML),
+      "Startsidan länkar inte till integritetspolicyn. En policy som inte går att nå från " +
+        "sidan den gäller uppfyller inte informationsplikten i art. 13."
+    ).toContain('href="/integritet.html"');
+  });
+});
+
 describe("VARUMARKE.md påstår inte att källdokumenten saknas i repot", () => {
   // Verkligt fel, rättat 2026-09-05: dokumentets läsanvisning påstod att MARKNADSANALYS.md,
   // KOSTNADSKALKYL-OCH-PRISSATTNING.md, KANDIDATLISTA-PRIVAT-VARD.md, GRAFISK-PROFIL.md och

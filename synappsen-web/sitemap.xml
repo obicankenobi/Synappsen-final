@@ -4,4 +4,8 @@
     <loc>https://synappsen.se/</loc>
     <changefreq>monthly</changefreq>
   </url>
+  <url>
+    <loc>https://synappsen.se/integritet.html</loc>
+    <changefreq>yearly</changefreq>
+  </url>
 </urlset>

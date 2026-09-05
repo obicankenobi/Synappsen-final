@@ -58,7 +58,7 @@
     <a href="#krav">Vårdens krav</a>
     <a href="#saknas">Öppenhet</a>
     <a href="#start">Startbibliotek</a>
-    <a href="#paket">Paket</a>
+    <a href="#paket">Priser</a>
     <a href="#pilot">Pilot</a>
   </nav>
 </div>
@@ -89,7 +89,7 @@
       <a href="#krav"><span>05</span><span>Vårdens krav</span></a>
       <a href="#saknas"><span>06</span><span>Öppenhet</span></a>
       <a href="#start"><span>07</span><span>Startbibliotek</span></a>
-      <a href="#paket"><span>08</span><span>Paket</span></a>
+      <a href="#paket"><span>08</span><span>Priser</span></a>
       <a href="#pilot"><span>09</span><span>Pilot</span></a>
     </div>
 
@@ -145,7 +145,7 @@
     </section>
 
     <!-- 01 PROBLEMET -->
-    <section id="problemet" class="avslojas">
+    <section id="problemet">
       <div class="sek-huvud">
         <span class="sek-nr">01 — Problemet</span>
         <h2>Kunskapen finns. Den är bara utspridd.</h2>
@@ -162,10 +162,23 @@
           säkert vet om de är aktuella – eller ens lästa.
         </p>
       </div>
+
+      <!-- BAKGRUNDSSTYCKET (P1 i produkt/VARUMARKE.md §14).
+           Medvetet oskrivet av en kodsession: planen säger "20 min, bara du kan göra det".
+           Det här är den enda plats på sidan där avsändaren talar i egen sak om varför
+           produkten finns, och en påhittad ursprungshistoria vore precis det slags påstående
+           som VARUMARKE.md §7 (bevisregeln) finns för att stoppa.
+           Skriv 3-5 meningar: vad du såg på en avdelning, varför pärmen inte räckte, vad du
+           försökte lösa. Konkret före abstrakt (§6). Ta bort den här kommentaren när du
+           skrivit klart, och ta bort raden ur OPPNA-PUNKTER.md. -->
+      <div class="bakgrund">
+        <span class="eyebrow" style="display: block; margin-bottom: 10px;">Varför Synappsen finns</span>
+        <p class="kontakt__falt">[ Bakgrundsstycket – skrivs av ägaren, se P1 i produkt/VARUMARKE.md ]</p>
+      </div>
     </section>
 
     <!-- 02 LÖSNINGEN -->
-    <section id="losningen" class="avslojas">
+    <section id="losningen">
       <div class="sek-huvud">
         <span class="sek-nr">02 — Så fungerar det</span>
         <h2>Tre områden, en sökruta, installerad på hemskärmen.</h2>
@@ -227,7 +240,7 @@
     </section>
 
     <!-- 03 LEDNINGEN -->
-    <section id="ledningen" class="avslojas">
+    <section id="ledningen">
       <div class="sek-huvud">
         <span class="sek-nr">03 — För ledningen</span>
         <h2>Svar på frågan "vet vi att alla har läst den nya rutinen?"</h2>
@@ -266,7 +279,7 @@
     </section>
 
     <!-- 04 LEVANDE INNEHÅLL -->
-    <section id="levande" class="avslojas">
+    <section id="levande">
       <div class="sek-huvud">
         <span class="sek-nr">04 — Levande innehåll</span>
         <h2>Den vanligaste svagheten är inte tomma system. Det är gamla.</h2>
@@ -327,7 +340,7 @@
     </section>
 
     <!-- 05 VÅRDENS KRAV -->
-    <section id="krav" class="avslojas">
+    <section id="krav">
       <div class="sek-huvud">
         <span class="sek-nr">05 — Vårdens krav</span>
         <h2>Utformad efter GDPR och patientdatalagen från dag ett.</h2>
@@ -362,7 +375,7 @@
     </section>
 
     <!-- 06 ÖPPENHET -->
-    <section id="saknas" class="avslojas">
+    <section id="saknas">
       <div class="sek-huvud">
         <span class="sek-nr">06 — Öppenhet</span>
         <h2>Ett fall ur vår egen utveckling, och gränserna vi dragit.</h2>
@@ -466,7 +479,7 @@
     </section>
 
     <!-- 07 STARTBIBLIOTEK -->
-    <section id="start" class="avslojas">
+    <section id="start">
       <div class="sek-huvud">
         <span class="sek-nr">07 — Startbibliotek</span>
         <h2>Ni börjar inte från ett tomt system.</h2>
@@ -500,79 +513,104 @@
       </div>
     </section>
 
-    <!-- 08 PAKET -->
-    <section id="paket" class="avslojas">
+    <!-- 08 PRISER -->
+    <section id="paket">
       <div class="sek-huvud">
-        <span class="sek-nr">08 — Paket</span>
-        <h2>En obligatorisk kärna, tre tillval.</h2>
+        <span class="sek-nr">08 — Priser</span>
+        <h2>Priset står här.</h2>
       </div>
       <div class="prosa" style="margin-bottom: 32px;">
         <p>
-          Core räcker för en fullvärdig pilot – ingen AI-diskussion krävs för att komma igång.
-          Tillvalen slås på per organisation när behovet finns.
+          Per enhet och år, inte per användare. En avdelning som anställer fler ska inte få en
+          högre faktura för att fler behöver läsa samma rutin.
+        </p>
+        <p>
+          Kärna räcker för en fullvärdig pilot – ingen AI-diskussion krävs för att komma igång.
         </p>
       </div>
 
       <div class="paket">
         <div class="paket__rad">
           <div class="paket__namn">
-            <h3>Core</h3>
-            <span class="paket__flagga paket__flagga--karna">Ingår alltid</span>
+            <h3>Kärna</h3>
+            <span class="paket__pris">39 000 kr</span>
+            <span class="paket__enhet">per enhet och år · 75 användare ingår</span>
           </div>
           <div class="paket__innehall">
-            <p>Ett gemensamt, kvalitetssäkrat ställe för enhetens viktigaste information. Alltid tillgängligt oavsett tillval.</p>
+            <p>Ett gemensamt, kvalitetssäkrat ställe för enhetens viktigaste information.</p>
             <ul class="paket__lista">
-              <li>Rutiner &amp; sök</li><li>Förråd</li><li>Anslag</li><li>Kontakter</li>
-              <li>Roller &amp; behörighet</li><li>Läskvittering</li><li>Versionshistorik</li>
+              <li>Rutiner &amp; sök</li><li>Förråd med QR</li><li>Anslag</li><li>Kontakter</li>
+              <li>Sju roller</li><li>Läskvittering</li><li>Versionshistorik</li>
               <li>Revisionslogg</li><li>Checklistläge</li><li>Kompetensmatris</li>
-              <li>Introduktionsspår</li><li>2FA</li><li>Mörkt läge</li>
+              <li>Introduktionsspår</li><li>Akutläge</li><li>2FA</li>
+              <li>Startbibliotek</li><li>Upphandlingspaket</li>
             </ul>
           </div>
         </div>
 
         <div class="paket__rad">
           <div class="paket__namn">
-            <h3>Operations</h3>
-            <span class="paket__flagga">Tillval</span>
+            <h3>Drift</h3>
+            <span class="paket__pris">59 000 kr</span>
+            <span class="paket__enhet">per enhet och år · 150 användare ingår</span>
+            <span class="paket__flagga">Vår rekommendation</span>
           </div>
           <div class="paket__innehall">
-            <p>Håll rutiner aktuella och tillgängliga när driften är som mest sårbar.</p>
+            <p>Allt i Kärna, plus det som håller innehållet aktuellt och tillgängligt när driften är som mest sårbar.</p>
             <ul class="paket__lista">
-              <li>Rutinägare &amp; påminnelser</li><li>Hälsokontroll</li><li>Offline-läsning</li>
-              <li>Driftstoppsläge</li><li>Schemalagd backup</li><li>CSV-export</li>
-              <li>Ledningsrapport</li><li>2FA-policy</li><li>Bulkimport</li><li>Kioskläge</li>
+              <li>Offline-center</li><li>Driftstoppsläge</li><li>Innehållshälsa</li>
+              <li>Granskningsrundor</li><li>Dubblettdetektion</li><li>Ledningsrapport</li>
+              <li>Tillsyns- och revisionspaket</li><li>Effektmätning över tid</li>
+              <li>Anonym personalpuls</li><li>Kioskläge</li><li>Egen dataexport</li>
             </ul>
           </div>
         </div>
 
         <div class="paket__rad">
           <div class="paket__namn">
-            <h3>Intelligence</h3>
-            <span class="paket__flagga">Tillval</span>
+            <h3>Full</h3>
+            <span class="paket__pris">89 000 kr</span>
+            <span class="paket__enhet">per enhet och år · 150 användare ingår</span>
           </div>
           <div class="paket__innehall">
-            <p>Minska manuellt innehållsarbete med kontrollerad AI – alltid med mänsklig granskning före publicering.</p>
+            <p>Allt i Drift, plus kontrollerad AI som minskar det manuella innehållsarbetet – alltid med mänsklig granskning före publicering.</p>
             <ul class="paket__lista">
-              <li>Foto/PDF → utkast</li><li>Klinikstöd-sökning</li><li>Budget &amp; kvot per användare</li>
-              <li>Kostnadsuppföljning</li><li>Användningsstatistik</li>
+              <li>Foto/PDF → utkast</li><li>Källhänvisad kunskapssökning</li>
+              <li>AI-stödd analys av feedback</li><li>Förslag på kontrollfrågor</li>
+              <li>AI-pott 500 kr/mån ingår</li><li>Hård budget totalt och per användare</li>
             </ul>
           </div>
         </div>
+      </div>
 
-        <div class="paket__rad">
-          <div class="paket__namn">
-            <h3>Källbevakning</h3>
-            <span class="paket__flagga">Tillägg</span>
-          </div>
-          <div class="paket__innehall">
-            <p>Vet automatiskt när en extern källa som en rutin hänvisar till har ändrats eller slutat fungera. Veckovis kontroll, larm till rutinens ägare.</p>
-          </div>
-        </div>
+      <div class="tabell-svep" style="margin-top: 28px;">
+        <table>
+          <caption class="eyebrow">Tillägg</caption>
+          <thead>
+            <tr><th scope="col">Tillägg</th><th scope="col">Pris</th><th scope="col">Kommentar</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Källbevakning</td><td>6 000 kr/år</td><td>Veckovis automatisk kontroll av externa referenser i era rutiner, med larm till rutinens ägare</td></tr>
+            <tr><td>Extra användare</td><td>350 kr/användare/år</td><td>Utöver taket, faktureras i efterskott vid årsavstämning</td></tr>
+            <tr><td>Extra AI-pott</td><td>3 000 kr per steg</td><td>Endast Full. Varje steg motsvarar ytterligare 500 kr/månad i faktisk förbrukning</td></tr>
+            <tr><td>Uppstart</td><td>25 000 kr engångs</td><td>Konfiguration, innehållsimport, redaktörsutbildning. Halva avgiften vid flerårsavtal – utgår helt för de tre första referenskunderna</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="prosa" style="margin-top: 28px;">
+        <p>
+          <strong>Två saker som påverkar vad ni får för priset i dag.</strong> Enkel inloggning
+          (SSO) är inte byggd – den ingår i Drift och Full när den finns, och den första kund
+          som kräver den får den utan extra kostnad mot ett referensåtagande. Flerenhetsstöd
+          med delad rutindata mellan egna enheter är inte heller byggt; enheter kan i dag köras
+          som separata organisationer.
+        </p>
       </div>
     </section>
 
     <!-- 09 PILOT -->
-    <section id="pilot" class="avslojas">
+    <section id="pilot">
       <div class="sek-huvud">
         <span class="sek-nr">09 — Nästa steg</span>
         <h2>En sektion, fyra till sex veckor, tre mått.</h2>
@@ -632,6 +670,7 @@
 
     <footer>
       <span>Synappsen · Digital kunskapsbank för vården</span>
+      <span><a href="/integritet.html">Integritetspolicy</a></span>
       <span>PUB-avtalsmall, DPIA-underlag och tekniskt faktablad lämnas på begäran.</span>
     </footer>
   </main>

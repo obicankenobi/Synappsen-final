@@ -4730,3 +4730,71 @@ tredje nödstoppsmekanism ännu finns som kräver den).
 
 **Etapp L1 är därmed slutförd i sin helhet: 16 av 16 delmål.** Enda kvarvarande öppna frågan
 i hela planen är beslutspunkt 7 (feedback-inkorgen) – inget bygge väntar på den.
+
+---
+
+## Uppföljning 2026-08-30 (v5.137.0 – beslutspunkt 7: egen kanal till leverantören)
+
+Ägaren avgjorde den sista öppna frågan i Etapp L1: ska leverantören se kundens
+feedback-inkorg? Svar: nej, inte rakt av – bygg en EGEN, tydligt märkt kanal i stället.
+Ägaren bad uttryckligen om att göra det tydligt i BÅDA verktygen (den nya och den
+befintliga) vart respektive feedback faktiskt går.
+
+**Byggt:** ny collection `leverantorsfeedback`, medvetet HELT ÅTSKILD från kundens interna
+`feedback` – ingen tyst utvidgning av vem som läser den redan existerande. En ny sida,
+`KontaktaLeverantoren.jsx` (`/kontakta-leverantoren`), säger uttryckligen "Det här går till
+Synappsen – inte till din organisations admin". Den befintliga `Feedback.jsx` (och
+`Hjalp.jsx`) fick motsvarande förtydligande åt andra hållet, plus en länk mellan de två
+sidorna. Leverantörens sida: `LeverantorsfeedbackSektion.jsx` i `/leverantor/logg`, olästa
+markerade och kan bockas av.
+
+15 nya tester (9 funktioner, 6 regel) – bevisar bland annat att en post i
+`leverantorsfeedback` aldrig läcker in i `feedback` eller tvärtom, och att en annan
+superadmin i SAMMA organisation inte kan läsa någon annans meddelande till leverantören.
+Fullt testsvep grönt: lint, build, `npx vitest run`, `npm run test:rules`,
+`npm run test:functions`, `npm run test:storage`.
+
+**Samtliga 7 beslutspunkter i Etapp L1 är därmed avgjorda och byggda. Etapp L1 är helt
+slutförd** – 16 av 16 delmål, 7 av 7 beslutspunkter.
+
+---
+
+## Uppföljning 2026-08-30 (Etapp 72 – utkast, ingen kod)
+
+Ägaren bad om en genomgång av produktens nuvarande form och en identifiering av luckor:
+funktioner som möter behov hos potentiella kunder som ännu inte bedömts. Resultatet är
+`etapplaner/ETAPPLAN19.md` – **ett utkast, EJ ANTAGET. Ingen kod skriven, inget får byggas.**
+
+**Analysens kärna, två fynd ur koden:**
+
+1. `functions/verksamhetsmallar.js` ger nya kunder en rutinmall som heter "Avvikelsehantering"
+   och vars innehåll är *"Beskriv er rutin för att rapportera och följa upp avvikelser"*.
+   Produkten ber alltså kunden **beskriva** en process som sedan sker någon annanstans. Samma
+   mönster för delegering (finns bara som kvissfråga) och patientsäkerhetsberättelse (finns
+   bara i säljmaterialet, som något vi läser HOS kandidater). Synappsen har byggt ett ben av
+   ett ledningssystem, mycket väl – de andra ligger i Excel hos målgruppen.
+2. **Frekvensproblemet.** Rutindatabasen konsulteras; de saknade skyldigheterna utförs, med
+   signatur, varje pass. `KOPARANALYS.md` §6.1 svarar på kallstarten med mer innehåll. Planen
+   föreslår ett annat svar: en app som kräver en signatur varje pass har inget
+   kallstartsproblem.
+
+**Tolv premissantaganden kontrollerade mot kod, fyra ändrade planen** – bland annat att
+`checklistkorningar` bara är en räknare (ingen signerad post), att kompetensmatrisen är
+härledd och inte lagrad (kan inte bära delegeringar), och att `bristanmalningar` är hårt knuten
+till förrådsartiklar (mönster att härma, inte grund att bygga på).
+
+**Tolv delmål i tre grupper.** Tyngdpunkt: 72a (återkommande kontroller med loggbok) för att
+den ensam ändrar användningsfrekvensen. Högst värde per byggtimme: 72b
+(patientsäkerhetsberättelse som utkast ur data vi redan samlar). 72e (avvikelsehantering) är
+**blockerad** – den kolliderar med produktens grundlöfte om att patientuppgifter aldrig finns,
+och bör ingå i samma externa juridiska uppdrag som Etapp 64 väntar på.
+
+**Ett dokumentfel hittades och rättades mekaniskt:** `DOKUMENTREGISTER.md` påstod 65 dokument
+och `CLAUDE.md` 62, medan 67 fanns på disk. Båda rättade till 68, och
+`tests/docs/dokumentregister.test.js` fick två nya assertioner som failar om siffrorna glider
+igen – det sjunde fallet av projektets återkommande felmönster, den här gången i just det
+dokument som finns för att förhindra det.
+
+**Ingen kod, ingen versionsbump.** Planens källpåståenden om svensk vårdlagstiftning är
+**inte verifierade mot primärkällor** – se planens eget avsnitt "Källor och verifieringsbehov".
+Ingen rad får citeras i kundvänt material innan den tabellen är avbockad.

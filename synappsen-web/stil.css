@@ -417,9 +417,13 @@
   .paket__rad:last-child { border-bottom: 0; }
   .paket__namn { display: flex; flex-direction: column; gap: 5px; }
   .paket__namn h3 { font-size: 17px; }
+  .paket__pris { font-size: 26px; font-weight: 600; letter-spacing: -0.028em;
+                 font-variant-numeric: tabular-nums; }
+  .paket__enhet { font-size: 12.5px; color: var(--text-svag); line-height: 1.45; }
   .paket__flagga { font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em;
-                   text-transform: uppercase; color: var(--primar); }
-  .paket__flagga--karna { color: var(--success); }
+                   text-transform: uppercase; color: var(--primar);
+                   border: 1px solid var(--primar); border-radius: 999px;
+                   padding: 3px 9px; width: fit-content; margin-top: 4px; }
   .paket__innehall p { font-size: 15px; color: var(--text-svag); }
   .paket__lista { margin: 10px 0 0; padding: 0; list-style: none;
                   display: flex; flex-wrap: wrap; gap: 6px; }
@@ -455,19 +459,30 @@
            gap: 6px 28px; justify-content: space-between; }
 
   /* ============================================================
-     Rörelse. Appen stänger av all rörelse under prefers-reduced-motion med
-     !important – för vestibulär yrsel är rörelse inte kosmetika. Samma här.
-     ============================================================ */
-  .avslojas { opacity: 0; transform: translateY(10px);
-              transition: opacity .5s ease, transform .5s ease; }
-  .avslojas.inne { opacity: 1; transform: none; }
+     Rörelse.
 
+     Sidan har medvetet INGEN inscrollningsanimation. Den tidigare versionen
+     dolde varje sektion med opacity:0 och avslöjade den med en
+     IntersectionObserver – vilket gjorde att allt under hjältesektionen var
+     OSYNLIGT om skriptet inte kördes. Det upptäcktes när integritetspolicyn
+     lades till: den laddar inget skript och var därmed helt oläsbar, alltså en
+     juridisk text som inte gick att läsa.
+
+     Att i stället progressivt förstärka (dölj bara när JS finns) hade krävt en
+     inline-snutt i <head>, vilket den strikta CSP:n (script-src 'self', inga
+     hashar) inte tillåter utan att bli krångligare att redigera.
+
+     Valet att ta bort den helt är dessutom det som stämmer med profilen:
+     GRAFISK-PROFIL.md §5 avvisade lyfta kort med produkt/VARUMARKE.md §5 som
+     skäl – "behärskad, ingen brådska" – och appens enda rörelseuttryck i basen
+     är en knapp som trycks ned 1 px. En sida där varje sektion tonar in drar åt
+     motsatt håll.
+     ============================================================ */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: .001ms !important; animation-iteration-count: 1 !important;
       transition-duration: .001ms !important; scroll-behavior: auto !important;
     }
-    .avslojas { opacity: 1; transform: none; }
   }
 
   /* ============================================================
@@ -480,10 +495,23 @@
     .rail, .topp, .knappar, .hoppa { display: none !important; }
     .skal { display: block; max-width: none; }
     .huvud { padding: 0; }
-    .avslojas { opacity: 1 !important; transform: none !important; }
     body { background: #fff; color: #000; font-size: 11pt; }
     section { padding: 18pt 0; break-inside: auto; }
     .ruta, .fall__led, .steg > div, .halsa, .sok { break-inside: avoid; }
     h1, h2, h3 { break-after: avoid; }
     a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; }
   }
+
+/* ============================================================
+   Dokumentsidor (integritetspolicy m.fl.) – samma system, utan registerkolumn
+   ============================================================ */
+.skal--enkel { grid-template-columns: minmax(0, 1fr); max-width: 860px; }
+.huvud--dokument { padding: 0 var(--pad); }
+.dokument__tillbaka {
+  padding-top: 28px; font-family: var(--f-mono); font-size: 12px;
+}
+.dokument__tillbaka a { color: var(--text-svag); text-decoration: none; }
+.dokument__tillbaka a:hover { color: var(--primar); }
+.huvud--dokument footer a { color: var(--text-svag); }
+
+.bakgrund { margin-top: 34px; max-width: var(--measure); }

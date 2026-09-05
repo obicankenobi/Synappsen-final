@@ -50,14 +50,17 @@ function samlaDokument(katalog = ROT, traff = []) {
     if (IGNORERA_FIL.has(rel)) continue;
     // .md överallt, plus de kundvända HTML-källfilerna – de senare är de dokument där ett
     // felaktigt påstående faktiskt kostar pengar (de går till kund, DSO och i anbud).
-    // Sedan 2026-09-05 även den publika webbplatsens startsida: den är det MEST externa
-    // dokument projektet har (den läses av vem som helst, utan att någon lämnat ut den) och
-    // är enligt MDR art. 2(12) en del av produktens kvalificeringsunderlag. Övriga filer
-    // under synappsen-web/ är tillgångar och kod, inte dokument, och räknas inte.
+    // Sedan 2026-09-05 även den publika webbplatsens sidor: de är de MEST externa dokument
+    // projektet har (de läses av vem som helst, utan att någon lämnat ut dem) och är enligt
+    // MDR art. 2(12) en del av produktens kvalificeringsunderlag. Villkoret är medvetet
+    // brett – varje ny .html under synappsen-web/ fångas automatiskt, så en framtida sida
+    // inte kan läggas till utan att någon tar ställning till vad som håller den aktuell.
+    // Övriga filer där (stil.css, sida.js, fonter, ikoner) är tillgångar och kod, inte
+    // dokument, och räknas inte.
     if (
       rel.endsWith(".md") ||
       rel.startsWith("saljmaterial/kallfiler/") ||
-      rel === "synappsen-web/index.html"
+      (rel.startsWith("synappsen-web/") && rel.endsWith(".html"))
     ) {
       traff.push(rel);
     }

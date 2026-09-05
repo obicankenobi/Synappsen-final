@@ -1,6 +1,6 @@
 # Dokumentregister
 
-**Fullständig inventering av projektets 73 dokument.** Bevakat av
+**Fullständig inventering av projektets 74 dokument.** Bevakat av
 `tests/docs/dokumentregister.test.js`, som failar om ett dokument finns på disk men saknas
 här, eller står här men saknas på disk. **Ett nytt dokument kan alltså inte glömmas bort –
 testet vägrar passera förrän det är infört i tabellerna nedan.**
@@ -53,6 +53,7 @@ utlöser en uppdatering – läs kolumnen "Utlöses av".
 | `saljmaterial/kallfiler/Synappsen-teknisk-beskrivning.html` | **ja** | Arkitektur, behörighet, region, backup eller "vad som inte finns" ändras |
 | `saljmaterial/kallfiler/Synappsen-upphandlingssvar.html` | **ja** | Något av de statusberoende svaren (A2, B4, B6, C3, C5, D1, E2) ändras |
 | `synappsen-web/index.html` | **ja (publikt)** | Den publika marknadsplatsen – **projektets mest externa dokument**, läst av vem som helst utan att någon lämnat ut det, och enligt MDR art. 2(12) en del av produktens kvalificeringsunderlag. Utlöses av: kundvänd funktion tillkommer/ändras/tas bort, ett paket ändrar innehåll, en avgränsning i "Medvetna avgränsningar" blir inaktuell, eller första kunden tecknas. Bevakas av `tests/docs/webbplats.test.js` (förbjudna ord, källdomänantal, profilfärger, identiska varumärkestillgångar) och av rollantals- och kundpåståendevakterna i `dokumentpastaenden.test.js` |
+| `synappsen-web/integritet.html` | **ja (publikt)** | Webbplatsens integritetspolicy (GDPR art. 13). Utlöses av: sidan börjar sätta kakor, mäta besök, ladda något från en annan domän, eller ta emot uppgifter via formulär – och av byte av driftleverantör. Påståendena om att inget av detta sker är mekaniskt bevakade i `tests/docs/webbplats.test.js`, som failar om koden motsäger texten |
 
 ## Referensdokument
 
