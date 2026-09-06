@@ -8,7 +8,8 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-05 · **v5.139.0 i produktion.** Utgående e-post är stoppat
+**Senast uppdaterad:** 2026-09-06 · **v5.139.0 i produktion** (kod för Vertex AI-migreringen
+väntar på deploy, se raden nedan – ⚠️ tre GCP-steg måste göras FÖRST). Utgående e-post är stoppat
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
 **Etapp 72 (`etapplaner/ETAPPLAN19.md`):** riktningen är antagen, beslutspunkt 5
 (efterfrågegrinden) gäller fortfarande som huvudregel för alla ÖVRIGA delmål. 72f, 72d och
@@ -21,7 +22,7 @@ sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) 
 |---|---|
 | **Version i produktion** | **5.139.0** (körning #97, verifierad 2026-09-02: asset-hash `index-D_9UU18e.js` live) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **Senaste kodarbete** | v5.138.0: Etapp 72 beslutspunkt 5 undantag 1. Artikel 50-märkning byggd (`src/components/RutinKort.jsx`, en AI-tolkad rutins ursprung visas i läsvyn – bekräftad brist sedan `granskningar/JURIDISK-GRANSKNING.md` §7.4). Rättade en självmotsägelse i `functions/klinikstod.js`s Gemini-prompt ("Detta är beslutsstöd" stod rakt emot MDR-avgränsningen). **Detta är kundvänt** – första sådana ändringen sedan Etapp 69 |
+| **Senaste kodarbete** | 2026-09-06: Vertex AI-migrering av samtliga sex Gemini-anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`), `@google/genai` i stället för det deprecerade `@google-cloud/vertexai` planen ursprungligen föreslog. **⚠️ Kodad men INTE aktiv** – tre GCP-konsolsteg krävs innan nästa deploy, se överst i `OPPNA-PUNKTER.md`. Internt/infrastruktur, inget för `andringslogg.js` |
 | **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på `https://synappsen-web.web.app`, men medvetet `noindex, nofollow`** (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket och namn/orgnr på policyn saknas fortfarande. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. Egen domän `synappsen.se` pågår hos ägaren (Loopia) – DNS-posterna för apex är korrekt satta, men "Lägg till anpassad domän" måste startas om från rätt hosting-site (`synappsen-web`, inte `synappsen-final-build`). `deploy-web.yml` skapar hosting-siten idempotent. Ta bort `noindex` när de två kvarvarande punkterna är klara, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
@@ -114,6 +115,52 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-06 (Vertex AI-migrering genomförd i kod – INTE aktiv än)
+
+Ägaren fick utgående Firebase-provkrediter (~2 600 kr, 7 dagar kvar, mycket låg faktisk
+molnanvändning) och beslutade att göra Vertex AI-migreringen proaktivt i stället för att låta
+krediten gå förlorad. Se `BESLUTSLOGG.md` 2026-09-06.
+
+**Samtliga sex Gemini-anropsställen migrerade** (`functions/ai-import.js`: 4,
+`functions/klinikstod.js`: 2) från det publika Gemini API:et (API-nyckel,
+`generativelanguage.googleapis.com`) till Vertex AI (Application Default Credentials, region
+`europe-west1`, projekt `synappsen-final-build`).
+
+**Ett verkligt fynd under arbetet:** planens ursprungliga paketval, `@google-cloud/vertexai`
+(`granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md`), visade sig vara
+**deprecerat sedan 24 juni 2025** och tas bort 24 juni 2026 – kontrollerat mot Googles egen
+release-dokumentation innan någon kod skrevs. Migrerade i stället mot `@google/genai`, Googles
+nu rekommenderade enhetliga SDK som talar med både det publika API:et och Vertex AI genom
+samma klientkod. Bieffekt: enklare än planerat – SDK:t sköter tokenhantering mot ADC
+automatiskt, ingen egen `google-auth-library`-kod behövdes (planens punkt 1 i "Vad som
+skiljer Vertex AI åt" stämde alltså inte längre, se kostnadsuppskattningens tillägg
+2026-09-06 för hela resonemanget).
+
+**Städat helt, inte lämnat som en parallell väg:** `GEMINI_API_KEY` borttagen som secret-
+definition (`gemensamt.js`), ur båda kodfilerna, och ur `deploy.yml`s Secret Manager-steg.
+Ny central `skapaVertexKlient()`-hjälpare i `gemensamt.js` ersätter fyra separata
+klientkonstruktioner i `ai-import.js` och den rå `fetch()`-koden i `klinikstod.js` – samma
+beteende (inklusive den befintliga 503-återförsöksregeln, verifierad mot SDK:ns `ApiError`
+som exponerar samma `.status`-fält), mindre duplicering.
+
+**Nytt test:** `tests/functions/vertexmigrering.test.cjs` – bevisar mekaniskt att ingen
+kvarvarande referens till det gamla API:et finns, och att region/projekt-konstanterna inte
+kan glida i tysthet. Kan INTE bevisa att ett riktigt anrop fungerar (kräver Vertex AI aktiverat
+– se nedan); det är samma begränsning kostnadsuppskattningen redan flaggade.
+
+**⚠️ INTE aktiv i produktion.** Tre GCP-konsolsteg återstår, kan inte göras från en
+kodsession, och **måste göras innan nästa `deploy.yml`-körning** – annars slutar alla sex
+AI-funktioner fungera för riktiga anrop: (1) aktivera Vertex AI-API:et, (2) ge Cloud
+Functions-tjänstekontot `roles/aiplatform.user`, (3) bekräfta att `gemini-2.5-flash` finns i
+`europe-west1` (en websökning gav indikationer men ingen fullständig primärkälla kunde läsas
+i sessionen – kontrollera i Model Garden). Överst i `OPPNA-PUNKTER.md`, märkt med ⚠️.
+
+Testsvep grönt: lint, `npx vitest run` 592 tester, `npm run build`, `npm run test:functions`
+(inkl. det nya testet), `npm run test:rules`, `npm run test:storage`.
+
+**Kvar från samma session:** RTO-mätningen (`rto-matning.yml`) – ägaren bad om den i samma
+veva som Vertex-migreringen, körs separat.
 
 ## Uppföljning 2026-09-05 (domänkoppling pågår, e-postmottagning bekräftad)
 
@@ -331,43 +378,3 @@ appdeploy även publicerat marknadsplatsen, inklusive halvfärdiga utkast i repo
 platshållare och blockeras av bolagsformen – med enskild firma blir orgnr ditt personnummer,
 publikt och permanent; och `deploy-web.yml` bör få ett eget tjänstekonto med enbart
 `roles/firebasehosting.admin` i stället för appdeployens breda konto.
-
-## Uppföljning 2026-09-03 (produktdefinition som underlag för extern juridisk granskning)
-
-Ägaren bad om ett dokument som definierar vad Synappsen är och samlar det som avgör produktens
-regulatoriska klassning. Resultat: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md`
-(dokument nr 72). **Ingen kodändring** – ren dokumentation plus två nya testassertioner.
-
-**Varför dokumentet behövdes trots att `granskningar/JURIDISK-GRANSKNING.md` finns.** Den
-filens eget avsnitt 0 redovisar att den är skriven mot dokumentationen, inte mot koden. När
-dess [PK]-punkter senare kontrollerades visade sig **den premiss som bar MDR-slutsatsen vara
-felaktig** (checklistsegets fältspärr). En extern jurist som utgår från analysen ärver den
-kedjan. Det nya dokumentet är kodverifierat mot v5.139.0 med filhänvisning per påstående, så
-att juristen kan kontrollera själv i stället för att lita på en sammanfattning.
-
-**Två diskrepanser mellan kod och projektdokumentation, båda verifierade som kvarstående:**
-
-1. **`src/components/KlinikfragaSok.jsx:92` säger fortfarande "Beslutsstöd – ersätter aldrig
-   klinisk bedömning" i gränssnittet.** Ordet står på
-   `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`s egen lista över ord som aldrig får
-   användas om klinikstöd-sökningen, och `JURIDISK-GRANSKNING.md` § 6.4 identifierade exakt
-   den raden redan 2026-08-11 med en färdig ersättningstext. Systemprompten rättades
-   2026-08-30; gränssnittsraden låg utanför det avgränsade delmålet och föll mellan stolarna.
-   MDR art. 2(12) gör gränssnittstext till en del av kvalificeringsunderlaget, så produkten
-   påstår i dag om sig själv precis det resten av materialet är noga med att den inte gör.
-   **Inte rättad här** – produktcopy är ägarens beslut. Förd till `OPPNA-PUNKTER.md`.
-2. **Checklistsegets fältuppsättning saknar fortfarande nyckelspärr i `firestore.rules`.**
-   Fyndet från 2026-08-11 står kvar oförändrat i v5.139.0. Argumentet "spärren sitter
-   strukturellt i datamodellen" får därför inte framföras mot en upphandlare.
-
-**Assertionerna är villkorade, vilket är nytt för det här projektet.** Ett avsnitt som
-beskriver *brister* har omvänd förfallotid mot ett som beskriver förmågor: den dag koden
-rättas blir dokumentet fel åt andra hållet, och det är ett underlag som lämnas till en anlitad
-jurist. De två nya testerna i `tests/docs/dokumentpastaenden.test.js` läser därför koden först
-och kräver att § 9 säger samma sak – gröna i dag, röda i samma sekund som någon rättar koden
-utan att skriva om dokumentet.
-
-**Nästa steg:** dokumentet är skrivet för att gå med i samma externa juridiska uppdrag som
-Etapp 64 redan väntar på (`OPPNA-PUNKTER.md`, "Kräver en bokad människa"). § 11 innehåller 15
-frågor grupperade i fem områden; § 12 listar vad granskaren behöver få tillgång till – notera
-särskilt att säljmaterialet är en primärkälla i MDR-bedömningen, inte en bilaga.

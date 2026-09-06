@@ -78,15 +78,19 @@ rutiner/förrådsartiklar (`functions/ai-import.js`, modell `gemini-2.5-flash`).
 - **Vad som skickas:** bilder/dokument som en redaktör själv laddar upp, avsett att
   uteslutande innehålla verksamhetsinformation (whiteboard-anteckningar,
   inventarielistor) – inte patientuppgifter, se `avtal/PUB-AVTAL-MALL.md` punkt 2.
-- **[EJ VERIFIERAT – kräver ägarbeslut]:** koden använder det publika Gemini API:et
-  (`GoogleGenerativeAI`-klienten), **inte** Vertex AI. Google garanterar regional
-  databehandling (t.ex. EU-only) för Vertex AI, men Gemini API via `generativelanguage
-  .googleapis.com` har historiskt inte samma regionsgaranti. **Detta bör kontrolleras mot
-  Googles aktuella villkor för Gemini API innan avtalet undertecknas mot en kund med
-  strikta krav på regional databehandling** – om en garanti saknas är en migrering till
-  Vertex AI (samma modell, regional endpoint) den tekniska lösningen. Se
-  `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md` för en grov
-  arbetsuppskattning (~2–3 dagar) – kostnaden är alltså inte skälet att vänta.
+- **Kodmigrerad till Vertex AI 2026-09-06, men INTE AKTIV ÄNNU.** Samtliga sex Gemini-
+  anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`) använder nu
+  `@google/genai` mot Vertex AI (`enterprise: true`, projekt `synappsen-final-build`,
+  region `europe-west1`) i stället för det publika Gemini API:et. Autentisering sker via
+  Cloud Functions-tjänstekontots Application Default Credentials, ingen fristående
+  API-nyckel längre. **Regional databehandling (EU-only) är alltså den tekniska garantin
+  som nu är byggd in i koden – men den gäller inte förrän ägaren gjort tre GCP-
+  konsolsteg som inte kan göras från en kodsession** (aktivera Vertex AI-API:et, ge
+  tjänstekontot rollen `roles/aiplatform.user`, bekräfta att `gemini-2.5-flash` finns i
+  `europe-west1`). Se `OPPNA-PUNKTER.md` och
+  `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md` (tillägg
+  2026-09-06) för status. **Bocka inte av den här raden som helt klar förrän en riktig
+  begäran har verifierats gå via Vertex AI i produktion** (genomgående krav 8).
 
 ### Google Programmerbara sökmotorn (Custom Search JSON API)
 

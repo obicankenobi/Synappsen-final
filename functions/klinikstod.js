@@ -17,7 +17,7 @@ const {
   bucket,
   onCall,
   HttpsError,
-  GEMINI_API_KEY,
+  skapaVertexKlient,
   SOKMOTOR_API_KEY,
   MAX_KLINIKSTOD_FRAGOR_PER_TIMME,
   hamtaAnvandarInfo,
@@ -250,7 +250,7 @@ async function sokViaProgrammerbarSokmotor(fraga) {
 // extra skyddslager ifall sökmotorns egen konfiguration någonsin skulle ändras av misstag.
 exports.fragaKlinisktStod = onCall(
   {
-    secrets: [GEMINI_API_KEY, SOKMOTOR_API_KEY],
+    secrets: [SOKMOTOR_API_KEY],
     region: "europe-west1",
     memory: "512MiB",
     timeoutSeconds: 60,
@@ -368,34 +368,27 @@ Regler du MÅSTE följa:
 6. Ställ aldrig frågor om eller referera till en specifik patient – om frågan verkar handla om
    en namngiven eller identifierbar person, svara att du bara kan besvara generella frågor.`;
 
+    // @google/genai kastar ett ApiError med samma numeriska .status-fält som det tidigare
+    // rå fetch()-anropet gjorde manuellt (verifierat mot SDK:ns källa) – 503-hanteringen
+    // nedan är alltså oförändrad i beteende, bara anropsvägen har bytts till Vertex AI.
     async function anropaGemini() {
-      const httpSvar = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-        }
-      );
-      if (!httpSvar.ok) {
-        const felText = await httpSvar.text();
-        const fel = new Error(`Gemini API svarade ${httpSvar.status}: ${felText.slice(0, 500)}`);
-        fel.status = httpSvar.status;
-        throw fel;
-      }
-      return httpSvar.json();
+      const result = await skapaVertexKlient().models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+      });
+      return result.text ?? "";
     }
 
-    let svarJson;
+    let svar;
     try {
       try {
-        svarJson = await anropaGemini();
+        svar = await anropaGemini();
       } catch (forstaFel) {
         // 503/UNAVAILABLE betyder att Gemini är tillfälligt överbelastat (inte ett fel i vårt
         // anrop) – ett enda snabbt återförsök löser detta i de flesta fall.
         if (forstaFel.status === 503) {
           await new Promise((r) => setTimeout(r, 2000));
-          svarJson = await anropaGemini();
+          svar = await anropaGemini();
         } else {
           throw forstaFel;
         }
@@ -411,7 +404,6 @@ Regler du MÅSTE följa:
       throw new HttpsError("internal", `Sökningen misslyckades: ${fel.message}`);
     }
 
-    const svar = svarJson.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
     const kallor = godkandaTraffar.map((t) => ({ titel: t.titel, url: t.url }));
 
     await cacheRef
@@ -436,7 +428,7 @@ function statusFranTid(millisekunder) {
 }
 
 exports.testaBeroenden = onCall(
-  { secrets: [GEMINI_API_KEY, SOKMOTOR_API_KEY], region: "europe-west1", timeoutSeconds: 30 },
+  { secrets: [SOKMOTOR_API_KEY], region: "europe-west1", timeoutSeconds: 30 },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
@@ -452,18 +444,10 @@ exports.testaBeroenden = onCall(
     async function testaGemini() {
       const start = Date.now();
       try {
-        const svar = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY.value()}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents: [{ parts: [{ text: "Svara med endast ordet OK." }] }] }),
-            signal: AbortSignal.timeout(10000),
-          }
-        );
-        if (!svar.ok) {
-          return { status: "fel", meddelande: `Svarade med felkod ${svar.status}.` };
-        }
+        await skapaVertexKlient().models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: "Svara med endast ordet OK.",
+        });
         return { status: statusFranTid(Date.now() - start), meddelande: null };
       } catch (fel) {
         return { status: "fel", meddelande: fel.message };

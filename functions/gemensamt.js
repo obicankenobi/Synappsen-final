@@ -15,6 +15,7 @@ const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const crypto = require("node:crypto");
 const Sentry = require("@sentry/node");
+const { GoogleGenAI } = require("@google/genai");
 
 
 // Ingen SENTRY_DSN i miljön (lokala emulatorer, tester) → Sentry.init() no-opar tyst.
@@ -58,8 +59,27 @@ const KAN_HANTERA_FORRAD = ["superadmin", "forradesansvarig"];
 // bucket, causing "no such object" failures for files the client just uploaded.
 const bucket = admin.storage().bucket("synappsen-final-build.firebasestorage.app");
 
-const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 const SOKMOTOR_API_KEY = defineSecret("SOKMOTOR_API_KEY");
+
+// Etapp 72 (Vertex AI-migrering, se granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-
+// 2026-08-30.md): ersätter det publika Gemini API:et (generativelanguage.googleapis.com,
+// ingen dokumenterad regionsgaranti, autentiserat med en fristående API-nyckel) med Vertex
+// AI, som garanterar regional databehandling. Autentiseringen sker via Cloud Functions-
+// tjänstekontots Application Default Credentials (@google/genai hämtar och förnyar token
+// automatiskt, ingen egen google-auth-library-kod behövs) – kräver att tjänstekontot har
+// rollen roles/aiplatform.user, ett GCP-konsolsteg som INTE kan göras från en kodsession.
+// Se OPPNA-PUNKTER.md för vad som återstår innan detta faktiskt fungerar i produktion.
+const VERTEX_PROJEKT = "synappsen-final-build";
+// Regionen ÄR den faktiska garantin som köps här. europe-west1 vald för konsekvens med
+// resten av infrastrukturen (samma region som Cloud Functions/Firestore/Storage), men
+// gemini-2.5-flash:s regionala Vertex AI-tillgänglighet är INTE bekräftad mot Googles
+// aktuella modellkatalog i den här sessionen – kontrollera det i GCP Console (Vertex AI →
+// Model Garden) innan API:et aktiveras. Ändra bara detta EN konstant om regionen behöver bytas.
+const VERTEX_REGION = "europe-west1";
+
+function skapaVertexKlient() {
+  return new GoogleGenAI({ enterprise: true, project: VERTEX_PROJEKT, location: VERTEX_REGION });
+}
 
 // Etapp 1 (multi-tenant-grund): organisationen som all data/alla konton tillhör tills en
 // andra kund finns. Måste vara identisk med src/firebase/organisation.js.
@@ -737,8 +757,10 @@ exports.db = db;
 exports.bucket = bucket;
 exports.onCall = onCall;
 exports.HttpsError = HttpsError;
-exports.GEMINI_API_KEY = GEMINI_API_KEY;
 exports.SOKMOTOR_API_KEY = SOKMOTOR_API_KEY;
+exports.skapaVertexKlient = skapaVertexKlient;
+exports.VERTEX_REGION = VERTEX_REGION;
+exports.VERTEX_PROJEKT = VERTEX_PROJEKT;
 exports.BREVO_API_KEY = BREVO_API_KEY;
 exports.STANDARD_ORG = STANDARD_ORG;
 exports.GILTIGA_ROLLER = GILTIGA_ROLLER;

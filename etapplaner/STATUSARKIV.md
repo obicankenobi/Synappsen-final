@@ -4920,3 +4920,45 @@ Fullt testsvep grönt: `npm run lint`, `npm run build`, `npx vitest run` (557 te
 `organisationsisolering.test.mjs`), `npm run test:functions`, `npm run test:storage`. E2E
 kördes inte (inte ett bindande krav för den här ändringstypen, tidsprioriterat bort). Deploy
 triggad via `deploy.yml` på grenen `claude/compassionate-euler-rho0q5`.
+
+---
+
+## Uppföljning 2026-09-03 (produktdefinition som underlag för extern juridisk granskning)
+
+Ägaren bad om ett dokument som definierar vad Synappsen är och samlar det som avgör produktens
+regulatoriska klassning. Resultat: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md`
+(dokument nr 72). **Ingen kodändring** – ren dokumentation plus två nya testassertioner.
+
+**Varför dokumentet behövdes trots att `granskningar/JURIDISK-GRANSKNING.md` finns.** Den
+filens eget avsnitt 0 redovisar att den är skriven mot dokumentationen, inte mot koden. När
+dess [PK]-punkter senare kontrollerades visade sig **den premiss som bar MDR-slutsatsen vara
+felaktig** (checklistsegets fältspärr). En extern jurist som utgår från analysen ärver den
+kedjan. Det nya dokumentet är kodverifierat mot v5.139.0 med filhänvisning per påstående, så
+att juristen kan kontrollera själv i stället för att lita på en sammanfattning.
+
+**Två diskrepanser mellan kod och projektdokumentation, båda verifierade som kvarstående:**
+
+1. **`src/components/KlinikfragaSok.jsx:92` säger fortfarande "Beslutsstöd – ersätter aldrig
+   klinisk bedömning" i gränssnittet.** Ordet står på
+   `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`s egen lista över ord som aldrig får
+   användas om klinikstöd-sökningen, och `JURIDISK-GRANSKNING.md` § 6.4 identifierade exakt
+   den raden redan 2026-08-11 med en färdig ersättningstext. Systemprompten rättades
+   2026-08-30; gränssnittsraden låg utanför det avgränsade delmålet och föll mellan stolarna.
+   MDR art. 2(12) gör gränssnittstext till en del av kvalificeringsunderlaget, så produkten
+   påstår i dag om sig själv precis det resten av materialet är noga med att den inte gör.
+   **Inte rättad här** – produktcopy är ägarens beslut. Förd till `OPPNA-PUNKTER.md`.
+2. **Checklistsegets fältuppsättning saknar fortfarande nyckelspärr i `firestore.rules`.**
+   Fyndet från 2026-08-11 står kvar oförändrat i v5.139.0. Argumentet "spärren sitter
+   strukturellt i datamodellen" får därför inte framföras mot en upphandlare.
+
+**Assertionerna är villkorade, vilket är nytt för det här projektet.** Ett avsnitt som
+beskriver *brister* har omvänd förfallotid mot ett som beskriver förmågor: den dag koden
+rättas blir dokumentet fel åt andra hållet, och det är ett underlag som lämnas till en anlitad
+jurist. De två nya testerna i `tests/docs/dokumentpastaenden.test.js` läser därför koden först
+och kräver att § 9 säger samma sak – gröna i dag, röda i samma sekund som någon rättar koden
+utan att skriva om dokumentet.
+
+**Nästa steg:** dokumentet är skrivet för att gå med i samma externa juridiska uppdrag som
+Etapp 64 redan väntar på (`OPPNA-PUNKTER.md`, "Kräver en bokad människa"). § 11 innehåller 15
+frågor grupperade i fem områden; § 12 listar vad granskaren behöver få tillgång till – notera
+särskilt att säljmaterialet är en primärkälla i MDR-bedömningen, inte en bilaga.

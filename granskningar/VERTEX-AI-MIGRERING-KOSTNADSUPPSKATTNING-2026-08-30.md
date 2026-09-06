@@ -100,6 +100,51 @@ litet delmål när ägaren har tid för de GCP-konsolstegen** – inte som en de
 dokumentationsomgången, som är avgränsad till att skriva ned det avsedda ändamålet, kontrollera
 artikel 50-märkningen och uppskatta den här kostnaden (samtliga tre nu gjorda).
 
+## Tillägg (2026-09-06): koden migrerad. Vad som stämde, vad som inte gjorde det
+
+Ägaren beslutade att genomföra migreringen proaktivt (utgående Firebase-krediter var den
+utlösande anledningen, inte ett kundkrav) – se `BESLUTSLOGG.md` 2026-09-06.
+
+**Uppskattningen av arbetets storlek höll:** sex anropsställen i två filer, exakt som
+kartlagt, ingen ändring av prompt, schemastruktur, budgetspärr eller PII-kontroll. Klart
+inom en session, inte de uppskattade 2–3 dagarna – till stor del för att SDK-bytet visade sig
+enklare än väntat (se nästa punkt).
+
+**Ett antagande i uppskattningen höll INTE, och det är värt att veta för nästa liknande
+migrering:** avsnittet "Vad som skiljer Vertex AI åt" ovan förutsatte paketet
+`@google-cloud/vertexai`. Det paketet är **deprecerat sedan 24 juni 2025 och tas bort 24 juni
+2026** (Google har ersatt det med en enhetlig SDK, `@google/genai`, som talar med både det
+publika Gemini API:et och Vertex AI genom samma klientkod – bara konstruktorns argument
+skiljer: `{ apiKey }` mot `{ enterprise: true, project, location }`). Migreringen byggdes
+alltså mot `@google/genai` i stället, vilket dessutom gjorde
+`functions/klinikstod.js`s omskrivning enklare än uppskattat – ingen manuell
+`google-auth-library`-kod för att hämta en åtkomsttoken behövdes, SDK:t sköter ADC
+automatiskt. Punkt 1 ("Autentisering … koden behöver hämta en åtkomsttoken") i avsnittet ovan
+stämmer alltså inte längre; låt den stå som ett exempel på att en uppskattning gjord mot ett
+redan namngivet bibliotek kan bli inaktuell av skäl utanför den egna koden.
+
+**Vad som INTE är klart, och som var uppskattningens egen poäng att inte hoppa över:**
+
+1. Vertex AI-API:et (`aiplatform.googleapis.com`) är inte aktiverat i GCP-projektet.
+2. Cloud Functions-tjänstekontot har inte fått rollen `roles/aiplatform.user`.
+3. `gemini-2.5-flash`:s regionala tillgänglighet i `europe-west1` är fortfarande **inte
+   bekräftad** mot Googles aktuella modellkatalog – en webbsökning under migreringen gav
+   indikationer på att regionen stöds, men ingen primärkälla kunde läsas fullständigt (se
+   koden i `functions/gemensamt.js`, kommentaren vid `VERTEX_REGION`). Kontrollera i GCP
+   Console → Vertex AI → Model Garden innan aktivering; byt annars regionkonstanten.
+
+Samtliga tre är, precis som uppskattningen förutspådde, GCP-konsolsteg som inte kan göras
+från en kodsession. **Funktionerna är alltså trasiga för riktig användning tills dessa tre är
+klara** – koden deployas inte automatiskt (ingen `push`-trigger, se `CLAUDE.md`), men en
+manuell deploy-körning FÖRE dessa tre steg skulle göra samtliga sex AI-funktioner obrukbara
+för verkliga anrop. Se `OPPNA-PUNKTER.md`.
+
+**Manuell verifiering, som uppskattningen krävde:** inte gjord i den här sessionen (kräver
+en riktig Vertex AI-anslutning, se ovan). Ett nytt test,
+`tests/functions/vertexmigrering.test.cjs`, bevisar mekaniskt att migreringen är fullständig
+i koden (ingen kvarvarande referens till det gamla API:et eller `@google/generative-ai`) –
+men det är inte samma sak som ett bevisat, fungerande anrop mot riktig Vertex AI.
+
 ## Källor
 
 `avtal/UNDERBITRADEN.md` (öppna punkten om regional databehandling),

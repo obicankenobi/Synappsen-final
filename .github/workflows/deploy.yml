@@ -67,9 +67,6 @@ jobs:
       - name: Installera Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Sätt Gemini-nyckeln i Secret Manager
-        run: printf '%s' "${{ secrets.GEMINI_API_KEY }}" | firebase functions:secrets:set GEMINI_API_KEY --data-file=- --project synappsen-final-build --force
-
       - name: Sätt sökmotor-nyckeln i Secret Manager
         run: printf '%s' "${{ secrets.SOKMOTOR_API_KEY }}" | firebase functions:secrets:set SOKMOTOR_API_KEY --data-file=- --project synappsen-final-build --force
 

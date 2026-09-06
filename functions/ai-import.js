@@ -8,14 +8,14 @@
 // Den här filen: AI-importen (Gemini Vision/text): bildtolkning av rutindokument och
 // förrådsfoton, samt förslag på checklistesteg och kvissfrågor ur en rutintext.
 
-const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
+const { Type } = require("@google/genai");
 const {
   admin,
   db,
   bucket,
   onCall,
   HttpsError,
-  GEMINI_API_KEY,
+  skapaVertexKlient,
   hamtaAnvandarInfo,
   kravModul,
   innehallerPersonnummer,
@@ -23,27 +23,18 @@ const {
 } = require("./gemensamt");
 
 const extraktionsSchema = {
-  type: SchemaType.OBJECT,
+  type: Type.OBJECT,
   properties: {
-    titel: { type: SchemaType.STRING },
-    innehall: { type: SchemaType.STRING },
-    nyckelord: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
-    komIhagFlaggor: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
-    giltigtTill: { type: SchemaType.STRING },
+    titel: { type: Type.STRING },
+    innehall: { type: Type.STRING },
+    nyckelord: { type: Type.ARRAY, items: { type: Type.STRING } },
+    komIhagFlaggor: { type: Type.ARRAY, items: { type: Type.STRING } },
+    giltigtTill: { type: Type.STRING },
   },
   required: ["titel", "innehall", "nyckelord", "komIhagFlaggor", "giltigtTill"],
 };
 
 async function tolkaBildMedGemini(bildBuffer, mimeType) {
-  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: extraktionsSchema,
-    },
-  });
-
   const prompt = `Du tolkar ett foto av ett dokument, en whiteboard eller en anteckning från en akutmottagning.
 Extrahera innehållet och returnera strukturerad data på svenska:
 - titel: en kort, beskrivande titel
@@ -53,12 +44,13 @@ Extrahera innehållet och returnera strukturerad data på svenska:
 - giltigtTill: om dokumentet anger ett giltighetsdatum, utgångsdatum eller "gäller till och med"-datum,
   ange det i formatet ÅÅÅÅ-MM-DD. Annars en tom sträng.`;
 
-  const result = await model.generateContent([
-    prompt,
-    { inlineData: { data: bildBuffer.toString("base64"), mimeType } },
-  ]);
+  const result = await skapaVertexKlient().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [prompt, { inlineData: { data: bildBuffer.toString("base64"), mimeType } }],
+    config: { responseMimeType: "application/json", responseSchema: extraktionsSchema },
+  });
 
-  return JSON.parse(result.response.text());
+  return JSON.parse(result.text);
 }
 
 const OMRADEN = ["kliniskt-stod", "logistik", "administration"];
@@ -73,18 +65,18 @@ const FORRAD = [
 ];
 
 const forradsArtikelSchema = {
-  type: SchemaType.OBJECT,
+  type: Type.OBJECT,
   properties: {
     artiklar: {
-      type: SchemaType.ARRAY,
+      type: Type.ARRAY,
       items: {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
-          namn: { type: SchemaType.STRING },
-          skap: { type: SchemaType.STRING },
-          hylla: { type: SchemaType.STRING },
-          antal: { type: SchemaType.STRING },
-          sokord: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+          namn: { type: Type.STRING },
+          skap: { type: Type.STRING },
+          hylla: { type: Type.STRING },
+          antal: { type: Type.STRING },
+          sokord: { type: Type.ARRAY, items: { type: Type.STRING } },
         },
         required: ["namn", "skap", "hylla", "antal", "sokord"],
       },
@@ -94,15 +86,6 @@ const forradsArtikelSchema = {
 };
 
 async function tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad) {
-  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: forradsArtikelSchema,
-    },
-  });
-
   const prompt = `Du tolkar ett foto från förrådet "${forrad}" på en akutmottagning.
 Fotot kan visa ANTINGEN enskilda artiklar i ett skåp/på en hylla (med skyltar/etiketter),
 ELLER en skriven/utskriven/tryckt lista/tabell över artiklar (t.ex. en innehållsförteckning
@@ -123,16 +106,17 @@ Extrahera en lista över alla artiklar som syns i bilden. För varje artikel ang
   (exempel: en "Foley-kateter" bör även ge sökord som "kateter", "urinkateter" och "KAD")
 Gissa aldrig ett värde som inte faktiskt går att läsa i bilden – lämna då skap/hylla tomma.`;
 
-  const result = await model.generateContent([
-    prompt,
-    { inlineData: { data: bildBuffer.toString("base64"), mimeType } },
-  ]);
+  const result = await skapaVertexKlient().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [prompt, { inlineData: { data: bildBuffer.toString("base64"), mimeType } }],
+    config: { responseMimeType: "application/json", responseSchema: forradsArtikelSchema },
+  });
 
-  return JSON.parse(result.response.text()).artiklar;
+  return JSON.parse(result.text).artiklar;
 }
 
 exports.tolkaForradsbild = onCall(
-  { secrets: [GEMINI_API_KEY], region: "europe-west1", memory: "1GiB", timeoutSeconds: 120 },
+  { region: "europe-west1", memory: "1GiB", timeoutSeconds: 120 },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
@@ -212,7 +196,7 @@ exports.tolkaForradsbild = onCall(
 );
 
 exports.tolkaDokument = onCall(
-  { secrets: [GEMINI_API_KEY], region: "europe-west1", memory: "1GiB", timeoutSeconds: 120 },
+  { region: "europe-west1", memory: "1GiB", timeoutSeconds: 120 },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
@@ -282,14 +266,14 @@ exports.tolkaDokument = onCall(
 // Går under samma Gemini-budgetspärr som bildtolkning, och resultatet är alltid ett förslag
 // som klienten visar upp för granskning – ingen skrivning till Firestore sker härifrån.
 const stegForslagSchema = {
-  type: SchemaType.OBJECT,
+  type: Type.OBJECT,
   properties: {
     steg: {
-      type: SchemaType.ARRAY,
+      type: Type.ARRAY,
       items: {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
-          text: { type: SchemaType.STRING },
+          text: { type: Type.STRING },
         },
         required: ["text"],
       },
@@ -299,15 +283,6 @@ const stegForslagSchema = {
 };
 
 async function foreslaStegMedGemini(innehall) {
-  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: stegForslagSchema,
-    },
-  });
-
   const prompt = `Du delar upp en REDAN GODKÄND rutintext från en akutmottagning i en
 stegvis checklista, till för att köras ett steg i taget under ett akut arbetsmoment.
 
@@ -324,8 +299,12 @@ ${innehall}
 Returnera en lista med steg, i den ordning de ska utföras. Varje steg ska vara en kort mening
 som beskriver EN handling.`;
 
-  const result = await model.generateContent(prompt);
-  return JSON.parse(result.response.text()).steg;
+  const result = await skapaVertexKlient().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: prompt,
+    config: { responseMimeType: "application/json", responseSchema: stegForslagSchema },
+  });
+  return JSON.parse(result.text).steg;
 }
 
 // Säkerhetsgranskning 2026-08-11: `innehall` saknade helt en övre gräns, till skillnad från
@@ -340,7 +319,7 @@ som beskriver EN handling.`;
 const MAX_INNEHALL_TECKEN = 50000;
 
 exports.foreslaChecklistSteg = onCall(
-  { secrets: [GEMINI_API_KEY], region: "europe-west1", timeoutSeconds: 60 },
+  { region: "europe-west1", timeoutSeconds: 60 },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
@@ -385,17 +364,17 @@ exports.foreslaChecklistSteg = onCall(
 // foreslaChecklistSteg (Etapp 18b): frågorna får bara pröva förståelse av det som redan står
 // i texten, aldrig lägga till nytt kliniskt innehåll. Alltid ett utkast som måste granskas.
 const kvissForslagSchema = {
-  type: SchemaType.OBJECT,
+  type: Type.OBJECT,
   properties: {
     fragor: {
-      type: SchemaType.ARRAY,
+      type: Type.ARRAY,
       items: {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
-          fraga: { type: SchemaType.STRING },
-          alternativ: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
-          rattIndex: { type: SchemaType.NUMBER },
-          hanvisning: { type: SchemaType.STRING },
+          fraga: { type: Type.STRING },
+          alternativ: { type: Type.ARRAY, items: { type: Type.STRING } },
+          rattIndex: { type: Type.NUMBER },
+          hanvisning: { type: Type.STRING },
         },
         required: ["fraga", "alternativ", "rattIndex", "hanvisning"],
       },
@@ -405,15 +384,6 @@ const kvissForslagSchema = {
 };
 
 async function foreslaKvissfragorMedGemini(innehall) {
-  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: kvissForslagSchema,
-    },
-  });
-
   const prompt = `Du tar fram en kort mikrokviss (2-4 flervalsfrågor) för en REDAN GODKÄND
 rutintext från en akutmottagning, som visas när personal kvitterar att de läst och förstått.
 
@@ -430,12 +400,16 @@ Returnera 2-4 frågor. Varje fråga ska ha 3-4 svarsalternativ, ett rättIndex (
 i alternativ-listan för det rätta svaret), och en hänvisning – en kort text som pekar ut
 VILKET stycke/vilken del av rutinen svaret kommer från.`;
 
-  const result = await model.generateContent(prompt);
-  return JSON.parse(result.response.text()).fragor;
+  const result = await skapaVertexKlient().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: prompt,
+    config: { responseMimeType: "application/json", responseSchema: kvissForslagSchema },
+  });
+  return JSON.parse(result.text).fragor;
 }
 
 exports.foreslaKvissfragor = onCall(
-  { secrets: [GEMINI_API_KEY], region: "europe-west1", timeoutSeconds: 60 },
+  { region: "europe-west1", timeoutSeconds: 60 },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Du måste vara inloggad.");
