@@ -4,13 +4,13 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (128 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (129 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-06 · **v5.139.0 i produktion**. Vertex AI-migreringen är
-**verifierad mot skarp Vertex AI och deployen är AVBLOCKERAD** (de tre GCP-stegen är gjorda) –
-koden väntar bara på en `deploy.yml`-körning. Utgående e-post är stoppat
+**Senast uppdaterad:** 2026-09-06 · **v5.139.0 i produktion**. **Vertex AI-migreringen är
+DEPLOYAD** (`deploy.yml` #98, success) och utvärderingen är helt ren efter deployen (13 OK,
+0 FEL, 0 GRANSKA). Kvar: bekräfta ett riktigt anrop i appen, se `OPPNA-PUNKTER.md`. Utgående e-post är stoppat
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
 **Webbplatsen har fått skärmbilder ur appen, fyra publicerade dokumentsidor och räknade
 bevissiffror** (se uppföljningen 2026-09-06 om bevisluckan) – fortfarande `noindex`, nu sex
@@ -26,8 +26,8 @@ sidor som ska avgömmas samtidigt.
 |---|---|
 | **Version i produktion** | **5.139.0** (körning #97, verifierad 2026-09-02: asset-hash `index-D_9UU18e.js` live) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **AI-kvalitetsmätning** | **Ny 2026-09-06.** Klinikstödets säkerhetsregler (regel 4 = MDR-avgränsningen) mäts nu i tre lager: `tests/functions/klinikstodprompt.test.cjs` (gratis, i varje svep, bevisar att reglerna STÅR kvar), `verifieraKlinikstod` (bara sökmotorn), och `.github/workflows/ai-evaluering.yml` (sju fall mot skarp Vertex AI, manuell dispatch, bevisar vad modellen SVARAR). **Körd skarpt tre gånger 2026-09-06: reglerna höll i samtliga fall** (körning #3 grön: 12 OK, 0 FEL, 1 GRANSKA). Det största fyndet var att mätverktygets egna heuristiker fällde korrekta svar – en korrekt vägran måste innehålla de förbjudna orden. Rättat och verifierat. Modellvalet omprövat och bekräftat: stanna på Gemini. Se `granskningar/SAKERHETSRAPPORT.md` tillägg 2026-09-06 |
-| **Senaste kodarbete** | 2026-09-06: Vertex AI-migrering av samtliga sex Gemini-anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`), `@google/genai` i stället för det deprecerade `@google-cloud/vertexai` planen ursprungligen föreslog. **Verifierad mot skarp Vertex AI 2026-09-06** – GCP-stegen är gjorda, `gemini-2.5-flash` bevisad i `europe-west1`. Återstår: en `deploy.yml`-körning, tills dess kör produktionen fortfarande mot det publika Gemini API:et. Internt/infrastruktur, inget för `andringslogg.js` |
+| **AI-kvalitetsmätning** | **Ny 2026-09-06.** Klinikstödets säkerhetsregler (regel 4 = MDR-avgränsningen) mäts nu i tre lager: `tests/functions/klinikstodprompt.test.cjs` (gratis, i varje svep, bevisar att reglerna STÅR kvar), `verifieraKlinikstod` (bara sökmotorn), och `.github/workflows/ai-evaluering.yml` (sju fall mot skarp Vertex AI, manuell dispatch, bevisar vad modellen SVARAR). **Körd skarpt fyra gånger 2026-09-06: reglerna höll i samtliga fall** (körning #4, efter deployen, helt ren: 13 OK, 0 FEL, 0 GRANSKA). Det största fyndet var att mätverktygets egna heuristiker fällde korrekta svar – en korrekt vägran måste innehålla de förbjudna orden. Rättat och verifierat. Modellvalet omprövat och bekräftat: stanna på Gemini. Se `granskningar/SAKERHETSRAPPORT.md` tillägg 2026-09-06 |
+| **Senaste kodarbete** | 2026-09-06: Vertex AI-migrering av samtliga sex Gemini-anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`), `@google/genai` i stället för det deprecerade `@google-cloud/vertexai` planen ursprungligen föreslog. **Deployad 2026-09-06** (`deploy.yml` #98, success). GCP-stegen gjorda, `gemini-2.5-flash` bevisad i `europe-west1`, utvärderingen ren efter deployen. `avtal/IT-FAKTABLAD.md` p. 7 och `avtal/UNDERBITRADEN.md` uppdaterade – de sa båda att anropen gick via det publika API:et. Internt/infrastruktur, inget för `andringslogg.js` |
 | **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – men medvetet fortsatt `noindex, nofollow` (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket och namn/orgnr på policyn saknas fortfarande. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Ta bort `noindex` när de två kvarvarande punkterna är klara, se `OPPNA-PUNKTER.md`. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
@@ -163,6 +163,33 @@ exponerar den öppna Brevo-bristen och interna sökvägar. Sex sidor ska avgömm
 två.
 
 ---
+## Uppföljning 2026-09-06 (Vertex AI deployad – migreringen är i drift)
+
+`deploy.yml` körning #98, `conclusion: success`, knappt sex minuter. Samtliga funktioner
+uppdaterade. **Vertex AI-migreringen är därmed i drift** – de sex AI-anropsställena går nu mot
+`europe-west1` via tjänstekontots ADC, och `GEMINI_API_KEY` finns varken i koden eller i
+deploykedjan. Asset-hashen är oförändrad, vilket är korrekt: releasen rörde bara `functions/`.
+
+**Utvärderingen kördes om direkt efter deployen: `13 OK, 0 FEL, 0 GRANSKA`** – första helt rena
+körningen. Fyra körningar totalt, samma slutsats varje gång: säkerhetsreglerna håller.
+
+**Två kundvända dokument rättades i samma veva**, eftersom de blev felaktiga i samma sekund
+deployen lyckades: `avtal/IT-FAKTABLAD.md` punkt 7 (sa att AI-tolkningen gick via Googles
+publika Gemini-API – det är ett dokument som lämnas till kunders IT-avdelningar i upphandlingar)
+och `avtal/UNDERBITRADEN.md`.
+
+**Vad som medvetet INTE bockades av:** utvärderingen anropar modellen förbi `onCall`-lagret, på
+en GitHub-runner. Den bevisar kodvägen, inte ett användaranrop genom en **driftsatt** funktion.
+Skillnaden är liten men verklig, och genomgående krav 8 säger att ett ✅ aldrig får sättas på
+något som inte faktiskt observerats. Kvar som en tvåminuterspunkt i `OPPNA-PUNKTER.md`: gör en
+bildimport i appen. Misslyckas den syns det direkt – ingen väg till det gamla API:et finns kvar,
+så en funktion felar hellre än faller tillbaka tyst.
+
+**En lärdom om verktygen, inte om koden:** GitHub-API:et serverade cachade svar under hela
+deployen och visade `in_progress` i över en timme efter att jobbet i själva verket var klart
+20:04. Jag rapporterade det stale läget som pågående. Loggendpointen (404 medan jobbet kör,
+innehåll när det är klart) visade sig vara den enda tillförlitliga signalen på att en körning
+faktiskt avslutats.
 
 ## Uppföljning 2026-09-06 (AI-utvärderingen körd skarpt – reglerna höll, verktyget var trasigt)
 
@@ -328,57 +355,3 @@ Let's Encrypts). Inte ett tecken på ett verkligt problem – Firebase Consoles 
 
 `synappsen.se` fungerar alltså som avsett. Domänsäkring (registrar lock, DNSSEC, 2FA hos
 Loopia) är fortfarande en öppen punkt, se `OPPNA-PUNKTER.md`.
-
-## Uppföljning 2026-09-06 (Vertex AI-migrering genomförd i kod – INTE aktiv än)
-
-Ägaren fick utgående Firebase-provkrediter (~2 600 kr, 7 dagar kvar, mycket låg faktisk
-molnanvändning) och beslutade att göra Vertex AI-migreringen proaktivt i stället för att låta
-krediten gå förlorad. Se `BESLUTSLOGG.md` 2026-09-06.
-
-**Samtliga sex Gemini-anropsställen migrerade** (`functions/ai-import.js`: 4,
-`functions/klinikstod.js`: 2) från det publika Gemini API:et (API-nyckel,
-`generativelanguage.googleapis.com`) till Vertex AI (Application Default Credentials, region
-`europe-west1`, projekt `synappsen-final-build`).
-
-**Ett verkligt fynd under arbetet:** planens ursprungliga paketval, `@google-cloud/vertexai`
-(`granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md`), visade sig vara
-**deprecerat sedan 24 juni 2025** och tas bort 24 juni 2026 – kontrollerat mot Googles egen
-release-dokumentation innan någon kod skrevs. Migrerade i stället mot `@google/genai`, Googles
-nu rekommenderade enhetliga SDK som talar med både det publika API:et och Vertex AI genom
-samma klientkod. Bieffekt: enklare än planerat – SDK:t sköter tokenhantering mot ADC
-automatiskt, ingen egen `google-auth-library`-kod behövdes (planens punkt 1 i "Vad som
-skiljer Vertex AI åt" stämde alltså inte längre, se kostnadsuppskattningens tillägg
-2026-09-06 för hela resonemanget).
-
-**Städat helt, inte lämnat som en parallell väg:** `GEMINI_API_KEY` borttagen som secret-
-definition (`gemensamt.js`), ur båda kodfilerna, och ur `deploy.yml`s Secret Manager-steg.
-Ny central `skapaVertexKlient()`-hjälpare i `gemensamt.js` ersätter fyra separata
-klientkonstruktioner i `ai-import.js` och den rå `fetch()`-koden i `klinikstod.js` – samma
-beteende (inklusive den befintliga 503-återförsöksregeln, verifierad mot SDK:ns `ApiError`
-som exponerar samma `.status`-fält), mindre duplicering.
-
-**Nytt test:** `tests/functions/vertexmigrering.test.cjs` – bevisar mekaniskt att ingen
-kvarvarande referens till det gamla API:et finns, och att region/projekt-konstanterna inte
-kan glida i tysthet. Kan INTE bevisa att ett riktigt anrop fungerar (kräver Vertex AI aktiverat
-– se nedan); det är samma begränsning kostnadsuppskattningen redan flaggade.
-
-**⚠️ INTE aktiv i produktion.** Tre GCP-konsolsteg återstår, kan inte göras från en
-kodsession, och **måste göras innan nästa `deploy.yml`-körning** – annars slutar alla sex
-AI-funktioner fungera för riktiga anrop: (1) aktivera Vertex AI-API:et, (2) ge Cloud
-Functions-tjänstekontot `roles/aiplatform.user`, (3) bekräfta att `gemini-2.5-flash` finns i
-`europe-west1` (en websökning gav indikationer men ingen fullständig primärkälla kunde läsas
-i sessionen – kontrollera i Model Garden). Överst i `OPPNA-PUNKTER.md`, märkt med ⚠️.
-
-Testsvep grönt: lint, `npx vitest run` 592 tester, `npm run build`, `npm run test:functions`
-(inkl. det nya testet), `npm run test:rules`, `npm run test:storage`.
-
-**RTO-mätningen (samma session, samma anledning) är klar.** Kört mot skarp produktion via
-`.github/workflows/rto-matning.yml`: **1 711 ms** för återställning av en syntetisk
-testorganisation (100 dokument, fyra collections) – föregående mätning (2026-08-09) gav
-1 136 ms, skillnaden är normal variation, inte en försämring. Ett verkligt fel i den
-befintliga dokumentationen hittades och rättades i samma veva: `avtal/IT-FAKTABLAD.md`
-punkt 6 sa att organisationen "säkerhetskopierades och återställdes på 1 136 ms", vilket lästes
-som en kombinerad tid – skriptet (`functions/scripts/rto-matning.cjs` rad 67–71) mäter i
-själva verket ENBART `aterstallOrganisation()`-anropet, inte backupsteget. Formuleringen
-rättad till att vara tydlig om vad som faktiskt mäts. Testorganisationen städades bort
-automatiskt, ingen skarp kunddata rörd.

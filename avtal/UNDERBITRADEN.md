@@ -90,12 +90,18 @@ rutiner/förrådsartiklar (`functions/ai-import.js`, modell `gemini-2.5-flash`).
   alla besvarades (`.github/workflows/ai-evaluering.yml`, körning #1, se
   `granskningar/SAKERHETSRAPPORT.md`). Den öppna frågan om regional modelltillgänglighet är
   därmed stängd.
-- **Vad som ÅTERSTÅR:** en `deploy.yml`-körning. Fram tills dess kör de driftsatta
-  funktionerna fortfarande den gamla koden mot det publika Gemini API:et, och
-  EU-garantin gäller alltså **inte** i produktion ännu. **Bocka inte av den här raden som
-  helt klar förrän deployen är gjord och ett riktigt användaranrop verifierats gå via
-  Vertex AI** (genomgående krav 8). Se `OPPNA-PUNKTER.md` och
-  `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md` (tillägg 2026-09-06).
+- **Deployad till produktion 2026-09-06** (`deploy.yml` körning #98, `conclusion: success`).
+  De driftsatta funktionerna kör alltså Vertex AI-koden, och `GEMINI_API_KEY` finns varken i
+  koden eller i deploykedjan längre.
+- **Kvarvarande, liten precisering (genomgående krav 8):** utvärderingen anropar modellen
+  direkt förbi `onCall`-lagret, på en GitHub-runner. Den bevisar att **kodvägen** fungerar mot
+  Vertex AI (körning #4 efter deployen: 13 OK, 0 FEL, 0 GRANSKA), men den är inte samma sak som
+  ett observerat **användaranrop genom en driftsatt funktion**. Det som talar starkt för att
+  produktionen faktiskt går via Vertex: deployen lyckades, koden innehåller ingen väg till det
+  publika API:et, och nyckeln är borta ur Secret Manager-stegen – en funktion som ändå försökte
+  nå det gamla API:et skulle alltså fela, inte tyst falla tillbaka. **Full avbockning kräver ett
+  verkligt anrop i appen** (t.ex. en bildimport eller Admin → beroendetest). Se
+  `OPPNA-PUNKTER.md`.
 
 ### Google Programmerbara sökmotorn (Custom Search JSON API)
 

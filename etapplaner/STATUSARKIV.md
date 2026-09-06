@@ -5183,3 +5183,59 @@ innan workflowen kan köras.
 osynlig för sökmotorer. Egen domän (`synappsen.se`) är inte kopplad – det är ett separat steg
 i Firebase Console när domänen ska pekas dit, och bör göras tillsammans med domänsäkringen
 (registrar lock, DNSSEC, 2FA) som redan står i `OPPNA-PUNKTER.md`.
+
+---
+
+## Uppföljning 2026-09-06 (Vertex AI-migrering genomförd i kod – INTE aktiv än)
+
+Ägaren fick utgående Firebase-provkrediter (~2 600 kr, 7 dagar kvar, mycket låg faktisk
+molnanvändning) och beslutade att göra Vertex AI-migreringen proaktivt i stället för att låta
+krediten gå förlorad. Se `BESLUTSLOGG.md` 2026-09-06.
+
+**Samtliga sex Gemini-anropsställen migrerade** (`functions/ai-import.js`: 4,
+`functions/klinikstod.js`: 2) från det publika Gemini API:et (API-nyckel,
+`generativelanguage.googleapis.com`) till Vertex AI (Application Default Credentials, region
+`europe-west1`, projekt `synappsen-final-build`).
+
+**Ett verkligt fynd under arbetet:** planens ursprungliga paketval, `@google-cloud/vertexai`
+(`granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md`), visade sig vara
+**deprecerat sedan 24 juni 2025** och tas bort 24 juni 2026 – kontrollerat mot Googles egen
+release-dokumentation innan någon kod skrevs. Migrerade i stället mot `@google/genai`, Googles
+nu rekommenderade enhetliga SDK som talar med både det publika API:et och Vertex AI genom
+samma klientkod. Bieffekt: enklare än planerat – SDK:t sköter tokenhantering mot ADC
+automatiskt, ingen egen `google-auth-library`-kod behövdes (planens punkt 1 i "Vad som
+skiljer Vertex AI åt" stämde alltså inte längre, se kostnadsuppskattningens tillägg
+2026-09-06 för hela resonemanget).
+
+**Städat helt, inte lämnat som en parallell väg:** `GEMINI_API_KEY` borttagen som secret-
+definition (`gemensamt.js`), ur båda kodfilerna, och ur `deploy.yml`s Secret Manager-steg.
+Ny central `skapaVertexKlient()`-hjälpare i `gemensamt.js` ersätter fyra separata
+klientkonstruktioner i `ai-import.js` och den rå `fetch()`-koden i `klinikstod.js` – samma
+beteende (inklusive den befintliga 503-återförsöksregeln, verifierad mot SDK:ns `ApiError`
+som exponerar samma `.status`-fält), mindre duplicering.
+
+**Nytt test:** `tests/functions/vertexmigrering.test.cjs` – bevisar mekaniskt att ingen
+kvarvarande referens till det gamla API:et finns, och att region/projekt-konstanterna inte
+kan glida i tysthet. Kan INTE bevisa att ett riktigt anrop fungerar (kräver Vertex AI aktiverat
+– se nedan); det är samma begränsning kostnadsuppskattningen redan flaggade.
+
+**⚠️ INTE aktiv i produktion.** Tre GCP-konsolsteg återstår, kan inte göras från en
+kodsession, och **måste göras innan nästa `deploy.yml`-körning** – annars slutar alla sex
+AI-funktioner fungera för riktiga anrop: (1) aktivera Vertex AI-API:et, (2) ge Cloud
+Functions-tjänstekontot `roles/aiplatform.user`, (3) bekräfta att `gemini-2.5-flash` finns i
+`europe-west1` (en websökning gav indikationer men ingen fullständig primärkälla kunde läsas
+i sessionen – kontrollera i Model Garden). Överst i `OPPNA-PUNKTER.md`, märkt med ⚠️.
+
+Testsvep grönt: lint, `npx vitest run` 592 tester, `npm run build`, `npm run test:functions`
+(inkl. det nya testet), `npm run test:rules`, `npm run test:storage`.
+
+**RTO-mätningen (samma session, samma anledning) är klar.** Kört mot skarp produktion via
+`.github/workflows/rto-matning.yml`: **1 711 ms** för återställning av en syntetisk
+testorganisation (100 dokument, fyra collections) – föregående mätning (2026-08-09) gav
+1 136 ms, skillnaden är normal variation, inte en försämring. Ett verkligt fel i den
+befintliga dokumentationen hittades och rättades i samma veva: `avtal/IT-FAKTABLAD.md`
+punkt 6 sa att organisationen "säkerhetskopierades och återställdes på 1 136 ms", vilket lästes
+som en kombinerad tid – skriptet (`functions/scripts/rto-matning.cjs` rad 67–71) mäter i
+själva verket ENBART `aterstallOrganisation()`-anropet, inte backupsteget. Formuleringen
+rättad till att vara tydlig om vad som faktiskt mäts. Testorganisationen städades bort
+automatiskt, ingen skarp kunddata rörd.
