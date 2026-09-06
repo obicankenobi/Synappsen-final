@@ -4,7 +4,7 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (124 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (125 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
@@ -23,7 +23,7 @@ sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) 
 | **Version i produktion** | **5.139.0** (körning #97, verifierad 2026-09-02: asset-hash `index-D_9UU18e.js` live) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | 2026-09-06: Vertex AI-migrering av samtliga sex Gemini-anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`), `@google/genai` i stället för det deprecerade `@google-cloud/vertexai` planen ursprungligen föreslog. **⚠️ Kodad men INTE aktiv** – tre GCP-konsolsteg krävs innan nästa deploy, se överst i `OPPNA-PUNKTER.md`. Internt/infrastruktur, inget för `andringslogg.js` |
-| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på `https://synappsen-web.web.app`, men medvetet `noindex, nofollow`** (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket och namn/orgnr på policyn saknas fortfarande. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. Egen domän `synappsen.se` pågår hos ägaren (Loopia) – DNS-posterna för apex är korrekt satta, men "Lägg till anpassad domän" måste startas om från rätt hosting-site (`synappsen-web`, inte `synappsen-final-build`). `deploy-web.yml` skapar hosting-siten idempotent. Ta bort `noindex` när de två kvarvarande punkterna är klara, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
+| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – men medvetet fortsatt `noindex, nofollow` (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket och namn/orgnr på policyn saknas fortfarande. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Ta bort `noindex` när de två kvarvarande punkterna är klara, se `OPPNA-PUNKTER.md`. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
 | **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. Ta samtidigt ägarbeslutet om "Beslutsstöd"-raden i `OPPNA-PUNKTER.md`. Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
@@ -115,6 +115,30 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-06 (egen domän `synappsen.se` kopplad och verifierad)
+
+Ägarens domänkoppling från föregående uppföljning (2026-09-05) är klar. Ett verkligt fel
+hanns fångas och rättas under tiden: "Lägg till anpassad domän" hade av misstag startats
+från fel hosting-site (`synappsen-final-build`, appens site, inte `synappsen-web`,
+marknadssidan) – synligt i verifierings-TXT-postens värde `hosting-site=synappsen-final-build`.
+Hade det slutförts hade `synappsen.se` visat kundappens inloggningssida i stället för
+marknadssidan. Ägaren startade om flödet från rätt site; Firebase Console visade därefter
+"Verified" → "Minting certificate" → **"Connected"**.
+
+**Verifierat direkt mot `https://synappsen.se`:** HTTP 200, riktig Firebase/Fastly-CDN-trafik
+(inte en proxiartefakt – `x-served-by`/`x-cache`-headrarna bekräftar det), samtliga
+säkerhetsheaders från `hosting:web`-konfigurationen närvarande (CSP, HSTS, COOP,
+X-Frame-Options, X-Content-Type-Options, Permissions-Policy, Referrer-Policy), rätt
+sidtitel (marknadssidan, inte appen), `noindex, nofollow` och `robots.txt`s `Disallow: /`
+fortfarande aktiva som avsett. **En känd begränsning:** det faktiska TLS-certifikatet kunde
+inte oberoende verifieras från den här sandboxade sessionen – utgående HTTPS fångas upp av
+sandboxens egen utgångsproxy (`openssl s_client` visar dess MITM-certifikat, inte Firebases/
+Let's Encrypts). Inte ett tecken på ett verkligt problem – Firebase Consoles "Connected"-status
+är själva beviset på att certifikatet utfärdats och bundits korrekt.
+
+`synappsen.se` fungerar alltså som avsett. Domänsäkring (registrar lock, DNSSEC, 2FA hos
+Loopia) är fortfarande en öppen punkt, se `OPPNA-PUNKTER.md`.
 
 ## Uppföljning 2026-09-06 (Vertex AI-migrering genomförd i kod – INTE aktiv än)
 
@@ -334,55 +358,3 @@ tar ställning till vad som håller den aktuell. 73 → 74 dokument.
 
 Testsvep grönt: lint, 585 tester (upp från 576).
 
-## Uppföljning 2026-09-05 (publik webbplats i repot, steg 1–2)
-
-Ägaren vill utveckla den publika marknadsplatsen vidare och driva den skild från kundappen.
-Steg 1 (in i repot, bevakad) och steg 2 (hosting + deployväg) är gjorda. **Ingen ändring i
-appen** – ny katalog `synappsen-web/`, ny workflow, en enradsändring i `deploy.yml`.
-
-**Sidan låg bara som en publicerad artefakt.** Enda kopian, utanför repot, utanför varje
-testvakt. `produkt/VARUMARKE.md` P2 pekade ut det som en känd brist sedan 2026-08-22.
-
-**Två faktafel hittade vid granskningen, båda rättade:**
-
-1. **"Sex roller" – koden definierar sju.** Exakt samma fel som `saljmaterial/PITCH.md` gjorde
-   efter att kioskrollen byggdes i Etapp 55, på en sida som samtidigt beskriver kioskläget i
-   egen sektion. Sidan är nu tillagd i rollantalsvakten i `dokumentpastaenden.test.js`.
-2. **Färgerna var från före Etapp 68b/68d.** Artefakten skrevs 2026-08-11, färgbytena gjordes
-   2026-08-21/22. Den bar `#2563eb` som primärblå och `#cbd5e1` som kant-stark – det senare
-   var en **defekt som fanns i produktion** (1,48:1 mot krävda 3:1). Båda rättade mot profilen.
-
-**Övrigt mot den grafiska profilen:** Public Sans självhostad i stället för systemtypsnitt +
-serif (sidan skrevs före Etapp 68e), symbolen `symbol-axon.svg` inlagd (sidan hade bara en
-textlogotyp – och profilen §6 pekar uttryckligen ut den varianten för webbplats), mörkt läge
-tillagt med appens egna mörka tokens, `prefers-reduced-motion` skärpt till appens nivå.
-
-**Tillgänglighet och struktur:** `lang="sv"` (saknades – artefaktvärden satte det förr),
-skip-link, mobilnavigering (nio sektioner var tidigare helt onåbara under 900 px annat än
-genom att skrolla), utskriftsstöd (den gamla filens egen motivering för att avstå mörkt läge
-var att sidan skrivs ut – men något utskriftsstöd fanns inte), Open Graph-taggar,
-`robots.txt`, `sitemap.xml`. CSS och JS utbrutna ur HTML:en, vilket gör CSP:n strikt
-(`default-src 'none'`, allt annat `'self'`, inga hashar att räkna om vid varje redigering).
-
-**Copy:** ett stycke ströks som bröt mot `produkt/VARUMARKE.md` regel 8 (*"beröm aldrig din
-egen ärlighet"*) – "vi berättar det här på en säljsida, inte vid tredje mötet" och
-fortsättningen. Ersatt med vad avstängningen faktiskt kostade. Klinikstödssektionen fick
-formuleringen ur `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`.
-
-**Två nya vakter, 16 nya tester** (`tests/docs/webbplats.test.js`): förbjudna ord
-("beslutsstöd", "triageringsstöd" – MDR art. 2(12) gör sidan till en del av
-kvalificeringsunderlaget), källdomänantal mot `functions/klinikstod.js`, utgångna profilfärger,
-inga externa resurser, `lang="sv"`, och **byte-för-byte-jämförelse av varumärkestillgångarna**
-mot `public/` – sajten har egna kopior eftersom den ligger på en egen hosting-site, och två
-kopior som ska vara lika glider annars i tysthet. Sidan är även registrerad i
-`DOKUMENTREGISTER.md` (72 → 73 dokument) och tillagd i kundpåståendevakten.
-
-**Hosting:** `firebase.json` har nu två targets, `app` (dist) och `web` (synappsen-web).
-**`deploy.yml` fick `--only hosting:app,functions,firestore,storage`** – utan det hade varje
-appdeploy även publicerat marknadsplatsen, inklusive halvfärdiga utkast i repot.
-
-**Kvar innan publicering** (i `OPPNA-PUNKTER.md`): hosting-siten måste skapas en gång
-(`firebase hosting:sites:create synappsen-web`); kontaktuppgifterna är fortfarande en
-platshållare och blockeras av bolagsformen – med enskild firma blir orgnr ditt personnummer,
-publikt och permanent; och `deploy-web.yml` bör få ett eget tjänstekonto med enbart
-`roles/firebasehosting.admin` i stället för appdeployens breda konto.

@@ -4962,3 +4962,56 @@ utan att skriva om dokumentet.
 Etapp 64 redan väntar på (`OPPNA-PUNKTER.md`, "Kräver en bokad människa"). § 11 innehåller 15
 frågor grupperade i fem områden; § 12 listar vad granskaren behöver få tillgång till – notera
 särskilt att säljmaterialet är en primärkälla i MDR-bedömningen, inte en bilaga.
+
+## Uppföljning 2026-09-05 (publik webbplats i repot, steg 1–2)
+
+Ägaren vill utveckla den publika marknadsplatsen vidare och driva den skild från kundappen.
+Steg 1 (in i repot, bevakad) och steg 2 (hosting + deployväg) är gjorda. **Ingen ändring i
+appen** – ny katalog `synappsen-web/`, ny workflow, en enradsändring i `deploy.yml`.
+
+**Sidan låg bara som en publicerad artefakt.** Enda kopian, utanför repot, utanför varje
+testvakt. `produkt/VARUMARKE.md` P2 pekade ut det som en känd brist sedan 2026-08-22.
+
+**Två faktafel hittade vid granskningen, båda rättade:**
+
+1. **"Sex roller" – koden definierar sju.** Exakt samma fel som `saljmaterial/PITCH.md` gjorde
+   efter att kioskrollen byggdes i Etapp 55, på en sida som samtidigt beskriver kioskläget i
+   egen sektion. Sidan är nu tillagd i rollantalsvakten i `dokumentpastaenden.test.js`.
+2. **Färgerna var från före Etapp 68b/68d.** Artefakten skrevs 2026-08-11, färgbytena gjordes
+   2026-08-21/22. Den bar `#2563eb` som primärblå och `#cbd5e1` som kant-stark – det senare
+   var en **defekt som fanns i produktion** (1,48:1 mot krävda 3:1). Båda rättade mot profilen.
+
+**Övrigt mot den grafiska profilen:** Public Sans självhostad i stället för systemtypsnitt +
+serif (sidan skrevs före Etapp 68e), symbolen `symbol-axon.svg` inlagd (sidan hade bara en
+textlogotyp – och profilen §6 pekar uttryckligen ut den varianten för webbplats), mörkt läge
+tillagt med appens egna mörka tokens, `prefers-reduced-motion` skärpt till appens nivå.
+
+**Tillgänglighet och struktur:** `lang="sv"` (saknades – artefaktvärden satte det förr),
+skip-link, mobilnavigering (nio sektioner var tidigare helt onåbara under 900 px annat än
+genom att skrolla), utskriftsstöd (den gamla filens egen motivering för att avstå mörkt läge
+var att sidan skrivs ut – men något utskriftsstöd fanns inte), Open Graph-taggar,
+`robots.txt`, `sitemap.xml`. CSS och JS utbrutna ur HTML:en, vilket gör CSP:n strikt
+(`default-src 'none'`, allt annat `'self'`, inga hashar att räkna om vid varje redigering).
+
+**Copy:** ett stycke ströks som bröt mot `produkt/VARUMARKE.md` regel 8 (*"beröm aldrig din
+egen ärlighet"*) – "vi berättar det här på en säljsida, inte vid tredje mötet" och
+fortsättningen. Ersatt med vad avstängningen faktiskt kostade. Klinikstödssektionen fick
+formuleringen ur `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`.
+
+**Två nya vakter, 16 nya tester** (`tests/docs/webbplats.test.js`): förbjudna ord
+("beslutsstöd", "triageringsstöd" – MDR art. 2(12) gör sidan till en del av
+kvalificeringsunderlaget), källdomänantal mot `functions/klinikstod.js`, utgångna profilfärger,
+inga externa resurser, `lang="sv"`, och **byte-för-byte-jämförelse av varumärkestillgångarna**
+mot `public/` – sajten har egna kopior eftersom den ligger på en egen hosting-site, och två
+kopior som ska vara lika glider annars i tysthet. Sidan är även registrerad i
+`DOKUMENTREGISTER.md` (72 → 73 dokument) och tillagd i kundpåståendevakten.
+
+**Hosting:** `firebase.json` har nu två targets, `app` (dist) och `web` (synappsen-web).
+**`deploy.yml` fick `--only hosting:app,functions,firestore,storage`** – utan det hade varje
+appdeploy även publicerat marknadsplatsen, inklusive halvfärdiga utkast i repot.
+
+**Kvar innan publicering** (i `OPPNA-PUNKTER.md`): hosting-siten måste skapas en gång
+(`firebase hosting:sites:create synappsen-web`); kontaktuppgifterna är fortfarande en
+platshållare och blockeras av bolagsformen – med enskild firma blir orgnr ditt personnummer,
+publikt och permanent; och `deploy-web.yml` bör få ett eget tjänstekonto med enbart
+`roles/firebasehosting.admin` i stället för appdeployens breda konto.
