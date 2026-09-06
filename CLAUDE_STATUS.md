@@ -159,8 +159,16 @@ i sessionen – kontrollera i Model Garden). Överst i `OPPNA-PUNKTER.md`, märk
 Testsvep grönt: lint, `npx vitest run` 592 tester, `npm run build`, `npm run test:functions`
 (inkl. det nya testet), `npm run test:rules`, `npm run test:storage`.
 
-**Kvar från samma session:** RTO-mätningen (`rto-matning.yml`) – ägaren bad om den i samma
-veva som Vertex-migreringen, körs separat.
+**RTO-mätningen (samma session, samma anledning) är klar.** Kört mot skarp produktion via
+`.github/workflows/rto-matning.yml`: **1 711 ms** för återställning av en syntetisk
+testorganisation (100 dokument, fyra collections) – föregående mätning (2026-08-09) gav
+1 136 ms, skillnaden är normal variation, inte en försämring. Ett verkligt fel i den
+befintliga dokumentationen hittades och rättades i samma veva: `avtal/IT-FAKTABLAD.md`
+punkt 6 sa att organisationen "säkerhetskopierades och återställdes på 1 136 ms", vilket lästes
+som en kombinerad tid – skriptet (`functions/scripts/rto-matning.cjs` rad 67–71) mäter i
+själva verket ENBART `aterstallOrganisation()`-anropet, inte backupsteget. Formuleringen
+rättad till att vara tydlig om vad som faktiskt mäts. Testorganisationen städades bort
+automatiskt, ingen skarp kunddata rörd.
 
 ## Uppföljning 2026-09-05 (domänkoppling pågår, e-postmottagning bekräftad)
 
