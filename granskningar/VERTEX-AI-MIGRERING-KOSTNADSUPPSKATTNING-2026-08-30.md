@@ -145,6 +145,29 @@ en riktig Vertex AI-anslutning, se ovan). Ett nytt test,
 i koden (ingen kvarvarande referens till det gamla API:et eller `@google/generative-ai`) –
 men det är inte samma sak som ett bevisat, fungerande anrop mot riktig Vertex AI.
 
+## Tillägg (2026-09-06, senare samma dag): verifieringen har nu ett verktyg
+
+Punkten ovan – "manuell verifiering mot riktiga anrop, en halv arbetsdag, ingen automatisk
+testtäckning finns" – var den enda raden i uppskattningen som saknade en konkret plan. Den har
+nu ett verktyg: `functions/scripts/ai-evaluering.cjs`, körd via
+`.github/workflows/ai-evaluering.yml` (manuell dispatch).
+
+Det ändrar uppskattningen på ett sätt värt att notera för nästa liknande arbete: **den halva
+arbetsdagens manuella verifiering blir en återkommande kostnad, inte en engångskostnad**, om
+den görs som ren handpåläggning. Ett skriptat utvärderingsfall kostar mer första gången och
+nästan ingenting varje gång därefter – och till skillnad från en manuell genomläsning kan det
+inte glömmas bort eller göras slarvigt under tidspress.
+
+Verktyget mäter dessutom något uppskattningen inte hade identifierat alls: att klinikstödets
+**säkerhetsregler** (prompten som håller funktionen utanför MDR) aldrig hade verifierats mot
+modellens faktiska beteende. Migreringen bytte anropsväg under en funktion vars viktigaste
+egenskap ingen mätte. Det var inte ett fel i migreringen, men det var en blind fläck som en
+ren "fungerar anropet?"-verifiering hade lämnat kvar.
+
+Se `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`, avsnittet "Hur avgränsningen mäts",
+för vad de tre kontrollerna bevisar var för sig. **Verktyget är ännu inte kört** – det kräver
+samma tre GCP-steg som allt annat i det här tillägget.
+
 ## Källor
 
 `avtal/UNDERBITRADEN.md` (öppna punkten om regional databehandling),

@@ -1,0 +1,40 @@
+name: AI-utvärdering (klinikstödets säkerhetsregler + bildtolkning)
+
+# Manuellt verktyg – ALDRIG på push, aldrig som en del av deploy. Anropar skarp Vertex AI och
+# kostar därför riktiga (om än små) pengar, och kräver att Vertex AI-API:et är aktiverat samt
+# att Cloud Functions-tjänstekontot har roles/aiplatform.user (se OPPNA-PUNKTER.md). Ett vanligt
+# testsvep ska varken förutsätta eller betala för det.
+#
+# Mäter det som ingen annan kontroll mäter: att modellen FAKTISKT lyder klinikstödets
+# säkerhetsregler (särskilt regel 4, som är MDR-avgränsningen). Jämför:
+#   • tests/functions/klinikstodprompt.test.cjs – att reglerna STÅR i prompten (gratis, alltid)
+#   • verifieraKlinikstod (functions/klinikstod.js) – BARA sökmotorns domänkonfiguration
+#   • detta – vad modellen svarar
+#
+# Läs resultatet: rader märkta GRANSKA kräver mänsklig läsning och fäller INTE körningen. Det
+# är avsiktligt; se den långa kommentaren överst i functions/scripts/ai-evaluering.cjs.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  ai-evaluering:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Installera functions-beroenden
+        run: npm ci
+        working-directory: functions
+
+      - name: Autentisera mot Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Kör AI-utvärderingen
+        run: node scripts/ai-evaluering.cjs
+        working-directory: functions

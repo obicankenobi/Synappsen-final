@@ -5015,3 +5015,48 @@ appdeploy även publicerat marknadsplatsen, inklusive halvfärdiga utkast i repo
 platshållare och blockeras av bolagsformen – med enskild firma blir orgnr ditt personnummer,
 publikt och permanent; och `deploy-web.yml` bör få ett eget tjänstekonto med enbart
 `roles/firebasehosting.admin` i stället för appdeployens breda konto.
+
+## Uppföljning 2026-09-05 (webbplatsen steg 3 – priser, integritetspolicy)
+
+Innehållsarbetet på den publika sajten. Fortfarande ingen ändring i appen.
+
+**Priser publicerade.** Sektion 08 hette "Paket" och listade **modulnamnen**
+(Core/Operations/Intelligence) utan priser, medan prislistan säljer **nivåerna**
+Kärna/Drift/Full för 39 000 / 59 000 / 89 000 kr per enhet och år. En läsare mötte alltså
+andra ord på webbplatsen än i prislistan. Sektionen visar nu nivåerna med faktiska priser och
+de fyra tilläggen. Prisöppenhet är en uttalad del av positioneringen (`produkt/VARUMARKE.md`
+rad 38, "ett publicerat pris") – men priser på två ställen är en drifthärd, så
+`tests/docs/webbplats.test.js` binder nu sidans belopp till prislistan, som är sanningskällan.
+En vakt hindrar också att modulnamnen kryper tillbaka in i kundvänd text.
+
+**Integritetspolicy** (`synappsen-web/integritet.html`, GDPR art. 13). Kort, för att sidan
+faktiskt behandlar nästan ingenting: inga kakor, ingen analys, inget laddat från annan domän,
+inga formulär – bara Firebase Hostings serverloggar. Det påståendet är ovanligt starkt, så det
+är **mekaniskt bevakat**: testet failar om koden börjar sätta kakor, lagra i webbläsaren eller
+ladda något externt utan att policyn följer med. Policyn skiljer också uttryckligen webbplatsens
+behandling (vi som ansvariga) från produktens (kunden som ansvarig, vi som biträde).
+
+**Ett verkligt fel hittat och åtgärdat: sidorna krävde JavaScript för att synas.** Sajten ärvde
+en inscrollningsanimation som satte `opacity: 0` på varje sektion och avslöjade den med en
+IntersectionObserver. Det upptäcktes när policysidan lades till – den laddar inget skript och
+var därför **helt osynlig**, alltså en juridisk text som inte gick att läsa. Samma svaghet gjorde
+allt under hjältesektionen på startsidan beroende av att JS kördes.
+
+Animationen är **borttagen helt** i stället för lappad. Progressiv förstärkning hade krävt en
+inline-snutt i `<head>`, vilket den strikta CSP:n inte tillåter utan att bli krångligare att
+redigera. Och borttagningen är det som stämmer med profilen: `GRAFISK-PROFIL.md` §5 avvisade
+lyfta kort med `VARUMARKE.md` §5 som skäl ("behärskad, ingen brådska"), och appens enda
+rörelseuttryck i basen är en knapp som trycks ned 1 px. Verifierat med Playwright och
+`javaScriptEnabled: false`. En vakt failar om `opacity: 0` återinförs.
+
+**Bakgrundsstycket (P1) är medvetet oskrivet.** `produkt/VARUMARKE.md` §14 säger "20 min, bara
+du kan göra det". Det är den enda plats på sidan där avsändaren talar i egen sak om varför
+produkten finns, och en påhittad ursprungshistoria vore precis vad bevisregeln (§7) finns för
+att stoppa. Platsen finns med instruktion i HTML-kommentaren.
+
+**Registret gjordes robust:** `dokumentregister.test.js` fångar nu varje `synappsen-web/*.html`
+automatiskt, inte bara `index.html`, så en framtida sida inte kan läggas till utan att någon
+tar ställning till vad som håller den aktuell. 73 → 74 dokument.
+
+Testsvep grönt: lint, 585 tester (upp från 576).
+

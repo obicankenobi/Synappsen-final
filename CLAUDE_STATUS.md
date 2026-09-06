@@ -4,7 +4,7 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (125 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (126 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
@@ -22,6 +22,7 @@ sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) 
 |---|---|
 | **Version i produktion** | **5.139.0** (körning #97, verifierad 2026-09-02: asset-hash `index-D_9UU18e.js` live) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
+| **AI-kvalitetsmätning** | **Ny 2026-09-06.** Klinikstödets säkerhetsregler (regel 4 = MDR-avgränsningen) mäts nu i tre lager: `tests/functions/klinikstodprompt.test.cjs` (gratis, i varje svep, bevisar att reglerna STÅR kvar), `verifieraKlinikstod` (bara sökmotorn), och `.github/workflows/ai-evaluering.yml` (sju fall mot skarp Vertex AI, manuell dispatch, bevisar vad modellen SVARAR). **Utvärderingen är byggd men ännu inte körd** – kräver de tre GCP-stegen. Modellvalet självt är omprövat och bekräftat: stanna på Gemini, se uppföljningen nedan |
 | **Senaste kodarbete** | 2026-09-06: Vertex AI-migrering av samtliga sex Gemini-anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`), `@google/genai` i stället för det deprecerade `@google-cloud/vertexai` planen ursprungligen föreslog. **⚠️ Kodad men INTE aktiv** – tre GCP-konsolsteg krävs innan nästa deploy, se överst i `OPPNA-PUNKTER.md`. Internt/infrastruktur, inget för `andringslogg.js` |
 | **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – men medvetet fortsatt `noindex, nofollow` (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket och namn/orgnr på policyn saknas fortfarande. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Ta bort `noindex` när de två kvarvarande punkterna är klara, se `OPPNA-PUNKTER.md`. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
@@ -115,6 +116,62 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-06 (AI-utvärdering byggd – klinikstödets säkerhetsregler mäts nu)
+
+Ägaren frågade om Gemini är rätt modellval eller om andra LLM:er borde övervägas. **Svaret blev
+"stanna" – men frågan blottade något viktigare.** Vid nuvarande volym (284 funktionsanrop
+totalt, noll kunder) är skillnaden mellan billigaste och dyraste rimliga modell några kronor i
+månaden, medan ett leverantörsbyte river upp EU-databehandlingsgarantin som Vertex AI-
+migreringen precis köpte, lägger till ett underbiträde och kräver nytt PUB-avtal och uppdaterad
+DPIA. Priset är alltså fel variabel att optimera på – **kvaliteten är rätt variabel, och den
+gick inte att mäta.**
+
+**Den verkliga bristen:** klinikstöd-promptens regel 4 ("aldrig ett beslutsstöd … Ge aldrig ett
+prioriterat eller rangordnat svar") är den avgränsning som håller funktionen utanför MDR. Den
+upprätthölls av att modellen *väljer* att lyda prompten, och ingenting mätte om den gör det.
+En redigering som strök regeln hade inte fått ett enda test att faila. `verifieraKlinikstod`
+testar uttryckligen **bara** sökmotorsteget, inte Gemini-svaret.
+
+**Byggt, i tre lager med medvetet olika räckvidd:**
+
+1. **`tests/functions/klinikstodprompt.test.cjs`** – 11 assertioner, gratis, offline, tillagd i
+   `test:functions`-svepet. Bevisar att reglerna står kvar ord för ord, att ordet "beslutsstöd"
+   aldrig återkommer som en självbeskrivning (regressionen från Etapp 72), och att reglerna
+   ligger EFTER den användarstyrda frågan i prompten. **Mutationstestad:** stryks förbudet mot
+   rangordning failar den med ett felmeddelande som pekar på MDR-konsekvensen.
+2. **`functions/scripts/ai-evaluering.cjs` + `.github/workflows/ai-evaluering.yml`** – sju fall
+   mot skarp Vertex AI, manuell dispatch. Rangordningsbete, rekommendationsbete, namngiven
+   patient (medvetet UTAN personnummer – `innehallerPersonnummer` stoppar redan de fallen, så
+   regel 6 är det enda skyddet just där), fråga som källorna inte täcker, promptinjektion, samt
+   bildtolkningens schemakontrakt. **Anropar aldrig den riktiga sökmotorn** – den delade kvoten
+   är 100/dygn för hela installationen, och en utvärdering som åt av den kunde släckt
+   klinikstödet för riktiga kunder. Rör ingen Firestore-data, ingen budget.
+3. **Tre utfall, inte två:** `OK`, `FEL` och `GRANSKA`. Det sista för frågor som inte går att
+   avgöra maskinellt, där svaret skrivs ut i sin helhet för mänsklig läsning och slutkoden inte
+   påverkas. Avsiktligt: en heuristik som låtsas kunna fälla ett regulatoriskt omdöme vore
+   sämre än en som säger att den inte kan det. `GRANSKA`-raderna ÄR den manuella verifiering
+   som kostnadsuppskattningen krävde – strukturerad, inte bortautomatiserad.
+
+**Refaktorering som möjliggjorde det:** prompten byggdes tidigare inline i anropshanteraren och
+gick inte att nå utifrån. Utbruten till `byggKlinikstodPrompt()`, exporterad, så utvärderingen
+mäter EXAKT samma prompt som produktionen kör – inte en kopia som kan glida isär. Verifierat
+byte-identisk. Samma skäl bakom att `tolkaBildMedGemini`/`extraktionsSchema` nu exporteras.
+
+**Ett verkligt fynd på köpet:** frågan interpoleras osanerad in i prompten
+(`Fråga: "${fraga}"`), vilket är en möjlig promptinjektion mot just de regler som bär
+MDR-avgränsningen. Om den går igenom är okänt – fall 6 testar det, men kan inte köras än. Fört
+till `OPPNA-PUNKTER.md` med föreslagen åtgärd (avvisa `"` och radbrytningar i söksträngen)
+och med de förmildrande omständigheterna ärligt noterade.
+
+**Provbilden genereras i kod** (`functions/scripts/provbild.cjs`, egen PNG-enkodare utan
+beroenden) i stället för att checkas in som binärfil – en bild i repot går inte att granska i
+en diff. Renderad och okulärbesiktigad: texten är läsbar och datumet `2027-01-15`, som
+utvärderingen jämför exakt mot, står i klartext.
+
+**Ännu inte kört mot skarp Vertex AI** – kräver samma tre GCP-steg som allt annat. Skriptet
+översätter de vanligaste felen till vilket steg som saknas. Testsvep grönt: lint, `npm run
+build`, 592 vitest-tester, hela `test:functions`-svepet.
 
 ## Uppföljning 2026-09-06 (egen domän `synappsen.se` kopplad och verifierad)
 
@@ -313,48 +370,4 @@ försvinner vid en omstrukturering av `firebase.json` märks annars först vid e
 taggar – fynd 4.7 utökat till att gälla även `deploy-web.yml`.
 
 Testsvep grönt: lint, 591 tester (upp från 585).
-
-## Uppföljning 2026-09-05 (webbplatsen steg 3 – priser, integritetspolicy)
-
-Innehållsarbetet på den publika sajten. Fortfarande ingen ändring i appen.
-
-**Priser publicerade.** Sektion 08 hette "Paket" och listade **modulnamnen**
-(Core/Operations/Intelligence) utan priser, medan prislistan säljer **nivåerna**
-Kärna/Drift/Full för 39 000 / 59 000 / 89 000 kr per enhet och år. En läsare mötte alltså
-andra ord på webbplatsen än i prislistan. Sektionen visar nu nivåerna med faktiska priser och
-de fyra tilläggen. Prisöppenhet är en uttalad del av positioneringen (`produkt/VARUMARKE.md`
-rad 38, "ett publicerat pris") – men priser på två ställen är en drifthärd, så
-`tests/docs/webbplats.test.js` binder nu sidans belopp till prislistan, som är sanningskällan.
-En vakt hindrar också att modulnamnen kryper tillbaka in i kundvänd text.
-
-**Integritetspolicy** (`synappsen-web/integritet.html`, GDPR art. 13). Kort, för att sidan
-faktiskt behandlar nästan ingenting: inga kakor, ingen analys, inget laddat från annan domän,
-inga formulär – bara Firebase Hostings serverloggar. Det påståendet är ovanligt starkt, så det
-är **mekaniskt bevakat**: testet failar om koden börjar sätta kakor, lagra i webbläsaren eller
-ladda något externt utan att policyn följer med. Policyn skiljer också uttryckligen webbplatsens
-behandling (vi som ansvariga) från produktens (kunden som ansvarig, vi som biträde).
-
-**Ett verkligt fel hittat och åtgärdat: sidorna krävde JavaScript för att synas.** Sajten ärvde
-en inscrollningsanimation som satte `opacity: 0` på varje sektion och avslöjade den med en
-IntersectionObserver. Det upptäcktes när policysidan lades till – den laddar inget skript och
-var därför **helt osynlig**, alltså en juridisk text som inte gick att läsa. Samma svaghet gjorde
-allt under hjältesektionen på startsidan beroende av att JS kördes.
-
-Animationen är **borttagen helt** i stället för lappad. Progressiv förstärkning hade krävt en
-inline-snutt i `<head>`, vilket den strikta CSP:n inte tillåter utan att bli krångligare att
-redigera. Och borttagningen är det som stämmer med profilen: `GRAFISK-PROFIL.md` §5 avvisade
-lyfta kort med `VARUMARKE.md` §5 som skäl ("behärskad, ingen brådska"), och appens enda
-rörelseuttryck i basen är en knapp som trycks ned 1 px. Verifierat med Playwright och
-`javaScriptEnabled: false`. En vakt failar om `opacity: 0` återinförs.
-
-**Bakgrundsstycket (P1) är medvetet oskrivet.** `produkt/VARUMARKE.md` §14 säger "20 min, bara
-du kan göra det". Det är den enda plats på sidan där avsändaren talar i egen sak om varför
-produkten finns, och en påhittad ursprungshistoria vore precis vad bevisregeln (§7) finns för
-att stoppa. Platsen finns med instruktion i HTML-kommentaren.
-
-**Registret gjordes robust:** `dokumentregister.test.js` fångar nu varje `synappsen-web/*.html`
-automatiskt, inte bara `index.html`, så en framtida sida inte kan läggas till utan att någon
-tar ställning till vad som håller den aktuell. 73 → 74 dokument.
-
-Testsvep grönt: lint, 585 tester (upp från 576).
 

@@ -244,6 +244,51 @@ async function sokViaProgrammerbarSokmotor(fraga) {
   return (json.items ?? []).map((i) => ({ titel: i.title, url: i.link, utdrag: i.snippet ?? "" }));
 }
 
+// Bygger den systeminstruktion som skickas till modellen. UTBRUTEN ur anropshanteraren
+// 2026-09-06 av ett enda skäl: reglerna nedan – särskilt regel 4 – är den avgränsning som
+// håller funktionen utanför MDR (se granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md),
+// och de upprätthålls ENBART av att modellen faktiskt lyder dem. För att kunna mäta det krävs
+// att utvärderingen använder EXAKT samma prompt som produktionen, inte en kopia som kan glida
+// isär – därför är den här funktionen sanningskällan, och både fragaKlinisktStod nedan och
+// functions/scripts/ai-evaluering.cjs anropar den. Se även
+// tests/functions/klinikstodprompt.test.cjs, som failar om en regel tyst försvinner.
+//
+// RÄTTAT (Etapp 72, undantag 1 – ETAPPLAN19.md/granskningar/GRANSKNING-IDEBANK-2026-08-30.md
+// avsnitt 3.1): regel 4 sa tidigare uttryckligen "Detta är beslutsstöd". MDCG 2019-11 Rev.1
+// undantar INTE en NLP-sökning som bidrar till ett medicinskt syfte från MDR – ordet
+// "beslutsstöd" i systemets EGEN instruktion var alltså en självmotsägelse mot den
+// avgränsning som håller funktionen utanför MDR: "hjälper att HITTA och SAMMANFATTA, ger
+// aldrig ett kliniskt beslut". Risken var konkret, inte teoretisk – ett ord i prompten kunde
+// ekas tillbaka i Gemini-svaret till användaren.
+function byggKlinikstodPrompt(fraga, traffar) {
+  const kalldomanerText = GODKANDA_KALLDOMANER.join(", ");
+  const traffTextBlock = traffar
+    .map((t, i) => `[${i + 1}] ${t.titel} (${t.url})\n${t.utdrag}`)
+    .join("\n\n");
+
+  return `Du är ett kliniskt uppslagsverktyg för vårdpersonal på en akutmottagning i Sverige.
+
+Fråga: "${fraga}"
+
+Här är sökträffar från godkända medicinska källor (${kalldomanerText}):
+
+${traffTextBlock}
+
+Regler du MÅSTE följa:
+1. Svara ENDAST utifrån informationen i sökträffarna ovan – gissa aldrig och använd aldrig
+   information från minnet eller andra källor.
+2. Om träffarna inte innehåller ett tillförlitligt svar: säg det tydligt istället för att gissa.
+3. Ange efter varje påstående vilken träff ([1], [2], osv.) det kommer ifrån.
+4. Detta är ett hjälpmedel för att HITTA och SAMMANFATTA information ur källorna – aldrig ett
+   beslutsstöd, en rekommendation eller en diagnos. Ge aldrig ett prioriterat eller rangordnat
+   svar. Uppmana alltid till egen klinisk bedömning.
+5. Svara på svenska, kortfattat och praktiskt.
+6. Ställ aldrig frågor om eller referera till en specifik patient – om frågan verkar handla om
+   en namngiven eller identifierbar person, svara att du bara kan besvara generella frågor.`;
+}
+
+exports.byggKlinikstodPrompt = byggKlinikstodPrompt;
+
 // Kliniskt uppslagsstöd: hämtar först faktiska sökträffar från en domänbegränsad
 // Programmable Search Engine (se ovan), och ber sedan Gemini svara ENBART utifrån dessa
 // träffars innehåll – inte fri websökning. Domänkontrollen (domanGodkand) körs ändå som ett
@@ -336,37 +381,7 @@ exports.fragaKlinisktStod = onCall(
       );
     }
 
-    const traffTextBlock = godkandaTraffar
-      .map((t, i) => `[${i + 1}] ${t.titel} (${t.url})\n${t.utdrag}`)
-      .join("\n\n");
-
-    // RÄTTAT (Etapp 72, undantag 1 – ETAPPLAN19.md/granskningar/GRANSKNING-IDEBANK-2026-08-30.md
-    // avsnitt 3.1): regel 4 sa tidigare uttryckligen "Detta är beslutsstöd". MDCG 2019-11 Rev.1
-    // undantar INTE en NLP-sökning som bidrar till ett medicinskt syfte från MDR – ordet
-    // "beslutsstöd" i systemets EGEN instruktion var alltså en självmotsägelse mot den
-    // avgränsning som håller funktionen utanför MDR (se granskningar/AVSETT-ANDAMAL-
-    // KLINIKSTOD-2026-08-30.md): "hjälper att HITTA och SAMMANFATTA, ger aldrig ett kliniskt
-    // beslut". Risken var konkret, inte teoretisk – ett ord i prompten kunde ekas tillbaka i
-    // Gemini-svaret till användaren.
-    const prompt = `Du är ett kliniskt uppslagsverktyg för vårdpersonal på en akutmottagning i Sverige.
-
-Fråga: "${fraga}"
-
-Här är sökträffar från godkända medicinska källor (${kalldomanerText}):
-
-${traffTextBlock}
-
-Regler du MÅSTE följa:
-1. Svara ENDAST utifrån informationen i sökträffarna ovan – gissa aldrig och använd aldrig
-   information från minnet eller andra källor.
-2. Om träffarna inte innehåller ett tillförlitligt svar: säg det tydligt istället för att gissa.
-3. Ange efter varje påstående vilken träff ([1], [2], osv.) det kommer ifrån.
-4. Detta är ett hjälpmedel för att HITTA och SAMMANFATTA information ur källorna – aldrig ett
-   beslutsstöd, en rekommendation eller en diagnos. Ge aldrig ett prioriterat eller rangordnat
-   svar. Uppmana alltid till egen klinisk bedömning.
-5. Svara på svenska, kortfattat och praktiskt.
-6. Ställ aldrig frågor om eller referera till en specifik patient – om frågan verkar handla om
-   en namngiven eller identifierbar person, svara att du bara kan besvara generella frågor.`;
+    const prompt = byggKlinikstodPrompt(fraga, godkandaTraffar);
 
     // @google/genai kastar ett ApiError med samma numeriska .status-fält som det tidigare
     // rå fetch()-anropet gjorde manuellt (verifierat mot SDK:ns källa) – 503-hanteringen

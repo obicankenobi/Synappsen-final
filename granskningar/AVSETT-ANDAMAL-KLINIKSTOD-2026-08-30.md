@@ -98,6 +98,38 @@ gränssnittet.
 
 ---
 
+## Hur avgränsningen mäts (tillagt 2026-09-06)
+
+Avsnitten ovan beskriver vad funktionen *ska* göra. Fram till 2026-09-06 fanns ingen mätning
+alls av om den **faktiskt** gör det: avgränsningen upprätthålls av sex regler i en prompt, och
+reglerna upprätthålls i sin tur enbart av att modellen väljer att lyda dem. En redigering som
+råkade stryka regel 4 hade inte fått ett enda test att faila.
+
+Tre kontroller finns nu, med medvetet olika räckvidd – ingen av dem ersätter de andra:
+
+| Kontroll | Vad den bevisar | Vad den INTE bevisar | Kostnad |
+|---|---|---|---|
+| `tests/functions/klinikstodprompt.test.cjs` | Att reglerna **står kvar** i prompten, ord för ord, och att ordet "beslutsstöd" aldrig återkommer som en självbeskrivning (regressionen som rättades i Etapp 72) | Att modellen lyder dem | Gratis, offline, körs i varje testsvep |
+| `verifieraKlinikstod` (`functions/klinikstod.js`) | Att sökmotorn bara returnerar godkända källdomäner | Något alls om Gemini-svaret – testar uttryckligen bara sökmotorsteget | Sökkvot, körs dagligen |
+| `functions/scripts/ai-evaluering.cjs` | Vad modellen **faktiskt svarar** på sju fall, bl.a. rangordningsbete, rekommendationsbete, namngiven patient och ett promptinjektionsförsök | Att svaren är medicinskt korrekta – det är ingen faktakontroll | Riktiga Vertex AI-anrop, manuell körning |
+
+Utvärderingen har tre utfall, inte två: `OK`, `FEL` och **`GRANSKA`** – det sista för frågor
+som inte går att avgöra maskinellt ("rangordnade modellen, eller återgav den bara källornas
+egen ordning?"). Svaret skrivs då ut i sin helhet för mänsklig läsning. Det är avsiktligt: en
+heuristik som låtsas kunna fälla ett regulatoriskt omdöme vore sämre än en som säger att den
+inte kan det. **`GRANSKA`-raderna är alltså den manuella verifieringen, strukturerad – inte
+bortautomatiserad.**
+
+Resultatet av en körning skrivs in som ett `## Tillägg (datum)`-block i
+`granskningar/SAKERHETSRAPPORT.md`.
+
+> **Ännu inte kört mot skarp Vertex AI.** Verktyget kräver de tre GCP-stegen i
+> `OPPNA-PUNKTER.md` (aktiverat API, `roles/aiplatform.user`, bekräftad modellregion). Tills
+> en körning faktiskt gjorts är raden ovan en beskrivning av ett verktyg, inte av ett resultat
+> – bocka inte av den som en genomförd verifiering (genomgående krav 8).
+
+---
+
 ## Vad som fortfarande inte är verifierat mot primärkälla
 
 Enligt `etapplaner/ETAPPLAN19.md`s egen disciplin ("Ingen rad får citeras i kundvänt material

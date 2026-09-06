@@ -53,6 +53,12 @@ Extrahera innehållet och returnera strukturerad data på svenska:
   return JSON.parse(result.text);
 }
 
+// Exporterade 2026-09-06 enbart för functions/scripts/ai-evaluering.cjs, så utvärderingen kan
+// mäta den RIKTIGA prompten och det riktiga schemat i stället för en kopia som kan glida isär
+// från produktionen. Ingen anropsväg i appen ändras av att de går att nå härifrån.
+exports.tolkaBildMedGemini = tolkaBildMedGemini;
+exports.extraktionsSchema = extraktionsSchema;
+
 const OMRADEN = ["kliniskt-stod", "logistik", "administration"];
 
 const FORRAD = [
