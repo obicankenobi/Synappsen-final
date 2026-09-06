@@ -5101,3 +5101,35 @@ taggar – fynd 4.7 utökat till att gälla även `deploy-web.yml`.
 
 Testsvep grönt: lint, 591 tester (upp från 585).
 
+
+## Uppföljning 2026-09-05 (bolagsform avgjord, kontaktadress ifylld)
+
+**Ägarbeslut: enskild firma tills vidare, aktiebolag när kapitalinflöde/budget tillåter.**
+Infört i `BESLUTSLOGG.md` med omprövningsvillkor (första betalande kund, eller kapital som
+täcker bolagsbildning, försäkring och F-skatt). Beslutet är fattat med kännedom om att
+`granskningar/JURIDISK-GRANSKNING.md` §3 pekar ut formen som rapportens allvarligaste enskilda
+risk – risken bortförklaras alltså inte, den bärs medvetet.
+
+**`kontakt@synappsen.se` ifylld** på både startsidan och integritetspolicyn, som klickbar
+`mailto:`. En vakt kräver att båda sidorna anger samma adress och att ingen annan smyger in –
+adressen är sidans enda kontaktväg och tillika kanalen för GDPR-förfrågningar (art. 12, svar
+inom en månad), så två sidor med olika adresser vore en verklig brist.
+
+**Kvarstår, och det är en fråga värd att se separat:** för enskild firma **är
+organisationsnumret personnumret**. E-handelslagen (2002:562) §8 kräver namn, geografisk
+adress, e-post och organisationsnummer av en tjänsteleverantör – men att publicera numret på
+en öppen, skrapbar sida är något annat än att lämna det i ett avtal, och går inte att ta
+tillbaka. Tre vägar skisserade i `OPPNA-PUNKTER.md`, och frågan tillagd som nr 16 i
+`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` §11 så att den externa juristen får
+besvara den i samma uppdrag. Policysidan har därför kvar en synlig platshållare för namn,
+orgnr och postadress – medvetet iögonfallande så att den inte kan publiceras av misstag.
+
+**Ny öppen punkt:** mottagning för `kontakt@synappsen.se` måste finnas innan publicering. En
+publicerad adress som studsar är sämre än ingen adress alls. MX-poster, ingen kod.
+
+**Samma adress ifylld i säljmaterialet.** `kontakt@synappsen.se` ersatte `[E-POST]` i de fem
+`saljmaterial/kallfiler/*.html`-filer som hade platshållaren (tre one-pagers, prislistan,
+tekniska beskrivningen) – alla i samma footer-metarad, `[BOLAGSNAMN]`/`[ORG.NR]`/`[TELEFON]`
+orörda. `Synappsen-upphandlingssvar.html` hade aldrig `[E-POST]`. Checklistan i
+`saljmaterial/00-LAS-DETTA-FORST.md` uppdaterad, raden avbockad.
+

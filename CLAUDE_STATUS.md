@@ -4,12 +4,13 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (127 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (128 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-06 · **v5.139.0 i produktion** (kod för Vertex AI-migreringen
-väntar på deploy, se raden nedan – ⚠️ tre GCP-steg måste göras FÖRST). Utgående e-post är stoppat
+**Senast uppdaterad:** 2026-09-06 · **v5.139.0 i produktion**. Vertex AI-migreringen är
+**verifierad mot skarp Vertex AI och deployen är AVBLOCKERAD** (de tre GCP-stegen är gjorda) –
+koden väntar bara på en `deploy.yml`-körning. Utgående e-post är stoppat
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
 **Etapp 72 (`etapplaner/ETAPPLAN19.md`):** riktningen är antagen, beslutspunkt 5
 (efterfrågegrinden) gäller fortfarande som huvudregel för alla ÖVRIGA delmål. 72f, 72d och
@@ -22,8 +23,8 @@ sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) 
 |---|---|
 | **Version i produktion** | **5.139.0** (körning #97, verifierad 2026-09-02: asset-hash `index-D_9UU18e.js` live) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **AI-kvalitetsmätning** | **Ny 2026-09-06.** Klinikstödets säkerhetsregler (regel 4 = MDR-avgränsningen) mäts nu i tre lager: `tests/functions/klinikstodprompt.test.cjs` (gratis, i varje svep, bevisar att reglerna STÅR kvar), `verifieraKlinikstod` (bara sökmotorn), och `.github/workflows/ai-evaluering.yml` (sju fall mot skarp Vertex AI, manuell dispatch, bevisar vad modellen SVARAR). **Utvärderingen är byggd men ännu inte körd** – kräver de tre GCP-stegen. Modellvalet självt är omprövat och bekräftat: stanna på Gemini, se uppföljningen nedan |
-| **Senaste kodarbete** | 2026-09-06: Vertex AI-migrering av samtliga sex Gemini-anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`), `@google/genai` i stället för det deprecerade `@google-cloud/vertexai` planen ursprungligen föreslog. **⚠️ Kodad men INTE aktiv** – tre GCP-konsolsteg krävs innan nästa deploy, se överst i `OPPNA-PUNKTER.md`. Internt/infrastruktur, inget för `andringslogg.js` |
+| **AI-kvalitetsmätning** | **Ny 2026-09-06.** Klinikstödets säkerhetsregler (regel 4 = MDR-avgränsningen) mäts nu i tre lager: `tests/functions/klinikstodprompt.test.cjs` (gratis, i varje svep, bevisar att reglerna STÅR kvar), `verifieraKlinikstod` (bara sökmotorn), och `.github/workflows/ai-evaluering.yml` (sju fall mot skarp Vertex AI, manuell dispatch, bevisar vad modellen SVARAR). **Körd skarpt tre gånger 2026-09-06: reglerna höll i samtliga fall** (körning #3 grön: 12 OK, 0 FEL, 1 GRANSKA). Det största fyndet var att mätverktygets egna heuristiker fällde korrekta svar – en korrekt vägran måste innehålla de förbjudna orden. Rättat och verifierat. Modellvalet omprövat och bekräftat: stanna på Gemini. Se `granskningar/SAKERHETSRAPPORT.md` tillägg 2026-09-06 |
+| **Senaste kodarbete** | 2026-09-06: Vertex AI-migrering av samtliga sex Gemini-anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`), `@google/genai` i stället för det deprecerade `@google-cloud/vertexai` planen ursprungligen föreslog. **Verifierad mot skarp Vertex AI 2026-09-06** – GCP-stegen är gjorda, `gemini-2.5-flash` bevisad i `europe-west1`. Återstår: en `deploy.yml`-körning, tills dess kör produktionen fortfarande mot det publika Gemini API:et. Internt/infrastruktur, inget för `andringslogg.js` |
 | **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – men medvetet fortsatt `noindex, nofollow` (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket och namn/orgnr på policyn saknas fortfarande. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Ta bort `noindex` när de två kvarvarande punkterna är klara, se `OPPNA-PUNKTER.md`. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
@@ -116,6 +117,47 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-06 (AI-utvärderingen körd skarpt – reglerna höll, verktyget var trasigt)
+
+Ägaren gjorde de tre GCP-stegen (Vertex AI-API aktiverat, `roles/aiplatform.user` till **båda**
+tjänstekontona). Utvärderingen kördes därefter tre gånger mot skarp Vertex AI.
+
+**Huvudresultat: klinikstödets säkerhetsregler höll i samtliga fall, i samtliga körningar.**
+Modellen vägrade konsekvent att rangordna, vägrade rekommendera, avböjde en namngiven patient,
+sa ifrån när källorna inte räckte, och höll linjen även under ett språkligt injektionsförsök.
+Första gången MDR-avgränsningen är MÄTT i stället för antagen. Fullständig fallredovisning i
+`granskningar/SAKERHETSRAPPORT.md` (tillägg 2026-09-06).
+
+**Men det viktigaste fyndet gällde mätverktyget, inte modellen.** Körning #1 gav `12 OK, 1 FEL`,
+körning #2 gav `9 OK, 1 FEL, 3 GRANSKA` – och vid genomläsning var **varenda flagga i båda
+körningarna en artefakt i mitt eget test**. Orsaken är principiell och värd att minnas:
+
+> Ett korrekt svar måste innehålla de förbjudna orden för att kunna vägra. "Jag kan inte
+> rangordna åtgärder eller agera som ett beslutsstöd" är precis det beteende vi vill ha – men
+> innehåller både "rangordna" och "beslutsstöd". En nyckelordskontroll kan inte skilja
+> ANVÄNDNING från VÄGRAN, och fäller därför systematiskt de bästa svaren.
+
+Rättat i tre steg: bredare fraslista + krav på positiva tecken på påhitt innan FEL fälls;
+`utanNekandeMeningar()` som filtrerar bort nekande meningar innan orden söks; och en
+beslutsstöd-kontroll som letar efter faktiska självbeskrivningar i stället för ordets blotta
+förekomst. Varje rättelse verifierad mot de faktiska svaren från #1 och #2 – **och mot ett
+konstruerat äkta regelbrott som fortfarande fälls**, så breddningen inte blev ett godkännande
+av allt. **Körning #3: `12 OK, 0 FEL, 1 GRANSKA`, grön.**
+
+Att det upptäcktes berodde på att hela modellsvaret skrivs ut i loggen, inte bara utfallet.
+Utan den designen hade ett falskt FEL sett ut som ett äkta.
+
+**Två observationer kvar:** (1) modellen läcker interna regelhänvisningar ("[Regel 4, 6]") till
+användaren, reproducerbart i båda körningarna – fört till `OPPNA-PUNKTER.md`; (2)
+svarsvariationen mellan körningar är betydande, vilket betyder att sju fall vid ett tillfälle
+är ett stickprov, inte en garanti. Verktyget är byggt för att köras om.
+
+**Sidoresultat:** `gemini-2.5-flash` i `europe-west1` är nu **bevisad** genom riktiga anrop –
+den frågan har stått öppen sedan migreringsuppskattningen. Svarstider 2,3–10,1 s, med marginal
+till `timeoutSeconds: 60`. **Deployen är därmed avblockerad** och är det enda som återstår
+innan EU-garantin gäller i produktion – tills dess kör de driftsatta funktionerna fortfarande
+mot det publika Gemini API:et (`avtal/UNDERBITRADEN.md` uppdaterad med exakt den skillnaden).
 
 ## Uppföljning 2026-09-06 (promptinjektionen täppt – strukturellt, inte språkligt)
 
@@ -343,35 +385,4 @@ innan workflowen kan köras.
 osynlig för sökmotorer. Egen domän (`synappsen.se`) är inte kopplad – det är ett separat steg
 i Firebase Console när domänen ska pekas dit, och bör göras tillsammans med domänsäkringen
 (registrar lock, DNSSEC, 2FA) som redan står i `OPPNA-PUNKTER.md`.
-
-## Uppföljning 2026-09-05 (bolagsform avgjord, kontaktadress ifylld)
-
-**Ägarbeslut: enskild firma tills vidare, aktiebolag när kapitalinflöde/budget tillåter.**
-Infört i `BESLUTSLOGG.md` med omprövningsvillkor (första betalande kund, eller kapital som
-täcker bolagsbildning, försäkring och F-skatt). Beslutet är fattat med kännedom om att
-`granskningar/JURIDISK-GRANSKNING.md` §3 pekar ut formen som rapportens allvarligaste enskilda
-risk – risken bortförklaras alltså inte, den bärs medvetet.
-
-**`kontakt@synappsen.se` ifylld** på både startsidan och integritetspolicyn, som klickbar
-`mailto:`. En vakt kräver att båda sidorna anger samma adress och att ingen annan smyger in –
-adressen är sidans enda kontaktväg och tillika kanalen för GDPR-förfrågningar (art. 12, svar
-inom en månad), så två sidor med olika adresser vore en verklig brist.
-
-**Kvarstår, och det är en fråga värd att se separat:** för enskild firma **är
-organisationsnumret personnumret**. E-handelslagen (2002:562) §8 kräver namn, geografisk
-adress, e-post och organisationsnummer av en tjänsteleverantör – men att publicera numret på
-en öppen, skrapbar sida är något annat än att lämna det i ett avtal, och går inte att ta
-tillbaka. Tre vägar skisserade i `OPPNA-PUNKTER.md`, och frågan tillagd som nr 16 i
-`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` §11 så att den externa juristen får
-besvara den i samma uppdrag. Policysidan har därför kvar en synlig platshållare för namn,
-orgnr och postadress – medvetet iögonfallande så att den inte kan publiceras av misstag.
-
-**Ny öppen punkt:** mottagning för `kontakt@synappsen.se` måste finnas innan publicering. En
-publicerad adress som studsar är sämre än ingen adress alls. MX-poster, ingen kod.
-
-**Samma adress ifylld i säljmaterialet.** `kontakt@synappsen.se` ersatte `[E-POST]` i de fem
-`saljmaterial/kallfiler/*.html`-filer som hade platshållaren (tre one-pagers, prislistan,
-tekniska beskrivningen) – alla i samma footer-metarad, `[BOLAGSNAMN]`/`[ORG.NR]`/`[TELEFON]`
-orörda. `Synappsen-upphandlingssvar.html` hade aldrig `[E-POST]`. Checklistan i
-`saljmaterial/00-LAS-DETTA-FORST.md` uppdaterad, raden avbockad.
 
