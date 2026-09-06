@@ -35,6 +35,16 @@ jobs:
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
+      # Utvärderingen kör som tjänstekontot i FIREBASE_SERVICE_ACCOUNT
+      # (github-deploy@synappsen-final-build.iam.gserviceaccount.com), INTE som Cloud
+      # Functions runtime-konto. Båda behöver alltså roles/aiplatform.user – runtime-kontot
+      # för att funktionerna ska fungera i produktion, det här för att utvärderingen ska
+      # kunna köras alls. Raden skrivs ut först, så ett PERMISSION_DENIED nedan direkt
+      # pekar ut VILKET konto som saknar rollen i stället för att lämna det som en gissning.
+      - name: Visa vilken identitet utvärderingen kör som
+        run: |
+          echo "Kör som: $(jq -r .client_email "$GOOGLE_APPLICATION_CREDENTIALS")"
+
       - name: Kör AI-utvärderingen
         run: node scripts/ai-evaluering.cjs
         working-directory: functions
