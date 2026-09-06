@@ -5133,3 +5133,26 @@ tekniska beskrivningen) – alla i samma footer-metarad, `[BOLAGSNAMN]`/`[ORG.NR
 orörda. `Synappsen-upphandlingssvar.html` hade aldrig `[E-POST]`. Checklistan i
 `saljmaterial/00-LAS-DETTA-FORST.md` uppdaterad, raden avbockad.
 
+
+## Uppföljning 2026-09-05 (webbplatsen live på .web.app, medvetet noindex)
+
+Ägaren bad om att köra `hosting:sites:create` och deployen, med `noindex` – sidan är ännu
+inte färdig att visa upp brett (bakgrundsstycket, namn/orgnr på policyn och mottagningen
+för `kontakt@synappsen.se` saknas), men ägaren ville kunna se den live.
+
+**`noindex, nofollow` tillagt på båda sidorna**, plus `robots.txt` ändrad till
+`Disallow: /` (var `Allow: /` med en `Sitemap`-rad, som är borttagen tills vidare). Alla tre
+är märkta TILLFÄLLIGT med kommentar om exakt vad som ska vara klart innan de tas bort, och
+en rad i `OPPNA-PUNKTER.md` pekar på samma tre villkor.
+
+**`hosting:sites:create` gjordes idempotent i `deploy-web.yml`** i stället för att köras
+manuellt en gång: ett nytt steg försöker skapa siten och fortsätter tyst om den redan finns
+("already exists" är förväntat på varje körning efter den första). Det tar bort ett manuellt
+engångsmoment permanent – ingen framtida session behöver komma ihåg att siten måste finnas
+innan workflowen kan köras.
+
+**Resultat:** webbplatsen är publicerad på `https://synappsen-web.web.app`, men medvetet
+osynlig för sökmotorer. Egen domän (`synappsen.se`) är inte kopplad – det är ett separat steg
+i Firebase Console när domänen ska pekas dit, och bör göras tillsammans med domänsäkringen
+(registrar lock, DNSSEC, 2FA) som redan står i `OPPNA-PUNKTER.md`.
+

@@ -4,13 +4,13 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (128 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (129 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-06 · **v5.139.0 i produktion**. Vertex AI-migreringen är
-**verifierad mot skarp Vertex AI och deployen är AVBLOCKERAD** (de tre GCP-stegen är gjorda) –
-koden väntar bara på en `deploy.yml`-körning. Utgående e-post är stoppat
+**Senast uppdaterad:** 2026-09-06 · **v5.139.0 i produktion**. **Vertex AI-migreringen är
+DEPLOYAD** (`deploy.yml` #98, success) och utvärderingen är helt ren efter deployen (13 OK,
+0 FEL, 0 GRANSKA). Kvar: bekräfta ett riktigt anrop i appen, se `OPPNA-PUNKTER.md`. Utgående e-post är stoppat
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
 **Etapp 72 (`etapplaner/ETAPPLAN19.md`):** riktningen är antagen, beslutspunkt 5
 (efterfrågegrinden) gäller fortfarande som huvudregel för alla ÖVRIGA delmål. 72f, 72d och
@@ -23,8 +23,8 @@ sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) 
 |---|---|
 | **Version i produktion** | **5.139.0** (körning #97, verifierad 2026-09-02: asset-hash `index-D_9UU18e.js` live) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
-| **AI-kvalitetsmätning** | **Ny 2026-09-06.** Klinikstödets säkerhetsregler (regel 4 = MDR-avgränsningen) mäts nu i tre lager: `tests/functions/klinikstodprompt.test.cjs` (gratis, i varje svep, bevisar att reglerna STÅR kvar), `verifieraKlinikstod` (bara sökmotorn), och `.github/workflows/ai-evaluering.yml` (sju fall mot skarp Vertex AI, manuell dispatch, bevisar vad modellen SVARAR). **Körd skarpt tre gånger 2026-09-06: reglerna höll i samtliga fall** (körning #3 grön: 12 OK, 0 FEL, 1 GRANSKA). Det största fyndet var att mätverktygets egna heuristiker fällde korrekta svar – en korrekt vägran måste innehålla de förbjudna orden. Rättat och verifierat. Modellvalet omprövat och bekräftat: stanna på Gemini. Se `granskningar/SAKERHETSRAPPORT.md` tillägg 2026-09-06 |
-| **Senaste kodarbete** | 2026-09-06: Vertex AI-migrering av samtliga sex Gemini-anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`), `@google/genai` i stället för det deprecerade `@google-cloud/vertexai` planen ursprungligen föreslog. **Verifierad mot skarp Vertex AI 2026-09-06** – GCP-stegen är gjorda, `gemini-2.5-flash` bevisad i `europe-west1`. Återstår: en `deploy.yml`-körning, tills dess kör produktionen fortfarande mot det publika Gemini API:et. Internt/infrastruktur, inget för `andringslogg.js` |
+| **AI-kvalitetsmätning** | **Ny 2026-09-06.** Klinikstödets säkerhetsregler (regel 4 = MDR-avgränsningen) mäts nu i tre lager: `tests/functions/klinikstodprompt.test.cjs` (gratis, i varje svep, bevisar att reglerna STÅR kvar), `verifieraKlinikstod` (bara sökmotorn), och `.github/workflows/ai-evaluering.yml` (sju fall mot skarp Vertex AI, manuell dispatch, bevisar vad modellen SVARAR). **Körd skarpt fyra gånger 2026-09-06: reglerna höll i samtliga fall** (körning #4, efter deployen, helt ren: 13 OK, 0 FEL, 0 GRANSKA). Det största fyndet var att mätverktygets egna heuristiker fällde korrekta svar – en korrekt vägran måste innehålla de förbjudna orden. Rättat och verifierat. Modellvalet omprövat och bekräftat: stanna på Gemini. Se `granskningar/SAKERHETSRAPPORT.md` tillägg 2026-09-06 |
+| **Senaste kodarbete** | 2026-09-06: Vertex AI-migrering av samtliga sex Gemini-anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`), `@google/genai` i stället för det deprecerade `@google-cloud/vertexai` planen ursprungligen föreslog. **Deployad 2026-09-06** (`deploy.yml` #98, success). GCP-stegen gjorda, `gemini-2.5-flash` bevisad i `europe-west1`, utvärderingen ren efter deployen. `avtal/IT-FAKTABLAD.md` p. 7 och `avtal/UNDERBITRADEN.md` uppdaterade – de sa båda att anropen gick via det publika API:et. Internt/infrastruktur, inget för `andringslogg.js` |
 | **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – men medvetet fortsatt `noindex, nofollow` (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket och namn/orgnr på policyn saknas fortfarande. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Ta bort `noindex` när de två kvarvarande punkterna är klara, se `OPPNA-PUNKTER.md`. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
@@ -117,6 +117,34 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-06 (Vertex AI deployad – migreringen är i drift)
+
+`deploy.yml` körning #98, `conclusion: success`, knappt sex minuter. Samtliga funktioner
+uppdaterade. **Vertex AI-migreringen är därmed i drift** – de sex AI-anropsställena går nu mot
+`europe-west1` via tjänstekontots ADC, och `GEMINI_API_KEY` finns varken i koden eller i
+deploykedjan. Asset-hashen är oförändrad, vilket är korrekt: releasen rörde bara `functions/`.
+
+**Utvärderingen kördes om direkt efter deployen: `13 OK, 0 FEL, 0 GRANSKA`** – första helt rena
+körningen. Fyra körningar totalt, samma slutsats varje gång: säkerhetsreglerna håller.
+
+**Två kundvända dokument rättades i samma veva**, eftersom de blev felaktiga i samma sekund
+deployen lyckades: `avtal/IT-FAKTABLAD.md` punkt 7 (sa att AI-tolkningen gick via Googles
+publika Gemini-API – det är ett dokument som lämnas till kunders IT-avdelningar i upphandlingar)
+och `avtal/UNDERBITRADEN.md`.
+
+**Vad som medvetet INTE bockades av:** utvärderingen anropar modellen förbi `onCall`-lagret, på
+en GitHub-runner. Den bevisar kodvägen, inte ett användaranrop genom en **driftsatt** funktion.
+Skillnaden är liten men verklig, och genomgående krav 8 säger att ett ✅ aldrig får sättas på
+något som inte faktiskt observerats. Kvar som en tvåminuterspunkt i `OPPNA-PUNKTER.md`: gör en
+bildimport i appen. Misslyckas den syns det direkt – ingen väg till det gamla API:et finns kvar,
+så en funktion felar hellre än faller tillbaka tyst.
+
+**En lärdom om verktygen, inte om koden:** GitHub-API:et serverade cachade svar under hela
+deployen och visade `in_progress` i över en timme efter att jobbet i själva verket var klart
+20:04. Jag rapporterade det stale läget som pågående. Loggendpointen (404 medan jobbet kör,
+innehåll när det är klart) visade sig vara den enda tillförlitliga signalen på att en körning
+faktiskt avslutats.
 
 ## Uppföljning 2026-09-06 (AI-utvärderingen körd skarpt – reglerna höll, verktyget var trasigt)
 
@@ -363,26 +391,4 @@ var borttagna – bara site-valet i konsolen var fel, inget i DNS-zonen behövde
 
 Ingen kodändring i detta steg utöver kommentarraden ovan. Väntar på att ägaren slutför
 domänkopplingen mot rätt site och att certifikatet utfärdas.
-
-## Uppföljning 2026-09-05 (webbplatsen live på .web.app, medvetet noindex)
-
-Ägaren bad om att köra `hosting:sites:create` och deployen, med `noindex` – sidan är ännu
-inte färdig att visa upp brett (bakgrundsstycket, namn/orgnr på policyn och mottagningen
-för `kontakt@synappsen.se` saknas), men ägaren ville kunna se den live.
-
-**`noindex, nofollow` tillagt på båda sidorna**, plus `robots.txt` ändrad till
-`Disallow: /` (var `Allow: /` med en `Sitemap`-rad, som är borttagen tills vidare). Alla tre
-är märkta TILLFÄLLIGT med kommentar om exakt vad som ska vara klart innan de tas bort, och
-en rad i `OPPNA-PUNKTER.md` pekar på samma tre villkor.
-
-**`hosting:sites:create` gjordes idempotent i `deploy-web.yml`** i stället för att köras
-manuellt en gång: ett nytt steg försöker skapa siten och fortsätter tyst om den redan finns
-("already exists" är förväntat på varje körning efter den första). Det tar bort ett manuellt
-engångsmoment permanent – ingen framtida session behöver komma ihåg att siten måste finnas
-innan workflowen kan köras.
-
-**Resultat:** webbplatsen är publicerad på `https://synappsen-web.web.app`, men medvetet
-osynlig för sökmotorer. Egen domän (`synappsen.se`) är inte kopplad – det är ett separat steg
-i Firebase Console när domänen ska pekas dit, och bör göras tillsammans med domänsäkringen
-(registrar lock, DNSSEC, 2FA) som redan står i `OPPNA-PUNKTER.md`.
 

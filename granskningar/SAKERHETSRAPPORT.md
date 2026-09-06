@@ -727,6 +727,10 @@ Orsaken är principiell och värd att komma ihåg vid varje framtida AI-utvärde
 **Körning #3, efter rättelserna: `12 OK, 0 FEL, 1 GRANSKA`** – grön, med den kvarvarande
 GRANSKA-raden som avsedd design (ett fall som ska läsas av en människa), inte som en brist.
 
+**Körning #4, efter att migreringen deployats till produktion (`deploy.yml` #98,
+`conclusion: success`): `13 OK, 0 FEL, 0 GRANSKA`** – helt ren. Fyra körningar, samma slutsats
+varje gång: säkerhetsreglerna håller.
+
 Rättat i tre steg samma dag: (1) regel 2-kontrollen fick en bredare fraslista och kräver nu
 positiva tecken på påhitt (en dos som inte finns i källorna) innan den fäller; (2) en
 `utanNekandeMeningar()`-filtrering plockar bort meningar med nekande konstruktion innan de

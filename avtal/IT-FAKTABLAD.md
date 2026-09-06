@@ -152,9 +152,13 @@ aktiverats.**
   bekräftas där. Se `avtal/UNDERBITRADEN.md`, Etapp 13b, för samma öppna punkt.] Svara
   med den faktiska regionen, inte en formulering – det är den vanligaste frågan från en
   IT-säkerhetsgranskning.
-- **AI-bildtolkning (Gemini):** går för närvarande via Googles publika Gemini API, vars
-  regionsgaranti skiljer sig från Google Vertex AI. Se `avtal/UNDERBITRADEN.md` för
-  detaljer om detta är relevant för er.
+- **AI-bildtolkning och klinikstöd (Gemini):** går sedan **2026-09-06** via **Google Vertex AI
+  i regionen europe-west1 (Belgien)**, alltså samma region som funktionerna, databasen och
+  filerna. Tidigare gick anropen via Googles publika Gemini API, vars regionsgaranti är svagare;
+  migreringen gjordes just för att kunna ge ett tydligt svar på den här frågan. Autentisering
+  sker med Google Clouds tjänstekontobehörighet, inte med en fristående API-nyckel. Modellen är
+  `gemini-2.5-flash`, och dess tillgänglighet i europe-west1 är verifierad genom faktiska anrop,
+  inte enbart utläst ur dokumentation. Se `avtal/UNDERBITRADEN.md` för underbiträdesdetaljerna.
 
 ## 8. Vad händer när avtalet avslutas
 
