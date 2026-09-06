@@ -78,19 +78,24 @@ rutiner/förrådsartiklar (`functions/ai-import.js`, modell `gemini-2.5-flash`).
 - **Vad som skickas:** bilder/dokument som en redaktör själv laddar upp, avsett att
   uteslutande innehålla verksamhetsinformation (whiteboard-anteckningar,
   inventarielistor) – inte patientuppgifter, se `avtal/PUB-AVTAL-MALL.md` punkt 2.
-- **Kodmigrerad till Vertex AI 2026-09-06, men INTE AKTIV ÄNNU.** Samtliga sex Gemini-
-  anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`) använder nu
-  `@google/genai` mot Vertex AI (`enterprise: true`, projekt `synappsen-final-build`,
-  region `europe-west1`) i stället för det publika Gemini API:et. Autentisering sker via
-  Cloud Functions-tjänstekontots Application Default Credentials, ingen fristående
-  API-nyckel längre. **Regional databehandling (EU-only) är alltså den tekniska garantin
-  som nu är byggd in i koden – men den gäller inte förrän ägaren gjort tre GCP-
-  konsolsteg som inte kan göras från en kodsession** (aktivera Vertex AI-API:et, ge
-  tjänstekontot rollen `roles/aiplatform.user`, bekräfta att `gemini-2.5-flash` finns i
-  `europe-west1`). Se `OPPNA-PUNKTER.md` och
-  `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md` (tillägg
-  2026-09-06) för status. **Bocka inte av den här raden som helt klar förrän en riktig
-  begäran har verifierats gå via Vertex AI i produktion** (genomgående krav 8).
+- **Kodmigrerad till Vertex AI 2026-09-06. GCP-sidan är klar och verifierad – men koden är
+  ÄNNU INTE DEPLOYAD.** Samtliga sex Gemini-anropsställen (`functions/ai-import.js`,
+  `functions/klinikstod.js`) använder `@google/genai` mot Vertex AI (`enterprise: true`,
+  projekt `synappsen-final-build`, region `europe-west1`) i stället för det publika Gemini
+  API:et. Autentisering sker via Application Default Credentials, ingen fristående
+  API-nyckel längre.
+- **Vad som ÄR verifierat (2026-09-06):** Vertex AI-API:et är aktiverat, båda tjänstekontona
+  har `roles/aiplatform.user`, och **`gemini-2.5-flash` är bekräftat tillgänglig i
+  `europe-west1`** – inte utläst ur dokumentation, utan bevisad genom sju riktiga anrop som
+  alla besvarades (`.github/workflows/ai-evaluering.yml`, körning #1, se
+  `granskningar/SAKERHETSRAPPORT.md`). Den öppna frågan om regional modelltillgänglighet är
+  därmed stängd.
+- **Vad som ÅTERSTÅR:** en `deploy.yml`-körning. Fram tills dess kör de driftsatta
+  funktionerna fortfarande den gamla koden mot det publika Gemini API:et, och
+  EU-garantin gäller alltså **inte** i produktion ännu. **Bocka inte av den här raden som
+  helt klar förrän deployen är gjord och ett riktigt användaranrop verifierats gå via
+  Vertex AI** (genomgående krav 8). Se `OPPNA-PUNKTER.md` och
+  `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md` (tillägg 2026-09-06).
 
 ### Google Programmerbara sökmotorn (Custom Search JSON API)
 
