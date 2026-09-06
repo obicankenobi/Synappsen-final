@@ -39,7 +39,7 @@ vilka av dem som är avgjorda beslut och `OPPNA-PUNKTER.md` för vilka som är �
 
 ## Dokumentkarta
 
-**Fullständig inventering av alla 74 dokument finns i `DOKUMENTREGISTER.md`** – med typ
+**Fullständig inventering av alla 78 dokument finns i `DOKUMENTREGISTER.md`** – med typ
 (levande/referens/mall/historisk), om dokumentet lämnas ut externt, och vad som utlöser en
 uppdatering. Registret bevakas av `tests/docs/dokumentregister.test.js`, som failar om ett
 dokument tillkommer, flyttas eller raderas utan att registret följer med. **Ett nytt dokument

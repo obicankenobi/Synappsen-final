@@ -12,6 +12,9 @@
 **verifierad mot skarp Vertex AI och deployen är AVBLOCKERAD** (de tre GCP-stegen är gjorda) –
 koden väntar bara på en `deploy.yml`-körning. Utgående e-post är stoppat
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
+**Webbplatsen har fått skärmbilder ur appen, fyra publicerade dokumentsidor och räknade
+bevissiffror** (se uppföljningen 2026-09-06 om bevisluckan) – fortfarande `noindex`, nu sex
+sidor som ska avgömmas samtidigt.
 **Etapp 72 (`etapplaner/ETAPPLAN19.md`):** riktningen är antagen, beslutspunkt 5
 (efterfrågegrinden) gäller fortfarande som huvudregel för alla ÖVRIGA delmål. 72f, 72d och
 72h byggda och deployade som ett uttryckligt, engångsbeslutat undantag från grinden (se
@@ -117,6 +120,49 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-06 (webbplatsens bevislucka – skärmbilder, publicerat underlag, räknade tal)
+
+**Utgångspunkt:** en genomgång av `synappsen-web/index.html` mot `produkt/VARUMARKE.md` och
+`produkt/GRAFISK-PROFIL.md` pekade ut sidans svagaste punkt som en **bevislucka**: 2 300 ord
+och 33 funktionsrubriker, men noll skärmbilder, noll läsbara dokument och en rad i sidfoten om
+att underlaget "lämnas på begäran". `VARUMARKE.md` §1 säger att vallgraven ÄR underlaget, och
+att skillnaden mot en konkurrent är inbjudan *"här är underlaget, kontrollera själv"* – den
+inbjudan skickade sidan aldrig. Ägaren bad om tre åtgärder, plus att löftet om en demomiljö
+skulle strykas.
+
+**1. Skärmbilder i stället för attrapper.** Hjältesektionens sökruta var handritad HTML, och
+felstavad: markupen `Urin<mark>kad</mark>eter` renderade **"Urinkadeter"**, medan bildtexten
+under och attrappens egen `aria-label` stavade "urinkateter" rätt – en klinisk term stavad fel
+i det första en vårdanställd läsare ser. Fyra bilder fotograferas nu ur den körande appen med
+demodata (`synappsen-web/verktyg/demodata.mjs`, `skarmbilder.spec.mjs`,
+`skarmbilder.config.mjs` – egen Playwright-konfiguration, medvetet utanför CI, eftersom
+marknadsbilder inte ska kunna göra bygget rött).
+
+**2. Underlaget publicerat.** Ny `underlag.html`, plus tre sidor som **genereras** ur
+markdownkällorna av `verktyg/bygg-underlag.mjs`: tillgänglighetsredogörelsen,
+underbiträdesförteckningen och IT-faktabladet. Handkopiering hade blivit projektets sjunde
+driftfall; nu jämför `webbplats.test.js` den committade sidan med generatorns utdata och failar
+vid drift. PUB-avtalsmallen och DPIA-underlaget stannar bakom en förfrågan – se
+`BESLUTSLOGG.md`, där gränsen mellan "Extern = ja" och "publikt" också är utskriven.
+
+**3. Räknade tal i stället för adjektiv.** Sidan anger nu 404 behörighetstester, 185
+isoleringstester och 9 säkerhetsgenomgångar, räknade ur källan och bundna av fyra nya
+assertioner i `dokumentpastaenden.test.js`.
+
+**Fynd som inte gick att åtgärda härifrån:** `/kliniskt-stod` går inte att fotografera, eftersom
+`KlinisktStod.jsx:11` säger "triageringsstöd" och `KlinikfragaSok.jsx:92` säger "Beslutsstöd" –
+de två ord `webbplats.test.js` förbjuder på sidan. Bristen är känd sedan tidigare
+(`PRODUKTDEFINITION` § 9.1/9.3), men konsekvensen är ny och står nu i `OPPNA-PUNKTER.md`:
+produktens mest säljbara vy är den enda som inte kan visas. Sidan säger dessutom fortfarande
+"vi" där `VARUMARKE.md` §8 kräver "jag" – egen rad i `OPPNA-PUNKTER.md`.
+
+**Kvar innan `noindex` kan tas bort:** bakgrundsstycket (P1) och namn/orgnr på policyn (fråga
+#16) som förut – och nu även en genomläsning av de tre publicerade dokumentsidorna, som
+exponerar den öppna Brevo-bristen och interna sökvägar. Sex sidor ska avgömmas samtidigt, inte
+två.
+
+---
 
 ## Uppföljning 2026-09-06 (AI-utvärderingen körd skarpt – reglerna höll, verktyget var trasigt)
 
@@ -336,53 +382,3 @@ som en kombinerad tid – skriptet (`functions/scripts/rto-matning.cjs` rad 67�
 själva verket ENBART `aterstallOrganisation()`-anropet, inte backupsteget. Formuleringen
 rättad till att vara tydlig om vad som faktiskt mäts. Testorganisationen städades bort
 automatiskt, ingen skarp kunddata rörd.
-
-## Uppföljning 2026-09-05 (domänkoppling pågår, e-postmottagning bekräftad)
-
-Ägaren är mitt i att koppla `synappsen.se` till hosting-siten via Firebase Console, med
-Loopia som registrar/DNS-leverantör.
-
-**`kontakt@synappsen.se` bekräftat mottagande** (Google Workspace, `MX → SMTP.GOOGLE.COM`
-redan i DNS-zonen). Öppna punkten om mottagning borttagen ur `OPPNA-PUNKTER.md` – en av tre
-kvarvarande blockerare för att ta bort `noindex` är därmed löst. Kommentarerna i
-`index.html`, `integritet.html` och `robots.txt` uppdaterade till att bara nämna de två
-kvarvarande (bakgrundsstycket, namn/orgnr på policyn).
-
-**Ett verkligt fel uppmärksammat innan det fick konsekvens:** ägaren skickade en skärmbild av
-Firebase Consolens domänverifiering. Verifierings-TXT-posten sa `hosting-site=synappsen-
-final-build` – enligt `.firebaserc` är `synappsen-final-build` **appens** hosting-site
-(target `app`), inte `synappsen-web` (target `web`, marknadssidan). "Lägg till anpassad
-domän" hade alltså startats från fel site i konsolen. Hade det fullföljts skulle
-`synappsen.se` ha visat kundappen/inloggningssidan i stället för marknadssidan. Ägaren
-instruerad att göra om det från `synappsen-web`-siten specifikt
-(`console.firebase.google.com/project/synappsen-final-build/hosting/sites/synappsen-web`).
-
-DNS-arbetet i övrigt var korrekt utfört: apex-postens `A`-värde och den ursprungliga
-`TXT`-verifieringen matchade exakt vad Firebase bad om, och de gamla parkerings-A-posterna
-var borttagna – bara site-valet i konsolen var fel, inget i DNS-zonen behövde ändras om.
-
-Ingen kodändring i detta steg utöver kommentarraden ovan. Väntar på att ägaren slutför
-domänkopplingen mot rätt site och att certifikatet utfärdas.
-
-## Uppföljning 2026-09-05 (webbplatsen live på .web.app, medvetet noindex)
-
-Ägaren bad om att köra `hosting:sites:create` och deployen, med `noindex` – sidan är ännu
-inte färdig att visa upp brett (bakgrundsstycket, namn/orgnr på policyn och mottagningen
-för `kontakt@synappsen.se` saknas), men ägaren ville kunna se den live.
-
-**`noindex, nofollow` tillagt på båda sidorna**, plus `robots.txt` ändrad till
-`Disallow: /` (var `Allow: /` med en `Sitemap`-rad, som är borttagen tills vidare). Alla tre
-är märkta TILLFÄLLIGT med kommentar om exakt vad som ska vara klart innan de tas bort, och
-en rad i `OPPNA-PUNKTER.md` pekar på samma tre villkor.
-
-**`hosting:sites:create` gjordes idempotent i `deploy-web.yml`** i stället för att köras
-manuellt en gång: ett nytt steg försöker skapa siten och fortsätter tyst om den redan finns
-("already exists" är förväntat på varje körning efter den första). Det tar bort ett manuellt
-engångsmoment permanent – ingen framtida session behöver komma ihåg att siten måste finnas
-innan workflowen kan köras.
-
-**Resultat:** webbplatsen är publicerad på `https://synappsen-web.web.app`, men medvetet
-osynlig för sökmotorer. Egen domän (`synappsen.se`) är inte kopplad – det är ett separat steg
-i Firebase Console när domänen ska pekas dit, och bör göras tillsammans med domänsäkringen
-(registrar lock, DNSSEC, 2FA) som redan står i `OPPNA-PUNKTER.md`.
-

@@ -5133,3 +5133,53 @@ tekniska beskrivningen) – alla i samma footer-metarad, `[BOLAGSNAMN]`/`[ORG.NR
 orörda. `Synappsen-upphandlingssvar.html` hade aldrig `[E-POST]`. Checklistan i
 `saljmaterial/00-LAS-DETTA-FORST.md` uppdaterad, raden avbockad.
 
+---
+
+## Uppföljning 2026-09-05 (domänkoppling pågår, e-postmottagning bekräftad)
+
+Ägaren är mitt i att koppla `synappsen.se` till hosting-siten via Firebase Console, med
+Loopia som registrar/DNS-leverantör.
+
+**`kontakt@synappsen.se` bekräftat mottagande** (Google Workspace, `MX → SMTP.GOOGLE.COM`
+redan i DNS-zonen). Öppna punkten om mottagning borttagen ur `OPPNA-PUNKTER.md` – en av tre
+kvarvarande blockerare för att ta bort `noindex` är därmed löst. Kommentarerna i
+`index.html`, `integritet.html` och `robots.txt` uppdaterade till att bara nämna de två
+kvarvarande (bakgrundsstycket, namn/orgnr på policyn).
+
+**Ett verkligt fel uppmärksammat innan det fick konsekvens:** ägaren skickade en skärmbild av
+Firebase Consolens domänverifiering. Verifierings-TXT-posten sa `hosting-site=synappsen-
+final-build` – enligt `.firebaserc` är `synappsen-final-build` **appens** hosting-site
+(target `app`), inte `synappsen-web` (target `web`, marknadssidan). "Lägg till anpassad
+domän" hade alltså startats från fel site i konsolen. Hade det fullföljts skulle
+`synappsen.se` ha visat kundappen/inloggningssidan i stället för marknadssidan. Ägaren
+instruerad att göra om det från `synappsen-web`-siten specifikt
+(`console.firebase.google.com/project/synappsen-final-build/hosting/sites/synappsen-web`).
+
+DNS-arbetet i övrigt var korrekt utfört: apex-postens `A`-värde och den ursprungliga
+`TXT`-verifieringen matchade exakt vad Firebase bad om, och de gamla parkerings-A-posterna
+var borttagna – bara site-valet i konsolen var fel, inget i DNS-zonen behövde ändras om.
+
+Ingen kodändring i detta steg utöver kommentarraden ovan. Väntar på att ägaren slutför
+domänkopplingen mot rätt site och att certifikatet utfärdas.
+
+## Uppföljning 2026-09-05 (webbplatsen live på .web.app, medvetet noindex)
+
+Ägaren bad om att köra `hosting:sites:create` och deployen, med `noindex` – sidan är ännu
+inte färdig att visa upp brett (bakgrundsstycket, namn/orgnr på policyn och mottagningen
+för `kontakt@synappsen.se` saknas), men ägaren ville kunna se den live.
+
+**`noindex, nofollow` tillagt på båda sidorna**, plus `robots.txt` ändrad till
+`Disallow: /` (var `Allow: /` med en `Sitemap`-rad, som är borttagen tills vidare). Alla tre
+är märkta TILLFÄLLIGT med kommentar om exakt vad som ska vara klart innan de tas bort, och
+en rad i `OPPNA-PUNKTER.md` pekar på samma tre villkor.
+
+**`hosting:sites:create` gjordes idempotent i `deploy-web.yml`** i stället för att köras
+manuellt en gång: ett nytt steg försöker skapa siten och fortsätter tyst om den redan finns
+("already exists" är förväntat på varje körning efter den första). Det tar bort ett manuellt
+engångsmoment permanent – ingen framtida session behöver komma ihåg att siten måste finnas
+innan workflowen kan köras.
+
+**Resultat:** webbplatsen är publicerad på `https://synappsen-web.web.app`, men medvetet
+osynlig för sökmotorer. Egen domän (`synappsen.se`) är inte kopplad – det är ett separat steg
+i Firebase Console när domänen ska pekas dit, och bör göras tillsammans med domänsäkringen
+(registrar lock, DNSSEC, 2FA) som redan står i `OPPNA-PUNKTER.md`.

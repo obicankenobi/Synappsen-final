@@ -123,32 +123,20 @@
         <a class="knapp knapp--tom" href="#losningen">Se hur det fungerar</a>
       </div>
 
-      <div class="sok" role="img" aria-label="Exempel på sökning: söktermen kad ger två träffar – rutinen Urinkateter (KAD) inläggning under Kliniskt stöd, och förrådsartikeln KAD-set på skåp 4, hylla B under Logistik.">
-        <div class="sok__falt">
-          <svg class="sok__ikon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-            <circle cx="7" cy="7" r="4.6" /><path d="M10.5 10.5 L14 14" stroke-linecap="round" />
-          </svg>
-          <span class="sok__term">kad</span>
-          <span class="sok__markor" aria-hidden="true"></span>
-        </div>
-        <div class="traff">
-          <div>
-            <div class="traff__titel">Urin<mark>kad</mark>eter (KAD) – inläggning</div>
-            <div class="traff__plats">Granskad 12 dagar sedan · Ägare: Sektionsledare</div>
-          </div>
-          <span class="badge badge--doman-kliniskt-stod">Kliniskt stöd</span>
-        </div>
-        <div class="traff">
-          <div>
-            <div class="traff__titel"><mark>KAD</mark>-set, Foley 14 Ch</div>
-            <div class="traff__plats">Skåp 4 · Hylla B · 12 st i lager</div>
-          </div>
-          <span class="badge badge--doman-logistik">Logistik</span>
-        </div>
-      </div>
-      <p class="sok__not">
-        Sökningen är felstavningstålig – "kad" hittar "urinkateter" utan exakt träff.
-      </p>
+      <!-- Skärmbild, inte attrapp. Den handritade sökrutan som stod här till 2026-09-06
+           renderade "Urinkadeter" – ordet var felstavat i markupen för att markeringen skulle
+           gå ihop, samtidigt som bildtexten under stavade det rätt. Bilden nedan är fotograferad
+           ur den körande appen av synappsen-web/verktyg/skarmbilder.spec.mjs. Rita aldrig av ett
+           gränssnitt för hand igen. -->
+      <figure class="bild bild--ensam" style="margin-top: 34px;">
+        <img src="/bilder/app-sok.png" width="780" height="1688"
+             alt="Sökning i appen på ordet kad. Elva träffar fördelade på Kliniskt stöd, Logistik och Administration, med rutinen Urinkateter (KAD) inläggning överst och förrådsartikeln KAD-set Foley 16 Ch på skåp 4, hylla B under den." />
+        <figcaption>
+          Sökningen är felstavningstålig: "kad" hittar både rutinen "Urinkateter (KAD)" och
+          KAD-seten i förrådet, med hyllplatsen i träfflistan. Skärmbild ur appen med
+          demodata, inte från en verklig enhet.
+        </figcaption>
+      </figure>
     </section>
 
     <!-- 01 PROBLEMET -->
@@ -215,6 +203,25 @@
         Varje område har en fast färg genom hela appen – och den kan aldrig förväxlas med en
         statusfärg, eftersom de två ligger i skilda färgfamiljer.
       </p>
+
+      <div class="bilder" style="margin-top: 34px;">
+        <figure class="bild">
+          <img src="/bilder/app-rutiner.png" width="780" height="1688"
+               alt="En rutin i appen med raderna Godkänd av, Senast granskad av med datum och Ansvarig, samt knappar för att kvittera läsning, skriva ut, visa QR-kod och föreslå en ändring." />
+          <figcaption>
+            Varje rutin bär vem som godkänt den, när den senast granskades och vem som äger
+            den. Kvitteringsknappen är personalens, inte redaktörens.
+          </figcaption>
+        </figure>
+        <figure class="bild">
+          <img src="/bilder/app-forrad.png" width="780" height="1688"
+               alt="Sterilförrådet i appen. Varje artikel visar förråd, skåp och hylla samt antal i lager, med en knapp för att anmäla slut eller lågt saldo." />
+          <figcaption>
+            Förrådet med exakt plats: förråd, skåp, hylla. Bristanmälan ligger på samma kort
+            som artikeln.
+          </figcaption>
+        </figure>
+      </div>
 
       <div style="margin-top: 44px;">
         <ul class="punkter">
@@ -283,6 +290,15 @@
           </div>
         </div>
       </div>
+
+      <figure class="bild bild--ensam" style="margin-top: 34px;">
+        <img src="/bilder/app-ledningsrapport.png" width="780" height="1688"
+             alt="Ledningsrapporten i appen. Tabell med kvitteringsgrad per område: Kliniskt stöd fyra rutiner 75 procent, Administration två rutiner 83 procent, Logistik sex godkända artiklar där kvittering inte spåras per förrådsartikel. Under tabellen börjar avsnittet Rutiner som bör granskas." />
+        <figcaption>
+          Ledningsrapporten, exporterbar som PDF. Skärmbild med demodata – siffrorna kommer
+          från sex påhittade rutiner, inte från en enhet i drift.
+        </figcaption>
+      </figure>
     </section>
 
     <!-- 04 LEVANDE INNEHÅLL -->
@@ -364,7 +380,7 @@
         </div>
         <div class="ruta">
           <h3>Fullständig organisationsisolering</h3>
-          <p>Varje vårdorganisation är helt separerad i databasen. Isoleringen är verifierad med automatiska tester som körs vid varje kodändring – inte bara granskad en gång.</p>
+          <p>Varje vårdorganisation är helt separerad i databasen. 404 automatiska behörighetstester körs vid varje kodändring, och 185 av dem prövar bara den ena saken: att en organisation aldrig kan nå en annans data.</p>
         </div>
         <div class="ruta">
           <h3>Ingen stående läsåtkomst för leverantören</h3>
@@ -376,7 +392,7 @@
         </div>
         <div class="ruta">
           <h3>Upphandlingsklart</h3>
-          <p>PUB-avtalsmall, underbiträdesförteckning, DPIA-underlag och ett tekniskt faktablad till IT-avdelningen finns färdiga. Ett inköpsbeslut behöver inte vänta på att någon skriver dem.</p>
+          <p>PUB-avtalsmall, underbiträdesförteckning, DPIA-underlag och ett tekniskt faktablad till IT-avdelningen finns färdiga. Tre av dem ligger <a href="/underlag.html">publicerade i sin helhet</a> – ni behöver inte fråga för att läsa dem.</p>
         </div>
       </div>
     </section>
@@ -669,8 +685,8 @@
       <span class="eyebrow">Kontakt</span>
       <h2>Boka en genomgång eller en pilot.</h2>
       <p class="lede" style="font-size: 17px;">
-        Vi visar appen i skarpt läge, går igenom upphandlingsunderlaget med er IT-avdelning
-        och sätter upp en demomiljö ni kan prova fritt.
+        Vi visar appen i skarpt läge och går igenom upphandlingsunderlaget med er
+        IT-avdelning.
       </p>
       <p class="kontakt"><a class="kontakt__epost" href="mailto:kontakt@synappsen.se">kontakt@synappsen.se</a></p>
     </div>
@@ -678,7 +694,7 @@
     <footer>
       <span>Synappsen · Digital kunskapsbank för vården</span>
       <span><a href="/integritet.html">Integritetspolicy</a></span>
-      <span>PUB-avtalsmall, DPIA-underlag och tekniskt faktablad lämnas på begäran.</span>
+      <span><a href="/underlag.html">Underlag och dokumentation</a></span>
     </footer>
   </main>
 </div>
