@@ -22,7 +22,7 @@ sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) 
 | **Version i produktion** | **5.139.0** (körning #97, verifierad 2026-09-02: asset-hash `index-D_9UU18e.js` live) |
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **Senaste kodarbete** | v5.138.0: Etapp 72 beslutspunkt 5 undantag 1. Artikel 50-märkning byggd (`src/components/RutinKort.jsx`, en AI-tolkad rutins ursprung visas i läsvyn – bekräftad brist sedan `granskningar/JURIDISK-GRANSKNING.md` §7.4). Rättade en självmotsägelse i `functions/klinikstod.js`s Gemini-prompt ("Detta är beslutsstöd" stod rakt emot MDR-avgränsningen). **Detta är kundvänt** – första sådana ändringen sedan Etapp 69 |
-| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på `https://synappsen-web.web.app`, men medvetet `noindex, nofollow`** (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket, namn/orgnr på policyn och mottagningen för `kontakt@synappsen.se` saknas fortfarande. `deploy-web.yml` skapar hosting-siten idempotent, ingen manuell CLI-åtgärd krävs längre. Ta bort `noindex` när de tre punkterna är klara, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
+| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på `https://synappsen-web.web.app`, men medvetet `noindex, nofollow`** (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket och namn/orgnr på policyn saknas fortfarande. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. Egen domän `synappsen.se` pågår hos ägaren (Loopia) – DNS-posterna för apex är korrekt satta, men "Lägg till anpassad domän" måste startas om från rätt hosting-site (`synappsen-web`, inte `synappsen-final-build`). `deploy-web.yml` skapar hosting-siten idempotent. Ta bort `noindex` när de två kvarvarande punkterna är klara, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
 | **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. Ta samtidigt ägarbeslutet om "Beslutsstöd"-raden i `OPPNA-PUNKTER.md`. Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
@@ -114,6 +114,33 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-05 (domänkoppling pågår, e-postmottagning bekräftad)
+
+Ägaren är mitt i att koppla `synappsen.se` till hosting-siten via Firebase Console, med
+Loopia som registrar/DNS-leverantör.
+
+**`kontakt@synappsen.se` bekräftat mottagande** (Google Workspace, `MX → SMTP.GOOGLE.COM`
+redan i DNS-zonen). Öppna punkten om mottagning borttagen ur `OPPNA-PUNKTER.md` – en av tre
+kvarvarande blockerare för att ta bort `noindex` är därmed löst. Kommentarerna i
+`index.html`, `integritet.html` och `robots.txt` uppdaterade till att bara nämna de två
+kvarvarande (bakgrundsstycket, namn/orgnr på policyn).
+
+**Ett verkligt fel uppmärksammat innan det fick konsekvens:** ägaren skickade en skärmbild av
+Firebase Consolens domänverifiering. Verifierings-TXT-posten sa `hosting-site=synappsen-
+final-build` – enligt `.firebaserc` är `synappsen-final-build` **appens** hosting-site
+(target `app`), inte `synappsen-web` (target `web`, marknadssidan). "Lägg till anpassad
+domän" hade alltså startats från fel site i konsolen. Hade det fullföljts skulle
+`synappsen.se` ha visat kundappen/inloggningssidan i stället för marknadssidan. Ägaren
+instruerad att göra om det från `synappsen-web`-siten specifikt
+(`console.firebase.google.com/project/synappsen-final-build/hosting/sites/synappsen-web`).
+
+DNS-arbetet i övrigt var korrekt utfört: apex-postens `A`-värde och den ursprungliga
+`TXT`-verifieringen matchade exakt vad Firebase bad om, och de gamla parkerings-A-posterna
+var borttagna – bara site-valet i konsolen var fel, inget i DNS-zonen behövde ändras om.
+
+Ingen kodändring i detta steg utöver kommentarraden ovan. Väntar på att ägaren slutför
+domänkopplingen mot rätt site och att certifikatet utfärdas.
 
 ## Uppföljning 2026-09-05 (webbplatsen live på .web.app, medvetet noindex)
 
@@ -344,40 +371,3 @@ utan att skriva om dokumentet.
 Etapp 64 redan väntar på (`OPPNA-PUNKTER.md`, "Kräver en bokad människa"). § 11 innehåller 15
 frågor grupperade i fem områden; § 12 listar vad granskaren behöver få tillgång till – notera
 särskilt att säljmaterialet är en primärkälla i MDR-bedömningen, inte en bilaga.
-
-## Uppföljning 2026-09-02 (v5.139.0 – 72f/72d/72h byggda på ägarens engångsinstruktion)
-
-Ägaren instruerade direkt: "bygg och deploya delmål 72f, 72d och 72h" – ett uttryckligt
-engångsundantag från Etapp 72s efterfrågegrind (beslutspunkt 5 i `etapplaner/ETAPPLAN19.md`,
-se `BESLUTSLOGG.md` 2026-09-02). Grindens huvudregel gäller oförändrad för alla övriga
-delmål i etappen.
-
-**72f – Driftstoppsläge.** Exakt spegling av akutlägets mönster (`useAkutlageRutiner.js`,
-`Akutlage.jsx`, `AkutlagePrefetch.jsx`) med egna fält (`driftstopp`/`driftstoppOrdning`) och
-egen visuell identitet (blå/gul, inte akutlägets larmröda). Ny route `/driftstopp`, nytt
-startvyblock (ingen ny flytande knapp – skulle konkurrera med "🚨 Akut"). `firestore.rules`
-skyddar de nya fälten med samma VÖL/superadmin-spärr som akutläget, testat i
-`tests/rules/organisationsisolering.test.mjs`. Byggde INTE "signera 72a:s kontroller
-offline" – 72a finns inte i kodbasen.
-
-**72d – Tillsyns- och revisionspaket.** Ny adminsektion `TillsynspaketSektion.jsx`
-(superadmin), exporterar ett Markdown-dokument med innehållsförteckning: rutinbestånd
-(ägare/giltighet/granskning), kvitteringsläge per rutin (ny ren funktion
-`src/utils/kvitteringsgrad.js`), och revisionsloggens verifierade kedja
-(`verifieraRevisionslogg`, redan använd i `Admin.jsx`/`BeredskapSektion.jsx`). Sektioner som
-kräver obyggda delmål (72a/72b/72c/72e) skrivs ut som explicita "Ej tillgängligt ännu"-
-placeholders i exporten, inte tysta uteslutningar.
-
-**72h – Lättläst-läge och uppläsning.** Två nya fria fält på `rutiner`
-(`lattlastText`/`begrepp`), redigerbara av samma behörighet som huvudinnehållet (inget
-rutilltillägg i `firestore.rules` behövdes – verifierat att `farUppdateraRutin` inte
-begränsar `innehall` utöver PII-filtret). `RutinKort.jsx` fick en "🔤 Lättläst"-växel, en
-begreppsordlista (`<details>`-chips) och "🔊 Lyssna" läser nu upp den visade versionen via
-den redan befintliga `useTalsyntes`-hooken. Ingen maskinöversättning, inget språkval –
-planens uttryckliga avgränsning.
-
-Fullt testsvep grönt: `npm run lint`, `npm run build`, `npx vitest run` (557 tester, upp från
-535), `npm run test:rules` (alla filer, inkl. de sex nya driftstopp-/lattlast-raderna i
-`organisationsisolering.test.mjs`), `npm run test:functions`, `npm run test:storage`. E2E
-kördes inte (inte ett bindande krav för den här ändringstypen, tidsprioriterat bort). Deploy
-triggad via `deploy.yml` på grenen `claude/compassionate-euler-rho0q5`.

@@ -4881,3 +4881,42 @@ koden har haft sju sedan källbevakningen byggdes ut. Ny assertion i
 **Detta är den första kundvända kodändringen sedan Etapp 69** (märkningen i `RutinKort.jsx`
 och prompträttelsen i `klinikstod.js` påverkar vad en riktig användare ser/får). Ny post i
 `src/data/andringslogg.js`. Fullt testsvep grönt.
+
+---
+
+## Uppföljning 2026-09-02 (v5.139.0 – 72f/72d/72h byggda på ägarens engångsinstruktion)
+
+Ägaren instruerade direkt: "bygg och deploya delmål 72f, 72d och 72h" – ett uttryckligt
+engångsundantag från Etapp 72s efterfrågegrind (beslutspunkt 5 i `etapplaner/ETAPPLAN19.md`,
+se `BESLUTSLOGG.md` 2026-09-02). Grindens huvudregel gäller oförändrad för alla övriga
+delmål i etappen.
+
+**72f – Driftstoppsläge.** Exakt spegling av akutlägets mönster (`useAkutlageRutiner.js`,
+`Akutlage.jsx`, `AkutlagePrefetch.jsx`) med egna fält (`driftstopp`/`driftstoppOrdning`) och
+egen visuell identitet (blå/gul, inte akutlägets larmröda). Ny route `/driftstopp`, nytt
+startvyblock (ingen ny flytande knapp – skulle konkurrera med "🚨 Akut"). `firestore.rules`
+skyddar de nya fälten med samma VÖL/superadmin-spärr som akutläget, testat i
+`tests/rules/organisationsisolering.test.mjs`. Byggde INTE "signera 72a:s kontroller
+offline" – 72a finns inte i kodbasen.
+
+**72d – Tillsyns- och revisionspaket.** Ny adminsektion `TillsynspaketSektion.jsx`
+(superadmin), exporterar ett Markdown-dokument med innehållsförteckning: rutinbestånd
+(ägare/giltighet/granskning), kvitteringsläge per rutin (ny ren funktion
+`src/utils/kvitteringsgrad.js`), och revisionsloggens verifierade kedja
+(`verifieraRevisionslogg`, redan använd i `Admin.jsx`/`BeredskapSektion.jsx`). Sektioner som
+kräver obyggda delmål (72a/72b/72c/72e) skrivs ut som explicita "Ej tillgängligt ännu"-
+placeholders i exporten, inte tysta uteslutningar.
+
+**72h – Lättläst-läge och uppläsning.** Två nya fria fält på `rutiner`
+(`lattlastText`/`begrepp`), redigerbara av samma behörighet som huvudinnehållet (inget
+rutilltillägg i `firestore.rules` behövdes – verifierat att `farUppdateraRutin` inte
+begränsar `innehall` utöver PII-filtret). `RutinKort.jsx` fick en "🔤 Lättläst"-växel, en
+begreppsordlista (`<details>`-chips) och "🔊 Lyssna" läser nu upp den visade versionen via
+den redan befintliga `useTalsyntes`-hooken. Ingen maskinöversättning, inget språkval –
+planens uttryckliga avgränsning.
+
+Fullt testsvep grönt: `npm run lint`, `npm run build`, `npx vitest run` (557 tester, upp från
+535), `npm run test:rules` (alla filer, inkl. de sex nya driftstopp-/lattlast-raderna i
+`organisationsisolering.test.mjs`), `npm run test:functions`, `npm run test:storage`. E2E
+kördes inte (inte ett bindande krav för den här ändringstypen, tidsprioriterat bort). Deploy
+triggad via `deploy.yml` på grenen `claude/compassionate-euler-rho0q5`.
