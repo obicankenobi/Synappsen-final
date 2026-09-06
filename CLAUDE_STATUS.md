@@ -4,7 +4,7 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (126 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (127 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
@@ -117,6 +117,48 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
 
+## Uppföljning 2026-09-06 (promptinjektionen täppt – strukturellt, inte språkligt)
+
+Ägaren instruerade att åtgärda promptinjektionen direkt i stället för att vänta på att
+utvärderingen ska kunna köras. Rimligt: fyndet var känt, åtgärden liten, och att låta en känd
+lucka mot MDR-avgränsningen stå öppen i väntan på ett mätvärde är fel ordning.
+
+**Två skydd, olika för att de två inbäddningsställena har olika förutsättningar** (båda i
+`functions/gemensamt.js`, bredvid `innehallerPersonnummer`):
+
+- `harPromptbrytandeTecken()` – klinikstödets fråga bäddas in som `Fråga: "${fraga}"`. Ett
+  citattecken avslutar den kontexten, en radbrytning gör det möjligt att skriva ett eget
+  regelblock under. Inget av tecknen har ett legitimt syfte i en klinisk söksträng, så frågan
+  **avvisas** i stället för att saneras tyst – en tyst ändrad fråga i ett kliniskt verktyg är
+  värre än ett fel. Två lager: `fragaKlinisktStod` avvisar med ett begripligt `HttpsError` till
+  användaren, och `byggKlinikstodPrompt` **kastar**, så det är strukturellt omöjligt att bygga
+  en prompt av en sådan fråga oavsett anropare. Kontrollen ligger FÖRE hastighetsspärren, så en
+  avvisad fråga äter ingen kvot.
+- `saneraPromptblock()` – rutintexterna i `ai-import.js` (checklistesteg- och kvissförslagen)
+  bäddas in i ett `"""`-block. Där går det inte att avvisa radbrytningar och citattecken;
+  texten är flerradig till sin natur. I stället neutraliseras avgränsaren (`"""` → `'''`).
+  Lägre risk – texten är redan människogodkänd inom organisationen och förslagen granskas innan
+  de sparas – men samma klass av brist och samma enradsåtgärd, så den togs samtidigt.
+
+**Medvetet INTE gjort:** ingen blocklista på instruktionsliknande fraser ("ignorera tidigare
+regler" o.s.v.). Sådana läcker notoriskt och ger falsk trygghet. Skyddet är strukturellt – att
+texten inte kan bryta sig ur sin kontext. **Ingen klientkopia av regeln heller:** servern är
+auktoritativ och felmeddelandet visas redan i `KlinikfragaSok.jsx`s felruta; en regex till i
+`src/` hade bara varit en andra plats att glida ifrån.
+
+**Vad som återstår, ärligt:** den SPRÅKLIGA vägen. En påstridig fråga som bara använder
+tillåtna tecken når fortfarande modellen, och där finns ingen strukturell spärr – bara
+modellens vilja att lyda reglerna. Det är precis vad som inte går att veta utan att mäta, så
+fall 6 i utvärderingen är omskrivet i två delar: **6a** (offline, gratis) bevisar att den
+strukturella vägen är stängd, **6b** skickar en språklig injektion som når modellen. Visar 6b
+att den slår igenom är nästa steg att lyfta reglerna till en `systemInstruction` i stället för
+att ha dem i samma textblock som frågan.
+
+Sex nya assertioner i `tests/functions/klinikstodprompt.test.cjs` (18 totalt), inklusive ett
+test som bevisar att skyddet **inte** avvisar legitima kliniska frågor med apostrof,
+bindestreck, parentes, procent eller decimaltal. Testsvep grönt: lint, build, 592 vitest,
+`test:functions`, `test:rules`, `test:storage`.
+
 ## Uppföljning 2026-09-06 (AI-utvärdering byggd – klinikstödets säkerhetsregler mäts nu)
 
 Ägaren frågade om Gemini är rätt modellval eller om andra LLM:er borde övervägas. **Svaret blev
@@ -163,6 +205,8 @@ byte-identisk. Samma skäl bakom att `tolkaBildMedGemini`/`extraktionsSchema` nu
 MDR-avgränsningen. Om den går igenom är okänt – fall 6 testar det, men kan inte köras än. Fört
 till `OPPNA-PUNKTER.md` med föreslagen åtgärd (avvisa `"` och radbrytningar i söksträngen)
 och med de förmildrande omständigheterna ärligt noterade.
+**→ Åtgärdad samma dag, se sektionen ovan** – ägaren instruerade att inte vänta på
+utvärderingen.
 
 **Provbilden genereras i kod** (`functions/scripts/provbild.cjs`, egen PNG-enkodare utan
 beroenden) i stället för att checkas in som binärfil – en bild i repot går inte att granska i
@@ -330,44 +374,4 @@ publicerad adress som studsar är sämre än ingen adress alls. MX-poster, ingen
 tekniska beskrivningen) – alla i samma footer-metarad, `[BOLAGSNAMN]`/`[ORG.NR]`/`[TELEFON]`
 orörda. `Synappsen-upphandlingssvar.html` hade aldrig `[E-POST]`. Checklistan i
 `saljmaterial/00-LAS-DETTA-FORST.md` uppdaterad, raden avbockad.
-
-## Uppföljning 2026-09-05 (säkerhetsgenomgång av webbplatsen)
-
-Ägaren frågade om sajten är robust ur ett IT-säkerhetsperspektiv. Genomgång gjord mot faktisk
-kod och konfiguration, inte mot känsla.
-
-**Sidan själv har mycket liten angreppsyta, och det är strukturellt.** Ingen server, ingen
-databas, ingen inloggning, ingen inmatning – alltså inget att injicera i. Verifierat: noll
-externa länkar, noll `target="_blank"`, noll DOM-sänkor (`innerHTML`, `document.write`,
-`eval`, `new Function`) i `sida.js`, som bara läser sina egna statiska `href`-attribut.
-De klassiska webbsårbarheterna saknar helt enkelt anknytningspunkt.
-
-**Tre verkliga svagheter hittade. Två åtgärdade i kod:**
-
-1. **HSTS saknades.** Utan `Strict-Transport-Security` är ett första besök över `http://` mot
-   en egen domän öppet för SSL-stripping. Satt till `max-age=31536000; includeSubDomains`.
-   **Inte `preload`** – det är en svårreversibel registrering hos webbläsartillverkarna och
-   bör vara ett ägarbeslut, inte något en kodsession skickar in. `Cross-Origin-Opener-Policy:
-   same-origin` tillagd samtidigt.
-2. **Deployen körde installskript för hela utvecklingsträdet.** `deploy-web.yml` körde
-   `npm ci` (~1 200 paket) för att köra ett dokumenttest som bara behöver `node:fs`. Nu
-   `--ignore-scripts`. Kontrollerat att det inte bryter något: bara tre paket i trädet har
-   installskript (`@firebase/util`, `protobufjs`, `re2`), och inget av dem rör testkörningen –
-   vitest-kedjan har inga installskript alls.
-3. **Domänen är den största kvarvarande risken, och den ligger inte i koden.** Förd till
-   `OPPNA-PUNKTER.md`: registrar lock, DNSSEC, 2FA på registrarkontot och en påminnelse på
-   förnyelsedatumet. En kapad domän är en total varumärkesövertagning, och HSTS gör den
-   dessutom långsammare att backa ur.
-
-**Sex nya vakter** i `tests/docs/webbplats.test.js`: CSP, HSTS, `X-Content-Type-Options`,
-`X-Frame-Options` och `Referrer-Policy` måste finnas kvar i `hosting:web`, och CSP:n får aldrig
-innehålla `'unsafe-inline'`, `'unsafe-eval'`, `http://` eller `*`. Skälet: headrarna är den
-enda säkerhetskontroll som över huvud taget finns på en statisk sajt, och en header som tyst
-försvinner vid en omstrukturering av `firebase.json` märks annars först vid en extern skanning.
-
-**Kvarstår, båda redan öppna punkter:** webbdeployen använder appdeployens breda tjänstekonto
-(bör vara `roles/firebasehosting.admin` enbart), och GitHub-actionsen är opinnade flyttbara
-taggar – fynd 4.7 utökat till att gälla även `deploy-web.yml`.
-
-Testsvep grönt: lint, 591 tester (upp från 585).
 

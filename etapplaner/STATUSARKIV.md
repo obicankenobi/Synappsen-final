@@ -5060,3 +5060,44 @@ tar ställning till vad som håller den aktuell. 73 → 74 dokument.
 
 Testsvep grönt: lint, 585 tester (upp från 576).
 
+
+## Uppföljning 2026-09-05 (säkerhetsgenomgång av webbplatsen)
+
+Ägaren frågade om sajten är robust ur ett IT-säkerhetsperspektiv. Genomgång gjord mot faktisk
+kod och konfiguration, inte mot känsla.
+
+**Sidan själv har mycket liten angreppsyta, och det är strukturellt.** Ingen server, ingen
+databas, ingen inloggning, ingen inmatning – alltså inget att injicera i. Verifierat: noll
+externa länkar, noll `target="_blank"`, noll DOM-sänkor (`innerHTML`, `document.write`,
+`eval`, `new Function`) i `sida.js`, som bara läser sina egna statiska `href`-attribut.
+De klassiska webbsårbarheterna saknar helt enkelt anknytningspunkt.
+
+**Tre verkliga svagheter hittade. Två åtgärdade i kod:**
+
+1. **HSTS saknades.** Utan `Strict-Transport-Security` är ett första besök över `http://` mot
+   en egen domän öppet för SSL-stripping. Satt till `max-age=31536000; includeSubDomains`.
+   **Inte `preload`** – det är en svårreversibel registrering hos webbläsartillverkarna och
+   bör vara ett ägarbeslut, inte något en kodsession skickar in. `Cross-Origin-Opener-Policy:
+   same-origin` tillagd samtidigt.
+2. **Deployen körde installskript för hela utvecklingsträdet.** `deploy-web.yml` körde
+   `npm ci` (~1 200 paket) för att köra ett dokumenttest som bara behöver `node:fs`. Nu
+   `--ignore-scripts`. Kontrollerat att det inte bryter något: bara tre paket i trädet har
+   installskript (`@firebase/util`, `protobufjs`, `re2`), och inget av dem rör testkörningen –
+   vitest-kedjan har inga installskript alls.
+3. **Domänen är den största kvarvarande risken, och den ligger inte i koden.** Förd till
+   `OPPNA-PUNKTER.md`: registrar lock, DNSSEC, 2FA på registrarkontot och en påminnelse på
+   förnyelsedatumet. En kapad domän är en total varumärkesövertagning, och HSTS gör den
+   dessutom långsammare att backa ur.
+
+**Sex nya vakter** i `tests/docs/webbplats.test.js`: CSP, HSTS, `X-Content-Type-Options`,
+`X-Frame-Options` och `Referrer-Policy` måste finnas kvar i `hosting:web`, och CSP:n får aldrig
+innehålla `'unsafe-inline'`, `'unsafe-eval'`, `http://` eller `*`. Skälet: headrarna är den
+enda säkerhetskontroll som över huvud taget finns på en statisk sajt, och en header som tyst
+försvinner vid en omstrukturering av `firebase.json` märks annars först vid en extern skanning.
+
+**Kvarstår, båda redan öppna punkter:** webbdeployen använder appdeployens breda tjänstekonto
+(bör vara `roles/firebasehosting.admin` enbart), och GitHub-actionsen är opinnade flyttbara
+taggar – fynd 4.7 utökat till att gälla även `deploy-web.yml`.
+
+Testsvep grönt: lint, 591 tester (upp från 585).
+

@@ -23,6 +23,7 @@ const {
   hamtaAnvandarInfo,
   kravModul,
   innehallerPersonnummer,
+  harPromptbrytandeTecken,
   kontrolleraOchOkaHastighet,
   okaSokkvot,
   reserveraBudget,
@@ -261,6 +262,18 @@ async function sokViaProgrammerbarSokmotor(fraga) {
 // aldrig ett kliniskt beslut". Risken var konkret, inte teoretisk – ett ord i prompten kunde
 // ekas tillbaka i Gemini-svaret till användaren.
 function byggKlinikstodPrompt(fraga, traffar) {
+  // Andra lagret mot promptinjektion. fragaKlinisktStod avvisar redan sådana frågor med ett
+  // begripligt felmeddelande till användaren – det här kastar för att det ska vara STRUKTURELLT
+  // omöjligt att bygga en prompt av en fråga som kan bryta sig ur sin kontext, oavsett vilken
+  // anropare som råkar glömma kontrollen. Kastar hellre än sanerar tyst: en tyst ändrad fråga i
+  // ett kliniskt verktyg är värre än ett fel.
+  if (harPromptbrytandeTecken(fraga)) {
+    throw new Error(
+      "Frågan innehåller citattecken eller radbrytning och kan inte bäddas in i prompten " +
+        "(möjlig promptinjektion). Anroparen ska avvisa frågan innan den kommer hit."
+    );
+  }
+
   const kalldomanerText = GODKANDA_KALLDOMANER.join(", ");
   const traffTextBlock = traffar
     .map((t, i) => `[${i + 1}] ${t.titel} (${t.url})\n${t.utdrag}`)
@@ -308,6 +321,18 @@ exports.fragaKlinisktStod = onCall(
     const fraga = (request.data?.fraga ?? "").trim();
     if (!fraga || fraga.length > 500) {
       throw new HttpsError("invalid-argument", "Ange en fråga (max 500 tecken).");
+    }
+    // Promptinjektionsskydd (2026-09-06): citattecken avslutar den kontext frågan bäddas in i
+    // (Fråga: "${fraga}") och en radbrytning gör det möjligt att skriva ett eget regelblock
+    // under – ett försök att skriva över de sex reglerna, varav regel 4 är MDR-avgränsningen.
+    // Inget av tecknen har ett legitimt syfte i en klinisk söksträng. Se harPromptbrytandeTecken
+    // i gemensamt.js för varför detta avvisas i stället för att saneras tyst.
+    if (harPromptbrytandeTecken(fraga)) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Frågan får inte innehålla citattecken eller radbrytningar. Skriv frågan som en enda " +
+          "mening utan citattecken."
+      );
     }
     // Skickar aldrig en fråga som verkar innehålla ett personnummer vidare till Gemini
     // (tredjepartstjänst) – patientuppgifter får inte lämna appen överhuvudtaget.

@@ -111,7 +111,8 @@ Tre kontroller finns nu, med medvetet olika räckvidd – ingen av dem ersätter
 |---|---|---|---|
 | `tests/functions/klinikstodprompt.test.cjs` | Att reglerna **står kvar** i prompten, ord för ord, och att ordet "beslutsstöd" aldrig återkommer som en självbeskrivning (regressionen som rättades i Etapp 72) | Att modellen lyder dem | Gratis, offline, körs i varje testsvep |
 | `verifieraKlinikstod` (`functions/klinikstod.js`) | Att sökmotorn bara returnerar godkända källdomäner | Något alls om Gemini-svaret – testar uttryckligen bara sökmotorsteget | Sökkvot, körs dagligen |
-| `functions/scripts/ai-evaluering.cjs` | Vad modellen **faktiskt svarar** på sju fall, bl.a. rangordningsbete, rekommendationsbete, namngiven patient och ett promptinjektionsförsök | Att svaren är medicinskt korrekta – det är ingen faktakontroll | Riktiga Vertex AI-anrop, manuell körning |
+| `functions/scripts/ai-evaluering.cjs` | Vad modellen **faktiskt svarar** på sju fall, bl.a. rangordningsbete, rekommendationsbete, namngiven patient och ett språkligt promptinjektionsförsök | Att svaren är medicinskt korrekta – det är ingen faktakontroll | Riktiga Vertex AI-anrop, manuell körning |
+| `harPromptbrytandeTecken()` (`functions/gemensamt.js`) | Att en fråga **inte kan bryta sig ur** sin kontext i prompten och skriva egna regler – citattecken och radbrytningar avvisas i två lager (anropshanteraren och promptbyggaren) | Att en påstridig fråga med enbart tillåtna tecken inte påverkar svaret – det mäts i utvärderingens fall 6b | Gratis, offline |
 
 Utvärderingen har tre utfall, inte två: `OK`, `FEL` och **`GRANSKA`** – det sista för frågor
 som inte går att avgöra maskinellt ("rangordnade modellen, eller återgav den bara källornas
@@ -122,6 +123,18 @@ bortautomatiserad.**
 
 Resultatet av en körning skrivs in som ett `## Tillägg (datum)`-block i
 `granskningar/SAKERHETSRAPPORT.md`.
+
+**Promptinjektion (åtgärdad 2026-09-06).** Arbetet med utvärderingen blottade att frågan
+bäddades in osanerad (`Fråga: "${fraga}"`) – ett citattecken avslutar den kontexten och en
+radbrytning gör det möjligt att skriva ett eget regelblock, alltså ett försök att skriva över
+just regel 4. Den **strukturella** vägen är nu stängd: citattecken och radbrytningar avvisas,
+i två lager, och kontrollen ligger före hastighetsspärren så en avvisad fråga inte äter kvot.
+Den **språkliga** vägen kvarstår per definition – en påstridig fråga med enbart tillåtna tecken
+når modellen, och där finns bara reglernas egen genomslagskraft. Det är avsiktligt inte
+"löst" med en blocklista på instruktionsliknande fraser (sådana läcker och ger falsk trygghet);
+i stället mäts det i fall 6b. Skulle mätningen visa att en språklig injektion slår igenom är
+nästa steg att flytta reglerna till en `systemInstruction` i stället för att ha dem i samma
+textblock som frågan.
 
 > **Ännu inte kört mot skarp Vertex AI.** Verktyget kräver de tre GCP-stegen i
 > `OPPNA-PUNKTER.md` (aktiverat API, `roles/aiplatform.user`, bekräftad modellregion). Tills

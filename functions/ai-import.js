@@ -19,6 +19,7 @@ const {
   hamtaAnvandarInfo,
   kravModul,
   innehallerPersonnummer,
+  saneraPromptblock,
   reserveraBudget,
 } = require("./gemensamt");
 
@@ -299,7 +300,7 @@ klinisk bedömning.
 
 Rutintext:
 """
-${innehall}
+${saneraPromptblock(innehall)}
 """
 
 Returnera en lista med steg, i den ordning de ska utföras. Varje steg ska vara en kort mening
@@ -399,7 +400,7 @@ i texten – det är kunskapskontroll, inte en klinisk bedömning.
 
 Rutintext:
 """
-${innehall}
+${saneraPromptblock(innehall)}
 """
 
 Returnera 2-4 frågor. Varje fråga ska ha 3-4 svarsalternativ, ett rättIndex (0-baserat index

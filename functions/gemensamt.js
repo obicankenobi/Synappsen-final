@@ -193,6 +193,39 @@ function innehallerPersonnummer(text) {
   return false;
 }
 
+// ── Promptinjektionsskydd (2026-09-06) ────────────────────────────────────────────────────
+// Fritext som bäddas in i en AI-prompt kan försöka bryta sig ur sin avgränsare och se ut som
+// en ny instruktion. För klinikstöd-sökningen är det inte en teoretisk risk: de sex reglerna i
+// byggKlinikstodPrompt() är den avgränsning som håller funktionen utanför MDR (se
+// granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md), och ett lyckat överskrivningsförsök
+// skulle kunna få modellen att rangordna eller rekommendera.
+//
+// TVÅ olika skydd, eftersom de två inbäddningsställena har olika förutsättningar:
+
+// 1) Korta, enradiga frågor (klinikstöd). Frågan bäddas in som Fråga: "${fraga}" – ett
+//    citattecken avslutar den kontexten, och en radbrytning gör det möjligt att skriva ett
+//    eget regelblock under. INGET av tecknen har ett legitimt syfte i en klinisk söksträng, så
+//    här går det att AVVISA i stället för att tyst ändra frågan – vilket är att föredra: en
+//    tyst sanering hade ändrat vad användaren faktiskt frågade, i ett kliniskt verktyg.
+//
+//    Medvetet INTE en blocklista på instruktionsliknande fraser ("ignorera tidigare regler"
+//    o.s.v.). Sådana listor är notoriskt läckande och ger falsk trygghet. Det här är det
+//    STRUKTURELLA skyddet – att texten inte kan bryta sig ur sin kontext. Vad modellen gör med
+//    en påstridig fråga som bara använder tillåtna tecken är en separat fråga, och den mäts i
+//    functions/scripts/ai-evaluering.cjs fall 6.
+function harPromptbrytandeTecken(text) {
+  return /["\r\n]/.test(text ?? "");
+}
+
+// 2) Flerradig text som legitimt får innehålla både citattecken och radbrytningar (rutintexter
+//    i ai-import.js). Här går det INTE att avvisa – texten är flerradig till sin natur – så i
+//    stället neutraliseras just den avgränsare som används (""" runt blocket). En rutintext som
+//    innehåller tre raka citattecken i rad är i praktiken obefintlig, och att byta dem mot tre
+//    enkla ändrar ingen klinisk innebörd.
+function saneraPromptblock(text) {
+  return `${text ?? ""}`.replace(/"""/g, "'''");
+}
+
 // Etapp 53a: e-post som utgående kanal. EN enda intern hjälpare som allt annat i planen
 // (inbjudan 53b, påminnelser 53c, månadsrapport 53d) ska gå igenom – aldrig spridda
 // fetch()-anrop mot Brevo på flera ställen. Se ETAPPLAN11.md §53 för resonemanget: ett mejl
@@ -779,6 +812,8 @@ exports.dagensDatumStockholm = dagensDatumStockholm;
 exports.budgetDok = budgetDok;
 exports.aktuellManadNyckel = aktuellManadNyckel;
 exports.innehallerPersonnummer = innehallerPersonnummer;
+exports.harPromptbrytandeTecken = harPromptbrytandeTecken;
+exports.saneraPromptblock = saneraPromptblock;
 exports.giltigEpostadress = giltigEpostadress;
 exports.skickaEpost = skickaEpost;
 exports.kontrolleraOchOkaHastighet = kontrolleraOchOkaHastighet;
