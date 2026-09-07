@@ -5239,3 +5239,28 @@ själva verket ENBART `aterstallOrganisation()`-anropet, inte backupsteget. Form
 rättad till att vara tydlig om vad som faktiskt mäts. Testorganisationen städades bort
 automatiskt, ingen skarp kunddata rörd.
 
+
+## Uppföljning 2026-09-06 (egen domän `synappsen.se` kopplad och verifierad)
+
+Ägarens domänkoppling från föregående uppföljning (2026-09-05) är klar. Ett verkligt fel
+hanns fångas och rättas under tiden: "Lägg till anpassad domän" hade av misstag startats
+från fel hosting-site (`synappsen-final-build`, appens site, inte `synappsen-web`,
+marknadssidan) – synligt i verifierings-TXT-postens värde `hosting-site=synappsen-final-build`.
+Hade det slutförts hade `synappsen.se` visat kundappens inloggningssida i stället för
+marknadssidan. Ägaren startade om flödet från rätt site; Firebase Console visade därefter
+"Verified" → "Minting certificate" → **"Connected"**.
+
+**Verifierat direkt mot `https://synappsen.se`:** HTTP 200, riktig Firebase/Fastly-CDN-trafik
+(inte en proxiartefakt – `x-served-by`/`x-cache`-headrarna bekräftar det), samtliga
+säkerhetsheaders från `hosting:web`-konfigurationen närvarande (CSP, HSTS, COOP,
+X-Frame-Options, X-Content-Type-Options, Permissions-Policy, Referrer-Policy), rätt
+sidtitel (marknadssidan, inte appen), `noindex, nofollow` och `robots.txt`s `Disallow: /`
+fortfarande aktiva som avsett. **En känd begränsning:** det faktiska TLS-certifikatet kunde
+inte oberoende verifieras från den här sandboxade sessionen – utgående HTTPS fångas upp av
+sandboxens egen utgångsproxy (`openssl s_client` visar dess MITM-certifikat, inte Firebases/
+Let's Encrypts). Inte ett tecken på ett verkligt problem – Firebase Consoles "Connected"-status
+är själva beviset på att certifikatet utfärdats och bundits korrekt.
+
+`synappsen.se` fungerar alltså som avsett. Domänsäkring (registrar lock, DNSSEC, 2FA hos
+Loopia) är fortfarande en öppen punkt, se `OPPNA-PUNKTER.md`.
+

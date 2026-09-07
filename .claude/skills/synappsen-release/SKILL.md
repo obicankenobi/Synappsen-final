@@ -52,7 +52,12 @@ Conditionally, only for what actually changed:
   `run_in_background: true` and `TaskOutput` to wait rather than a blocking foreground call)
 - `firestore.rules`/`storage.rules` or anything under `tests/rules/` → `npm run test:rules`
 - `storage.rules` or upload paths → `npm run test:storage`
-- UI/route behavior → `npm run test:e2e`
+- UI/route behavior → `npm run test:e2e`. **Caveat since 2026-09-07:** `firebase-tools@13`'s
+  emulator can't actually run Cloud Functions (`functions.config()` removed in
+  `firebase-functions@7`, still called by the emulator runtime — every function invocation
+  dies with a 500 the app swallows). A green `test:e2e` proves UI/routing, NOT that any Cloud
+  Function call succeeded. See `OPPNA-PUNKTER.md`. Don't cite `test:e2e` as evidence a
+  function-touching change works until that row is resolved.
 
 ## 5. Update `CLAUDE_STATUS.md`
 
