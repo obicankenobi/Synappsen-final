@@ -5323,3 +5323,47 @@ Let's Encrypts). Inte ett tecken på ett verkligt problem – Firebase Consoles 
 
 `synappsen.se` fungerar alltså som avsett. Domänsäkring (registrar lock, DNSSEC, 2FA hos
 Loopia) är fortfarande en öppen punkt, se `OPPNA-PUNKTER.md`.
+
+---
+
+## Uppföljning 2026-09-06 (promptinjektionen täppt – strukturellt, inte språkligt)
+
+Ägaren instruerade att åtgärda promptinjektionen direkt i stället för att vänta på att
+utvärderingen ska kunna köras. Rimligt: fyndet var känt, åtgärden liten, och att låta en känd
+lucka mot MDR-avgränsningen stå öppen i väntan på ett mätvärde är fel ordning.
+
+**Två skydd, olika för att de två inbäddningsställena har olika förutsättningar** (båda i
+`functions/gemensamt.js`, bredvid `innehallerPersonnummer`):
+
+- `harPromptbrytandeTecken()` – klinikstödets fråga bäddas in som `Fråga: "${fraga}"`. Ett
+  citattecken avslutar den kontexten, en radbrytning gör det möjligt att skriva ett eget
+  regelblock under. Inget av tecknen har ett legitimt syfte i en klinisk söksträng, så frågan
+  **avvisas** i stället för att saneras tyst – en tyst ändrad fråga i ett kliniskt verktyg är
+  värre än ett fel. Två lager: `fragaKlinisktStod` avvisar med ett begripligt `HttpsError` till
+  användaren, och `byggKlinikstodPrompt` **kastar**, så det är strukturellt omöjligt att bygga
+  en prompt av en sådan fråga oavsett anropare. Kontrollen ligger FÖRE hastighetsspärren, så en
+  avvisad fråga äter ingen kvot.
+- `saneraPromptblock()` – rutintexterna i `ai-import.js` (checklistesteg- och kvissförslagen)
+  bäddas in i ett `"""`-block. Där går det inte att avvisa radbrytningar och citattecken;
+  texten är flerradig till sin natur. I stället neutraliseras avgränsaren (`"""` → `'''`).
+  Lägre risk – texten är redan människogodkänd inom organisationen och förslagen granskas innan
+  de sparas – men samma klass av brist och samma enradsåtgärd, så den togs samtidigt.
+
+**Medvetet INTE gjort:** ingen blocklista på instruktionsliknande fraser ("ignorera tidigare
+regler" o.s.v.). Sådana läcker notoriskt och ger falsk trygghet. Skyddet är strukturellt – att
+texten inte kan bryta sig ur sin kontext. **Ingen klientkopia av regeln heller:** servern är
+auktoritativ och felmeddelandet visas redan i `KlinikfragaSok.jsx`s felruta; en regex till i
+`src/` hade bara varit en andra plats att glida ifrån.
+
+**Vad som återstår, ärligt:** den SPRÅKLIGA vägen. En påstridig fråga som bara använder
+tillåtna tecken når fortfarande modellen, och där finns ingen strukturell spärr – bara
+modellens vilja att lyda reglerna. Det är precis vad som inte går att veta utan att mäta, så
+fall 6 i utvärderingen är omskrivet i två delar: **6a** (offline, gratis) bevisar att den
+strukturella vägen är stängd, **6b** skickar en språklig injektion som når modellen. Visar 6b
+att den slår igenom är nästa steg att lyfta reglerna till en `systemInstruction` i stället för
+att ha dem i samma textblock som frågan.
+
+Sex nya assertioner i `tests/functions/klinikstodprompt.test.cjs` (18 totalt), inklusive ett
+test som bevisar att skyddet **inte** avvisar legitima kliniska frågor med apostrof,
+bindestreck, parentes, procent eller decimaltal. Testsvep grönt: lint, build, 592 vitest,
+`test:functions`, `test:rules`, `test:storage`.

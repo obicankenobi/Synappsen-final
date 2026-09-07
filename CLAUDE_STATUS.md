@@ -4,11 +4,14 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (151 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (152 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-07 · **v5.139.0 i produktion**. **Vertex AI-migreringen är
+**Senast uppdaterad:** 2026-09-07 · **v5.139.0 i produktion**. Parallell tråd (gren
+`claude/synappsen-webbplats-jnmzn1`, PR #23, grön/mergebar) hittade två MDR-ord kvar i
+gränssnittet (⚠️ ägarbeslut, `OPPNA-PUNKTER.md`) och att `test:e2e` inte längre bevisar att
+Cloud Functions fungerar (`firebase-tools@13`-bugg, se samma fil). **Vertex AI-migreringen är
 DEPLOYAD** (`deploy.yml` #98, success) och utvärderingen är helt ren efter deployen (13 OK,
 0 FEL, 0 GRANSKA). Kvar: bekräfta ett riktigt anrop i appen, se `OPPNA-PUNKTER.md`. Utgående e-post är stoppat
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
@@ -122,6 +125,70 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-07 (fynd från en parallell tråd verifierade och registrerade – ingen kod ändrad)
+
+En parallell session har arbetat med den publika marknadswebbplatsen (`synappsen-web/`) på
+gren `claude/synappsen-webbplats-jnmzn1`, PR #23 (grön, mergebar). Den hittade två saker som
+ligger i produkten, inte i webbplatsen, och rapporterade dem hit i stället för att åtgärda dem
+själv. **Alla tre påståenden nedan är oberoende verifierade mot faktisk kod i den här
+sessionen** innan de skrevs in – inget togs för givet.
+
+**1. Två MDR-ord kvar i gränssnittet, samma stycke har ett andra fel på köpet.**
+`KlinikfragaSok.jsx:92` säger fortfarande "Beslutsstöd" (bekräftat, exakt ordalydelse), och
+`KlinisktStod.jsx:11` säger "triageringsstöd" (bekräftat) – båda på
+`AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md`s lista över förbjudna ord. Redan spårat sedan
+2026-09-03 (`PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 9.1/§ 9.3), men INTE tidigare i
+`OPPNA-PUNKTER.md` med den skärpa det förtjänar. Samma stycke i `KlinikfragaSok.jsx` räknar
+dessutom upp fem källor där koden (`GODKANDA_KALLDOMANER`) har sju – bekräftat, `vardhandboken.se`
+och `folkhalsomyndigheten.se` saknas i hjälptexten. **Ny konsekvens som höjde brådskan:**
+`/kliniskt-stod` kan inte fotograferas till webbplatsen så länge orden står kvar (en skärmbild
+hade publicerat dem och rundat webbplatsens egen ordvakt), så vyn är medvetet utelämnad ur
+webbplatsens skärmbildsverktyg – produktens mest säljbara vy är just nu den enda som inte kan
+visas upp. Ersättningstexten är redan framtagen och citerad (`JURIDISK-GRANSKNING.md` § 6.4).
+**Inte ändrat här:** det är, som `OPPNA-PUNKTER.md` redan konstaterat innan denna uppföljning,
+ett ja/nej på formulering som tillhör ägaren, inte en kodsession, även när formuleringen redan
+är skriven. Uppdaterad rad i `OPPNA-PUNKTER.md` med alla tre delfynd.
+
+**Min egen bedömning, tillagd i den här sessionen:** `startvy.js:20`s "triagering" (bekräftat,
+utan "-stöd") är INTE samma sak som "beslutsstöd"/"triageringsstöd", och jag rekommenderar att
+lämna den. Förbudslistan i `AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md` gäller ord med
+"-stöd"-ändelsen, eftersom just den ändelsen gör ordet till ett *funktionsanspråk* – att
+produkten UTFÖR eller BISTÅR vid ett kliniskt beslut. "Triagering" utan ändelsen beskriver bara
+vilket ÄMNE rutinerna handlar om ("rutiner om triagering finns i appen"), på exakt samma sätt
+som "Handläggningsrutiner" i samma mening beskriver ämne utan att påstå en funktion. Att byta
+den skulle vara en överreaktion på ett ordval som inte bär den risk de andra två gör. Skriven in
+i `OPPNA-PUNKTER.md`s rad så att en framtida session inte återupptäcker samma fråga.
+
+**2. `test:e2e` bevisar inte längre att Cloud Functions fungerar.** `firebase-tools@13.35.1`s
+emulatorruntime anropar `functions.config()` vid varje worker-start – en funktion borttagen i
+`firebase-functions@7` (bekräftat: vår version är `^7.3.0`, och grep bekräftar att ingen egen
+fil anropar `functions.config()`, felet ligger i verktyget). Emulatorn laddar alla ~100
+funktionsdefinitioner utan fel, men varje ANROP dör med ett svalt 500-fel. Den andra tråden
+lade till `functions` i `test:e2e`s emulatorlista (se punkt 3 nedan) eftersom
+`AuthContext.jsx` numera anropar `rapporteraAppVersion` på inloggningsvägen – utan den ändringen
+var HELA e2e-sviten röd på båda grenarna sedan v5.136.0, oupptäckt. Sviten är nu grön, men det
+beror på att appen sväljer 500-svaret, inte på att en funktion faktiskt svarade rätt.
+`firebase-tools@15` (senast 15.29.0) verkar sakna buggen (provkört, inga
+`functions.config()`-fel vid initiering) men kunde inte verifieras fullt ut här (ett proxyfel
+stoppade firestore-triggerregistreringen i den här sandboxen). En bump av `firebase-tools` är
+samma verktyg som kör produktionsdeployerna – kräver ägarens ja och en verifierad deploy
+efteråt, inte en ren kodändring. Ny rad i `OPPNA-PUNKTER.md`, och en varningsrad tillagd i
+`.claude/skills/synappsen-release/SKILL.md` så att en framtida releasesession inte citerar ett
+grönt `test:e2e` som bevis för att en funktionsändring fungerar.
+
+**3. Ingen dubblettrisk.** PR #23 har redan ändrat `package.json` (`test:e2e` startar nu
+`functions`-emulatorn, orsaken beskriven ovan) och `LeverantorLayout.jsx` (laddnings- och
+"saknar behörighet"-lägena renderar nu `<main id="huvudinnehall">` i stället för `<div>` – en
+verklig WCAG-brist, 1.3.1/2.4.1, som axe missade eftersom laddningsläget passerade på
+millisekunder). **Verifierat att INGENDERA ändring finns på den här grenen ännu** (diff mot
+`origin/claude/synappsen-webbplats-jnmzn1`) – de kommer via PR #23:s merge. **Rör alltså inte
+`package.json`s `test:e2e`-rad eller `LeverantorLayout.jsx` i den här eller någon framtida
+session innan PR #23 är mergad**, annars dubbleras arbetet eller uppstår en mergekonflikt.
+
+**Ingen kod ändrad i den här uppföljningen** – bara dokumentation och tracking, som ägaren
+uttryckligen bad om. Ändrade filer: `OPPNA-PUNKTER.md` (två rader utökade/tillagda),
+`.claude/skills/synappsen-release/SKILL.md` (varningsrad), `CLAUDE_STATUS.md`.
 
 ## Uppföljning 2026-09-07 (e2e-blockeraren fixad – och den dolde en verklig WCAG-brist)
 
@@ -302,45 +369,3 @@ den frågan har stått öppen sedan migreringsuppskattningen. Svarstider 2,3–1
 till `timeoutSeconds: 60`. **Deployen är därmed avblockerad** och är det enda som återstår
 innan EU-garantin gäller i produktion – tills dess kör de driftsatta funktionerna fortfarande
 mot det publika Gemini API:et (`avtal/UNDERBITRADEN.md` uppdaterad med exakt den skillnaden).
-
-## Uppföljning 2026-09-06 (promptinjektionen täppt – strukturellt, inte språkligt)
-
-Ägaren instruerade att åtgärda promptinjektionen direkt i stället för att vänta på att
-utvärderingen ska kunna köras. Rimligt: fyndet var känt, åtgärden liten, och att låta en känd
-lucka mot MDR-avgränsningen stå öppen i väntan på ett mätvärde är fel ordning.
-
-**Två skydd, olika för att de två inbäddningsställena har olika förutsättningar** (båda i
-`functions/gemensamt.js`, bredvid `innehallerPersonnummer`):
-
-- `harPromptbrytandeTecken()` – klinikstödets fråga bäddas in som `Fråga: "${fraga}"`. Ett
-  citattecken avslutar den kontexten, en radbrytning gör det möjligt att skriva ett eget
-  regelblock under. Inget av tecknen har ett legitimt syfte i en klinisk söksträng, så frågan
-  **avvisas** i stället för att saneras tyst – en tyst ändrad fråga i ett kliniskt verktyg är
-  värre än ett fel. Två lager: `fragaKlinisktStod` avvisar med ett begripligt `HttpsError` till
-  användaren, och `byggKlinikstodPrompt` **kastar**, så det är strukturellt omöjligt att bygga
-  en prompt av en sådan fråga oavsett anropare. Kontrollen ligger FÖRE hastighetsspärren, så en
-  avvisad fråga äter ingen kvot.
-- `saneraPromptblock()` – rutintexterna i `ai-import.js` (checklistesteg- och kvissförslagen)
-  bäddas in i ett `"""`-block. Där går det inte att avvisa radbrytningar och citattecken;
-  texten är flerradig till sin natur. I stället neutraliseras avgränsaren (`"""` → `'''`).
-  Lägre risk – texten är redan människogodkänd inom organisationen och förslagen granskas innan
-  de sparas – men samma klass av brist och samma enradsåtgärd, så den togs samtidigt.
-
-**Medvetet INTE gjort:** ingen blocklista på instruktionsliknande fraser ("ignorera tidigare
-regler" o.s.v.). Sådana läcker notoriskt och ger falsk trygghet. Skyddet är strukturellt – att
-texten inte kan bryta sig ur sin kontext. **Ingen klientkopia av regeln heller:** servern är
-auktoritativ och felmeddelandet visas redan i `KlinikfragaSok.jsx`s felruta; en regex till i
-`src/` hade bara varit en andra plats att glida ifrån.
-
-**Vad som återstår, ärligt:** den SPRÅKLIGA vägen. En påstridig fråga som bara använder
-tillåtna tecken når fortfarande modellen, och där finns ingen strukturell spärr – bara
-modellens vilja att lyda reglerna. Det är precis vad som inte går att veta utan att mäta, så
-fall 6 i utvärderingen är omskrivet i två delar: **6a** (offline, gratis) bevisar att den
-strukturella vägen är stängd, **6b** skickar en språklig injektion som når modellen. Visar 6b
-att den slår igenom är nästa steg att lyfta reglerna till en `systemInstruction` i stället för
-att ha dem i samma textblock som frågan.
-
-Sex nya assertioner i `tests/functions/klinikstodprompt.test.cjs` (18 totalt), inklusive ett
-test som bevisar att skyddet **inte** avvisar legitima kliniska frågor med apostrof,
-bindestreck, parentes, procent eller decimaltal. Testsvep grönt: lint, build, 592 vitest,
-`test:functions`, `test:rules`, `test:storage`.
