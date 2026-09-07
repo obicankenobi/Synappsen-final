@@ -1,6 +1,6 @@
 # Dokumentregister
 
-**Fullständig inventering av projektets 78 dokument.** Bevakat av
+**Fullständig inventering av projektets 79 dokument.** Bevakat av
 `tests/docs/dokumentregister.test.js`, som failar om ett dokument finns på disk men saknas
 här, eller står här men saknas på disk. **Ett nytt dokument kan alltså inte glömmas bort –
 testet vägrar passera förrän det är infört i tabellerna nedan.**
@@ -145,6 +145,7 @@ planfil, på ägarens uttryckliga instruktion) och mappflytten 2026-08-23 (sökv
 | `granskningar/GRANSKNING-IDEBANK-2026-08-30.md` | Granskning av produktidébanken, tidsstämplad. **OBS:** det granskade dokumentet (idébanken, 18 förslag) finns INTE i repot – granskningen är ändå självbärande eftersom den citerar det den prövar, och den är källan till `etapplaner/ETAPPLAN19.md` v0.2 |
 | `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md` | Klinikstöd-sökningens avsedda ändamål enligt MDR art. 2.12, tidsstämplad. Skriven som Etapp 72 undantag 1. Ändra bara om funktionens faktiska ändamål ändras – annars är en ändring där ett tecken på att koden och det formulerade ändamålet glidit isär |
 | `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md` | Grov arbetsuppskattning för en migrering från publika Gemini API:et till Vertex AI, tidsstämplad. Skriven som Etapp 72 undantag 1. Refererad från `avtal/UNDERBITRADEN.md` |
+| `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md` | Åtta namngivna fynd om personuppgifter, hallucination och MDR-avgränsning i de sex AI-anropsställena, tidsstämplad. Levande dokument – lägg till en ny sektion (bocka aldrig av ett fynd som löst utan att verifiera mot kod) i stället för att skriva om ett gammalt. Statusspårning per fynd i `OPPNA-PUNKTER.md` |
 | `granskningar/SAKERHETSGRANSKNING-2026-08.md` | Säkerhetsgenomgång, tidsstämplad |
 
 ---

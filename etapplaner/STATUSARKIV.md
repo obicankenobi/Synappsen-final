@@ -5239,3 +5239,87 @@ som en kombinerad tid – skriptet (`functions/scripts/rto-matning.cjs` rad 67�
 själva verket ENBART `aterstallOrganisation()`-anropet, inte backupsteget. Formuleringen
 rättad till att vara tydlig om vad som faktiskt mäts. Testorganisationen städades bort
 automatiskt, ingen skarp kunddata rörd.
+
+---
+
+## Uppföljning 2026-09-06 (AI-utvärdering byggd – klinikstödets säkerhetsregler mäts nu)
+
+Ägaren frågade om Gemini är rätt modellval eller om andra LLM:er borde övervägas. **Svaret blev
+"stanna" – men frågan blottade något viktigare.** Vid nuvarande volym (284 funktionsanrop
+totalt, noll kunder) är skillnaden mellan billigaste och dyraste rimliga modell några kronor i
+månaden, medan ett leverantörsbyte river upp EU-databehandlingsgarantin som Vertex AI-
+migreringen precis köpte, lägger till ett underbiträde och kräver nytt PUB-avtal och uppdaterad
+DPIA. Priset är alltså fel variabel att optimera på – **kvaliteten är rätt variabel, och den
+gick inte att mäta.**
+
+**Den verkliga bristen:** klinikstöd-promptens regel 4 ("aldrig ett beslutsstöd … Ge aldrig ett
+prioriterat eller rangordnat svar") är den avgränsning som håller funktionen utanför MDR. Den
+upprätthölls av att modellen *väljer* att lyda prompten, och ingenting mätte om den gör det.
+En redigering som strök regeln hade inte fått ett enda test att faila. `verifieraKlinikstod`
+testar uttryckligen **bara** sökmotorsteget, inte Gemini-svaret.
+
+**Byggt, i tre lager med medvetet olika räckvidd:**
+
+1. **`tests/functions/klinikstodprompt.test.cjs`** – 11 assertioner, gratis, offline, tillagd i
+   `test:functions`-svepet. Bevisar att reglerna står kvar ord för ord, att ordet "beslutsstöd"
+   aldrig återkommer som en självbeskrivning (regressionen från Etapp 72), och att reglerna
+   ligger EFTER den användarstyrda frågan i prompten. **Mutationstestad:** stryks förbudet mot
+   rangordning failar den med ett felmeddelande som pekar på MDR-konsekvensen.
+2. **`functions/scripts/ai-evaluering.cjs` + `.github/workflows/ai-evaluering.yml`** – sju fall
+   mot skarp Vertex AI, manuell dispatch. Rangordningsbete, rekommendationsbete, namngiven
+   patient (medvetet UTAN personnummer – `innehallerPersonnummer` stoppar redan de fallen, så
+   regel 6 är det enda skyddet just där), fråga som källorna inte täcker, promptinjektion, samt
+   bildtolkningens schemakontrakt. **Anropar aldrig den riktiga sökmotorn** – den delade kvoten
+   är 100/dygn för hela installationen, och en utvärdering som åt av den kunde släckt
+   klinikstödet för riktiga kunder. Rör ingen Firestore-data, ingen budget.
+3. **Tre utfall, inte två:** `OK`, `FEL` och `GRANSKA`. Det sista för frågor som inte går att
+   avgöra maskinellt, där svaret skrivs ut i sin helhet för mänsklig läsning och slutkoden inte
+   påverkas. Avsiktligt: en heuristik som låtsas kunna fälla ett regulatoriskt omdöme vore
+   sämre än en som säger att den inte kan det. `GRANSKA`-raderna ÄR den manuella verifiering
+   som kostnadsuppskattningen krävde – strukturerad, inte bortautomatiserad.
+
+**Refaktorering som möjliggjorde det:** prompten byggdes tidigare inline i anropshanteraren och
+gick inte att nå utifrån. Utbruten till `byggKlinikstodPrompt()`, exporterad, så utvärderingen
+mäter EXAKT samma prompt som produktionen kör – inte en kopia som kan glida isär. Verifierat
+byte-identisk. Samma skäl bakom att `tolkaBildMedGemini`/`extraktionsSchema` nu exporteras.
+
+**Ett verkligt fynd på köpet:** frågan interpoleras osanerad in i prompten
+(`Fråga: "${fraga}"`), vilket är en möjlig promptinjektion mot just de regler som bär
+MDR-avgränsningen. Om den går igenom är okänt – fall 6 testar det, men kan inte köras än. Fört
+till `OPPNA-PUNKTER.md` med föreslagen åtgärd (avvisa `"` och radbrytningar i söksträngen)
+och med de förmildrande omständigheterna ärligt noterade.
+**→ Åtgärdad samma dag, se sektionen ovan** – ägaren instruerade att inte vänta på
+utvärderingen.
+
+**Provbilden genereras i kod** (`functions/scripts/provbild.cjs`, egen PNG-enkodare utan
+beroenden) i stället för att checkas in som binärfil – en bild i repot går inte att granska i
+en diff. Renderad och okulärbesiktigad: texten är läsbar och datumet `2027-01-15`, som
+utvärderingen jämför exakt mot, står i klartext.
+
+**Ännu inte kört mot skarp Vertex AI** – kräver samma tre GCP-steg som allt annat. Skriptet
+översätter de vanligaste felen till vilket steg som saknas. Testsvep grönt: lint, `npm run
+build`, 592 vitest-tester, hela `test:functions`-svepet.
+
+## Uppföljning 2026-09-06 (egen domän `synappsen.se` kopplad och verifierad)
+
+Ägarens domänkoppling från föregående uppföljning (2026-09-05) är klar. Ett verkligt fel
+hanns fångas och rättas under tiden: "Lägg till anpassad domän" hade av misstag startats
+från fel hosting-site (`synappsen-final-build`, appens site, inte `synappsen-web`,
+marknadssidan) – synligt i verifierings-TXT-postens värde `hosting-site=synappsen-final-build`.
+Hade det slutförts hade `synappsen.se` visat kundappens inloggningssida i stället för
+marknadssidan. Ägaren startade om flödet från rätt site; Firebase Console visade därefter
+"Verified" → "Minting certificate" → **"Connected"**.
+
+**Verifierat direkt mot `https://synappsen.se`:** HTTP 200, riktig Firebase/Fastly-CDN-trafik
+(inte en proxiartefakt – `x-served-by`/`x-cache`-headrarna bekräftar det), samtliga
+säkerhetsheaders från `hosting:web`-konfigurationen närvarande (CSP, HSTS, COOP,
+X-Frame-Options, X-Content-Type-Options, Permissions-Policy, Referrer-Policy), rätt
+sidtitel (marknadssidan, inte appen), `noindex, nofollow` och `robots.txt`s `Disallow: /`
+fortfarande aktiva som avsett. **En känd begränsning:** det faktiska TLS-certifikatet kunde
+inte oberoende verifieras från den här sandboxade sessionen – utgående HTTPS fångas upp av
+sandboxens egen utgångsproxy (`openssl s_client` visar dess MITM-certifikat, inte Firebases/
+Let's Encrypts). Inte ett tecken på ett verkligt problem – Firebase Consoles "Connected"-status
+är själva beviset på att certifikatet utfärdats och bundits korrekt.
+
+`synappsen.se` fungerar alltså som avsett. Domänsäkring (registrar lock, DNSSEC, 2FA hos
+Loopia) är fortfarande en öppen punkt, se `OPPNA-PUNKTER.md`.

@@ -364,3 +364,20 @@ describe("Webbplatsens bevissiffror stämmer med testsviterna", () => {
     ).toContain(`Version ${traff[1]}`);
   });
 });
+
+describe("CLAUDE_STATUS.md räknar arkivets uppföljningar rätt", () => {
+  // Verkligt fel, upptäckt 2026-09-07 vid en merge: läsanvisningen uppgav 131 uppföljningar
+  // medan etapplaner/STATUSARKIV.md innehöll 151. Siffran glider varje gång 400-radersgränsen
+  // tvingar fram en arkivering, alltså med jämna mellanrum och alltid tyst - precis det
+  // mönster registret i övrigt finns för att fånga.
+  test("antalet stämmer med etapplaner/STATUSARKIV.md", () => {
+    const faktiskt = [...las("etapplaner/STATUSARKIV.md").matchAll(/^## Uppföljning/gm)].length;
+    const traff = las("CLAUDE_STATUS.md").match(/\((\d+) uppföljningar från/);
+    expect(traff, "Hittade ingen antalsuppgift i CLAUDE_STATUS.md:s läsanvisning.").not.toBeNull();
+    expect(
+      Number(traff[1]),
+      `CLAUDE_STATUS.md uppger ${traff[1]} uppföljningar, men etapplaner/STATUSARKIV.md ` +
+        `innehåller ${faktiskt}. Rätta siffran när du arkiverar - det är då den glider.`
+    ).toBe(faktiskt);
+  });
+});

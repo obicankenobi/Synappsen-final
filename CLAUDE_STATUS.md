@@ -4,17 +4,18 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (129 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (151 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-06 · **v5.139.0 i produktion**. **Vertex AI-migreringen är
+**Senast uppdaterad:** 2026-09-07 · **v5.139.0 i produktion**. **Vertex AI-migreringen är
 DEPLOYAD** (`deploy.yml` #98, success) och utvärderingen är helt ren efter deployen (13 OK,
 0 FEL, 0 GRANSKA). Kvar: bekräfta ett riktigt anrop i appen, se `OPPNA-PUNKTER.md`. Utgående e-post är stoppat
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
 **Webbplatsen har fått skärmbilder ur appen, fyra publicerade dokumentsidor och räknade
 bevissiffror** (se uppföljningen 2026-09-06 om bevisluckan) – fortfarande `noindex`, nu sex
-sidor som ska avgömmas samtidigt.
+sidor som ska avgömmas samtidigt. **E2E-sviten är grön igen** (2026-09-07): `test:e2e` startar
+nu functions-emulatorn, vilket den inte gjort sedan v5.136.0 bröt den.
 **Etapp 72 (`etapplaner/ETAPPLAN19.md`):** riktningen är antagen, beslutspunkt 5
 (efterfrågegrinden) gäller fortfarande som huvudregel för alla ÖVRIGA delmål. 72f, 72d och
 72h byggda och deployade som ett uttryckligt, engångsbeslutat undantag från grinden (se
@@ -31,7 +32,8 @@ sidor som ska avgömmas samtidigt.
 | **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – men medvetet fortsatt `noindex, nofollow` (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket och namn/orgnr på policyn saknas fortfarande. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Ta bort `noindex` när de två kvarvarande punkterna är klara, se `OPPNA-PUNKTER.md`. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
-| **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. Ta samtidigt ägarbeslutet om "Beslutsstöd"-raden i `OPPNA-PUNKTER.md`. Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
+| **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. Ta samtidigt ägarbeslutet om "Beslutsstöd"-raden i `OPPNA-PUNKTER.md`. **Åtgärda AI-integrationsriskerna** (`granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`, 8 fynd, prioritetsordning i dokumentet – börja med fynd 1, personuppgiftskontrollen sker efter överföringen till Vertex AI). Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
+| **AI-integrationsrisker** | **Ny 2026-09-06.** Genomgång av samtliga sex AI-anropsställen efter ägarens fråga om personuppgifter/hallucination/MDR-gräns. 8 namngivna fynd, ingen kod ändrad än, prioritetsordning satt: `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`. Allvarligast (fynd 1): personuppgiftskontrollen på bilder körs EFTER överföring till Vertex AI, inte före. Spårat rad för rad i `OPPNA-PUNKTER.md` |
 
 ## Var du hittar saker
 
@@ -194,6 +196,44 @@ exponerar den öppna Brevo-bristen och interna sökvägar. Sex sidor ska avgömm
 två.
 
 ---
+## Uppföljning 2026-09-06 (AI-integrationens risker kartlagda – 8 fynd, ingen kod ändrad än)
+
+Ägaren frågade rakt ut vilka risker som finns i hur AI faktiskt är integrerad i Synappsen –
+personuppgifter, hallucination, MDR-gränsen – direkt efter att Vertex AI-migreringen
+deployats och verifierats (se sektionen nedan). En läsning av samtliga sex AI-anropsställen
+gav åtta namngivna fynd, skrivna ned i `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`
+tillsammans med en prioritetsordning. **Ingen kod ändrades i den här sessionen** – ägaren bad
+uttryckligen om att dokumentera och komma ihåg dem för framtida arbete, ett fynd i taget med
+egen testtäckning, inte ett samlat svep.
+
+**Allvarligast (fynd 1):** `tolkaDokument` skickar en uppladdad bild till Vertex AI FÖRE
+`innehallerPersonnummer()` körs på resultatet – kontrollen skyddar Firestore mot lagring, inte
+själva överföringen till underbiträdet. Bilduppladdningsflödet saknar dessutom helt den
+namnvarning som redan finns för formulärtext (`kontrolleraPatientuppgifter` i
+`src/utils/piiFilter.js`).
+
+**Övriga fynd, kort:** (2) uppladdade råfoton raderas aldrig, bara vid kontoavetablering –
+GDPR-lagringsminimering, med bieffekten att andra än uppladdaren sannolikt inte kan se
+originalbilden bakom ett AI-utkast; (3) `klinikfrageloggar`/`klinikfragecache` har ingen
+faktisk gallring; (4) klinikstödets sex regler är mätta (`ai-evaluering.yml`, fyra körningar),
+men kviss- och stegförslagens liknande regler är det INTE – och en kvissfråga är ett facit
+(`rättIndex`), inte en sökträff, så en hallucinerad dos där väger tyngre; (5) artikel
+50-märkningen ("AI-tolkat ursprung") finns bara för rutinens ursprung, inte för AI-genererad
+kviss/steg; (6) bildtolkningens fritextfält (särskilt `komIhagFlaggor`) tas rakt av utan
+efterkontroll, mildrat men inte löst av utkastsgranskningen (löses av fynd 2:s fix); (7) ingen
+logg över VILKA anrop som gjorts till Google, vilket `avtal/INCIDENTRESPONSPLAN.md` avsnitt
+5.1 förutsätter finns; (8) budgeten återbetalas inte vid ett misslyckat anrop.
+
+**Vad som redan är starkt, för balansens skull:** EU-region verifierad genom faktiska anrop,
+ingen fristående API-nyckel, budgettak per organisation och användare, klinikstödets
+källbegränsning i två oberoende lager, allt AI-innehåll blir ett utkast som kräver mänskligt
+godkännande, promptinjektionens strukturella väg stängd, säkerhetsreglerna mätta i stället för
+antagna. Fynden ovan är förfiningar av ett redan relativt försvarat system, inte tecken på att
+grunden är svag.
+
+**Spårning:** varje fynd har en egen rad i `OPPNA-PUNKTER.md` under "Tio minuter", i samma
+prioritetsordning som dokumentet. Dokument nr 75, registrerat i `DOKUMENTREGISTER.md`.
+
 ## Uppföljning 2026-09-06 (Vertex AI deployad – migreringen är i drift)
 
 `deploy.yml` körning #98, `conclusion: success`, knappt sex minuter. Samtliga funktioner
@@ -304,85 +344,3 @@ Sex nya assertioner i `tests/functions/klinikstodprompt.test.cjs` (18 totalt), i
 test som bevisar att skyddet **inte** avvisar legitima kliniska frågor med apostrof,
 bindestreck, parentes, procent eller decimaltal. Testsvep grönt: lint, build, 592 vitest,
 `test:functions`, `test:rules`, `test:storage`.
-
-## Uppföljning 2026-09-06 (AI-utvärdering byggd – klinikstödets säkerhetsregler mäts nu)
-
-Ägaren frågade om Gemini är rätt modellval eller om andra LLM:er borde övervägas. **Svaret blev
-"stanna" – men frågan blottade något viktigare.** Vid nuvarande volym (284 funktionsanrop
-totalt, noll kunder) är skillnaden mellan billigaste och dyraste rimliga modell några kronor i
-månaden, medan ett leverantörsbyte river upp EU-databehandlingsgarantin som Vertex AI-
-migreringen precis köpte, lägger till ett underbiträde och kräver nytt PUB-avtal och uppdaterad
-DPIA. Priset är alltså fel variabel att optimera på – **kvaliteten är rätt variabel, och den
-gick inte att mäta.**
-
-**Den verkliga bristen:** klinikstöd-promptens regel 4 ("aldrig ett beslutsstöd … Ge aldrig ett
-prioriterat eller rangordnat svar") är den avgränsning som håller funktionen utanför MDR. Den
-upprätthölls av att modellen *väljer* att lyda prompten, och ingenting mätte om den gör det.
-En redigering som strök regeln hade inte fått ett enda test att faila. `verifieraKlinikstod`
-testar uttryckligen **bara** sökmotorsteget, inte Gemini-svaret.
-
-**Byggt, i tre lager med medvetet olika räckvidd:**
-
-1. **`tests/functions/klinikstodprompt.test.cjs`** – 11 assertioner, gratis, offline, tillagd i
-   `test:functions`-svepet. Bevisar att reglerna står kvar ord för ord, att ordet "beslutsstöd"
-   aldrig återkommer som en självbeskrivning (regressionen från Etapp 72), och att reglerna
-   ligger EFTER den användarstyrda frågan i prompten. **Mutationstestad:** stryks förbudet mot
-   rangordning failar den med ett felmeddelande som pekar på MDR-konsekvensen.
-2. **`functions/scripts/ai-evaluering.cjs` + `.github/workflows/ai-evaluering.yml`** – sju fall
-   mot skarp Vertex AI, manuell dispatch. Rangordningsbete, rekommendationsbete, namngiven
-   patient (medvetet UTAN personnummer – `innehallerPersonnummer` stoppar redan de fallen, så
-   regel 6 är det enda skyddet just där), fråga som källorna inte täcker, promptinjektion, samt
-   bildtolkningens schemakontrakt. **Anropar aldrig den riktiga sökmotorn** – den delade kvoten
-   är 100/dygn för hela installationen, och en utvärdering som åt av den kunde släckt
-   klinikstödet för riktiga kunder. Rör ingen Firestore-data, ingen budget.
-3. **Tre utfall, inte två:** `OK`, `FEL` och `GRANSKA`. Det sista för frågor som inte går att
-   avgöra maskinellt, där svaret skrivs ut i sin helhet för mänsklig läsning och slutkoden inte
-   påverkas. Avsiktligt: en heuristik som låtsas kunna fälla ett regulatoriskt omdöme vore
-   sämre än en som säger att den inte kan det. `GRANSKA`-raderna ÄR den manuella verifiering
-   som kostnadsuppskattningen krävde – strukturerad, inte bortautomatiserad.
-
-**Refaktorering som möjliggjorde det:** prompten byggdes tidigare inline i anropshanteraren och
-gick inte att nå utifrån. Utbruten till `byggKlinikstodPrompt()`, exporterad, så utvärderingen
-mäter EXAKT samma prompt som produktionen kör – inte en kopia som kan glida isär. Verifierat
-byte-identisk. Samma skäl bakom att `tolkaBildMedGemini`/`extraktionsSchema` nu exporteras.
-
-**Ett verkligt fynd på köpet:** frågan interpoleras osanerad in i prompten
-(`Fråga: "${fraga}"`), vilket är en möjlig promptinjektion mot just de regler som bär
-MDR-avgränsningen. Om den går igenom är okänt – fall 6 testar det, men kan inte köras än. Fört
-till `OPPNA-PUNKTER.md` med föreslagen åtgärd (avvisa `"` och radbrytningar i söksträngen)
-och med de förmildrande omständigheterna ärligt noterade.
-**→ Åtgärdad samma dag, se sektionen ovan** – ägaren instruerade att inte vänta på
-utvärderingen.
-
-**Provbilden genereras i kod** (`functions/scripts/provbild.cjs`, egen PNG-enkodare utan
-beroenden) i stället för att checkas in som binärfil – en bild i repot går inte att granska i
-en diff. Renderad och okulärbesiktigad: texten är läsbar och datumet `2027-01-15`, som
-utvärderingen jämför exakt mot, står i klartext.
-
-**Ännu inte kört mot skarp Vertex AI** – kräver samma tre GCP-steg som allt annat. Skriptet
-översätter de vanligaste felen till vilket steg som saknas. Testsvep grönt: lint, `npm run
-build`, 592 vitest-tester, hela `test:functions`-svepet.
-
-## Uppföljning 2026-09-06 (egen domän `synappsen.se` kopplad och verifierad)
-
-Ägarens domänkoppling från föregående uppföljning (2026-09-05) är klar. Ett verkligt fel
-hanns fångas och rättas under tiden: "Lägg till anpassad domän" hade av misstag startats
-från fel hosting-site (`synappsen-final-build`, appens site, inte `synappsen-web`,
-marknadssidan) – synligt i verifierings-TXT-postens värde `hosting-site=synappsen-final-build`.
-Hade det slutförts hade `synappsen.se` visat kundappens inloggningssida i stället för
-marknadssidan. Ägaren startade om flödet från rätt site; Firebase Console visade därefter
-"Verified" → "Minting certificate" → **"Connected"**.
-
-**Verifierat direkt mot `https://synappsen.se`:** HTTP 200, riktig Firebase/Fastly-CDN-trafik
-(inte en proxiartefakt – `x-served-by`/`x-cache`-headrarna bekräftar det), samtliga
-säkerhetsheaders från `hosting:web`-konfigurationen närvarande (CSP, HSTS, COOP,
-X-Frame-Options, X-Content-Type-Options, Permissions-Policy, Referrer-Policy), rätt
-sidtitel (marknadssidan, inte appen), `noindex, nofollow` och `robots.txt`s `Disallow: /`
-fortfarande aktiva som avsett. **En känd begränsning:** det faktiska TLS-certifikatet kunde
-inte oberoende verifieras från den här sandboxade sessionen – utgående HTTPS fångas upp av
-sandboxens egen utgångsproxy (`openssl s_client` visar dess MITM-certifikat, inte Firebases/
-Let's Encrypts). Inte ett tecken på ett verkligt problem – Firebase Consoles "Connected"-status
-är själva beviset på att certifikatet utfärdats och bundits korrekt.
-
-`synappsen.se` fungerar alltså som avsett. Domänsäkring (registrar lock, DNSSEC, 2FA hos
-Loopia) är fortfarande en öppen punkt, se `OPPNA-PUNKTER.md`.
