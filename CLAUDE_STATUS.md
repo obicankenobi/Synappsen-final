@@ -121,6 +121,37 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
 
+## Uppföljning 2026-09-07 (e2e-blockeraren fixad – och den dolde en verklig WCAG-brist)
+
+**Utgångspunkt:** hela e2e-sviten hade varit röd på default-grenen sedan v5.136.0 (Etapp L1j),
+utan att det uppmärksammats. Fjorton rökprovstester föll med
+`Failed to load resource: net::ERR_CONNECTION_REFUSED` på var och en av de 24 rutterna.
+
+**Orsak:** `AuthContext.jsx:110` anropar Cloud Function-en `rapporteraAppVersion` på
+inloggningsvägen sedan Etapp L1j. `test:e2e` startade bara `auth,firestore,storage` – ett
+medvetet val från Etapp 45b, då `/leverantor` var den enda sidan som anropade en funktion.
+Det slutade stämma i samma sekund L1j byggdes, och eftersom rökprovet samlar konsolfel per
+rutt syntes raden på allihop.
+
+**Åtgärd:** `functions` tillagt i `test:e2e`. Fjorton av fjorton rökprovstester gröna.
+
+**Vad det avslöjade:** med emulatorn igång föll i stället fyra axe-tester, alla på
+`/leverantor`. `LeverantorLayout.jsx` renderade sitt laddningsläge och sitt "saknar
+behörighet"-läge som `<div class="sida">` utan `<main>` – den globala hoppa-till-innehåll-
+länken pekade alltså mot ett `#huvudinnehall` som inte fanns. Samma felklass som punkt 13 i
+`granskningar/TILLGANGLIGHETSREDOGORELSE.md`, fast i två TILLSTÅND i stället för på två
+sidor. Bristen var verklig också i produktion; den var bara osynlig för axe eftersom
+laddningsläget passerade på millisekunder när anslutningen vägrades direkt. Rättad och
+införd som punkt 18 i redogörelsen.
+
+**Kvarstående fynd, fört till `OPPNA-PUNKTER.md`:** functions-emulatorn i `firebase-tools` 13
+kan inte KÖRA funktionerna – dess runtime anropar `functions.config()`, borttaget i
+`firebase-functions` 7. Varje anrop svarar 500. Sviten blir grön (appen fångar felet), men
+e2e bevisar inte att någon Cloud Function fungerar. `firebase-tools@15` visar inte felet, men
+en bump rör verktyget som gör produktionsdeployerna och kräver ett eget beslut.
+
+---
+
 ## Uppföljning 2026-09-06 (webbplatsens bevislucka – skärmbilder, publicerat underlag, räknade tal)
 
 **Utgångspunkt:** en genomgång av `synappsen-web/index.html` mot `produkt/VARUMARKE.md` och
