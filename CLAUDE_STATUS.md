@@ -4,7 +4,7 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (129 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (131 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
@@ -28,7 +28,8 @@ sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) 
 | **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – men medvetet fortsatt `noindex, nofollow` (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket och namn/orgnr på policyn saknas fortfarande. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Ta bort `noindex` när de två kvarvarande punkterna är klara, se `OPPNA-PUNKTER.md`. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
-| **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. Ta samtidigt ägarbeslutet om "Beslutsstöd"-raden i `OPPNA-PUNKTER.md`. Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
+| **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. Ta samtidigt ägarbeslutet om "Beslutsstöd"-raden i `OPPNA-PUNKTER.md`. **Åtgärda AI-integrationsriskerna** (`granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`, 8 fynd, prioritetsordning i dokumentet – börja med fynd 1, personuppgiftskontrollen sker efter överföringen till Vertex AI). Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
+| **AI-integrationsrisker** | **Ny 2026-09-06.** Genomgång av samtliga sex AI-anropsställen efter ägarens fråga om personuppgifter/hallucination/MDR-gräns. 8 namngivna fynd, ingen kod ändrad än, prioritetsordning satt: `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`. Allvarligast (fynd 1): personuppgiftskontrollen på bilder körs EFTER överföring till Vertex AI, inte före. Spårat rad för rad i `OPPNA-PUNKTER.md` |
 
 ## Var du hittar saker
 
@@ -117,6 +118,44 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-06 (AI-integrationens risker kartlagda – 8 fynd, ingen kod ändrad än)
+
+Ägaren frågade rakt ut vilka risker som finns i hur AI faktiskt är integrerad i Synappsen –
+personuppgifter, hallucination, MDR-gränsen – direkt efter att Vertex AI-migreringen
+deployats och verifierats (se sektionen nedan). En läsning av samtliga sex AI-anropsställen
+gav åtta namngivna fynd, skrivna ned i `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`
+tillsammans med en prioritetsordning. **Ingen kod ändrades i den här sessionen** – ägaren bad
+uttryckligen om att dokumentera och komma ihåg dem för framtida arbete, ett fynd i taget med
+egen testtäckning, inte ett samlat svep.
+
+**Allvarligast (fynd 1):** `tolkaDokument` skickar en uppladdad bild till Vertex AI FÖRE
+`innehallerPersonnummer()` körs på resultatet – kontrollen skyddar Firestore mot lagring, inte
+själva överföringen till underbiträdet. Bilduppladdningsflödet saknar dessutom helt den
+namnvarning som redan finns för formulärtext (`kontrolleraPatientuppgifter` i
+`src/utils/piiFilter.js`).
+
+**Övriga fynd, kort:** (2) uppladdade råfoton raderas aldrig, bara vid kontoavetablering –
+GDPR-lagringsminimering, med bieffekten att andra än uppladdaren sannolikt inte kan se
+originalbilden bakom ett AI-utkast; (3) `klinikfrageloggar`/`klinikfragecache` har ingen
+faktisk gallring; (4) klinikstödets sex regler är mätta (`ai-evaluering.yml`, fyra körningar),
+men kviss- och stegförslagens liknande regler är det INTE – och en kvissfråga är ett facit
+(`rättIndex`), inte en sökträff, så en hallucinerad dos där väger tyngre; (5) artikel
+50-märkningen ("AI-tolkat ursprung") finns bara för rutinens ursprung, inte för AI-genererad
+kviss/steg; (6) bildtolkningens fritextfält (särskilt `komIhagFlaggor`) tas rakt av utan
+efterkontroll, mildrat men inte löst av utkastsgranskningen (löses av fynd 2:s fix); (7) ingen
+logg över VILKA anrop som gjorts till Google, vilket `avtal/INCIDENTRESPONSPLAN.md` avsnitt
+5.1 förutsätter finns; (8) budgeten återbetalas inte vid ett misslyckat anrop.
+
+**Vad som redan är starkt, för balansens skull:** EU-region verifierad genom faktiska anrop,
+ingen fristående API-nyckel, budgettak per organisation och användare, klinikstödets
+källbegränsning i två oberoende lager, allt AI-innehåll blir ett utkast som kräver mänskligt
+godkännande, promptinjektionens strukturella väg stängd, säkerhetsreglerna mätta i stället för
+antagna. Fynden ovan är förfiningar av ett redan relativt försvarat system, inte tecken på att
+grunden är svag.
+
+**Spårning:** varje fynd har en egen rad i `OPPNA-PUNKTER.md` under "Tio minuter", i samma
+prioritetsordning som dokumentet. Dokument nr 75, registrerat i `DOKUMENTREGISTER.md`.
 
 ## Uppföljning 2026-09-06 (Vertex AI deployad – migreringen är i drift)
 
@@ -310,85 +349,4 @@ Let's Encrypts). Inte ett tecken på ett verkligt problem – Firebase Consoles 
 
 `synappsen.se` fungerar alltså som avsett. Domänsäkring (registrar lock, DNSSEC, 2FA hos
 Loopia) är fortfarande en öppen punkt, se `OPPNA-PUNKTER.md`.
-
-## Uppföljning 2026-09-06 (Vertex AI-migrering genomförd i kod – INTE aktiv än)
-
-Ägaren fick utgående Firebase-provkrediter (~2 600 kr, 7 dagar kvar, mycket låg faktisk
-molnanvändning) och beslutade att göra Vertex AI-migreringen proaktivt i stället för att låta
-krediten gå förlorad. Se `BESLUTSLOGG.md` 2026-09-06.
-
-**Samtliga sex Gemini-anropsställen migrerade** (`functions/ai-import.js`: 4,
-`functions/klinikstod.js`: 2) från det publika Gemini API:et (API-nyckel,
-`generativelanguage.googleapis.com`) till Vertex AI (Application Default Credentials, region
-`europe-west1`, projekt `synappsen-final-build`).
-
-**Ett verkligt fynd under arbetet:** planens ursprungliga paketval, `@google-cloud/vertexai`
-(`granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-2026-08-30.md`), visade sig vara
-**deprecerat sedan 24 juni 2025** och tas bort 24 juni 2026 – kontrollerat mot Googles egen
-release-dokumentation innan någon kod skrevs. Migrerade i stället mot `@google/genai`, Googles
-nu rekommenderade enhetliga SDK som talar med både det publika API:et och Vertex AI genom
-samma klientkod. Bieffekt: enklare än planerat – SDK:t sköter tokenhantering mot ADC
-automatiskt, ingen egen `google-auth-library`-kod behövdes (planens punkt 1 i "Vad som
-skiljer Vertex AI åt" stämde alltså inte längre, se kostnadsuppskattningens tillägg
-2026-09-06 för hela resonemanget).
-
-**Städat helt, inte lämnat som en parallell väg:** `GEMINI_API_KEY` borttagen som secret-
-definition (`gemensamt.js`), ur båda kodfilerna, och ur `deploy.yml`s Secret Manager-steg.
-Ny central `skapaVertexKlient()`-hjälpare i `gemensamt.js` ersätter fyra separata
-klientkonstruktioner i `ai-import.js` och den rå `fetch()`-koden i `klinikstod.js` – samma
-beteende (inklusive den befintliga 503-återförsöksregeln, verifierad mot SDK:ns `ApiError`
-som exponerar samma `.status`-fält), mindre duplicering.
-
-**Nytt test:** `tests/functions/vertexmigrering.test.cjs` – bevisar mekaniskt att ingen
-kvarvarande referens till det gamla API:et finns, och att region/projekt-konstanterna inte
-kan glida i tysthet. Kan INTE bevisa att ett riktigt anrop fungerar (kräver Vertex AI aktiverat
-– se nedan); det är samma begränsning kostnadsuppskattningen redan flaggade.
-
-**⚠️ INTE aktiv i produktion.** Tre GCP-konsolsteg återstår, kan inte göras från en
-kodsession, och **måste göras innan nästa `deploy.yml`-körning** – annars slutar alla sex
-AI-funktioner fungera för riktiga anrop: (1) aktivera Vertex AI-API:et, (2) ge Cloud
-Functions-tjänstekontot `roles/aiplatform.user`, (3) bekräfta att `gemini-2.5-flash` finns i
-`europe-west1` (en websökning gav indikationer men ingen fullständig primärkälla kunde läsas
-i sessionen – kontrollera i Model Garden). Överst i `OPPNA-PUNKTER.md`, märkt med ⚠️.
-
-Testsvep grönt: lint, `npx vitest run` 592 tester, `npm run build`, `npm run test:functions`
-(inkl. det nya testet), `npm run test:rules`, `npm run test:storage`.
-
-**RTO-mätningen (samma session, samma anledning) är klar.** Kört mot skarp produktion via
-`.github/workflows/rto-matning.yml`: **1 711 ms** för återställning av en syntetisk
-testorganisation (100 dokument, fyra collections) – föregående mätning (2026-08-09) gav
-1 136 ms, skillnaden är normal variation, inte en försämring. Ett verkligt fel i den
-befintliga dokumentationen hittades och rättades i samma veva: `avtal/IT-FAKTABLAD.md`
-punkt 6 sa att organisationen "säkerhetskopierades och återställdes på 1 136 ms", vilket lästes
-som en kombinerad tid – skriptet (`functions/scripts/rto-matning.cjs` rad 67–71) mäter i
-själva verket ENBART `aterstallOrganisation()`-anropet, inte backupsteget. Formuleringen
-rättad till att vara tydlig om vad som faktiskt mäts. Testorganisationen städades bort
-automatiskt, ingen skarp kunddata rörd.
-
-## Uppföljning 2026-09-05 (domänkoppling pågår, e-postmottagning bekräftad)
-
-Ägaren är mitt i att koppla `synappsen.se` till hosting-siten via Firebase Console, med
-Loopia som registrar/DNS-leverantör.
-
-**`kontakt@synappsen.se` bekräftat mottagande** (Google Workspace, `MX → SMTP.GOOGLE.COM`
-redan i DNS-zonen). Öppna punkten om mottagning borttagen ur `OPPNA-PUNKTER.md` – en av tre
-kvarvarande blockerare för att ta bort `noindex` är därmed löst. Kommentarerna i
-`index.html`, `integritet.html` och `robots.txt` uppdaterade till att bara nämna de två
-kvarvarande (bakgrundsstycket, namn/orgnr på policyn).
-
-**Ett verkligt fel uppmärksammat innan det fick konsekvens:** ägaren skickade en skärmbild av
-Firebase Consolens domänverifiering. Verifierings-TXT-posten sa `hosting-site=synappsen-
-final-build` – enligt `.firebaserc` är `synappsen-final-build` **appens** hosting-site
-(target `app`), inte `synappsen-web` (target `web`, marknadssidan). "Lägg till anpassad
-domän" hade alltså startats från fel site i konsolen. Hade det fullföljts skulle
-`synappsen.se` ha visat kundappen/inloggningssidan i stället för marknadssidan. Ägaren
-instruerad att göra om det från `synappsen-web`-siten specifikt
-(`console.firebase.google.com/project/synappsen-final-build/hosting/sites/synappsen-web`).
-
-DNS-arbetet i övrigt var korrekt utfört: apex-postens `A`-värde och den ursprungliga
-`TXT`-verifieringen matchade exakt vad Firebase bad om, och de gamla parkerings-A-posterna
-var borttagna – bara site-valet i konsolen var fel, inget i DNS-zonen behövde ändras om.
-
-Ingen kodändring i detta steg utöver kommentarraden ovan. Väntar på att ägaren slutför
-domänkopplingen mot rätt site och att certifikatet utfärdas.
 
