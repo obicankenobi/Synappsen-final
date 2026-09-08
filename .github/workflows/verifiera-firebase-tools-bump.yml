@@ -34,6 +34,16 @@ jobs:
         with:
           node-version: 22
 
+      # firebase-tools@14+ kräver JDK 21 för Firestore-/Storage-emulatorerna (Java-baserade).
+      # ubuntu-latest-imagens förvalda JDK räcker inte – upptäckt i körning #1 (2026-09-08):
+      # "firebase-tools no longer supports Java version before 21." Sandboxen där buggen
+      # ursprungligen grävdes i råkade redan ha JDK 21 installerat, vilket dolde det här kravet
+      # helt – ett skäl till att en riktig CI-körning är den enda pålitliga verifieringen.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
       - name: Installera rot-beroenden (klient-SDK:t verifieringsskriptet använder)
         run: npm ci
 
