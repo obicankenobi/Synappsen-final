@@ -32,7 +32,7 @@ connectFunctionsEmulator(functions, "127.0.0.1", 5001);
 async function main() {
   await signInAnonymously(auth);
   const rapporteraAppVersion = httpsCallable(functions, "rapporteraAppVersion");
-  const resultat = await rapporteraAppVersion("0.0.0-emulatorverifiering");
+  const resultat = await rapporteraAppVersion({ version: "0.0.0-emulatorverifiering" });
   console.log("FUNCTIONS_EMULATOR_VERIFIERING: OK", JSON.stringify(resultat.data));
   process.exit(0);
 }
