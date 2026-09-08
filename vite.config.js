@@ -32,7 +32,19 @@ export default defineConfig({
     // test:functions / test:e2e) – inte vitest-testsviter. tests/e2e/** är skrivna med
     // Playwright Test (@playwright/test), som har en egen "test"/"expect"-export vitest inte
     // känner till.
-    exclude: ["**/node_modules/**", "**/dist/**", "tests/rules/**", "tests/functions/**", "tests/e2e/**"],
+    //
+    // synappsen-web/verktyg/** av samma skäl: skärmbildstagningen till marknadswebbplatsen är
+    // en Playwright-körning med egen konfiguration (skarmbilder.config.mjs), som körs för hand
+    // när bilderna ska tas om. Den är medvetet utanför CI – en marknadsbild ska inte kunna
+    // göra bygget rött.
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "tests/rules/**",
+      "tests/functions/**",
+      "tests/e2e/**",
+      "synappsen-web/verktyg/**",
+    ],
   },
   plugins: [
     react(),

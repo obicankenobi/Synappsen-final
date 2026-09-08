@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>Tillgänglighetsredogörelse – Synappsen</title>
+<meta name="description" content="Hur Synappsen förhåller sig till WCAG 2.1 AA, med de brister som kvarstår utskrivna. Publicerad i sin helhet, oredigerad." />
+
+<link rel="canonical" href="https://synappsen.se/tillganglighet.html" />
+<link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
+
+<!-- Samma tillfälliga noindex som resten av webbplatsen, se index.html. -->
+<meta name="robots" content="noindex, nofollow" />
+
+<link rel="preload" href="/fonts/public-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/stil.css" />
+</head>
+<body>
+
+<!-- GENERERAD FIL - REDIGERA INTE FOR HAND.
+     Kalla: granskningar/TILLGANGLIGHETSREDOGORELSE.md
+     Generator: synappsen-web/verktyg/bygg-underlag.mjs
+     Kor om med: node synappsen-web/verktyg/bygg-underlag.mjs
+     tests/docs/webbplats.test.js failar om den har filen inte motsvarar kallan. -->
+
+<a class="hoppa" href="#huvudinnehall">Hoppa till innehållet</a>
+
+<div class="skal skal--enkel">
+  <main class="huvud huvud--dokument" id="huvudinnehall" tabindex="-1">
+
+    <p class="dokument__tillbaka"><a href="/underlag.html">← Underlag och dokumentation</a></p>
+
+    <section class="hero" style="border-bottom: 1px solid var(--kant); padding-bottom: 36px;">
+      <span class="eyebrow hero__eyebrow">Tillgänglighetsredogörelse</span>
+      <h1 style="font-size: clamp(28px, 4vw, 40px);">Tillgänglighetsredogörelse</h1>
+      <p class="lede">Hur Synappsen förhåller sig till WCAG 2.1 AA, med de brister som kvarstår utskrivna. Publicerad i sin helhet, oredigerad.</p>
+      <p class="dok__kalla">Sidan genereras ur <code>granskningar/TILLGANGLIGHETSREDOGORELSE.md</code> i produktens eget
+      kodförråd och kan därför inte säga något annat än originalet säger.</p>
+    </section>
+
+    <div class="dok">
+<h2>Tillgänglighetsredogörelse för Synappsen</h2>
+<blockquote><p><strong>Status på detta dokument:</strong> utkast baserat på en teknisk granskning 2026-07-26, <strong>omgranskat och uppdaterat 2026-08-04</strong> (Etapp 45c) efter att gränssnittet byggts om i sin helhet (Etapp 42–44). Tre uppgifter måste fyllas i av leverantören innan publicering – de är markerade <code>[FYLL I]</code> nedan och kan inte härledas ur koden. Se även avsnittet &quot;Att göra före publicering&quot; sist i dokumentet.</p></blockquote>
+<p><code>[FYLL I: juridiskt namn på leverantören]</code> står bakom Synappsen. Vi vill att så många som möjligt ska kunna använda tjänsten. Detta dokument beskriver hur Synappsen uppfyller lagen om tillgänglighet till digital offentlig service (DOS-lagen, SFS 2018:1937), eventuella kända brister och hur du kan rapportera problem.</p>
+<hr />
+<h3>Vilka regler som gäller – och varför detta dokument finns</h3>
+<p>Synappsen är en verksamhetsapplikation som säljs till offentliga vårdgivare (regioner och kommuner). Det ger två skilda men sammanhängande krav:</p>
+<p><strong>DOS-lagen ställer kravet på kunden, inte på oss.</strong> Lagen riktar sig till <em>offentliga aktörer</em>. Formellt är det den upphandlande regionen eller kommunen som ansvarar för att publicera en tillgänglighetsredogörelse för de digitala tjänster de tillhandahåller sin personal – inklusive Synappsen. Som leverantör kan vi inte publicera den redogörelsen åt dem. Däremot är det vi som har kunskapen om produktens faktiska tillgänglighet, och utan den kan kunden inte fullgöra sin skyldighet.</p>
+<p><strong>Detta dokument fyller därför två funktioner:</strong></p>
+<ol><li>Det är leverantörens tillgänglighetsdokumentation – underlaget en kund behöver för att skriva sin egen redogörelse, och det underlag en upphandlare efterfrågar i ett anbud.</li><li>Det är skrivet enligt den obligatoriska mallen i kommissionens genomförandebeslut (EU) 2018/1523, så att en kund kan anta det med minimal bearbetning.</li></ol>
+<p><strong>Standard som tillämpas:</strong> EN 301 549 (europeisk harmoniserad standard för tillgänglighet i IKT), som i sin tur hänvisar till <strong>WCAG 2.1 nivå AA</strong>.</p>
+<p><strong>Om tillgänglighetsdirektivet (European Accessibility Act, lag 2023:254):</strong> den lagstiftningen omfattar produkter och tjänster riktade till konsumenter. Synappsen är ett internt arbetsverktyg för vårdpersonal och tillhandahålls inte till konsumenter. Vi bedömer därför att den lagen inte är tillämplig. Bedömningen bör dock omprövas om produkten i framtiden erbjuds direkt till privatpersoner.</p>
+<hr />
+<h3>Hur tillgänglig är Synappsen?</h3>
+<p><strong>Synappsen är delvis förenlig med lagen om tillgänglighet till digital offentlig service</strong>, på grund av de brister som beskrivs nedan.</p>
+<p>Detta är en ärlig bedömning, inte en formalitet. Granskningen visade att grunden är starkare än väntat – automatiserad testning av fem centrala flöden gav noll fel på fyra av dem – men det finns kända brister på <strong>WCAG nivå A</strong>, vilket gör att tjänsten inte kan beskrivas som fullt förenlig. Bristerna är åtgärdbara och ingen av dem hindrar en tangentbordsanvändare från att nå tjänstens huvudfunktioner.</p>
+<p><strong>Uppdatering 2026-07-26 (Etapp 13g):</strong> de fyra punkter av dessa som var enklast att åtgärda och som prioriterades i den ursprungliga bedömningen (#1, #2, #3 och #7 i tabellen nedan) är nu åtgärdade i koden – se raderna för status. Kvarstår gör punkterna #4–#6 och #8–#11, samtliga fortsatt spårade som ärende SYN-6.</p>
+<p><strong>Uppdatering 2026-08-04 (Etapp 45c):</strong> en betydligt bredare automatiserad granskning (samtliga 27 sidor × två roller, se &quot;Hur vi har testat tjänsten&quot; nedan) hittade sex NYA brister – samtliga uppkomna av eller synliggjorda av gränssnittsförnyelsen (Etapp 42–44) och alla <strong>åtgärdade samma dag, se #12–#17</strong> i tabellen. Punkterna #4–#6 och #8–#11 från den ursprungliga granskningen kvarstår oförändrade.</p>
+<p><strong>Uppdatering 2026-08-23 (rättelse av sammanfattningen ovan):</strong> raden &quot;#4–#6 och #8–#11 kvarstår&quot; stämde inte längre. <strong>#8 och #9 är åtgärdade</strong> (Etapp 68d/68g respektive 68d, se tabellraderna, som var korrekta hela tiden – det var sammanfattningstexten här som låg efter). Faktiskt kvarstående är <strong>#4, #5, #6 och #10</strong>, samtliga på nivå A, plus #11 som inte är ett formellt kravbrott:</p>
+<div class="tabell-svep"><table>
+<thead><tr><th scope="col">#</th><th scope="col">Brist</th><th scope="col">Nivå</th></tr></thead>
+<tbody>
+<tr><td>4</td><td>Anslagstavlan saknar <code>&lt;h1&gt;</code></td><td>A</td></tr>
+<tr><td>5</td><td>Notiser kan bara stängas med musklick</td><td>A</td></tr>
+<tr><td>6</td><td>Notiser försvinner efter 5 s utan möjlighet att förlänga</td><td>A</td></tr>
+<tr><td>10</td><td>En etikett i rutinformuläret omsluter både verktygsrad och textfält</td><td>A</td></tr>
+<tr><td>11</td><td>Emoji i rubriker och navigeringslänkar</td><td>– (best practice)</td></tr>
+</tbody></table></div>
+<p>Det är fyra små, avgränsade åtgärder – timmar, inte veckor. Det är värt att veta eftersom &quot;kvarstående brister på <strong>nivå A</strong>&quot; är den formulering som väger tyngst emot produkten i ett anbud (se <code>saljmaterial/kallfiler/Synappsen-upphandlingssvar.html</code> svar D1), och kostnaden för att ta bort den formuleringen helt är låg i förhållande till vad den kostar i varje upphandling där den står kvar.</p>
+<h4>Vad som fungerar bra</h4>
+<p>Följande är kontrollerat och uppfyller kraven:</p>
+<ul><li><strong>Färgkontrast i ljust tema.</strong> Samtliga text- och bakgrundskombinationer klarar kravet på 4,5:1. Uppmätta värden: brödtext 17,1:1, dämpad text 7,2:1, länkfärg 4,9:1, statusfärger 4,6–5,0:1. Färgpaletten har uttryckligen justerats för detta ändamål.</li><li><strong>Språk.</strong> Sidan är korrekt märkt med <code>lang=&quot;sv&quot;</code>, så skärmläsare använder svenskt uttal.</li><li><strong>Bilder.</strong> Samtliga bilder har alternativtext eller är korrekt märkta som dekorativa.</li><li><strong>Formulär.</strong> Etiketter är kopplade till sina fält (via omslutande <code>&lt;label&gt;</code>), så skärmläsare läser upp rätt fältnamn.</li><li><strong>Tangentbordsnavigering.</strong> Alla kontrollerade interaktiva element går att nå med tangentbord, i logisk ordning, och har en synlig fokusmarkering. &quot;Mer&quot;-menyn (mobilnav, Etapp 42f) fångar nu tangentbordsfokus korrekt (Esc stänger, Tab cyklar inuti, fokus återlämnas vid stängning) – åtgärdat 2026-08-04, se #16.</li><li><strong>Automatiserad testning, permanent.</strong> Samtliga 27 sidor, för både en superadmin- och en personal-roll, gav <strong>noll</strong> överträdelser vid maskinell granskning (axe-core) efter 2026-08-04-fixarna – och är sedan samma dag en del av <code>test:e2e</code> (<code>tests/e2e/tillganglighet.spec.js</code>), så en framtida regression upptäcks automatiskt i CI istället för vid nästa manuella granskning.</li></ul>
+<hr />
+<h3>Innehåll som inte är tillgängligt</h3>
+<h4>1. Bristande förenlighet med lagkraven</h4>
+<p>Följande brister är kända och planerade att åtgärdas.</p>
+<div class="tabell-svep"><table>
+<thead><tr><th scope="col">#</th><th scope="col">Brist</th><th scope="col">WCAG-krav</th><th scope="col">Nivå</th><th scope="col">Konsekvens för användaren</th><th scope="col">Status</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Ingen &quot;hoppa till innehåll&quot;-länk, och inget <code>&lt;main&gt;</code>-landmärke. Tio navigeringslänkar passeras innan huvudinnehållet nås.</td><td>2.4.1 Hoppa över block</td><td><strong>A</strong></td><td>Tangentbords- och skärmläsaranvändare måste tabba förbi hela menyn på varje sida.</td><td><strong>Åtgärdat 2026-07-26</strong> – synlig-vid-fokus &quot;Hoppa till innehåll&quot;-länk samt <code>&lt;main id=&quot;huvudinnehall&quot;&gt;</code> på samtliga skyddade sidor.</td></tr>
+<tr><td>2</td><td>Sidans titel är &quot;Synappsen&quot; på samtliga sidor och ändras inte vid navigering.</td><td>2.4.2 Sidans titel</td><td><strong>A</strong></td><td>Skärmläsaranvändare får ingen bekräftelse på vilken sida de kommit till; flera öppna flikar går inte att skilja åt.</td><td><strong>Åtgärdat 2026-07-26</strong> – <code>document.title</code> sätts per rutt (<code>useSidTitel</code>).</td></tr>
+<tr><td>3</td><td>Rollväljaren i adminpanelens användarlista saknar tillgängligt namn.</td><td>4.1.2 Namn, roll, värde</td><td><strong>A</strong></td><td>Skärmläsaren läser upp menyn utan att ange vad den styr. Påverkar endast superadministratörer.</td><td><strong>Åtgärdat 2026-07-26</strong> – <code>aria-label</code> med användarens namn tillagt.</td></tr>
+<tr><td>4</td><td>Anslagstavlan saknar huvudrubrik (<code>&lt;h1&gt;</code>).</td><td>1.3.1 Information och relationer</td><td><strong>A</strong></td><td>Sidans syfte framgår inte vid rubriknavigering.</td><td>Kvarstår, spåras i SYN-6.</td></tr>
+<tr><td>5</td><td>Bekräftelsemeddelanden (notiser) kan bara stängas med musklick.</td><td>2.1.1 Tangentbord</td><td><strong>A</strong></td><td>Kan inte avfärdas med tangentbord; de försvinner dock av sig själva.</td><td>Kvarstår, spåras i SYN-6.</td></tr>
+<tr><td>6</td><td>Bekräftelsemeddelanden försvinner automatiskt efter 5 sekunder utan möjlighet att förlänga.</td><td>2.2.1 Justerbar tidsgräns</td><td><strong>A</strong></td><td>Användare som läser långsamt eller använder skärmläsare hinner kanske inte uppfatta meddelandet.</td><td>Kvarstår, spåras i SYN-6.</td></tr>
+<tr><td>7</td><td>Bekräftelsedialogen kan inte stängas med Esc, håller inte kvar fokus inuti sig, återlämnar inte fokus vid stängning och saknar tillgängligt namn.</td><td>2.4.3 Fokusordning, 4.1.2</td><td>A/AA</td><td>Skärmläsaranvändare kan hamna i bakgrundsinnehållet medan dialogen är öppen.</td><td><strong>Åtgärdat 2026-07-26</strong> – Esc stänger, fokus fångas inuti dialogen (Tab-cykel), fokus återlämnas till det som var fokuserat innan, <code>aria-labelledby</code> mot frågetexten.</td></tr>
+<tr><td>8</td><td>Ramfärgen på inmatningsfält och kort (<code>--kant</code>, <code>#e2e8f0</code>) har kontrasten 1,23:1 mot vit bakgrund (kravet är 3:1).</td><td>1.4.11 Kontrast för icke-text</td><td><strong>AA</strong></td><td>Fältgränser kan vara svåra att urskilja vid nedsatt syn eller i starkt ljus.</td><td><strong>ÅTGÄRDAD 2026-08-22 (Etapp 68d + 68g).</strong> 68d höjde <code>--kant-stark</code> från 1,48:1 till 3,52:1 (ljust) respektive 1,63:1 till 3,52:1 (mörkt). 68g avgjorde återstoden. En genomgång av samtliga användningar – <strong>117, inte 91 som tidigare stod här; den siffran var en underskattning</strong> – delade dem i 36 faktiska kontrollgränser (<code>&lt;input&gt;</code>, <code>&lt;select&gt;</code>, <code>&lt;textarea&gt;</code>, verktygsknappar, val-chips) och 81 kortkanter, avdelare och ifyllnader. De 36 pekar nu på <code>--kant-stark</code> och når 3,52:1 mot kortyta i båda teman. <code>--kant</code> är MEDVETET kvar på 1,23:1: 1.4.11 kräver 3:1 av det som behövs för att identifiera en komponent, inte av dekoration, och korten identifieras av sin egen yta och skugga. Bevakas av <code>tests/docs/kontrastpalett.test.js</code>.</td></tr>
+<tr><td>9</td><td>I mörkt tema har den blå accentfärgen kontrasten 3,98:1 mot kortbakgrund (kravet är 4,5:1).</td><td>1.4.3 Kontrast (minimum)</td><td><strong>AA</strong></td><td>Länktext i mörkt läge kan vara svårläst. Ljust tema är opåverkat.</td><td><strong>ÅTGÄRDAD.</strong> Ommätt 2026-08-22 (Etapp 68d): <code>--primar</code> <code>#3b82f6</code> mot <code>--yta</code> <code>#131722</code> ger 4,87:1, alltså över kravet. Siffran 3,98:1 var stale mot en tidigare palett. Bevakas nu av <code>tests/docs/kontrastpalett.test.js</code>, som failar om den går under igen.</td></tr>
+<tr><td>10</td><td>En etikett i rutinformuläret omsluter både en verktygsrad med knappar och ett textfält.</td><td>1.3.1 Information och relationer</td><td><strong>A</strong></td><td>Kopplingen mellan etikett och fält blir tvetydig för hjälpmedel.</td><td>Kvarstår, spåras i SYN-6.</td></tr>
+<tr><td>11</td><td>Emoji förekommer i rubriker och navigeringslänkar.</td><td>1.3.1 (tolkning)</td><td>–</td><td>Skärmläsare läser upp emojinamn, vilket gör uppläsningen omständlig. Formellt inget krav­brott, men en reell försämring.</td><td>Kvarstår, spåras i SYN-6.</td></tr>
+<tr><td>12</td><td><code>/logga-in</code> och <code>/registrera</code> (inloggade sidors förnyelse i Etapp 13g nådde aldrig dessa två, eftersom de renderas utanför den skyddade layouten) saknade helt <code>&lt;main&gt;</code>-landmärke.</td><td>1.3.1, 2.4.1</td><td>– (bästa praxis)</td><td>Skärmläsaranvändare fick ingen strukturell startpunkt på appens första sida någon möter.</td><td><strong>Åtgärdat 2026-08-04</strong> – <code>&lt;main id=&quot;huvudinnehall&quot;&gt;</code> tillagt i <code>LoggaIn.jsx</code>/<code>Registrera.jsx</code>.</td></tr>
+<tr><td>13</td><td>Samma brist på <code>/akutlage</code> och <code>/checklista/:rutinId</code> (Korvy) – båda renderas medvetet utanför den vanliga layouten (inget nav i akutläge/checklistläge) men fick därför aldrig ett <code>&lt;main&gt;</code>.</td><td>1.3.1</td><td>– (bästa praxis)</td><td>&quot;Hoppa till innehåll&quot;-länken (global, alla sidor) pekade mot ett id som inte fanns på just dessa två sidor.</td><td><strong>Åtgärdat 2026-08-04.</strong></td></tr>
+<tr><td>14</td><td>Den flytande Akut-knappen (global, syns på nästan alla sidor sedan Etapp 42c) renderades helt utanför alla landmärken.</td><td>1.3.1 (bästa praxis)</td><td>–</td><td>Skärmläsaranvändare som navigerar landmärkesvis missade knappen helt på varje sida den syns.</td><td><strong>Åtgärdat 2026-08-04</strong> – wrappad i en namngiven <code>role=&quot;navigation&quot;</code>-region.</td></tr>
+<tr><td>15</td><td>Två <code>&lt;nav&gt;</code>-landmärken (bottennavigeringen och Hem:s snabblänksrad, Etapp 43b) utan unika namn.</td><td>4.1.2 (bästa praxis)</td><td>–</td><td>Går inte att skilja åt vid landmärkesnavigering med skärmläsare.</td><td><strong>Åtgärdat 2026-08-04</strong> – <code>aria-label</code> tillagt på båda.</td></tr>
+<tr><td>16</td><td>&quot;Mer&quot;-menyn (mobilnav, Etapp 42f) påstod sig vara en modal dialog (<code>role=&quot;dialog&quot; aria-modal=&quot;true&quot;</code>) men saknade Esc-stängning, fokusfångst och fokusåterlämning.</td><td>2.1.2, 2.4.3, 4.1.2</td><td>A/AA</td><td>Tangentbords-/skärmläsaranvändare kunde tabba ut i bakgrundsinnehållet medan menyn &quot;låg över&quot; det, och fastnade utan en tydlig väg tillbaka.</td><td><strong>Åtgärdat 2026-08-04</strong> – samma mönster som bekräftelsedialogen (#7) återanvänt.</td></tr>
+<tr><td>17</td><td>Rubrikordning hoppade från <code>&lt;h1&gt;</code> direkt till <code>&lt;h3&gt;</code> på tre ställen: förrådsartikelkort (<code>/logistik/&lt;förråd&gt;</code>), förrådskort på <code>/logistik</code> (när inga bristanmälningar/utgående artiklar fanns att visa en <code>&lt;h2&gt;</code> för), och två sidor (<code>/kompetensmatris</code>, <code>/papperskorg</code>) som helt saknade <code>&lt;h1&gt;</code> i sitt &quot;ingen behörighet&quot;/tomt-läge för en personal-roll.</td><td>1.3.1</td><td>– (bästa praxis)</td><td>Rubriknavigering (vanlig skärmläsarteknik) gav en förvirrande eller obefintlig sidstruktur, särskilt för roller utan redaktörsbehörighet.</td><td><strong>Åtgärdat 2026-08-04.</strong></td></tr>
+<tr><td>18</td><td><code>/leverantor</code>s laddningsläge och dess &quot;saknar behörighet&quot;-läge renderades som <code>&lt;div class=&quot;sida&quot;&gt;</code> utan <code>&lt;main&gt;</code>-landmärke – samma felklass som #13, men i två TILLSTÅND i stället för på två sidor.</td><td>1.3.1, 2.4.1</td><td>– (bästa praxis)</td><td>Den globala &quot;Hoppa till innehåll&quot;-länken pekade mot ett <code>#huvudinnehall</code> som inte fanns så länge organisationslistan laddade, och sidans innehåll låg utanför alla landmärken.</td><td><strong>Åtgärdat 2026-09-07</strong> – båda grenarna renderar nu <code>&lt;main id=&quot;huvudinnehall&quot; tabIndex={-1}&gt;</code>, samma som den lyckade grenen. Upptäckt av axe-svepet först när <code>test:e2e</code> började starta functions-emulatorn: dessförinnan gick laddningsläget förbi för snabbt för att hinna mätas.</td></tr>
+</tbody></table></div>
+<p><strong>Planerad åtgärd:</strong> punkterna 1–3, 7 och 12–18 (samtliga) är åtgärdade – se Etapp 13g (<code>etapplaner/ETAPPLAN3.md</code>) respektive Etapp 45c (<code>etapplaner/ETAPPLAN9.md</code>) och <code>etapplaner/UTVECKLINGSLOGG.md</code>. Övriga punkter (#4–#6, #8–#11) hanteras inom Etapp 9b i produktens utvecklingsplan (spåras som ärende SYN-6). Beräknat åtgärdat senast <code>[FYLL I: datum]</code>.</p>
+<h4>2. Oskäligt betungande anpassning</h4>
+<p>Vi åberopar inget undantag för oskäligt betungande anpassning.</p>
+<h4>3. Innehåll som inte omfattas av lagstiftningen</h4>
+<ul><li><strong>Användargenererat innehåll.</strong> Rutiner, anslag, kontaktuppgifter och dokument skapas av kundens egen personal. Vi tillhandahåller verktyg för att skriva strukturerat innehåll (rubriker, listor), men kan inte garantera att enskilda dokument uppfyller kraven – exempelvis att uppladdade PDF-filer är taggade, eller att personalen skrivit alternativtext till egna bilder. Ansvaret för det egna innehållet ligger hos kunden.</li><li><strong>Innehåll från tredje part.</strong> Det kliniska uppslagsstödet återger utdrag från externa källor (nationella riktlinjer och kunskapsstöd). Dessa källors egen tillgänglighet är utanför vår kontroll.</li></ul>
+<hr />
+<h3>Hur vi har testat tjänsten</h3>
+<p>Den ursprungliga granskningen genomfördes <strong>2026-07-26</strong> som en <strong>självskattning</strong> av leverantören, med följande metoder:</p>
+<ol><li><strong>Automatiserad granskning</strong> med axe-core mot WCAG 2.0/2.1 nivå A och AA, körd i Chromium mot en fullständigt fungerande testmiljö med inloggad användare. Fem flöden granskades: inloggning, startsida med sökfunktion, kliniskt stöd, anslagstavla och adminpanel.</li><li><strong>Numerisk kontrastberäkning</strong> av samtliga färgkombinationer i formgivningen, i både ljust och mörkt tema, enligt WCAG:s formel för relativ luminans.</li><li><strong>Tangentbordsgenomgång</strong> i webbläsare: fokusordning, fokusmarkeringars synlighet och åtkomst till huvudfunktioner.</li><li><strong>Kodgranskning</strong> av semantisk struktur, landmärken, rubriknivåer, formuläretiketter, ARIA-attribut och dialoghantering.</li></ol>
+<p><strong>Omgranskningen 2026-08-04 (Etapp 45c)</strong> utökade metod 1 avsevärt, efter att gränssnittsförnyelsen (Etapp 42–44) byggt om navigering, adminpanel och lagt till flera nya sidor sedan den ursprungliga granskningen:</p>
+<ol><li><strong>Automatiserad granskning, samtliga sidor.</strong> axe-core kört mot alla 27 routes i <code>App.jsx</code> (inte fem flöden), för både en superadmin-roll och en personal-roll (samma sida kan ha olika DOM-struktur beroende på rollens data – ett verkligt fynd under den här omgranskningen, se #17). Resultat: sex nya brister hittade och åtgärdade (#12–#17), <strong>noll kvarstående</strong> axe-core-överträdelser efter fixarna.</li><li><strong>Permanent regressionsspärr.</strong> Samma granskning finns nu som en körbar testfil (<code>tests/e2e/tillganglighet.spec.js</code>), en del av <code>test:e2e</code>/CI – skiljer den här omgranskningen från den ursprungliga, som var en engångsinsats utan uppföljande skydd.</li></ol>
+<h4>Vad vi uttryckligen inte har testat</h4>
+<p>Detta är väsentligt för att bedöma redogörelsens tillförlitlighet:</p>
+<ul><li><strong>Ingen testning med riktig skärmläsare</strong> (NVDA, JAWS eller VoiceOver) har genomförts – <strong>oförändrat sedan 2026-07-26, trots omgranskningen.</strong> Automatiserad testning fångar erfarenhetsmässigt bara omkring en tredjedel av alla tillgänglighetsproblem. Ytterligare brister kan finnas, särskilt sådana som kräver en interaktion (t.ex. att en modal dialog faktiskt fungerar med tangentbord, inte bara att dess statiska markup ser rätt ut). Kräver en människa, inte en session – spårad i <code>OPPNA-PUNKTER.md</code>.</li><li><strong>Interaktionsutlöst UI (modaler, bottensheets) granskades bara delvis.</strong> axe-core-skanningen körs mot varje sidas STATISKA laddade tillstånd – den öppnar inte &quot;Mer&quot;-menyn, kommandopaletten eller bekräftelsedialogen för att skanna DEM i öppet läge. Deras fokushantering verifierades istället genom kodgranskning (#16) och matchar ett redan etablerat, testat mönster (bekräftelsedialogen, #7) – men är inte maskinellt bevisat på samma sätt som resten av granskningen.</li><li>Bara två av sex roller (superadmin, personal) ingår i den automatiserade granskningen – ett medvetet avgränsat urval, inte alla sex.</li><li><strong>Ingen granskning av förstoring/omflöde</strong> vid 400 % zoom (WCAG 1.4.10).</li><li><strong>Ingen systematisk mätning av träffytors storlek</strong> på pekskärm.</li><li><strong>Ingen användartestning med personer med funktionsnedsättning.</strong></li></ul>
+<p>En oberoende extern granskning och ett skärmläsartest rekommenderas innan tjänsten beskrivs som fullt förenlig.</p>
+<hr />
+<h3>Vad du kan göra om du inte kan använda delar av tjänsten</h3>
+<p>Om du behöver innehåll från Synappsen som inte är tillgängligt för dig, eller stöter på problem som inte beskrivs här, hör av dig till oss:</p>
+<p><strong>E-post:</strong> <code>[FYLL I: e-postadress för tillgänglighetsfrågor]</code></p>
+<p>Vi strävar efter att svara inom tre arbetsdagar.</p>
+<p>Arbetar du hos en kund som använder Synappsen kan du även vända dig till din egen organisations kontaktväg för tillgänglighetsfrågor, eftersom det är din arbetsgivare som är ansvarig offentlig aktör.</p>
+<h3>Tillsyn</h3>
+<p>Myndigheten för digital förvaltning (DIGG) har ansvaret för tillsyn över lagen om tillgänglighet till digital offentlig service. Om du inte är nöjd med hur vi hanterar dina synpunkter kan du anmäla det till DIGG: &lt;https://www.digg.se/tdosanmalan&gt;</p>
+<hr />
+<h3>Att göra före publicering</h3>
+<p>Detta dokument är komplett i sak men får inte publiceras som en färdig redogörelse förrän följande är gjort:</p>
+<ol><li><strong>Fyll i de tre <code>[FYLL I]</code>-fälten:</strong> leverantörens juridiska namn, e-postadress för tillgänglighetsfrågor och ett realistiskt måldatum för åtgärderna. Ett måldatum som passeras utan åtgärd är sämre än inget datum – välj med marginal.</li><li><strong>Publicera dokumentet så att det går att nå.</strong> En redogörelse som inte är publicerad uppfyller inte kravet. Synappsen har i dag ingen sidfot där den normalt skulle länkas; lämpligast är en egen sida (<code>/tillganglighet</code>) länkad från hjälpsidan och inloggningssidan. Detta är en produktändring som inte gjorts ännu.</li><li><strong>Bestäm om redogörelsen även ska levereras som bilaga i anbud.</strong> Det är rekommendationen – det besvarar en fråga varje offentlig upphandlare ställer.</li></ol>
+<p><strong>Senast granskad och uppdaterad:</strong> 2026-08-04 (Etapp 45c) <strong>Nästa översyn bör ske:</strong> vid nästa större funktionsändring, dock senast om tolv månader.</p>
+<hr />
+<p><em>Underlaget till den ursprungliga redogörelsen – fullständiga mätvärden, verktygsversioner och granskade sidor – finns dokumenterat i <code>etapplaner/UTVECKLINGSLOGG.md</code> under Fas 34. Underlaget till 2026-08-04-omgranskningen (Etapp 45c) finns i <code>etapplaner/ETAPPLAN9.md</code> och som en körbar testfil, <code>tests/e2e/tillganglighet.spec.js</code>.</em></p>
+    </div>
+
+    <footer>
+      <span>Synappsen · Digital kunskapsbank för vården</span>
+      <span><a href="/underlag.html">Allt underlag</a></span>
+      <span><a href="/integritet.html">Integritetspolicy</a></span>
+      <span><a href="mailto:kontakt@synappsen.se">kontakt@synappsen.se</a></span>
+    </footer>
+  </main>
+</div>
+
+</body>
+</html>

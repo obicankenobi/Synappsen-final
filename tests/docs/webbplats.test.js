@@ -14,9 +14,10 @@
 //      gamla färgvärden – ett av dem (#cbd5e1 som kant-stark) var en defekt som fanns i
 //      produktion. Vakten hindrar en återgång.
 import { describe, expect, test } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+import { DOKUMENT, generera } from "../../synappsen-web/verktyg/bygg-underlag.mjs";
 
 const ROT = fileURLToPath(new URL("../../", import.meta.url));
 const las = (p) => readFileSync(join(ROT, p), "utf8");
@@ -211,7 +212,17 @@ describe("Integritetspolicyn stämmer med vad sidan faktiskt gör", () => {
   // utelämnar en som sker – och den här påstår något ovanligt starkt (inga kakor, ingen
   // analys, inget externt). Det påståendet ska vara mekaniskt sant, inte bara välmenat.
   const POLICY = "synappsen-web/integritet.html";
-  const SIDOR = ["synappsen-web/index.html", POLICY];
+  // Sedan 2026-09-06 fyra sidor till: underlagssidan och de tre genererade dokumentsidorna.
+  // Listan måste växa med sidorna – annars gäller påståendena i policyn ("inga kakor, inget
+  // externt") bara de två sidor som råkade finnas när testet skrevs.
+  const SIDOR = [
+    "synappsen-web/index.html",
+    "synappsen-web/underlag.html",
+    "synappsen-web/tillganglighet.html",
+    "synappsen-web/underbitraden.html",
+    "synappsen-web/it-faktablad.html",
+    POLICY,
+  ];
 
   test("ingen sida sätter kakor eller lagrar något i webbläsaren", () => {
     const kallor = [...SIDOR, "synappsen-web/sida.js"].map(las).join("\n");
@@ -317,5 +328,101 @@ describe("Webbplatsens varumärkestillgångar är identiska med appens", () => {
       `${kopia} skiljer sig från ${kalla}. Uppdatera kopian i samma commit som originalet – ` +
         "annars visar webbplatsen ett annat märke eller ett annat typsnitt än produkten."
     ).toBe(true);
+  });
+});
+describe("De genererade dokumentsidorna motsvarar sina källdokument", () => {
+  // synappsen-web/{tillganglighet,underbitraden,it-faktablad}.html publicerar tre dokument i
+  // sin helhet. En handkopierad HTML-version hade blivit projektets sjunde fall av samma
+  // felmönster – två kopior av samma påstående som glider isär – och den här gången i
+  // dokument som går till kundens dataskyddsombud.
+  //
+  // Lösningen är den enda som bevisligen har hållit i det här projektet: gör driften
+  // mekaniskt omöjlig. Sidorna GENERERAS ur markdownfilerna, och testet nedan kör generatorn
+  // igen och jämför med det som ligger committat. Ändras källdokumentet utan att sidorna
+  // genereras om, failar testet.
+  //
+  // ÅTGÄRD NÄR DET FAILAR: kör `node synappsen-web/verktyg/bygg-underlag.mjs` och committa
+  // resultatet. Redigera aldrig de genererade sidorna för hand.
+  test.each(DOKUMENT.map((d) => [d.sida, d.kalla]))(
+    "%s är genererad ur %s och är i takt med den",
+    (sidfil) => {
+      const forvantad = generera().find((g) => g.sida === sidfil);
+      expect(
+        las(sidfil),
+        `${sidfil} motsvarar inte längre sin källa. Kör:\n\n` +
+          "  node synappsen-web/verktyg/bygg-underlag.mjs\n\n" +
+          "och committa resultatet i samma commit som ändringen av källdokumentet."
+      ).toBe(forvantad.html);
+    }
+  );
+
+  test("de genererade sidorna är noindex så länge resten av webbplatsen är det", () => {
+    // De tre sidorna publicerar dokument som innehåller öppna brister och interna sökvägar.
+    // Så länge startsidan är gömd ska de vara det också – annars kan en sökmotor nå
+    // underbiträdesförteckningen utan att någon tagit ställning till den saken.
+    const startsidanArGomd = /content="noindex, nofollow"/.test(las(HTML));
+    for (const d of DOKUMENT) {
+      expect(
+        /content="noindex, nofollow"/.test(las(d.sida)),
+        `${d.sida} har inte samma noindex som startsidan. Tas noindex bort ska det göras på ` +
+          "alla sidor samtidigt och efter ett uttryckligt beslut, inte sida för sida."
+      ).toBe(startsidanArGomd);
+    }
+  });
+});
+
+describe("Webbplatsen visar gränssnittet i stället för att rita av det", () => {
+  // Verkligt fel, rättat 2026-09-06: hjältesektionen innehöll en handritad HTML-attrapp av
+  // appens sökruta. För att markeringen skulle gå ihop var ordet felstavat i markupen –
+  // "Urin<mark>kad</mark>eter" renderas som "Urinkadeter" – samtidigt som bildtexten under
+  // och attrappens egen aria-label stavade "urinkateter" rätt. Det var alltså en klinisk
+  // term stavad fel i det första en vårdanställd läsare ser, i en attrapp som fanns för att
+  // demonstrera att sökningen hittar rätt term.
+  //
+  // Attrappen är ersatt av skärmbilder ur den körande appen
+  // (synappsen-web/verktyg/skarmbilder.spec.mjs). De två assertionerna nedan bevakar båda
+  // halvorna: att felstavningen inte kommer tillbaka, och att bilderna faktiskt finns.
+  test("den felstavade demoträffen är borta och kommer inte tillbaka", () => {
+    // HTML-kommentarerna strippas först, av samma skäl som i färgvakten ovan: kommentaren i
+    // hjältesektionen DOKUMENTERAR felet och måste få citera det.
+    expect(
+      las(HTML).replace(/<!--[\s\S]*?-->/g, "").toLowerCase(),
+      `${HTML} innehåller "Urinkadeter". Ordet är urinkateter. Felet uppstod för att ` +
+        "gränssnittet ritades av för hand i markup – fotografera det i stället, med " +
+        "synappsen-web/verktyg/skarmbilder.spec.mjs."
+    ).not.toContain("urinkadeter");
+  });
+
+  test.each([
+    ["bilder/app-sok.png"],
+    ["bilder/app-rutiner.png"],
+    ["bilder/app-forrad.png"],
+    ["bilder/app-ledningsrapport.png"],
+  ])("%s finns och används på sidan", (bild) => {
+    expect(
+      existsSync(join(ROT, "synappsen-web", bild)),
+      `synappsen-web/${bild} saknas. Ta om bilderna med:\n\n` +
+        "  PLAYWRIGHT_CHROMIUM_PATH=... npx firebase emulators:exec --project demo-test \\\n" +
+        "    --only auth,firestore,storage \\\n" +
+        '    "npx playwright test -c synappsen-web/verktyg/skarmbilder.config.mjs"'
+    ).toBe(true);
+    expect(las(HTML), `${HTML} refererar inte ${bild}.`).toContain(`/${bild}`);
+  });
+
+  test("varje skärmbild har en alt-text som beskriver vad som syns", () => {
+    // En skärmbild av ett gränssnitt är informationsbärande, inte dekor: utan alt-text är
+    // hela bevisföringen otillgänglig för den som använder skärmläsare. Kravet är WCAG 1.1.1,
+    // och sidan får inte underkännas på just den punkt den använder som säljargument.
+    const bilder = [...las(HTML).matchAll(/<img\s[^>]*>/g)].map((m) => m[0]);
+    expect(bilder.length, `${HTML} innehåller inga <img>-taggar.`).toBeGreaterThan(0);
+    for (const tagg of bilder) {
+      const alt = tagg.match(/alt="([^"]*)"/);
+      expect(alt, `En <img> i ${HTML} saknar alt-attribut helt:\n  ${tagg}`).not.toBeNull();
+      expect(
+        alt[1].length,
+        `Alt-texten "${alt[1]}" är för kort för att beskriva en skärmbild. Skriv ut vad som ` +
+          "faktiskt syns – en läsare som inte ser bilden ska få samma bevis som en som gör det."
+      ).toBeGreaterThan(60);
+    }
   });
 });

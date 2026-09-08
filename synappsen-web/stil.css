@@ -270,29 +270,11 @@
   .knapp--tom { background: transparent; color: var(--primar); }
   .knapp--tom:hover { background: var(--primar-ljus); border-color: var(--primar); }
 
-  /* Sökdemonstration – produktens kärninteraktion */
-  .sok {
-    margin-top: 48px; border: 1px solid var(--kant); background: var(--yta);
-    box-shadow: var(--skugga); border-radius: var(--radius);
-    overflow: hidden; max-width: 560px;
-  }
-  .sok__falt { display: flex; align-items: center; gap: 11px;
-               padding: 15px 18px; border-bottom: 1px solid var(--kant); }
-  .sok__ikon { width: 15px; height: 15px; flex: none; color: var(--text-svag); }
-  .sok__term { font-family: var(--f-mono); font-size: 15px; color: var(--text); }
-  .sok__markor { width: 1.5px; height: 17px; background: var(--primar);
-                 animation: blink 1.15s steps(2, start) infinite; }
-  @keyframes blink { to { visibility: hidden; } }
-
-  .traff { display: flex; justify-content: space-between; gap: 16px;
-           padding: 13px 18px; border-bottom: 1px solid var(--kant); }
-  .traff:last-child { border-bottom: 0; }
-  .traff__titel { font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em; }
-  .traff__titel mark { background: var(--primar-ljus); color: var(--primar);
-                       padding: 0 2px; font-weight: 600; }
-  .traff__plats { font-family: var(--f-mono); font-size: 11px;
-                  color: var(--text-svag); margin-top: 3px; }
-  .traff .badge { height: fit-content; flex: none; }
+  /* Sökdemonstrationens attrapp (.sok, .traff) togs bort 2026-09-06 och ersattes av en
+     riktig skärmbild ur appen, se .bild längst ned. Attrappen renderade "Urinkadeter" –
+     ordet var felstavat i markupen för att markeringen skulle gå ihop – vilket är den
+     felklass en handritad kopia av ett gränssnitt alltid riskerar. .sok__not är kvar: den
+     används som bildtext och not på flera ställen. */
   .sok__not { font-family: var(--f-mono); font-size: 11px; color: var(--text-svag);
               margin-top: 12px; max-width: 560px; line-height: 1.55; }
 
@@ -307,8 +289,8 @@
     font-size: .75rem; font-weight: 500; line-height: 1.5;
     padding: 2px 10px; border-radius: 999px; white-space: nowrap;
   }
-  .badge--doman-kliniskt-stod { background: var(--doman-klin-ljus); color: var(--doman-klin-text); }
-  .badge--doman-logistik      { background: var(--doman-log-ljus);  color: var(--doman-log-text); }
+  /* Domänbadgarna (--doman-klin/log/adm) satt bara i sökattrappen och togs bort med den.
+     Tokens är kvar i :root med flit: de är profilens, och skärmbilderna visar dem på riktigt. */
   .badge--status { font-weight: 600; box-shadow: inset 0 0 0 1px currentColor; }
   .badge--status-vantar  { background: var(--amber-ljus);   color: var(--amber-text); }
   .badge--status-godkand { background: var(--success-ljus); color: var(--success); }
@@ -502,7 +484,7 @@
     .huvud { padding: 0; }
     body { background: #fff; color: #000; font-size: 11pt; }
     section { padding: 18pt 0; break-inside: auto; }
-    .ruta, .fall__led, .steg > div, .halsa, .sok { break-inside: avoid; }
+    .ruta, .fall__led, .steg > div, .halsa, .bild { break-inside: avoid; }
     h1, h2, h3 { break-after: avoid; }
     a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; }
   }
@@ -520,3 +502,57 @@
 .huvud--dokument footer a { color: var(--text-svag); }
 
 .bakgrund { margin-top: 34px; max-width: var(--measure); }
+
+/* ============================================================
+   Genererade dokumentsidor (underlag.html:s tre fulltextdokument)
+
+   Sidorna produceras av synappsen-web/verktyg/bygg-underlag.mjs ur markdown i
+   repot, så stilen måste klara godtycklig dokumentstruktur: rubriker på fyra
+   nivåer, tabeller, blockcitat, listor och avdelare – utan att någon handjusterar
+   varje sida. Måttet är brödtextens, inte startsidans: de här sidorna LÄSES, av en
+   IT-avdelning eller ett dataskyddsombud, inte skummas.
+   ============================================================ */
+.dok { max-width: var(--measure); padding-top: 30px; }
+.dok h2 { font-size: 24px; margin: 40px 0 4px; letter-spacing: -0.02em; }
+.dok h3 { font-size: 18px; margin: 32px 0 2px; }
+.dok h4, .dok h5, .dok h6 { font-size: 15.5px; font-weight: 600; margin: 24px 0 2px; }
+.dok p { color: var(--text-svag); margin: 14px 0; }
+.dok strong { color: var(--text); font-weight: 600; }
+.dok ul, .dok ol { color: var(--text-svag); margin: 14px 0; padding-left: 22px; }
+.dok li { margin: 7px 0; }
+.dok hr { border: 0; border-top: 1px solid var(--kant); margin: 36px 0; }
+.dok code { font-family: var(--f-mono); font-size: .88em; background: var(--primar-ljus);
+            color: var(--text); padding: 1px 5px; border-radius: 5px; }
+.dok blockquote { margin: 20px 0; padding: 2px 0 2px 18px;
+                  border-left: 2px solid var(--kant-stark); }
+.dok blockquote p { font-size: 15px; }
+/* Tabellerna är ofta bredare än textspalten. Svepet finns redan som mönster på
+   startsidan; här får det dessutom spränga mätvärdet, annars blir varje cell en
+   ordkolumn. */
+.dok .tabell-svep { margin: 22px 0; max-width: none; width: min(100%, 900px); }
+.dok__kalla { font-family: var(--f-mono); font-size: 12px; color: var(--text-svag);
+              line-height: 1.6; margin-top: 18px; }
+
+/* ============================================================
+   Skärmbilder ur appen
+
+   Bilderna fotograferas ur den körande appen med demodata av
+   synappsen-web/verktyg/skarmbilder.spec.mjs – de ritas aldrig av för hand. Den
+   handritade attrapp som stod här tidigare stavade fel på ett kliniskt begrepp
+   ("Urinkadeter"), vilket är precis den felklassen ett foto inte kan ha.
+
+   Mobilformat, eftersom det är där produkten används. Ramen är enhetens, inte en
+   dekoration: utan den flyter en ljus skärmbild ihop med sidans ljusa botten.
+   ============================================================ */
+.bild { margin: 0; }
+.bild img { display: block; width: 100%; height: auto;
+            border: 1px solid var(--kant-stark); border-radius: var(--radius);
+            background: var(--yta); }
+.bild figcaption { font-family: var(--f-mono); font-size: 11px; color: var(--text-svag);
+                   line-height: 1.65; margin-top: 10px; }
+.bilder { display: grid; gap: 26px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+          align-items: start; }
+/* En ensam skärmbild i en textspalt ska inte sträcka sig över hela mätvärdet – en
+   mobilskärm i 66ch bredd ser ut som en felaktig skalning. */
+.bild--ensam { max-width: 300px; }
+@media print { .bild img { border-color: #999; } }

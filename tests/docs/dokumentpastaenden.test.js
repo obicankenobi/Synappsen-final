@@ -289,3 +289,95 @@ describe("Produktdefinitionens diskrepansavsnitt speglar faktisk kod", () => {
     ).toBe(!stegHarNyckelsparr);
   });
 });
+
+describe("Webbplatsens bevissiffror stämmer med testsviterna", () => {
+  // Tillagt 2026-09-06. Webbplatsen anger sedan dess konkreta antal – antal
+  // behörighetstester, antal isoleringstester, antal säkerhetsgenomgångar – i stället för
+  // formuleringen "verifierad med automatiska tester". Ett tal är ett starkare argument än
+  // en adjektivform, men det är också exakt den sortens påstående som glider i tysthet:
+  // saljmaterial/MARKNADSANALYS.md bär redan felet (149 regeltester och fyra
+  // säkerhetsgenomgångar, se P3 i produkt/VARUMARKE.md §14) sedan månader tillbaka.
+  //
+  // Assertionerna nedan RÄKNAR källan och kräver att sidan säger samma sak. De blir röda när
+  // någon lägger till ett regeltest utan att uppdatera webbplatsen – vilket är meningen:
+  // siffran ska antingen stämma eller inte stå där.
+  const INDEX = "synappsen-web/index.html";
+  const UNDERLAG = "synappsen-web/underlag.html";
+
+  /** Antal `await test(...)`-anrop i en regeltestfil. Varje sådant anrop är ett test. */
+  const antalTester = (fil) => [...las(fil).matchAll(/^\s*await test\(/gm)].length;
+
+  const regelfiler = readdirSync(join(ROT, "tests/rules"))
+    .filter((f) => f.endsWith(".mjs"))
+    .map((f) => `tests/rules/${f}`);
+  const totalt = regelfiler.reduce((summa, f) => summa + antalTester(f), 0);
+  const isolering = antalTester("tests/rules/organisationsisolering.test.mjs");
+
+  test("det totala antalet behörighetstester stämmer på båda sidorna", () => {
+    for (const fil of [INDEX, UNDERLAG]) {
+      const traff = las(fil).match(/(\d+) automatiska behörighetstester|(\d+) behörighetstester/);
+      expect(traff, `Hittade ingen angivelse av antal behörighetstester i ${fil}.`).not.toBeNull();
+      expect(
+        Number(traff[1] ?? traff[2]),
+        `${fil} anger ${traff[1] ?? traff[2]} behörighetstester, men tests/rules/ innehåller ` +
+          `${totalt} stycken fördelade på ${regelfiler.length} filer. Rätta sidan – siffran ` +
+          "ska antingen stämma eller inte stå där."
+      ).toBe(totalt);
+    }
+  });
+
+  test("antalet isoleringstester stämmer på båda sidorna", () => {
+    for (const fil of [INDEX, UNDERLAG]) {
+      const traff = las(fil).match(/(\d+) av dem/);
+      expect(traff, `Hittade ingen angivelse av antal isoleringstester i ${fil}.`).not.toBeNull();
+      expect(
+        Number(traff[1]),
+        `${fil} anger ${traff[1]} isoleringstester, men ` +
+          `tests/rules/organisationsisolering.test.mjs innehåller ${isolering}.`
+      ).toBe(isolering);
+    }
+  });
+
+  test("antalet säkerhetsgenomgångar stämmer med granskningar/SAKERHETSRAPPORT.md", () => {
+    // Varje genomgång skrivs in som ett eget "## Tillägg (datum, version): …"-block, se
+    // CLAUDE.md:s regel om återkommande säkerhetsgenomgång vid varje större release.
+    const antal = [...las("granskningar/SAKERHETSRAPPORT.md").matchAll(/^## Tillägg/gm)].length;
+    const traff = las(UNDERLAG).match(/(\d+) säkerhetsgenomgångar/);
+    expect(traff, `Hittade ingen angivelse av antal säkerhetsgenomgångar i ${UNDERLAG}.`).not.toBeNull();
+    expect(
+      Number(traff[1]),
+      `${UNDERLAG} anger ${traff[1]} säkerhetsgenomgångar, men ` +
+        `granskningar/SAKERHETSRAPPORT.md innehåller ${antal} tilläggsblock.`
+    ).toBe(antal);
+  });
+
+  test("incidentresponsplanens version stämmer med planens egen rubrik", () => {
+    // underlag.html listar planen som "lämnas på begäran" med versionsnummer. Planens
+    // versionsnummer ska höjas vid varje sakändring (CLAUDE.md), vilket gör en utskriven
+    // version på en publik sida till en drifthärd om den inte binds.
+    const traff = las("avtal/INCIDENTRESPONSPLAN.md").match(/^\*\*Version:\*\* ([\d.]+)/m);
+    expect(traff, "Hittade inget versionsnummer i avtal/INCIDENTRESPONSPLAN.md.").not.toBeNull();
+    expect(
+      las(UNDERLAG),
+      `${UNDERLAG} anger inte version ${traff[1]} för incidentresponsplanen, som planen själv ` +
+        "uppger. Höjs planens version ska sidan följa med i samma commit."
+    ).toContain(`Version ${traff[1]}`);
+  });
+});
+
+describe("CLAUDE_STATUS.md räknar arkivets uppföljningar rätt", () => {
+  // Verkligt fel, upptäckt 2026-09-07 vid en merge: läsanvisningen uppgav 131 uppföljningar
+  // medan etapplaner/STATUSARKIV.md innehöll 151. Siffran glider varje gång 400-radersgränsen
+  // tvingar fram en arkivering, alltså med jämna mellanrum och alltid tyst - precis det
+  // mönster registret i övrigt finns för att fånga.
+  test("antalet stämmer med etapplaner/STATUSARKIV.md", () => {
+    const faktiskt = [...las("etapplaner/STATUSARKIV.md").matchAll(/^## Uppföljning/gm)].length;
+    const traff = las("CLAUDE_STATUS.md").match(/\((\d+) uppföljningar från/);
+    expect(traff, "Hittade ingen antalsuppgift i CLAUDE_STATUS.md:s läsanvisning.").not.toBeNull();
+    expect(
+      Number(traff[1]),
+      `CLAUDE_STATUS.md uppger ${traff[1]} uppföljningar, men etapplaner/STATUSARKIV.md ` +
+        `innehåller ${faktiskt}. Rätta siffran när du arkiverar - det är då den glider.`
+    ).toBe(faktiskt);
+  });
+});

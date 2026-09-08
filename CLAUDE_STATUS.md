@@ -4,7 +4,7 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (132 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (152 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
@@ -15,6 +15,10 @@ Cloud Functions fungerar (`firebase-tools@13`-bugg, se samma fil). **Vertex AI-m
 DEPLOYAD** (`deploy.yml` #98, success) och utvärderingen är helt ren efter deployen (13 OK,
 0 FEL, 0 GRANSKA). Kvar: bekräfta ett riktigt anrop i appen, se `OPPNA-PUNKTER.md`. Utgående e-post är stoppat
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
+**Webbplatsen har fått skärmbilder ur appen, fyra publicerade dokumentsidor och räknade
+bevissiffror** (se uppföljningen 2026-09-06 om bevisluckan) – fortfarande `noindex`, nu sex
+sidor som ska avgömmas samtidigt. **E2E-sviten är grön igen** (2026-09-07): `test:e2e` startar
+nu functions-emulatorn, vilket den inte gjort sedan v5.136.0 bröt den.
 **Etapp 72 (`etapplaner/ETAPPLAN19.md`):** riktningen är antagen, beslutspunkt 5
 (efterfrågegrinden) gäller fortfarande som huvudregel för alla ÖVRIGA delmål. 72f, 72d och
 72h byggda och deployade som ett uttryckligt, engångsbeslutat undantag från grinden (se
@@ -186,6 +190,79 @@ session innan PR #23 är mergad**, annars dubbleras arbetet eller uppstår en me
 uttryckligen bad om. Ändrade filer: `OPPNA-PUNKTER.md` (två rader utökade/tillagda),
 `.claude/skills/synappsen-release/SKILL.md` (varningsrad), `CLAUDE_STATUS.md`.
 
+## Uppföljning 2026-09-07 (e2e-blockeraren fixad – och den dolde en verklig WCAG-brist)
+
+**Utgångspunkt:** hela e2e-sviten hade varit röd på default-grenen sedan v5.136.0 (Etapp L1j),
+utan att det uppmärksammats. Fjorton rökprovstester föll med
+`Failed to load resource: net::ERR_CONNECTION_REFUSED` på var och en av de 24 rutterna.
+
+**Orsak:** `AuthContext.jsx:110` anropar Cloud Function-en `rapporteraAppVersion` på
+inloggningsvägen sedan Etapp L1j. `test:e2e` startade bara `auth,firestore,storage` – ett
+medvetet val från Etapp 45b, då `/leverantor` var den enda sidan som anropade en funktion.
+Det slutade stämma i samma sekund L1j byggdes, och eftersom rökprovet samlar konsolfel per
+rutt syntes raden på allihop.
+
+**Åtgärd:** `functions` tillagt i `test:e2e`. Fjorton av fjorton rökprovstester gröna.
+
+**Vad det avslöjade:** med emulatorn igång föll i stället fyra axe-tester, alla på
+`/leverantor`. `LeverantorLayout.jsx` renderade sitt laddningsläge och sitt "saknar
+behörighet"-läge som `<div class="sida">` utan `<main>` – den globala hoppa-till-innehåll-
+länken pekade alltså mot ett `#huvudinnehall` som inte fanns. Samma felklass som punkt 13 i
+`granskningar/TILLGANGLIGHETSREDOGORELSE.md`, fast i två TILLSTÅND i stället för på två
+sidor. Bristen var verklig också i produktion; den var bara osynlig för axe eftersom
+laddningsläget passerade på millisekunder när anslutningen vägrades direkt. Rättad och
+införd som punkt 18 i redogörelsen.
+
+**Kvarstående fynd, fört till `OPPNA-PUNKTER.md`:** functions-emulatorn i `firebase-tools` 13
+kan inte KÖRA funktionerna – dess runtime anropar `functions.config()`, borttaget i
+`firebase-functions` 7. Varje anrop svarar 500. Sviten blir grön (appen fångar felet), men
+e2e bevisar inte att någon Cloud Function fungerar. `firebase-tools@15` visar inte felet, men
+en bump rör verktyget som gör produktionsdeployerna och kräver ett eget beslut.
+
+---
+
+## Uppföljning 2026-09-06 (webbplatsens bevislucka – skärmbilder, publicerat underlag, räknade tal)
+
+**Utgångspunkt:** en genomgång av `synappsen-web/index.html` mot `produkt/VARUMARKE.md` och
+`produkt/GRAFISK-PROFIL.md` pekade ut sidans svagaste punkt som en **bevislucka**: 2 300 ord
+och 33 funktionsrubriker, men noll skärmbilder, noll läsbara dokument och en rad i sidfoten om
+att underlaget "lämnas på begäran". `VARUMARKE.md` §1 säger att vallgraven ÄR underlaget, och
+att skillnaden mot en konkurrent är inbjudan *"här är underlaget, kontrollera själv"* – den
+inbjudan skickade sidan aldrig. Ägaren bad om tre åtgärder, plus att löftet om en demomiljö
+skulle strykas.
+
+**1. Skärmbilder i stället för attrapper.** Hjältesektionens sökruta var handritad HTML, och
+felstavad: markupen `Urin<mark>kad</mark>eter` renderade **"Urinkadeter"**, medan bildtexten
+under och attrappens egen `aria-label` stavade "urinkateter" rätt – en klinisk term stavad fel
+i det första en vårdanställd läsare ser. Fyra bilder fotograferas nu ur den körande appen med
+demodata (`synappsen-web/verktyg/demodata.mjs`, `skarmbilder.spec.mjs`,
+`skarmbilder.config.mjs` – egen Playwright-konfiguration, medvetet utanför CI, eftersom
+marknadsbilder inte ska kunna göra bygget rött).
+
+**2. Underlaget publicerat.** Ny `underlag.html`, plus tre sidor som **genereras** ur
+markdownkällorna av `verktyg/bygg-underlag.mjs`: tillgänglighetsredogörelsen,
+underbiträdesförteckningen och IT-faktabladet. Handkopiering hade blivit projektets sjunde
+driftfall; nu jämför `webbplats.test.js` den committade sidan med generatorns utdata och failar
+vid drift. PUB-avtalsmallen och DPIA-underlaget stannar bakom en förfrågan – se
+`BESLUTSLOGG.md`, där gränsen mellan "Extern = ja" och "publikt" också är utskriven.
+
+**3. Räknade tal i stället för adjektiv.** Sidan anger nu 404 behörighetstester, 185
+isoleringstester och 9 säkerhetsgenomgångar, räknade ur källan och bundna av fyra nya
+assertioner i `dokumentpastaenden.test.js`.
+
+**Fynd som inte gick att åtgärda härifrån:** `/kliniskt-stod` går inte att fotografera, eftersom
+`KlinisktStod.jsx:11` säger "triageringsstöd" och `KlinikfragaSok.jsx:92` säger "Beslutsstöd" –
+de två ord `webbplats.test.js` förbjuder på sidan. Bristen är känd sedan tidigare
+(`PRODUKTDEFINITION` § 9.1/9.3), men konsekvensen är ny och står nu i `OPPNA-PUNKTER.md`:
+produktens mest säljbara vy är den enda som inte kan visas. Sidan säger dessutom fortfarande
+"vi" där `VARUMARKE.md` §8 kräver "jag" – egen rad i `OPPNA-PUNKTER.md`.
+
+**Kvar innan `noindex` kan tas bort:** bakgrundsstycket (P1) och namn/orgnr på policyn (fråga
+#16) som förut – och nu även en genomläsning av de tre publicerade dokumentsidorna, som
+exponerar den öppna Brevo-bristen och interna sökvägar. Sex sidor ska avgömmas samtidigt, inte
+två.
+
+---
 ## Uppföljning 2026-09-06 (AI-integrationens risker kartlagda – 8 fynd, ingen kod ändrad än)
 
 Ägaren frågade rakt ut vilka risker som finns i hur AI faktiskt är integrerad i Synappsen –
@@ -292,104 +369,3 @@ den frågan har stått öppen sedan migreringsuppskattningen. Svarstider 2,3–1
 till `timeoutSeconds: 60`. **Deployen är därmed avblockerad** och är det enda som återstår
 innan EU-garantin gäller i produktion – tills dess kör de driftsatta funktionerna fortfarande
 mot det publika Gemini API:et (`avtal/UNDERBITRADEN.md` uppdaterad med exakt den skillnaden).
-
-## Uppföljning 2026-09-06 (promptinjektionen täppt – strukturellt, inte språkligt)
-
-Ägaren instruerade att åtgärda promptinjektionen direkt i stället för att vänta på att
-utvärderingen ska kunna köras. Rimligt: fyndet var känt, åtgärden liten, och att låta en känd
-lucka mot MDR-avgränsningen stå öppen i väntan på ett mätvärde är fel ordning.
-
-**Två skydd, olika för att de två inbäddningsställena har olika förutsättningar** (båda i
-`functions/gemensamt.js`, bredvid `innehallerPersonnummer`):
-
-- `harPromptbrytandeTecken()` – klinikstödets fråga bäddas in som `Fråga: "${fraga}"`. Ett
-  citattecken avslutar den kontexten, en radbrytning gör det möjligt att skriva ett eget
-  regelblock under. Inget av tecknen har ett legitimt syfte i en klinisk söksträng, så frågan
-  **avvisas** i stället för att saneras tyst – en tyst ändrad fråga i ett kliniskt verktyg är
-  värre än ett fel. Två lager: `fragaKlinisktStod` avvisar med ett begripligt `HttpsError` till
-  användaren, och `byggKlinikstodPrompt` **kastar**, så det är strukturellt omöjligt att bygga
-  en prompt av en sådan fråga oavsett anropare. Kontrollen ligger FÖRE hastighetsspärren, så en
-  avvisad fråga äter ingen kvot.
-- `saneraPromptblock()` – rutintexterna i `ai-import.js` (checklistesteg- och kvissförslagen)
-  bäddas in i ett `"""`-block. Där går det inte att avvisa radbrytningar och citattecken;
-  texten är flerradig till sin natur. I stället neutraliseras avgränsaren (`"""` → `'''`).
-  Lägre risk – texten är redan människogodkänd inom organisationen och förslagen granskas innan
-  de sparas – men samma klass av brist och samma enradsåtgärd, så den togs samtidigt.
-
-**Medvetet INTE gjort:** ingen blocklista på instruktionsliknande fraser ("ignorera tidigare
-regler" o.s.v.). Sådana läcker notoriskt och ger falsk trygghet. Skyddet är strukturellt – att
-texten inte kan bryta sig ur sin kontext. **Ingen klientkopia av regeln heller:** servern är
-auktoritativ och felmeddelandet visas redan i `KlinikfragaSok.jsx`s felruta; en regex till i
-`src/` hade bara varit en andra plats att glida ifrån.
-
-**Vad som återstår, ärligt:** den SPRÅKLIGA vägen. En påstridig fråga som bara använder
-tillåtna tecken når fortfarande modellen, och där finns ingen strukturell spärr – bara
-modellens vilja att lyda reglerna. Det är precis vad som inte går att veta utan att mäta, så
-fall 6 i utvärderingen är omskrivet i två delar: **6a** (offline, gratis) bevisar att den
-strukturella vägen är stängd, **6b** skickar en språklig injektion som når modellen. Visar 6b
-att den slår igenom är nästa steg att lyfta reglerna till en `systemInstruction` i stället för
-att ha dem i samma textblock som frågan.
-
-Sex nya assertioner i `tests/functions/klinikstodprompt.test.cjs` (18 totalt), inklusive ett
-test som bevisar att skyddet **inte** avvisar legitima kliniska frågor med apostrof,
-bindestreck, parentes, procent eller decimaltal. Testsvep grönt: lint, build, 592 vitest,
-`test:functions`, `test:rules`, `test:storage`.
-
-## Uppföljning 2026-09-06 (AI-utvärdering byggd – klinikstödets säkerhetsregler mäts nu)
-
-Ägaren frågade om Gemini är rätt modellval eller om andra LLM:er borde övervägas. **Svaret blev
-"stanna" – men frågan blottade något viktigare.** Vid nuvarande volym (284 funktionsanrop
-totalt, noll kunder) är skillnaden mellan billigaste och dyraste rimliga modell några kronor i
-månaden, medan ett leverantörsbyte river upp EU-databehandlingsgarantin som Vertex AI-
-migreringen precis köpte, lägger till ett underbiträde och kräver nytt PUB-avtal och uppdaterad
-DPIA. Priset är alltså fel variabel att optimera på – **kvaliteten är rätt variabel, och den
-gick inte att mäta.**
-
-**Den verkliga bristen:** klinikstöd-promptens regel 4 ("aldrig ett beslutsstöd … Ge aldrig ett
-prioriterat eller rangordnat svar") är den avgränsning som håller funktionen utanför MDR. Den
-upprätthölls av att modellen *väljer* att lyda prompten, och ingenting mätte om den gör det.
-En redigering som strök regeln hade inte fått ett enda test att faila. `verifieraKlinikstod`
-testar uttryckligen **bara** sökmotorsteget, inte Gemini-svaret.
-
-**Byggt, i tre lager med medvetet olika räckvidd:**
-
-1. **`tests/functions/klinikstodprompt.test.cjs`** – 11 assertioner, gratis, offline, tillagd i
-   `test:functions`-svepet. Bevisar att reglerna står kvar ord för ord, att ordet "beslutsstöd"
-   aldrig återkommer som en självbeskrivning (regressionen från Etapp 72), och att reglerna
-   ligger EFTER den användarstyrda frågan i prompten. **Mutationstestad:** stryks förbudet mot
-   rangordning failar den med ett felmeddelande som pekar på MDR-konsekvensen.
-2. **`functions/scripts/ai-evaluering.cjs` + `.github/workflows/ai-evaluering.yml`** – sju fall
-   mot skarp Vertex AI, manuell dispatch. Rangordningsbete, rekommendationsbete, namngiven
-   patient (medvetet UTAN personnummer – `innehallerPersonnummer` stoppar redan de fallen, så
-   regel 6 är det enda skyddet just där), fråga som källorna inte täcker, promptinjektion, samt
-   bildtolkningens schemakontrakt. **Anropar aldrig den riktiga sökmotorn** – den delade kvoten
-   är 100/dygn för hela installationen, och en utvärdering som åt av den kunde släckt
-   klinikstödet för riktiga kunder. Rör ingen Firestore-data, ingen budget.
-3. **Tre utfall, inte två:** `OK`, `FEL` och `GRANSKA`. Det sista för frågor som inte går att
-   avgöra maskinellt, där svaret skrivs ut i sin helhet för mänsklig läsning och slutkoden inte
-   påverkas. Avsiktligt: en heuristik som låtsas kunna fälla ett regulatoriskt omdöme vore
-   sämre än en som säger att den inte kan det. `GRANSKA`-raderna ÄR den manuella verifiering
-   som kostnadsuppskattningen krävde – strukturerad, inte bortautomatiserad.
-
-**Refaktorering som möjliggjorde det:** prompten byggdes tidigare inline i anropshanteraren och
-gick inte att nå utifrån. Utbruten till `byggKlinikstodPrompt()`, exporterad, så utvärderingen
-mäter EXAKT samma prompt som produktionen kör – inte en kopia som kan glida isär. Verifierat
-byte-identisk. Samma skäl bakom att `tolkaBildMedGemini`/`extraktionsSchema` nu exporteras.
-
-**Ett verkligt fynd på köpet:** frågan interpoleras osanerad in i prompten
-(`Fråga: "${fraga}"`), vilket är en möjlig promptinjektion mot just de regler som bär
-MDR-avgränsningen. Om den går igenom är okänt – fall 6 testar det, men kan inte köras än. Fört
-till `OPPNA-PUNKTER.md` med föreslagen åtgärd (avvisa `"` och radbrytningar i söksträngen)
-och med de förmildrande omständigheterna ärligt noterade.
-**→ Åtgärdad samma dag, se sektionen ovan** – ägaren instruerade att inte vänta på
-utvärderingen.
-
-**Provbilden genereras i kod** (`functions/scripts/provbild.cjs`, egen PNG-enkodare utan
-beroenden) i stället för att checkas in som binärfil – en bild i repot går inte att granska i
-en diff. Renderad och okulärbesiktigad: texten är läsbar och datumet `2027-01-15`, som
-utvärderingen jämför exakt mot, står i klartext.
-
-**Ännu inte kört mot skarp Vertex AI** – kräver samma tre GCP-steg som allt annat. Skriptet
-översätter de vanligaste felen till vilket steg som saknas. Testsvep grönt: lint, `npm run
-build`, 592 vitest-tester, hela `test:functions`-svepet.
-
