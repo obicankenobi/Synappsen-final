@@ -8,9 +8,12 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-08 · **v5.139.0 i produktion**. **`firebase-tools` är
-uppgraderat från `^13.35.1` till `^15.29.0`** – `functions.config()`-buggen som gjorde att
-`test:e2e` inte bevisade att Cloud Functions fungerar är löst. Den tidigare dokumenterade
+**Senast uppdaterad:** 2026-09-08 · **v5.139.0 i produktion**. **`firebase-tools`-bumpen
+(`^13.35.1` → `^15.29.0`) är DEPLOYAD** (`deploy.yml` #99, success, 2026-09-08 19:54 –
+`last-modified`-headern på `https://synappsen-final-build.web.app` matchar exakt
+hostingens release-tidsstämpel, samtliga Cloud Functions "Successful update operation").
+`functions.config()`-buggen som gjorde att `test:e2e` inte bevisade att Cloud Functions
+fungerar är löst. Den tidigare dokumenterade
 "diskvalificerande Storage-regressionen" (18/6 misslyckade lokalt) var **felaktig** – ett
 sandboxartefakt som inte reproducerar på riktig CI (24/0 klart där, två separata körningar).
 Den verkliga blockeraren var en annan, äkta firebase-tools-bugg (`Proxied.getOriginal()`
@@ -193,7 +196,12 @@ routens 400 ms-väntan. Reproducerat två gånger (olika roll/bredd-kombinatione
 alltid samma 403-rad på `/admin`) innan `KANDA_MILJOBEGRANSNINGAR` utökades dit också. Efter det:
 **`ci.yml` helt grönt end-to-end på riktig CI** – lint, 607 vitest, `test:rules`,
 `test:functions`, `test:storage`, fullständig Playwright-svit, build, functions-syntaxkontroll,
-npm audit. Ingen deploy körd ännu.
+npm audit.
+
+**Deployad 2026-09-08** (`deploy.yml` #99, success): hosting + samtliga Cloud Functions +
+firestore/storage-regler. Verifierat: `last-modified`-headern på den publika sidan matchar
+exakt hostingens release-tidsstämpel (19:54:07/08 GMT), och deploy-loggen visar
+"Successful update operation" på varje funktion utan ett enda fel.
 
 **Självrättelse värd att spara (från ett tidigare pass samma dag):** tre CI-körningar av
 diagnosverktyget verkade hänga i flera minuter och avbröts i onödan. Efterkontroll mot
