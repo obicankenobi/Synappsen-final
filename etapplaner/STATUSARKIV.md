@@ -5408,3 +5408,31 @@ den frågan har stått öppen sedan migreringsuppskattningen. Svarstider 2,3–1
 till `timeoutSeconds: 60`. **Deployen är därmed avblockerad** och är det enda som återstår
 innan EU-garantin gäller i produktion – tills dess kör de driftsatta funktionerna fortfarande
 mot det publika Gemini API:et (`avtal/UNDERBITRADEN.md` uppdaterad med exakt den skillnaden).
+
+## Uppföljning 2026-09-06 (Vertex AI deployad – migreringen är i drift)
+
+`deploy.yml` körning #98, `conclusion: success`, knappt sex minuter. Samtliga funktioner
+uppdaterade. **Vertex AI-migreringen är därmed i drift** – de sex AI-anropsställena går nu mot
+`europe-west1` via tjänstekontots ADC, och `GEMINI_API_KEY` finns varken i koden eller i
+deploykedjan. Asset-hashen är oförändrad, vilket är korrekt: releasen rörde bara `functions/`.
+
+**Utvärderingen kördes om direkt efter deployen: `13 OK, 0 FEL, 0 GRANSKA`** – första helt rena
+körningen. Fyra körningar totalt, samma slutsats varje gång: säkerhetsreglerna håller.
+
+**Två kundvända dokument rättades i samma veva**, eftersom de blev felaktiga i samma sekund
+deployen lyckades: `avtal/IT-FAKTABLAD.md` punkt 7 (sa att AI-tolkningen gick via Googles
+publika Gemini-API – det är ett dokument som lämnas till kunders IT-avdelningar i upphandlingar)
+och `avtal/UNDERBITRADEN.md`.
+
+**Vad som medvetet INTE bockades av:** utvärderingen anropar modellen förbi `onCall`-lagret, på
+en GitHub-runner. Den bevisar kodvägen, inte ett användaranrop genom en **driftsatt** funktion.
+Skillnaden är liten men verklig, och genomgående krav 8 säger att ett ✅ aldrig får sättas på
+något som inte faktiskt observerats. Kvar som en tvåminuterspunkt i `OPPNA-PUNKTER.md`: gör en
+bildimport i appen. Misslyckas den syns det direkt – ingen väg till det gamla API:et finns kvar,
+så en funktion felar hellre än faller tillbaka tyst.
+
+**En lärdom om verktygen, inte om koden:** GitHub-API:et serverade cachade svar under hela
+deployen och visade `in_progress` i över en timme efter att jobbet i själva verket var klart
+20:04. Jag rapporterade det stale läget som pågående. Loggendpointen (404 medan jobbet kör,
+innehåll när det är klart) visade sig vara den enda tillförlitliga signalen på att en körning
+faktiskt avslutats.

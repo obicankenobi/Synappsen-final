@@ -4,7 +4,7 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (153 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (154 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
@@ -186,6 +186,15 @@ eventarc-/Firestore-triggerregistreringen: "Unable to parse JSON... upstream r[e
 `deploy.yml`. Nytt återanvändbart diagnosverktyg kvar för framtida verktygsbumpar:
 `scripts/verifiera-functions-emulator.mjs` + samma workflow.
 
+**Efterpolish i `ci.yml` (riktig produktions-CI, inte diagnosworkflowen):** `test:e2e` avslöjade
+att `rokprov.spec.js`s `/leverantor`-403 (nu korrekt beteende, se ovan) ibland bleder över till
+NÄSTA rutt i sekvensen (`/admin`, se `rutter.mjs`) när nätverkssvaret kommer tillbaka efter
+routens 400 ms-väntan. Reproducerat två gånger (olika roll/bredd-kombinationer varje gång,
+alltid samma 403-rad på `/admin`) innan `KANDA_MILJOBEGRANSNINGAR` utökades dit också. Efter det:
+**`ci.yml` helt grönt end-to-end på riktig CI** – lint, 607 vitest, `test:rules`,
+`test:functions`, `test:storage`, fullständig Playwright-svit, build, functions-syntaxkontroll,
+npm audit. Ingen deploy körd ännu.
+
 **Självrättelse värd att spara (från ett tidigare pass samma dag):** tre CI-körningar av
 diagnosverktyget verkade hänga i flera minuter och avbröts i onödan. Efterkontroll mot
 `created_at`/`updated_at` i GitHub Actions API:et visade att var och en bara hunnit köra
@@ -366,31 +375,3 @@ grunden är svag.
 
 **Spårning:** varje fynd har en egen rad i `OPPNA-PUNKTER.md` under "Tio minuter", i samma
 prioritetsordning som dokumentet. Dokument nr 75, registrerat i `DOKUMENTREGISTER.md`.
-
-## Uppföljning 2026-09-06 (Vertex AI deployad – migreringen är i drift)
-
-`deploy.yml` körning #98, `conclusion: success`, knappt sex minuter. Samtliga funktioner
-uppdaterade. **Vertex AI-migreringen är därmed i drift** – de sex AI-anropsställena går nu mot
-`europe-west1` via tjänstekontots ADC, och `GEMINI_API_KEY` finns varken i koden eller i
-deploykedjan. Asset-hashen är oförändrad, vilket är korrekt: releasen rörde bara `functions/`.
-
-**Utvärderingen kördes om direkt efter deployen: `13 OK, 0 FEL, 0 GRANSKA`** – första helt rena
-körningen. Fyra körningar totalt, samma slutsats varje gång: säkerhetsreglerna håller.
-
-**Två kundvända dokument rättades i samma veva**, eftersom de blev felaktiga i samma sekund
-deployen lyckades: `avtal/IT-FAKTABLAD.md` punkt 7 (sa att AI-tolkningen gick via Googles
-publika Gemini-API – det är ett dokument som lämnas till kunders IT-avdelningar i upphandlingar)
-och `avtal/UNDERBITRADEN.md`.
-
-**Vad som medvetet INTE bockades av:** utvärderingen anropar modellen förbi `onCall`-lagret, på
-en GitHub-runner. Den bevisar kodvägen, inte ett användaranrop genom en **driftsatt** funktion.
-Skillnaden är liten men verklig, och genomgående krav 8 säger att ett ✅ aldrig får sättas på
-något som inte faktiskt observerats. Kvar som en tvåminuterspunkt i `OPPNA-PUNKTER.md`: gör en
-bildimport i appen. Misslyckas den syns det direkt – ingen väg till det gamla API:et finns kvar,
-så en funktion felar hellre än faller tillbaka tyst.
-
-**En lärdom om verktygen, inte om koden:** GitHub-API:et serverade cachade svar under hela
-deployen och visade `in_progress` i över en timme efter att jobbet i själva verket var klart
-20:04. Jag rapporterade det stale läget som pågående. Loggendpointen (404 medan jobbet kör,
-innehåll när det är klart) visade sig vara den enda tillförlitliga signalen på att en körning
-faktiskt avslutats.
