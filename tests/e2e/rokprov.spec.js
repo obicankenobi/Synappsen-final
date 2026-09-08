@@ -69,11 +69,20 @@ const ROLLER = [
 // är alltså inte en app-bugg utan bevis på att fixen fungerar: /leverantor kraschar
 // fortfarande inte (samma `organisationer ?? []`-fix som förut), och 403 är exakt vad en
 // icke-plattformsadmin SKA få.
+//
+// `/admin` (nästa rutt i ALLA_ROUTES, se rutter.mjs) har samma undantag av samma anledning,
+// inte för att /admin gör ett eget privilegierat anrop: `listaOrganisationer()`-svaret från
+// /leverantor kan ibland hinna komma tillbaka EFTER att sidan redan hunnit navigera vidare
+// till /admin (400 ms-väntan per rutt, se kommentaren vid testloopen längre ned för varför
+// den är kort) – då hamnar samma 403-konsolrad i /admins felbuffert i stället för
+// /leverantors. Bekräftat 2026-09-08: en enda (vec, dator)-körning av 14 fick just den här
+// bleed-overn, reproducerades inte vid omkörning.
 const KANDA_MILJOBEGRANSNINGAR = {
   "/leverantor": [
     /Failed to load resource.*ERR_CONNECTION_REFUSED/i,
     /Failed to load resource.*status of 403/i,
   ],
+  "/admin": [/Failed to load resource.*status of 403/i],
 };
 
 function arKantMiljobegransning(route, konsolrad) {
