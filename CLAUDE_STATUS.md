@@ -8,16 +8,19 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-08 · **v5.139.0 i produktion**. `firebase-tools@13`-buggen
-(functions-emulatorn kör `functions.config()`, borttaget i `firebase-functions@7`) är
-undersökt fullt ut: `firebase-tools@15.29.0` löser den, bevisat i en riktig CI-körning, MEN
-inför en NY, diskvalificerande regression i Storage-regelmotorns `firestore.get()`/`exists()`
-FRÅN `storage.rules` (24/0 klarade på v13 mot 18/6 klarade på v15 i `tests/rules/storage.test.mjs`,
-identisk testfil). **Beslut: bumpa INTE.** Se uppföljningen 2026-09-08 nedan och
-`OPPNA-PUNKTER.md`. Parallell tråd (gren
+**Senast uppdaterad:** 2026-09-08 · **v5.139.0 i produktion**. **`firebase-tools` är
+uppgraderat från `^13.35.1` till `^15.29.0`** – `functions.config()`-buggen som gjorde att
+`test:e2e` inte bevisade att Cloud Functions fungerar är löst. Den tidigare dokumenterade
+"diskvalificerande Storage-regressionen" (18/6 misslyckade lokalt) var **felaktig** – ett
+sandboxartefakt som inte reproducerar på riktig CI (24/0 klart där, två separata körningar).
+Den verkliga blockeraren var en annan, äkta firebase-tools-bugg (`Proxied.getOriginal()`
+binder bort statiska egenskaper som `admin.firestore.FieldValue`), fixad på vår sida med en
+direktimport i 14 filer. Se uppföljningen 2026-09-08 nedan för hela, korrigerade historien.
+Parallell tråd (gren
 `claude/synappsen-webbplats-jnmzn1`, PR #23, grön/mergebar) hittade två MDR-ord kvar i
-gränssnittet (⚠️ ägarbeslut, `OPPNA-PUNKTER.md`) och att `test:e2e` inte längre bevisar att
-Cloud Functions fungerar (`firebase-tools@13`-bugg, se samma fil). **Vertex AI-migreringen är
+gränssnittet (⚠️ ägarbeslut, `OPPNA-PUNKTER.md`) och det ursprungliga fyndet att `test:e2e`
+inte bevisade att Cloud Functions fungerade (`firebase-tools@13`-buggen, nu löst, se
+uppföljningen 2026-09-08 nedan). **Vertex AI-migreringen är
 DEPLOYAD** (`deploy.yml` #98, success) och utvärderingen är helt ren efter deployen (13 OK,
 0 FEL, 0 GRANSKA). Kvar: bekräfta ett riktigt anrop i appen, se `OPPNA-PUNKTER.md`. Utgående e-post är stoppat
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
@@ -132,45 +135,62 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
 
-## Uppföljning 2026-09-08 (firebase-tools-bumpen undersökt fullt ut – inte bumpningsbar ännu)
+## Uppföljning 2026-09-08 (firebase-tools bumpat till `^15.29.0` – två fel hittade, ett var falskt)
 
-Undersökte om `firebase-tools@13.35.1` → `^15` löser buggen där functions-emulatorn anropar
-`functions.config()` (borttaget i `firebase-functions@7`) och dödar varje Cloud
-Function-anrop via emulatorn. Slutsats: **bumpa inte, men buggens grundorsak är nu bevisad,
-en fix finns identifierad, och den blockeras av ett nytt, separat, bevisat fel.**
+`firebase-tools@13.35.1` kunde inte köra Cloud Functions i emulatorn: emulatorruntimen
+anropar `functions.config()`, borttaget i `firebase-functions@7` (vår version), så **varje**
+anrop dog tyst med 500 (svalt av `AuthContext.jsx`) – `test:e2e` bevisade därmed inte att
+någon Cloud Function fungerade, oavsett hur grön sviten var. Bekräftat på riktig
+produktions-CI, inte bara i sandbox. Undersökningen gick i tre steg samma dag:
 
-- **Grundfyndet bekräftat på riktig produktions-CI**, inte bara i sandbox: `ci.yml`-körning
-  2026-09-08 visar `rapporteraAppVersion` krascha identiskt på GitHub Actions. `test:e2e`
-  startar functions-emulatorn men varje anrop dör tyst med 500 som frontend sväljer
-  (`AuthContext.jsx`) – **ingen Cloud Function är bevisat fungera via e2e-sviten**, oavsett
-  hur grön den är.
-- **`firebase-tools@15.29.0` löser functions.config()-buggen** – bevisat i en riktig CI-körning
-  där `rapporteraAppVersion` faktiskt exekverade sin riktiga logik (gick igenom
-  callable-verifiering och budgetkontroll, svarade med korrekt `HttpsError`). Kräver dessutom
-  ett nytt, verifierat krav: **JDK 21** (`actions/setup-java@v4` måste läggas till i varje
-  workflow som kör Firebase-emulatorn om en bump görs någon gång).
-- **Men samma version är diskvalificerad av en ny, separat regression**: en ren lokal
-  A/B-körning av `tests/rules/storage.test.mjs` (identisk testfil och regelfil, bara
-  verktygsversionen skiljer) visar att Storage-regelmotorns cross-service-uppslag mot
-  Firestore (`firestore.get()`/`firestore.exists()` anropade FRÅN `storage.rules`, t.ex.
-  `minOrganisation()`/`minRoll()`) går sönder: `firebase-tools@13.35.1` ger **24 klarade, 0
-  misslyckade**; `firebase-tools@15.29.0` ger **18 klarade, 6 misslyckade** med
-  `Null value error` på legitima fall – exakt den sortens multi-tenant-isoleringsregel det
-  här projektet är som mest noga med. Reproducerat deterministiskt två gånger, ingen
-  sandboxosäkerhet inblandad.
-- **Självrättelse under arbetet, värd att spara:** tre CI-körningar av diagnosverktyget
-  verkade hänga i flera minuter och avbröts. Efterkontroll mot `created_at`/`updated_at` i
-  GitHub Actions API:et visade att var och en bara hunnit köra 65–100 sekunder – normal tid
-  för att ladda ~90 funktionsdefinitioner, ingen hängning. Den felaktiga slutsatsen drogs för
-  snabbt; kommentaren ligger kvar i diagnosverktygets workflow som en varning.
-- **`package.json`/`package-lock.json` reverterade** till `^13.35.1` (oförändrade från
-  utgångsläget) efter att regressionen hittades.
-- **Nytt återanvändbart diagnosverktyg** för att pröva en framtida firebase-tools-version utan
-  att göra om hela undersökningen: `scripts/verifiera-functions-emulator.mjs` (riktigt
-  callable-anrop mot en startad emulator) + `.github/workflows/verifiera-firebase-tools-bump.yml`
-  (manuell dispatch, kör båda testerna – functions-anropet och Storage-regeltestet – mot en
-  valfri version). Bumpa bara när båda stegen är gröna.
-- Fullständig, uppdaterad rad i `OPPNA-PUNKTER.md` under "Kräver ett ägarbeslut".
+**Steg 1 – `firebase-tools@15.29.0` löser functions.config(), men ett nytt fel dyker upp.**
+Bevisat i CI: `rapporteraAppVersion` exekverar nu sin riktiga logik. Ett ANNAT fel visade sig
+dock: `TypeError: Cannot read properties of undefined (reading 'serverTimestamp')` vid
+`admin.firestore.FieldValue.serverTimestamp()`. Grävde i firebase-tools källkod
+(`functionsEmulatorRuntime.js`): dess `Proxied.getOriginal()` gör `value.bind(target)` på
+`admin.firestore` för att stubba den mot emulatorn – och `Function.prototype.bind()` kopierar
+ALDRIG med statiska egenskaper som `.FieldValue`/`.Timestamp`. **Bekräftat identisk, oförändrad
+kod i firebase-tools@13.35.1, @14.27.0 och @15.29.0** – felet är alltså inte nytt, det var bara
+osynligt i v13 eftersom functions.config()-kraschen träffade tidigare i samma anrop. 88
+förekomster i 14 filer (`gemensamt.js`, `organisationslivscykel.js`, `kvissbank.js`,
+`klinikstod.js`, m.fl.) använde mönstret.
+
+**Steg 2 – en första, FELAKTIG slutsats om en Storage-regression.** En lokal A/B-körning av
+`tests/rules/storage.test.mjs` visade `firebase-tools@13.35.1`: 24/0, `firebase-tools@15.29.0`:
+18/6 misslyckade (`Null value error` i `minOrganisation()`/`minRoll()`, cross-service
+`firestore.get()` FRÅN `storage.rules`). Dokumenterades felaktigt som ett bevisat,
+diskvalificerande fynd. **Det var fel:** en riktig CI-körning av samma testfil mot v15.29.0
+gav **24 klarade, 0 misslyckade** – identiskt med v13, två separata gånger. Den lokala
+18/6-siffran var ett sandboxartefakt (samma nätverksbegränsning – saknad IPv6-loopback, blockerad
+GCE-metadata-liknande trafik – som redan var känd för att störa eventarc-registrering lokalt),
+inte ett äkta firebase-tools-fel. Lärdomen: verifiera alltid ett misstänkt verktygsfel mot
+riktig CI innan det dokumenteras som blockerande, inte bara mot sandboxen.
+
+**Steg 3 – den riktiga fixen låg i vår egen kod.** Direktimport av `{ FieldValue, Timestamp }`
+från `require("firebase-admin/firestore")` går inte via den trasiga `admin`-modulproxyn.
+Bytte alla 88 förekomster i de 14 filerna (commit `0c2ad92`). Verifierat lokalt: samma
+`rapporteraAppVersion`-anrop som förut kraschade under v14 lyckas nu fullt ut och skriver
+korrekt till Firestore-emulatorn. Inget produktionsbeteende ändras – `admin.firestore.FieldValue`
+och `firebase-admin/firestore`s `FieldValue` är samma objekt utanför emulatorn.
+
+**Slutresultat: `firebase-tools` bumpat `^13.35.1` → `^15.29.0`.** Verifierat med
+`.github/workflows/verifiera-firebase-tools-bump.yml` (manuell dispatch) mot BÅDE `14` och
+`15.29.0` efter patchen – båda gav gröna resultat på BÅDA stegen (functions-anropet och
+Storage-regeltestet) i riktig CI. Lokalt: lint, 607 vitest, `test:rules`, `test:functions`,
+`test:storage`, build alla gröna med v15.29.0 (Storage-regeltestet visar fortfarande
+18/6 lokalt pga sandboxartefakten ovan – ignorera den siffran, CI är sanningskällan). Lokal
+`test:e2e` startar inte fullt ut i den här sandboxen (samma kända nätverksbegränsning stoppar
+eventarc-/Firestore-triggerregistreringen: "Unable to parse JSON... upstream r[equest failed]")
+– irrelevant, eftersom riktig CI redan bevisat båda diagnossteg gröna två gånger.
+`actions/setup-java@v4` (JDK 21, ett nytt krav från firebase-tools@14+) tillagt i `ci.yml` och
+`deploy.yml`. Nytt återanvändbart diagnosverktyg kvar för framtida verktygsbumpar:
+`scripts/verifiera-functions-emulator.mjs` + samma workflow.
+
+**Självrättelse värd att spara (från ett tidigare pass samma dag):** tre CI-körningar av
+diagnosverktyget verkade hänga i flera minuter och avbröts i onödan. Efterkontroll mot
+`created_at`/`updated_at` i GitHub Actions API:et visade att var och en bara hunnit köra
+65–100 sekunder – normal tid för att ladda ~90 funktionsdefinitioner, ingen hängning. Döm
+alltid en misstänkt hängning på faktiska tidsstämplar, inte på egen känsla för förfluten tid.
 
 ## Uppföljning 2026-09-07 (fynd från en parallell tråd verifierade och registrerade – ingen kod ändrad)
 

@@ -7,29 +7,38 @@ name: Verifiera firebase-tools-version mot functions- och storage-emulatorn
 # "Your function was killed because it raised an unhandled error", trots att alla ~100
 # funktionsdefinitioner laddas rent. Se OPPNA-PUNKTER.md för hela bakgrunden.
 #
-# STATUS 2026-09-08: firebase-tools@15.29.0 fixar functions.config()-buggen (bevisat i en
-# riktig CI-körning: rapporteraAppVersion kördes, gick igenom callable-verifiering och
-# budgetkontroll, svarade med ett riktigt HttpsError – inget kraschat). MEN samma version
-# introducerar en NY, separat, DISKVALIFICERANDE regression: Storage-regelmotorns
-# cross-service-uppslag mot Firestore (firestore.get()/firestore.exists() anropade FRÅN
-# storage.rules, t.ex. minOrganisation() och minRoll()) ger "Null value error" på fall som
-# SKA gå igenom. Bevisat lokalt med en ren A/B-körning av samma testfil:
-#   firebase-tools@13.35.1: 24 klarade, 0 misslyckade
-#   firebase-tools@15.29.0: 18 klarade, 6 misslyckade ("Null value error" på multi-tenant-
-#   isoleringsregler – exakt den sortens regel det här projektet är som mest noga med)
-# Reproducerbart utan CI, se kommandot i steget "Storage-regeltest" nedan.
+# STATUS 2026-09-08, SLUTFÖRD: firebase-tools är bumpat till ^15.29.0 (commit 0c2ad92 +
+# uppföljande bump). Så här löstes det:
 #
-# Slutsats: BUMPA INTE till 15.29.0. Kör det här verktyget mot en NYARE firebase-tools-
-# version (patch/minor efter 15.29.0, eller en framtida 16.x) när en sådan finns, och bumpa
-# bara om BÅDA stegen nedan är gröna – inte bara functions-anropet.
+# 1. firebase-tools@15.29.0 fixar functions.config()-buggen (bevisat i en riktig CI-körning:
+#    rapporteraAppVersion kördes, gick igenom callable-verifiering och budgetkontroll, svarade
+#    med ett riktigt HttpsError – inget kraschat).
+# 2. Ett ANNAT fel dök då upp: admin.firestore.FieldValue.serverTimestamp() kraschade med
+#    "Cannot read properties of undefined". Grundorsak: firebase-tools egen
+#    functionsEmulatorRuntime.js gör value.bind(target) på admin.firestore för att stubba den
+#    – och Function.prototype.bind() kopierar aldrig med statiska egenskaper som FieldValue/
+#    Timestamp. IDENTISK, oförändrad kod i v13.35.1/v14.27.0/v15.29.0 – i v13 bara osynlig
+#    eftersom functions.config()-kraschen träffade tidigare. Fixat på VÅR sida: direktimport av
+#    { FieldValue, Timestamp } från "firebase-admin/firestore" (88 ställen, 14 filer) går inte
+#    via den trasiga proxyn.
+# 3. En tredje, till synes DISKVALIFICERANDE regression visade sig vara FALSK: en lokal
+#    A/B-körning av tests/rules/storage.test.mjs gav 24/0 på v13 mot 18/6 på v15.29.0
+#    ("Null value error" i minOrganisation()/minRoll(), cross-service firestore.get() FRÅN
+#    storage.rules). En riktig CI-körning av samma testfil mot v15.29.0 gav 24/0 – IDENTISKT
+#    med v13, två separata gånger. Den lokala siffran var ett sandboxartefakt (samma
+#    nätverksbegränsning som stör eventarc-registrering lokalt), inte ett äkta
+#    firebase-tools-fel. Lärdom: verifiera alltid ett misstänkt regelmotorfel mot riktig CI
+#    innan det dokumenteras som blockerande.
 #
-# En separat, ANNAN observation från samma dag hör INTE hemma i "diskvalificerande": tre
-# manuella körningar av det här verktyget verkade hänga i flera minuter och avbröts. Vid
-# efterkontroll (jämförelse av created_at/updated_at i GitHub Actions API:et) visade det sig
-# att var och en bara hunnit köra i 65–100 SEKUNDER innan avbrottet – normal tid för att ladda
-# ~90 funktionsdefinitioner, inte en hängning. Den slutsatsen drogs för snabbt förra gången;
-# ha den här kommentaren i åtanke innan du avbryter en körning som "verkar hänga" – jämför
-# faktisk starttid mot nutid, lita inte på att API-statusfältet uppdaterats.
+# Använd fortfarande det här verktyget vid NÄSTA firebase-tools-bump (samma två steg täcker
+# functions.config()-klassen av fel och regelmotorregressioner) – men lita på CI-resultatet,
+# inte på ett lokalt sandboxresultat, om de går isär.
+#
+# En separat observation värd att spara: tre manuella körningar av det här verktyget verkade
+# hänga i flera minuter och avbröts i onödan. Efterkontroll (jämförelse av
+# created_at/updated_at i GitHub Actions API:et) visade att var och en bara hunnit köra i
+# 65–100 SEKUNDER innan avbrottet – normal tid för att ladda ~90 funktionsdefinitioner, inte
+# en hängning. Döm alltid på faktiska tidsstämplar, inte på egen känsla för förfluten tid.
 #
 # Ändrar INGENTING i repot – testar bara `npx firebase-tools@<version>` mot den redan
 # skrivna koden.

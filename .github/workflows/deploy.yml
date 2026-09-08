@@ -13,6 +13,14 @@ jobs:
         with:
           node-version: 22
 
+      # firebase-tools@14+ kräver JDK 21 för Firestore-emulatorn (Java-baserad) som
+      # "Regeltester"-steget nedan startar. Se OPPNA-PUNKTER.md (2026-09-08) för bakgrunden
+      # till bumpen från ^13.35.1.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
       - name: Skapa .env med Firebase-konfiguration
         run: |
           cat > .env <<'EOF'
