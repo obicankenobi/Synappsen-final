@@ -8,4 +8,20 @@
     <loc>https://synappsen.se/integritet.html</loc>
     <changefreq>yearly</changefreq>
   </url>
+  <url>
+    <loc>https://synappsen.se/underlag.html</loc>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://synappsen.se/tillganglighet.html</loc>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://synappsen.se/underbitraden.html</loc>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://synappsen.se/it-faktablad.html</loc>
+    <changefreq>monthly</changefreq>
+  </url>
 </urlset>

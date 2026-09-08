@@ -48,15 +48,23 @@ const ROLLER = [
   { roll: "kiosk", epost: "e2e-kioskA@orga.test" },
 ];
 
-// `test:e2e` startar bara auth/firestore/storage-emulatorerna (se package.json), INTE
-// functions – ett medvetet val för de två redan existerande specfilerna, som aldrig anropar
-// en Cloud Function. /leverantor gör det (listaOrganisationer()) redan vid montering, vilket
-// därför ALLTID ger en nätverksnivå-konsolrad ("Failed to load resource") oavsett miljö –
-// inte en app-bugg. Sidan kraschar INTE (ErrorBoundary triggas inte) tack vare Etapp 43e:s
-// `organisationer ?? []`-fix, vilket är precis det den här sviten faktiskt ska bevisa. Att
-// lägga till en functions-emulator i test:e2e enbart för den här ena sidan är utanför 45b:s
-// omfattning – filtrera bort just den kända, förväntade raden istället för att göra hela
-// sviten mindre strikt.
+// `test:e2e` startar functions-emulatorn sedan 2026-09-07 (se package.json). Dessförinnan
+// kördes bara auth/firestore/storage, ett medvetet val från Etapp 45b eftersom /leverantor
+// då var den enda sidan som anropade en Cloud Function. Det slutade stämma i v5.136.0
+// (Etapp L1j), när AuthContext.jsx började anropa rapporteraAppVersion på inloggningsvägen:
+// då fick VARJE rutt en connection refused-rad och hela sviten föll, på både den här grenen
+// och basgrenen.
+//
+// Undantaget nedan står kvar med flit. Det gäller inte längre i CI, men gör att sviten
+// fortfarande går att köra utan functions-emulatorn utan att /leverantor faller på en rad som
+// inte är en app-bugg. Sidan kraschar INTE (ErrorBoundary triggas inte) tack vare Etapp 43e:s
+// `organisationer ?? []`-fix, vilket är precis det den här sviten faktiskt ska bevisa.
+//
+// Obs att functions-emulatorn i firebase-tools 13 INTE kan köra funktionerna: den anropar
+// `functions.config()`, som togs bort i firebase-functions 7. Varje anrop svarar därför 500 i
+// stället för att vägra anslutningen. Det räcker för den här sviten (appen fångar felet, ingen
+// konsolrad), men e2e bevisar alltså inte att någon Cloud Function fungerar. Se
+// OPPNA-PUNKTER.md.
 const KANDA_MILJOBEGRANSNINGAR = {
   "/leverantor": [/Failed to load resource.*ERR_CONNECTION_REFUSED/i],
 };

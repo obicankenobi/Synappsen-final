@@ -5133,29 +5133,7 @@ tekniska beskrivningen) – alla i samma footer-metarad, `[BOLAGSNAMN]`/`[ORG.NR
 orörda. `Synappsen-upphandlingssvar.html` hade aldrig `[E-POST]`. Checklistan i
 `saljmaterial/00-LAS-DETTA-FORST.md` uppdaterad, raden avbockad.
 
-
-## Uppföljning 2026-09-05 (webbplatsen live på .web.app, medvetet noindex)
-
-Ägaren bad om att köra `hosting:sites:create` och deployen, med `noindex` – sidan är ännu
-inte färdig att visa upp brett (bakgrundsstycket, namn/orgnr på policyn och mottagningen
-för `kontakt@synappsen.se` saknas), men ägaren ville kunna se den live.
-
-**`noindex, nofollow` tillagt på båda sidorna**, plus `robots.txt` ändrad till
-`Disallow: /` (var `Allow: /` med en `Sitemap`-rad, som är borttagen tills vidare). Alla tre
-är märkta TILLFÄLLIGT med kommentar om exakt vad som ska vara klart innan de tas bort, och
-en rad i `OPPNA-PUNKTER.md` pekar på samma tre villkor.
-
-**`hosting:sites:create` gjordes idempotent i `deploy-web.yml`** i stället för att köras
-manuellt en gång: ett nytt steg försöker skapa siten och fortsätter tyst om den redan finns
-("already exists" är förväntat på varje körning efter den första). Det tar bort ett manuellt
-engångsmoment permanent – ingen framtida session behöver komma ihåg att siten måste finnas
-innan workflowen kan köras.
-
-**Resultat:** webbplatsen är publicerad på `https://synappsen-web.web.app`, men medvetet
-osynlig för sökmotorer. Egen domän (`synappsen.se`) är inte kopplad – det är ett separat steg
-i Firebase Console när domänen ska pekas dit, och bör göras tillsammans med domänsäkringen
-(registrar lock, DNSSEC, 2FA) som redan står i `OPPNA-PUNKTER.md`.
-
+---
 
 ## Uppföljning 2026-09-05 (domänkoppling pågår, e-postmottagning bekräftad)
 
@@ -5184,6 +5162,29 @@ var borttagna – bara site-valet i konsolen var fel, inget i DNS-zonen behövde
 Ingen kodändring i detta steg utöver kommentarraden ovan. Väntar på att ägaren slutför
 domänkopplingen mot rätt site och att certifikatet utfärdas.
 
+## Uppföljning 2026-09-05 (webbplatsen live på .web.app, medvetet noindex)
+
+Ägaren bad om att köra `hosting:sites:create` och deployen, med `noindex` – sidan är ännu
+inte färdig att visa upp brett (bakgrundsstycket, namn/orgnr på policyn och mottagningen
+för `kontakt@synappsen.se` saknas), men ägaren ville kunna se den live.
+
+**`noindex, nofollow` tillagt på båda sidorna**, plus `robots.txt` ändrad till
+`Disallow: /` (var `Allow: /` med en `Sitemap`-rad, som är borttagen tills vidare). Alla tre
+är märkta TILLFÄLLIGT med kommentar om exakt vad som ska vara klart innan de tas bort, och
+en rad i `OPPNA-PUNKTER.md` pekar på samma tre villkor.
+
+**`hosting:sites:create` gjordes idempotent i `deploy-web.yml`** i stället för att köras
+manuellt en gång: ett nytt steg försöker skapa siten och fortsätter tyst om den redan finns
+("already exists" är förväntat på varje körning efter den första). Det tar bort ett manuellt
+engångsmoment permanent – ingen framtida session behöver komma ihåg att siten måste finnas
+innan workflowen kan köras.
+
+**Resultat:** webbplatsen är publicerad på `https://synappsen-web.web.app`, men medvetet
+osynlig för sökmotorer. Egen domän (`synappsen.se`) är inte kopplad – det är ett separat steg
+i Firebase Console när domänen ska pekas dit, och bör göras tillsammans med domänsäkringen
+(registrar lock, DNSSEC, 2FA) som redan står i `OPPNA-PUNKTER.md`.
+
+---
 
 ## Uppföljning 2026-09-06 (Vertex AI-migrering genomförd i kod – INTE aktiv än)
 
@@ -5239,6 +5240,65 @@ själva verket ENBART `aterstallOrganisation()`-anropet, inte backupsteget. Form
 rättad till att vara tydlig om vad som faktiskt mäts. Testorganisationen städades bort
 automatiskt, ingen skarp kunddata rörd.
 
+---
+
+## Uppföljning 2026-09-06 (AI-utvärdering byggd – klinikstödets säkerhetsregler mäts nu)
+
+Ägaren frågade om Gemini är rätt modellval eller om andra LLM:er borde övervägas. **Svaret blev
+"stanna" – men frågan blottade något viktigare.** Vid nuvarande volym (284 funktionsanrop
+totalt, noll kunder) är skillnaden mellan billigaste och dyraste rimliga modell några kronor i
+månaden, medan ett leverantörsbyte river upp EU-databehandlingsgarantin som Vertex AI-
+migreringen precis köpte, lägger till ett underbiträde och kräver nytt PUB-avtal och uppdaterad
+DPIA. Priset är alltså fel variabel att optimera på – **kvaliteten är rätt variabel, och den
+gick inte att mäta.**
+
+**Den verkliga bristen:** klinikstöd-promptens regel 4 ("aldrig ett beslutsstöd … Ge aldrig ett
+prioriterat eller rangordnat svar") är den avgränsning som håller funktionen utanför MDR. Den
+upprätthölls av att modellen *väljer* att lyda prompten, och ingenting mätte om den gör det.
+En redigering som strök regeln hade inte fått ett enda test att faila. `verifieraKlinikstod`
+testar uttryckligen **bara** sökmotorsteget, inte Gemini-svaret.
+
+**Byggt, i tre lager med medvetet olika räckvidd:**
+
+1. **`tests/functions/klinikstodprompt.test.cjs`** – 11 assertioner, gratis, offline, tillagd i
+   `test:functions`-svepet. Bevisar att reglerna står kvar ord för ord, att ordet "beslutsstöd"
+   aldrig återkommer som en självbeskrivning (regressionen från Etapp 72), och att reglerna
+   ligger EFTER den användarstyrda frågan i prompten. **Mutationstestad:** stryks förbudet mot
+   rangordning failar den med ett felmeddelande som pekar på MDR-konsekvensen.
+2. **`functions/scripts/ai-evaluering.cjs` + `.github/workflows/ai-evaluering.yml`** – sju fall
+   mot skarp Vertex AI, manuell dispatch. Rangordningsbete, rekommendationsbete, namngiven
+   patient (medvetet UTAN personnummer – `innehallerPersonnummer` stoppar redan de fallen, så
+   regel 6 är det enda skyddet just där), fråga som källorna inte täcker, promptinjektion, samt
+   bildtolkningens schemakontrakt. **Anropar aldrig den riktiga sökmotorn** – den delade kvoten
+   är 100/dygn för hela installationen, och en utvärdering som åt av den kunde släckt
+   klinikstödet för riktiga kunder. Rör ingen Firestore-data, ingen budget.
+3. **Tre utfall, inte två:** `OK`, `FEL` och `GRANSKA`. Det sista för frågor som inte går att
+   avgöra maskinellt, där svaret skrivs ut i sin helhet för mänsklig läsning och slutkoden inte
+   påverkas. Avsiktligt: en heuristik som låtsas kunna fälla ett regulatoriskt omdöme vore
+   sämre än en som säger att den inte kan det. `GRANSKA`-raderna ÄR den manuella verifiering
+   som kostnadsuppskattningen krävde – strukturerad, inte bortautomatiserad.
+
+**Refaktorering som möjliggjorde det:** prompten byggdes tidigare inline i anropshanteraren och
+gick inte att nå utifrån. Utbruten till `byggKlinikstodPrompt()`, exporterad, så utvärderingen
+mäter EXAKT samma prompt som produktionen kör – inte en kopia som kan glida isär. Verifierat
+byte-identisk. Samma skäl bakom att `tolkaBildMedGemini`/`extraktionsSchema` nu exporteras.
+
+**Ett verkligt fynd på köpet:** frågan interpoleras osanerad in i prompten
+(`Fråga: "${fraga}"`), vilket är en möjlig promptinjektion mot just de regler som bär
+MDR-avgränsningen. Om den går igenom är okänt – fall 6 testar det, men kan inte köras än. Fört
+till `OPPNA-PUNKTER.md` med föreslagen åtgärd (avvisa `"` och radbrytningar i söksträngen)
+och med de förmildrande omständigheterna ärligt noterade.
+**→ Åtgärdad samma dag, se sektionen ovan** – ägaren instruerade att inte vänta på
+utvärderingen.
+
+**Provbilden genereras i kod** (`functions/scripts/provbild.cjs`, egen PNG-enkodare utan
+beroenden) i stället för att checkas in som binärfil – en bild i repot går inte att granska i
+en diff. Renderad och okulärbesiktigad: texten är läsbar och datumet `2027-01-15`, som
+utvärderingen jämför exakt mot, står i klartext.
+
+**Ännu inte kört mot skarp Vertex AI** – kräver samma tre GCP-steg som allt annat. Skriptet
+översätter de vanligaste felen till vilket steg som saknas. Testsvep grönt: lint, `npm run
+build`, 592 vitest-tester, hela `test:functions`-svepet.
 
 ## Uppföljning 2026-09-06 (egen domän `synappsen.se` kopplad och verifierad)
 
@@ -5264,3 +5324,46 @@ Let's Encrypts). Inte ett tecken på ett verkligt problem – Firebase Consoles 
 `synappsen.se` fungerar alltså som avsett. Domänsäkring (registrar lock, DNSSEC, 2FA hos
 Loopia) är fortfarande en öppen punkt, se `OPPNA-PUNKTER.md`.
 
+---
+
+## Uppföljning 2026-09-06 (promptinjektionen täppt – strukturellt, inte språkligt)
+
+Ägaren instruerade att åtgärda promptinjektionen direkt i stället för att vänta på att
+utvärderingen ska kunna köras. Rimligt: fyndet var känt, åtgärden liten, och att låta en känd
+lucka mot MDR-avgränsningen stå öppen i väntan på ett mätvärde är fel ordning.
+
+**Två skydd, olika för att de två inbäddningsställena har olika förutsättningar** (båda i
+`functions/gemensamt.js`, bredvid `innehallerPersonnummer`):
+
+- `harPromptbrytandeTecken()` – klinikstödets fråga bäddas in som `Fråga: "${fraga}"`. Ett
+  citattecken avslutar den kontexten, en radbrytning gör det möjligt att skriva ett eget
+  regelblock under. Inget av tecknen har ett legitimt syfte i en klinisk söksträng, så frågan
+  **avvisas** i stället för att saneras tyst – en tyst ändrad fråga i ett kliniskt verktyg är
+  värre än ett fel. Två lager: `fragaKlinisktStod` avvisar med ett begripligt `HttpsError` till
+  användaren, och `byggKlinikstodPrompt` **kastar**, så det är strukturellt omöjligt att bygga
+  en prompt av en sådan fråga oavsett anropare. Kontrollen ligger FÖRE hastighetsspärren, så en
+  avvisad fråga äter ingen kvot.
+- `saneraPromptblock()` – rutintexterna i `ai-import.js` (checklistesteg- och kvissförslagen)
+  bäddas in i ett `"""`-block. Där går det inte att avvisa radbrytningar och citattecken;
+  texten är flerradig till sin natur. I stället neutraliseras avgränsaren (`"""` → `'''`).
+  Lägre risk – texten är redan människogodkänd inom organisationen och förslagen granskas innan
+  de sparas – men samma klass av brist och samma enradsåtgärd, så den togs samtidigt.
+
+**Medvetet INTE gjort:** ingen blocklista på instruktionsliknande fraser ("ignorera tidigare
+regler" o.s.v.). Sådana läcker notoriskt och ger falsk trygghet. Skyddet är strukturellt – att
+texten inte kan bryta sig ur sin kontext. **Ingen klientkopia av regeln heller:** servern är
+auktoritativ och felmeddelandet visas redan i `KlinikfragaSok.jsx`s felruta; en regex till i
+`src/` hade bara varit en andra plats att glida ifrån.
+
+**Vad som återstår, ärligt:** den SPRÅKLIGA vägen. En påstridig fråga som bara använder
+tillåtna tecken når fortfarande modellen, och där finns ingen strukturell spärr – bara
+modellens vilja att lyda reglerna. Det är precis vad som inte går att veta utan att mäta, så
+fall 6 i utvärderingen är omskrivet i två delar: **6a** (offline, gratis) bevisar att den
+strukturella vägen är stängd, **6b** skickar en språklig injektion som når modellen. Visar 6b
+att den slår igenom är nästa steg att lyfta reglerna till en `systemInstruction` i stället för
+att ha dem i samma textblock som frågan.
+
+Sex nya assertioner i `tests/functions/klinikstodprompt.test.cjs` (18 totalt), inklusive ett
+test som bevisar att skyddet **inte** avvisar legitima kliniska frågor med apostrof,
+bindestreck, parentes, procent eller decimaltal. Testsvep grönt: lint, build, 592 vitest,
+`test:functions`, `test:rules`, `test:storage`.

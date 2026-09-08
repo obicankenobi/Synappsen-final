@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>Underbiträdesförteckning – Synappsen</title>
+<meta name="description" content="Varje underleverantör som behandlar personuppgifter för Synappsens räkning, med ändamål och region. Underlag för artikel 28.2 i dataskyddsförordningen." />
+
+<link rel="canonical" href="https://synappsen.se/underbitraden.html" />
+<link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
+
+<!-- Samma tillfälliga noindex som resten av webbplatsen, se index.html. -->
+<meta name="robots" content="noindex, nofollow" />
+
+<link rel="preload" href="/fonts/public-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/stil.css" />
+</head>
+<body>
+
+<!-- GENERERAD FIL - REDIGERA INTE FOR HAND.
+     Kalla: avtal/UNDERBITRADEN.md
+     Generator: synappsen-web/verktyg/bygg-underlag.mjs
+     Kor om med: node synappsen-web/verktyg/bygg-underlag.mjs
+     tests/docs/webbplats.test.js failar om den har filen inte motsvarar kallan. -->
+
+<a class="hoppa" href="#huvudinnehall">Hoppa till innehållet</a>
+
+<div class="skal skal--enkel">
+  <main class="huvud huvud--dokument" id="huvudinnehall" tabindex="-1">
+
+    <p class="dokument__tillbaka"><a href="/underlag.html">← Underlag och dokumentation</a></p>
+
+    <section class="hero" style="border-bottom: 1px solid var(--kant); padding-bottom: 36px;">
+      <span class="eyebrow hero__eyebrow">Underbiträdesförteckning</span>
+      <h1 style="font-size: clamp(28px, 4vw, 40px);">Underbiträdesförteckning</h1>
+      <p class="lede">Varje underleverantör som behandlar personuppgifter för Synappsens räkning, med ändamål och region. Underlag för artikel 28.2 i dataskyddsförordningen.</p>
+      <p class="dok__kalla">Sidan genereras ur <code>avtal/UNDERBITRADEN.md</code> i produktens eget
+      kodförråd och kan därför inte säga något annat än originalet säger.</p>
+    </section>
+
+    <div class="dok">
+<h2>Underbiträdesförteckning (subprocessorer)</h2>
+<p><strong>Status:</strong> Löpande dokument, ska hållas uppdaterat varje gång ett underbiträde läggs till, byts eller tas bort. Refereras från <code>avtal/PUB-AVTAL-MALL.md</code> (Etapp 13a), punkt 5.</p>
+<p><strong>Upprättat:</strong> 2026-07-26, som en del av Etapp 13b (<code>etapplaner/ETAPPLAN3.md</code>). <strong>Senast uppdaterad:</strong> 2026-08-29 – <strong>version 2026-08-29</strong> (se nedan).</p>
+<blockquote><p><strong>Vad &quot;version&quot; betyder här</strong> (Etapp L1p punkt 2, <code>intern/ETAPPLAN-INTERN-1.md</code>): datumet på raden &quot;Senast uppdaterad&quot; ovan ÄR versionen. <code>satUnderbitradeUnderrattad</code> (leverantörspanelen) registrerar per kund vilken version de underrättats om, jämfört mot <code>src/config/underbitraden.js</code>s <code>UNDERBITRADEN_AKTUELL_VERSION</code> – som ska höjas till SAMMA datum i SAMMA commit som en sakändring görs här, annars visar panelen fel kunder som à jour.</p></blockquote>
+<blockquote><p><strong>⚠️ ÖPPEN BRIST PER 2026-08-27:</strong> Brevo (e-postutskick) togs i drift utan tecknat PUB-avtal. Behandlingen omfattar mottagares e-postadresser.</p>
+<p><strong>Utgående e-post är STOPPAT sedan 2026-08-28</strong> genom en spärr i koden (v5.131.0, verifierad i produktion), i väntan på att avtalet tecknas (<code>BESLUTSLOGG.md</code>). Se avsnittet &quot;Brevo (Sendinblue SAS)&quot; nedan för hela beskrivningen och hur spärren hävs.</p></blockquote>
+<p><strong>Metod:</strong> varje rad nedan är verifierad direkt mot koden (<code>functions/</code>-modulerna, <code>.github/workflows/deploy.yml</code>, <code>src/sentry.js</code>), inte antagen – i enlighet med genomgående krav 8 i <code>etapplaner/ETAPPLAN3.md</code>. Rader markerade &quot;[FYLLS I]&quot;/&quot;[EJ VERIFIERAT]&quot; kräver en åtgärd av ägaren (vanligen en kontroll i ett moln-konsol som inte syns i koden).</p>
+<hr />
+<h3>Sammanfattande tabell</h3>
+<div class="tabell-svep"><table>
+<thead><tr><th scope="col">Underbiträde</th><th scope="col">Vad som behandlas</th><th scope="col">Region</th><th scope="col">Status</th></tr></thead>
+<tbody>
+<tr><td>Google Firebase Authentication</td><td>Inloggningsuppgifter (e-post, hash av lösenord, ev. TOTP-hemlighet)</td><td>[EJ VERIFIERAT – se rad nedan]</td><td>I drift</td></tr>
+<tr><td>Google Cloud Firestore</td><td>All strukturerad data i appen (se <code>avtal/PUB-AVTAL-MALL.md</code> punkt 4)</td><td>[EJ VERIFIERAT – se rad nedan]</td><td>I drift</td></tr>
+<tr><td>Google Cloud Storage</td><td>Uppladdade bilder/dokument, backuper</td><td>[EJ VERIFIERAT – se rad nedan]</td><td>I drift</td></tr>
+<tr><td>Google Cloud Functions</td><td>All serverlogik (Cloud Functions-koden)</td><td>europe-west1 (verifierat)</td><td>I drift</td></tr>
+<tr><td>Google Firebase Hosting</td><td>Statiska webbtillgångar (den byggda appen)</td><td>Globalt CDN (se rad nedan)</td><td>I drift</td></tr>
+<tr><td>Google Generative AI (Gemini API)</td><td>Bilder/text som skickas för AI-tolkning (rutin-/artikelutkast)</td><td>Ospecificerad/global (se rad nedan)</td><td>I drift</td></tr>
+<tr><td>Google Programmerbara sökmotorn (Custom Search API)</td><td>Sökfrågor för klinikstöd-sökningen</td><td>Global Google-infrastruktur</td><td>I drift (funktionen är <strong>inte</strong> pausad – se not nedan)</td></tr>
+<tr><td>Sentry (Functional Software, Inc.)</td><td>Felmeddelanden och stacktraces vid krascher/undantag</td><td>EU (Frankfurt, <code>ingest.de.sentry.io</code> – verifierat)</td><td>I drift</td></tr>
+<tr><td>Google reCAPTCHA (App Check)</td><td>Enhets-/webbläsarsignaler för att avgöra äkta klientanrop</td><td>Global Google-infrastruktur</td><td>I drift (mätläge, se Etapp 12c)</td></tr>
+<tr><td>Linear</td><td>Interna utvecklingsärenden (backlogg)</td><td>[FYLLS I – rör inte kunddata, se not nedan]</td><td>Internt leverantörsverktyg</td></tr>
+<tr><td>Brevo (Sendinblue SAS)</td><td>E-postadresser + en innehållslös notistext (aldrig verksamhetsinnehåll, se Etapp 53 genomgående krav 18)</td><td>Frankrike/EU (verifierat, EU-baserat bolag)</td><td><strong>I DRIFT sedan 2026-08-27, MEN PUB-AVTAL SAKNAS</strong> – se den utförliga noten under &quot;Brevo (Sendinblue SAS)&quot; nedan. Detta är en känd, öppen brist, inte ett förbiseende</td></tr>
+</tbody></table></div>
+<hr />
+<h3>Detaljer per underbiträde</h3>
+<h4>Google Firebase / Google Cloud Platform (Google Ireland Limited / Google LLC)</h4>
+<p>Firebase används för fem separata tjänster i produkten: Authentication, Firestore, Cloud Storage, Cloud Functions och Hosting. Samtliga körs under samma GCP-projekt.</p>
+<ul><li><strong>Cloud Functions:</strong> verifierat direkt i <code>functions/</code>-modulerna – varje funktion anger explicit <code>region: &quot;europe-west1&quot;</code> (Belgien), konsekvent genom hela filen, ingen avvikelse.</li><li><strong>Firestore-databasen och Storage-bucketen:</strong> regionen för dessa sätts vid projektskapande i Firebase-konsolen, inte i kodens funktionsdefinitioner, och kan därför <strong>inte</strong> verifieras genom en kodgenomgång. <strong>[FYLLS I av ägaren]:</strong> kontrollera i Firebase-konsolen (Project settings → General, samt Storage → Files → bucket-info) vilken region databasen respektive bucketen faktiskt ligger i, och för in svaret här som en skärmdump eller ett textsvar. Detta är den enskilt vanligaste frågan från ett dataskyddsombud och måste kunna besvaras med ett faktum, inte en formulering.</li><li><strong>Hosting:</strong> Firebase Hosting levereras via Googles globala CDN – innehållet (den statiska, byggda appen, inga personuppgifter i de statiska filerna) kan cachas i valfri Google-datacenter globalt. Detta är normalt inte GDPR-relevant eftersom inga personuppgifter finns i de statiska tillgångarna (JS/CSS/bilder), men bör ändå anges för fullständighet.</li><li><strong>Rättslig grund för Google-tjänsterna (om inte EU/EES):</strong> Google Cloud/Firebase omfattas av EU:s standardavtalsklausuler (SCC) samt (sedan 2023) EU–US Data Privacy Framework för amerikanska mottagare. [FYLLS I: hänvisa till Googles aktuella Cloud Data Processing Addendum, som ska biläggas eller länkas i kundavtalet.]</li></ul>
+<h4>Google Generative AI (Gemini API)</h4>
+<p>Används av <code>tolkaForradsbild</code>/<code>tolkaDokument</code> (bildtolkning) för att skapa utkast till rutiner/förrådsartiklar (<code>functions/ai-import.js</code>, modell <code>gemini-2.5-flash</code>).</p>
+<ul><li><strong>Vad som skickas:</strong> bilder/dokument som en redaktör själv laddar upp, avsett att uteslutande innehålla verksamhetsinformation (whiteboard-anteckningar, inventarielistor) – inte patientuppgifter, se <code>avtal/PUB-AVTAL-MALL.md</code> punkt 2.</li><li><strong>Kodmigrerad till Vertex AI 2026-09-06. GCP-sidan är klar och verifierad – men koden är ÄNNU INTE DEPLOYAD.</strong> Samtliga sex Gemini-anropsställen (<code>functions/ai-import.js</code>, <code>functions/klinikstod.js</code>) använder <code>@google/genai</code> mot Vertex AI (<code>enterprise: true</code>, projekt <code>synappsen-final-build</code>, region <code>europe-west1</code>) i stället för det publika Gemini API:et. Autentisering sker via Application Default Credentials, ingen fristående API-nyckel längre.</li><li><strong>Vad som ÄR verifierat (2026-09-06):</strong> Vertex AI-API:et är aktiverat, båda tjänstekontona har <code>roles/aiplatform.user</code>, och <strong><code>gemini-2.5-flash</code> är bekräftat tillgänglig i <code>europe-west1</code></strong> – inte utläst ur dokumentation, utan bevisad genom sju riktiga anrop som alla besvarades (<code>.github/workflows/ai-evaluering.yml</code>, körning #1, se <code>granskningar/SAKERHETSRAPPORT.md</code>). Den öppna frågan om regional modelltillgänglighet är därmed stängd.</li><li><strong>Deployad till produktion 2026-09-06</strong> (<code>deploy.yml</code> körning #98, <code>conclusion: success</code>). De driftsatta funktionerna kör alltså Vertex AI-koden, och <code>GEMINI_API_KEY</code> finns varken i koden eller i deploykedjan längre.</li><li><strong>Kvarvarande, liten precisering (genomgående krav 8):</strong> utvärderingen anropar modellen direkt förbi <code>onCall</code>-lagret, på en GitHub-runner. Den bevisar att <strong>kodvägen</strong> fungerar mot Vertex AI (körning #4 efter deployen: 13 OK, 0 FEL, 0 GRANSKA), men den är inte samma sak som ett observerat <strong>användaranrop genom en driftsatt funktion</strong>. Det som talar starkt för att produktionen faktiskt går via Vertex: deployen lyckades, koden innehåller ingen väg till det publika API:et, och nyckeln är borta ur Secret Manager-stegen – en funktion som ändå försökte nå det gamla API:et skulle alltså fela, inte tyst falla tillbaka. <strong>Full avbockning kräver ett verkligt anrop i appen</strong> (t.ex. en bildimport eller Admin → beroendetest). Se <code>OPPNA-PUNKTER.md</code>.</li></ul>
+<h4>Google Programmerbara sökmotorn (Custom Search JSON API)</h4>
+<p>Används av klinikstöd-sökningens källbegränsade verifiering (<code>SOKMOTOR_API_KEY</code>, <code>googleapis.com/customsearch/v1</code>, se <code>functions/klinikstod.js</code>). Skickar användarens fritextfråga till Google för att hitta träffar begränsade till sju godkända medicinska källdomäner. <strong>Rättelse 2026-08-23: funktionen är i drift och tar emot skarpa användarfrågor.</strong> Den var pausad i användargränssnittet från v5.3.5, men återaktiverades och byggdes om med enforcement i två lager plus en daglig automatisk källverifiering (<code>verifieraKlinikstodSchemalagt</code> i <code>functions/index.js</code>). <code>granskningar/SAKERHETSRAPPORT.md</code> rättade sin egen text redan 2026-08-01, men den här förteckningen följde inte med – i knappt fyra veckor beskrev alltså <strong>ett dokument som lämnas till kundens dataskyddsombud en behandling som mindre omfattande än den faktiskt är.</strong> Det är precis fel riktning att ha fel åt i en underbiträdesförteckning.</p>
+<h4>Sentry (Functional Software, Inc., d/b/a Sentry)</h4>
+<p>Tar emot felmeddelanden och stacktraces vid oväntade fel, från både frontend (<code>src/sentry.js</code>) och Cloud Functions (<code>functions/gemensamt.js</code>s <code>onCall</code>-wrapper).</p>
+<ul><li><strong>Region:</strong> verifierat i <code>.github/workflows/deploy.yml</code> – båda DSN:erna pekar mot <code>ingest.de.sentry.io</code> (Sentrys EU-region, Frankfurt).</li><li><strong>Innehåll:</strong> avsett att vara tekniska felmeddelanden och kodrader (stack traces), inte användardata. <code>tracesSampleRate: 0</code> (ingen prestandaspårning av användaraktivitet). Sentry ingår inte i den formella PII-genomgången (Etapp 12) och bör läggas till där om fritextinnehåll någonsin börjar skickas med i felrapporter.</li></ul>
+<h4>Google reCAPTCHA / App Check</h4>
+<p>Används för att verifiera att anrop till Cloud Functions kommer från den riktiga, installerade appen (se Etapp 12c, <code>src/firebase/config.js</code>). Behandlar tekniska enhets-/webbläsarsignaler, ingen känd koppling till enskilda personuppgifter i appens mening. Global Google-infrastruktur, samma juridiska grund som övriga Google-tjänster ovan.</p>
+<h4>Linear</h4>
+<p>Används internt av leverantören för utvecklingsbacklogg (se Fas 33 i <code>etapplaner/UTVECKLINGSLOGG.md</code>). <strong>Behandlar inte kunddata</strong> – ärendena beskriver funktioner och tekniskt arbete, inte innehåll från en kunds Firestore-databas. Tas ändå upp här för fullständighet, eftersom vissa kunder/DPO efterfrågar en fullständig lista över samtliga verktyg leverantören använder, oavsett om kunddata behandlas.</p>
+<h4>Brevo (Sendinblue SAS)</h4>
+<p>Vald 2026-08-10 (<code>BESLUTSLOGG.md</code>, beslutspunkt 1 i <code>etapplaner/ETAPPLAN11.md</code> §53) som e-postkanal för Etapp 53 – i första hand inbjudningar (53b), tilldelade påminnelser (53c) och en kundvänd månadssammanfattning (53d). EU-baserat bolag (Frankrike), vilket var det avgörande skälet framför ett amerikanskt alternativ.</p>
+<ul><li><strong>Vad som skickas:</strong> en mottagaradress plus en kort, medvetet innehållslös notistext (t.ex. &quot;du har 3 rutiner att granska, logga in för att se dem&quot;). Aldrig organisationens namn, verksamhetsinnehåll eller andra personuppgifter än mottagarens egen adress – se <code>etapplaner/ETAPPLAN11.md</code> genomgående krav 18. Enda undantaget är inbjudningsmejlet (53b), som med nödvändighet måste nämna organisationens namn för att vara begripligt; det är ett medvetet, dokumenterat undantag, inte en glidning.</li><li><strong>Teknisk status: I DRIFT sedan 2026-08-27.</strong> Hjälparfunktionen <code>skickaEpost()</code> och det globala nödstoppet (<code>angeEpostAvstangd</code>, en knapp i <code>/leverantor</code>) byggdes i Etapp 53a. Ägaren satte en riktig <code>BREVO_API_KEY</code> som GitHub-hemlighet och verifierade avsändardomänen <code>synappsen.se</code> hos Brevo (SPF/DKIM/DMARC) 2026-08-27, och v5.129.0 deployades samma dag. Från och med då skickas e-post faktiskt, från tre håll:</li></ul>
+<div class="tabell-svep"><table>
+<thead><tr><th scope="col">Vad</th><th scope="col">Utlöses av</th><th scope="col">Kod</th></tr></thead>
+<tbody>
+<tr><td>Inbjudningsmejl</td><td>Manuell handling (någon bjuder in en kollega)</td><td><code>functions/inbjudningar.js</code></td></tr>
+<tr><td>Dagliga påminnelser</td><td><strong>Automatiskt, varje dag kl. 09:00 Europe/Stockholm</strong></td><td><code>skickaEpostPaminnelserSchemalagt</code>, <code>functions/notiser.js</code></td></tr>
+<tr><td>Månadssammanfattning</td><td><strong>Automatiskt, den 1:a varje månad kl. 09:00</strong></td><td><code>skickaManadssammanfattningarSchemalagt</code>, <code>functions/matvarden.js</code></td></tr>
+</tbody></table></div>
+<p>Den tidigare formuleringen här (&quot;skickar fortfarande ingenting förrän ägaren satt en riktig nyckel&quot;) gällde fram till 2026-08-27 och är nu inaktuell.</p>
+<ul><li><strong>Rättslig grund: SAKNAS. Detta är en känd, öppen brist per 2026-08-27.</strong></li></ul>
+<p>&gt; <strong>⚠️ PUB-avtal med Brevo är INTE tecknat.</strong> Ägaren bekräftade det uttryckligen &gt; 2026-08-27, samma dag som tjänsten togs i drift. Personuppgifter (mottagarens &gt; e-postadress, och i inbjudningsmejlet organisationens namn) behandlas alltså av ett &gt; underbiträde utan det skriftliga avtal som dataskyddsförordningen art. 28.3 kräver. &gt; &gt; <strong>Varför det står här i klartext:</strong> dokumentet lämnas till kund och dataskyddsombud. En &gt; förteckning som utelämnar en känd brist är farligare än ingen förteckning – den inbjuder &gt; mottagaren att lita på något som inte stämmer. Se <code>CLAUDE.md</code>s underhållsregel: en &gt; försämring ska dokumenteras i samma commit som den uppstår, även när den ser sämre ut. &gt; &gt; <strong>Vad som krävs för att stänga bristen:</strong> Brevo tillhör de leverantörer som &gt; tillhandahåller ett standardiserat biträdesavtal (DPA) via kontoinställningarna – det är &gt; normalt ett godkännande, inte en förhandling. När det är på plats: ersätt den här rutan &gt; med datum för tecknandet och en hänvisning till var avtalet förvaras. &gt; &gt; <strong>Begränsningsåtgärd – BESLUTAD 2026-08-27:</strong> ägaren har beslutat att pausa allt &gt; utgående e-post tills PUB-avtalet är tecknat (se <code>BESLUTSLOGG.md</code>). Åtgärden är det &gt; globala nödstoppet, som stoppar ALL utgående e-post för samtliga organisationer &gt; omedelbart och utan ny driftsättning. Det omfattar även de schemalagda utskicken ovan. &gt; Inbjudningar skapas fortfarande – bara mejlet uteblir, och den kopierbara inbjudningslänken &gt; fungerar som förut. &gt; &gt; <strong>Status för verkställigheten: STOPPAT OCH VERIFIERAT I PRODUKTION 2026-08-28 12:31 UTC</strong> &gt; (v5.131.0, deploykörning #92). Verifieringen gjordes mot faktiskt utfall, inte mot att &gt; deployjobbet rapporterade &quot;success&quot;: deployloggen bekräftar att de tre funktioner som kan &gt; skicka e-post – inbjudan, den dagliga påminnelsen och månadssammanfattningen – samtliga &gt; uppdaterades, och att hosting-releasen slutfördes. (Skälet till den noggrannheten: en &gt; tidigare körning samma dag rapporterade &quot;success&quot; utan att hostingreleasen genomfördes.) &gt; &gt; Spärren är &gt; INTE den manuella driftflaggan, utan en konstant i koden (<code>PUB_AVTAL_BREVO_TECKNAT</code> i &gt; <code>functions/gemensamt.js</code>): <code>skickaEpost()</code> returnerar <code>{skickat: false, anledning: &gt; &quot;pub_avtal_saknas&quot;}</code> utan att kontakta Brevo, oavsett driftflaggans läge. &gt; &gt; <strong>Varför en kodkonstant och inte driftflaggan:</strong> driftflaggan bär ingen motivering. Den &gt; som ser den påslagen om tre månader har ingenting som säger varför, och risken att den &gt; slås av igen av misstag är precis det &quot;regeln glömdes bort&quot;-mönster som redan inträffat &gt; sex gånger i det här projektet. Att häva spärren kräver en kodändring och en &gt; driftsättning, vilket är rimligt i proportion till att teckna ett avtal. &gt; &gt; <strong>Att häva den när avtalet är tecknat:</strong> sätt konstanten till <code>true</code>, ersätt den här &gt; rutan med datum för tecknandet och var avtalet förvaras, och ta bort raden ur &gt; <code>OPPNA-PUNKTER.md</code>. <code>tests/functions/epost.test.cjs</code> failar om konstanten ändras, så &gt; frågan &quot;är avtalet faktiskt på plats?&quot; tvingas fram.</p>
+<hr />
+<h3>Underrättelse vid ändring</h3>
+<p>I enlighet med <code>avtal/PUB-AVTAL-MALL.md</code> punkt 5 ska Kunden underrättas innan ett nytt underbiträde läggs till eller ett befintligt byts ut, med möjlighet att invända. Denna fil är källan för vad som gäller vid varje given tidpunkt – uppdatera den <strong>samtidigt</strong> som förändringen görs i koden eller CI/CD-konfigurationen, inte i efterhand.</p>
+<hr />
+<h3>Ändringshistorik</h3>
+<div class="tabell-svep"><table>
+<thead><tr><th scope="col">Datum</th><th scope="col">Ändring</th></tr></thead>
+<tbody>
+<tr><td>2026-08-29</td><td>Etapp L1p punkt 2: mekanism för underrättelse tillagd i leverantörspanelen (<code>satUnderbitradeUnderrattad</code>). Ingen sakändring av innehållet – datumet på &quot;Senast uppdaterad&quot; blev samtidigt dokumentets första formella VERSION (se rutan ovan). Inga kunder finns ännu att underrätta</td></tr>
+<tr><td>2026-08-28</td><td>Spärren <strong>deployad och verifierad i produktion</strong> (körning #92). Kontrollerat mot deployloggen att skapaInbjudan, skickaEpostPaminnelserSchemalagt och skickaManadssammanfattningarSchemalagt samtliga uppdaterades</td></tr>
+<tr><td>2026-08-27</td><td>Spärren verkställd i v5.131.0: <code>PUB_AVTAL_BREVO_TECKNAT = false</code> i <code>functions/gemensamt.js</code> stoppar allt utskick i koden. Valdes framför den manuella driftflaggan eftersom den senare inte bär någon motivering och kan slås av av misstag</td></tr>
+<tr><td>2026-08-27</td><td>Ägarbeslut: utgående e-post pausas tills PUB-avtal är tecknat</td></tr>
+<tr><td>2026-08-27</td><td>Brevo: status ändrad från &quot;infrastruktur byggd, inte i drift&quot; till <strong>i drift</strong>, efter att ägaren satt <code>BREVO_API_KEY</code> och verifierat avsändardomänen. Samtidigt infört som <strong>öppen brist</strong> att PUB-avtal saknas – ägaren bekräftade detta uttryckligen samma dag. De tre utskicksvägarna (inbjudan, daglig påminnelse 09:00, månadssammanfattning) verifierade mot <code>functions/inbjudningar.js</code>, <code>functions/notiser.js</code> och <code>functions/matvarden.js</code></td></tr>
+<tr><td>2026-07-26</td><td>Dokumentet upprättat (Etapp 13b)</td></tr>
+</tbody></table></div>
+    </div>
+
+    <footer>
+      <span>Synappsen · Digital kunskapsbank för vården</span>
+      <span><a href="/underlag.html">Allt underlag</a></span>
+      <span><a href="/integritet.html">Integritetspolicy</a></span>
+      <span><a href="mailto:kontakt@synappsen.se">kontakt@synappsen.se</a></span>
+    </footer>
+  </main>
+</div>
+
+</body>
+</html>

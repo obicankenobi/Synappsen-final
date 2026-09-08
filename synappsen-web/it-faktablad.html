@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>Tekniskt faktablad – Synappsen</title>
+<meta name="description" content="Arkitektur, datalagring, behörighetsmodell, backup och återställning – skrivet för en IT-avdelning eller ett dataskyddsombud som ska granska före ett inköp." />
+
+<link rel="canonical" href="https://synappsen.se/it-faktablad.html" />
+<link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
+
+<!-- Samma tillfälliga noindex som resten av webbplatsen, se index.html. -->
+<meta name="robots" content="noindex, nofollow" />
+
+<link rel="preload" href="/fonts/public-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/stil.css" />
+</head>
+<body>
+
+<!-- GENERERAD FIL - REDIGERA INTE FOR HAND.
+     Kalla: avtal/IT-FAKTABLAD.md
+     Generator: synappsen-web/verktyg/bygg-underlag.mjs
+     Kor om med: node synappsen-web/verktyg/bygg-underlag.mjs
+     tests/docs/webbplats.test.js failar om den har filen inte motsvarar kallan. -->
+
+<a class="hoppa" href="#huvudinnehall">Hoppa till innehållet</a>
+
+<div class="skal skal--enkel">
+  <main class="huvud huvud--dokument" id="huvudinnehall" tabindex="-1">
+
+    <p class="dokument__tillbaka"><a href="/underlag.html">← Underlag och dokumentation</a></p>
+
+    <section class="hero" style="border-bottom: 1px solid var(--kant); padding-bottom: 36px;">
+      <span class="eyebrow hero__eyebrow">Tekniskt faktablad</span>
+      <h1 style="font-size: clamp(28px, 4vw, 40px);">Tekniskt faktablad</h1>
+      <p class="lede">Arkitektur, datalagring, behörighetsmodell, backup och återställning – skrivet för en IT-avdelning eller ett dataskyddsombud som ska granska före ett inköp.</p>
+      <p class="dok__kalla">Sidan genereras ur <code>avtal/IT-FAKTABLAD.md</code> i produktens eget
+      kodförråd och kan därför inte säga något annat än originalet säger.</p>
+    </section>
+
+    <div class="dok">
+<h2>Tekniskt faktablad till kundens IT-avdelning</h2>
+<p><strong>Status:</strong> Färdigt faktablad – avsett att kunna skickas rakt av till en IT-avdelning som en del av ett upphandlings- eller granskningsunderlag, utan att ägaren behöver skriva något nytt. Uppdatera vid varje förändring av det som beskrivs nedan (särskilt App Check-status, se punkt 3).</p>
+<p><strong>Upprättat:</strong> 2026-07-26, som en del av Etapp 13d (<code>etapplaner/ETAPPLAN3.md</code>).</p>
+<hr />
+<h3>1. Arkitekturöversikt</h3>
+<p>Synappsen är en installerbar webbapp (Progressive Web App) byggd på:</p>
+<ul><li><strong>Frontend:</strong> React, byggd som statiska filer, levererade via Firebase Hosting (Googles globala CDN). Ingen serverkomponent renderar sidor – all logik körs i klientens webbläsare/PWA och i separata serverfunktioner (se nedan).</li><li><strong>Backend:</strong> Google Cloud Functions (&quot;serverless&quot; – ingen egen server att patcha eller övervaka), samtliga körande i regionen <strong>europe-west1</strong> (Belgien), verifierat direkt i koden.</li><li><strong>Databas:</strong> Google Cloud Firestore (dokumentdatabas) för strukturerad data, Google Cloud Storage för uppladdade filer/bilder. Regionen för dessa två sätts vid projektskapande – <strong>se punkt 7 för hur ni får ett bekräftat svar på var databasen fysiskt ligger.</strong></li><li><strong>Autentisering:</strong> Google Firebase Authentication (e-post/lösenord, med valfri tvåfaktorsautentisering).</li><li><strong>Multi-tenant:</strong> varje kundorganisation är logiskt helt avskild från andra kunder i samma databas, inte fysiskt separerade databaser – isoleringen sker i databasens behörighetsregler (Firestore Security Rules), verifierad med en egen automatiserad testsvit som körs vid varje ny version.</li></ul>
+<p>Ingen del av systemet kräver att er organisation driftar egen infrastruktur, VPN eller egna servrar. All åtkomst sker över vanlig HTTPS.</p>
+<h3>2. Autentisering och behörighet</h3>
+<ul><li><strong>Inloggning:</strong> e-post och lösenord.</li><li><strong>Tvåfaktorsautentisering (TOTP, t.ex. Google Authenticator/Microsoft Authenticator):</strong> frivillig per konto, men kan <strong>göras obligatorisk per roll</strong> av er egen superadmin (t.ex. kräva 2FA för samtliga superadmin- och VOL-konton) – detta enforceras i databasreglerna, inte bara som en inställning i gränssnittet.</li><li><strong>SSO/Microsoft Entra ID:</strong> planerat men <strong>inte byggt ännu</strong> (se <code>etapplaner/ETAPPLAN3.md</code>, Etapp 13f). Fråga leverantören om aktuell status om detta är ett hårt krav hos er.</li><li><strong>Sessionshantering:</strong> automatisk utloggning vid inaktivitet (konfigurerbar tid). En superadmin hos er kan omedelbart återkalla en enskild användares aktiva session (&quot;force-logout&quot;), t.ex. vid en misstänkt komprometterad inloggning eller när någon slutar.</li><li><strong>Rollmodell:</strong> sju roller (superadmin, VOL, sektionsledare, VEC, förrådsansvarig, personal, kiosk), var och en med ett tydligt avgränsat redigeringsområde, enforcerat i databasreglerna – inte bara döljande av knappar i gränssnittet.</li><li><strong>Kioskläge (delad enhet):</strong> ett valfritt sjunde kontotyp för en delad platta (t.ex. i en foajé), inte en person. Läser godkänt innehåll, söker och kör checklistor, men kan i grunden aldrig kvittera, kommentera, föreslå en ändring eller bristanmäla – rollen är spärrad från allt som skulle göra en spårbarhetssiffra (t.ex. kvitteringsgrad) missvisande. Låses upp med en PIN-kod (hashad server-side, aldrig läsbar av klienten) istället för ett personligt lösenord; er superadmin kan byta PIN-koden omedelbart vid förlust eller stöld.</li></ul>
+<h3>3. App Check (skydd mot obehöriga klienter)</h3>
+<p>Sedan sommaren 2026 skickar den riktiga, installerade appen ett kryptografiskt intyg (Google App Check, via reCAPTCHA v3) med varje serveranrop, som ett tekniskt skydd mot att någon bygger en egen klient som pratar direkt med backend-funktionerna.</p>
+<p><strong>Aktuell status: mätfas.</strong> Klienten skickar intyg, men serverfunktionerna kräver dem ännu inte (enforcement är en separat, medvetet uppskjuten aktivering efter en mätperiod – se <code>etapplaner/ETAPPLAN2.md</code>, Etapp 12c). <strong>Uppdatera denna rad när enforcement har aktiverats.</strong></p>
+<h3>4. Nätverkskrav</h3>
+<ul><li>Utgående HTTPS (port 443) till Googles/Firebases domäner samt Sentry (felrapportering) – standardportar, ingen brandväggsöppning utöver vanlig webbtrafik krävs.</li><li>Ingen inkommande trafik till er organisation krävs – Synappsen initierar aldrig anslutningar in till er infrastruktur.</li><li>Fungerar i moderna webbläsare (senaste två versionerna av Chrome, Edge, Firefox, Safari) samt som installerad PWA på mobil/dator.</li><li><strong>Offline-läge:</strong> ett urval godkänt innehåll (rutiner) cachas lokalt och går att läsa utan nätverksanslutning, med en tydlig banner när anslutningen tappats. Ny/redigerad data kräver nät för att sparas.</li></ul>
+<h3>5. Incident- och driftrutin</h3>
+<ul><li><strong>Felrapportering:</strong> oväntade tekniska fel i både frontend och backend fångas automatiskt (Sentry, EU-region – se <code>avtal/UNDERBITRADEN.md</code>) och granskas löpande av leverantören.</li><li><strong>Personuppgiftsincident:</strong> underrättelse till er senast inom 72 timmar, se <code>avtal/PUB-AVTAL-MALL.md</code> punkt 8.</li><li><strong>Er egen förmåga att agera:</strong> superadmin-rollen kan själv pausa hela organisationens åtkomst (t.ex. vid en misstänkt pågående incident) utan att kontakta leverantören först, samt exportera all sin data när som helst.</li><li><strong>Vem hos leverantören kan se era uppgifter, och hur vet ni när de gör det?</strong> Normalt ingen – leverantören har ingen stående läsåtkomst till kunders innehåll (rutiner, förråd, anslag, kontakter). Er egen superadmin kan, om ni själva väljer det för att lösa en supportfråga, öppna ett tillfälligt läsfönster (högst 6 timmar, med en angiven anledning) – detta syns i er adminpanel medan det pågår och loggas i revisionsloggen i båda ändar. Ni kan avsluta fönstret när som helst, innan det annars upphör automatiskt (Etapp 50b).</li></ul>
+<h3>6. Backup och återställningstid</h3>
+<ul><li><strong>Automatisk veckovis backup</strong> av hela organisationens Firestore-data, schemalagt varje måndag 03:00 (svensk tid), verifierat direkt i koden (<code>functions/backup.js</code>, <code>veckovisBackupSchemalagt</code>). Omfattar 13 collections plus mätvärdeshistoriken (en underkollektion) och revisionsloggens hashkedje-huvud – utökad 2026-08-06 (Etapp 49d) från en tidigare ofullständig lista på 7. Omfattar MEDVETET INTE delad plattforminfrastruktur (t.ex. den globalt delade sökkvoten) som inte är organisationens egen data.</li><li>Backupen kan också tas ut manuellt på begäran, när som helst (samma funktion som används vid avetablering, se punkt 8).</li><li><strong>Återställningsfunktion finns</strong> (Etapp 33a, 2026-07-31): en Cloud Function (<code>aterstallOrganisationCallable</code>) läser en tidigare backupfil och skriver tillbaka innehållet för EN namngiven organisation. Endast leverantörens plattformsadmin kan anropa den – ingen självbetjänings-knapp i appen, medvetet, då en felriktad återställning skriver över levande kunddata. Bevisad end-to-end (seed → backup → radera → återställ → verifiera identiskt innehåll) i den automatiska testsviten.</li><li><strong>Återställningstid (RTO):</strong> <strong>senast uppmätt mot SKARP produktionsmiljö 2026-09-06</strong> (verklig nätverkslatens och verklig infrastruktur, inte emulatorn) – en syntetisk testorganisation med 100 dokument över fyra collections (rutiner, anslag, kontakter, förrådsartiklar) säkerhetskopierades, och själva återställningsanropet (<code>aterstallOrganisation</code>, den delen mätningen faktiskt tar tid på – inte backupsteget) tog <strong>1 711 ms</strong>. Föregående mätning (2026-08-09) gav 1 136 ms; skillnaden ligger inom vad normal variation i nätverkslatens och Firestore-belastning ger, inte ett tecken på en försämring – båda mätningarna ligger med bred marginal under funktionens tekniska timeout. Mätningen körs via ett repeterbart, självstädande verktyg (<code>.github/workflows/rto-matning.yml</code>, <code>functions/scripts/rto-matning.cjs</code>) – testorganisationen och dess backupfil raderas automatiskt igen innan verktyget avslutas, ingen skarp kunddata rörs. En tidigare mätning mot Firestore-emulatorn (1 500 dokument över fem samlingar, under 200 ms ren skrivtid) visade att implementationen skalar linjärt; den slutsatsen står sig och bekräftas nu av två oberoende riktiga mätningar. För en normalstor kundorganisation (upp till några tusen dokument) är den realistiska förväntan fortsatt <strong>under en minut</strong> aktiv bearbetningstid; funktionens tekniska timeout är satt till 5 minuter som säkerhetsmarginal. Den faktiska flaskhalsen vid en verklig incident är sällan själva återställningen, utan tiden det tar en människa att identifiera rätt backupfil och fatta beslutet att återställa (se <code>drift/INCIDENT-CHECKLISTA.md</code> steg 8). <strong>Återkommande övning (Etapp 49c):</strong> en rad i den återkommande säkerhetsgenomgången (<code>CLAUDE.md</code>) påminner nu om att kontrollera om det är dags att göra om övningen – kör helt enkelt om <code>.github/workflows/rto-matning.yml</code> manuellt. Senast genomförd 2026-09-06 (fyra veckor efter föregående, inte de riktmärkta ~6 månaderna – gjordes tillsammans med Vertex AI-migreringen för att använda utgående Firebase-provkrediter innan de förföll, se <code>BESLUTSLOGG.md</code> 2026-09-06).</li><li><strong>Återställningspunkt (RPO):</strong> upp till en veckas dataförlust i värsta scenario (tiden mellan senaste schemalagda backup och en eventuell incident), utöver vad Firestores egen inbyggda redundans inom Google Cloud i sig hanterar för infrastrukturfel (skilj på &quot;vi förlorade data&quot; och &quot;vi behöver återställa en tidigare version&quot;).</li></ul>
+<h3>7. Datalagringsregion</h3>
+<ul><li><strong>Cloud Functions (all serverlogik):</strong> bekräftat <strong>europe-west1</strong> (Belgien), konsekvent för samtliga funktioner, verifierat direkt i koden.</li><li><strong>Firestore-databas och Storage-bucket:</strong> [FYLLS I av leverantören/ägaren – detta sätts vid projektskapande i Firebase-konsolen, inte i koden, och måste därför bekräftas där. Se <code>avtal/UNDERBITRADEN.md</code>, Etapp 13b, för samma öppna punkt.] Svara med den faktiska regionen, inte en formulering – det är den vanligaste frågan från en IT-säkerhetsgranskning.</li><li><strong>AI-bildtolkning och klinikstöd (Gemini):</strong> går sedan <strong>2026-09-06</strong> via <strong>Google Vertex AI i regionen europe-west1 (Belgien)</strong>, alltså samma region som funktionerna, databasen och filerna. Tidigare gick anropen via Googles publika Gemini API, vars regionsgaranti är svagare; migreringen gjordes just för att kunna ge ett tydligt svar på den här frågan. Autentisering sker med Google Clouds tjänstekontobehörighet, inte med en fristående API-nyckel. Modellen är <code>gemini-2.5-flash</code>, och dess tillgänglighet i europe-west1 är verifierad genom faktiska anrop, inte enbart utläst ur dokumentation. Se <code>avtal/UNDERBITRADEN.md</code> för underbiträdesdetaljerna.</li></ul>
+<h3>8. Vad händer när avtalet avslutas</h3>
+<ul><li>Er organisations åtkomst kan pausas omedelbart (läsbehörighet till egen data kvarstår för er, ingen ny skrivning tillåts).</li><li>En fullständig exportfil av all er data kan tas ut när som helst, av er egen superadmin eller på begäran till leverantören.</li><li><strong>Känd begränsning:</strong> permanent radering av data efter avslutat avtal är i dagsläget en <strong>manuell process</strong> hos leverantören på skriftlig begäran, inte automatiserad – se <code>avtal/PUB-AVTAL-MALL.md</code> punkt 6 för den fullständiga, ärliga beskrivningen och den avtalade tidsfristen för radering.</li></ul>
+<hr />
+<p><em>Detta faktablad refererar till, men ersätter inte, <code>avtal/PUB-AVTAL-MALL.md</code> (juridiska villkor), <code>avtal/UNDERBITRADEN.md</code> (fullständig underbiträdeslista) och <code>avtal/DPIA-UNDERLAG.md</code> (dataskyddsbedömning).</em></p>
+    </div>
+
+    <footer>
+      <span>Synappsen · Digital kunskapsbank för vården</span>
+      <span><a href="/underlag.html">Allt underlag</a></span>
+      <span><a href="/integritet.html">Integritetspolicy</a></span>
+      <span><a href="mailto:kontakt@synappsen.se">kontakt@synappsen.se</a></span>
+    </footer>
+  </main>
+</div>
+
+</body>
+</html>

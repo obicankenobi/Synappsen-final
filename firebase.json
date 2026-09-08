@@ -46,7 +46,7 @@
   {
     "target": "web",
     "public": "synappsen-web",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "verktyg/**"],
     "headers": [
       {
         "source": "**",

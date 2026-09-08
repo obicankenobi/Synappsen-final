@@ -78,19 +78,25 @@ export default function LeverantorLayout() {
   if (loading) return null;
   if (!currentUser) return <Navigate to="/logga-in" replace />;
 
+  // De två tidiga returerna nedan är <main id="huvudinnehall">, inte <div>, av samma skäl som
+  // den lyckade grenen längst ned: hoppa-till-innehåll-länken i App.jsx pekar på just det
+  // id:t, och utan det finns varken något landmärke eller något hoppmål på sidan. Det var en
+  // verklig brist (WCAG 1.3.1/2.4.1) som axe-svepet aldrig såg, eftersom laddningsläget
+  // passerade för snabbt när Cloud Functions-anropet fick connection refused i testmiljön.
+  // Den syntes först när functions-emulatorn började svara på riktigt (2026-09-07).
   if (laddar) {
     return (
-      <div className="sida">
+      <main className="sida" id="huvudinnehall" tabIndex={-1}>
         <Link to="/">← Hem</Link>
         <h1>🏢 Leverantörsvy</h1>
         <p>Laddar...</p>
-      </div>
+      </main>
     );
   }
 
   if (fel?.code === "permission-denied") {
     return (
-      <div className="sida">
+      <main className="sida" id="huvudinnehall" tabIndex={-1}>
         <Link to="/">← Hem</Link>
         <h1>🏢 Leverantörsvy</h1>
         <p className="sida__beskrivning">Den här vyn kräver leverantörsadmin-åtkomst, som du inte har.</p>
@@ -101,7 +107,7 @@ export default function LeverantorLayout() {
         <button type="button" className="knapp" disabled={bootstrapar} onClick={hanteraBootstrap}>
           {bootstrapar ? "..." : "Bli första leverantörsadmin"}
         </button>
-      </div>
+      </main>
     );
   }
 
