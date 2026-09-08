@@ -9,6 +9,7 @@
 // kiosk-PIN, moduler, MFA-policy, budgettak, kommentarer och feedback.
 
 const crypto = require("node:crypto");
+const { FieldValue } = require("firebase-admin/firestore");
 const {
   admin,
   db,
@@ -212,7 +213,7 @@ exports.raderaAnvandare = onCall({ region: "europe-west1" }, async (request) => 
   const orgRef = db.collection("organisationer").doc(uppringare.organisationId);
   const orgSnap = await orgRef.get();
   if (typeof orgSnap.data()?.antalAnvandare === "number") {
-    await orgRef.set({ antalAnvandare: admin.firestore.FieldValue.increment(-1) }, { merge: true });
+    await orgRef.set({ antalAnvandare: FieldValue.increment(-1) }, { merge: true });
   }
   return { ok: true };
 });
@@ -249,7 +250,7 @@ exports.satKioskPin = onCall({ region: "europe-west1" }, async (request) => {
     .set({
       hash,
       andradAv: request.auth.uid,
-      andradTidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+      andradTidpunkt: FieldValue.serverTimestamp(),
     });
   return { ok: true };
 });
@@ -439,7 +440,7 @@ exports.skapaKommentar = onCall({ region: "europe-west1" }, async (request) => {
     skapadAvNamn,
     svarPa: svarPa ?? null,
     omnamnda,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
   });
   return { id: ref.id };
 });
@@ -481,7 +482,7 @@ exports.skickaFeedback = onCall({ region: "europe-west1" }, async (request) => {
     organisationId,
     skapadAv: request.auth.uid,
     skapadAvNamn,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
   });
   return { id: ref.id };
 });
@@ -526,7 +527,7 @@ exports.skickaLeverantorsfeedback = onCall({ region: "europe-west1" }, async (re
     organisationId,
     skapadAv: request.auth.uid,
     skapadAvNamn,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
   });
   return { id: ref.id };
 });

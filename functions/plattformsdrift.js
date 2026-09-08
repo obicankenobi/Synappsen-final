@@ -21,6 +21,7 @@ const {
 } = require("./gemensamt");
 const { kravLasningAvRevisionslogg } = require("./revisionslogg");
 const crypto = require("node:crypto");
+const { FieldValue } = require("firebase-admin/firestore");
 
 // Etapp L1m: sentinelvärdet som gör ett leverantörskonto organisationslöst. Matchar ingen
 // organisation, så isoleringen blir en följd av VARJE befintlig organisationsgrindad regel
@@ -43,7 +44,7 @@ exports.angeEpostAvstangd = onCall({ region: "europe-west1" }, async (request) =
     {
       avstangd,
       andradAv: request.auth.uid,
-      andradTidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+      andradTidpunkt: FieldValue.serverTimestamp(),
     },
     { merge: true }
   );
@@ -288,7 +289,7 @@ exports.blibForstaPlattformsadmin = onCall({ region: "europe-west1" }, async (re
     );
   }
   await db.collection("plattformsadmin").doc(request.auth.uid).set({
-    blevPlattformsadmin: admin.firestore.FieldValue.serverTimestamp(),
+    blevPlattformsadmin: FieldValue.serverTimestamp(),
     satteSig: request.auth.uid,
   });
   return { ok: true };
@@ -305,7 +306,7 @@ exports.gorTillPlattformsadmin = onCall({ region: "europe-west1" }, async (reque
     throw new HttpsError("invalid-argument", "uid krävs.");
   }
   await db.collection("plattformsadmin").doc(uid).set({
-    blevPlattformsadmin: admin.firestore.FieldValue.serverTimestamp(),
+    blevPlattformsadmin: FieldValue.serverTimestamp(),
     satteSig: request.auth.uid,
   });
   return { ok: true };
@@ -350,10 +351,10 @@ exports.skapaLeverantorskonto = onCall({ region: "europe-west1" }, async (reques
     email: epost,
     role: "superadmin",
     organisationId: PLATTFORMSORGANISATION,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
   });
   await db.collection("plattformsadmin").doc(authAnvandare.uid).set({
-    blevPlattformsadmin: admin.firestore.FieldValue.serverTimestamp(),
+    blevPlattformsadmin: FieldValue.serverTimestamp(),
     satteSig: request.auth.uid,
   });
 

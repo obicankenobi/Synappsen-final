@@ -9,6 +9,7 @@
 // (2025:1506) har en egen, snävare tidig varning på 24 timmar, medan PUB-avtalet lovar
 // leverantören 72. Fristen väljs per organisation (satOmfattasAvNIS2), inte per incident.
 const { db, admin, onCall, HttpsError, loggaRevision, kravPlattformsadmin } = require("./gemensamt");
+const { FieldValue } = require("firebase-admin/firestore");
 
 exports.startaIncident = onCall({ region: "europe-west1" }, async (request) => {
   if (!request.auth) {
@@ -32,7 +33,7 @@ exports.startaIncident = onCall({ region: "europe-west1" }, async (request) => {
     orgIds,
     underrattelser,
     skapadAv: request.auth.uid,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
   });
 
   for (const orgId of orgIds) {
@@ -76,7 +77,7 @@ exports.kvitteraIncidentunderrattelse = onCall({ region: "europe-west1" }, async
   await ref.set(
     {
       underrattelser: {
-        [orgId]: { skickad: true, skickadTidpunkt: admin.firestore.FieldValue.serverTimestamp() },
+        [orgId]: { skickad: true, skickadTidpunkt: FieldValue.serverTimestamp() },
       },
     },
     { merge: true }

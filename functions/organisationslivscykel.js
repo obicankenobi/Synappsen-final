@@ -15,6 +15,7 @@
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const Sentry = require("@sentry/node");
 const { VERKSAMHETSMALLAR, FORRADSMALLAR, KONTAKTMALLAR } = require("./verksamhetsmallar");
+const { FieldValue, Timestamp } = require("firebase-admin/firestore");
 const {
   admin,
   db,
@@ -98,7 +99,7 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
     verksamhetstyp: request.data?.verksamhetstyp ?? null,
     // 15e: sätts av ett separat steg när provperioden faktiskt startar, inte här.
     provperiodSlut: null,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
     skapadAv: request.auth.uid,
   });
   await orgRef.collection("installningar").doc("geminiBudget").set({
@@ -109,7 +110,7 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
   });
   await orgRef.collection("installningar").doc("valkomstchecklista").set({
     steg: Object.fromEntries(VALKOMSTCHECKLISTA_STEG.map((nyckel) => [nyckel, false])),
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
   });
 
   // Etapp 70c: skapaInbjudanIntern returnerar {token, epostSkickat} sedan mejlstatusen
@@ -152,7 +153,7 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
         kalla: "verksamhetsmall",
         borttagen: false,
         skapadAv: request.auth.uid,
-        skapad: admin.firestore.FieldValue.serverTimestamp(),
+        skapad: FieldValue.serverTimestamp(),
       });
       skapadeRutiner.push({ id: ref.id, omrade: mall.omrade, titel: mall.titel });
       antalMallrutiner += 1;
@@ -177,7 +178,7 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
         status: "godkand",
         organisationId: orgRef.id,
         skapadAv: request.auth.uid,
-        skapad: admin.firestore.FieldValue.serverTimestamp(),
+        skapad: FieldValue.serverTimestamp(),
       });
       antalForradsartiklar += 1;
     }
@@ -186,7 +187,7 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
         ...kontakt,
         akutnummer: Boolean(kontakt.akutnummer),
         organisationId: orgRef.id,
-        skapad: admin.firestore.FieldValue.serverTimestamp(),
+        skapad: FieldValue.serverTimestamp(),
       });
       antalKontakter += 1;
     }
@@ -208,7 +209,7 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
         malRoll: "personal",
         etapper,
         organisationId: orgRef.id,
-        skapad: admin.firestore.FieldValue.serverTimestamp(),
+        skapad: FieldValue.serverTimestamp(),
       });
       introduktionssparId = sparRef.id;
 
@@ -220,7 +221,7 @@ exports.skapaOrganisation = onCall({ region: "europe-west1", secrets: [BREVO_API
         omrade: "kliniskt-stod",
         frekvensManader: 12,
         organisationId: orgRef.id,
-        skapad: admin.firestore.FieldValue.serverTimestamp(),
+        skapad: FieldValue.serverTimestamp(),
       });
       kompetenskravId = kravRef.id;
     }
@@ -410,7 +411,7 @@ exports.rapporteraAppVersion = onCall({ region: "europe-west1" }, async (request
   await db.collection("organisationer").doc(organisationId).set(
     {
       senasteAppVersion: version,
-      senasteAppVersionTid: admin.firestore.FieldValue.serverTimestamp(),
+      senasteAppVersionTid: FieldValue.serverTimestamp(),
     },
     { merge: true }
   );
@@ -469,8 +470,8 @@ async function froSaDemoOrganisationensInnehall() {
       organisationId: DEMO_ORG_ID,
       kalla: "demo",
       borttagen: false,
-      granskadDatum: admin.firestore.FieldValue.serverTimestamp(),
-      skapad: admin.firestore.FieldValue.serverTimestamp(),
+      granskadDatum: FieldValue.serverTimestamp(),
+      skapad: FieldValue.serverTimestamp(),
     });
   });
 
@@ -482,7 +483,7 @@ async function froSaDemoOrganisationensInnehall() {
     organisationId: DEMO_ORG_ID,
     kalla: "demo",
     borttagen: false,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
   });
 
   batch.set(db.collection("rutiner").doc(), {
@@ -499,8 +500,8 @@ async function froSaDemoOrganisationensInnehall() {
     organisationId: DEMO_ORG_ID,
     kalla: "demo",
     borttagen: false,
-    granskadDatum: admin.firestore.FieldValue.serverTimestamp(),
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    granskadDatum: FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
   });
 
   const gransDatum = new Date();
@@ -513,8 +514,8 @@ async function froSaDemoOrganisationensInnehall() {
     organisationId: DEMO_ORG_ID,
     kalla: "demo",
     borttagen: false,
-    granskadDatum: admin.firestore.Timestamp.fromDate(gransDatum),
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    granskadDatum: Timestamp.fromDate(gransDatum),
+    skapad: FieldValue.serverTimestamp(),
   });
 
   batch.set(db.collection("forradsartiklar").doc(), {
@@ -526,7 +527,7 @@ async function froSaDemoOrganisationensInnehall() {
     minAntal: 5,
     status: "godkand",
     organisationId: DEMO_ORG_ID,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
   });
   // Medvetet under minAntal – ger en trainee något verkligt att öva bristanmälan på.
   batch.set(db.collection("forradsartiklar").doc(), {
@@ -538,14 +539,14 @@ async function froSaDemoOrganisationensInnehall() {
     minAntal: 5,
     status: "godkand",
     organisationId: DEMO_ORG_ID,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
   });
 
   batch.set(db.collection("anslag").doc(), {
     titel: "Välkommen till demo- och övningsmiljön!",
     innehall: "All data här nollställs automatiskt varje natt – öva fritt, inget kan gå sönder.",
     organisationId: DEMO_ORG_ID,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
   });
 
   batch.set(db.collection("kontakter").doc(), { namn: "Jour, medicin (demo)", telefon: "070-0000000", organisationId: DEMO_ORG_ID });
@@ -560,7 +561,7 @@ async function froSaDemoOrganisationensInnehall() {
     omrade: mallar[0].omrade,
     frekvensManader: 12,
     organisationId: DEMO_ORG_ID,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
   });
 }
 
@@ -694,7 +695,7 @@ exports.seedaStartbibliotek = onCall({ region: "europe-west1" }, async (request)
         kalla: "verksamhetsmall",
         borttagen: false,
         skapadAv: request.auth.uid,
-        skapad: admin.firestore.FieldValue.serverTimestamp(),
+        skapad: FieldValue.serverTimestamp(),
       });
       skapadeRutiner.push({ id: ref.id, omrade: mall.omrade, titel: mall.titel });
       antalMallrutiner += 1;
@@ -712,7 +713,7 @@ exports.seedaStartbibliotek = onCall({ region: "europe-west1" }, async (request)
         status: "godkand",
         organisationId,
         skapadAv: request.auth.uid,
-        skapad: admin.firestore.FieldValue.serverTimestamp(),
+        skapad: FieldValue.serverTimestamp(),
       });
       antalForradsartiklar += 1;
     }
@@ -723,7 +724,7 @@ exports.seedaStartbibliotek = onCall({ region: "europe-west1" }, async (request)
         ...kontakt,
         akutnummer: Boolean(kontakt.akutnummer),
         organisationId,
-        skapad: admin.firestore.FieldValue.serverTimestamp(),
+        skapad: FieldValue.serverTimestamp(),
       });
       antalKontakter += 1;
     }
@@ -749,7 +750,7 @@ exports.seedaStartbibliotek = onCall({ region: "europe-west1" }, async (request)
       malRoll: "personal",
       etapper,
       organisationId,
-      skapad: admin.firestore.FieldValue.serverTimestamp(),
+      skapad: FieldValue.serverTimestamp(),
     });
     introduktionssparId = sparRef.id;
 
@@ -761,7 +762,7 @@ exports.seedaStartbibliotek = onCall({ region: "europe-west1" }, async (request)
       omrade: "kliniskt-stod",
       frekvensManader: 12,
       organisationId,
-      skapad: admin.firestore.FieldValue.serverTimestamp(),
+      skapad: FieldValue.serverTimestamp(),
     });
     kompetenskravId = kravRef.id;
   }

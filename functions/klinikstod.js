@@ -28,6 +28,7 @@ const {
   okaSokkvot,
   reserveraBudget,
 } = require("./gemensamt");
+const { FieldValue } = require("firebase-admin/firestore");
 
 // Godkända källor för klinikstöd-frågor – samma domäner som är konfigurerade i den
 // programmerbara sökmotorn (se SOKMOTOR_CX nedan). Fungerar som ett extra skyddslager om
@@ -178,7 +179,7 @@ async function kontrolleraKallbevakning() {
                 kallVarning: true,
                 kallVarningTyp: "trasig_lank",
                 kallVarningUrl: url,
-                kallVarningTidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+                kallVarningTidpunkt: FieldValue.serverTimestamp(),
               })
             )
           );
@@ -193,7 +194,7 @@ async function kontrolleraKallbevakning() {
       const tidigareHash = cacheSnap.exists ? cacheSnap.data().senasteHash : null;
 
       await cacheRef.set(
-        { url, senasteHash: nyHash, senastKontrollerad: admin.firestore.FieldValue.serverTimestamp() },
+        { url, senasteHash: nyHash, senastKontrollerad: FieldValue.serverTimestamp() },
         { merge: true }
       );
 
@@ -206,7 +207,7 @@ async function kontrolleraKallbevakning() {
               kallVarning: true,
               kallVarningTyp: "andring",
               kallVarningUrl: url,
-              kallVarningTidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+              kallVarningTidpunkt: FieldValue.serverTimestamp(),
             })
           )
         );
@@ -356,7 +357,7 @@ exports.fragaKlinisktStod = onCall(
     // organisationId sätts ändå, så en organisations frågestatistik inte blandas med en annans.
     const fragaNyckel = fraga.toLowerCase().replace(/\s+/g, " ");
     db.collection("klinikfrageloggar")
-      .add({ fraga: fragaNyckel, organisationId, tidpunkt: admin.firestore.FieldValue.serverTimestamp() })
+      .add({ fraga: fragaNyckel, organisationId, tidpunkt: FieldValue.serverTimestamp() })
       .catch(() => {});
 
     // Cache: samma fråga ställs ofta av flera personer. Ett cachat svar (7 dagar) sparar
@@ -447,7 +448,7 @@ exports.fragaKlinisktStod = onCall(
     const kallor = godkandaTraffar.map((t) => ({ titel: t.titel, url: t.url }));
 
     await cacheRef
-      .set({ svar, kallor, skapad: admin.firestore.FieldValue.serverTimestamp() })
+      .set({ svar, kallor, skapad: FieldValue.serverTimestamp() })
       .catch(() => {});
 
     return { svar, kallor, franCache: false };
@@ -556,7 +557,7 @@ exports.testaBeroenden = onCall(
       sokmotor,
       storage,
       klinikstod,
-      tidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+      tidpunkt: FieldValue.serverTimestamp(),
     });
     return { gemini, sokmotor, storage, klinikstod };
   }
@@ -641,7 +642,7 @@ exports.verifieraKlinikstodSchemalagt = onSchedule(
             ? null
             : problem.map((r) => r.fel ?? `otillåtna källor: ${r.otillatna.join(", ")}`).join(" | "),
       },
-      tidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+      tidpunkt: FieldValue.serverTimestamp(),
     });
 
     if (problem.length === 0) return;
@@ -657,7 +658,7 @@ exports.verifieraKlinikstodSchemalagt = onSchedule(
     await db.collection("systemvarningar").add({
       typ: "klinikstod_kalla",
       meddelande: `Automatisk verifiering av klinikstöd-sökningen hittade problem: ${meddelande}`,
-      tidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+      tidpunkt: FieldValue.serverTimestamp(),
     });
   }
 );

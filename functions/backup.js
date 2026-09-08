@@ -18,6 +18,7 @@ const {
   loggaRevision,
   kravPlattformsadmin,
 } = require("./gemensamt");
+const { Timestamp } = require("firebase-admin/firestore");
 
 // Etapp 3b (Operations): veckovis backup av kärncollections till Storage, per organisation.
 // Endast för organisationer med Operations-modulen påslagen (samma modul som EXPORT_BACKUP-
@@ -151,7 +152,7 @@ function ateruppbyggTidsstamplar(varde) {
       typeof varde._seconds === "number" &&
       typeof varde._nanoseconds === "number"
     ) {
-      return new admin.firestore.Timestamp(varde._seconds, varde._nanoseconds);
+      return new Timestamp(varde._seconds, varde._nanoseconds);
     }
     const resultat = {};
     for (const [nyckel, delvarde] of Object.entries(varde)) {

@@ -10,6 +10,7 @@
 
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const Sentry = require("@sentry/node");
+const { FieldValue } = require("firebase-admin/firestore");
 const {
   admin,
   db,
@@ -105,7 +106,7 @@ async function skapaMatvardenSnapshot() {
           antalChecklistkorningar,
           innehallshalsaKlinisktStod: beraknaHalsaServer(klinRutiner),
           innehallshalsaAdministration: beraknaHalsaServer(adminRutiner),
-          skapad: admin.firestore.FieldValue.serverTimestamp(),
+          skapad: FieldValue.serverTimestamp(),
         });
     } catch (fel) {
       console.error(`Mätvärdessnapshot misslyckades för organisation ${orgId}:`, fel);
@@ -304,11 +305,11 @@ exports.svaraPersonalpuls = onCall({ region: "europe-west1" }, async (request) =
       {
         omrade,
         kvartal,
-        antalSvar: admin.firestore.FieldValue.increment(1),
-        summaFraga1: admin.firestore.FieldValue.increment(svar1),
-        summaFraga2: admin.firestore.FieldValue.increment(svar2),
-        summaFraga3: admin.firestore.FieldValue.increment(svar3),
-        senastUppdaterad: admin.firestore.FieldValue.serverTimestamp(),
+        antalSvar: FieldValue.increment(1),
+        summaFraga1: FieldValue.increment(svar1),
+        summaFraga2: FieldValue.increment(svar2),
+        summaFraga3: FieldValue.increment(svar3),
+        senastUppdaterad: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );

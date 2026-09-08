@@ -10,6 +10,7 @@
 
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { FieldValue } = require("firebase-admin/firestore");
 const {
   admin,
   db,
@@ -268,7 +269,7 @@ async function kontrolleraKvitteringsfrister() {
     const alltPaminda = new Set([...mottagare.map((a) => a.id), ...epostMottagare.map((a) => a.id)]);
     if (alltPaminda.size === 0) continue;
     await anslagDoc.ref.update({
-      pushPaminnelseSkickadTill: admin.firestore.FieldValue.arrayUnion(...alltPaminda),
+      pushPaminnelseSkickadTill: FieldValue.arrayUnion(...alltPaminda),
     });
   }
 }

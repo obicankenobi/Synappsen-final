@@ -21,6 +21,7 @@ const {
   skickaEpost,
   loggaRevision,
 } = require("./gemensamt");
+const { FieldValue } = require("firebase-admin/firestore");
 
 // Etapp 6c: inbjudningsflöde istället för öppen självbetjänings-registrering. Ett nytt konto
 // kan numera ALDRIG skapa sitt eget users/{uid}-dokument direkt (se firestore.rules – create
@@ -67,7 +68,7 @@ async function skapaInbjudanIntern({ organisationId, epost, roll, skapadAv }) {
     epost,
     anvand: false,
     skapadAv,
-    skapad: admin.firestore.FieldValue.serverTimestamp(),
+    skapad: FieldValue.serverTimestamp(),
     utgangstid: Date.now() + INBJUDAN_GILTIGHETSTID_MS,
   });
   let epostSkickat = false;
@@ -229,15 +230,15 @@ exports.losInInbjudan = onCall({ region: "europe-west1" }, async (request) => {
       email: data.epost,
       role: data.roll,
       organisationId: data.organisationId,
-      skapad: admin.firestore.FieldValue.serverTimestamp(),
+      skapad: FieldValue.serverTimestamp(),
     });
     tx.set(
       inbjudanRef,
-      { anvand: true, anvandAv: request.auth.uid, anvandTid: admin.firestore.FieldValue.serverTimestamp() },
+      { anvand: true, anvandAv: request.auth.uid, anvandTid: FieldValue.serverTimestamp() },
       { merge: true }
     );
     if (raknarenArInitierad) {
-      tx.set(orgRef, { antalAnvandare: admin.firestore.FieldValue.increment(1) }, { merge: true });
+      tx.set(orgRef, { antalAnvandare: FieldValue.increment(1) }, { merge: true });
     }
     // Är räknaren INTE initierad lämnas fältet orört – listaOrganisationers lativa backfill
     // räknar då rätt nästa gång vyn öppnas, med det här nya kontot redan inräknat (eftersom
@@ -274,7 +275,7 @@ exports.losInInbjudan = onCall({ region: "europe-west1" }, async (request) => {
         sparId: spar.id,
         sparNamn: spar.data().namn,
         malRoll: inbjudanRoll,
-        tilldelad: admin.firestore.FieldValue.serverTimestamp(),
+        tilldelad: FieldValue.serverTimestamp(),
       });
     }
   } catch (fel) {

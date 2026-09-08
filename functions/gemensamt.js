@@ -16,6 +16,7 @@ const admin = require("firebase-admin");
 const crypto = require("node:crypto");
 const Sentry = require("@sentry/node");
 const { GoogleGenAI } = require("@google/genai");
+const { FieldValue } = require("firebase-admin/firestore");
 
 
 // Ingen SENTRY_DSN i miljön (lokala emulatorer, tester) → Sentry.init() no-opar tyst.
@@ -701,7 +702,7 @@ async function skickaPush(anvandarLista, { titel, body, url }) {
       db
         .collection("users")
         .doc(uid)
-        .update({ pushTokens: admin.firestore.FieldValue.arrayRemove(...dodaTokens) })
+        .update({ pushTokens: FieldValue.arrayRemove(...dodaTokens) })
     )
   );
 }
@@ -752,8 +753,8 @@ async function koaEpostPaminnelse(uid, organisationId, epost, text, url) {
       {
         organisationId,
         epost,
-        poster: admin.firestore.FieldValue.arrayUnion({ text, url: url ?? null }),
-        uppdaterad: admin.firestore.FieldValue.serverTimestamp(),
+        poster: FieldValue.arrayUnion({ text, url: url ?? null }),
+        uppdaterad: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );

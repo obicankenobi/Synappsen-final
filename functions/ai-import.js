@@ -22,6 +22,7 @@ const {
   saneraPromptblock,
   reserveraBudget,
 } = require("./gemensamt");
+const { FieldValue } = require("firebase-admin/firestore");
 
 const extraktionsSchema = {
   type: Type.OBJECT,
@@ -187,7 +188,7 @@ exports.tolkaForradsbild = onCall(
           kalla: "gemini",
           organisationId,
           skapadAv: request.auth.uid,
-          skapad: admin.firestore.FieldValue.serverTimestamp(),
+          skapad: FieldValue.serverTimestamp(),
         });
         return { id: ref.id, ersatte: Boolean(befintligRef), ...artikel };
       });
@@ -255,7 +256,7 @@ exports.tolkaDokument = onCall(
         organisationId,
         borttagen: false,
         skapadAv: request.auth.uid,
-        skapad: admin.firestore.FieldValue.serverTimestamp(),
+        skapad: FieldValue.serverTimestamp(),
       });
 
       return { rutinId: rutinRef.id, ...extraherat };

@@ -37,6 +37,7 @@ const {
   loggaRevision,
   kravPlattformsadmin,
 } = require("./gemensamt");
+const { FieldValue } = require("firebase-admin/firestore");
 
 // De fyra paketen. "eget" finns bara per organisation och har aldrig några globala frågor.
 const PAKET = {
@@ -187,7 +188,7 @@ exports.sparaGlobalKvissfraga = onCall({ region: "europe-west1" }, async (reques
       kalla,
       kallaDatum,
       andradAv: request.auth.uid,
-      andrad: admin.firestore.FieldValue.serverTimestamp(),
+      andrad: FieldValue.serverTimestamp(),
     },
     { merge: true }
   );
@@ -253,7 +254,7 @@ exports.satGlobaltKvisspaketStopp = onCall({ region: "europe-west1" }, async (re
     {
       avstangt,
       andradAv: request.auth.uid,
-      andrad: admin.firestore.FieldValue.serverTimestamp(),
+      andrad: FieldValue.serverTimestamp(),
     },
     { merge: true }
   );
@@ -345,7 +346,7 @@ exports.sparaKvissoverlagring = onCall({ region: "europe-west1" }, async (reques
         ...validerad,
         dold,
         andradAv: request.auth.uid,
-        andrad: admin.firestore.FieldValue.serverTimestamp(),
+        andrad: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );
@@ -421,7 +422,7 @@ exports.sparaEgenKvissfraga = onCall({ region: "europe-west1" }, async (request)
       kategori,
       paket: PAKET.EGET,
       andradAv: request.auth.uid,
-      andrad: admin.firestore.FieldValue.serverTimestamp(),
+      andrad: FieldValue.serverTimestamp(),
     },
     { merge: true }
   );
@@ -506,7 +507,7 @@ exports.seedaKvissbank = onCall({ region: "europe-west1" }, async (request) => {
         kalla: falt.kalla ?? null,
         kallaDatum: falt.kallaDatum ?? null,
         andradAv: request.auth.uid,
-        andrad: admin.firestore.FieldValue.serverTimestamp(),
+        andrad: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );

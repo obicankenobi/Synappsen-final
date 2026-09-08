@@ -31,6 +31,7 @@ const {
   kravPlattformsadmin,
 } = require("./gemensamt");
 const { BACKUP_COLLECTIONS, BACKUP_SUBCOLLECTIONS, backupaOrganisation } = require("./backup");
+const { FieldValue, Timestamp } = require("firebase-admin/firestore");
 
 // Etapp 15d: avtals-/betalningsflödet sker MEDVETET utanför appen (avtalssignering och
 // fakturering, se beslutspunkt 6 i ETAPPLAN3.md) – det här är bara en statusflagga en
@@ -75,7 +76,7 @@ exports.satAvtalsstatus = onCall({ region: "europe-west1" }, async (request) => 
   // revisionsloggens organisation_avtalsstatus_andrad-poster) hade krävt en extra läsning PER
   // organisation i listaOrganisationer nedan, varje gång leverantörsvyn öppnas.
   await orgRef.set(
-    { avtalsstatus, avtalsstatusAndrad: admin.firestore.FieldValue.serverTimestamp() },
+    { avtalsstatus, avtalsstatusAndrad: FieldValue.serverTimestamp() },
     { merge: true }
   );
   await loggaRevision({
@@ -278,7 +279,7 @@ exports.satPubAvtal = onCall({ region: "europe-west1" }, async (request) => {
   if (!orgSnap.exists) {
     throw new HttpsError("not-found", "Organisationen hittades inte.");
   }
-  const pubAvtalTecknat = tecknat ? admin.firestore.FieldValue.serverTimestamp() : null;
+  const pubAvtalTecknat = tecknat ? FieldValue.serverTimestamp() : null;
   await orgRef.set({ pubAvtalTecknat, pubAvtalVersion: tecknat ? version.trim() : null }, { merge: true });
   await loggaRevision({
     organisationId: orgId,
@@ -314,7 +315,7 @@ exports.satUnderbitradeUnderrattad = onCall({ region: "europe-west1" }, async (r
     throw new HttpsError("not-found", "Organisationen hittades inte.");
   }
   await orgRef.set(
-    { underbitradeUnderrattad: { version: version.trim(), datum: admin.firestore.FieldValue.serverTimestamp() } },
+    { underbitradeUnderrattad: { version: version.trim(), datum: FieldValue.serverTimestamp() } },
     { merge: true }
   );
   await loggaRevision({
@@ -383,7 +384,7 @@ exports.satAtagandeblock = onCall({ region: "europe-west1" }, async (request) =>
     throw new HttpsError("not-found", "Organisationen hittades inte.");
   }
   await orgRef.set(
-    { atagandeblock: { text: text.trim(), andrad: admin.firestore.FieldValue.serverTimestamp(), andradAv: request.auth.uid } },
+    { atagandeblock: { text: text.trim(), andrad: FieldValue.serverTimestamp(), andradAv: request.auth.uid } },
     { merge: true }
   );
   await loggaRevision({
@@ -420,7 +421,7 @@ exports.begarReferensunderlag = onCall({ region: "europe-west1" }, async (reques
     {
       referensunderlagBegart: {
         anledning: (anledning ?? "").trim() || null,
-        datum: admin.firestore.FieldValue.serverTimestamp(),
+        datum: FieldValue.serverTimestamp(),
         begartAv: request.auth.uid,
       },
     },
@@ -643,7 +644,7 @@ exports.begarRaderingAvOrganisation = onCall({ region: "europe-west1" }, async (
   await db.collection("organisationer").doc(orgId).set(
     {
       status: "pausad",
-      raderingSchemalagdTill: admin.firestore.Timestamp.fromDate(schemalagdTill),
+      raderingSchemalagdTill: Timestamp.fromDate(schemalagdTill),
       raderingBegardAv: request.auth.uid,
       raderingAnledning: anledning,
     },
@@ -696,9 +697,9 @@ exports.avbrytRaderingAvOrganisation = onCall({ region: "europe-west1" }, async 
     throw new HttpsError("failed-precondition", "Det finns ingen schemalagd radering att avbryta.");
   }
   await orgRef.update({
-    raderingSchemalagdTill: admin.firestore.FieldValue.delete(),
-    raderingBegardAv: admin.firestore.FieldValue.delete(),
-    raderingAnledning: admin.firestore.FieldValue.delete(),
+    raderingSchemalagdTill: FieldValue.delete(),
+    raderingBegardAv: FieldValue.delete(),
+    raderingAnledning: FieldValue.delete(),
   });
   await loggaRevision({
     organisationId: orgId,
@@ -737,7 +738,7 @@ exports.beviljaSupportAtkomst = onCall({ region: "europe-west1" }, async (reques
   const till = new Date(Date.now() + SUPPORTATKOMST_FONSTER_TIMMAR * 60 * 60 * 1000);
   await db.collection("organisationer").doc(orgId).set(
     {
-      supportAtkomstTill: admin.firestore.Timestamp.fromDate(till),
+      supportAtkomstTill: Timestamp.fromDate(till),
       supportAtkomstBeviljadAv: request.auth.uid,
       supportAtkomstAnledning: anledning,
     },
@@ -777,9 +778,9 @@ exports.avslutaSupportAtkomst = onCall({ region: "europe-west1" }, async (reques
     throw new HttpsError("failed-precondition", "Det finns ingen aktiv supportåtkomst att avsluta.");
   }
   await orgRef.update({
-    supportAtkomstTill: admin.firestore.FieldValue.delete(),
-    supportAtkomstBeviljadAv: admin.firestore.FieldValue.delete(),
-    supportAtkomstAnledning: admin.firestore.FieldValue.delete(),
+    supportAtkomstTill: FieldValue.delete(),
+    supportAtkomstBeviljadAv: FieldValue.delete(),
+    supportAtkomstAnledning: FieldValue.delete(),
   });
   await loggaRevision({
     organisationId: orgId,
@@ -814,7 +815,7 @@ exports.begarSupportAtkomst = onCall({ region: "europe-west1" }, async (request)
   const ref = await db.collection("organisationer").doc(orgId).collection("supportbegaran").add({
     anledning,
     begardAv: request.auth.uid,
-    begardTid: admin.firestore.FieldValue.serverTimestamp(),
+    begardTid: FieldValue.serverTimestamp(),
     status: "vantar",
   });
   await loggaRevision({
@@ -859,7 +860,7 @@ exports.svaraSupportbegaran = onCall({ region: "europe-west1" }, async (request)
     const till = new Date(Date.now() + SUPPORTATKOMST_FONSTER_TIMMAR * 60 * 60 * 1000);
     await db.collection("organisationer").doc(orgId).set(
       {
-        supportAtkomstTill: admin.firestore.Timestamp.fromDate(till),
+        supportAtkomstTill: Timestamp.fromDate(till),
         supportAtkomstBeviljadAv: request.auth.uid,
         supportAtkomstAnledning: snap.data().anledning,
       },
@@ -867,7 +868,7 @@ exports.svaraSupportbegaran = onCall({ region: "europe-west1" }, async (request)
     );
     await ref.update({
       status: "godkand",
-      besvaradTid: admin.firestore.FieldValue.serverTimestamp(),
+      besvaradTid: FieldValue.serverTimestamp(),
       besvaradAv: request.auth.uid,
     });
     await loggaRevision({
@@ -884,7 +885,7 @@ exports.svaraSupportbegaran = onCall({ region: "europe-west1" }, async (request)
 
   await ref.update({
     status: "avslagen",
-    besvaradTid: admin.firestore.FieldValue.serverTimestamp(),
+    besvaradTid: FieldValue.serverTimestamp(),
     besvaradAv: request.auth.uid,
   });
   await loggaRevision({
@@ -994,7 +995,7 @@ async function raderaOrganisationensData(orgId) {
     status: "raderad",
     avtalsstatus: "avslutad",
     moduler: {},
-    raderadTidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+    raderadTidpunkt: FieldValue.serverTimestamp(),
     provperiodSlut: null,
   });
 
@@ -1020,7 +1021,7 @@ exports.raderaOrganisationensData = raderaOrganisationensData;
 exports.utforSchemalagdRaderingSchemalagt = onSchedule(
   { schedule: "every 60 minutes", timeZone: "Europe/Stockholm", region: "europe-west1", timeoutSeconds: 540 },
   async () => {
-    const nu = admin.firestore.Timestamp.now();
+    const nu = Timestamp.now();
     const snap = await db.collection("organisationer").where("raderingSchemalagdTill", "<=", nu).get();
     for (const orgDoc of snap.docs) {
       try {

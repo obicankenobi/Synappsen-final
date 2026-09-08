@@ -12,6 +12,7 @@
 
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const Sentry = require("@sentry/node");
+const { FieldValue } = require("firebase-admin/firestore");
 const {
   admin,
   db,
@@ -53,7 +54,7 @@ const {
 async function verifieraRevisionskedjor() {
   const orgSnap = await db.collection("organisationer").get();
   const avvikelser = [];
-  const senastKord = admin.firestore.FieldValue.serverTimestamp();
+  const senastKord = FieldValue.serverTimestamp();
 
   for (const orgDoc of orgSnap.docs) {
     const resultat = await verifieraRevisionskedja(orgDoc.id);
@@ -104,7 +105,7 @@ async function verifieraRevisionskedjor() {
       `Hashkedjan är bruten för ${avvikelser.length} organisation(er). ` +
       "Vilka framgår av leverantörens larm (Sentry) och av respektive organisations egen " +
       "incidentberedskapsvy – aldrig här, eftersom den här collectionen läses av alla kunders superadmins.",
-    tidpunkt: admin.firestore.FieldValue.serverTimestamp(),
+    tidpunkt: FieldValue.serverTimestamp(),
   });
   return avvikelser;
 }
