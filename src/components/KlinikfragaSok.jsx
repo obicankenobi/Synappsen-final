@@ -88,9 +88,13 @@ export default function KlinikfragaSok() {
       <p className="klinikfraga__hjalptext">
         Ställ en generell fråga om sjukdomstillstånd, läkemedel eller behandling. Gemini söker
         upp aktuell information live och svarar bara utifrån internetmedicin.se, 1177.se,
-        Nationella kliniska kunskapsstödet, FASS vårdpersonal och Läkemedelsverket, med
-        källhänvisning. <strong>Beslutsstöd – ersätter aldrig klinisk bedömning.</strong> Ställ
-        aldrig frågor om en specifik patient.
+        Nationella kliniska kunskapsstödet, FASS vårdpersonal, Läkemedelsverket, Vårdhandboken
+        och Folkhälsomyndigheten.{" "}
+        <strong>
+          Sammanfattar innehåll från godkända medicinska källor med källhänvisning. Ersätter
+          aldrig klinisk bedömning.
+        </strong>{" "}
+        Ställ aldrig frågor om en specifik patient.
       </p>
 
       <form className="klinikfraga__formular" onSubmit={hanteraSubmit}>

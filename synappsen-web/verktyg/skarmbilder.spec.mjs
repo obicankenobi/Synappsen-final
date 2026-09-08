@@ -4,13 +4,13 @@
 // ett arbetspass" (produkt/VARUMARKE.md §2). En skrivbordsskärmbild hade visat en situation
 // kunden inte känner igen sig i. deviceScaleFactor 2 så bilden är skarp på en retina-skärm.
 //
-// VIKTIGT om vilka vyer som INTE fångas: /kliniskt-stod är medvetet utelämnad. Sidans egen
-// ingress och klinikstöd-rutan innehåller orden "triageringsstöd" respektive "Beslutsstöd"
-// (src/pages/KlinisktStod.jsx, src/components/KlinikfragaSok.jsx) – exakt de två ord som
-// tests/docs/webbplats.test.js förbjuder i kundvänd text, eftersom MDR art. 2(12) gör
-// säljmaterial till en del av kvalificeringsunderlaget. En skärmbild av den vyn hade
-// publicerat orden på webbplatsen och rundat vakten via en bild i stället för via text. Se
-// OPPNA-PUNKTER.md – formuleringarna i appen är en egen, öppen punkt.
+// VIKTIGT om vilka vyer som INTE fångas: /kliniskt-stod är fortfarande utelämnad, men INTE
+// längre av regulatoriska skäl. Ordet "Beslutsstöd" (KlinikfragaSok.jsx) och "triageringsstöd"
+// (KlinisktStod.jsx) rättades 2026-09-08 (se granskningar/PRODUKTDEFINITION-REGULATORISKT-
+// UNDERLAG.md § 9.1/§ 9.3, BESLUTSLOGG.md) – tests/docs/webbplats.test.js:s vakt gäller
+// alltså inte längre den här vyn. Uteslutningen är kvar av ren tröghet, inte av ett aktivt
+// skäl: att lägga till /kliniskt-stod som produktens mest säljbara vy är en öppen möjlighet,
+// inte en blockering.
 import { test, expect } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";

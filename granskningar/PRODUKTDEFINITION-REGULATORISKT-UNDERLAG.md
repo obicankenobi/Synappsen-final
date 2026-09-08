@@ -321,13 +321,13 @@ kostnadsuppskattning i `granskningar/VERTEX-AI-MIGRERING-KOSTNADSUPPSKATTNING-20
 **Det här avsnittet är dokumentets viktigaste.** En juridisk bedömning som inte känner till
 följande punkter kommer att bygga på premisser som inte håller.
 
-### 9.1 Gränssnittet säger fortfarande "Beslutsstöd"
+### 9.1 Gränssnittet sa tidigare "Beslutsstöd" – rättat 2026-09-08
 
-`src/components/KlinikfragaSok.jsx:92` renderar, synligt för användaren:
+`src/components/KlinikfragaSok.jsx:92` renderade tidigare, synligt för användaren:
 
 > *"…källhänvisning. **Beslutsstöd – ersätter aldrig klinisk bedömning.** Ställ…"*
 
-Detta står i **direkt konflikt** med två av projektets egna dokument:
+Detta stod i **direkt konflikt** med två av projektets egna dokument:
 
 - `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md` listar uttryckligen **"beslutsstöd"**
   bland *"ord att aldrig använda om klinikstöd-sökningen"*, som en regulatorisk gräns.
@@ -336,18 +336,18 @@ Detta står i **direkt konflikt** med två av projektets egna dokument:
   inte friskrivningen – som väger i en kvalificeringsbedömning enligt MDR art. 2(1)"*, och
   rekommenderade en konkret ersättningsformulering.
 
-**Raden är fortfarande oförändrad i v5.139.0, tre veckor efter att den identifierades, och den
-står inte i `OPPNA-PUNKTER.md`.** När `AVSETT-ANDAMAL`-dokumentet skrevs 2026-08-30 rättades
-motsvarande ord i systemprompten (`functions/klinikstod.js`), men gränssnittsraden lämnades
-medvetet utanför det avgränsade delmålet – och föll sedan mellan stolarna.
+**Ägaren godkände § 6.4:s rekommenderade formulering 2026-09-08** (se `BESLUTSLOGG.md`).
+Raden lyder nu: *"Sammanfattar innehåll från godkända medicinska källor med källhänvisning.
+Ersätter aldrig klinisk bedömning."* – samma friskrivning, utan att tillskriva verktyget en
+klinisk roll. Samma redigering rättade även att hjälptexten bara räknade upp fem av
+`functions/klinikstod.js:GODKANDA_KALLDOMANER`s sju godkända källor (Vårdhandboken och
+Folkhälsomyndigheten saknades).
 
-**Varför det spelar roll juridiskt:** MDR art. 2(12) gör avsett ändamål till en funktion av vad
-tillverkaren säger *"on the label, in the instructions for use or in promotional or sales
-materials or statements"*. Gränssnittstext är sådan. Produkten påstår alltså i dag om sig själv
-precis det som resten av materialet är noga med att den inte gör.
+**Varför det spelade roll juridiskt:** MDR art. 2(12) gör avsett ändamål till en funktion av
+vad tillverkaren säger *"on the label, in the instructions for use or in promotional or sales
+materials or statements"*. Gränssnittstext är sådan.
 
-*Åtgärdad i denna omgång: nej. Rättelsen är en produktcopyändring som ägaren bör godkänna, och
-är därför förd till `OPPNA-PUNKTER.md` i samma commit som detta dokument.*
+*Åtgärdad: ja, 2026-09-08.*
 
 ### 9.2 Checklistsegets fältuppsättning är inte spärrad i regellagret
 
@@ -379,19 +379,20 @@ får inte framföras mot en upphandlare eller tillsynsmyndighet i formen "spärr
 strukturellt i datamodellen". Det är inte sant. Det som är sant är att spärren sitter i
 klienten och att regellagret spärrar antal och personnummer.
 
-### 9.3 Produktcopy som ligger nära gränsen, ogranskad
+### 9.3 Produktcopy som ligger nära gränsen
 
 `granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md` flaggade två formuleringar som
-gränsfall men lämnade dem medvetet oförändrade:
+gränsfall:
 
-- `src/pages/KlinisktStod.jsx` beskriver sidan som *"Handläggningsrutiner, **triageringsstöd**
-  och kritiska kom-ihåg-saker"*. Ordet ligger närmare "beslutsstöd" än vad det avsedda
-  ändamålet medger.
+- `src/pages/KlinisktStod.jsx` beskrev tidigare sidan som *"Handläggningsrutiner,
+  **triageringsstöd** och kritiska kom-ihåg-saker"*. **Rättat 2026-09-08** (samma ägarbeslut
+  som § 9.1) till *"Handläggningsrutiner, triagering och kritiska kom-ihåg-saker"* – utan
+  "-stöd"-ändelsen, som var det som gjorde ordet till ett funktionsanspråk. `triagering` utan
+  ändelsen (t.ex. `src/config/startvy.js:20`) beskriver bara ämnet för rutinerna, inte en
+  förmåga produkten påstår sig ha, och lämnas medvetet oförändrat.
 - `src/components/KlinikfragaSok.jsx`s exempelplaceholder *"T.ex. Dosering amoxicillin vuxen"*
   är inte patientspecifik interaktionskontroll, men liknar den frågetypen mer än "hitta vår
-  rutin om X".
-
-Båda är fortfarande oförändrade och bör ingå i den externa bedömningens uppdrag.
+  rutin om X". Fortfarande oförändrad, bör ingå i den externa bedömningens uppdrag.
 
 ### 9.4 Etapp 64 (baspaketet) är juridiskt blockerad
 
