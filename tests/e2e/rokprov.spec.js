@@ -55,18 +55,25 @@ const ROLLER = [
 // då fick VARJE rutt en connection refused-rad och hela sviten föll, på både den här grenen
 // och basgrenen.
 //
-// Undantaget nedan står kvar med flit. Det gäller inte längre i CI, men gör att sviten
-// fortfarande går att köra utan functions-emulatorn utan att /leverantor faller på en rad som
-// inte är en app-bugg. Sidan kraschar INTE (ErrorBoundary triggas inte) tack vare Etapp 43e:s
-// `organisationer ?? []`-fix, vilket är precis det den här sviten faktiskt ska bevisa.
+// Undantaget nedan står kvar med flit. `ERR_CONNECTION_REFUSED` gäller inte längre i CI (kvar
+// för att sviten fortfarande ska gå att köra utan functions-emulatorn alls, utan att
+// /leverantor faller på en rad som inte är en app-bugg).
 //
-// Obs att functions-emulatorn i firebase-tools 13 INTE kan köra funktionerna: den anropar
-// `functions.config()`, som togs bort i firebase-functions 7. Varje anrop svarar därför 500 i
-// stället för att vägra anslutningen. Det räcker för den här sviten (appen fångar felet, ingen
-// konsolrad), men e2e bevisar alltså inte att någon Cloud Function fungerar. Se
-// OPPNA-PUNKTER.md.
+// Uppdaterat 2026-09-08 (firebase-tools bumpat ^13.35.1 -> ^15.29.0, se CLAUDE_STATUS.md):
+// firebase-tools@13s emulatorruntime anropade `functions.config()` (borttaget i
+// firebase-functions@7) och kraschade VARJE anrop med 500 innan handlern ens nådde sin egen
+// behörighetskontroll – appen fångade det tyst, ingen konsolrad alls. Nu när anropet faktiskt
+// körs når `listaOrganisationer` sin riktiga `kravPlattformsadmin()`-kontroll, och samtliga
+// sju roller i ROLLER ovan saknar (med flit, se kommentaren där) `plattformsadmin` – så
+// anropet nekas nu KORREKT med `permission-denied`, som webbläsaren loggar som ett 403. Det
+// är alltså inte en app-bugg utan bevis på att fixen fungerar: /leverantor kraschar
+// fortfarande inte (samma `organisationer ?? []`-fix som förut), och 403 är exakt vad en
+// icke-plattformsadmin SKA få.
 const KANDA_MILJOBEGRANSNINGAR = {
-  "/leverantor": [/Failed to load resource.*ERR_CONNECTION_REFUSED/i],
+  "/leverantor": [
+    /Failed to load resource.*ERR_CONNECTION_REFUSED/i,
+    /Failed to load resource.*status of 403/i,
+  ],
 };
 
 function arKantMiljobegransning(route, konsolrad) {
