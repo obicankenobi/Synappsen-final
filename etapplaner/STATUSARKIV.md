@@ -5367,3 +5367,44 @@ Sex nya assertioner i `tests/functions/klinikstodprompt.test.cjs` (18 totalt), i
 test som bevisar att skyddet **inte** avvisar legitima kliniska frågor med apostrof,
 bindestreck, parentes, procent eller decimaltal. Testsvep grönt: lint, build, 592 vitest,
 `test:functions`, `test:rules`, `test:storage`.
+
+## Uppföljning 2026-09-06 (AI-utvärderingen körd skarpt – reglerna höll, verktyget var trasigt)
+
+Ägaren gjorde de tre GCP-stegen (Vertex AI-API aktiverat, `roles/aiplatform.user` till **båda**
+tjänstekontona). Utvärderingen kördes därefter tre gånger mot skarp Vertex AI.
+
+**Huvudresultat: klinikstödets säkerhetsregler höll i samtliga fall, i samtliga körningar.**
+Modellen vägrade konsekvent att rangordna, vägrade rekommendera, avböjde en namngiven patient,
+sa ifrån när källorna inte räckte, och höll linjen även under ett språkligt injektionsförsök.
+Första gången MDR-avgränsningen är MÄTT i stället för antagen. Fullständig fallredovisning i
+`granskningar/SAKERHETSRAPPORT.md` (tillägg 2026-09-06).
+
+**Men det viktigaste fyndet gällde mätverktyget, inte modellen.** Körning #1 gav `12 OK, 1 FEL`,
+körning #2 gav `9 OK, 1 FEL, 3 GRANSKA` – och vid genomläsning var **varenda flagga i båda
+körningarna en artefakt i mitt eget test**. Orsaken är principiell och värd att minnas:
+
+> Ett korrekt svar måste innehålla de förbjudna orden för att kunna vägra. "Jag kan inte
+> rangordna åtgärder eller agera som ett beslutsstöd" är precis det beteende vi vill ha – men
+> innehåller både "rangordna" och "beslutsstöd". En nyckelordskontroll kan inte skilja
+> ANVÄNDNING från VÄGRAN, och fäller därför systematiskt de bästa svaren.
+
+Rättat i tre steg: bredare fraslista + krav på positiva tecken på påhitt innan FEL fälls;
+`utanNekandeMeningar()` som filtrerar bort nekande meningar innan orden söks; och en
+beslutsstöd-kontroll som letar efter faktiska självbeskrivningar i stället för ordets blotta
+förekomst. Varje rättelse verifierad mot de faktiska svaren från #1 och #2 – **och mot ett
+konstruerat äkta regelbrott som fortfarande fälls**, så breddningen inte blev ett godkännande
+av allt. **Körning #3: `12 OK, 0 FEL, 1 GRANSKA`, grön.**
+
+Att det upptäcktes berodde på att hela modellsvaret skrivs ut i loggen, inte bara utfallet.
+Utan den designen hade ett falskt FEL sett ut som ett äkta.
+
+**Två observationer kvar:** (1) modellen läcker interna regelhänvisningar ("[Regel 4, 6]") till
+användaren, reproducerbart i båda körningarna – fört till `OPPNA-PUNKTER.md`; (2)
+svarsvariationen mellan körningar är betydande, vilket betyder att sju fall vid ett tillfälle
+är ett stickprov, inte en garanti. Verktyget är byggt för att köras om.
+
+**Sidoresultat:** `gemini-2.5-flash` i `europe-west1` är nu **bevisad** genom riktiga anrop –
+den frågan har stått öppen sedan migreringsuppskattningen. Svarstider 2,3–10,1 s, med marginal
+till `timeoutSeconds: 60`. **Deployen är därmed avblockerad** och är det enda som återstår
+innan EU-garantin gäller i produktion – tills dess kör de driftsatta funktionerna fortfarande
+mot det publika Gemini API:et (`avtal/UNDERBITRADEN.md` uppdaterad med exakt den skillnaden).

@@ -1,28 +1,45 @@
-name: Verifiera firebase-tools-version mot functions-emulatorn
+name: Verifiera firebase-tools-version mot functions- och storage-emulatorn
 
-# Manuellt diagnosverktyg (ALDRIG på push) – svarar på EN fråga: kan denna version av
-# firebase-tools faktiskt ANROPA en Cloud Function via emulatorn, inte bara ladda dess
-# definition? Byggt 2026-09-08 sedan firebase-tools@13.35.1 (rot-package.json) visade sig
-# köra en emulatorruntime som anropar functions.config() – borttaget i firebase-functions@7
-# (functions/package.json) – vilket dödar VARJE anrop med "Your function was killed because
-# it raised an unhandled error" trots att alla ~100 funktionsdefinitioner laddas rent. Se
-# OPPNA-PUNKTER.md ("firebase-tools@13 kan inte köra Cloud Functions i emulatorn") för hela
-# bakgrunden och varför bara CI kan svara: sandboxmiljön där buggen upptäcktes saknar IPv6-
-# loopback och blockerar sannolikt GCE-metadataprober, vilket i sig får en NYARE
-# firebase-tools (15) att fastna på ett ORELATERAT fel vid registrering av Firestore-triggers
-# (ett internt anrop till eventarc-emulatorn) – ett fel som en riktig CI-miljö inte har skäl
-# att dela. Se scripts/verifiera-functions-emulator.mjs för anropet som faktiskt bevisar saken.
+# Manuellt diagnosverktyg (ALDRIG på push) – kör INNAN någon höjer firebase-tools i
+# rot-package.json. Byggt 2026-09-06/08 sedan firebase-tools@13.35.1 visade sig köra en
+# emulatorruntime som anropar functions.config() – borttaget i firebase-functions@7
+# (functions/package.json) – vilket dödar VARJE Cloud Function-anrop via emulatorn med
+# "Your function was killed because it raised an unhandled error", trots att alla ~100
+# funktionsdefinitioner laddas rent. Se OPPNA-PUNKTER.md för hela bakgrunden.
+#
+# STATUS 2026-09-08: firebase-tools@15.29.0 fixar functions.config()-buggen (bevisat i en
+# riktig CI-körning: rapporteraAppVersion kördes, gick igenom callable-verifiering och
+# budgetkontroll, svarade med ett riktigt HttpsError – inget kraschat). MEN samma version
+# introducerar en NY, separat, DISKVALIFICERANDE regression: Storage-regelmotorns
+# cross-service-uppslag mot Firestore (firestore.get()/firestore.exists() anropade FRÅN
+# storage.rules, t.ex. minOrganisation() och minRoll()) ger "Null value error" på fall som
+# SKA gå igenom. Bevisat lokalt med en ren A/B-körning av samma testfil:
+#   firebase-tools@13.35.1: 24 klarade, 0 misslyckade
+#   firebase-tools@15.29.0: 18 klarade, 6 misslyckade ("Null value error" på multi-tenant-
+#   isoleringsregler – exakt den sortens regel det här projektet är som mest noga med)
+# Reproducerbart utan CI, se kommandot i steget "Storage-regeltest" nedan.
+#
+# Slutsats: BUMPA INTE till 15.29.0. Kör det här verktyget mot en NYARE firebase-tools-
+# version (patch/minor efter 15.29.0, eller en framtida 16.x) när en sådan finns, och bumpa
+# bara om BÅDA stegen nedan är gröna – inte bara functions-anropet.
+#
+# En separat, ANNAN observation från samma dag hör INTE hemma i "diskvalificerande": tre
+# manuella körningar av det här verktyget verkade hänga i flera minuter och avbröts. Vid
+# efterkontroll (jämförelse av created_at/updated_at i GitHub Actions API:et) visade det sig
+# att var och en bara hunnit köra i 65–100 SEKUNDER innan avbrottet – normal tid för att ladda
+# ~90 funktionsdefinitioner, inte en hängning. Den slutsatsen drogs för snabbt förra gången;
+# ha den här kommentaren i åtanke innan du avbryter en körning som "verkar hänga" – jämför
+# faktisk starttid mot nutid, lita inte på att API-statusfältet uppdaterats.
 #
 # Ändrar INGENTING i repot – testar bara `npx firebase-tools@<version>` mot den redan
-# skrivna koden. En lyckad körning är förutsättningen för att sedan höja versionen i
-# rot-package.json på riktigt.
+# skrivna koden.
 on:
   workflow_dispatch:
     inputs:
       firebase_tools_version:
-        description: "firebase-tools-version att prova (t.ex. 15.29.0 eller 15 för senaste 15.x)"
+        description: "firebase-tools-version att prova (t.ex. 15.30.0 eller 16 för senaste 16.x)"
         required: true
-        default: "15"
+        default: "latest"
 
 jobs:
   verifiera:
@@ -35,10 +52,9 @@ jobs:
           node-version: 22
 
       # firebase-tools@14+ kräver JDK 21 för Firestore-/Storage-emulatorerna (Java-baserade).
-      # ubuntu-latest-imagens förvalda JDK räcker inte – upptäckt i körning #1 (2026-09-08):
-      # "firebase-tools no longer supports Java version before 21." Sandboxen där buggen
-      # ursprungligen grävdes i råkade redan ha JDK 21 installerat, vilket dolde det här kravet
-      # helt – ett skäl till att en riktig CI-körning är den enda pålitliga verifieringen.
+      # ubuntu-latest-imagens förvalda JDK räcker inte: "firebase-tools no longer supports
+      # Java version before 21." Sandboxen där arbetet ursprungligen gjordes råkade redan ha
+      # JDK 21 installerat, vilket dolde kravet helt.
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -54,8 +70,15 @@ jobs:
       - name: Visa vilken firebase-tools-version som testas
         run: npx --yes firebase-tools@${{ inputs.firebase_tools_version }} --version
 
-      - name: Starta emulatorn och anropa en riktig funktion
+      - name: Functions-test – anropa en riktig funktion, inte bara ladda den
         run: |
           npx --yes firebase-tools@${{ inputs.firebase_tools_version }} emulators:exec \
             --project demo-test --only auth,firestore,functions,storage \
             "node scripts/verifiera-functions-emulator.mjs"
+
+      - name: Storage-regeltest – cross-service firestore.get()/exists() FRÅN storage.rules
+        if: always()
+        run: |
+          npx --yes firebase-tools@${{ inputs.firebase_tools_version }} emulators:exec \
+            --project demo-test --only firestore,storage \
+            "node tests/rules/storage.test.mjs"

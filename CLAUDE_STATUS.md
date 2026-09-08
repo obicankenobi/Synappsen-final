@@ -4,11 +4,17 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (152 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (153 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-07 · **v5.139.0 i produktion**. Parallell tråd (gren
+**Senast uppdaterad:** 2026-09-08 · **v5.139.0 i produktion**. `firebase-tools@13`-buggen
+(functions-emulatorn kör `functions.config()`, borttaget i `firebase-functions@7`) är
+undersökt fullt ut: `firebase-tools@15.29.0` löser den, bevisat i en riktig CI-körning, MEN
+inför en NY, diskvalificerande regression i Storage-regelmotorns `firestore.get()`/`exists()`
+FRÅN `storage.rules` (24/0 klarade på v13 mot 18/6 klarade på v15 i `tests/rules/storage.test.mjs`,
+identisk testfil). **Beslut: bumpa INTE.** Se uppföljningen 2026-09-08 nedan och
+`OPPNA-PUNKTER.md`. Parallell tråd (gren
 `claude/synappsen-webbplats-jnmzn1`, PR #23, grön/mergebar) hittade två MDR-ord kvar i
 gränssnittet (⚠️ ägarbeslut, `OPPNA-PUNKTER.md`) och att `test:e2e` inte längre bevisar att
 Cloud Functions fungerar (`firebase-tools@13`-bugg, se samma fil). **Vertex AI-migreringen är
@@ -125,6 +131,46 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-08 (firebase-tools-bumpen undersökt fullt ut – inte bumpningsbar ännu)
+
+Undersökte om `firebase-tools@13.35.1` → `^15` löser buggen där functions-emulatorn anropar
+`functions.config()` (borttaget i `firebase-functions@7`) och dödar varje Cloud
+Function-anrop via emulatorn. Slutsats: **bumpa inte, men buggens grundorsak är nu bevisad,
+en fix finns identifierad, och den blockeras av ett nytt, separat, bevisat fel.**
+
+- **Grundfyndet bekräftat på riktig produktions-CI**, inte bara i sandbox: `ci.yml`-körning
+  2026-09-08 visar `rapporteraAppVersion` krascha identiskt på GitHub Actions. `test:e2e`
+  startar functions-emulatorn men varje anrop dör tyst med 500 som frontend sväljer
+  (`AuthContext.jsx`) – **ingen Cloud Function är bevisat fungera via e2e-sviten**, oavsett
+  hur grön den är.
+- **`firebase-tools@15.29.0` löser functions.config()-buggen** – bevisat i en riktig CI-körning
+  där `rapporteraAppVersion` faktiskt exekverade sin riktiga logik (gick igenom
+  callable-verifiering och budgetkontroll, svarade med korrekt `HttpsError`). Kräver dessutom
+  ett nytt, verifierat krav: **JDK 21** (`actions/setup-java@v4` måste läggas till i varje
+  workflow som kör Firebase-emulatorn om en bump görs någon gång).
+- **Men samma version är diskvalificerad av en ny, separat regression**: en ren lokal
+  A/B-körning av `tests/rules/storage.test.mjs` (identisk testfil och regelfil, bara
+  verktygsversionen skiljer) visar att Storage-regelmotorns cross-service-uppslag mot
+  Firestore (`firestore.get()`/`firestore.exists()` anropade FRÅN `storage.rules`, t.ex.
+  `minOrganisation()`/`minRoll()`) går sönder: `firebase-tools@13.35.1` ger **24 klarade, 0
+  misslyckade**; `firebase-tools@15.29.0` ger **18 klarade, 6 misslyckade** med
+  `Null value error` på legitima fall – exakt den sortens multi-tenant-isoleringsregel det
+  här projektet är som mest noga med. Reproducerat deterministiskt två gånger, ingen
+  sandboxosäkerhet inblandad.
+- **Självrättelse under arbetet, värd att spara:** tre CI-körningar av diagnosverktyget
+  verkade hänga i flera minuter och avbröts. Efterkontroll mot `created_at`/`updated_at` i
+  GitHub Actions API:et visade att var och en bara hunnit köra 65–100 sekunder – normal tid
+  för att ladda ~90 funktionsdefinitioner, ingen hängning. Den felaktiga slutsatsen drogs för
+  snabbt; kommentaren ligger kvar i diagnosverktygets workflow som en varning.
+- **`package.json`/`package-lock.json` reverterade** till `^13.35.1` (oförändrade från
+  utgångsläget) efter att regressionen hittades.
+- **Nytt återanvändbart diagnosverktyg** för att pröva en framtida firebase-tools-version utan
+  att göra om hela undersökningen: `scripts/verifiera-functions-emulator.mjs` (riktigt
+  callable-anrop mot en startad emulator) + `.github/workflows/verifiera-firebase-tools-bump.yml`
+  (manuell dispatch, kör båda testerna – functions-anropet och Storage-regeltestet – mot en
+  valfri version). Bumpa bara när båda stegen är gröna.
+- Fullständig, uppdaterad rad i `OPPNA-PUNKTER.md` under "Kräver ett ägarbeslut".
 
 ## Uppföljning 2026-09-07 (fynd från en parallell tråd verifierade och registrerade – ingen kod ändrad)
 
@@ -328,44 +374,3 @@ deployen och visade `in_progress` i över en timme efter att jobbet i själva ve
 20:04. Jag rapporterade det stale läget som pågående. Loggendpointen (404 medan jobbet kör,
 innehåll när det är klart) visade sig vara den enda tillförlitliga signalen på att en körning
 faktiskt avslutats.
-
-## Uppföljning 2026-09-06 (AI-utvärderingen körd skarpt – reglerna höll, verktyget var trasigt)
-
-Ägaren gjorde de tre GCP-stegen (Vertex AI-API aktiverat, `roles/aiplatform.user` till **båda**
-tjänstekontona). Utvärderingen kördes därefter tre gånger mot skarp Vertex AI.
-
-**Huvudresultat: klinikstödets säkerhetsregler höll i samtliga fall, i samtliga körningar.**
-Modellen vägrade konsekvent att rangordna, vägrade rekommendera, avböjde en namngiven patient,
-sa ifrån när källorna inte räckte, och höll linjen även under ett språkligt injektionsförsök.
-Första gången MDR-avgränsningen är MÄTT i stället för antagen. Fullständig fallredovisning i
-`granskningar/SAKERHETSRAPPORT.md` (tillägg 2026-09-06).
-
-**Men det viktigaste fyndet gällde mätverktyget, inte modellen.** Körning #1 gav `12 OK, 1 FEL`,
-körning #2 gav `9 OK, 1 FEL, 3 GRANSKA` – och vid genomläsning var **varenda flagga i båda
-körningarna en artefakt i mitt eget test**. Orsaken är principiell och värd att minnas:
-
-> Ett korrekt svar måste innehålla de förbjudna orden för att kunna vägra. "Jag kan inte
-> rangordna åtgärder eller agera som ett beslutsstöd" är precis det beteende vi vill ha – men
-> innehåller både "rangordna" och "beslutsstöd". En nyckelordskontroll kan inte skilja
-> ANVÄNDNING från VÄGRAN, och fäller därför systematiskt de bästa svaren.
-
-Rättat i tre steg: bredare fraslista + krav på positiva tecken på påhitt innan FEL fälls;
-`utanNekandeMeningar()` som filtrerar bort nekande meningar innan orden söks; och en
-beslutsstöd-kontroll som letar efter faktiska självbeskrivningar i stället för ordets blotta
-förekomst. Varje rättelse verifierad mot de faktiska svaren från #1 och #2 – **och mot ett
-konstruerat äkta regelbrott som fortfarande fälls**, så breddningen inte blev ett godkännande
-av allt. **Körning #3: `12 OK, 0 FEL, 1 GRANSKA`, grön.**
-
-Att det upptäcktes berodde på att hela modellsvaret skrivs ut i loggen, inte bara utfallet.
-Utan den designen hade ett falskt FEL sett ut som ett äkta.
-
-**Två observationer kvar:** (1) modellen läcker interna regelhänvisningar ("[Regel 4, 6]") till
-användaren, reproducerbart i båda körningarna – fört till `OPPNA-PUNKTER.md`; (2)
-svarsvariationen mellan körningar är betydande, vilket betyder att sju fall vid ett tillfälle
-är ett stickprov, inte en garanti. Verktyget är byggt för att köras om.
-
-**Sidoresultat:** `gemini-2.5-flash` i `europe-west1` är nu **bevisad** genom riktiga anrop –
-den frågan har stått öppen sedan migreringsuppskattningen. Svarstider 2,3–10,1 s, med marginal
-till `timeoutSeconds: 60`. **Deployen är därmed avblockerad** och är det enda som återstår
-innan EU-garantin gäller i produktion – tills dess kör de driftsatta funktionerna fortfarande
-mot det publika Gemini API:et (`avtal/UNDERBITRADEN.md` uppdaterad med exakt den skillnaden).
