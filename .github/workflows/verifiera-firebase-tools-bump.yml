@@ -1,0 +1,51 @@
+name: Verifiera firebase-tools-version mot functions-emulatorn
+
+# Manuellt diagnosverktyg (ALDRIG på push) – svarar på EN fråga: kan denna version av
+# firebase-tools faktiskt ANROPA en Cloud Function via emulatorn, inte bara ladda dess
+# definition? Byggt 2026-09-08 sedan firebase-tools@13.35.1 (rot-package.json) visade sig
+# köra en emulatorruntime som anropar functions.config() – borttaget i firebase-functions@7
+# (functions/package.json) – vilket dödar VARJE anrop med "Your function was killed because
+# it raised an unhandled error" trots att alla ~100 funktionsdefinitioner laddas rent. Se
+# OPPNA-PUNKTER.md ("firebase-tools@13 kan inte köra Cloud Functions i emulatorn") för hela
+# bakgrunden och varför bara CI kan svara: sandboxmiljön där buggen upptäcktes saknar IPv6-
+# loopback och blockerar sannolikt GCE-metadataprober, vilket i sig får en NYARE
+# firebase-tools (15) att fastna på ett ORELATERAT fel vid registrering av Firestore-triggers
+# (ett internt anrop till eventarc-emulatorn) – ett fel som en riktig CI-miljö inte har skäl
+# att dela. Se scripts/verifiera-functions-emulator.mjs för anropet som faktiskt bevisar saken.
+#
+# Ändrar INGENTING i repot – testar bara `npx firebase-tools@<version>` mot den redan
+# skrivna koden. En lyckad körning är förutsättningen för att sedan höja versionen i
+# rot-package.json på riktigt.
+on:
+  workflow_dispatch:
+    inputs:
+      firebase_tools_version:
+        description: "firebase-tools-version att prova (t.ex. 15.29.0 eller 15 för senaste 15.x)"
+        required: true
+        default: "15"
+
+jobs:
+  verifiera:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Installera rot-beroenden (klient-SDK:t verifieringsskriptet använder)
+        run: npm ci
+
+      - name: Installera functions-beroenden (koden som faktiskt ska köras i emulatorn)
+        run: npm ci
+        working-directory: functions
+
+      - name: Visa vilken firebase-tools-version som testas
+        run: npx --yes firebase-tools@${{ inputs.firebase_tools_version }} --version
+
+      - name: Starta emulatorn och anropa en riktig funktion
+        run: |
+          npx --yes firebase-tools@${{ inputs.firebase_tools_version }} emulators:exec \
+            --project demo-test --only auth,firestore,functions,storage \
+            "node scripts/verifiera-functions-emulator.mjs"
