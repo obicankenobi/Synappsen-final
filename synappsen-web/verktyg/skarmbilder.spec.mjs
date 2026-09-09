@@ -4,13 +4,15 @@
 // ett arbetspass" (produkt/VARUMARKE.md §2). En skrivbordsskärmbild hade visat en situation
 // kunden inte känner igen sig i. deviceScaleFactor 2 så bilden är skarp på en retina-skärm.
 //
-// VIKTIGT om vilka vyer som INTE fångas: /kliniskt-stod är fortfarande utelämnad, men INTE
-// längre av regulatoriska skäl. Ordet "Beslutsstöd" (KlinikfragaSok.jsx) och "triageringsstöd"
-// (KlinisktStod.jsx) rättades 2026-09-08 (se granskningar/PRODUKTDEFINITION-REGULATORISKT-
-// UNDERLAG.md § 9.1/§ 9.3, BESLUTSLOGG.md) – tests/docs/webbplats.test.js:s vakt gäller
-// alltså inte längre den här vyn. Uteslutningen är kvar av ren tröghet, inte av ett aktivt
-// skäl: att lägga till /kliniskt-stod som produktens mest säljbara vy är en öppen möjlighet,
-// inte en blockering.
+// /kliniskt-stod fotograferas nu (sedan 2026-09-09). Orden "Beslutsstöd" (KlinikfragaSok.jsx)
+// och "triageringsstöd" (KlinisktStod.jsx) rättades 2026-09-08 (se granskningar/
+// PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md § 9.1/§ 9.3, BESLUTSLOGG.md), så
+// tests/docs/webbplats.test.js:s ordvakt gäller inte längre den här vyn. Bilden ersätter den
+// tidigare /administration-substitutionen (se historiken i git för den ursprungliga
+// motiveringen) – rutan "Kliniskt stöd" i index.html visar nu en skärmbild från rätt domän,
+// med klinikstöd-sökrutan synlig men OSKICKAD: sökfunktionen anropar en extern källa (Google
+// Programmable Search + Gemini via Vertex AI) som varken emulatorn eller den här bildtagningen
+// har åtkomst till, och ett riktigt sökresultat ska ändå aldrig hårdkodas i en marknadsbild.
 import { test, expect } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -48,9 +50,10 @@ test("fångar skärmbilder till webbplatsen", async ({ page }) => {
   await page.waitForTimeout(1200);
   await fanga(page, "app-sok");
 
-  // 2. Rutinlistan med ägare och granskningsdatum. /administration i stället för
-  //    /kliniskt-stod, se filens inledande kommentar.
-  await page.goto("/administration", { waitUntil: "load" });
+  // 2. Rutinlistan med ägare och granskningsdatum, i den kliniska domänen – samma domän som
+  //    hjältebildens sökträff "Urinkateter (KAD)" hör hemma i. Klinikstöd-sökrutan syns i
+  //    samma bild, se filens inledande kommentar om varför den aldrig fylls i eller skickas.
+  await page.goto("/kliniskt-stod", { waitUntil: "load" });
   await fanga(page, "app-rutiner");
 
   // 3. Förrådet med skåp- och hyllplats.
