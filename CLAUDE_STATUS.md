@@ -4,11 +4,11 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (154 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (155 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-08 · **v5.139.0 i produktion**. **`firebase-tools`-bumpen
+**Senast uppdaterad:** 2026-09-09 · **v5.139.0 i produktion**. **`firebase-tools`-bumpen
 (`^13.35.1` → `^15.29.0`) är DEPLOYAD** (`deploy.yml` #99, success, 2026-09-08 19:54 –
 `last-modified`-headern på `https://synappsen-final-build.web.app` matchar exakt
 hostingens release-tidsstämpel, samtliga Cloud Functions "Successful update operation").
@@ -19,18 +19,17 @@ sandboxartefakt som inte reproducerar på riktig CI (24/0 klart där, två separ
 Den verkliga blockeraren var en annan, äkta firebase-tools-bugg (`Proxied.getOriginal()`
 binder bort statiska egenskaper som `admin.firestore.FieldValue`), fixad på vår sida med en
 direktimport i 14 filer. Se uppföljningen 2026-09-08 nedan för hela, korrigerade historien.
-Parallell tråd (gren
-`claude/synappsen-webbplats-jnmzn1`, PR #23, grön/mergebar) hittade två MDR-ord kvar i
-gränssnittet (⚠️ ägarbeslut, `OPPNA-PUNKTER.md`) och det ursprungliga fyndet att `test:e2e`
-inte bevisade att Cloud Functions fungerade (`firebase-tools@13`-buggen, nu löst, se
-uppföljningen 2026-09-08 nedan). **Vertex AI-migreringen är
+**PR #23 (webbplatsen) mergad 2026-09-08.** De två MDR-orden ("Beslutsstöd"/"triageringsstöd")
+är borttagna ur klinikstöd-gränssnittet samma dag, ägarbeslut i `BESLUTSLOGG.md` – se
+uppföljningen 2026-09-09 nedan. **Vertex AI-migreringen är
 DEPLOYAD** (`deploy.yml` #98, success) och utvärderingen är helt ren efter deployen (13 OK,
 0 FEL, 0 GRANSKA). Kvar: bekräfta ett riktigt anrop i appen, se `OPPNA-PUNKTER.md`. Utgående e-post är stoppat
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
-**Webbplatsen har fått skärmbilder ur appen, fyra publicerade dokumentsidor och räknade
-bevissiffror** (se uppföljningen 2026-09-06 om bevisluckan) – fortfarande `noindex`, nu sex
-sidor som ska avgömmas samtidigt. **E2E-sviten är grön igen** (2026-09-07): `test:e2e` startar
-nu functions-emulatorn, vilket den inte gjort sedan v5.136.0 bröt den.
+**Webbplatsen har fått skärmbilder ur appen (nu även `/kliniskt-stod`), fyra publicerade
+dokumentsidor, räknade bevissiffror och konsekvent "jag"-röst på start- och underlagssidan**
+(se uppföljningen 2026-09-09 nedan) – fortfarande `noindex`, sex sidor som ska avgömmas
+samtidigt. **E2E-sviten är grön igen** (2026-09-07): `test:e2e` startar nu functions-
+emulatorn, vilket den inte gjort sedan v5.136.0 bröt den.
 **Etapp 72 (`etapplaner/ETAPPLAN19.md`):** riktningen är antagen, beslutspunkt 5
 (efterfrågegrinden) gäller fortfarande som huvudregel för alla ÖVRIGA delmål. 72f, 72d och
 72h byggda och deployade som ett uttryckligt, engångsbeslutat undantag från grinden (se
@@ -137,6 +136,33 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-09 (PR #23 mergad, klinikstöd-fyndet dubbelkollat, /kliniskt-stod fotograferad, "jag"-röst genomförd)
+
+**PR #23 (webbplatsens bevislucka) mergad 2026-09-08**, `firebase-tools`-buggen bekräftad
+löst och deployad – se uppföljningen nedan. Innan nästa steg dubbelkollades ägarens
+godkända fix av "Beslutsstöd"/"triageringsstöd" mot faktisk kod (`KlinikfragaSok.jsx`,
+`KlinisktStod.jsx`, `BESLUTSLOGG.md` 2026-09-08): korrekt, ersättningstexten är oförändrad
+mot `JURIDISK-GRANSKNING.md` § 6.4, och källantalet stämmer nu mot `GODKANDA_KALLDOMANER`
+(sju).
+
+**Skärmbild av `/kliniskt-stod` tillagd** (`synappsen-web/verktyg/skarmbilder.spec.mjs`),
+ersätter den tidigare `/administration`-substitutionen. Bilden (`app-rutiner.png`, samma
+plats i `index.html`) visar klinikstöd-sökningen med källhänvisningstexten synlig men
+**tom och oskickad** – sökningen anropar en extern källa (Google Programmable Search +
+Vertex AI) som varken emulatorn eller bildtagningen har åtkomst till, och ett riktigt
+sökresultat ska aldrig hårdkodas i en marknadsbild. Alt-text och bildtext omskrivna för att
+beskriva den faktiska bilden (verifierad visuellt, inte antagen).
+
+**Röstbyte "vi" → "jag"** (`produkt/VARUMARKE.md` §8) genomfört i `index.html` och
+`underlag.html` – de två filer öppna punkten pekade ut. Genomgånget rad för rad: två
+kvarvarande "vi"-förekomster i `index.html` (rubriken "vet vi att alla har läst..." och
+"Ni sa, vi gjorde") är **medvetet lämnade** – de återger kundens/personalens egna röst, inte
+Synappsens, och skulle ha blivit fel om de bytts. `integritet.html` (policydokument, ett
+tiotal "vi") **rördes inte** – låg utanför den öppna punktens uttalade filscope och var inte
+en del av den här begäran. Raden borttagen ur `OPPNA-PUNKTER.md`.
+
+Fullt testsvep: `npm run lint`, `npx vitest run` (607 tester), `npm run build` – alla gröna.
 
 ## Uppföljning 2026-09-08 (firebase-tools bumpat till `^15.29.0` – två fel hittade, ett var falskt)
 
@@ -346,40 +372,3 @@ exponerar den öppna Brevo-bristen och interna sökvägar. Sex sidor ska avgömm
 två.
 
 ---
-## Uppföljning 2026-09-06 (AI-integrationens risker kartlagda – 8 fynd, ingen kod ändrad än)
-
-Ägaren frågade rakt ut vilka risker som finns i hur AI faktiskt är integrerad i Synappsen –
-personuppgifter, hallucination, MDR-gränsen – direkt efter att Vertex AI-migreringen
-deployats och verifierats (se sektionen nedan). En läsning av samtliga sex AI-anropsställen
-gav åtta namngivna fynd, skrivna ned i `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`
-tillsammans med en prioritetsordning. **Ingen kod ändrades i den här sessionen** – ägaren bad
-uttryckligen om att dokumentera och komma ihåg dem för framtida arbete, ett fynd i taget med
-egen testtäckning, inte ett samlat svep.
-
-**Allvarligast (fynd 1):** `tolkaDokument` skickar en uppladdad bild till Vertex AI FÖRE
-`innehallerPersonnummer()` körs på resultatet – kontrollen skyddar Firestore mot lagring, inte
-själva överföringen till underbiträdet. Bilduppladdningsflödet saknar dessutom helt den
-namnvarning som redan finns för formulärtext (`kontrolleraPatientuppgifter` i
-`src/utils/piiFilter.js`).
-
-**Övriga fynd, kort:** (2) uppladdade råfoton raderas aldrig, bara vid kontoavetablering –
-GDPR-lagringsminimering, med bieffekten att andra än uppladdaren sannolikt inte kan se
-originalbilden bakom ett AI-utkast; (3) `klinikfrageloggar`/`klinikfragecache` har ingen
-faktisk gallring; (4) klinikstödets sex regler är mätta (`ai-evaluering.yml`, fyra körningar),
-men kviss- och stegförslagens liknande regler är det INTE – och en kvissfråga är ett facit
-(`rättIndex`), inte en sökträff, så en hallucinerad dos där väger tyngre; (5) artikel
-50-märkningen ("AI-tolkat ursprung") finns bara för rutinens ursprung, inte för AI-genererad
-kviss/steg; (6) bildtolkningens fritextfält (särskilt `komIhagFlaggor`) tas rakt av utan
-efterkontroll, mildrat men inte löst av utkastsgranskningen (löses av fynd 2:s fix); (7) ingen
-logg över VILKA anrop som gjorts till Google, vilket `avtal/INCIDENTRESPONSPLAN.md` avsnitt
-5.1 förutsätter finns; (8) budgeten återbetalas inte vid ett misslyckat anrop.
-
-**Vad som redan är starkt, för balansens skull:** EU-region verifierad genom faktiska anrop,
-ingen fristående API-nyckel, budgettak per organisation och användare, klinikstödets
-källbegränsning i två oberoende lager, allt AI-innehåll blir ett utkast som kräver mänskligt
-godkännande, promptinjektionens strukturella väg stängd, säkerhetsreglerna mätta i stället för
-antagna. Fynden ovan är förfiningar av ett redan relativt försvarat system, inte tecken på att
-grunden är svag.
-
-**Spårning:** varje fynd har en egen rad i `OPPNA-PUNKTER.md` under "Tio minuter", i samma
-prioritetsordning som dokumentet. Dokument nr 75, registrerat i `DOKUMENTREGISTER.md`.
