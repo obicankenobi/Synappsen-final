@@ -5474,3 +5474,46 @@ grunden är svag.
 
 **Spårning:** varje fynd har en egen rad i `OPPNA-PUNKTER.md` under "Tio minuter", i samma
 prioritetsordning som dokumentet. Dokument nr 75, registrerat i `DOKUMENTREGISTER.md`.
+
+## Uppföljning 2026-09-06 (webbplatsens bevislucka – skärmbilder, publicerat underlag, räknade tal)
+
+**Utgångspunkt:** en genomgång av `synappsen-web/index.html` mot `produkt/VARUMARKE.md` och
+`produkt/GRAFISK-PROFIL.md` pekade ut sidans svagaste punkt som en **bevislucka**: 2 300 ord
+och 33 funktionsrubriker, men noll skärmbilder, noll läsbara dokument och en rad i sidfoten om
+att underlaget "lämnas på begäran". `VARUMARKE.md` §1 säger att vallgraven ÄR underlaget, och
+att skillnaden mot en konkurrent är inbjudan *"här är underlaget, kontrollera själv"* – den
+inbjudan skickade sidan aldrig. Ägaren bad om tre åtgärder, plus att löftet om en demomiljö
+skulle strykas.
+
+**1. Skärmbilder i stället för attrapper.** Hjältesektionens sökruta var handritad HTML, och
+felstavad: markupen `Urin<mark>kad</mark>eter` renderade **"Urinkadeter"**, medan bildtexten
+under och attrappens egen `aria-label` stavade "urinkateter" rätt – en klinisk term stavad fel
+i det första en vårdanställd läsare ser. Fyra bilder fotograferas nu ur den körande appen med
+demodata (`synappsen-web/verktyg/demodata.mjs`, `skarmbilder.spec.mjs`,
+`skarmbilder.config.mjs` – egen Playwright-konfiguration, medvetet utanför CI, eftersom
+marknadsbilder inte ska kunna göra bygget rött).
+
+**2. Underlaget publicerat.** Ny `underlag.html`, plus tre sidor som **genereras** ur
+markdownkällorna av `verktyg/bygg-underlag.mjs`: tillgänglighetsredogörelsen,
+underbiträdesförteckningen och IT-faktabladet. Handkopiering hade blivit projektets sjunde
+driftfall; nu jämför `webbplats.test.js` den committade sidan med generatorns utdata och failar
+vid drift. PUB-avtalsmallen och DPIA-underlaget stannar bakom en förfrågan – se
+`BESLUTSLOGG.md`, där gränsen mellan "Extern = ja" och "publikt" också är utskriven.
+
+**3. Räknade tal i stället för adjektiv.** Sidan anger nu 404 behörighetstester, 185
+isoleringstester och 9 säkerhetsgenomgångar, räknade ur källan och bundna av fyra nya
+assertioner i `dokumentpastaenden.test.js`.
+
+**Fynd som inte gick att åtgärda härifrån:** `/kliniskt-stod` går inte att fotografera, eftersom
+`KlinisktStod.jsx:11` säger "triageringsstöd" och `KlinikfragaSok.jsx:92` säger "Beslutsstöd" –
+de två ord `webbplats.test.js` förbjuder på sidan. Bristen är känd sedan tidigare
+(`PRODUKTDEFINITION` § 9.1/9.3), men konsekvensen är ny och står nu i `OPPNA-PUNKTER.md`:
+produktens mest säljbara vy är den enda som inte kan visas. Sidan säger dessutom fortfarande
+"vi" där `VARUMARKE.md` §8 kräver "jag" – egen rad i `OPPNA-PUNKTER.md`.
+
+**Kvar innan `noindex` kan tas bort:** bakgrundsstycket (P1) och namn/orgnr på policyn (fråga
+#16) som förut – och nu även en genomläsning av de tre publicerade dokumentsidorna, som
+exponerar den öppna Brevo-bristen och interna sökvägar. Sex sidor ska avgömmas samtidigt, inte
+två.
+
+---

@@ -4,11 +4,14 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (155 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (156 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-09 · **v5.139.0 i produktion**. **`firebase-tools`-bumpen
+**Senast uppdaterad:** 2026-09-10 · **v5.139.0 i produktion**. **"kviss" bytt till "quiz" i
+användarsynlig text**, och tre AI-integrationsrisker åtgärdade (Fynd 1, 2, 5 i
+`AI-INTEGRATIONSRISKER-2026-09-06.md`) plus regelhänvisningsläckan i klinikstödet, verifierad
+skarpt mot Vertex AI. Se uppföljningen 2026-09-10 nedan. **`firebase-tools`-bumpen
 (`^13.35.1` → `^15.29.0`) är DEPLOYAD** (`deploy.yml` #99, success, 2026-09-08 19:54 –
 `last-modified`-headern på `https://synappsen-final-build.web.app` matchar exakt
 hostingens release-tidsstämpel, samtliga Cloud Functions "Successful update operation").
@@ -46,8 +49,8 @@ emulatorn, vilket den inte gjort sedan v5.136.0 bröt den.
 | **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – men medvetet fortsatt `noindex, nofollow` (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket och namn/orgnr på policyn saknas fortfarande. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Ta bort `noindex` när de två kvarvarande punkterna är klara, se `OPPNA-PUNKTER.md`. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
-| **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. Ta samtidigt ägarbeslutet om "Beslutsstöd"-raden i `OPPNA-PUNKTER.md`. **Åtgärda AI-integrationsriskerna** (`granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`, 8 fynd, prioritetsordning i dokumentet – börja med fynd 1, personuppgiftskontrollen sker efter överföringen till Vertex AI). Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
-| **AI-integrationsrisker** | **Ny 2026-09-06.** Genomgång av samtliga sex AI-anropsställen efter ägarens fråga om personuppgifter/hallucination/MDR-gräns. 8 namngivna fynd, ingen kod ändrad än, prioritetsordning satt: `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`. Allvarligast (fynd 1): personuppgiftskontrollen på bilder körs EFTER överföring till Vertex AI, inte före. Spårat rad för rad i `OPPNA-PUNKTER.md` |
+| **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. **Åtgärda de kvarvarande AI-integrationsriskerna** (`granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`, fynd 3/4/7/8 – fynd 1/2/5 klara 2026-09-10). Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
+| **AI-integrationsrisker** | Genomgång av samtliga sex AI-anropsställen 2026-09-06 efter ägarens fråga om personuppgifter/hallucination/MDR-gräns, 8 namngivna fynd: `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`. **Fynd 1, 2, 5 åtgärdade 2026-09-10** (se uppföljningen nedan) – fynd 3, 4, 7, 8 kvarstår, prioritetsordning i dokumentet |
 
 ## Var du hittar saker
 
@@ -136,6 +139,40 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-10 ("kviss" -> "quiz", tre AI-integrationsrisker åtgärdade)
+
+**"kviss" bytt till "quiz" i användarsynlig text.** Bara text som faktiskt visas – frågeinnehåll
+i `src/data/kvissbank.js`/`functions/kvissfragorSeed.js`, en bekräftelsedialog, ett
+felmeddelande och en legend i `RutinFormular.jsx`. Kodidentifierare, filnamn,
+Firestore-collections (`kvissfragor`, `kvisspaket`, `kvissoverlagring`, `kvissegna`) och Cloud
+Functions-namn (`sparaGlobalKvissfraga` m.fl.) rör produktionsdata och deployade funktioner och
+lämnades medvetet oförändrade – ägarens eget vägval när frågan ställdes.
+
+**Tre öppna AI-integrationsrisker åtgärdade** (`granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`):
+
+- **Fynd 1** (allvarligast): `LaddaUpp.jsx` visar nu en patientuppgifts-påminnelse
+  (`BILDUPPLADDNING_PAMINNELSE`, `piiFilter.js`) INNAN bilden når Storage – inte bara innan den
+  skickas till Gemini. Ingen OCR i klienten, så det är per definition en påminnelse, inte en
+  detektion, med samma begränsning som den befintliga namn-varningen för text.
+- **Fynd 2**: `raderaInkommandeFoto()` (`functions/ai-import.js`) tar bort originalfotot ur
+  `inkommande/{uid}/` efter en lyckad tolkning, i stället för att låta det ligga kvar
+  permanent. Körs EFTER Firestore-sparningen så ett misslyckat försök går att köra om.
+  `bildUrl` blir en död länk – accepterat medvetet, den var redan opålitlig för de flesta
+  granskare (Fynd 6, kvarstår öppen separat).
+- **Fynd 5**: `kallaKviss`/`kallaSteg` (samma "byter aldrig ursprung"-mönster som `rutin.kalla`)
+  sätts när ett AI-förslag för quizfrågor/checklistesteg hämtas in, med badges i `RutinKort.jsx`
+  ("AI-tolkad quiz"/"AI-tolkade steg"). Nollställs bara om HELA listan tas bort manuellt, så en
+  helt nyskriven fråga inte ärver en gammal märkning.
+
+**Regelhänvisningsläckan** (modellen skrev "[Regel 4, 6]" i ett klinikstödssvar, upptäckt
+2026-09-06): regel 3 i `byggKlinikstodPrompt` utökad med ett explicit förbud mot att hänvisa
+till promptens egna regler. Kört om skarpt mot Vertex AI direkt efteråt eftersom det ändrar den
+MDR-bärande prompttexten (`ai-evaluering.yml` #5): **13 OK, 0 FEL, 0 GRANSKA**, inga
+regelhänvisningar i något av de sju svaren. Tillägg i `SAKERHETSRAPPORT.md`.
+
+Fynd 3/4/7/8 i samma granskning kvarstår öppna, se `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`s
+prioritetsordning.
 
 ## Uppföljning 2026-09-09 (webbplatstexten omskriven för att inte läsa som AI-genererad)
 
@@ -350,48 +387,5 @@ kan inte KÖRA funktionerna – dess runtime anropar `functions.config()`, bortt
 `firebase-functions` 7. Varje anrop svarar 500. Sviten blir grön (appen fångar felet), men
 e2e bevisar inte att någon Cloud Function fungerar. `firebase-tools@15` visar inte felet, men
 en bump rör verktyget som gör produktionsdeployerna och kräver ett eget beslut.
-
----
-
-## Uppföljning 2026-09-06 (webbplatsens bevislucka – skärmbilder, publicerat underlag, räknade tal)
-
-**Utgångspunkt:** en genomgång av `synappsen-web/index.html` mot `produkt/VARUMARKE.md` och
-`produkt/GRAFISK-PROFIL.md` pekade ut sidans svagaste punkt som en **bevislucka**: 2 300 ord
-och 33 funktionsrubriker, men noll skärmbilder, noll läsbara dokument och en rad i sidfoten om
-att underlaget "lämnas på begäran". `VARUMARKE.md` §1 säger att vallgraven ÄR underlaget, och
-att skillnaden mot en konkurrent är inbjudan *"här är underlaget, kontrollera själv"* – den
-inbjudan skickade sidan aldrig. Ägaren bad om tre åtgärder, plus att löftet om en demomiljö
-skulle strykas.
-
-**1. Skärmbilder i stället för attrapper.** Hjältesektionens sökruta var handritad HTML, och
-felstavad: markupen `Urin<mark>kad</mark>eter` renderade **"Urinkadeter"**, medan bildtexten
-under och attrappens egen `aria-label` stavade "urinkateter" rätt – en klinisk term stavad fel
-i det första en vårdanställd läsare ser. Fyra bilder fotograferas nu ur den körande appen med
-demodata (`synappsen-web/verktyg/demodata.mjs`, `skarmbilder.spec.mjs`,
-`skarmbilder.config.mjs` – egen Playwright-konfiguration, medvetet utanför CI, eftersom
-marknadsbilder inte ska kunna göra bygget rött).
-
-**2. Underlaget publicerat.** Ny `underlag.html`, plus tre sidor som **genereras** ur
-markdownkällorna av `verktyg/bygg-underlag.mjs`: tillgänglighetsredogörelsen,
-underbiträdesförteckningen och IT-faktabladet. Handkopiering hade blivit projektets sjunde
-driftfall; nu jämför `webbplats.test.js` den committade sidan med generatorns utdata och failar
-vid drift. PUB-avtalsmallen och DPIA-underlaget stannar bakom en förfrågan – se
-`BESLUTSLOGG.md`, där gränsen mellan "Extern = ja" och "publikt" också är utskriven.
-
-**3. Räknade tal i stället för adjektiv.** Sidan anger nu 404 behörighetstester, 185
-isoleringstester och 9 säkerhetsgenomgångar, räknade ur källan och bundna av fyra nya
-assertioner i `dokumentpastaenden.test.js`.
-
-**Fynd som inte gick att åtgärda härifrån:** `/kliniskt-stod` går inte att fotografera, eftersom
-`KlinisktStod.jsx:11` säger "triageringsstöd" och `KlinikfragaSok.jsx:92` säger "Beslutsstöd" –
-de två ord `webbplats.test.js` förbjuder på sidan. Bristen är känd sedan tidigare
-(`PRODUKTDEFINITION` § 9.1/9.3), men konsekvensen är ny och står nu i `OPPNA-PUNKTER.md`:
-produktens mest säljbara vy är den enda som inte kan visas. Sidan säger dessutom fortfarande
-"vi" där `VARUMARKE.md` §8 kräver "jag" – egen rad i `OPPNA-PUNKTER.md`.
-
-**Kvar innan `noindex` kan tas bort:** bakgrundsstycket (P1) och namn/orgnr på policyn (fråga
-#16) som förut – och nu även en genomläsning av de tre publicerade dokumentsidorna, som
-exponerar den öppna Brevo-bristen och interna sökvägar. Sex sidor ska avgömmas samtidigt, inte
-två.
 
 ---
