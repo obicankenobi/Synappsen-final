@@ -12,6 +12,11 @@ export function DialogProvider({ children }) {
   const [meddelanden, setMeddelanden] = useState([]);
   const rutaRef = useRef(null);
   const senasteFokusRef = useRef(null);
+  // Etapp 74 (WCAG 2.2.1 Justerbar tidsgräns, TILLGANGLIGHETSREDOGORELSE.md #6): ett timeout-id
+  // per meddelande, så att hover/fokus kan pausa nedräkningen och lämna den återstartad när
+  // användaren är klar – annars hinner en långsam läsare eller skärmläsare inte alltid uppfatta
+  // meddelandet innan det försvinner av sig själv.
+  const timersRef = useRef(new Map());
 
   const confirm = useCallback((text) => {
     return new Promise((resolve) => {
@@ -64,16 +69,36 @@ export function DialogProvider({ children }) {
     };
   }, [fraga]);
 
+  function startaTimer(id) {
+    const timeoutId = setTimeout(() => {
+      timersRef.current.delete(id);
+      setMeddelanden((nu) => nu.filter((m) => m.id !== id));
+    }, MEDDELANDE_VISAS_MS);
+    timersRef.current.set(id, timeoutId);
+  }
+
   const visaMeddelande = useCallback((text) => {
     const id = crypto.randomUUID();
     setMeddelanden((nu) => [...nu, { id, text }]);
-    setTimeout(() => {
-      setMeddelanden((nu) => nu.filter((m) => m.id !== id));
-    }, MEDDELANDE_VISAS_MS);
+    startaTimer(id);
   }, []);
 
   function stangMeddelande(id) {
+    clearTimeout(timersRef.current.get(id));
+    timersRef.current.delete(id);
     setMeddelanden((nu) => nu.filter((m) => m.id !== id));
+  }
+
+  // Hover ELLER tangentbordsfokus (på stäng-knappen inuti) pausar nedräkningen helt så länge
+  // pekaren/fokus ligger kvar – återstartar en full ny period när användaren lämnar/blurrar,
+  // vilket räcker för att uppfylla "justerbar" utan en egen förläng-knapp.
+  function pausaTimer(id) {
+    clearTimeout(timersRef.current.get(id));
+    timersRef.current.delete(id);
+  }
+
+  function aterupptaTimer(id) {
+    if (meddelanden.some((m) => m.id === id)) startaTimer(id);
   }
 
   return (
@@ -99,8 +124,26 @@ export function DialogProvider({ children }) {
       {meddelanden.length > 0 && (
         <div className="meddelande-stack" role="status">
           {meddelanden.map((m) => (
-            <div key={m.id} className="meddelande-ruta" onClick={() => stangMeddelande(m.id)}>
-              {m.text}
+            <div
+              key={m.id}
+              className="meddelande-ruta"
+              onMouseEnter={() => pausaTimer(m.id)}
+              onMouseLeave={() => aterupptaTimer(m.id)}
+              onFocus={() => pausaTimer(m.id)}
+              onBlur={() => aterupptaTimer(m.id)}
+            >
+              <span>{m.text}</span>
+              {/* WCAG 2.1.1/2.2.1 (TILLGANGLIGHETSREDOGORELSE.md #5/#6): en riktig knapp går att
+                  nå och aktivera med tangentbord, till skillnad från ett onClick på en <div>.
+                  Fokus på knappen pausar nedräkningen ovan precis som hover gör. */}
+              <button
+                type="button"
+                className="meddelande-ruta__stang"
+                onClick={() => stangMeddelande(m.id)}
+                aria-label="Stäng meddelande"
+              >
+                ×
+              </button>
             </div>
           ))}
         </div>
