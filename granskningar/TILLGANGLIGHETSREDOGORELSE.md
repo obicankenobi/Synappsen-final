@@ -6,7 +6,7 @@
 > markerade `[FYLL I]` nedan och kan inte härledas ur koden. Se även avsnittet
 > "Att göra före publicering" sist i dokumentet.
 
-`[FYLL I: juridiskt namn på leverantören]` står bakom Synappsen. Vi vill att så många
+`Kasper Lindqvist` står bakom Synappsen. Jag vill att så många
 som möjligt ska kunna använda tjänsten. Detta dokument beskriver hur Synappsen uppfyller
 lagen om tillgänglighet till digital offentlig service (DOS-lagen, SFS 2018:1937),
 eventuella kända brister och hur du kan rapportera problem.
@@ -18,11 +18,11 @@ eventuella kända brister och hur du kan rapportera problem.
 Synappsen är en verksamhetsapplikation som säljs till offentliga vårdgivare (regioner och
 kommuner). Det ger två skilda men sammanhängande krav:
 
-**DOS-lagen ställer kravet på kunden, inte på oss.** Lagen riktar sig till *offentliga
+**DOS-lagen ställer kravet på kunden, inte på mig.** Lagen riktar sig till *offentliga
 aktörer*. Formellt är det den upphandlande regionen eller kommunen som ansvarar för att
 publicera en tillgänglighetsredogörelse för de digitala tjänster de tillhandahåller sin
-personal – inklusive Synappsen. Som leverantör kan vi inte publicera den redogörelsen åt
-dem. Däremot är det vi som har kunskapen om produktens faktiska tillgänglighet, och utan
+personal – inklusive Synappsen. Som leverantör kan jag inte publicera den redogörelsen åt
+dem. Däremot är det jag som har kunskapen om produktens faktiska tillgänglighet, och utan
 den kan kunden inte fullgöra sin skyldighet.
 
 **Detta dokument fyller därför två funktioner:**
@@ -142,7 +142,7 @@ punkter (#4–#6, #8–#11) hanteras inom Etapp 9b i produktens utvecklingsplan 
 
 ### 2. Oskäligt betungande anpassning
 
-Vi åberopar inget undantag för oskäligt betungande anpassning.
+Jag åberopar inget undantag för oskäligt betungande anpassning.
 
 ### 3. Innehåll som inte omfattas av lagstiftningen
 
@@ -157,7 +157,7 @@ Vi åberopar inget undantag för oskäligt betungande anpassning.
 
 ---
 
-## Hur vi har testat tjänsten
+## Hur jag har testat tjänsten
 
 Den ursprungliga granskningen genomfördes **2026-07-26** som en **självskattning** av
 leverantören, med följande metoder:
@@ -186,7 +186,7 @@ sidor sedan den ursprungliga granskningen:
    (`tests/e2e/tillganglighet.spec.js`), en del av `test:e2e`/CI – skiljer den här
    omgranskningen från den ursprungliga, som var en engångsinsats utan uppföljande skydd.
 
-### Vad vi uttryckligen inte har testat
+### Vad jag uttryckligen inte har testat
 
 Detta är väsentligt för att bedöma redogörelsens tillförlitlighet:
 
@@ -218,9 +218,9 @@ beskrivs som fullt förenlig.
 Om du behöver innehåll från Synappsen som inte är tillgängligt för dig, eller stöter på
 problem som inte beskrivs här, hör av dig till oss:
 
-**E-post:** `[FYLL I: e-postadress för tillgänglighetsfrågor]`
+**E-post:** `kontakt@synappsen.se`
 
-Vi strävar efter att svara inom tre arbetsdagar.
+Jag strävar efter att svara inom 1-3 arbetsdagar.
 
 Arbetar du hos en kund som använder Synappsen kan du även vända dig till din egen
 organisations kontaktväg för tillgänglighetsfrågor, eftersom det är din arbetsgivare som är
