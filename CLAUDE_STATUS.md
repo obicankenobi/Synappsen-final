@@ -4,11 +4,13 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (156 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (157 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-10 · **v5.139.0 i produktion**. **"kviss" bytt till "quiz" i
+**Senast uppdaterad:** 2026-09-10 · **v5.139.0 i produktion**. **Samtliga kvarstående punkter i
+`TILLGANGLIGHETSREDOGORELSE.md` åtgärdade** (#4–#6, #10, #11 – ärende SYN-6 kan stängas), se
+uppföljningen längst ner nedan. **"kviss" bytt till "quiz" i
 användarsynlig text**, och tre AI-integrationsrisker åtgärdade (Fynd 1, 2, 5 i
 `AI-INTEGRATIONSRISKER-2026-09-06.md`) plus regelhänvisningsläckan i klinikstödet, verifierad
 skarpt mot Vertex AI. Se uppföljningen 2026-09-10 nedan. **`firebase-tools`-bumpen
@@ -139,6 +141,41 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-09-10 (samtliga kvarstående punkter i TILLGANGLIGHETSREDOGORELSE.md åtgärdade)
+
+Gick igenom hela dokumentet på ägarens begäran och åtgärdade samtliga fem kvarstående punkter
+i tabellen (#4–#6, #10, #11), plus en av de tre "Att göra före publicering"-punkterna:
+
+- **#4** (Anslagstavlan saknade `<h1>`): visade sig **redan rättad i koden** –
+  `src/pages/Anslagstavla.jsx` har ett ovillkorat `<h1>` sedan tidigare. Ren dokumentationsdrift,
+  rättad genom att verifiera mot faktisk kod (genomgående krav 8) i stället för att bygga om
+  något som redan fungerade.
+- **#5/#6** (bekräftelsemeddelanden): `DialogProvider.jsx` har nu en riktig
+  `<button aria-label="Stäng meddelande">` (tangentbordsbar) i stället för ett `onClick` på en
+  `<div>`, och hover/fokus pausar den 5-sekunders auto-stängningen helt tills man lämnar den.
+- **#10** (rutinformulärets etikett): innehållsfältet har nu ett fristående
+  `<label htmlFor="rutin-innehall-falt">` som pekar bara på textarean, inte på verktygsraden.
+- **#11** (emoji i rubriker): `<h1>`–`<h4>` i 85 filer fick sin ledande emoji inpackad i
+  `<span aria-hidden="true">`, mekaniskt genererat och verifierat tomt efteråt. Upptäckte i
+  samma svep att navigeringslänkarna (`BottomNav.jsx`/`Sidomeny.jsx`) redan gjorde rätt sedan
+  tidigare – bara sammanfattningen hade inte fångat det.
+- **Publicering, p. 2**: redogörelsen var redan publicerad (`synappsen-web/tillganglighet.html`)
+  men olänkad FRÅN appen. Länk tillagd i `AuthSkal.jsx` (delas av inloggning/registrering) och
+  `Hjalp.jsx`.
+
+**Medvetet inte ändrat:** den övergripande "delvis förenlig"-bedömningen. Ingen känd
+WCAG-avvikelse kvarstår, men skärmläsartestning, 400 %-förstoring, träffytor och
+användartestning med funktionsnedsättning är fortfarande otestat – att skriva "fullt förenlig"
+på det underlaget vore ett starkare påstående än det bär. De två kvarvarande `[FYLL I]`-fälten
+(juridiskt namn, e-post) kräver ägaren, se `OPPNA-PUNKTER.md`.
+
+Uppdaterade statusberoende sidoeffekter i samma svep: `OPPNA-PUNKTER.md` (raden om de fyra
+WCAG-bristerna borttagen), `saljmaterial/KOPARANALYS.md` §6.7/punkt 7, och
+`Synappsen-upphandlingssvar.html` svar D1 (CLAUDE.md:s regel om statusberoende svar).
+Testassertionen i `tests/docs/dokumentpastaenden.test.js` som band ihop redogörelsens
+sammanfattning och tabell uppdaterad för att hantera "noll kvarstående brister" utan att tvinga
+fram ett påstått fel.
 
 ## Uppföljning 2026-09-10 ("kviss" -> "quiz", tre AI-integrationsrisker åtgärdade)
 
@@ -358,34 +395,3 @@ session innan PR #23 är mergad**, annars dubbleras arbetet eller uppstår en me
 **Ingen kod ändrad i den här uppföljningen** – bara dokumentation och tracking, som ägaren
 uttryckligen bad om. Ändrade filer: `OPPNA-PUNKTER.md` (två rader utökade/tillagda),
 `.claude/skills/synappsen-release/SKILL.md` (varningsrad), `CLAUDE_STATUS.md`.
-
-## Uppföljning 2026-09-07 (e2e-blockeraren fixad – och den dolde en verklig WCAG-brist)
-
-**Utgångspunkt:** hela e2e-sviten hade varit röd på default-grenen sedan v5.136.0 (Etapp L1j),
-utan att det uppmärksammats. Fjorton rökprovstester föll med
-`Failed to load resource: net::ERR_CONNECTION_REFUSED` på var och en av de 24 rutterna.
-
-**Orsak:** `AuthContext.jsx:110` anropar Cloud Function-en `rapporteraAppVersion` på
-inloggningsvägen sedan Etapp L1j. `test:e2e` startade bara `auth,firestore,storage` – ett
-medvetet val från Etapp 45b, då `/leverantor` var den enda sidan som anropade en funktion.
-Det slutade stämma i samma sekund L1j byggdes, och eftersom rökprovet samlar konsolfel per
-rutt syntes raden på allihop.
-
-**Åtgärd:** `functions` tillagt i `test:e2e`. Fjorton av fjorton rökprovstester gröna.
-
-**Vad det avslöjade:** med emulatorn igång föll i stället fyra axe-tester, alla på
-`/leverantor`. `LeverantorLayout.jsx` renderade sitt laddningsläge och sitt "saknar
-behörighet"-läge som `<div class="sida">` utan `<main>` – den globala hoppa-till-innehåll-
-länken pekade alltså mot ett `#huvudinnehall` som inte fanns. Samma felklass som punkt 13 i
-`granskningar/TILLGANGLIGHETSREDOGORELSE.md`, fast i två TILLSTÅND i stället för på två
-sidor. Bristen var verklig också i produktion; den var bara osynlig för axe eftersom
-laddningsläget passerade på millisekunder när anslutningen vägrades direkt. Rättad och
-införd som punkt 18 i redogörelsen.
-
-**Kvarstående fynd, fört till `OPPNA-PUNKTER.md`:** functions-emulatorn i `firebase-tools` 13
-kan inte KÖRA funktionerna – dess runtime anropar `functions.config()`, borttaget i
-`firebase-functions` 7. Varje anrop svarar 500. Sviten blir grön (appen fångar felet), men
-e2e bevisar inte att någon Cloud Function fungerar. `firebase-tools@15` visar inte felet, men
-en bump rör verktyget som gör produktionsdeployerna och kräver ett eget beslut.
-
----
