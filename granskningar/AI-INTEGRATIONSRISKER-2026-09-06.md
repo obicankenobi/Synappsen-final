@@ -53,6 +53,12 @@ den skickas till Gemini – Storage-uppladdningen är i sig en lagring). Löser 
 OCR-fri detektion är heltäckande), men flyttar den enda existerande spärren till rätt sida av
 överföringen.
 
+**Åtgärdat 2026-09-10.** `src/pages/LaddaUpp.jsx` visar nu `BILDUPPLADDNING_PAMINNELSE`
+(`src/utils/piiFilter.js`) som en confirm-dialog INNAN `laddaUppInkommandeFoto` anropas – alltså
+före Storage-uppladdningen, inte bara före Gemini-anropet. Kan per definition inte vara en
+automatisk detektion (ingen OCR i klienten), utan är – precis som `hittaMisstankaNamn` – en
+påminnelse, med samma uttryckliga begränsning. Testtäckt i `src/utils/piiFilter.test.js`.
+
 ---
 
 ## Fynd 2 — Uppladdade råfoton raderas aldrig
@@ -74,6 +80,14 @@ ett tecken på att bilden inte behöver ligga kvar där den ligger.
 utkastet sparats (eller sätt en Cloud Storage-livscykelregel, t.ex. 24 timmar, som en enklare
 första version). Löser retention-frågan och gör den trasiga länken irrelevant, snarare än att
 patcha behörigheten till en bild som ändå inte ska finnas kvar.
+
+**Åtgärdat 2026-09-10.** `raderaInkommandeFoto()` (`functions/ai-import.js`) körs efter att
+utkastet sparats i Firestore, i både `tolkaForradsbild` och `tolkaDokument`. Körs EFTER
+sparningen (inte före) så att ett misslyckat tolkningsförsök går att köra om mot samma foto. Ett
+raderingsfel loggas men kastar aldrig – utkastet är redan sparat, och att låtsas att hela
+anropet misslyckades vore fel. Följdeffekten att `bildUrl` blir en död länk accepteras
+medvetet, enligt förslaget ovan (den var redan opålitlig för de flesta granskare, se Fynd 6,
+som kvarstår öppen).
 
 ---
 
@@ -141,6 +155,14 @@ någonstans i det färdiga innehållet.
 
 **Föreslagen åtgärd:** ett litet `kallaKviss`/`kallaSteg`-fält (samma mönster som `rutin.kalla`)
 satt när förslaget accepteras oförändrat, och en motsvarande badge där kvissen/checklistan visas.
+
+**Åtgärdat 2026-09-10.** `RutinFormular.jsx` sätter `kallaKviss`/`kallaSteg` till `"gemini"` när
+ett AI-förslag hämtas in, med samma "byter aldrig ursprung"-princip som `rutin.kalla` – en
+efterföljande redaktörsändring av enskilda frågor/steg räknas fortfarande som AI-ursprung.
+Nollställs bara om HELA listan tas bort (annars hade en helt nyskriven fråga ärvt en gammal
+märkning). `RutinKort.jsx` visar "AI-tolkad quiz"/"AI-tolkade steg"-badges enligt samma mönster
+som den befintliga. Ingen `firestore.rules`-ändring behövdes – `rutiner`-collectionen har (se
+Fynd 9.2 i `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md`) ingen fältnivå-spärr.
 
 ---
 
@@ -218,14 +240,13 @@ båda försöken i den befintliga 503-retryn uttömts), symmetriskt med hur rese
 Rangordnad efter hur mycket verklig risk varje åtgärd faktiskt flyttar, inte efter hur lätt den
 är att göra:
 
-1. **Fynd 1** – flytta/komplettera personuppgiftskontrollen till INNAN överföring, lägg en
-   namnvarning i bilduppladdningsflödet.
-2. **Fynd 2** – radera råfoton efter lyckad tolkning (löser även bieffekten i Fynd 6).
-3. **Fynd 4** – utöka `ai-evaluering.yml` med fall för kviss- och stegförslagen.
-4. **Fynd 5** – artikel 50-märkning för AI-genererad kviss/steg.
-5. **Fynd 3** – gallring av `klinikfrageloggar`/`klinikfragecache`.
-6. **Fynd 7** – minimal anropslogg (utan innehåll).
-7. **Fynd 8** – återbetala budget vid misslyckat anrop.
+1. **Fynd 1** – ✅ Åtgärdat 2026-09-10.
+2. **Fynd 2** – ✅ Åtgärdat 2026-09-10.
+3. **Fynd 4** – utöka `ai-evaluering.yml` med fall för kviss- och stegförslagen. Kvarstår.
+4. **Fynd 5** – ✅ Åtgärdat 2026-09-10.
+5. **Fynd 3** – gallring av `klinikfrageloggar`/`klinikfragecache`. Kvarstår.
+6. **Fynd 7** – minimal anropslogg (utan innehåll). Kvarstår.
+7. **Fynd 8** – återbetala budget vid misslyckat anrop. Kvarstår.
 
 **Varje åtgärd ska göras för sig, med ett eget regressionstest som bevisligen failar mot koden
 före ändringen** – samma disciplin som `granskningar/SAKERHETSGRANSKNING-2026-08.md` etablerade.
