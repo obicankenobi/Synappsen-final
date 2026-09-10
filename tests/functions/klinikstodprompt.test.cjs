@@ -124,6 +124,17 @@ async function main() {
     vantaSig(prompt.includes("[1], [2]"), "instruktionen om källhänvisningsformat saknas");
   });
 
+  // Fynd: ai-evaluering.yml körning #1 fångade att modellen skrev "[Regel 4, 6]" mitt i ett
+  // svar – en hänvisning som ser ut som en källhänvisning men pekar på PROMPTENS EGNA regler,
+  // inte på en sökträff. Går inte att slå upp för läsaren, och avslöjar promptens interna
+  // struktur. Se OPPNA-PUNKTER.md/granskningar/SAKERHETSRAPPORT.md för bakgrunden.
+  await test("regel 3: förbudet mot att hänvisa till reglerna själva står kvar", () => {
+    vantaSig(
+      /ALDRIG en hänvisning som\s+pekar på en regel/i.test(prompt),
+      "förbudet mot regelhänvisningar (t.ex. \"[Regel 4]\") saknas"
+    );
+  });
+
   await test("frågan och samtliga träffar bäddas in numrerade", () => {
     vantaSig(prompt.includes('Fråga: "behandling vid hyperkalemi"'), "användarens fråga saknas");
     vantaSig(prompt.includes("[1] Hyperkalemi – behandling"), "träff 1 saknas eller är onumrerad");
