@@ -42,6 +42,15 @@ export default function AuthSkal({ rubrik, undertext, children, foten }) {
           {undertext && <p className="auth__undertext">{undertext}</p>}
           {children}
           {foten}
+          {/* Etapp 74 (granskningar/TILLGANGLIGHETSREDOGORELSE.md, "Att göra före publicering"
+              p. 2): redogörelsen fanns publicerad på marknadswebbplatsen sedan tidigare, men
+              ingenstans länkad FRÅN appen – varken hjälpsidan eller inloggningssidan, som
+              dokumentet självt pekar ut som lämpligast. */}
+          <p className="auth__tillganglighet">
+            <a href="https://synappsen.se/tillganglighet.html" target="_blank" rel="noreferrer">
+              Tillgänglighetsredogörelse
+            </a>
+          </p>
         </div>
       </main>
     </div>

@@ -810,6 +810,12 @@ select:focus {
   color: var(--text-svag);
 }
 
+.auth__tillganglighet {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--text-svag);
+}
+
 .knapp {
   padding: 12px 20px;
   border: none;

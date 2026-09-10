@@ -6,7 +6,7 @@ export default function Hjalp() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>❓ Hjälp</h1>
+      <h1><span aria-hidden="true">❓</span> Hjälp</h1>
       <p className="sida__beskrivning">
         En snabb guide till hur Synappsen fungerar, samt svar på vanliga frågor.
       </p>
@@ -100,6 +100,18 @@ export default function Hjalp() {
           <p>
             Rutiner ska granskas regelbundet. Flaggan visas när det gått lång tid sedan rutinen
             senast markerades som granskad av en behörig redaktör.
+          </p>
+        </details>
+
+        <details>
+          <summary>Hur tillgänglig är Synappsen för mig som använder tangentbord eller skärmläsare?</summary>
+          <p>
+            Läs vår{" "}
+            <a href="https://synappsen.se/tillganglighet.html" target="_blank" rel="noreferrer">
+              tillgänglighetsredogörelse
+            </a>{" "}
+            – den beskriver vad som är kontrollerat, kända kvarstående brister och hur du
+            rapporterar ett problem.
           </p>
         </details>
       </section>
