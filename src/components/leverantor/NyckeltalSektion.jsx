@@ -27,7 +27,7 @@ export default function NyckeltalSektion({ organisationer, sokkvot, antalSignale
 
   return (
     <section className="admin-sektion nyckeltal">
-      <h2>📊 Överblick</h2>
+      <h2><span aria-hidden="true">📊</span> Överblick</h2>
       <div className="nyckeltal__rad">
         <button
           type="button"

@@ -111,7 +111,7 @@ export default function Skiftrapport() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>🛠️ Skiftrapport</h1>
+      <h1><span aria-hidden="true">🛠️</span> Skiftrapport</h1>
       <p className="sida__beskrivning">
         Praktisk drift-information mellan skift – t.ex. "vattenläcka i taket", "slut på
         sutur-set" eller "hiss 2 ur funktion". Poster äldre än 48 timmar döljs automatiskt.

@@ -32,7 +32,7 @@ export default function Godkannanden() {
     return (
       <div className="sida">
         <Link to="/">← Hem</Link>
-        <h1>✅ Godkännanden</h1>
+        <h1><span aria-hidden="true">✅</span> Godkännanden</h1>
         <p className="sida__beskrivning">Inget väntar på granskning just nu.</p>
       </div>
     );
@@ -41,7 +41,7 @@ export default function Godkannanden() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>✅ Godkännanden ({antal})</h1>
+      <h1><span aria-hidden="true">✅</span> Godkännanden ({antal})</h1>
       <p className="sida__beskrivning">
         Allt som väntar på dig, oavsett område – samma godkännande/borttagning som i respektive
         sektion.

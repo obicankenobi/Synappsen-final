@@ -25,7 +25,7 @@ export default function Akutlage() {
     // förbi ett hopp till innehållet borde spela störst roll.
     <main id="huvudinnehall" className="akutlage" tabIndex={-1}>
       <header className="akutlage__header">
-        <h1>🚨 Akutläge</h1>
+        <h1><span aria-hidden="true">🚨</span> Akutläge</h1>
         <Link to="/" className="akutlage__stang">
           ✕ Stäng
         </Link>
@@ -40,7 +40,7 @@ export default function Akutlage() {
 
       {akutnummer.length > 0 && (
         <section className="akutlage__sektion">
-          <h2>☎️ Larmnummer</h2>
+          <h2><span aria-hidden="true">☎️</span> Larmnummer</h2>
           <ul className="akutlage__nummerlista">
             {akutnummer.map((k) => (
               <li key={k.id} className="akutlage__nummerrad">
@@ -56,7 +56,7 @@ export default function Akutlage() {
 
       {rutiner.length > 0 && (
         <section className="akutlage__sektion">
-          <h2>🩺 Tidskritiska rutiner</h2>
+          <h2><span aria-hidden="true">🩺</span> Tidskritiska rutiner</h2>
           <ul className="akutlage__rutinlista">
             {rutiner.map((r) => (
               <li key={r.id} className="akutlage__rutin">

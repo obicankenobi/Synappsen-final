@@ -34,7 +34,7 @@ export default function KioskPinSektion() {
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>🖥️ Kioskläge – PIN-kod</h2></summary>
+      <summary><h2><span aria-hidden="true">🖥️</span> Kioskläge – PIN-kod</h2></summary>
       <p className="sida__beskrivning">
         PIN-koden krävs för att lämna kioskläget på en delad enhet (t.ex. en foajé-platta) och
         gå till den vanliga inloggningen. Skapa själva kiosk-kontot via "Bjud in kollega" ovan

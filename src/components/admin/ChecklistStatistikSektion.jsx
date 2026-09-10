@@ -48,7 +48,7 @@ export default function ChecklistStatistikSektion() {
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>☑️ Checklistanvändning</h2></summary>
+      <summary><h2><span aria-hidden="true">☑️</span> Checklistanvändning</h2></summary>
       <p className="sida__beskrivning">
         Aggregerad, personkopplingsfri statistik per rutin – ingen patientkoppling, ingen
         körningslogg (se SAKERHETSRAPPORT.md).

@@ -63,7 +63,7 @@ export default function TvaFaktorSektion({ currentUser }) {
 
   return (
     <section className="profil-sektion">
-      <h2>🔐 Tvåfaktorsautentisering</h2>
+      <h2><span aria-hidden="true">🔐</span> Tvåfaktorsautentisering</h2>
 
       {meddelande && (
         <p className={meddelande.typ === "ok" ? "profil-meddelande--ok" : "profil-meddelande--fel"}>

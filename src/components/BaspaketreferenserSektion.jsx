@@ -60,7 +60,7 @@ export default function BaspaketreferenserSektion() {
 
   return (
     <section className="admin-sektion">
-      <h2>📚 Baspaket – nationella referenser (Etapp 64, under juridisk granskning)</h2>
+      <h2><span aria-hidden="true">📚</span> Baspaket – nationella referenser (Etapp 64, under juridisk granskning)</h2>
       <p className="leverantor__varning">
         ⚠️ Inte byggd färdig och INTE synlig eller aktiverbar för någon kund. Det här är
         scaffolding under den externa juridiska bedömningen (MDR + upphovsrätt) – fyll bara i

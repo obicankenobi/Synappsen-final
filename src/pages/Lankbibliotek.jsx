@@ -38,7 +38,7 @@ export default function Lankbibliotek() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>🔗 Länkbibliotek</h1>
+      <h1><span aria-hidden="true">🔗</span> Länkbibliotek</h1>
       <p className="sida__beskrivning">Externa resurser – FASS, Internetmedicin, regionala PM med mera.</p>
 
       {farHantera && !visaFormular && (

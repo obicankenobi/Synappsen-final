@@ -20,7 +20,7 @@ export default function KomIgangChecklista() {
 
   return (
     <section className="kom-igang" aria-label="Kom igång-checklista">
-      <h2>🚀 Kom igång</h2>
+      <h2><span aria-hidden="true">🚀</span> Kom igång</h2>
       <p className="kom-igang__status">
         {antalKlara} av {totalt} steg klara
       </p>

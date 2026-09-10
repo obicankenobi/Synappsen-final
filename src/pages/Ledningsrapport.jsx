@@ -146,7 +146,7 @@ export default function Ledningsrapport() {
 
       {kallvarningar.length > 0 && (
         <section className="admin-sektion">
-          <h2>⚠️ Obesvarade källvarningar ({kallvarningar.length})</h2>
+          <h2><span aria-hidden="true">⚠️</span> Obesvarade källvarningar ({kallvarningar.length})</h2>
           <p className="sida__beskrivning">
             Rutiner vars externa referens har ändrats sedan senaste granskningen (Etapp 21).
           </p>

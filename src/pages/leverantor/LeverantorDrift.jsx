@@ -18,7 +18,7 @@ export default function LeverantorDrift() {
 
   return (
     <div className="sida sida--bred">
-      <h1>🚨 Drift & incident</h1>
+      <h1><span aria-hidden="true">🚨</span> Drift & incident</h1>
 
       <EpostNodstoppSektion epostAvstangd={epostAvstangd} onAndrad={setEpostAvstangd} onFel={setFel} />
 

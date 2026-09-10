@@ -59,7 +59,7 @@ export default function Logistik() {
 
   return (
     <div className="sida">
-      <h1>📦 Logistik</h1>
+      <h1><span aria-hidden="true">📦</span> Logistik</h1>
       <p className="sida__beskrivning">
         Välj ett förråd för att se vilka artiklar som finns och var de förvaras.
       </p>
@@ -74,7 +74,7 @@ export default function Logistik() {
 
       {farHantera && oppna.length > 0 && (
         <section className="admin-sektion">
-          <h2>⚠️ Öppna bristanmälningar ({oppna.length})</h2>
+          <h2><span aria-hidden="true">⚠️</span> Öppna bristanmälningar ({oppna.length})</h2>
           <ul className="admin-lista">
             {oppna.map((b) => (
               <li key={b.id} className="admin-lista__rad">

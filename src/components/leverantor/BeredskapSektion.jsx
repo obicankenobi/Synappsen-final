@@ -73,7 +73,7 @@ export default function BeredskapSektion({ organisationer, onFel }) {
 
   return (
     <section className="admin-sektion">
-      <h2>🚨 Beredskapskontroll</h2>
+      <h2><span aria-hidden="true">🚨</span> Beredskapskontroll</h2>
 
       <div className="admin-beroendetest">
         <h3>Delad infrastruktur (alla kunder)</h3>

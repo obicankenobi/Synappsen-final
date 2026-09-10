@@ -12,7 +12,7 @@ export default function EkonomiOversiktSektion({ organisationer }) {
 
   return (
     <section className="admin-sektion">
-      <h2>💰 Ekonomisk överblick</h2>
+      <h2><span aria-hidden="true">💰</span> Ekonomisk överblick</h2>
       <p className="sida__beskrivning">
         Underlag, inte ett ekonomisystem – ingen fakturering eller bokföringsintegration.
       </p>

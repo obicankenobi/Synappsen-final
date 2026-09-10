@@ -88,7 +88,7 @@ export default function LeverantorLayout() {
     return (
       <main className="sida" id="huvudinnehall" tabIndex={-1}>
         <Link to="/">← Hem</Link>
-        <h1>🏢 Leverantörsvy</h1>
+        <h1><span aria-hidden="true">🏢</span> Leverantörsvy</h1>
         <p>Laddar...</p>
       </main>
     );
@@ -98,7 +98,7 @@ export default function LeverantorLayout() {
     return (
       <main className="sida" id="huvudinnehall" tabIndex={-1}>
         <Link to="/">← Hem</Link>
-        <h1>🏢 Leverantörsvy</h1>
+        <h1><span aria-hidden="true">🏢</span> Leverantörsvy</h1>
         <p className="sida__beskrivning">Den här vyn kräver leverantörsadmin-åtkomst, som du inte har.</p>
         <p className="sida__beskrivning">
           Om ingen leverantörsadmin finns alls än kan en befintlig superadmin bootstrappa sig

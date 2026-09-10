@@ -37,7 +37,7 @@ export default function AktivaSupportfonsterSektion({ organisationer, onFel }) {
 
   return (
     <section className="admin-sektion">
-      <h2>🔓 Aktiva supportfönster ({aktiva.length})</h2>
+      <h2><span aria-hidden="true">🔓</span> Aktiva supportfönster ({aktiva.length})</h2>
       <ul className="admin-lista admin-lista--vertikal">
         {aktiva.map((org) => (
           <li key={org.orgId} className="admin-feedback-rad">

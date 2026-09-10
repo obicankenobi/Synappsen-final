@@ -36,7 +36,7 @@ export default function Anslagstavla() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>📢 Anslagstavla</h1>
+      <h1><span aria-hidden="true">📢</span> Anslagstavla</h1>
       <p className="sida__beskrivning">Meddelanden och information från ledningen.</p>
 
       {farHantera && !visaFormular && (

@@ -46,7 +46,7 @@ export default function Kontakter() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>☎️ Kontaktlista</h1>
+      <h1><span aria-hidden="true">☎️</span> Kontaktlista</h1>
       <p className="sida__beskrivning">
         Interna och externa telefonnummer. Tryck på ett nummer för att ringa direkt.
       </p>

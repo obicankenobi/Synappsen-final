@@ -50,7 +50,7 @@ export default function PersonalpulsResultatSektion({ endastOmrade }) {
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>💬 Personalpulsen</h2></summary>
+      <summary><h2><span aria-hidden="true">💬</span> Personalpulsen</h2></summary>
       <p className="sida__beskrivning">
         Anonym, aggregerad – aldrig ett enskilt svar. Ett kvartal med färre än{" "}
         {MINSTA_ANTAL_SVAR} svar visas inte alls, även om siffran finns lagrad (krav 14).

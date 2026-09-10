@@ -54,7 +54,7 @@ export default function RaderaOrganisationSektion() {
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar admin-sektion--farlig">
-      <summary><h2>🗑️ Radera organisationen permanent</h2></summary>
+      <summary><h2><span aria-hidden="true">🗑️</span> Radera organisationen permanent</h2></summary>
       {fel && <p className="klinikfraga__fel">Kunde inte läsa status just nu.</p>}
 
       {raderingSchemalagdTill && (

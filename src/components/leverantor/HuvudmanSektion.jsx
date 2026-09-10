@@ -13,7 +13,7 @@ export default function HuvudmanSektion({ organisationer }) {
 
   return (
     <section className="admin-sektion">
-      <h2>🏛️ Huvudmän</h2>
+      <h2><span aria-hidden="true">🏛️</span> Huvudmän</h2>
       <p className="sida__beskrivning">
         Grupperar organisationer som delar samma huvudman (t.ex. samma sjukhus med flera
         enheter). Rent visuellt – varje organisation är fortfarande en egen, fullt isolerad

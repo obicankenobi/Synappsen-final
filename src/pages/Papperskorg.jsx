@@ -20,7 +20,7 @@ export default function Papperskorg() {
       <div className="sida">
         <Link to="/">← Hem</Link>
         {/* Etapp 45c: en sida helt utan rubrik gav axe-core: page-has-heading-one. */}
-        <h1>🗑️ Papperskorg</h1>
+        <h1><span aria-hidden="true">🗑️</span> Papperskorg</h1>
         <p className="sida__beskrivning">Du har inte behörighet att se papperskorgen.</p>
       </div>
     );
@@ -37,7 +37,7 @@ export default function Papperskorg() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>🗑️ Papperskorg</h1>
+      <h1><span aria-hidden="true">🗑️</span> Papperskorg</h1>
       <p className="sida__beskrivning">
         Borttaget innehåll hamnar här och kan återställas. Permanent radering går inte att ångra.
       </p>

@@ -101,7 +101,7 @@ function ForslagRad({ f, onInfor, onAvvisa }) {
 export default function ForslagSektion({ forslag, onInfor, onAvvisa }) {
   return (
     <section className="forslag-sektion">
-      <h2>✏️ {forslag.length} förslag väntar på granskning</h2>
+      <h2><span aria-hidden="true">✏️</span> {forslag.length} förslag väntar på granskning</h2>
       <ul className="forslag-sektion__lista">
         {forslag.map((f) => (
           <ForslagRad key={f.id} f={f} onInfor={onInfor} onAvvisa={onAvvisa} />

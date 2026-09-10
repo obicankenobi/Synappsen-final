@@ -41,7 +41,7 @@ export default function NodstoppsoversiktSektion({ epostAvstangd, onFel }) {
 
   return (
     <section className="admin-sektion">
-      <h2>🛑 Nödstoppsöversikt</h2>
+      <h2><span aria-hidden="true">🛑</span> Nödstoppsöversikt</h2>
       <dl className="kund-lista">
         <div>
           <dt>Utgående e-post</dt>

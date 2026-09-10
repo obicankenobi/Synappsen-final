@@ -3,7 +3,7 @@ import { formateraDatum } from "../../utils/datum";
 export default function InaktivaKontonSektion({ inaktivaKonton }) {
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>💤 Inaktiva konton (ingen inloggning på 90 dagar)</h2></summary>
+      <summary><h2><span aria-hidden="true">💤</span> Inaktiva konton (ingen inloggning på 90 dagar)</h2></summary>
       <p className="sida__beskrivning">
         Gamla konton är en onödig attackyta – överväg att ta bort de som inte längre används.
         Konton skapade före v5.7.0 visas här tills de loggar in en första gång efter

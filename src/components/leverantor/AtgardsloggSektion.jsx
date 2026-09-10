@@ -29,7 +29,7 @@ export default function AtgardsloggSektion({ organisationer, onFel }) {
 
   return (
     <section className="admin-sektion">
-      <h2>📜 Åtgärdslogg</h2>
+      <h2><span aria-hidden="true">📜</span> Åtgärdslogg</h2>
       <p className="sida__beskrivning">
         Dina egna åtgärder mot kundorganisationer, senaste först. Operativt minne och
         egenkontroll – "vad har jag rört den senaste veckan?". Varje post finns redan i

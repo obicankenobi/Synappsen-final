@@ -30,7 +30,7 @@ export default function DubbletterSektion() {
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>🔍 Möjliga dubbletter (pilot: Kliniskt stöd)</h2></summary>
+      <summary><h2><span aria-hidden="true">🔍</span> Möjliga dubbletter (pilot: Kliniskt stöd)</h2></summary>
       <p className="sida__beskrivning">
         Mekanisk likhetsjämförelse mellan godkända rutiner – en fråga att titta på, aldrig ett
         påstående. Ingenting slås ihop automatiskt. Öppna båda rutinerna och avgör själv; om de

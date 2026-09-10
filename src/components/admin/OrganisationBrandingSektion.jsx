@@ -94,7 +94,7 @@ export default function OrganisationBrandingSektion() {
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>🏷️ Vår profil</h2></summary>
+      <summary><h2><span aria-hidden="true">🏷️</span> Vår profil</h2></summary>
       <p className="sida__beskrivning">
         Logotyp, accentfärg och en kort välkomsttext som visas för alla i er organisation.
         Akutläget behåller alltid sin egen färgsättning, oavsett vad ni väljer här.

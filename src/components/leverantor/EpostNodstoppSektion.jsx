@@ -28,7 +28,7 @@ export default function EpostNodstoppSektion({ epostAvstangd, onAndrad, onFel })
 
   return (
     <section className="admin-sektion">
-      <h2>✉️ Utgående e-post</h2>
+      <h2><span aria-hidden="true">✉️</span> Utgående e-post</h2>
       <p className="sida__beskrivning">
         Sedan Etapp 53b skickas inbjudningar per e-post (utöver den kopierbara länken). Fler
         kanaler (påminnelser, månadsrapport) tillkommer i 53c–d. {epostAvstangd

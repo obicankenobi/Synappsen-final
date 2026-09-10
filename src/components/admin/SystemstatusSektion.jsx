@@ -14,7 +14,7 @@ export default function SystemstatusSektion({
 }) {
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>📊 Systemstatus</h2></summary>
+      <summary><h2><span aria-hidden="true">📊</span> Systemstatus</h2></summary>
       <div className="admin-statistik-grid">
         <p className="sida__beskrivning">
           Version <strong>{APP_VERSION}</strong>

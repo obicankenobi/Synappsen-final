@@ -12,7 +12,7 @@ const ALLVARLIGHET_IKON = {
 export default function KraverAtgardSektion({ signaler }) {
   return (
     <section className="admin-sektion krav-atgard">
-      <h2>⚠️ Kräver åtgärd ({signaler.length})</h2>
+      <h2><span aria-hidden="true">⚠️</span> Kräver åtgärd ({signaler.length})</h2>
       {signaler.length === 0 ? (
         <p className="sida__beskrivning">Inget kräver din uppmärksamhet just nu.</p>
       ) : (

@@ -5,7 +5,7 @@
 export default function LeverantorSupport() {
   return (
     <div className="sida sida--bred">
-      <h1>🎧 Support</h1>
+      <h1><span aria-hidden="true">🎧</span> Support</h1>
       <p className="sida__beskrivning">
         Supportarbetsytan (L1f) är inte byggd än. Tills vidare hanteras supportfönster i
         respektive organisations egna adminpanel.

@@ -1,7 +1,7 @@
 export default function OrganisationMigreringSektion({ hanteraMigrering, migrerar, migreringResultat }) {
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>🏢 Organisation (Etapp 1-migrering)</h2></summary>
+      <summary><h2><span aria-hidden="true">🏢</span> Organisation (Etapp 1-migrering)</h2></summary>
       <p className="sida__beskrivning">
         Engångsverktyg som sätter organisationId på allt befintligt innehåll (första steget
         mot att kunna hantera flera kunder). Kör alltid "Förhandsgranska" först och kolla att

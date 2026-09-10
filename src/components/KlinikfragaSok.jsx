@@ -59,7 +59,7 @@ export default function KlinikfragaSok() {
   if (PAUSAD) {
     return (
       <section className="klinikfraga">
-        <h2>🔍 Klinikstöd-sökning</h2>
+        <h2><span aria-hidden="true">🔍</span> Klinikstöd-sökning</h2>
         <p className="klinikfraga__hjalptext">
           <strong>Tillfälligt pausad.</strong> Vi kunde inte få den att pålitligt hålla sig till
           enbart godkända medicinska källor, så den är avstängd tills det är löst – för att inte
@@ -73,7 +73,7 @@ export default function KlinikfragaSok() {
   if (featuresLaddade && !hasFeature(FEATURE.CLINICAL_SUPPORT)) {
     return (
       <section className="klinikfraga">
-        <h2>🔍 Klinikstöd-sökning</h2>
+        <h2><span aria-hidden="true">🔍</span> Klinikstöd-sökning</h2>
         <p className="klinikfraga__hjalptext">
           Klinikstöd-sökning kräver Intelligence-modulen, som inte är aktiverad för din
           organisation. Kontakta en superadmin om ni vill aktivera den.
@@ -84,7 +84,7 @@ export default function KlinikfragaSok() {
 
   return (
     <section className="klinikfraga">
-      <h2>🔍 Klinikstöd-sökning</h2>
+      <h2><span aria-hidden="true">🔍</span> Klinikstöd-sökning</h2>
       <p className="klinikfraga__hjalptext">
         Ställ en generell fråga om sjukdomstillstånd, läkemedel eller behandling. Gemini söker
         upp aktuell information live och svarar bara utifrån internetmedicin.se, 1177.se,

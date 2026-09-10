@@ -151,7 +151,7 @@ export default function KommandopalettInnehall({ onStang }) {
           <div className="kommandopalett__forslag">
             {favoritPoster.length > 0 && (
               <section>
-                <h3>⭐ Favoriter</h3>
+                <h3><span aria-hidden="true">⭐</span> Favoriter</h3>
                 <ul className="kommandopalett__resultat" role="listbox">
                   {favoritPoster.map((p, i) => (
                     <li key={`favorit-${i}`} role="presentation">
@@ -171,7 +171,7 @@ export default function KommandopalettInnehall({ onStang }) {
             )}
             {senastBesokta.length > 0 && (
               <section>
-                <h3>🕓 Senast besökta</h3>
+                <h3><span aria-hidden="true">🕓</span> Senast besökta</h3>
                 <ul className="kommandopalett__resultat" role="listbox">
                   {senastBesokta.slice(0, 5).map((p, i) => (
                     <li key={`senast-${i}`} role="presentation">
@@ -185,7 +185,7 @@ export default function KommandopalettInnehall({ onStang }) {
             )}
             {populara.length > 0 && (
               <section>
-                <h3>🔥 Populärast</h3>
+                <h3><span aria-hidden="true">🔥</span> Populärast</h3>
                 <ul className="kommandopalett__resultat" role="listbox">
                   {populara.map((p) => (
                     <li key={p.id} role="presentation">

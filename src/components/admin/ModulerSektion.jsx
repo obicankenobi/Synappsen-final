@@ -1,7 +1,7 @@
 export default function ModulerSektion({ modulerLaddade, moduler, sparadModul, vaxlaModul }) {
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>🧩 Moduler</h2></summary>
+      <summary><h2><span aria-hidden="true">🧩</span> Moduler</h2></summary>
       <p className="sida__beskrivning">
         Slår av/på moduler för er organisation. Core (grundfunktionerna) är alltid
         tillgängligt. Att stänga av en modul döljer inte redan sparad data, bara

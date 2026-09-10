@@ -11,7 +11,7 @@ export default function LeverantorInnehall() {
 
   return (
     <div className="sida sida--bred">
-      <h1>📚 Innehåll</h1>
+      <h1><span aria-hidden="true">📚</span> Innehåll</h1>
       <p className="sida__beskrivning">Globalt innehåll, delat av alla organisationer.</p>
 
       <KvissbankSektion onFel={setFel} />

@@ -50,7 +50,7 @@ export default function StartvyKonfigurationSektion() {
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>🏠 Startvy per roll</h2></summary>
+      <summary><h2><span aria-hidden="true">🏠</span> Startvy per roll</h2></summary>
       <p className="sida__beskrivning">
         Ändra i vilken ordning korten på startsidan visas för en viss roll. Alla kort finns
         kvar för alla roller – det här styr bara vad som hamnar högst upp.

@@ -31,7 +31,7 @@ export default function MinaForslag() {
 
   return (
     <section className="hem__sektion mina-forslag">
-      <h2>✏️ Mina ändringsförslag</h2>
+      <h2><span aria-hidden="true">✏️</span> Mina ändringsförslag</h2>
       <ul className="mina-forslag__lista">
         {minaForslag.map((f) => (
           <li key={f.id} className="mina-forslag__rad">

@@ -136,7 +136,7 @@ export default function TillsynspaketSektion({ rutiner, anvandare, organisationI
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>📑 Tillsyns- och revisionspaket</h2></summary>
+      <summary><h2><span aria-hidden="true">📑</span> Tillsyns- och revisionspaket</h2></summary>
       <p className="sida__beskrivning">
         Ett exportpaket som i ett steg producerar de handlingar en IVO- eller
         certifieringsrevisor typiskt efterfrågar: rutinbestånd med ägare, giltighet och

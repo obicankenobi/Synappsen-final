@@ -30,7 +30,7 @@ export default function Personalpuls() {
   if (redanBesvarad || tack) {
     return (
       <section className="admin-sektion personalpuls">
-        <h2>💬 Personalpulsen</h2>
+        <h2><span aria-hidden="true">💬</span> Personalpulsen</h2>
         <p className="sida__beskrivning">Tack, du har redan svarat för det här kvartalet ({kvartal}).</p>
       </section>
     );
@@ -63,7 +63,7 @@ export default function Personalpuls() {
 
   return (
     <section className="admin-sektion personalpuls">
-      <h2>💬 Personalpulsen ({kvartal})</h2>
+      <h2><span aria-hidden="true">💬</span> Personalpulsen ({kvartal})</h2>
       <p className="sida__beskrivning">
         Tre snabba frågor, helt anonymt – inget enskilt svar sparas, bara ett sammanlagt
         resultat för ditt område. Tar under 30 sekunder.

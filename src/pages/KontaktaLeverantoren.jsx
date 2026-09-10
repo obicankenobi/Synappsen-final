@@ -42,7 +42,7 @@ export default function KontaktaLeverantoren() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>📮 Kontakta Synappsen</h1>
+      <h1><span aria-hidden="true">📮</span> Kontakta Synappsen</h1>
       <p className="sida__beskrivning">
         <strong>Det här går till Synappsen (leverantören av appen) – inte till din
         organisations admin.</strong> Vill du i stället nå din egen organisations superadmin,

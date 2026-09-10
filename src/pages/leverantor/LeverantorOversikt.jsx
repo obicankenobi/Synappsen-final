@@ -12,7 +12,7 @@ export default function LeverantorOversikt() {
 
   return (
     <div className="sida sida--bred">
-      <h1>📊 Översikt</h1>
+      <h1><span aria-hidden="true">📊</span> Översikt</h1>
       <p className="sida__beskrivning">Vad som kräver din uppmärksamhet, och det övergripande läget just nu.</p>
 
       <NyckeltalSektion

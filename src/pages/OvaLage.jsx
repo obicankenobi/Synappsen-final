@@ -90,7 +90,7 @@ export default function OvaLage() {
 
     return (
       <div className="sida sida--ova-lage">
-        <h1>🎓 Öva</h1>
+        <h1><span aria-hidden="true">🎓</span> Öva</h1>
         <p className="sida__beskrivning">
           Ett kort övningspass med slumpade frågor. Inget svar sparas eller visas för någon
           annan – det här är bara till för dig.
@@ -176,7 +176,7 @@ export default function OvaLage() {
   if (fragor.length === 0 || index >= fragor.length) {
     return (
       <div className="sida sida--ova-lage">
-        <h1>✅ Bra jobbat</h1>
+        <h1><span aria-hidden="true">✅</span> Bra jobbat</h1>
         <p className="sida__beskrivning">Övningspasset är klart.</p>
         <div className="ova-lage__slutknappar">
           <button type="button" className="knapp" onClick={() => setFragor(null)}>
@@ -197,7 +197,7 @@ export default function OvaLage() {
   return (
     <div className="sida sida--ova-lage">
       <div className="ova-lage__header">
-        <h1>🎓 Öva</h1>
+        <h1><span aria-hidden="true">🎓</span> Öva</h1>
         <button type="button" className="knapp--lank" onClick={avslutaPass}>
           Avsluta passet
         </button>

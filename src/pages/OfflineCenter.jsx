@@ -24,7 +24,7 @@ export default function OfflineCenter() {
     return (
       <div className="sida">
         <Link to="/">← Hem</Link>
-        <h1>📥 Offline-center</h1>
+        <h1><span aria-hidden="true">📥</span> Offline-center</h1>
         <div className="offline-center__kraver-modul">
           <p>Offline-center kräver Operations-modulen, som inte är aktiverad för din organisation.</p>
           <p>Kontakta en superadmin om ni vill aktivera den.</p>
@@ -38,7 +38,7 @@ export default function OfflineCenter() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>📥 Offline-center</h1>
+      <h1><span aria-hidden="true">📥</span> Offline-center</h1>
       <p className="sida__beskrivning">
         Ladda ner godkända rutiner, kontakter och förrådsartiklar så att de går att läsa även
         utan internetanslutning (t.ex. vid nätverksbortfall på avdelningen). Sökning och nya

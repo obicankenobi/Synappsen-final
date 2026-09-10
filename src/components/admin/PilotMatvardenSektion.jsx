@@ -7,7 +7,7 @@ export default function PilotMatvardenSektion({
 }) {
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>📈 Pilot-mätvärden</h2></summary>
+      <summary><h2><span aria-hidden="true">📈</span> Pilot-mätvärden</h2></summary>
       <p className="sida__beskrivning">
         Sammanställning inför/under en pilot (Etapp 4): vilka Operations/Intelligence-
         funktioner som faktiskt värderas och hur väl information når fram.

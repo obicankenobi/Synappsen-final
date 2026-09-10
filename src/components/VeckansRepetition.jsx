@@ -72,7 +72,7 @@ export default function VeckansRepetition() {
 
   return (
     <section className="admin-sektion veckans-repetition">
-      <h2>🔁 Veckans repetition</h2>
+      <h2><span aria-hidden="true">🔁</span> Veckans repetition</h2>
       <p className="sida__beskrivning">
         Om <Link to={`${OMRADE_ROUTE[rutin.omrade] ?? "/"}#rutin-${rutin.id}`}>{rutin.titel}</Link> – frivilligt,
         30 sekunder.

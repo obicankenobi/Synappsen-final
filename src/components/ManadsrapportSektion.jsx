@@ -61,7 +61,7 @@ export default function ManadsrapportSektion() {
 
   return (
     <section className="admin-sektion">
-      <h2>📊 Månadsrapport</h2>
+      <h2><span aria-hidden="true">📊</span> Månadsrapport</h2>
       <p className="sida__beskrivning">
         Faktureringsunderlag per organisation för innevarande månad: aktiva användare, antal
         rutiner, AI-kostnad/AI-anrop (uppskattat) och lagringsvolym.

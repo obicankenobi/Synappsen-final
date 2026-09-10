@@ -45,7 +45,7 @@ export default function Feedback() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>💬 Feedback</h1>
+      <h1><span aria-hidden="true">💬</span> Feedback</h1>
       <p className="sida__beskrivning">
         Har du ett förslag eller hittat ett problem? Skriv det här.{" "}
         <strong>Det här går till DIN ORGANISATIONS EGEN superadmin – inte till Synappsen

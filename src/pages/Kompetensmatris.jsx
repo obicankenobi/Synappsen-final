@@ -99,7 +99,7 @@ export default function Kompetensmatris() {
         {/* Etapp 45c: <h1> flyttad ut ur minaRader.length > 0-villkoret – en tom lista
             gav tidigare en sida helt utan rubrik (axe-core: page-has-heading-one), inte
             bara ett tomt-läge utan rubrik som resten av appen konsekvent undviker. */}
-        <h1>📋 Min kompetensstatus</h1>
+        <h1><span aria-hidden="true">📋</span> Min kompetensstatus</h1>
         {minaRader.length > 0 ? (
           <ul className="admin-lista">
             {minaRader.map((r, i) => (
@@ -119,7 +119,7 @@ export default function Kompetensmatris() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>📋 Kompetensmatris</h1>
+      <h1><span aria-hidden="true">📋</span> Kompetensmatris</h1>
       <p className="sida__beskrivning">
         Obligatoriska rutiner per roll, med status per person. Röd/gul = behöver
         (om)kvitteras. Kvittering med väsentlig ändring nollställer status automatiskt.

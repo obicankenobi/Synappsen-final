@@ -71,7 +71,7 @@ export default function AvtalOchAtagandeSektion({ org, onFel }) {
 
   return (
     <div className="leverantor__diagnostik">
-      <h3>⚖️ Avtal & åtaganden</h3>
+      <h3><span aria-hidden="true">⚖️</span> Avtal & åtaganden</h3>
 
       <p className="sida__beskrivning">
         PUB-avtal (art. 28.3):{" "}

@@ -32,7 +32,7 @@ export default function DemomiljoSektion({ onNollstallt, onFel }) {
 
   return (
     <section className="admin-sektion">
-      <h2>🎓 Demo- och övningsmiljö</h2>
+      <h2><span aria-hidden="true">🎓</span> Demo- och övningsmiljö</h2>
       <p className="sida__beskrivning">
         En egen organisation ("_demo") med fiktivt exempelinnehåll – aldrig en riktig kund,
         aldrig i faktureringsunderlaget. Nollställs automatiskt varje natt 04:00. Fyll i en

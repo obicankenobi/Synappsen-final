@@ -171,7 +171,7 @@ export default function Korvy() {
   if (klart) {
     return (
       <main id="huvudinnehall" className="korvy" tabIndex={-1}>
-        <h1>✅ Klar</h1>
+        <h1><span aria-hidden="true">✅</span> Klar</h1>
         <p>Checklistan för "{rutin.titel}" är genomförd.</p>
         <Link to="/" className="korvy__knapp">
           Till startsidan

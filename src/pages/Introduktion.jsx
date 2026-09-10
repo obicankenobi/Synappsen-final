@@ -225,7 +225,7 @@ export default function Introduktion() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>🎓 Introduktion</h1>
+      <h1><span aria-hidden="true">🎓</span> Introduktion</h1>
 
       {minTilldelning && mittSpar && minProgress && (
         <section className="admin-sektion">

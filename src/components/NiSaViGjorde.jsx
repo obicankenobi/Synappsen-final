@@ -14,7 +14,7 @@ export default function NiSaViGjorde() {
 
   return (
     <section className="ni-sa-vi-gjorde">
-      <h2>💡 Ni sa, vi gjorde</h2>
+      <h2><span aria-hidden="true">💡</span> Ni sa, vi gjorde</h2>
       <p className="sida__beskrivning">
         Ändringsförslag från personalen som faktiskt införts i rutinerna.
       </p>

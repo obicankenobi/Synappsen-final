@@ -150,7 +150,7 @@ export default function OvningsfragorSektion() {
   if (laddar) {
     return (
       <details className="admin-sektion admin-sektion--hopfallbar">
-        <summary><h2>🎓 Övningsfrågor</h2></summary>
+        <summary><h2><span aria-hidden="true">🎓</span> Övningsfrågor</h2></summary>
         <p>Laddar...</p>
       </details>
     );
@@ -158,7 +158,7 @@ export default function OvningsfragorSektion() {
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>🎓 Övningsfrågor</h2></summary>
+      <summary><h2><span aria-hidden="true">🎓</span> Övningsfrågor</h2></summary>
       <p className="sida__beskrivning">
         Styr vad som visas i Öva-läget. Inget svar från övningarna sparas någonstans – varken
         för den som övar eller för er som chefer. Att stänga av ett paket döljer det för alla i

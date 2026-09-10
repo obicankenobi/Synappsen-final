@@ -38,7 +38,7 @@ export default function LeverantorsfeedbackSektion({ organisationer, onFel }) {
 
   return (
     <section className="admin-sektion">
-      <h2>📮 Meddelanden till Synappsen {antalOlasta > 0 && `(${antalOlasta} olästa)`}</h2>
+      <h2><span aria-hidden="true">📮</span> Meddelanden till Synappsen {antalOlasta > 0 && `(${antalOlasta} olästa)`}</h2>
       <p className="sida__beskrivning">
         Skickade via kundernas egen "Kontakta Synappsen"-sida – en EGEN kanal, skild från
         kundernas interna feedback (som leverantören aldrig ser).

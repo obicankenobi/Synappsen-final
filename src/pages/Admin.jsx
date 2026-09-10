@@ -646,7 +646,7 @@ export default function Admin() {
 
       {arSuperadmin && (
         <details className="admin-sektion admin-sektion--hopfallbar">
-          <summary><h2>✉️ Bjud in kollega</h2></summary>
+          <summary><h2><span aria-hidden="true">✉️</span> Bjud in kollega</h2></summary>
           <p className="sida__beskrivning">
             Registrering kräver numera en inbjudan. Skapa en länk för en specifik
             e-postadress och roll – den kan bara lösas in av den adressen och slutar gälla

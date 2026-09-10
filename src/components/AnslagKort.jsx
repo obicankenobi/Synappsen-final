@@ -23,8 +23,8 @@ export default function AnslagKort({ anslag, farHantera, anvandare = [], onRedig
     >
       <header className="anslag-kort__header">
         <h3>
-          {anslag.fastNaglad && "📌 "}
-          {arViktigt && "⚠️ "}
+          {anslag.fastNaglad && <span aria-hidden="true">📌 </span>}
+          {arViktigt && <span aria-hidden="true">⚠️ </span>}
           {anslag.titel}
         </h3>
         <span className="anslag-kort__datum">{formateraDatum(anslag.skapad)}</span>

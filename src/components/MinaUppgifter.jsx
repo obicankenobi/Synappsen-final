@@ -97,7 +97,7 @@ export default function MinaUppgifter() {
 
   return (
     <section className="hem__sektion">
-      <h2>✅ Mina uppgifter</h2>
+      <h2><span aria-hidden="true">✅</span> Mina uppgifter</h2>
       <ul className="hem__lista">
         {uppgifter.map((u, i) => (
           <li key={i}>

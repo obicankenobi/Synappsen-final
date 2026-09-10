@@ -88,7 +88,7 @@ export default function AterstallningSektion({ organisationer, onFel }) {
 
   return (
     <section className="admin-sektion">
-      <h2>♻️ Backup och återställning</h2>
+      <h2><span aria-hidden="true">♻️</span> Backup och återställning</h2>
       <p className="sida__beskrivning">
         Välj en kund för att se sparade backuper, ta en ny, eller återställa från en tidigare.
       </p>

@@ -12,7 +12,7 @@ export default function VeckopulsSektion({ utgangnaRutiner, oppnaForslag, oppnaS
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar" open>
-      <summary><h2>📋 Veckopuls – vad är värt att göra först</h2></summary>
+      <summary><h2><span aria-hidden="true">📋</span> Veckopuls – vad är värt att göra först</h2></summary>
       <p className="sida__beskrivning">
         De tre vanligaste sakerna som väntar på en redaktör, sorterade efter angelägenhet.
         Inget nytt mätvärde – bara det som redan samlas in någon annanstans i panelen, samlat.

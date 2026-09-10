@@ -93,7 +93,7 @@ export default function SupportatkomstSektion() {
     <details className="admin-sektion admin-sektion--hopfallbar" open={vantandeBegaran.length > 0 || aktiv}>
       <summary>
         <h2>
-          🔓 Tillfällig supportåtkomst
+          <span aria-hidden="true">🔓</span> Tillfällig supportåtkomst
           {vantandeBegaran.length > 0 && ` (${vantandeBegaran.length} väntar på svar)`}
         </h2>
       </summary>

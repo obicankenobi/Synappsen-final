@@ -7,7 +7,7 @@ export default function LeverantorEkonomi() {
 
   return (
     <div className="sida sida--bred">
-      <h1>💰 Ekonomi</h1>
+      <h1><span aria-hidden="true">💰</span> Ekonomi</h1>
 
       <EkonomiOversiktSektion organisationer={organisationer} />
 

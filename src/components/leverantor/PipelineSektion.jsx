@@ -15,7 +15,7 @@ export default function PipelineSektion({ organisationer }) {
 
   return (
     <section className="admin-sektion pipeline">
-      <h2>🧭 Pipeline</h2>
+      <h2><span aria-hidden="true">🧭</span> Pipeline</h2>
       <p className="sida__beskrivning">Var varje organisation står i avtalslivscykeln, och hur länge.</p>
       <div className="pipeline__grupper">
         {grupper.map(({ status, organisationer: orgs }) => (

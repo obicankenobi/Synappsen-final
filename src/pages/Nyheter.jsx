@@ -8,7 +8,7 @@ export default function Nyheter() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>🆕 Nyheter</h1>
+      <h1><span aria-hidden="true">🆕</span> Nyheter</h1>
       <p className="sida__beskrivning">
         Aktuell version: <strong>{APP_VERSION}</strong>. Här listas vad som ändrats i varje
         uppdatering av Synappsen.

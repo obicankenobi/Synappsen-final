@@ -17,7 +17,7 @@ export default function KlinikstodAnvandningSektion({
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>💬 Klinikstöd – hur används det?</h2></summary>
+      <summary><h2><span aria-hidden="true">💬</span> Klinikstöd – hur används det?</h2></summary>
       {klinikHjalpsamAndel !== null && (
         <p className="sida__beskrivning">
           {klinikHjalpsamAndel}% av {klinikfeedback.length} besvarade "var detta

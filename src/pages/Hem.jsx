@@ -103,7 +103,7 @@ export default function Hem() {
 
       {favoritPoster.length > 0 && (
         <section className="hem__sektion">
-          <h2>⭐ Mina favoriter</h2>
+          <h2><span aria-hidden="true">⭐</span> Mina favoriter</h2>
           <ul className="hem__lista">
             {favoritPoster.map((p, i) => (
               <li key={i}>
@@ -119,7 +119,7 @@ export default function Hem() {
       <div className="hem__sektion-rad">
         {senastBesokta.length > 0 && (
           <section className="hem__sektion">
-            <h2>🕓 Senast besökta</h2>
+            <h2><span aria-hidden="true">🕓</span> Senast besökta</h2>
             <ul className="hem__lista">
               {senastBesokta.map((p) => (
                 <li key={p.id}>
@@ -132,7 +132,7 @@ export default function Hem() {
 
         {populara.length > 0 && (
           <section className="hem__sektion">
-            <h2>🔥 Mest använda</h2>
+            <h2><span aria-hidden="true">🔥</span> Mest använda</h2>
             <ul className="hem__lista">
               {populara.map((p) => (
                 <li key={p.id}>

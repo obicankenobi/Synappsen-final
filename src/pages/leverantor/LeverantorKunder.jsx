@@ -61,7 +61,7 @@ export default function LeverantorKunder() {
 
   return (
     <div className="sida sida--bred">
-      <h1>🏢 Kunder</h1>
+      <h1><span aria-hidden="true">🏢</span> Kunder</h1>
       <p className="sida__beskrivning">
         Alla kundorganisationer – moduler, antal användare och senaste avslutade månadens
         AI-kostnad.

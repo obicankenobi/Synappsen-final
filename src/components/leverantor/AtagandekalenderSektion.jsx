@@ -41,7 +41,7 @@ export default function AtagandekalenderSektion({ atagandekalender, laddar, onFe
 
   return (
     <section className="admin-sektion atagandekalender">
-      <h2>📅 Åtagandekalender</h2>
+      <h2><span aria-hidden="true">📅</span> Åtagandekalender</h2>
       <p className="sida__beskrivning">
         Återkommande skyldigheter – nyckelrotation, RTO-mätning och planöversyner. Ett förfallet
         åtagande syns även under "Kräver åtgärd" ovan.

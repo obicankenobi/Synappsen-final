@@ -37,7 +37,7 @@ export default function IncidentberedskapSektion() {
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>🚨 Incidentberedskap</h2></summary>
+      <summary><h2><span aria-hidden="true">🚨</span> Incidentberedskap</h2></summary>
       <p className="sida__beskrivning">
         Snabb status på det incidentchecklistan annars skulle kräva att du letar i
         Firebase-konsolen mitt under en stressad situation.

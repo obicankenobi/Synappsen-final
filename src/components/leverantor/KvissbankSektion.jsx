@@ -82,7 +82,7 @@ export default function KvissbankSektion({ onFel }) {
 
   return (
     <section className="admin-sektion">
-      <h2>🎓 Övningsfrågor (global bank)</h2>
+      <h2><span aria-hidden="true">🎓</span> Övningsfrågor (global bank)</h2>
       <p className="sida__beskrivning">
         Frågorna här visas för alla kunder som inte stängt av paketet. En kund som skrivit om en
         fråga behåller sin version – övriga får din ändring automatiskt.

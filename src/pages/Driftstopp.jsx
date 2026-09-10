@@ -21,7 +21,7 @@ export default function Driftstopp() {
     // ingen BottomNav.
     <main id="huvudinnehall" className="driftstopp" tabIndex={-1}>
       <header className="driftstopp__header">
-        <h1>🔌 Driftstopp — IT-avbrott</h1>
+        <h1><span aria-hidden="true">🔌</span> Driftstopp — IT-avbrott</h1>
         <Link to="/" className="driftstopp__stang">
           ✕ Stäng
         </Link>
@@ -47,7 +47,7 @@ export default function Driftstopp() {
 
       {rutiner.length > 0 && (
         <section className="driftstopp__sektion">
-          <h2>🩺 Reservrutiner vid IT-avbrott</h2>
+          <h2><span aria-hidden="true">🩺</span> Reservrutiner vid IT-avbrott</h2>
           <ul className="driftstopp__rutinlista">
             {rutiner.map((r) => (
               <li key={r.id} className="driftstopp__rutin">

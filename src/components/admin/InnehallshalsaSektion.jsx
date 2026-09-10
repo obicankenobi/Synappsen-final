@@ -180,7 +180,7 @@ export default function InnehallshalsaSektion({ endastOmrade }) {
 
   return (
     <details className="admin-sektion admin-sektion--hopfallbar">
-      <summary><h2>🩺 Innehållshälsa{endastOmrade ? ` – ${OMRADE_NAMN[endastOmrade]}` : ""}</h2></summary>
+      <summary><h2><span aria-hidden="true">🩺</span> Innehållshälsa{endastOmrade ? ` – ${OMRADE_NAMN[endastOmrade]}` : ""}</h2></summary>
       <p className="sida__beskrivning">
         Hur aktuella de godkända rutinerna är – sammanställt av data som redan finns, ingen ny
         insamling.

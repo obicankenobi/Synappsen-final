@@ -199,7 +199,7 @@ function PushNotisSektion({ uid, role, pushTokens, pushInstallningar }) {
 
   return (
     <section className="profil-sektion">
-      <h2>🔔 Push-notiser</h2>
+      <h2><span aria-hidden="true">🔔</span> Push-notiser</h2>
       <p className="sida__beskrivning">
         Få en påminnelse på den här enheten även när appen inte är öppen. Innehåller aldrig
         kliniskt innehåll eller fritext – bara en generisk rad som "Det finns en ny rutin att
@@ -265,7 +265,7 @@ function EpostPaminnelseSektion({ uid, role, epostInstallningar }) {
 
   return (
     <section className="profil-sektion">
-      <h2>✉️ E-postpåminnelser</h2>
+      <h2><span aria-hidden="true">✉️</span> E-postpåminnelser</h2>
       <p className="sida__beskrivning">
         Ett anslag som väntar på din kvittering, eller ett ändringsförslag som väntat över en
         vecka på ditt område – sammanslaget till högst ett mejl per dag, aldrig ett per
@@ -349,7 +349,7 @@ export default function Profil() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>👤 Min profil</h1>
+      <h1><span aria-hidden="true">👤</span> Min profil</h1>
 
       <section className="profil-sektion">
         <p>
@@ -366,7 +366,7 @@ export default function Profil() {
       </section>
 
       <section className="profil-sektion">
-        <h2>👤 Namn och bild</h2>
+        <h2><span aria-hidden="true">👤</span> Namn och bild</h2>
         {namnLaddat ? (
           <>
             <ProfilbildFormular uid={currentUser.uid} aktuellBildUrl={profilbildUrl} />
@@ -422,14 +422,14 @@ export default function Profil() {
       <EpostPaminnelseSektion uid={currentUser.uid} role={role} epostInstallningar={epostInstallningar} />
 
       <section className="profil-sektion">
-        <h2>🎨 Utseende</h2>
+        <h2><span aria-hidden="true">🎨</span> Utseende</h2>
         <TemaVaxlare />
         <p className="profil-utseende__etikett">Accentfärg</p>
         <AccentValjare />
       </section>
 
       <section className="profil-sektion">
-        <h2>🔗 Genvägar på startsidan</h2>
+        <h2><span aria-hidden="true">🔗</span> Genvägar på startsidan</h2>
         <p className="sida__beskrivning">Välj vilka snabblänkar som visas överst på startsidan.</p>
         <div className="profil-snabblankar">
           {ALLA_SNABBLANKAR.map((s) => (
@@ -446,7 +446,7 @@ export default function Profil() {
       </section>
 
       <section className="profil-sektion">
-        <h2>⭐ Mina favoriter</h2>
+        <h2><span aria-hidden="true">⭐</span> Mina favoriter</h2>
         {favoritPoster.length === 0 && (
           <p className="sida__beskrivning">
             Inga favoriter ännu – tryck på stjärnan ⭐ på en rutin eller en förrådsartikel för

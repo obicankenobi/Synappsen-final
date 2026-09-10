@@ -26,7 +26,7 @@ export default function SedanForraPasset() {
   return (
     <div className="sida">
       <Link to="/">← Hem</Link>
-      <h1>🕑 Sedan ditt förra pass</h1>
+      <h1><span aria-hidden="true">🕑</span> Sedan ditt förra pass</h1>
       <p className="sida__beskrivning">
         {sedan?.toDate
           ? `Sammanställning sedan din förra inloggning, ${sedan.toDate().toLocaleString("sv-SE")}.`

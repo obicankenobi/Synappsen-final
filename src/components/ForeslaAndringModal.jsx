@@ -35,7 +35,7 @@ export default function ForeslaAndringModal({ forvaldMarkeratStycke, onSkicka, o
   return (
     <div className="foresla-andring-modal__bakgrund" role="dialog" aria-modal="true" aria-label="Föreslå ändring">
       <form className="foresla-andring-modal" onSubmit={hanteraSkicka}>
-        <h3>✏️ Föreslå ändring</h3>
+        <h3><span aria-hidden="true">✏️</span> Föreslå ändring</h3>
         <p className="sida__beskrivning">
           Ditt förslag skickas till redaktören för granskning – det publiceras aldrig
           automatiskt.
