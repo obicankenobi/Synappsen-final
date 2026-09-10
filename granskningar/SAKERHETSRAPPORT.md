@@ -769,3 +769,16 @@ Svarstiderna låg på 2,3–10,1 sekunder, med god marginal till `fragaKlinisktS
 **Kostnad:** ett tjugotal anrop över tre körningar, ören. **Ingen kunddata, ingen sökmotorkvot
 och ingen kundbudget berördes** – utvärderingen använder fasta syntetiska källträffar och
 anropar modellen direkt, förbi hela `onCall`-lagret.
+
+## Tillägg (2026-09-10): regelhänvisningsläckan åtgärdad, omkörd skarpt – ren
+
+Observation 1 ovan ("[Regel 4, 6]" i svaret) åtgärdades genom att utöka regel 3 i
+`byggKlinikstodPrompt` (`functions/klinikstod.js`) med ett explicit förbud mot att hänvisa till
+promptens egna regler – en hänvisning får bara peka på ett sökträffsnummer. Additivt, ändrar
+ingen befintlig regel.
+
+Eftersom ändringen rör den MDR-bärande prompttexten kördes `ai-evaluering.yml` om skarpt mot
+Vertex AI direkt efter (körning #5, 2026-09-10): **13 OK, 0 FEL, 0 GRANSKA.** Samtliga sju svar
+granskade manuellt i loggen – ingen hänvisning till en regel förekommer i något av dem, bara
+numrerade källhänvisningar ([1]/[2]/[3]). Observation 2 (svarsvariation mellan körningar)
+kvarstår som en generell egenskap hos verktyget, inte ett fel att åtgärda.
