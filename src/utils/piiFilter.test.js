@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { hittaPersonnummer, hittaMisstankaNamn } from "./piiFilter";
+import { hittaPersonnummer, hittaMisstankaNamn, BILDUPPLADDNING_PAMINNELSE } from "./piiFilter";
 
 describe("hittaPersonnummer", () => {
   it("hittar ett giltigt personnummer (korrekt datum + Luhn-checksumma)", () => {
@@ -70,5 +70,16 @@ describe("hittaMisstankaNamn", () => {
 
   it("flaggar inget i text utan sådant mönster", () => {
     expect(hittaMisstankaNamn("slut på sutur-set i förråd 3")).toEqual([]);
+  });
+});
+
+describe("BILDUPPLADDNING_PAMINNELSE", () => {
+  // Fynd 1 (granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md): bilduppladdningsflödet
+  // (LaddaUpp.jsx) saknade helt en patientuppgifts-påminnelse innan bilden når Storage. Det
+  // finns ingen OCR i klienten, så den här är per definition bara en text – testet är alltså
+  // ett skydd mot att raden av misstag försvinner ur uppladdningsflödet, inte ett innehållstest.
+  it("nämner både personnummer och namn, inte bara ett av dem", () => {
+    expect(BILDUPPLADDNING_PAMINNELSE).toMatch(/personnummer/i);
+    expect(BILDUPPLADDNING_PAMINNELSE).toMatch(/namn/i);
   });
 });

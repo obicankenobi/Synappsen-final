@@ -67,6 +67,18 @@ export function hittaMisstankaNamn(text) {
 // komponent), så React-hooken useDialog() kan inte användas här utan att göra funktionen
 // async och uppdatera samtliga sju anropsställen. Låg frekvens (bara vid misstänkta namn,
 // inte varje sparning) gjorde att det inte bedömdes värt den bredare refaktoreringen nu.
+// Etapp 73a (granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md, Fynd 1): bilduppladdning kan
+// inte mönstermatchas som formulärtext ovan – det är bildinnehåll, inte text, och appen har
+// ingen OCR. Det här är alltså inte en detektion utan en påminnelse, med samma princip och
+// samma begränsning som hittaMisstankaNamn: den kompletterar utbildning/rutiner, ersätter dem
+// inte. Visas INNAN bilden laddas upp till Storage (inte bara innan den skickas till Gemini –
+// själva Storage-uppladdningen är i sig en lagring, se fyndet för resonemanget).
+export const BILDUPPLADDNING_PAMINNELSE =
+  "Kontrollera att bilden inte visar ett patientnamn, personnummer eller annan " +
+  "patientuppgift (t.ex. på en whiteboard eller anteckningslapp) innan du laddar upp den. " +
+  "Appen kan inte läsa innehållet i en bild och kan därför inte upptäcka det automatiskt." +
+  "\n\nVill du ladda upp ändå?";
+
 export function kontrolleraPatientuppgifter(text) {
   const personnummer = hittaPersonnummer(text);
   if (personnummer.length > 0) {

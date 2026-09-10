@@ -8,6 +8,7 @@ import { FORRAD } from "../firebase/forrad";
 import { useDialog } from "../hooks/useDialog";
 import { useRutiner, RUTIN_STATUS } from "../hooks/useRutiner";
 import { useForradsartiklar, ARTIKEL_STATUS } from "../hooks/useForradsartiklar";
+import { BILDUPPLADDNING_PAMINNELSE } from "../utils/piiFilter";
 import "./LaddaUpp.css";
 
 const OMRADEN = [
@@ -92,6 +93,13 @@ export default function LaddaUpp() {
       await visaMeddelande(rader.join("\n"));
     }
     if (filer.length === 0) return;
+
+    // Fynd 1 (granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md): den enda existerande
+    // patientuppgifts-påminnelsen (kontrolleraPatientuppgifter) körde bara på formulärtext,
+    // inte på bilder – och kontrollen för text kom dessutom EFTER överföringen till Vertex AI.
+    // Den här visas INNAN laddaUppInkommandeFoto nedan, alltså innan bilden överhuvudtaget når
+    // Storage (som i sig är en lagring), inte bara innan den skickas till Gemini.
+    if (!(await confirm(BILDUPPLADDNING_PAMINNELSE))) return;
 
     // Varning (inte spärr) för stora filer – på mobilnät tar en 8 MB-bild märkbar tid att
     // ladda upp, och Gemini behöver inte full upplösning för att tolka text.
