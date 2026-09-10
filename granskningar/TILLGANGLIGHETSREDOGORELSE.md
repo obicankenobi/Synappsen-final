@@ -3,9 +3,9 @@
 > **Status på detta dokument:** utkast baserat på en teknisk granskning 2026-07-26,
 > **omgranskat och uppdaterat 2026-08-04** (Etapp 45c) efter att gränssnittet byggts om i sin
 > helhet (Etapp 42–44), och **2026-09-10** då samtliga dittills kvarstående WCAG-brister (#4–#6,
-> #10, #11) åtgärdades. Tre uppgifter måste fortfarande fyllas i av leverantören innan
-> publicering – de är markerade `[FYLL I]` nedan och kan inte härledas ur koden. Se även
-> avsnittet "Att göra före publicering" sist i dokumentet.
+> #10, #11) åtgärdades och leverantörens namn och kontakt-e-post fylldes i. En sak återstår
+> innan publicering som anbudsbilaga: se avsnittet "Att göra före publicering" sist i
+> dokumentet.
 
 `Kasper Lindqvist` står bakom Synappsen. Jag vill att så många
 som möjligt ska kunna använda tjänsten. Detta dokument beskriver hur Synappsen uppfyller
@@ -38,7 +38,7 @@ i IKT), som i sin tur hänvisar till **WCAG 2.1 nivå AA**.
 
 **Om tillgänglighetsdirektivet (European Accessibility Act, lag 2023:254):** den
 lagstiftningen omfattar produkter och tjänster riktade till konsumenter. Synappsen är ett
-internt arbetsverktyg för vårdpersonal och tillhandahålls inte till konsumenter. Vi bedömer
+internt arbetsverktyg för vårdpersonal och tillhandahålls inte till konsumenter. Jag bedömer
 därför att den lagen inte är tillämplig. Bedömningen bör dock omprövas om produkten i
 framtiden erbjuds direkt till privatpersoner.
 
@@ -61,7 +61,7 @@ nedan) är nu åtgärdade i koden – se raderna för status. Kvarstår gör pun
 #8–#11, samtliga fortsatt spårade som ärende SYN-6.
 
 **Uppdatering 2026-08-04 (Etapp 45c):** en betydligt bredare automatiserad granskning
-(samtliga 27 sidor × två roller, se "Hur vi har testat tjänsten" nedan) hittade sex NYA
+(samtliga 27 sidor × två roller, se "Hur jag har testat tjänsten" nedan) hittade sex NYA
 brister – samtliga uppkomna av eller synliggjorda av gränssnittsförnyelsen (Etapp 42–44) och
 alla **åtgärdade samma dag, se #12–#17** i tabellen. Punkterna #4–#6 och #8–#11 från den
 ursprungliga granskningen kvarstår oförändrade.
@@ -79,7 +79,7 @@ avvikelse mot WCAG 2.1 nivå A/AA i den här redogörelsen.** Det är INTE detsa
 full förenlighet: automatiserad testning fångar erfarenhetsmässigt bara omkring en tredjedel
 av alla tillgänglighetsproblem, och skärmläsartestning, 400 %-förstoring, träffytor på
 pekskärm och användartestning med personer med funktionsnedsättning är fortfarande otestat
-(se "Vad vi uttryckligen inte har testat" nedan – oförändrat). Sammanfattningen ovan ("delvis
+(se "Vad jag uttryckligen inte har testat" nedan – oförändrat). Sammanfattningen ovan ("delvis
 förenlig") lämnas därför medvetet oförändrad tills en sådan testning gjorts – att skriva "fullt
 förenlig" på grundval av enbart automatiserad testning vore ett starkare påstående än
 underlaget bär, och en ärlig lucka väger tyngre än ett för starkt ord i den här sortens
@@ -148,13 +148,13 @@ Jag åberopar inget undantag för oskäligt betungande anpassning.
 ### 3. Innehåll som inte omfattas av lagstiftningen
 
 - **Användargenererat innehåll.** Rutiner, anslag, kontaktuppgifter och dokument skapas av
-  kundens egen personal. Vi tillhandahåller verktyg för att skriva strukturerat innehåll
+  kundens egen personal. Jag tillhandahåller verktyg för att skriva strukturerat innehåll
   (rubriker, listor), men kan inte garantera att enskilda dokument uppfyller kraven –
   exempelvis att uppladdade PDF-filer är taggade, eller att personalen skrivit
   alternativtext till egna bilder. Ansvaret för det egna innehållet ligger hos kunden.
 - **Innehåll från tredje part.** Det kliniska uppslagsstödet återger utdrag från externa
   källor (nationella riktlinjer och kunskapsstöd). Dessa källors egen tillgänglighet är
-  utanför vår kontroll.
+  utanför min kontroll.
 
 ---
 
@@ -217,7 +217,7 @@ beskrivs som fullt förenlig.
 ## Vad du kan göra om du inte kan använda delar av tjänsten
 
 Om du behöver innehåll från Synappsen som inte är tillgängligt för dig, eller stöter på
-problem som inte beskrivs här, hör av dig till oss:
+problem som inte beskrivs här, hör av dig till mig:
 
 **E-post:** `kontakt@synappsen.se`
 
@@ -230,20 +230,20 @@ ansvarig offentlig aktör.
 ## Tillsyn
 
 Myndigheten för digital förvaltning (DIGG) har ansvaret för tillsyn över lagen om
-tillgänglighet till digital offentlig service. Om du inte är nöjd med hur vi hanterar dina
+tillgänglighet till digital offentlig service. Om du inte är nöjd med hur jag hanterar dina
 synpunkter kan du anmäla det till DIGG: <https://www.digg.se/tdosanmalan>
 
 ---
 
 ## Att göra före publicering
 
-Detta dokument är komplett i sak men får inte publiceras som en färdig redogörelse förrän
-följande är gjort:
+Detta dokument är komplett i sak. Två av tre punkter är klara; en återstår som ett ägarbeslut:
 
-1. **Fyll i de två kvarvarande `[FYLL I]`-fälten:** leverantörens juridiska namn och en
-   e-postadress för tillgänglighetsfrågor. Det tredje fältet (måldatum för åtgärder) är inte
-   längre aktuellt – samtliga kända brister är åtgärdade 2026-09-10, se tabellen ovan.
-2. **Publicerad och länkad från appen, 2026-09-10.** Dokumentet publiceras sedan tidigare som
+1. ~~Fyll i de två `[FYLL I]`-fälten: leverantörens juridiska namn och en e-postadress för
+   tillgänglighetsfrågor.~~ **Klart 2026-09-10.** Det tredje ursprungliga fältet (måldatum för
+   åtgärder) är inte längre aktuellt – samtliga kända brister är åtgärdade 2026-09-10, se
+   tabellen ovan.
+2. ~~Publicera och länka från appen.~~ **Klart 2026-09-10.** Dokumentet publiceras som
    `synappsen-web/tillganglighet.html` (`https://synappsen.se/tillganglighet.html`, genererat
    av `synappsen-web/verktyg/bygg-underlag.mjs` – redigera aldrig den genererade sidan direkt,
    redigera det här källdokumentet och kör om skriptet). Länkad från appens hjälpsida
@@ -251,7 +251,8 @@ följande är gjort:
    båda). Sidan är fortfarande medvetet `noindex` tillsammans med webbplatsens övriga sidor
    (se `OPPNA-PUNKTER.md`), vilket bara påverkar sökmotorindexering – direkta länkar fungerar.
 3. **Bestäm om redogörelsen även ska levereras som bilaga i anbud.** Det är
-   rekommendationen – det besvarar en fråga varje offentlig upphandlare ställer.
+   rekommendationen – det besvarar en fråga varje offentlig upphandlare ställer. Detta är det
+   enda kvarstående ägarbeslutet, se `OPPNA-PUNKTER.md`.
 
 **Senast granskad och uppdaterad:** 2026-09-10 (samtliga kvarstående WCAG-brister åtgärdade)
 **Nästa översyn bör ske:** vid nästa större funktionsändring, dock senast om tolv månader.
