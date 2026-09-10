@@ -5436,3 +5436,41 @@ deployen och visade `in_progress` i över en timme efter att jobbet i själva ve
 20:04. Jag rapporterade det stale läget som pågående. Loggendpointen (404 medan jobbet kör,
 innehåll när det är klart) visade sig vara den enda tillförlitliga signalen på att en körning
 faktiskt avslutats.
+
+## Uppföljning 2026-09-06 (AI-integrationens risker kartlagda – 8 fynd, ingen kod ändrad än)
+
+Ägaren frågade rakt ut vilka risker som finns i hur AI faktiskt är integrerad i Synappsen –
+personuppgifter, hallucination, MDR-gränsen – direkt efter att Vertex AI-migreringen
+deployats och verifierats (se sektionen ovan). En läsning av samtliga sex AI-anropsställen
+gav åtta namngivna fynd, skrivna ned i `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`
+tillsammans med en prioritetsordning. **Ingen kod ändrades i den här sessionen** – ägaren bad
+uttryckligen om att dokumentera och komma ihåg dem för framtida arbete, ett fynd i taget med
+egen testtäckning, inte ett samlat svep.
+
+**Allvarligast (fynd 1):** `tolkaDokument` skickar en uppladdad bild till Vertex AI FÖRE
+`innehallerPersonnummer()` körs på resultatet – kontrollen skyddar Firestore mot lagring, inte
+själva överföringen till underbiträdet. Bilduppladdningsflödet saknar dessutom helt den
+namnvarning som redan finns för formulärtext (`kontrolleraPatientuppgifter` i
+`src/utils/piiFilter.js`).
+
+**Övriga fynd, kort:** (2) uppladdade råfoton raderas aldrig, bara vid kontoavetablering –
+GDPR-lagringsminimering, med bieffekten att andra än uppladdaren sannolikt inte kan se
+originalbilden bakom ett AI-utkast; (3) `klinikfrageloggar`/`klinikfragecache` har ingen
+faktisk gallring; (4) klinikstödets sex regler är mätta (`ai-evaluering.yml`, fyra körningar),
+men kviss- och stegförslagens liknande regler är det INTE – och en kvissfråga är ett facit
+(`rättIndex`), inte en sökträff, så en hallucinerad dos där väger tyngre; (5) artikel
+50-märkningen ("AI-tolkat ursprung") finns bara för rutinens ursprung, inte för AI-genererad
+kviss/steg; (6) bildtolkningens fritextfält (särskilt `komIhagFlaggor`) tas rakt av utan
+efterkontroll, mildrat men inte löst av utkastsgranskningen (löses av fynd 2:s fix); (7) ingen
+logg över VILKA anrop som gjorts till Google, vilket `avtal/INCIDENTRESPONSPLAN.md` avsnitt
+5.1 förutsätter finns; (8) budgeten återbetalas inte vid ett misslyckat anrop.
+
+**Vad som redan är starkt, för balansens skull:** EU-region verifierad genom faktiska anrop,
+ingen fristående API-nyckel, budgettak per organisation och användare, klinikstödets
+källbegränsning i två oberoende lager, allt AI-innehåll blir ett utkast som kräver mänskligt
+godkännande, promptinjektionens strukturella väg stängd, säkerhetsreglerna mätta i stället för
+antagna. Fynden ovan är förfiningar av ett redan relativt försvarat system, inte tecken på att
+grunden är svag.
+
+**Spårning:** varje fynd har en egen rad i `OPPNA-PUNKTER.md` under "Tio minuter", i samma
+prioritetsordning som dokumentet. Dokument nr 75, registrerat i `DOKUMENTREGISTER.md`.
