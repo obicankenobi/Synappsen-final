@@ -2,9 +2,10 @@
 
 > **Status på detta dokument:** utkast baserat på en teknisk granskning 2026-07-26,
 > **omgranskat och uppdaterat 2026-08-04** (Etapp 45c) efter att gränssnittet byggts om i sin
-> helhet (Etapp 42–44). Tre uppgifter måste fyllas i av leverantören innan publicering – de är
-> markerade `[FYLL I]` nedan och kan inte härledas ur koden. Se även avsnittet
-> "Att göra före publicering" sist i dokumentet.
+> helhet (Etapp 42–44), och **2026-09-10** då samtliga dittills kvarstående WCAG-brister (#4–#6,
+> #10, #11) åtgärdades. Tre uppgifter måste fortfarande fyllas i av leverantören innan
+> publicering – de är markerade `[FYLL I]` nedan och kan inte härledas ur koden. Se även
+> avsnittet "Att göra före publicering" sist i dokumentet.
 
 `[FYLL I: juridiskt namn på leverantören]` står bakom Synappsen. Vi vill att så många
 som möjligt ska kunna använda tjänsten. Detta dokument beskriver hur Synappsen uppfyller
@@ -68,22 +69,21 @@ ursprungliga granskningen kvarstår oförändrade.
 **Uppdatering 2026-08-23 (rättelse av sammanfattningen ovan):** raden "#4–#6 och #8–#11
 kvarstår" stämde inte längre. **#8 och #9 är åtgärdade** (Etapp 68d/68g respektive 68d, se
 tabellraderna, som var korrekta hela tiden – det var sammanfattningstexten här som låg efter).
-Faktiskt kvarstående är **#4, #5, #6 och #10**, samtliga på nivå A, plus #11 som inte är ett
-formellt kravbrott:
+Faktiskt kvarstående var **#4, #5, #6 och #10**, samtliga på nivå A, plus #11 som inte är ett
+formellt kravbrott.
 
-| # | Brist | Nivå |
-|---|---|---|
-| 4 | Anslagstavlan saknar `<h1>` | A |
-| 5 | Notiser kan bara stängas med musklick | A |
-| 6 | Notiser försvinner efter 5 s utan möjlighet att förlänga | A |
-| 10 | En etikett i rutinformuläret omsluter både verktygsrad och textfält | A |
-| 11 | Emoji i rubriker och navigeringslänkar | – (best practice) |
-
-Det är fyra små, avgränsade åtgärder – timmar, inte veckor. Det är värt att veta eftersom
-"kvarstående brister på **nivå A**" är den formulering som väger tyngst emot produkten i ett
-anbud (se `saljmaterial/kallfiler/Synappsen-upphandlingssvar.html` svar D1), och kostnaden för
-att ta bort den formuleringen helt är låg i förhållande till vad den kostar i varje
-upphandling där den står kvar.
+**Uppdatering 2026-09-10: samtliga kvarstående punkter åtgärdade.** #4 visade sig redan vara
+rättad i koden (dokumentationsdrift, se tabellraden). #5, #6, #10 och #11 åtgärdade denna dag –
+se respektive tabellrad för vad som gjordes. **Det finns just nu ingen känd kvarstående
+avvikelse mot WCAG 2.1 nivå A/AA i den här redogörelsen.** Det är INTE detsamma som bevisad
+full förenlighet: automatiserad testning fångar erfarenhetsmässigt bara omkring en tredjedel
+av alla tillgänglighetsproblem, och skärmläsartestning, 400 %-förstoring, träffytor på
+pekskärm och användartestning med personer med funktionsnedsättning är fortfarande otestat
+(se "Vad vi uttryckligen inte har testat" nedan – oförändrat). Sammanfattningen ovan ("delvis
+förenlig") lämnas därför medvetet oförändrad tills en sådan testning gjorts – att skriva "fullt
+förenlig" på grundval av enbart automatiserad testning vore ett starkare påstående än
+underlaget bär, och en ärlig lucka väger tyngre än ett för starkt ord i den här sortens
+dokument (samma princip som resten av redogörelsen bygger på).
 
 ### Vad som fungerar bra
 
@@ -119,14 +119,14 @@ Följande brister är kända och planerade att åtgärdas.
 | 1 | Ingen "hoppa till innehåll"-länk, och inget `<main>`-landmärke. Tio navigeringslänkar passeras innan huvudinnehållet nås. | 2.4.1 Hoppa över block | **A** | Tangentbords- och skärmläsaranvändare måste tabba förbi hela menyn på varje sida. | **Åtgärdat 2026-07-26** – synlig-vid-fokus "Hoppa till innehåll"-länk samt `<main id="huvudinnehall">` på samtliga skyddade sidor. |
 | 2 | Sidans titel är "Synappsen" på samtliga sidor och ändras inte vid navigering. | 2.4.2 Sidans titel | **A** | Skärmläsaranvändare får ingen bekräftelse på vilken sida de kommit till; flera öppna flikar går inte att skilja åt. | **Åtgärdat 2026-07-26** – `document.title` sätts per rutt (`useSidTitel`). |
 | 3 | Rollväljaren i adminpanelens användarlista saknar tillgängligt namn. | 4.1.2 Namn, roll, värde | **A** | Skärmläsaren läser upp menyn utan att ange vad den styr. Påverkar endast superadministratörer. | **Åtgärdat 2026-07-26** – `aria-label` med användarens namn tillagt. |
-| 4 | Anslagstavlan saknar huvudrubrik (`<h1>`). | 1.3.1 Information och relationer | **A** | Sidans syfte framgår inte vid rubriknavigering. | Kvarstår, spåras i SYN-6. |
-| 5 | Bekräftelsemeddelanden (notiser) kan bara stängas med musklick. | 2.1.1 Tangentbord | **A** | Kan inte avfärdas med tangentbord; de försvinner dock av sig själva. | Kvarstår, spåras i SYN-6. |
-| 6 | Bekräftelsemeddelanden försvinner automatiskt efter 5 sekunder utan möjlighet att förlänga. | 2.2.1 Justerbar tidsgräns | **A** | Användare som läser långsamt eller använder skärmläsare hinner kanske inte uppfatta meddelandet. | Kvarstår, spåras i SYN-6. |
+| 4 | Anslagstavlan saknar huvudrubrik (`<h1>`). | 1.3.1 Information och relationer | **A** | Sidans syfte framgår inte vid rubriknavigering. | **Redan åtgärdad i koden, upptäckt 2026-09-10.** `src/pages/Anslagstavla.jsx` har ett ovillkorat `<h1>📢 Anslagstavla</h1>` sedan tidigare – raden här hade bara aldrig uppdaterats efter att koden rättades i en senare etapp (genomgående krav 8: verifierat mot faktisk kod innan avbockning, inte antaget). |
+| 5 | Bekräftelsemeddelanden (notiser) kan bara stängas med musklick. | 2.1.1 Tangentbord | **A** | Kan inte avfärdas med tangentbord; de försvinner dock av sig själva. | **Åtgärdat 2026-09-10.** `DialogProvider.jsx` visar nu en riktig `<button aria-label="Stäng meddelande">` inuti varje meddelande, nåbar och aktiverbar med tangentbord – i stället för ett `onClick` på en `<div>`. |
+| 6 | Bekräftelsemeddelanden försvinner automatiskt efter 5 sekunder utan möjlighet att förlänga. | 2.2.1 Justerbar tidsgräns | **A** | Användare som läser långsamt eller använder skärmläsare hinner kanske inte uppfatta meddelandet. | **Åtgärdat 2026-09-10.** Hover ELLER tangentbordsfokus (på stäng-knappen, #5) pausar nedräkningen helt; den återstartar en full ny 5-sekundersperiod när pekaren/fokus lämnar meddelandet. En användare som aktivt uppmärksammar meddelandet kan alltså hålla det kvar obegränsat. |
 | 7 | Bekräftelsedialogen kan inte stängas med Esc, håller inte kvar fokus inuti sig, återlämnar inte fokus vid stängning och saknar tillgängligt namn. | 2.4.3 Fokusordning, 4.1.2 | A/AA | Skärmläsaranvändare kan hamna i bakgrundsinnehållet medan dialogen är öppen. | **Åtgärdat 2026-07-26** – Esc stänger, fokus fångas inuti dialogen (Tab-cykel), fokus återlämnas till det som var fokuserat innan, `aria-labelledby` mot frågetexten. |
 | 8 | Ramfärgen på inmatningsfält och kort (`--kant`, `#e2e8f0`) har kontrasten 1,23:1 mot vit bakgrund (kravet är 3:1). | 1.4.11 Kontrast för icke-text | **AA** | Fältgränser kan vara svåra att urskilja vid nedsatt syn eller i starkt ljus. | **ÅTGÄRDAD 2026-08-22 (Etapp 68d + 68g).** 68d höjde `--kant-stark` från 1,48:1 till 3,52:1 (ljust) respektive 1,63:1 till 3,52:1 (mörkt). 68g avgjorde återstoden. En genomgång av samtliga användningar – **117, inte 91 som tidigare stod här; den siffran var en underskattning** – delade dem i 36 faktiska kontrollgränser (`<input>`, `<select>`, `<textarea>`, verktygsknappar, val-chips) och 81 kortkanter, avdelare och ifyllnader. De 36 pekar nu på `--kant-stark` och når 3,52:1 mot kortyta i båda teman. `--kant` är MEDVETET kvar på 1,23:1: 1.4.11 kräver 3:1 av det som behövs för att identifiera en komponent, inte av dekoration, och korten identifieras av sin egen yta och skugga. Bevakas av `tests/docs/kontrastpalett.test.js`. |
 | 9 | I mörkt tema har den blå accentfärgen kontrasten 3,98:1 mot kortbakgrund (kravet är 4,5:1). | 1.4.3 Kontrast (minimum) | **AA** | Länktext i mörkt läge kan vara svårläst. Ljust tema är opåverkat. | **ÅTGÄRDAD.** Ommätt 2026-08-22 (Etapp 68d): `--primar` `#3b82f6` mot `--yta` `#131722` ger 4,87:1, alltså över kravet. Siffran 3,98:1 var stale mot en tidigare palett. Bevakas nu av `tests/docs/kontrastpalett.test.js`, som failar om den går under igen. |
-| 10 | En etikett i rutinformuläret omsluter både en verktygsrad med knappar och ett textfält. | 1.3.1 Information och relationer | **A** | Kopplingen mellan etikett och fält blir tvetydig för hjälpmedel. | Kvarstår, spåras i SYN-6. |
-| 11 | Emoji förekommer i rubriker och navigeringslänkar. | 1.3.1 (tolkning) | – | Skärmläsare läser upp emojinamn, vilket gör uppläsningen omständlig. Formellt inget krav­brott, men en reell försämring. | Kvarstår, spåras i SYN-6. |
+| 10 | En etikett i rutinformuläret omsluter både en verktygsrad med knappar och ett textfält. | 1.3.1 Information och relationer | **A** | Kopplingen mellan etikett och fält blir tvetydig för hjälpmedel. | **Åtgärdat 2026-09-10.** `RutinFormular.jsx`s innehållsfält har nu ett fristående `<label htmlFor="rutin-innehall-falt">` som pekar explicit bara på textarean – verktygsraden (åtta knappar) ligger kvar visuellt bredvid, men utanför etikettens koppling. |
+| 11 | Emoji förekommer i rubriker och navigeringslänkar. | 1.3.1 (tolkning) | – | Skärmläsare läser upp emojinamn, vilket gör uppläsningen omständlig. Formellt inget krav­brott, men en reell försämring. | **Åtgärdat 2026-09-10 för rubriker** (110 `<h1>`–`<h4>` i 84 filer, ledande emoji nu `<span aria-hidden="true">`). **Navigeringslänkarna var redan rätt** (`BottomNav.jsx`/`Sidomeny.jsx` har använt `aria-hidden="true"` på sina ikon-spans sedan tidigare) – bara sammanfattningen ovan hade inte fångat det. |
 | 12 | `/logga-in` och `/registrera` (inloggade sidors förnyelse i Etapp 13g nådde aldrig dessa två, eftersom de renderas utanför den skyddade layouten) saknade helt `<main>`-landmärke. | 1.3.1, 2.4.1 | – (bästa praxis) | Skärmläsaranvändare fick ingen strukturell startpunkt på appens första sida någon möter. | **Åtgärdat 2026-08-04** – `<main id="huvudinnehall">` tillagt i `LoggaIn.jsx`/`Registrera.jsx`. |
 | 13 | Samma brist på `/akutlage` och `/checklista/:rutinId` (Korvy) – båda renderas medvetet utanför den vanliga layouten (inget nav i akutläge/checklistläge) men fick därför aldrig ett `<main>`. | 1.3.1 | – (bästa praxis) | "Hoppa till innehåll"-länken (global, alla sidor) pekade mot ett id som inte fanns på just dessa två sidor. | **Åtgärdat 2026-08-04.** |
 | 14 | Den flytande Akut-knappen (global, syns på nästan alla sidor sedan Etapp 42c) renderades helt utanför alla landmärken. | 1.3.1 (bästa praxis) | – | Skärmläsaranvändare som navigerar landmärkesvis missade knappen helt på varje sida den syns. | **Åtgärdat 2026-08-04** – wrappad i en namngiven `role="navigation"`-region. |
@@ -135,10 +135,11 @@ Följande brister är kända och planerade att åtgärdas.
 | 17 | Rubrikordning hoppade från `<h1>` direkt till `<h3>` på tre ställen: förrådsartikelkort (`/logistik/<förråd>`), förrådskort på `/logistik` (när inga bristanmälningar/utgående artiklar fanns att visa en `<h2>` för), och två sidor (`/kompetensmatris`, `/papperskorg`) som helt saknade `<h1>` i sitt "ingen behörighet"/tomt-läge för en personal-roll. | 1.3.1 | – (bästa praxis) | Rubriknavigering (vanlig skärmläsarteknik) gav en förvirrande eller obefintlig sidstruktur, särskilt för roller utan redaktörsbehörighet. | **Åtgärdat 2026-08-04.** |
 | 18 | `/leverantor`s laddningsläge och dess "saknar behörighet"-läge renderades som `<div class="sida">` utan `<main>`-landmärke – samma felklass som #13, men i två TILLSTÅND i stället för på två sidor. | 1.3.1, 2.4.1 | – (bästa praxis) | Den globala "Hoppa till innehåll"-länken pekade mot ett `#huvudinnehall` som inte fanns så länge organisationslistan laddade, och sidans innehåll låg utanför alla landmärken. | **Åtgärdat 2026-09-07** – båda grenarna renderar nu `<main id="huvudinnehall" tabIndex={-1}>`, samma som den lyckade grenen. Upptäckt av axe-svepet först när `test:e2e` började starta functions-emulatorn: dessförinnan gick laddningsläget förbi för snabbt för att hinna mätas. |
 
-**Planerad åtgärd:** punkterna 1–3, 7 och 12–18 (samtliga) är åtgärdade – se Etapp 13g
-(`etapplaner/ETAPPLAN3.md`) respektive Etapp 45c (`etapplaner/ETAPPLAN9.md`) och `etapplaner/UTVECKLINGSLOGG.md`. Övriga
-punkter (#4–#6, #8–#11) hanteras inom Etapp 9b i produktens utvecklingsplan (spåras som
-ärende SYN-6). Beräknat åtgärdat senast `[FYLL I: datum]`.
+**Planerad åtgärd:** samtliga punkter i tabellen ovan (1–18) är åtgärdade – se Etapp 13g
+(`etapplaner/ETAPPLAN3.md`), Etapp 45c (`etapplaner/ETAPPLAN9.md`), `etapplaner/UTVECKLINGSLOGG.md`
+och uppföljningen 2026-09-10 i `CLAUDE_STATUS.md` för #4–#6, #10 och #11. Ärende SYN-6 kan
+därmed stängas. Ingen kvarstående brist väntar på ett måldatum just nu – dyker en ny upp
+dokumenteras den med samma mall.
 
 ### 2. Oskäligt betungande anpassning
 
@@ -239,17 +240,20 @@ synpunkter kan du anmäla det till DIGG: <https://www.digg.se/tdosanmalan>
 Detta dokument är komplett i sak men får inte publiceras som en färdig redogörelse förrän
 följande är gjort:
 
-1. **Fyll i de tre `[FYLL I]`-fälten:** leverantörens juridiska namn, e-postadress för
-   tillgänglighetsfrågor och ett realistiskt måldatum för åtgärderna. Ett måldatum som
-   passeras utan åtgärd är sämre än inget datum – välj med marginal.
-2. **Publicera dokumentet så att det går att nå.** En redogörelse som inte är publicerad
-   uppfyller inte kravet. Synappsen har i dag ingen sidfot där den normalt skulle länkas;
-   lämpligast är en egen sida (`/tillganglighet`) länkad från hjälpsidan och
-   inloggningssidan. Detta är en produktändring som inte gjorts ännu.
+1. **Fyll i de två kvarvarande `[FYLL I]`-fälten:** leverantörens juridiska namn och en
+   e-postadress för tillgänglighetsfrågor. Det tredje fältet (måldatum för åtgärder) är inte
+   längre aktuellt – samtliga kända brister är åtgärdade 2026-09-10, se tabellen ovan.
+2. **Publicerad och länkad från appen, 2026-09-10.** Dokumentet publiceras sedan tidigare som
+   `synappsen-web/tillganglighet.html` (`https://synappsen.se/tillganglighet.html`, genererat
+   av `synappsen-web/verktyg/bygg-underlag.mjs` – redigera aldrig den genererade sidan direkt,
+   redigera det här källdokumentet och kör om skriptet). Länkad från appens hjälpsida
+   (`src/pages/Hjalp.jsx`) och från inloggnings-/registreringssidan (`AuthSkal.jsx`, delas av
+   båda). Sidan är fortfarande medvetet `noindex` tillsammans med webbplatsens övriga sidor
+   (se `OPPNA-PUNKTER.md`), vilket bara påverkar sökmotorindexering – direkta länkar fungerar.
 3. **Bestäm om redogörelsen även ska levereras som bilaga i anbud.** Det är
    rekommendationen – det besvarar en fråga varje offentlig upphandlare ställer.
 
-**Senast granskad och uppdaterad:** 2026-08-04 (Etapp 45c)
+**Senast granskad och uppdaterad:** 2026-09-10 (samtliga kvarstående WCAG-brister åtgärdade)
 **Nästa översyn bör ske:** vid nästa större funktionsändring, dock senast om tolv månader.
 
 ---

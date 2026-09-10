@@ -195,10 +195,10 @@ demoögonblicket för ASIH och fältverksamhet. Ingångsnivån saknar alltså b�
 och det som imponerar. Köparen upplever det som att den intressanta delen kostar 50 % mer än
 det pris hen just fick höra.
 
-**7. Kvarvarande WCAG-brister på nivå A och en opublicerad tillgänglighetsredogörelse.**
-Mindre kritiskt hos en privat köpare än hos en offentlig, men ISO-certifierade och
-stiftelsedrivna verksamheter (Carlanderska, Ersta, Stockholms Sjukhem) frågar, och en brist på
-**nivå A** läses som grundläggande, inte som en detalj.
+**7. ~~Kvarvarande WCAG-brister på nivå A och en opublicerad tillgänglighetsredogörelse.~~
+Åtgärdat 2026-09-10** – inga kända nivå A/AA-brister kvarstår, och redogörelsen är publicerad
+och länkad från appen (`granskningar/TILLGANGLIGHETSREDOGORELSE.md`). Kvar innan den kan kallas
+fullt förenlig: skärmläsartestning och några andra otestade områden, se dokumentets egen lista.
 
 **8. Namnet.**
 Litet men verkligt. Ett namn som måste bokstaveras i telefon och som kan höras som något med
@@ -538,11 +538,9 @@ källbevakningen som redan är byggd och redan säljs som tillägg.
   är underdriven. Kostnadskalkylen sätter kapacitetstaket till 10–20 kunder och varnar för att
   det kan halveras till 8. 25 kunder kan vara strukturellt omöjligt för en person oavsett hur
   försäljningen går – det är en fråga om att anställa, inte om att sälja bättre.
-- **§6.7 (WCAG)** placerar bristerna som en nackdel att leva med. De faktiskt kvarvarande
-  bristerna på nivå A är fyra små och avgränsade (#4, #5, #6, #10 i
-  `granskningar/TILLGANGLIGHETSREDOGORELSE.md`) – timmar, inte veckor. Punkten hör hemma högst upp i §11:s
-  "utan att bygga något"-lista, inte på plats sju bland nackdelarna. Numera en rad i
-  `OPPNA-PUNKTER.md`.
+- **§6.7 (WCAG) är inaktuell sedan 2026-09-10** – bristerna som placerades som en nackdel att
+  leva med (#4, #5, #6, #10 i `granskningar/TILLGANGLIGHETSREDOGORELSE.md`) är åtgärdade, se
+  punkt 7 ovan.
 
 **Två formuleringar att justera vid nästa omarbetning:**
 

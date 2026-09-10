@@ -178,17 +178,29 @@ describe("Tillgänglighetsredogörelsens sammanfattning stämmer med dess egen t
   // självt är svårare att upptäcka än ett som är inaktuellt mot koden.
   const text = las("granskningar/TILLGANGLIGHETSREDOGORELSE.md");
 
-  test("varje avvikelse som sammanfattningen kallar kvarstående är ofixad i tabellen", () => {
+  test("varje avvikelse som är ofixad i tabellen räknas upp i sammanfattningen – eller så säger sammanfattningen uttryckligen att inga finns", () => {
     // Bara FORMELLA kravbrott (nivå A eller AA) räknas. Avvikelse #11 (emoji i rubriker) har
     // nivå "–" och är uttryckligen "formellt inget kravbrott" – den ska inte tvingas in i
     // sammanfattningens lista över kvarstående brister.
     const kvarstaende = [...text.matchAll(/^\|\s*(\d+)\s*\|.*?\|\s*(?:\*\*)?(A{1,2})(?:\*\*)?\s*\|.*$/gm)]
       .filter((rad) => !/ÅTGÄRDAD|Åtgärdat/i.test(rad[0]))
       .map((rad) => Number(rad[1]));
-    expect(kvarstaende.length, "Förväntade minst en kvarstående nivå A-avvikelse").toBeGreaterThan(0);
+
+    if (kvarstaende.length === 0) {
+      // Samtliga brister åtgärdade 2026-09-10 – testet ska då INTE tvinga fram ett påstått
+      // kvarstående fel. I stället måste dokumentet uttryckligen säga att inget känt återstår,
+      // så att en framtida NY brist som läggs till i tabellen utan att nämnas här fångas av
+      // grenen nedan i stället för att tyst falla igenom.
+      expect(
+        text,
+        "Tabellen har noll kvarstående nivå A/AA-avvikelser, men dokumentet säger inte " +
+          "uttryckligen att inget känt återstår – uppdatera 'Uppdatering 2026-09-10'-stycket."
+      ).toMatch(/ingen känd kvarstående\s+avvikelse mot WCAG/i);
+      return;
+    }
 
     // Sammanfattningens rättelse 2026-08-23 räknar upp de faktiskt kvarstående punkterna.
-    const rattelse = text.match(/Faktiskt kvarstående är \*\*(.+?)\*\*/s);
+    const rattelse = text.match(/Faktiskt kvarstående (?:är|var) \*\*(.+?)\*\*/s);
     expect(rattelse, "Hittade ingen sammanfattning av kvarstående brister").not.toBeNull();
 
     for (const nr of kvarstaende) {
