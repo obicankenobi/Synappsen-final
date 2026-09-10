@@ -93,6 +93,22 @@ const forradsArtikelSchema = {
   required: ["artiklar"],
 };
 
+// Fynd 2 (granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md): inkommande/{uid}/{filnamn}
+// städades tidigare bara vid avetablering av ett helt konto – ett godkänt/sparat utkast
+// lämnade originalfotot kvar i Storage permanent, i strid med lagringsminimeringsprincipen
+// (GDPR art. 5.1.e). Körs EFTER att utkastet sparats i Firestore, aldrig före: ett
+// misslyckat tolkningsförsök ska kunna köras om mot samma uppladdade foto. Ett
+// raderingsfel loggas men får aldrig göra att ett i övrigt lyckat anrop kastar – utkastet
+// är redan sparat, och ett kvarliggande foto en kort stund till är ett mindre fel än att
+// låtsas att anropet misslyckades.
+async function raderaInkommandeFoto(storagePath) {
+  try {
+    await bucket.file(storagePath).delete();
+  } catch (fel) {
+    console.error(`Kunde inte radera ${storagePath} efter lyckad tolkning:`, fel);
+  }
+}
+
 async function tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad) {
   const prompt = `Du tolkar ett foto från förrådet "${forrad}" på en akutmottagning.
 Fotot kan visa ANTINGEN enskilda artiklar i ett skåp/på en hylla (med skyltar/etiketter),
@@ -193,6 +209,7 @@ exports.tolkaForradsbild = onCall(
         return { id: ref.id, ersatte: Boolean(befintligRef), ...artikel };
       });
       await batch.commit();
+      await raderaInkommandeFoto(storagePath);
 
       return { antal: skapade.length, artiklar: skapade };
     } catch (fel) {
@@ -258,6 +275,7 @@ exports.tolkaDokument = onCall(
         skapadAv: request.auth.uid,
         skapad: FieldValue.serverTimestamp(),
       });
+      await raderaInkommandeFoto(storagePath);
 
       return { rutinId: rutinRef.id, ...extraherat };
     } catch (fel) {
@@ -451,9 +469,9 @@ exports.foreslaKvissfragor = onCall(
         .slice(0, 4);
       return { fragor: rensadeFragor };
     } catch (fel) {
-      console.error("Kvissförslag misslyckades:", fel);
+      console.error("Quizförslag misslyckades:", fel);
       if (fel instanceof HttpsError) throw fel;
-      throw new HttpsError("internal", `Kvissförslag misslyckades: ${fel.message}`);
+      throw new HttpsError("internal", `Quizförslag misslyckades: ${fel.message}`);
     }
   }
 );
