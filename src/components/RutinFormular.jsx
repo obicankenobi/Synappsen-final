@@ -85,6 +85,13 @@ export default function RutinFormular({
   );
   const [steg, setSteg] = useState(initialaVarden?.steg ?? []);
   const [foreslarSteg, setForeslarSteg] = useState(false);
+  // Fynd 5 (granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md): artikel 50-märkningen täckte
+  // bara rutinens ursprung (rutin.kalla), inte AI-genererade kvissfrågor/steg som skrivs rakt
+  // in i formulärets state. Samma mönster som rutin.kalla: satt när förslaget accepteras, och
+  // byter aldrig tillbaka – en efterföljande redaktörsändring av enskilda frågor/steg ändrar
+  // inte att de ursprungligen föreslogs av en modell.
+  const [kallaKviss, setKallaKviss] = useState(initialaVarden?.kallaKviss ?? null);
+  const [kallaSteg, setKallaSteg] = useState(initialaVarden?.kallaSteg ?? null);
 
   function laggTillSteg() {
     setSteg((s) => [...s, { text: "", bild: "", varning: "", timerSekunder: null }]);
@@ -94,7 +101,11 @@ export default function RutinFormular({
     setSteg((s) => {
       const forhandsvisning = s[index]?.nyBildForhandsvisning;
       if (forhandsvisning) URL.revokeObjectURL(forhandsvisning);
-      return s.filter((_, i) => i !== index);
+      const kvar = s.filter((_, i) => i !== index);
+      // Om ALLA steg tas bort finns inget AI-ursprung kvar att märka – ett steg som läggs
+      // till manuellt efteråt ska inte ärva en gammal AI-märkning (Fynd 5).
+      if (kvar.length === 0) setKallaSteg(null);
+      return kvar;
     });
   }
 
@@ -150,6 +161,7 @@ export default function RutinFormular({
     try {
       const { data } = await foreslaChecklistSteg(innehall);
       setSteg(data.steg.map((s) => ({ text: s.text, bild: "", varning: "", timerSekunder: null })));
+      setKallaSteg("gemini");
     } catch (fel) {
       visaMeddelande(fel.message ?? "Kunde inte ta fram ett stegförslag.");
     } finally {
@@ -201,7 +213,13 @@ export default function RutinFormular({
   }
 
   function taBortFraga(index) {
-    setKviss((k) => k.filter((_, i) => i !== index));
+    setKviss((k) => {
+      const kvar = k.filter((_, i) => i !== index);
+      // Om ALLA frågor tas bort finns inget AI-ursprung kvar att märka – en fråga som
+      // läggs till manuellt efteråt ska inte ärva en gammal AI-märkning (Fynd 5).
+      if (kvar.length === 0) setKallaKviss(null);
+      return kvar;
+    });
   }
 
   function uppdateraFraga(index, falt, varde) {
@@ -243,11 +261,12 @@ export default function RutinFormular({
       visaMeddelande("Skriv eller klistra in innehållet först, så kan frågor tas fram.");
       return;
     }
-    if (kviss.length > 0 && !(await confirm("Ersätta den nuvarande kvissen med AI:ns förslag?"))) return;
+    if (kviss.length > 0 && !(await confirm("Ersätta den nuvarande quizen med AI:ns förslag?"))) return;
     setForeslarKviss(true);
     try {
       const { data } = await foreslaKvissfragor(innehall);
       setKviss(data.fragor);
+      setKallaKviss("gemini");
     } catch (fel) {
       visaMeddelande(fel.message ?? "Kunde inte ta fram frågeförslag.");
     } finally {
@@ -356,7 +375,7 @@ export default function RutinFormular({
     });
     if (ofullstandigFraga !== -1) {
       visaMeddelande(
-        `Kvissfråga ${ofullstandigFraga + 1} är ofullständig – fyll i både frågan och alla ` +
+        `Quizfråga ${ofullstandigFraga + 1} är ofullständig – fyll i både frågan och alla ` +
           "svarsalternativ, eller ta bort dem som inte används."
       );
       return;
@@ -372,6 +391,27 @@ export default function RutinFormular({
       const person = anvandare.find((a) => a.id === agareUid);
       agare = { typ: "person", uid: agareUid, namn: person?.namn ?? person?.email ?? "" };
     }
+    const sparadeSteg = steg
+      .filter((s) => s.text.trim())
+      .map((s) => ({
+        text: s.text.trim(),
+        bild: s.bild || null,
+        varning: s.varning || null,
+        timerSekunder: s.timerSekunder ? Number(s.timerSekunder) : null,
+        // Etapp 22c: en vald bildfil laddas ännu inte upp här – RutinFormular känner inte
+        // till rutinens Storage-sökväg (kräver ett rutinId, som inte finns för en ny
+        // rutin förrän skapaRutin körts). Sektionssida.jsx laddar upp filen och ersätter
+        // det här fältet med den riktiga URL:en innan något sparas i Firestore.
+        ...(s.nyBildFil ? { nyBildFil: s.nyBildFil } : {}),
+      }));
+    const sparadKviss = kviss
+      .filter((f) => f.fraga.trim() && f.alternativ.filter((a) => a.trim()).length >= 2)
+      .map((f) => ({
+        fraga: f.fraga.trim(),
+        alternativ: f.alternativ.map((a) => a.trim()),
+        rattIndex: f.rattIndex,
+        hanvisning: f.hanvisning?.trim() || "",
+      }));
     setSparar(true);
     try {
       await onSpara({
@@ -396,27 +436,12 @@ export default function RutinFormular({
             return { term: (term ?? "").trim(), forklaring: resten.join(":").trim() };
           })
           .filter((b) => b.term && b.forklaring),
-        steg: steg
-          .filter((s) => s.text.trim())
-          .map((s) => ({
-            text: s.text.trim(),
-            bild: s.bild || null,
-            varning: s.varning || null,
-            timerSekunder: s.timerSekunder ? Number(s.timerSekunder) : null,
-            // Etapp 22c: en vald bildfil laddas ännu inte upp här – RutinFormular känner inte
-            // till rutinens Storage-sökväg (kräver ett rutinId, som inte finns för en ny
-            // rutin förrän skapaRutin körts). Sektionssida.jsx laddar upp filen och ersätter
-            // det här fältet med den riktiga URL:en innan något sparas i Firestore.
-            ...(s.nyBildFil ? { nyBildFil: s.nyBildFil } : {}),
-          })),
-        kviss: kviss
-          .filter((f) => f.fraga.trim() && f.alternativ.filter((a) => a.trim()).length >= 2)
-          .map((f) => ({
-            fraga: f.fraga.trim(),
-            alternativ: f.alternativ.map((a) => a.trim()),
-            rattIndex: f.rattIndex,
-            hanvisning: f.hanvisning?.trim() || "",
-          })),
+        steg: sparadeSteg,
+        kviss: sparadKviss,
+        // Fynd 5 (AI-INTEGRATIONSRISKER-2026-09-06.md): en tom steg-/kvisslista ska aldrig
+        // bära en AI-märkning – annars visas en badge för ett innehåll som inte finns.
+        ...(sparadeSteg.length > 0 && kallaSteg ? { kallaSteg } : { kallaSteg: null }),
+        ...(sparadKviss.length > 0 && kallaKviss ? { kallaKviss } : { kallaKviss: null }),
         vasentligAndring,
         externaKallor,
       });
@@ -649,7 +674,7 @@ export default function RutinFormular({
       </fieldset>
 
       <fieldset className="rutin-formular__checklista">
-        <legend>Mikrokviss vid kvittering (valfritt, max {MAX_KVISSFRAGOR_PER_RUTIN} frågor)</legend>
+        <legend>Mikroquiz vid kvittering (valfritt, max {MAX_KVISSFRAGOR_PER_RUTIN} frågor)</legend>
         <p className="rutin-formular__hjalptext">
           Visas innan kvitteringen räknas. Fel svar visar bara rätt svar + hänvisning och
           låter personen försöka igen – syftet är förståelse, inte betyg.
@@ -675,7 +700,7 @@ export default function RutinFormular({
           <div className="rutin-formular__fragebank">
             <p className="rutin-formular__hjalptext">
               Färdiga frågor om systemet och processen – inte om det kliniska innehållet. Passar
-              rutiner utan egen kviss ännu.
+              rutiner utan egen quiz ännu.
             </p>
             {Object.entries(KVISS_KATEGORI_LABEL).map(([kategori, etikett]) => {
               const fragor = KVISSBANK.filter(

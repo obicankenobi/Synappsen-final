@@ -145,6 +145,27 @@ export default function RutinKort({
               AI-tolkat ursprung
             </span>
           )}
+          {/* Fynd 5 (granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md): rutin.kalla täckte
+              bara rutinens EGEN text, inte AI-genererade kvissfrågor eller checklistesteg som
+              föreslås separat (foreslaKvissfragor/foreslaChecklistSteg, RutinFormular.jsx) och
+              annars sparades utan någon markör alls. Samma "byter aldrig ursprung"-princip som
+              ovan. */}
+          {rutin.kallaKviss === "gemini" && (
+            <span
+              className="rutin-kort__badge"
+              title="Quizfrågorna föreslogs ursprungligen av AI utifrån rutinens innehåll, och har därefter granskats och godkänts av en redaktör."
+            >
+              AI-tolkad quiz
+            </span>
+          )}
+          {rutin.kallaSteg === "gemini" && (
+            <span
+              className="rutin-kort__badge"
+              title="Checklistestegen föreslogs ursprungligen av AI utifrån rutinens innehåll, och har därefter granskats och godkänts av en redaktör."
+            >
+              AI-tolkade steg
+            </span>
+          )}
         </div>
         <FavoritKnapp typ="rutin" id={rutin.id} />
       </header>
