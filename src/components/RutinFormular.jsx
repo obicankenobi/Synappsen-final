@@ -501,8 +501,13 @@ export default function RutinFormular({
         </label>
       )}
 
-      <label>
-        Innehåll {!harBilagor && "(krävs om ingen bilaga bifogas)"}
+      {/* Etapp 74 (WCAG 1.3.1, TILLGANGLIGHETSREDOGORELSE.md #10): tidigare omslöt EN <label>
+          både verktygsraden (åtta knappar) och textfältet – kopplingen mellan etikett och fält
+          blev tvetydig för hjälpmedel. <label htmlFor> pekar nu explicit bara på textarean. */}
+      <div className="rutin-formular__falt">
+        <label htmlFor="rutin-innehall-falt">
+          Innehåll {!harBilagor && "(krävs om ingen bilaga bifogas)"}
+        </label>
         <div className="rutin-formular__verktygsfalt">
           <button type="button" onClick={() => omslutMarkering("**")} title="Fet text">
             <strong>F</strong>
@@ -538,6 +543,7 @@ export default function RutinFormular({
           <MarkdownInnehall className="rutin-formular__forhandsvisning" text={innehall} />
         ) : (
           <textarea
+            id="rutin-innehall-falt"
             ref={innehallRef}
             rows={6}
             value={innehall}
@@ -548,7 +554,7 @@ export default function RutinFormular({
           Markera text och klicka F/K för att formatera, eller skriv markdown för hand: **fet
           text**, *kursiv*, # Rubrik, - punktlista
         </span>
-      </label>
+      </div>
       <label>
         Referenser/källor (valfritt)
         <textarea

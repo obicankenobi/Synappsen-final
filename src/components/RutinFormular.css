@@ -18,6 +18,20 @@
   font-weight: 500;
 }
 
+/* Etapp 74 (TILLGANGLIGHETSREDOGORELSE.md #10): samma layout som .rutin-formular label, men
+   för innehållsfältet, där etiketten numera är ett eget <label htmlFor> i stället för att
+   omsluta verktygsraden och textarean. */
+.rutin-formular__falt {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rutin-formular__falt > label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .rutin-formular input,
 .rutin-formular textarea {
   padding: 10px 12px;
