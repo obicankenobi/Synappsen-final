@@ -280,7 +280,7 @@ export default function LaddaUpp() {
   if (featuresLaddade && !hasFeature(FEATURE.AI_IMPORT)) {
     return (
       <div className="sida">
-        <h1>📷 Ladda upp dokument</h1>
+        <h1><span aria-hidden="true">📷</span> Ladda upp dokument</h1>
         <div className="ladda-upp__kraver-modul">
           <p>AI-import kräver Intelligence-modulen, som inte är aktiverad för din organisation.</p>
           <p>Kontakta en superadmin om ni vill aktivera den.</p>
@@ -291,7 +291,7 @@ export default function LaddaUpp() {
 
   return (
     <div className="sida">
-      <h1>📷 Ladda upp dokument</h1>
+      <h1><span aria-hidden="true">📷</span> Ladda upp dokument</h1>
       <p className="sida__beskrivning">
         Fota whiteboards, papper eller anteckningar. Gemini tolkar innehållet automatiskt och
         skapar ett utkast som granskas och godkänns innan det publiceras.
