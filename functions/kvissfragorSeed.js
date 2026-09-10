@@ -302,13 +302,13 @@ const SYSTEMKUNSKAP = [
     alternativ: [
       "Vilka som ännu inte har kvitterat en viss rutin",
       "Hur snabbt varje person läste rutinen",
-      "Hur många frågor var och en svarade fel på i mikrokvissen",
+      "Hur många frågor var och en svarade fel på i mikroquizen",
       "Vilka avsnitt varje person läste noggrannast",
     ],
     rattIndex: 0,
     hanvisning:
       "Systemet visar vilka som inte kvitterat, så att påminnelser kan riktas rätt. " +
-      "Inga svar från mikrokvissen sparas någonstans – den finns för förståelse, inte betyg.",
+      "Inga svar från mikroquizen sparas någonstans – den finns för förståelse, inte betyg.",
   },
   {
     id: "ansvar-rutinagare",
