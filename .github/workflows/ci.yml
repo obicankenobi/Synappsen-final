@@ -19,7 +19,7 @@ jobs:
       # firebase-tools@14+ kräver JDK 21 för Firestore-/Storage-emulatorerna (Java-baserade):
       # "firebase-tools no longer supports Java version before 21." Se OPPNA-PUNKTER.md
       # (2026-09-08) för bakgrunden till bumpen från ^13.35.1.
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "21"
