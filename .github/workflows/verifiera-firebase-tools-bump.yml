@@ -64,7 +64,7 @@ jobs:
       # ubuntu-latest-imagens förvalda JDK räcker inte: "firebase-tools no longer supports
       # Java version before 21." Sandboxen där arbetet ursprungligen gjordes råkade redan ha
       # JDK 21 installerat, vilket dolde kravet helt.
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "21"
