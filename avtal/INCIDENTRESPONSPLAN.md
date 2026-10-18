@@ -2,7 +2,7 @@
 
 **Dokumenttyp:** Policy (extern – får delas med kund, kundens IT-säkerhetsfunktion och vid
 upphandling)
-**Version:** 1.6
+**Version:** 1.7
 **Fastställd:** 2026-08-10
 **Gäller från:** 2026-08-10
 **Nästa översyn:** vid varje större release, dock minst var sjätte månad (se avsnitt 12)
@@ -113,6 +113,12 @@ kontokapning.
 
 Incidenter kan komma till kännedom genom automatiska avvikelselarm, felrapportering, en
 kunds anmälan, eller extern rapport. Alla kanaler leder till samma process.
+
+Varje anrop till den externa AI-tjänsten lämnar en spårbarhetspost (organisation, användare,
+funktion, tidpunkt – aldrig frågetext eller bild) som sparas i högst 90 dagar. Det gör det
+möjligt att i efterhand fastställa *att* och *när* ett anrop gjordes, men inte *vad* det
+innehöll: den bedömningen kräver att innehållet kan hittas på annat sätt, t.ex. i en sparad
+rutin. Posten larmar inte av sig själv.
 
 **Kontaktväg för säkerhetsrapporter:** anges i `avtal/IT-FAKTABLAD.md`. Rapporter tas emot
 utan krav på föranmälan, även från personer utan avtalsrelation.
@@ -288,3 +294,4 @@ ingen plan alls.
 | 1.4 | 2026-08-10 | Avsnitt 5.2 (Begränsa): utgående e-post (ny kanal, infrastrukturen byggd men ännu inte kopplad till någon produktfunktion) kan stängas av globalt utan driftsättning, om kanalen någonsin missbrukas. Ett nytt underbiträde (Brevo, EU-baserat) tillkommer, se `avtal/UNDERBITRADEN.md` (Etapp 53a). |
 | 1.5 | 2026-08-10 | Avsnitt 4 (Kompenserande kontroller): ett nytt inloggningssätt tillkommer – ett delat kiosk-enhetskonto för en gemensam platta, låst upp med en PIN-kod istället för ett personligt lösenord. Kundens superadmin kan omedelbart byta PIN-koden vid förlust/stöld. Kontot kan i grunden aldrig kvittera, kommentera, föreslå ändring eller bristanmäla (Etapp 55). |
 | 1.6 | 2026-08-27 | Avsnitt 5.2: utgående e-post är inte längre en vilande kanal utan i skarp drift, med utskick som även sker automatiskt enligt schema. Avstängningsförmågan är oförändrad, men gäller nu en kanal som faktiskt används. Underbiträdet som bär kanalen har en öppen avtalsbrist – se `avtal/UNDERBITRADEN.md`, som är källan för underbiträdenas status. |
+| 1.7 | 2026-10-18 | Avsnitt 5.1 (Upptäck): varje AI-anrop lämnar nu en innehållslös spårbarhetspost (organisation, användare, funktion, tid), gallrad efter 90 dagar. Tidigare fanns ingen sådan förmåga alls; den ger svar på om och när, inte på vad. Samtidigt gallras klinikstödets frågelogg (90 dagar) och svarscache (7 dagar), som tidigare aldrig raderades. |

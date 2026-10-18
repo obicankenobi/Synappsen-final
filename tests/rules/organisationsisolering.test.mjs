@@ -464,6 +464,14 @@ async function main() {
     )
   );
 
+  console.log("\naiAnropslogg/{id} – endast server-side (fynd 7)");
+  await test("superadminA kan INTE läsa AI-anropsloggen, ens sin egen organisations", () =>
+    assertFails(getDocs(query(collection(superA, "aiAnropslogg"), where("organisationId", "==", ORG_A))))
+  );
+  await test("superadminA kan INTE skriva i AI-anropsloggen (en logg en klient kan skriva är ingen bevisning)", () =>
+    assertFails(setDoc(doc(superA, "aiAnropslogg", "forfalskad"), { organisationId: ORG_A, uid: "x", funktion: "y" }))
+  );
+
   console.log("\nklinikfrageloggar/{loggId} – organisationsisolering");
   await test("superadminB kan INTE läsa org A:s klinikfrågelogg", () =>
     assertFails(getDoc(doc(superB, "klinikfrageloggar", "klinikloggA")))

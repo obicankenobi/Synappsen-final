@@ -862,6 +862,13 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // aiAnropslogg/{id} – fynd 7: minimal spårbarhetspost per AI-anrop (organisationId, uid,
+    // funktionsnamn, tidpunkt – aldrig prompttext eller bild). Endast server-side: en logg som
+    // en klient kan skriva i eller läsa ur är ingen bevisning. Gallras av gallraAiData().
+    match /aiAnropslogg/{id} {
+      allow read, write: if false;
+    }
+
     // klinikfragecache/{nyckel} – cachade klinikstöd-svar (nyckeln inkluderar redan
     // organisationId, se functions/index.js). Endast server-side åtkomst.
     match /klinikfragecache/{nyckel} {

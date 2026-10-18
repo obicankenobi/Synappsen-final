@@ -21,6 +21,7 @@ const {
   innehallerPersonnummer,
   saneraPromptblock,
   reserveraBudget,
+  aterbetalaBudget,
 } = require("./gemensamt");
 const { FieldValue } = require("firebase-admin/firestore");
 
@@ -59,6 +60,9 @@ Extrahera innehållet och returnera strukturerad data på svenska:
 // mäta den RIKTIGA prompten och det riktiga schemat i stället för en kopia som kan glida isär
 // från produktionen. Ingen anropsväg i appen ändras av att de går att nå härifrån.
 exports.tolkaBildMedGemini = tolkaBildMedGemini;
+// Exporterade även för functions/scripts/ai-evaluering.cjs (fynd 4: förslagen mäts mot skarp modell).
+exports._foreslaStegMedGemini = (...a) => foreslaStegMedGemini(...a);
+exports._foreslaKvissfragorMedGemini = (...a) => foreslaKvissfragorMedGemini(...a);
 exports.extraktionsSchema = extraktionsSchema;
 
 const OMRADEN = ["kliniskt-stod", "logistik", "administration"];
@@ -156,7 +160,9 @@ exports.tolkaForradsbild = onCall(
 
     const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
     await kravModul(organisationId, "intelligence", "AI-import kräver Intelligence-modulen.");
-    await reserveraBudget(organisationId, request.auth.uid);
+    await reserveraBudget(organisationId, request.auth.uid, "tolkaForradsbild");
+    // Fynd 8: återbetalas om modellen aldrig levererade ett svar (se catch nedan).
+    let modellSvarFick = false;
 
     try {
       const fil = bucket.file(storagePath);
@@ -165,6 +171,7 @@ exports.tolkaForradsbild = onCall(
       const mimeType = metadata.contentType || "image/jpeg";
 
       const artiklar = await tolkaForradsbildMedGemini(bildBuffer, mimeType, forrad);
+      modellSvarFick = true;
       if (artiklar.some((a) => innehallerPersonnummer(`${a.namn} ${(a.sokord ?? []).join(" ")}`))) {
         throw new HttpsError(
           "invalid-argument",
@@ -214,6 +221,9 @@ exports.tolkaForradsbild = onCall(
       return { antal: skapade.length, artiklar: skapade };
     } catch (fel) {
       console.error("Tolkning misslyckades:", fel);
+      if (!modellSvarFick) {
+        await aterbetalaBudget(organisationId, request.auth.uid).catch(() => {});
+      }
       if (fel instanceof HttpsError) throw fel;
       throw new HttpsError("internal", `Tolkning misslyckades: ${fel.message}`);
     }
@@ -237,7 +247,9 @@ exports.tolkaDokument = onCall(
 
     const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
     await kravModul(organisationId, "intelligence", "AI-import kräver Intelligence-modulen.");
-    await reserveraBudget(organisationId, request.auth.uid);
+    await reserveraBudget(organisationId, request.auth.uid, "tolkaDokument");
+    // Fynd 8: återbetalas om modellen aldrig levererade ett svar (se catch nedan).
+    let modellSvarFick = false;
 
     try {
       const fil = bucket.file(storagePath);
@@ -246,6 +258,7 @@ exports.tolkaDokument = onCall(
       const mimeType = metadata.contentType || "image/jpeg";
 
       const extraherat = await tolkaBildMedGemini(bildBuffer, mimeType);
+      modellSvarFick = true;
       if (
         innehallerPersonnummer(
           `${extraherat.titel} ${extraherat.innehall} ${(extraherat.komIhagFlaggor ?? []).join(" ")}`
@@ -280,6 +293,9 @@ exports.tolkaDokument = onCall(
       return { rutinId: rutinRef.id, ...extraherat };
     } catch (fel) {
       console.error("Tolkning misslyckades:", fel);
+      if (!modellSvarFick) {
+        await aterbetalaBudget(organisationId, request.auth.uid).catch(() => {});
+      }
       if (fel instanceof HttpsError) throw fel;
       throw new HttpsError("internal", `Tolkning misslyckades: ${fel.message}`);
     }
@@ -369,16 +385,22 @@ exports.foreslaChecklistSteg = onCall(
 
     const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
     await kravModul(organisationId, "intelligence", "Föreslå steg kräver Intelligence-modulen.");
-    await reserveraBudget(organisationId, request.auth.uid);
+    await reserveraBudget(organisationId, request.auth.uid, "foreslaChecklistSteg");
+    // Fynd 8: återbetalas om modellen aldrig levererade ett svar (se catch nedan).
+    let modellSvarFick = false;
 
     try {
       const steg = await foreslaStegMedGemini(innehall);
+      modellSvarFick = true;
       const rensadeSteg = steg
         .filter((s) => !innehallerPersonnummer(s.text))
         .slice(0, 12);
       return { steg: rensadeSteg };
     } catch (fel) {
       console.error("Stegförslag misslyckades:", fel);
+      if (!modellSvarFick) {
+        await aterbetalaBudget(organisationId, request.auth.uid).catch(() => {});
+      }
       if (fel instanceof HttpsError) throw fel;
       throw new HttpsError("internal", `Stegförslag misslyckades: ${fel.message}`);
     }
@@ -460,16 +482,22 @@ exports.foreslaKvissfragor = onCall(
 
     const { organisationId } = await hamtaAnvandarInfo(request.auth.uid);
     await kravModul(organisationId, "intelligence", "Föreslå frågor kräver Intelligence-modulen.");
-    await reserveraBudget(organisationId, request.auth.uid);
+    await reserveraBudget(organisationId, request.auth.uid, "foreslaKvissfragor");
+    // Fynd 8: återbetalas om modellen aldrig levererade ett svar (se catch nedan).
+    let modellSvarFick = false;
 
     try {
       const fragor = await foreslaKvissfragorMedGemini(innehall);
+      modellSvarFick = true;
       const rensadeFragor = fragor
         .filter((f) => !innehallerPersonnummer(f.fraga) && !innehallerPersonnummer(f.hanvisning))
         .slice(0, 4);
       return { fragor: rensadeFragor };
     } catch (fel) {
       console.error("Quizförslag misslyckades:", fel);
+      if (!modellSvarFick) {
+        await aterbetalaBudget(organisationId, request.auth.uid).catch(() => {});
+      }
       if (fel instanceof HttpsError) throw fel;
       throw new HttpsError("internal", `Quizförslag misslyckades: ${fel.message}`);
     }

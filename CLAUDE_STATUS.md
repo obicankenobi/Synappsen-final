@@ -8,7 +8,9 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-09-10 · **v5.139.0 i produktion**. **Samtliga kvarstående punkter i
+**Senast uppdaterad:** 2026-10-18 · **v5.140.0 byggd och pushad, INTE deployad** (produktion kör
+fortfarande v5.139.0). v5.140.0 åtgärdar AI-integrationsriskernas fynd 3, 4, 7 och 8 – se
+uppföljningen 2026-10-18 längst ner. Därefter, 2026-09-10: **v5.139.0 i produktion**. **Samtliga kvarstående punkter i
 `TILLGANGLIGHETSREDOGORELSE.md` åtgärdade** (#4–#6, #10, #11 – ärende SYN-6 kan stängas), se
 uppföljningen längst ner nedan. **"kviss" bytt till "quiz" i
 användarsynlig text**, och tre AI-integrationsrisker åtgärdade (Fynd 1, 2, 5 i
@@ -344,4 +346,37 @@ diagnosverktyget verkade hänga i flera minuter och avbröts i onödan. Efterkon
 `created_at`/`updated_at` i GitHub Actions API:et visade att var och en bara hunnit köra
 65–100 sekunder – normal tid för att ladda ~90 funktionsdefinitioner, ingen hängning. Döm
 alltid en misstänkt hängning på faktiska tidsstämplar, inte på egen känsla för förfluten tid.
+
+## Uppföljning 2026-10-18 (AI-integrationsrisker fynd 3, 4, 7, 8 – v5.140.0)
+
+De fyra återstående fynden i `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md` är åtgärdade i
+koden. Detaljer och motiveringar står i incheckningsmeddelandet och i fyndens egen
+statuslista; här bara läget. **Inte deployad.**
+
+- **Fynd 8:** `aterbetalaBudget()` i alla fem AI-vägar när modellen inte levererat ett svar.
+  Ett kasserat svar (personnummer i svaret) återbetalas medvetet inte.
+- **Fynd 7:** `aiAnropslogg` (organisationId, uid, funktion, tid – aldrig innehåll),
+  klientstängd. Svarar på om/när/av vem, inte på vad. Incidentplanen är nu v1.7 och
+  `drift/INCIDENT-CHECKLISTA.md` säger uttryckligen att loggen inte kan visa vad som skickats.
+- **Fynd 3:** `aiGallringSchemalagt` (måndagar 03:45): `klinikfrageloggar` 90 d,
+  `klinikfragecache` 7 d, `aiAnropslogg` 90 d. **Ägaren har inte bekräftat 90/7 dagar** – siffrorna
+  följer fyndets eget förslag och backupretentionen. Org-radering och backup enumererar inte
+  de här tre collectionerna (gällde redan klinikloggarna); gallringen är det som begränsar dem.
+- **Fynd 4:** fall 8–9 i `ai-evaluering.cjs`. **Mätt mot skarp Vertex AI 2026-10-18
+  (`ai-evaluering.yml` körning #6, commit `ee626a7`): 16 OK, 0 FEL, 2 GRANSKA.** Betet
+  (adrenalin utan dos i källtexten) motstods: stegen och quizens tre frågor höll sig till
+  källtexten, inga uppfunna doser eller tider. GRANSKA-raderna lästes mot rutintexten: alla tre
+  facit stämmer och hänvisningarna är nästan ordagranna. **Begränsning att inte glömma:** ett
+  enda urval av en enda text från en icke-deterministisk modell. Det bevisar att kodvägen och
+  promptreglerna fungerar, inte att det aldrig inträffar; kontrollen fångar inte heller ett
+  påstående utan siffror. Mät om efter en modelluppdatering hos Google.
+
+**Verifierat:** lint, vitest (609), bygge, full `test:functions` (EXIT 0), regeltester för
+organisationsisolering (187). Testet för fynd 8 bevisades falla utan fixen. Webbplatsens
+bevissiffror (406/187) och incidentplanens version höjdes i samma commit eftersom
+`tests/docs/dokumentpastaenden.test.js` kräver det. Full `test:rules` och `test:e2e` kördes
+inte i sin helhet efter ändringen – bara den ändrade regelfilen.
+
+**Gren:** default-grenen hade byggts om sedan PR #15, så sessionsgrenen startades om från den
+och pushades med force-with-lease efter kontroll att dess innehåll redan fanns i default.
 
