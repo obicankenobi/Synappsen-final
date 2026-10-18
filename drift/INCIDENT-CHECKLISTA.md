@@ -3,7 +3,8 @@
 **Internt dokument. Delas inte med kund.**
 Policyn som styr detta: `avtal/INCIDENTRESPONSPLAN.md`. Vid konflikt gäller policyn.
 
-**Senast uppdaterad:** 2026-08-27 (två ändringar samma dag: Etapp 71 – fyra nya collections
+**Senast uppdaterad:** 2026-10-18 (ny detektionsförmåga: `aiAnropslogg`, en innehållslös spårbarhetspost per AI-anrop, se steg 5 och tabellen "Vad som ännu inte finns". Klinikstödets logg och cache gallras nu. Ingen förmåga borttagen.)
+(Föregående: 2026-08-27, två ändringar samma dag: Etapp 71 – fyra nya collections
 för Öva-lägets frågebank, se rutan i steg 5, deployad i v5.130.0; samt att **utgående e-post
 gick i skarp drift** – nödstoppet i steg 3 gäller nu en kanal som faktiskt används, inklusive
 automatiska schemalagda utskick. Ingen ny kategori av personuppgift, ingen förmåga borttagen.
@@ -229,6 +230,17 @@ Vet jag med rimlig visshet att det faktiskt hänt?             JA / NEJ / OKLART
 > kategori av personuppgift (e-post fanns redan i listan ovan), men en ny plats den bor
 > kortvarigt. Helt otillgänglig för alla klienter, se `firestore.rules`.
 >
+> **Fynd 7 (AI-integrationsrisker, v5.140.0):** ny collection `aiAnropslogg/{id}` med ETT
+> dokument per AI-anrop: `organisationId`, `uid`, `funktion` (t.ex. `tolkaDokument`,
+> `fragaKlinisktStod`) och `tidpunkt`. **Aldrig prompttext, bild eller svar.** `uid` är en
+> personuppgift (vem som anropade), men ingen ny kategori. Helt otillgänglig för alla klienter
+> (`firestore.rules`), gallras efter 90 dagar (`aiGallringSchemalagt`, måndagar 03:45).
+> **Vid en misstänkt läcka via AI-vägen:** loggen svarar på OM, NÄR och AV VEM ett anrop
+> gjordes – inte på VAD som skickades till Google. Innehållet måste hittas på annat sätt
+> (t.ex. den sparade rutinen eller råfotot, som raderas efter tolkning). Samma kollektion
+> innehåller INTE klinikstödets frågetext – den ligger i `klinikfrageloggar` (utan uid,
+> 90 dagar sedan v5.140.0; tidigare aldrig gallrad).
+>
 > **Etapp 64 (v5.97.0):** collectionen `baspaketreferenser/{refId}` finns nu. Verifierat mot
 > `firestore.rules` och `src/hooks/useBaspaketreferenser.js` 2026-08-11: den är läs- och
 > skrivbar ENBART för plattformsadmin (leverantören) – ingen kundorganisation, oavsett roll,
@@ -410,6 +422,8 @@ användare. Sakligt, kort, verifierat.
 | Automatisk omfattningsanalys | ⬜ Finns inte | Etapp 32b |
 | Återställning från backup | ✅ Klart (2026-07-31, se steg 8) | Etapp 33a |
 | Gallring av gamla backuper | ✅ Klart (2026-08-01, 90 dagars retention) | Etapp 33c |
+| Spårbarhet: vilka AI-anrop gjordes, av vem och när (inte vad de innehöll) | ✅ Klart (2026-10-18, 90 dagars retention) – **svarar inte på "skickades en patientuppgift till Google"**, bara på "gjordes ett anrop" | Fynd 7, AI-INTEGRATIONSRISKER |
+| Gallring av klinikstödets frågelogg (90 d) och svarscache (7 d) | ✅ Klart (2026-10-18) – raderades aldrig tidigare | Fynd 3 |
 | Extern incidentkompetens | ⬜ Ej upphandlad | Policyns avsnitt 11 |
 
 **Så länge kolumnen ovan innehåller ⬜ är din faktiska detektionsförmåga begränsad till att

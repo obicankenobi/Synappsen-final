@@ -242,11 +242,11 @@ Rangordnad efter hur mycket verklig risk varje åtgärd faktiskt flyttar, inte e
 
 1. **Fynd 1** – ✅ Åtgärdat 2026-09-10.
 2. **Fynd 2** – ✅ Åtgärdat 2026-09-10.
-3. **Fynd 4** – utöka `ai-evaluering.yml` med fall för kviss- och stegförslagen. Kvarstår.
+3. **Fynd 4** – ✅ Fall 8–9 (stegförslag, quiz) tillagda i `functions/scripts/ai-evaluering.cjs` 2026-10-18, med deterministiska kontroller (`ai-kontroller.cjs`, testade i `tests/functions/aikontroller.test.cjs`): varje dos/tid i stegen och i quizens facit måste stå i källtexten. Se `CLAUDE_STATUS.md` för vad en körning mot skarp Vertex AI visade.
 4. **Fynd 5** – ✅ Åtgärdat 2026-09-10.
-5. **Fynd 3** – gallring av `klinikfrageloggar`/`klinikfragecache`. Kvarstår.
-6. **Fynd 7** – minimal anropslogg (utan innehåll). Kvarstår.
-7. **Fynd 8** – återbetala budget vid misslyckat anrop. Kvarstår.
+5. **Fynd 3** – ✅ Åtgärdat 2026-10-18: `aiGallringSchemalagt` (måndagar 03:45) raderar `klinikfrageloggar` efter 90 dagar och `klinikfragecache` efter 7. Testat i `tests/functions/aiintegration.test.cjs`.
+6. **Fynd 7** – ✅ Åtgärdat 2026-10-18: `aiAnropslogg` (organisationId, uid, funktion, tidpunkt – aldrig innehåll), 90 dagar, klientstängd i `firestore.rules`. Svarar på om/när/av vem, INTE på vad.
+7. **Fynd 8** – ✅ Åtgärdat 2026-10-18: `aterbetalaBudget()` anropas när modellen inte levererat ett svar. Ett svar som levererats men kasseras (t.ex. personnummer i svaret) återbetalas medvetet inte.
 
 **Varje åtgärd ska göras för sig, med ett eget regressionstest som bevisligen failar mot koden
 före ändringen** – samma disciplin som `granskningar/SAKERHETSGRANSKNING-2026-08.md` etablerade.

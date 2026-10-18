@@ -19,6 +19,8 @@ exports.skickaEpost = gemensamt.skickaEpost;
 exports.kontrolleraOchOkaHastighet = gemensamt.kontrolleraOchOkaHastighet;
 exports.okaSokkvot = gemensamt.okaSokkvot;
 exports.reserveraBudget = gemensamt.reserveraBudget;
+exports.aterbetalaBudget = gemensamt.aterbetalaBudget;
+exports.UPPSKATTAD_KOSTNAD_ORE = gemensamt.UPPSKATTAD_KOSTNAD_ORE;
 exports.loggaRevision = gemensamt.loggaRevision;
 exports.verifieraRevisionskedja = gemensamt.verifieraRevisionskedja;
 exports.skickaPush = gemensamt.skickaPush;
@@ -56,6 +58,11 @@ exports.uppdateraGeminiBudgetTak = organisationsadmin.uppdateraGeminiBudgetTak;
 exports.skapaKommentar = organisationsadmin.skapaKommentar;
 exports.skickaFeedback = organisationsadmin.skickaFeedback;
 exports.skickaLeverantorsfeedback = organisationsadmin.skickaLeverantorsfeedback;
+
+// ── ai-gallring.js – gallring av klinikstödets logg/cache och AI-anropsloggen
+const aiGallring = require("./ai-gallring");
+exports.gallraAiData = aiGallring.gallraAiData;
+exports.aiGallringSchemalagt = aiGallring.aiGallringSchemalagt;
 
 // ── backup.js – backup, gallring och återställning
 const backup = require("./backup");

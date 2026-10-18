@@ -470,7 +470,7 @@ const BUDGETVARNING_TROSKEL = 0.8;
 
 // Kontrollerar och reserverar budget innan ett dyrt Gemini-anrop görs.
 // Kastar fel om månadens tak är nått, så att vi aldrig betalar för anrop vi inte har råd med.
-async function reserveraBudget(orgId, uid) {
+async function reserveraBudget(orgId, uid, funktion = null) {
   const budgetRef = budgetDok(orgId);
   let larmAttSkicka = null;
   await db.runTransaction(async (tx) => {
@@ -543,9 +543,56 @@ async function reserveraBudget(orgId, uid) {
       extra: larmAttSkicka,
     });
   }
+
+  // Fynd 7 (AI-integrationsrisker): en minimal spårbarhetspost per AI-anrop. Skrivs först
+  // när reservationen LYCKATS – ett anrop som nekades av budgetspärren nådde aldrig Google.
+  // En misslyckad loggskrivning får aldrig stoppa själva anropet.
+  if (funktion) {
+    await loggaAiAnrop({ organisationId: orgId, uid, funktion }).catch((fel) => {
+      console.error("AI-anropsloggen kunde inte skrivas:", fel.message);
+    });
+  }
 }
 // Exporterad enbart för tests/functions/kostnadshistorik.test.cjs.
 exports.reserveraBudget = reserveraBudget;
+
+// Fynd 7 (AI-integrationsrisker): svarar på "gjordes ett AI-anrop, av vem, när, via vilken
+// funktion" – men ALDRIG "vad innehöll det". Prompttexten och bilden sparas medvetet inte:
+// det vore att duplicera exakt den personuppgiftsrisk loggen ska hjälpa till att utreda.
+// Gallras av gallraAiData() (functions/ai-gallring.js), se AI_ANROPSLOGG_RETENTION_DAGAR.
+async function loggaAiAnrop({ organisationId, uid, funktion }) {
+  await db.collection("aiAnropslogg").add({
+    organisationId,
+    uid,
+    funktion,
+    tidpunkt: FieldValue.serverTimestamp(),
+  });
+}
+exports.loggaAiAnrop = loggaAiAnrop;
+
+// Fynd 8 (AI-integrationsrisker): motstycket till reserveraBudget(). Reservationen görs FÖRE
+// modellanropet (annars kunde taket aldrig hållas), så ett anrop som sedan faller på Googles
+// sida – efter den inbyggda 503-retryn – ska inte ha kostat organisationen något. Anropas
+// bara när modellen faktiskt inte levererade ett svar; ett svar som kasseras efteråt
+// (t.ex. för att det innehöll ett personnummer) har kostat på riktigt och återbetalas INTE.
+// Gör ingenting om månaden hunnit rulla över, eftersom reservationen då redan nollställts.
+async function aterbetalaBudget(orgId, uid) {
+  const budgetRef = budgetDok(orgId);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(budgetRef);
+    if (!snap.exists) return;
+    const data = snap.data();
+    if ((data.aktuellManad ?? aktuellManadNyckel()) !== aktuellManadNyckel()) return;
+    const anvantPerUid = { ...(data.anvantPerUid ?? {}) };
+    anvantPerUid[uid] = Math.max(0, (anvantPerUid[uid] ?? 0) - UPPSKATTAD_KOSTNAD_ORE);
+    tx.set(
+      budgetRef,
+      { anvantOre: Math.max(0, (data.anvantOre ?? 0) - UPPSKATTAD_KOSTNAD_ORE), anvantPerUid },
+      { merge: true }
+    );
+  });
+}
+exports.aterbetalaBudget = aterbetalaBudget;
 
 // Etapp 14b: hashkedjan för revisionslogg (se firestore.rules – collectionen är helt
 // stängd för klienter, bara denna funktion skriver dit). Varje post länkas till den

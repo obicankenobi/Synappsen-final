@@ -27,6 +27,7 @@ const {
   kontrolleraOchOkaHastighet,
   okaSokkvot,
   reserveraBudget,
+  aterbetalaBudget,
 } = require("./gemensamt");
 const { FieldValue } = require("firebase-admin/firestore");
 
@@ -383,7 +384,7 @@ exports.fragaKlinisktStod = onCall(
     // Samma budgetspärr som bild-/dokumenttolkningen, så att den här funktionen inte kan
     // anropas direkt (förbi den pausade UI-vyn) utan tak på kostnad eller antal anrop.
     // Ligger EFTER cache-kontrollen – cachade svar kostar inget och ska inte äta budget.
-    await reserveraBudget(organisationId, request.auth.uid);
+    await reserveraBudget(organisationId, request.auth.uid, "fragaKlinisktStod");
 
     const kalldomanerText = GODKANDA_KALLDOMANER.join(", ");
 
@@ -397,6 +398,8 @@ exports.fragaKlinisktStod = onCall(
       traffar = await sokViaProgrammerbarSokmotor(fraga);
     } catch (fel) {
       console.error("Sökmotor-anrop misslyckades:", fel);
+      // Fynd 8: ingen modell har anropats ännu – reservationen ska inte kosta något.
+      await aterbetalaBudget(organisationId, request.auth.uid).catch(() => {});
       throw new HttpsError("internal", `Sökningen misslyckades: ${fel.message}`);
     }
 
@@ -405,6 +408,7 @@ exports.fragaKlinisktStod = onCall(
     // träff utanför listan aldrig nå Gemini eller användaren.
     const godkandaTraffar = traffar.filter((t) => domanGodkand(t.url));
     if (godkandaTraffar.length === 0) {
+      await aterbetalaBudget(organisationId, request.auth.uid).catch(() => {});
       throw new HttpsError(
         "not-found",
         `Hittade inget svar bland de godkända källorna (${kalldomanerText}). Sök manuellt istället.`
@@ -440,6 +444,8 @@ exports.fragaKlinisktStod = onCall(
       }
     } catch (fel) {
       console.error("Klinikstöd-sökning misslyckades:", fel);
+      // Fynd 8: efter båda försöken i 503-retryn har modellen inte levererat något svar.
+      await aterbetalaBudget(organisationId, request.auth.uid).catch(() => {});
       if (fel.status === 503) {
         throw new HttpsError(
           "unavailable",
