@@ -8,8 +8,9 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-10-18 · **v5.140.0 byggd och pushad, INTE deployad** (produktion kör
-fortfarande v5.139.0). v5.140.0 åtgärdar AI-integrationsriskernas fynd 3, 4, 7 och 8 – se
+**Senast uppdaterad:** 2026-10-18 · **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
+14:11–14:17, commit `fc37848`; PR #35 mergad som `ce40404`; asset-hash `index-BoGw6VUc.js` live,
+`last-modified` 14:17:38 GMT). v5.140.0 åtgärdar AI-integrationsriskernas fynd 3, 4, 7 och 8 – se
 uppföljningen 2026-10-18 längst ner. Därefter, 2026-09-10: **v5.139.0 i produktion**. **Samtliga kvarstående punkter i
 `TILLGANGLIGHETSREDOGORELSE.md` åtgärdade** (#4–#6, #10, #11 – ärende SYN-6 kan stängas), se
 uppföljningen längst ner nedan. **"kviss" bytt till "quiz" i
@@ -351,7 +352,8 @@ alltid en misstänkt hängning på faktiska tidsstämplar, inte på egen känsla
 
 De fyra återstående fynden i `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md` är åtgärdade i
 koden. Detaljer och motiveringar står i incheckningsmeddelandet och i fyndens egen
-statuslista; här bara läget. **Inte deployad.**
+statuslista; här bara läget. **Deployad 2026-10-18 (körning #100).** Gallringsjobbet
+`aiGallringSchemalagt` har inte körts än – första körning är nästa måndag 03:45.
 
 - **Fynd 8:** `aterbetalaBudget()` i alla fem AI-vägar när modellen inte levererat ett svar.
   Ett kasserat svar (personnummer i svaret) återbetalas medvetet inte.
