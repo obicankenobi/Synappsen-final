@@ -369,6 +369,28 @@ describe("De genererade dokumentsidorna motsvarar sina källdokument", () => {
       ).toBe(startsidanArGomd);
     }
   });
+
+  test("alla sex sidor och robots.txt är antingen gömda eller öppna, aldrig en blandning", () => {
+    // noindex togs bort 2026-10-21 (BESLUTSLOGG.md). Växlingen rör sju filer för hand, och ett
+    // halvt utfört byte är värre än något av ändlägena: en sida som sökmotorerna får läsa
+    // medan robots.txt fortfarande stänger ute dem (eller tvärtom) ger ett oförutsägbart
+    // resultat och märks inte förrän någon söker efter sidan.
+    const sidor = [
+      HTML,
+      "synappsen-web/integritet.html",
+      "synappsen-web/underlag.html",
+      ...DOKUMENT.map((d) => d.sida),
+    ];
+    const gomd = (fil) => /content="noindex/.test(las(fil));
+    const robotsStangd = /^Disallow:\s*\/\s*$/m.test(las("synappsen-web/robots.txt"));
+    for (const fil of sidor) {
+      expect(
+        gomd(fil),
+        `${fil} är ${gomd(fil) ? "noindex" : "indexerbar"} men robots.txt är ` +
+          `${robotsStangd ? "stängd (Disallow: /)" : "öppen"}. Byt alla sju samtidigt.`
+      ).toBe(robotsStangd);
+    }
+  });
 });
 
 describe("Webbplatsen visar gränssnittet i stället för att rita av det", () => {

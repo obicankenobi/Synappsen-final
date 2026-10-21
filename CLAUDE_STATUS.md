@@ -8,7 +8,7 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-10-18 · **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
+**Senast uppdaterad:** 2026-10-21 · **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
 14:11–14:17, commit `fc37848`; PR #35 mergad som `ce40404`; asset-hash `index-BoGw6VUc.js` live,
 `last-modified` 14:17:38 GMT). v5.140.0 åtgärdar AI-integrationsriskernas fynd 3, 4, 7 och 8 – se
 uppföljningen 2026-10-18 längst ner. Därefter, 2026-09-10: **v5.139.0 i produktion**. **Samtliga kvarstående punkter i
@@ -35,8 +35,8 @@ DEPLOYAD** (`deploy.yml` #98, success) och utvärderingen är helt ren efter dep
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
 **Webbplatsen har fått skärmbilder ur appen (nu även `/kliniskt-stod`), fyra publicerade
 dokumentsidor, räknade bevissiffror och konsekvent "jag"-röst på start- och underlagssidan**
-(se uppföljningen 2026-09-09 nedan) – fortfarande `noindex`, sex sidor som ska avgömmas
-samtidigt. **E2E-sviten är grön igen** (2026-09-07): `test:e2e` startar nu functions-
+(se uppföljningen 2026-09-09 nedan) – **sedan 2026-10-21 utan `noindex`** (se uppföljningen
+nedan). **E2E-sviten är grön igen** (2026-09-07): `test:e2e` startar nu functions-
 emulatorn, vilket den inte gjort sedan v5.136.0 bröt den.
 **Etapp 72 (`etapplaner/ETAPPLAN19.md`):** riktningen är antagen, beslutspunkt 5
 (efterfrågegrinden) gäller fortfarande som huvudregel för alla ÖVRIGA delmål. 72f, 72d och
@@ -51,7 +51,7 @@ emulatorn, vilket den inte gjort sedan v5.136.0 bröt den.
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **AI-kvalitetsmätning** | **Ny 2026-09-06.** Klinikstödets säkerhetsregler (regel 4 = MDR-avgränsningen) mäts nu i tre lager: `tests/functions/klinikstodprompt.test.cjs` (gratis, i varje svep, bevisar att reglerna STÅR kvar), `verifieraKlinikstod` (bara sökmotorn), och `.github/workflows/ai-evaluering.yml` (sju fall mot skarp Vertex AI, manuell dispatch, bevisar vad modellen SVARAR). **Körd skarpt fyra gånger 2026-09-06: reglerna höll i samtliga fall** (körning #4, efter deployen, helt ren: 13 OK, 0 FEL, 0 GRANSKA). Det största fyndet var att mätverktygets egna heuristiker fällde korrekta svar – en korrekt vägran måste innehålla de förbjudna orden. Rättat och verifierat. Modellvalet omprövat och bekräftat: stanna på Gemini. Se `granskningar/SAKERHETSRAPPORT.md` tillägg 2026-09-06 |
 | **Senaste kodarbete** | 2026-09-06: Vertex AI-migrering av samtliga sex Gemini-anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`), `@google/genai` i stället för det deprecerade `@google-cloud/vertexai` planen ursprungligen föreslog. **Deployad 2026-09-06** (`deploy.yml` #98, success). GCP-stegen gjorda, `gemini-2.5-flash` bevisad i `europe-west1`, utvärderingen ren efter deployen. `avtal/IT-FAKTABLAD.md` p. 7 och `avtal/UNDERBITRADEN.md` uppdaterade – de sa båda att anropen gick via det publika API:et. Internt/infrastruktur, inget för `andringslogg.js` |
-| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – men medvetet fortsatt `noindex, nofollow` (båda sidorna + `robots.txt` `Disallow: /`) – bakgrundsstycket och namn/orgnr på policyn saknas fortfarande. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Ta bort `noindex` när de två kvarvarande punkterna är klara, se `OPPNA-PUNKTER.md`. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
+| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – **indexerbar sedan 2026-10-21** (`noindex` borttaget på alla sex sidor, `robots.txt` `Allow: /` med Sitemap-rad), fast bakgrundsstycket och namn/orgnr på policyn fortfarande är platshållare. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
 | **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. **Åtgärda de kvarvarande AI-integrationsriskerna** (`granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`, fynd 3/4/7/8 – fynd 1/2/5 klara 2026-09-10). Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
@@ -144,6 +144,21 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-10-21 (`noindex` borttaget från webbplatsen på ägarens uppdrag)
+
+Ägaren bad uttryckligen om det ("Ta bort noindex nu"). Villkoren i den gamla öppna punkten
+var **inte** uppfyllda och påpekades innan bytet: bakgrundsstycket och innehavarens
+namn/orgnr/adress är fortfarande platshållare, och de tre dokumentsidorna (Brevo-bristen,
+interna sökvägar) är inte genomlästa. Beslutet står i `BESLUTSLOGG.md` 2026-10-21.
+
+`<meta name="robots">` borttagen ur `index.html`, `integritet.html`, `underlag.html` och
+ur mallen i `bygg-underlag.mjs` (de tre dokumentsidorna regenererade, inte handredigerade).
+`robots.txt` tillbaka till `Allow: /` med Sitemap-rad. Ny vakt i `webbplats.test.js`: alla
+sex sidor och robots.txt är gömda eller öppna tillsammans, aldrig en blandning (mutations-
+kontrollerad). Tillgänglighetsredogörelsens påstående "fortfarande noindex" rättades i
+källdokumentet, annars hade den publika sidan blivit fel vid deployen. **Tar effekt först
+vid `deploy-web.yml`** (en merge deployar inte).
 
 ## Uppföljning 2026-09-10 (samtliga kvarstående punkter i TILLGANGLIGHETSREDOGORELSE.md åtgärdade)
 

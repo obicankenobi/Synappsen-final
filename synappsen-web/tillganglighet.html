@@ -10,9 +10,6 @@
 <link rel="canonical" href="https://synappsen.se/tillganglighet.html" />
 <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
 
-<!-- Samma tillfälliga noindex som resten av webbplatsen, se index.html. -->
-<meta name="robots" content="noindex, nofollow" />
-
 <link rel="preload" href="/fonts/public-sans-400.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/stil.css" />
 </head>
@@ -114,7 +111,7 @@
 <hr />
 <h3>Att göra före publicering</h3>
 <p>Detta dokument är komplett i sak. Två av tre punkter är klara; en återstår som ett ägarbeslut:</p>
-<ol><li>~~Fyll i de två <code>[FYLL I]</code>-fälten: leverantörens juridiska namn och en e-postadress för tillgänglighetsfrågor.~~ <strong>Klart 2026-09-10.</strong> Det tredje ursprungliga fältet (måldatum för åtgärder) är inte längre aktuellt – samtliga kända brister är åtgärdade 2026-09-10, se tabellen ovan.</li><li>~~Publicera och länka från appen.~~ <strong>Klart 2026-09-10.</strong> Dokumentet publiceras som <code>synappsen-web/tillganglighet.html</code> (<code>https://synappsen.se/tillganglighet.html</code>, genererat av <code>synappsen-web/verktyg/bygg-underlag.mjs</code> – redigera aldrig den genererade sidan direkt, redigera det här källdokumentet och kör om skriptet). Länkad från appens hjälpsida (<code>src/pages/Hjalp.jsx</code>) och från inloggnings-/registreringssidan (<code>AuthSkal.jsx</code>, delas av båda). Sidan är fortfarande medvetet <code>noindex</code> tillsammans med webbplatsens övriga sidor (se <code>OPPNA-PUNKTER.md</code>), vilket bara påverkar sökmotorindexering – direkta länkar fungerar.</li><li><strong>Bestäm om redogörelsen även ska levereras som bilaga i anbud.</strong> Det är rekommendationen – det besvarar en fråga varje offentlig upphandlare ställer. Detta är det enda kvarstående ägarbeslutet, se <code>OPPNA-PUNKTER.md</code>.</li></ol>
+<ol><li>~~Fyll i de två <code>[FYLL I]</code>-fälten: leverantörens juridiska namn och en e-postadress för tillgänglighetsfrågor.~~ <strong>Klart 2026-09-10.</strong> Det tredje ursprungliga fältet (måldatum för åtgärder) är inte längre aktuellt – samtliga kända brister är åtgärdade 2026-09-10, se tabellen ovan.</li><li>~~Publicera och länka från appen.~~ <strong>Klart 2026-09-10.</strong> Dokumentet publiceras som <code>synappsen-web/tillganglighet.html</code> (<code>https://synappsen.se/tillganglighet.html</code>, genererat av <code>synappsen-web/verktyg/bygg-underlag.mjs</code> – redigera aldrig den genererade sidan direkt, redigera det här källdokumentet och kör om skriptet). Länkad från appens hjälpsida (<code>src/pages/Hjalp.jsx</code>) och från inloggnings-/registreringssidan (<code>AuthSkal.jsx</code>, delas av båda). Sidan var till 2026-10-21 medvetet <code>noindex</code> tillsammans med webbplatsens övriga sidor; taggen är nu borttagen och sidan går att hitta via sökmotorer.</li><li><strong>Bestäm om redogörelsen även ska levereras som bilaga i anbud.</strong> Det är rekommendationen – det besvarar en fråga varje offentlig upphandlare ställer. Detta är det enda kvarstående ägarbeslutet, se <code>OPPNA-PUNKTER.md</code>.</li></ol>
 <p><strong>Senast granskad och uppdaterad:</strong> 2026-09-10 (samtliga kvarstående WCAG-brister åtgärdade) <strong>Nästa översyn bör ske:</strong> vid nästa större funktionsändring, dock senast om tolv månader.</p>
 <hr />
 <p><em>Underlaget till den ursprungliga redogörelsen – fullständiga mätvärden, verktygsversioner och granskade sidor – finns dokumenterat i <code>etapplaner/UTVECKLINGSLOGG.md</code> under Fas 34. Underlaget till 2026-08-04-omgranskningen (Etapp 45c) finns i <code>etapplaner/ETAPPLAN9.md</code> och som en körbar testfil, <code>tests/e2e/tillganglighet.spec.js</code>.</em></p>
