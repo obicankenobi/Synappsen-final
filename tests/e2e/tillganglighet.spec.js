@@ -62,6 +62,29 @@ for (const tema of TEMAN) {
           problem.push(`${route}: navigering misslyckades (${navigeringsfel}) – ingen axe-granskning gjord`);
           continue;
         }
+        // Vänta in att routen faktiskt har renderat, inte bara att `load` avfyrats. Utan detta
+        // körde axe ibland mot ett tomt dokument (AuthProvider renderar inget alls tills
+        // inloggningsstatus är löst – nu ett <main> med statusrad, se AuthContext.jsx) eller mot
+        // Suspense-fallbacken, och gav landmark-one-main/page-has-heading-one på en slumpvis
+        // route i takt med hur belastad CI-runnern var. Reproducerat 2026-10-21 med CPU-strypning.
+        // Axe-reglerna är oförändrade: det här väntar bara tills det finns något att granska, och
+        // en route som ALDRIG renderar lyfts som ett tydligt problem i stället för ett falskt grönt.
+        // Villkoret mäts ATOMÄRT (en och samma mätning): <main> finns OCH ingen laddningsrad
+        // finns. Två separata väntan i följd räckte inte – en route som omdirigeras (t.ex. /admin
+        // för rollen personal, som skickas till /) passerar ett ögonblick där <Navigate> renderar
+        // null, och då kunde båda väntan vara uppfyllda var för sig utan att routen renderats.
+        const renderad = await page
+          .waitForFunction(
+            () => !!document.querySelector("main#huvudinnehall") && !document.querySelector(".sida--laddar"),
+            null,
+            { timeout: 15_000 }
+          )
+          .then(() => null)
+          .catch(() => `${route}: routen renderade aldrig klart (ingen <main>, eller kvar i laddningsläge)`);
+        if (renderad) {
+          problem.push(`${renderad} – ingen axe-granskning gjord`);
+          continue;
+        }
         // Längre väntan än i rökprovssviten (45b) – ett verkligt fynd under bygget var att en
         // för kort väntan gav ett falskt "page-has-heading-one" på Hem eftersom sidan (lazy-
         // laddad) inte hunnit rendera klart innan axe-core kördes, inte en riktig bugg.

@@ -179,9 +179,26 @@ export function AuthProvider({ children }) {
     loggaUt,
   };
 
+  // Tidigare renderades `{!loading && children}` – alltså INGET ALLS tills inloggningsstatusen
+  // var löst. Det är en helt tom sida utan <main>, <h1> eller hoppa-länk, och på en långsam
+  // enhet eller CI-runner räcker några hundra millisekunder för att en skärmläsare (eller axe-
+  // core) ska mötas av ett tomt dokument. Reproducerat 2026-10-21 med CPU-strypning: vid x25
+  // är sidan tom och axe ger landmark-one-main + page-has-heading-one, exakt som de slumpvisa
+  // CI-felen i tillganglighet.spec.js. Samma felklass som LeverantorLayout.jsx (laddnings- och
+  // behörighetsläget saknade <main>, TILLGANGLIGHETSREDOGORELSE.md punkt 18). Laddningsläget
+  // är nu ett <main> med en statusrad; `children` renderas först när det är löst, så det finns
+  // aldrig två <main> samtidigt.
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {loading ? (
+        <main id="huvudinnehall" className="app-innehall" tabIndex={-1}>
+          <div className="sida sida--laddar" role="status">
+            Laddar...
+          </div>
+        </main>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 }

@@ -36,6 +36,13 @@ test.describe("sidomeny kontra bottenrad", () => {
 
   test("endast EN huvudnavigering är synlig samtidigt, i båda bredderna", async ({ page }) => {
     await loggaIn(page, "e2e-superA@orga.test");
+    // evaluateAll väntar inte på något: direkt efter inloggningen har `waitForURL` bara visat att
+    // adressen bytts, inte att navigeringen renderats, så antalet kunde bli 0 på en långsam
+    // runner. Vänta in att huvudnavigeringen finns innan något räknas – själva kravet (exakt
+    // EN synlig åt gången) är oförändrat och prövas fortfarande strikt, utan retry.
+    await expect(page.getByRole("navigation", { name: "Huvudnavigering" }).first()).toBeAttached({
+      timeout: 15_000,
+    });
     for (const storlek of [MOBIL, DATOR]) {
       await page.setViewportSize(storlek);
       // offsetParent funkar INTE som synlighetstest här - position: fixed ger offsetParent:

@@ -179,6 +179,19 @@ describe("Tillgänglighetsredogörelsens sammanfattning stämmer med dess egen t
   // självt är svårare att upptäcka än ett som är inaktuellt mot koden.
   const text = las("granskningar/TILLGANGLIGHETSREDOGORELSE.md");
 
+  test("intervallet i 'Planerad åtgärd (1–N)' slutar på tabellens sista radnummer", () => {
+    // Läggs en ny rad till i tabellen utan att intervallet uppdateras påstår dokumentet att
+    // färre punkter är åtgärdade än det finns – eller, värre, täcker en ny ofixad punkt.
+    const radnummer = [...text.matchAll(/^\|\s*(\d+)\s*\|/gm)].map((m) => Number(m[1]));
+    const sista = Math.max(...radnummer);
+    const intervall = text.match(/tabellen ovan \(1[–-](\d+)\)/);
+    expect(intervall, "Hittade inget 'tabellen ovan (1–N)' i 'Planerad åtgärd'").not.toBeNull();
+    expect(
+      Number(intervall[1]),
+      `Tabellen går till rad ${sista}, men 'Planerad åtgärd' säger att 1–${intervall[1]} är åtgärdade.`
+    ).toBe(sista);
+  });
+
   test("varje avvikelse som är ofixad i tabellen räknas upp i sammanfattningen – eller så säger sammanfattningen uttryckligen att inga finns", () => {
     // Bara FORMELLA kravbrott (nivå A eller AA) räknas. Avvikelse #11 (emoji i rubriker) har
     // nivå "–" och är uttryckligen "formellt inget kravbrott" – den ska inte tvingas in i

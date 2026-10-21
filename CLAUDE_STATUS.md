@@ -8,7 +8,8 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-10-21 · **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
+**Senast uppdaterad:** 2026-10-21 · **Slumpvisa e2e-fel rättade** (en riktig tillgänglighetsbrist i appens laddningsläge, se uppföljningen
+2026-10-21 längst ner; ej deployad). Före det: **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
 14:11–14:17, commit `fc37848`; PR #35 mergad som `ce40404`; asset-hash `index-BoGw6VUc.js` live,
 `last-modified` 14:17:38 GMT). v5.140.0 åtgärdar AI-integrationsriskernas fynd 3, 4, 7 och 8 – se
 uppföljningen 2026-10-18 längst ner. Därefter, 2026-09-10: **v5.139.0 i produktion**. **Samtliga kvarstående punkter i
@@ -350,3 +351,45 @@ tiotal "vi") **rördes inte** – låg utanför den öppna punktens uttalade fil
 en del av den här begäran. Raden borttagen ur `OPPNA-PUNKTER.md`.
 
 Fullt testsvep: `npm run lint`, `npx vitest run` (607 tester), `npm run build` – alla gröna.
+
+## Uppföljning 2026-10-21 (slumpvisa e2e-fel: tillganglighet.spec.js och sidomeny.spec.js)
+
+Två e2e-test föll slumpvis på CI på PR:er som bara rörde webbplatsen, och blev gröna vid
+omkörning. **Båda reproducerades lokalt med CPU-strypning** (Chromium via CDP,
+`Emulation.setCPUThrottlingRate`) – inte antagna.
+
+- **Fel 1 (axe: `landmark-one-main` + `page-has-heading-one`) – misstänkt orsak delvis fel.**
+  Förslaget var Suspense-fallbacken i `App.jsx`. För de routes som felade (`/papperskorg`,
+  `/lankbibliotek`) ligger fallbacken redan INNE i `<main>`. Den verkliga orsaken är
+  `AuthProvider`, som renderade `{!loading && children}`: **ingenting alls** – en tom sida utan
+  `<main>`, `<h1>` eller hoppa-länk – tills inloggningsstatus var löst. Vid CPU x25 var
+  `document.body.innerText` tom och axe gav exakt de två reglerna. **Riktig brist, inte bara
+  ett testproblem** (`TILLGANGLIGHETSREDOGORELSE.md` #19): laddningsläget är nu ett
+  `<main id="huvudinnehall">` med en `role="status"`-rad, bevakat av
+  `src/context/AuthContext.test.jsx` (faller mot gamla koden, verifierat).
+- **Fel 2 (`sidomeny.spec.js`: fick 0):** bekräftat som misstänkt. `evaluateAll` väntar inte, och
+  `waitForURL` visar bara att adressen bytts. Vid CPU x12 blev antalet 0 varje gång. Testet
+  väntar nu in att navigeringen finns; kravet "exakt 1 synlig" prövas lika strikt som förut.
+- **`tillganglighet.spec.js` väntar nu atomärt** (`waitForFunction`: `<main>` finns OCH ingen
+  `.sida--laddar`). Två separata väntan i följd räckte inte: `/admin` för rollen personal
+  omdirigeras till `/`, och `<Navigate>` renderar `null` ett ögonblick, så båda väntan kunde
+  vara uppfyllda var för sig. Hittat genom att köra den första versionen under strypning.
+  En route som aldrig renderar lyfts som ett problem, inte som ett falskt grönt.
+  **Axe-reglerna är oförändrade, inget test hoppat över.**
+- Ny assertion i `tests/docs/dokumentpastaenden.test.js`: "Planerad åtgärd (1–N)" måste sluta på
+  tabellens sista radnummer. `synappsen-web/tillganglighet.html` regenererad.
+
+**Före/efter under identisk strypning (CPU x10, personal/dark, alla 25 routes):** gamla koden
+14 routes med axe-fel; nya koden 0.
+
+**Verifierat:** lint, vitest (628), `test:e2e` utan Functions-emulatorn **tre gånger i rad**:
+27 gröna varje gång, inklusive alla fyra axe-körningar och alla sex sidomenytester.
+
+**Vad som INTE är verifierat – och varför:** de 14 `rokprov.spec.js`-testen faller i varje körning
+i den här sandboxen, **även på orörd basgren** (`ERR_CONNECTION_REFUSED`, specens egen kommentar
+förklarar att sviten kräver Functions-emulatorn sedan v5.136.0). Functions-emulatorn startar inte
+här: `firebase-tools` får 502 "upstream request failed" från sandboxens proxy när den
+registrerar Firestore-triggers mot `127.0.0.1:8080`. Med mina ändringar innehåller de 335
+felraderna noll andra fel än den raden. **Kör `npm run test:e2e` (med Functions-emulatorn) på CI
+innan merge.** Ingen versionsbump och ingen deploy gjord.
+
