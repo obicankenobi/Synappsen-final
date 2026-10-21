@@ -49,6 +49,10 @@
         <span class="marke__typ">Kunskapsbank för vården</span>
       </div>
     </div>
+    <nav class="omraden" aria-label="Område">
+      <a href="/" aria-current="page">Vårdplattformen</a>
+      <a href="/foretag.html">Företagslösningar &amp; Bokning</a>
+    </nav>
   </div>
   <nav class="topp__index" aria-label="Innehåll">
     <a href="#problemet">Problemet</a>
@@ -81,6 +85,11 @@
       </div>
     </div>
 
+    <nav class="omraden" aria-label="Område">
+      <a href="/" aria-current="page">Vårdplattformen</a>
+      <a href="/foretag.html">Företagslösningar &amp; Bokning</a>
+    </nav>
+
     <div class="index">
       <a href="#problemet"><span>01</span><span>Problemet</span></a>
       <a href="#losningen"><span>02</span><span>Så fungerar det</span></a>
@@ -104,32 +113,36 @@
 
     <!-- HERO -->
     <section class="hero">
-      <span class="eyebrow hero__eyebrow">Digital kunskapsbank · Akutmottagning · Vårdcentral · Kommunal vård</span>
-      <h1>Rätt information, direkt i handen, när det är bråttom.</h1>
-      <p class="lede">
-        Synappsen samlar en vårdenhets praktiska kunskap på ett ställe: rutiner,
-        förrådsplatser, kontakter och driftinfo. Sökbart på sekunder, i mobilen, även
-        vid dåligt nät.
-      </p>
-      <div class="knappar">
-        <a class="knapp" href="#pilot">Boka en pilot</a>
-        <a class="knapp knapp--tom" href="#losningen">Se hur det fungerar</a>
-      </div>
+      <div class="hero__rutnat">
+        <div class="hero__text">
+          <span class="eyebrow hero__eyebrow">Digital kunskapsbank · Akutmottagning · Vårdcentral · Kommunal vård</span>
+          <h1>Rätt information, direkt i handen, när det är bråttom.</h1>
+          <p class="lede">
+            Synappsen samlar en vårdenhets praktiska kunskap på ett ställe: rutiner,
+            förrådsplatser, kontakter och driftinfo. Sökbart på sekunder, i mobilen, även
+            vid dåligt nät.
+          </p>
+          <div class="knappar">
+            <a class="knapp" href="#pilot">Boka en pilot</a>
+            <a class="knapp knapp--tom" href="#losningen">Se hur det fungerar</a>
+          </div>
+        </div>
 
-      <!-- Skärmbild, inte attrapp. Den handritade sökrutan som stod här till 2026-09-06
-           renderade "Urinkadeter" – ordet var felstavat i markupen för att markeringen skulle
-           gå ihop, samtidigt som bildtexten under stavade det rätt. Bilden nedan är fotograferad
-           ur den körande appen av synappsen-web/verktyg/skarmbilder.spec.mjs. Rita aldrig av ett
-           gränssnitt för hand igen. -->
-      <figure class="bild bild--ensam" style="margin-top: 34px;">
-        <img src="/bilder/app-sok.png" width="780" height="1688"
-             alt="Sökning i appen på ordet kad. Elva träffar fördelade på Kliniskt stöd, Logistik och Administration, med rutinen Urinkateter (KAD) inläggning överst och förrådsartikeln KAD-set Foley 16 Ch på skåp 4, hylla B under den." />
-        <figcaption>
-          Sökningen är felstavningstålig: "kad" hittar både rutinen "Urinkateter (KAD)" och
-          KAD-seten i förrådet, med hyllplatsen i träfflistan. Skärmbild ur appen med
-          demodata, inte från en verklig enhet.
-        </figcaption>
-      </figure>
+        <!-- Skärmbild, inte attrapp. Den handritade sökrutan som stod här till 2026-09-06
+             renderade "Urinkadeter" – ordet var felstavat i markupen för att markeringen skulle
+             gå ihop, samtidigt som bildtexten under stavade det rätt. Bilden nedan är fotograferad
+             ur den körande appen av synappsen-web/verktyg/skarmbilder.spec.mjs. Rita aldrig av ett
+             gränssnitt för hand igen. -->
+        <figure class="bild hero__bild">
+          <img src="/bilder/app-sok.png" width="780" height="1688"
+               alt="Sökning i appen på ordet kad. Elva träffar fördelade på Kliniskt stöd, Logistik och Administration, med rutinen Urinkateter (KAD) inläggning överst och förrådsartikeln KAD-set Foley 16 Ch på skåp 4, hylla B under den." />
+          <figcaption>
+            Sökningen är felstavningstålig: "kad" hittar både rutinen "Urinkateter (KAD)" och
+            KAD-seten i förrådet, med hyllplatsen i träfflistan. Skärmbild ur appen med
+            demodata, inte från en verklig enhet.
+          </figcaption>
+        </figure>
+      </div>
     </section>
 
     <!-- 01 PROBLEMET -->
@@ -151,17 +164,14 @@
         </p>
       </div>
 
-      <!-- BAKGRUNDSSTYCKET (P1 i produkt/VARUMARKE.md §14).
-           Medvetet oskrivet av en kodsession: planen säger "20 min, bara du kan göra det".
-           Det här är den enda plats på sidan där avsändaren talar i egen sak om varför
-           produkten finns, och en påhittad ursprungshistoria vore precis det slags påstående
-           som VARUMARKE.md §7 (bevisregeln) finns för att stoppa.
-           Skriv 3-5 meningar: vad du såg på en avdelning, varför pärmen inte räckte, vad du
-           försökte lösa. Konkret före abstrakt (§6). Ta bort den här kommentaren när du
-           skrivit klart, och ta bort raden ur OPPNA-PUNKTER.md. -->
       <div class="bakgrund">
-        <span class="eyebrow" style="display: block; margin-bottom: 10px;">Varför Synappsen finns</span>
-        <p class="kontakt__falt">[ Bakgrundsstycket – skrivs av ägaren, se P1 i produkt/VARUMARKE.md ]</p>
+        <span class="eyebrow eyebrow--blok mb-10">Varför Synappsen finns</span>
+        <p>
+          Jag arbetar själv kliniskt inom akutsjukvården. Synappsen är det jag byggde för att
+          slippa det dagliga letandet efter rutiner i pärmar, på lappar och i delade mappar.
+          Gränserna drog jag från första dagen: appen innehåller inga patientuppgifter,
+          räknar inte ut doser och ersätter inte klinisk bedömning.
+        </p>
       </div>
     </section>
 
@@ -171,7 +181,7 @@
         <span class="sek-nr">02 — Så fungerar det</span>
         <h2>Tre områden, en sökruta, installerad på hemskärmen.</h2>
       </div>
-      <div class="prosa" style="margin-bottom: 34px;">
+      <div class="prosa mb-34">
         <p>
           Synappsen är en installerbar app som fungerar på mobil, surfplatta och dator.
           Innehållet delas i tre områden som speglar hur en vårdenhet faktiskt arbetar.
@@ -192,12 +202,12 @@
           <p>Policys, blanketter och administrativa dokument, med samma spårbarhet och granskningskrav som det kliniska innehållet.</p>
         </div>
       </div>
-      <p class="sok__not" style="margin-top: 14px;">
+      <p class="sok__not mt-14">
         Varje område har en fast färg genom hela appen. Den kan aldrig förväxlas med en
         statusfärg, för de två ligger i skilda färgfamiljer.
       </p>
 
-      <div class="bilder" style="margin-top: 34px;">
+      <div class="bilder mt-34">
         <figure class="bild">
           <img src="/bilder/app-rutiner.png" width="780" height="1688"
                alt="Vyn Kliniskt stöd i appen. Klinikstöd-sökningen med hjälptexten om att svaret källhänvisas och aldrig ersätter klinisk bedömning, sökfältet tomt och oskickat. Under den börjar rutinlistan med HLR vuxen, larmkedja och utrustningens placering, märkt Bör granskas och Akut." />
@@ -218,7 +228,7 @@
         </figure>
       </div>
 
-      <div style="margin-top: 44px;">
+      <div class="mt-44">
         <ul class="punkter">
           <li>
             <div>
@@ -279,21 +289,33 @@
         <div class="ruta">
           <h3>En samlad godkännandekö</h3>
           <p>Alla väntande utkast och ändringsförslag samlade i en vy, oavsett vilket område de kommer från. Inget ligger utspritt per sektion.</p>
-          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+          <div class="badgerad">
             <span class="badge badge--status badge--status-vantar">Väntar på godkännande</span>
             <span class="badge badge--status badge--status-godkand">Godkänd</span>
           </div>
         </div>
       </div>
 
-      <figure class="bild bild--ensam" style="margin-top: 34px;">
-        <img src="/bilder/app-ledningsrapport.png" width="780" height="1688"
-             alt="Ledningsrapporten i appen. Tabell med kvitteringsgrad per område: Kliniskt stöd fyra rutiner 75 procent, Administration två rutiner 83 procent, Logistik sex godkända artiklar där kvittering inte spåras per förrådsartikel. Under tabellen börjar avsnittet Rutiner som bör granskas." />
-        <figcaption>
-          Ledningsrapporten, exporterbar som PDF. Skärmbild med demodata: siffrorna kommer
-          från sex påhittade rutiner, inte från en enhet i drift.
-        </figcaption>
-      </figure>
+      <div class="ledning">
+        <figure class="bild bild--ensam">
+          <img src="/bilder/app-ledningsrapport.png" width="780" height="1688"
+            alt="Ledningsrapporten i appen. Tabell med kvitteringsgrad per område: Kliniskt stöd fyra rutiner 75 procent, Administration två rutiner 83 procent, Logistik sex godkända artiklar där kvittering inte spåras per förrådsartikel. Under tabellen börjar avsnittet Rutiner som bör granskas." />
+        </figure>
+        <div class="ledning__text">
+          <p class="sok__not">
+            Ledningsrapporten, exporterbar som PDF. Skärmbild med demodata: siffrorna kommer
+            från sex påhittade rutiner, inte från en enhet i drift.
+          </p>
+          <div class="infokort">
+            <h3>Vad ledningsrapporten ger inför APT och tillsyn</h3>
+            <ul>
+              <li><strong>Kvitteringsgrad per område</strong>Beräknas av de kvitteringar som finns när rapporten öppnas, uppdelat per sektion.</li>
+              <li><strong>Rutiner som bör granskas</strong>Godkända rutiner som inte granskats på 180 dagar listas under tabellen, så att de syns innan någon följer en inaktuell.</li>
+              <li><strong>Export som PDF</strong>Rapporten sparas som PDF direkt från sidan, via webbläsarens utskrift.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- 04 LEVANDE INNEHÅLL -->
@@ -302,15 +324,15 @@
         <span class="sek-nr">04 — Levande innehåll</span>
         <h2>Den vanligaste svagheten är inte tomma system. Det är gamla.</h2>
       </div>
-      <div class="prosa" style="margin-bottom: 34px;">
+      <div class="prosa mb-34">
         <p>
           Ett dokumentsystem fylls oftast med engagemang och tappar sedan aktualitet i tysthet.
           Synappsen har en egen innehållshälsokontroll byggd just mot det.
         </p>
       </div>
 
-      <div style="margin-bottom: 40px;">
-        <span class="eyebrow" style="display: block; margin-bottom: 12px;">Exempel · Innehållshälsa med nedbrytning</span>
+      <div class="mb-40">
+        <span class="eyebrow eyebrow--blok mb-12">Exempel · Innehållshälsa med nedbrytning</span>
         <div class="halsa" role="img" aria-label="Exempel på innehållshälsa: 78 procent av 142 godkända rutiner har ingen flagga. 18 bör granskas, 7 saknar ägare, 4 är aldrig kvitterade och 2 har passerat sitt utgångsdatum.">
           <div class="halsa__topp">
             <span class="halsa__siffra">78 %</span>
@@ -324,7 +346,7 @@
             <li><span>Utan anmärkning</span><span class="badge badge--status badge--status-godkand">111</span></li>
           </ul>
         </div>
-        <p class="sok__not" style="margin-top: 12px;">
+        <p class="sok__not mt-12">
           Siffrorna ovan är ett illustrerande exempel, inte mätdata från en verklig enhet.
         </p>
       </div>
@@ -399,7 +421,7 @@
         <h2>Ett fall ur min egen utveckling, och gränserna jag dragit.</h2>
       </div>
 
-      <div class="prosa" style="margin-bottom: 38px;">
+      <div class="prosa mb-38">
         <p>
           Alla system har luckor och alla utvecklingsprojekt stöter på problem. Här är ett
           konkret fall ur min egen utveckling, återgivet i sin helhet, och de gränser jag
@@ -407,7 +429,7 @@
         </p>
       </div>
 
-      <span class="eyebrow" style="display: block; margin-bottom: 14px;">Fallstudie · Klinikstöd-sökningen</span>
+      <span class="eyebrow eyebrow--blok mb-14">Fallstudie · Klinikstöd-sökningen</span>
 
       <div class="fall">
         <div class="fall__led">
@@ -443,9 +465,9 @@
         </p>
       </div>
 
-      <div style="margin-top: 52px;">
-        <span class="eyebrow" style="display: block; margin-bottom: 14px;">Medvetna avgränsningar</span>
-        <div class="prosa" style="margin-bottom: 22px;">
+      <div class="mt-52">
+        <span class="eyebrow eyebrow--blok mb-14">Medvetna avgränsningar</span>
+        <div class="prosa mb-22">
           <p>
             Följande finns inte i Synappsen. Varje rad är ett beslut med ett skäl, inte en
             oavslutad uppgift.
@@ -484,7 +506,7 @@
         </ul>
       </div>
 
-      <div class="prosa" style="margin-top: 44px;">
+      <div class="prosa mt-44">
         <p>
           <strong>Och det viktigaste:</strong> Synappsen har ännu ingen enhet i skarp drift.
           Mätfunktionerna (trendkurvor, kvitteringsgrad, personalpuls) är byggda och redo,
@@ -502,7 +524,7 @@
         <span class="sek-nr">07 — Startbibliotek</span>
         <h2>Ni börjar inte från ett tomt system.</h2>
       </div>
-      <div class="prosa" style="margin-bottom: 30px;">
+      <div class="prosa mb-30">
         <p>
           Väljer ni en verksamhetstyp vid etablering fylls organisationen automatiskt med ett
           startbibliotek: strukturella rutinmallar över alla tre områden, ett förrådsförslag att
@@ -537,7 +559,7 @@
         <span class="sek-nr">08 — Priser</span>
         <h2>Priset står här.</h2>
       </div>
-      <div class="prosa" style="margin-bottom: 32px;">
+      <div class="prosa mb-32">
         <p>
           Per enhet och år, inte per användare. En avdelning som anställer fler ska inte få en
           högre faktura för att fler behöver läsa samma rutin.
@@ -601,7 +623,7 @@
         </div>
       </div>
 
-      <div class="tabell-svep" style="margin-top: 28px;">
+      <div class="tabell-svep mt-28">
         <table>
           <caption class="eyebrow">Tillägg</caption>
           <thead>
@@ -616,7 +638,7 @@
         </table>
       </div>
 
-      <div class="prosa" style="margin-top: 28px;">
+      <div class="prosa mt-28">
         <p>
           <strong>Två saker som påverkar vad ni får för priset i dag.</strong> Enkel inloggning
           (SSO) är inte byggd ännu. Den kommer ingå i Drift och Full, och den första kund
@@ -633,7 +655,7 @@
         <span class="sek-nr">09 — Nästa steg</span>
         <h2>En sektion, fyra till sex veckor, tre mått.</h2>
       </div>
-      <div class="prosa" style="margin-bottom: 32px;">
+      <div class="prosa mb-32">
         <p>
           Piloten är avsiktligt liten: en avdelning, inte hela verksamheten. Poängen är att se
           hur appen används i vanlig drift, och att få riktiga siffror i stället för mina
@@ -641,7 +663,7 @@
         </p>
       </div>
 
-      <div class="steg" style="margin-bottom: 34px;">
+      <div class="steg mb-34">
         <div>
           <span class="steg__nr">01</span>
           <h3>Förberedelse</h3>
@@ -676,20 +698,36 @@
     </section>
 
     <!-- KONTAKT -->
-    <div class="kontakt">
+    <div class="kontakt" id="kontakt">
       <span class="eyebrow">Kontakt</span>
       <h2>Boka en genomgång eller en pilot.</h2>
-      <p class="lede" style="font-size: 17px;">
-        Jag visar appen i skarpt läge och går igenom upphandlingsunderlaget med er
-        IT-avdelning.
-      </p>
-      <p class="kontakt"><a class="kontakt__epost" href="mailto:kontakt@synappsen.se">kontakt@synappsen.se</a></p>
+      <div class="kontaktkort">
+        <div>
+          <h3>Boka en genomgång</h3>
+          <p>Tjugo minuter. Jag visar appen och går igenom upphandlingsunderlaget med er IT-avdelning.</p>
+          <a class="knapp" href="mailto:kontakt@synappsen.se?subject=Bokning%20av%20genomg%C3%A5ng%20-%20Synappsen">Boka 20 minuters genomgång</a>
+          <div class="epostrad">
+            <a class="kontakt__epost" href="mailto:kontakt@synappsen.se">kontakt@synappsen.se</a>
+            <button type="button" class="kopiera" data-kopiera="kontakt@synappsen.se" hidden>Kopiera adressen</button>
+            <span class="kopierat" role="status" aria-live="polite"></span>
+          </div>
+        </div>
+        <div>
+          <h3>Vad som händer när ni hör av er</h3>
+          <ol class="steglista">
+            <li>Kort genomgång av er enhets behov.</li>
+            <li>Jag visar appen och upphandlingsunderlaget i skarpt läge.</li>
+            <li>Passar det er sätter jag upp en avgränsad pilot på en sektion.</li>
+          </ol>
+        </div>
+      </div>
     </div>
 
     <footer>
       <span>Synappsen · Digital kunskapsbank för vården</span>
       <span><a href="/integritet.html">Integritetspolicy</a></span>
       <span><a href="/underlag.html">Underlag och dokumentation</a></span>
+      <span><a href="/foretag.html">Företagslösningar</a></span>
     </footer>
   </main>
 </div>

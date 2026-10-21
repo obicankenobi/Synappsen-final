@@ -5548,6 +5548,7 @@ e2e bevisar inte att någon Cloud Function fungerar. `firebase-tools@15` visar i
 en bump rör verktyget som gör produktionsdeployerna och kräver ett eget beslut.
 
 ---
+
 ## Uppföljning 2026-09-07 (fynd från en parallell tråd verifierade och registrerade – ingen kod ändrad)
 
 En parallell session har arbetat med den publika marknadswebbplatsen (`synappsen-web/`) på
@@ -5611,3 +5612,74 @@ session innan PR #23 är mergad**, annars dubbleras arbetet eller uppstår en me
 **Ingen kod ändrad i den här uppföljningen** – bara dokumentation och tracking, som ägaren
 uttryckligen bad om. Ändrade filer: `OPPNA-PUNKTER.md` (två rader utökade/tillagda),
 `.claude/skills/synappsen-release/SKILL.md` (varningsrad), `CLAUDE_STATUS.md`.
+
+## Uppföljning 2026-09-08 (firebase-tools bumpat till `^15.29.0` – två fel hittade, ett var falskt)
+
+`firebase-tools@13.35.1` kunde inte köra Cloud Functions i emulatorn: emulatorruntimen
+anropar `functions.config()`, borttaget i `firebase-functions@7` (vår version), så **varje**
+anrop dog tyst med 500 (svalt av `AuthContext.jsx`) – `test:e2e` bevisade därmed inte att
+någon Cloud Function fungerade, oavsett hur grön sviten var. Bekräftat på riktig
+produktions-CI, inte bara i sandbox. Undersökningen gick i tre steg samma dag:
+
+**Steg 1 – `firebase-tools@15.29.0` löser functions.config(), men ett nytt fel dyker upp.**
+Bevisat i CI: `rapporteraAppVersion` exekverar nu sin riktiga logik. Ett ANNAT fel visade sig
+dock: `TypeError: Cannot read properties of undefined (reading 'serverTimestamp')` vid
+`admin.firestore.FieldValue.serverTimestamp()`. Grävde i firebase-tools källkod
+(`functionsEmulatorRuntime.js`): dess `Proxied.getOriginal()` gör `value.bind(target)` på
+`admin.firestore` för att stubba den mot emulatorn – och `Function.prototype.bind()` kopierar
+ALDRIG med statiska egenskaper som `.FieldValue`/`.Timestamp`. **Bekräftat identisk, oförändrad
+kod i firebase-tools@13.35.1, @14.27.0 och @15.29.0** – felet är alltså inte nytt, det var bara
+osynligt i v13 eftersom functions.config()-kraschen träffade tidigare i samma anrop. 88
+förekomster i 14 filer (`gemensamt.js`, `organisationslivscykel.js`, `kvissbank.js`,
+`klinikstod.js`, m.fl.) använde mönstret.
+
+**Steg 2 – en första, FELAKTIG slutsats om en Storage-regression.** En lokal A/B-körning av
+`tests/rules/storage.test.mjs` visade `firebase-tools@13.35.1`: 24/0, `firebase-tools@15.29.0`:
+18/6 misslyckade (`Null value error` i `minOrganisation()`/`minRoll()`, cross-service
+`firestore.get()` FRÅN `storage.rules`). Dokumenterades felaktigt som ett bevisat,
+diskvalificerande fynd. **Det var fel:** en riktig CI-körning av samma testfil mot v15.29.0
+gav **24 klarade, 0 misslyckade** – identiskt med v13, två separata gånger. Den lokala
+18/6-siffran var ett sandboxartefakt (samma nätverksbegränsning – saknad IPv6-loopback, blockerad
+GCE-metadata-liknande trafik – som redan var känd för att störa eventarc-registrering lokalt),
+inte ett äkta firebase-tools-fel. Lärdomen: verifiera alltid ett misstänkt verktygsfel mot
+riktig CI innan det dokumenteras som blockerande, inte bara mot sandboxen.
+
+**Steg 3 – den riktiga fixen låg i vår egen kod.** Direktimport av `{ FieldValue, Timestamp }`
+från `require("firebase-admin/firestore")` går inte via den trasiga `admin`-modulproxyn.
+Bytte alla 88 förekomster i de 14 filerna (commit `0c2ad92`). Verifierat lokalt: samma
+`rapporteraAppVersion`-anrop som förut kraschade under v14 lyckas nu fullt ut och skriver
+korrekt till Firestore-emulatorn. Inget produktionsbeteende ändras – `admin.firestore.FieldValue`
+och `firebase-admin/firestore`s `FieldValue` är samma objekt utanför emulatorn.
+
+**Slutresultat: `firebase-tools` bumpat `^13.35.1` → `^15.29.0`.** Verifierat med
+`.github/workflows/verifiera-firebase-tools-bump.yml` (manuell dispatch) mot BÅDE `14` och
+`15.29.0` efter patchen – båda gav gröna resultat på BÅDA stegen (functions-anropet och
+Storage-regeltestet) i riktig CI. Lokalt: lint, 607 vitest, `test:rules`, `test:functions`,
+`test:storage`, build alla gröna med v15.29.0 (Storage-regeltestet visar fortfarande
+18/6 lokalt pga sandboxartefakten ovan – ignorera den siffran, CI är sanningskällan). Lokal
+`test:e2e` startar inte fullt ut i den här sandboxen (samma kända nätverksbegränsning stoppar
+eventarc-/Firestore-triggerregistreringen: "Unable to parse JSON... upstream r[equest failed]")
+– irrelevant, eftersom riktig CI redan bevisat båda diagnossteg gröna två gånger.
+`actions/setup-java@v4` (JDK 21, ett nytt krav från firebase-tools@14+) tillagt i `ci.yml` och
+`deploy.yml`. Nytt återanvändbart diagnosverktyg kvar för framtida verktygsbumpar:
+`scripts/verifiera-functions-emulator.mjs` + samma workflow.
+
+**Efterpolish i `ci.yml` (riktig produktions-CI, inte diagnosworkflowen):** `test:e2e` avslöjade
+att `rokprov.spec.js`s `/leverantor`-403 (nu korrekt beteende, se ovan) ibland bleder över till
+NÄSTA rutt i sekvensen (`/admin`, se `rutter.mjs`) när nätverkssvaret kommer tillbaka efter
+routens 400 ms-väntan. Reproducerat två gånger (olika roll/bredd-kombinationer varje gång,
+alltid samma 403-rad på `/admin`) innan `KANDA_MILJOBEGRANSNINGAR` utökades dit också. Efter det:
+**`ci.yml` helt grönt end-to-end på riktig CI** – lint, 607 vitest, `test:rules`,
+`test:functions`, `test:storage`, fullständig Playwright-svit, build, functions-syntaxkontroll,
+npm audit.
+
+**Deployad 2026-09-08** (`deploy.yml` #99, success): hosting + samtliga Cloud Functions +
+firestore/storage-regler. Verifierat: `last-modified`-headern på den publika sidan matchar
+exakt hostingens release-tidsstämpel (19:54:07/08 GMT), och deploy-loggen visar
+"Successful update operation" på varje funktion utan ett enda fel.
+
+**Självrättelse värd att spara (från ett tidigare pass samma dag):** tre CI-körningar av
+diagnosverktyget verkade hänga i flera minuter och avbröts i onödan. Efterkontroll mot
+`created_at`/`updated_at` i GitHub Actions API:et visade att var och en bara hunnit köra
+65–100 sekunder – normal tid för att ladda ~90 funktionsdefinitioner, ingen hängning. Döm
+alltid en misstänkt hängning på faktiska tidsstämplar, inte på egen känsla för förfluten tid.
