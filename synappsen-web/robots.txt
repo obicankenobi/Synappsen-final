@@ -1,7 +1,4 @@
-# TILLFÄLLIGT, satt 2026-09-05: sidan har platshållare kvar (bakgrundsstycket, namn/orgnr på
-# integritetspolicyn). kontakt@synappsen.se tar emot post sedan 2026-09-05 (bekräftat).
-# Disallow hindrar crawlers från att indexera sidan i sitt ofärdiga skick, som komplement
-# till <meta name="robots" content="noindex"> på själva sidorna. Byt tillbaka till
-# "Allow: /" och återinför Sitemap-raden när platshållarna är ifyllda – se OPPNA-PUNKTER.md.
 User-agent: *
-Disallow: /
+Allow: /
+
+Sitemap: https://synappsen.se/sitemap.xml

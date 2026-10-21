@@ -248,8 +248,8 @@ Detta dokument är komplett i sak. Två av tre punkter är klara; en återstår 
    av `synappsen-web/verktyg/bygg-underlag.mjs` – redigera aldrig den genererade sidan direkt,
    redigera det här källdokumentet och kör om skriptet). Länkad från appens hjälpsida
    (`src/pages/Hjalp.jsx`) och från inloggnings-/registreringssidan (`AuthSkal.jsx`, delas av
-   båda). Sidan är fortfarande medvetet `noindex` tillsammans med webbplatsens övriga sidor
-   (se `OPPNA-PUNKTER.md`), vilket bara påverkar sökmotorindexering – direkta länkar fungerar.
+   båda). Sidan var till 2026-10-21 medvetet `noindex` tillsammans med webbplatsens övriga
+   sidor; taggen är nu borttagen och sidan går att hitta via sökmotorer.
 3. **Bestäm om redogörelsen även ska levereras som bilaga i anbud.** Det är
    rekommendationen – det besvarar en fråga varje offentlig upphandlare ställer. Detta är det
    enda kvarstående ägarbeslutet, se `OPPNA-PUNKTER.md`.
