@@ -167,7 +167,8 @@ platshållare på säljsidorna.
 säger "beräknas när rapporten öppnas" och "via webbläsarens utskrift" i stället för "realtid" och
 "verifierad export" (stämmer med `Ledningsrapport.jsx`), och "två räddade bokningar täcker avgiften"
 i stället för "mindre än 2" (1 920 kr mot 1 490 kr). **Öppet i `OPPNA-PUNKTER.md`:** företagssidans
-villkor och avtal (moms, garanti, leveranslöften, SMS, AI-märkning) och ägarens läsning av bakgrundsstycket.
+villkor och avtal (garanti, leveranslöften, SMS, AI-märkning) och ägarens läsning av bakgrundsstycket.
+Priserna är exkl. moms (avgjort samma dag, står på sidan) och `foretag.html` deployades med garantin oförändrad.
 
 ## Uppföljning 2026-10-21 (`noindex` borttaget från webbplatsen på ägarens uppdrag)
 

@@ -543,6 +543,13 @@ describe("Företagssidan (foretag.html)", () => {
     expect(sida()).toMatch(/inga mätta kundresultat/i);
   });
 
+  test("prisavsnittet säger att priserna är exklusive moms", () => {
+    // Ägaren avgjorde 2026-10-21 att priserna är exkl. moms. Sidan visar belopp utan det
+    // förbehållet skulle läsas som slutpriser.
+    const priser = sida().slice(sida().indexOf('id="priser"'), sida().indexOf('id="arbetssatt"'));
+    expect(priser).toMatch(/exklusive moms/);
+  });
+
   test("räkneexemplet är märkt som uppskattning", () => {
     expect(sida()).toContain("[uppskattning]");
   });
