@@ -157,7 +157,7 @@ scroll), och `csp-hash`-, `kontrastpalett`- och `fokusmarkering`-testerna bevaka
 Alla ersatta med klasser i `stil.css`, även i generatorns mall. Test failar om ett style-attribut återkommer.
 
 Byggt: hero i två kolumner, sektion 03 med infokort, kontaktkort med bokningsknapp och kopiera-knapp,
-områdesväxlare och hänvisningsrad, bakgrundsstycket skrivet. `foretag.html` med tre paket, räkneexempel
+områdesväxlare (hänvisningsraden finns bara på företagssidan, vårdsidan länkar i sidfoten), bakgrundsstycket skrivet. `foretag.html` med tre paket, räkneexempel
 och garanti (i sitemap och `DOKUMENTREGISTER.md`, 80 dokument). Nya vakter: inga style-attribut, alla
 interna länkar och ankare finns, sitemap listar varje sida, räkneexemplets aritmetik, ingen synlig
 platshållare på säljsidorna.
@@ -167,7 +167,7 @@ platshållare på säljsidorna.
 säger "beräknas när rapporten öppnas" och "via webbläsarens utskrift" i stället för "realtid" och
 "verifierad export" (stämmer med `Ledningsrapport.jsx`), och "två räddade bokningar täcker avgiften"
 i stället för "mindre än 2" (1 920 kr mot 1 490 kr). **Öppet i `OPPNA-PUNKTER.md`:** företagssidans
-villkor och avtal, två målgrupper under ett varumärke, ägarens läsning av bakgrundsstycket.
+villkor och avtal (moms, garanti, leveranslöften, SMS, AI-märkning) och ägarens läsning av bakgrundsstycket.
 
 ## Uppföljning 2026-10-21 (`noindex` borttaget från webbplatsen på ägarens uppdrag)
 
