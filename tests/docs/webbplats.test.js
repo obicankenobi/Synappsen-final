@@ -14,7 +14,7 @@
 //      gamla färgvärden – ett av dem (#cbd5e1 som kant-stark) var en defekt som fanns i
 //      produktion. Vakten hindrar en återgång.
 import { describe, expect, test } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { DOKUMENT, generera } from "../../synappsen-web/verktyg/bygg-underlag.mjs";
@@ -25,6 +25,7 @@ const lasBinart = (p) => readFileSync(join(ROT, p));
 
 const HTML = "synappsen-web/index.html";
 const CSS = "synappsen-web/stil.css";
+const FORETAG = "synappsen-web/foretag.html";
 
 describe("Webbplatsen håller MDR-avgränsningen", () => {
   // granskningar/AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md listar orden som aldrig får
@@ -36,18 +37,21 @@ describe("Webbplatsen håller MDR-avgränsningen", () => {
     [/triageringsstöd/i, "triageringsstöd"],
   ];
 
-  test.each(FORBJUDNA)("sidan använder aldrig ordet %s", (monster, ord) => {
-    const traff = las(HTML)
+  test.each(FORBJUDNA.flatMap((f) => [HTML, FORETAG].map((sida) => [sida, ...f])))(
+    "%s använder aldrig ordet %s",
+    (sida, monster, ord) => {
+    const traff = las(sida)
       .split("\n")
       .find((rad) => monster.test(rad));
     expect(
       traff,
-      `${HTML} innehåller "${ord}":\n  ${traff?.trim()}\n\nOrdet står på listan över ord som ` +
+      `${sida} innehåller "${ord}":\n  ${traff?.trim()}\n\nOrdet står på listan över ord som ` +
         "aldrig får användas om produkten (AVSETT-ANDAMAL-KLINIKSTOD-2026-08-30.md). MDR " +
         "art. 2(12) gör säljmaterial till en del av kvalificeringsunderlaget – beskriv " +
         "funktionen utan att tillskriva den en klinisk roll."
     ).toBeUndefined();
-  });
+    }
+  );
 
   test("sidan redovisar öppet att ingen enhet är i skarp drift", () => {
     // Så länge det saknas betalande kunder är den här skrivningen paketets starkaste
@@ -221,6 +225,7 @@ describe("Integritetspolicyn stämmer med vad sidan faktiskt gör", () => {
     "synappsen-web/tillganglighet.html",
     "synappsen-web/underbitraden.html",
     "synappsen-web/it-faktablad.html",
+    FORETAG,
     POLICY,
   ];
 
@@ -277,7 +282,8 @@ describe("Integritetspolicyn stämmer med vad sidan faktiskt gör", () => {
     }
     // Ingen ANNAN adress får smyga in – då blir det oklart vilken som gäller.
     const andra = [...SIDOR.map(las).join("\n").matchAll(/mailto:([^"]+)/g)]
-      .map((m) => m[1])
+      // ?subject=… hör till samma adress: det är ämnesraden i bokningsknappen.
+      .map((m) => m[1].split("?")[0])
       .filter((a) => a !== "kontakt@synappsen.se");
     expect(
       andra,
@@ -370,13 +376,14 @@ describe("De genererade dokumentsidorna motsvarar sina källdokument", () => {
     }
   });
 
-  test("alla sex sidor och robots.txt är antingen gömda eller öppna, aldrig en blandning", () => {
-    // noindex togs bort 2026-10-21 (BESLUTSLOGG.md). Växlingen rör sju filer för hand, och ett
+  test("alla sidor och robots.txt är antingen gömda eller öppna, aldrig en blandning", () => {
+    // noindex togs bort 2026-10-21 (BESLUTSLOGG.md). Växlingen rör flera filer för hand, och ett
     // halvt utfört byte är värre än något av ändlägena: en sida som sökmotorerna får läsa
     // medan robots.txt fortfarande stänger ute dem (eller tvärtom) ger ett oförutsägbart
     // resultat och märks inte förrän någon söker efter sidan.
     const sidor = [
       HTML,
+      FORETAG,
       "synappsen-web/integritet.html",
       "synappsen-web/underlag.html",
       ...DOKUMENT.map((d) => d.sida),
@@ -387,7 +394,7 @@ describe("De genererade dokumentsidorna motsvarar sina källdokument", () => {
       expect(
         gomd(fil),
         `${fil} är ${gomd(fil) ? "noindex" : "indexerbar"} men robots.txt är ` +
-          `${robotsStangd ? "stängd (Disallow: /)" : "öppen"}. Byt alla sju samtidigt.`
+          `${robotsStangd ? "stängd (Disallow: /)" : "öppen"}. Byt alla sidor och robots.txt samtidigt.`
       ).toBe(robotsStangd);
     }
   });
@@ -446,5 +453,106 @@ describe("Webbplatsen visar gränssnittet i stället för att rita av det", () =
           "faktiskt syns – en läsare som inte ser bilden ska få samma bevis som en som gör det."
       ).toBeGreaterThan(60);
     }
+  });
+});
+
+describe("Webbplatsens sidor följer sajtens CSP och hänger ihop", () => {
+  const SIDFILER = readdirSync(join(ROT, "synappsen-web")).filter((f) => f.endsWith(".html"));
+
+  test("inga style-attribut: CSP:n är style-src 'self' och blockerar dem tyst", () => {
+    // Verkligt fel, rättat 2026-10-21: 25 style="…" på startsidan blockerades av
+    // policyn i firebase.json. Avstånden mellan stycken, etiketter och bilder fanns i
+    // markupen men aldrig på skärmen, och ingen märkte det för att ingenting kraschar.
+    // Avstånd och liknande görs med klasserna i stil.css (.mt-34, .mb-32 …).
+    const csp = las("firebase.json");
+    expect(csp, "firebase.json saknar style-src 'self'").toContain("style-src 'self'");
+    for (const fil of SIDFILER) {
+      const traffar = [...las(`synappsen-web/${fil}`).matchAll(/<(?!svg)[a-z0-9]+\s[^<>]*\sstyle="[^"]*"/g)];
+      expect(
+        traffar.map((m) => m[0].slice(0, 80)),
+        `${fil} har style-attribut som policyn blockerar. Använd en klass i stil.css.`
+      ).toEqual([]);
+    }
+    // Generatorns mall skriver tre av sidorna, så felet måste också vara borta där.
+    expect(las("synappsen-web/verktyg/bygg-underlag.mjs")).not.toMatch(/\sstyle="/);
+  });
+
+  test("varje intern länk pekar på en sida som finns, och varje ankare på ett id", () => {
+    for (const fil of SIDFILER) {
+      const html = las(`synappsen-web/${fil}`);
+      const ider = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]));
+      for (const [, mal] of html.matchAll(/\shref="([^"]+)"/g)) {
+        if (/^(https?:|mailto:)/.test(mal)) continue;
+        if (mal.startsWith("#")) {
+          expect(ider.has(mal.slice(1)), `${fil}: ankaret ${mal} saknar id`).toBe(true);
+          continue;
+        }
+        const [vag, ankare] = mal.split("#");
+        if (vag.startsWith("/icons/") || vag.startsWith("/fonts/") || vag === "/stil.css") continue;
+        const filnamn = vag === "/" ? "index.html" : vag.replace(/^\//, "");
+        expect(
+          existsSync(join(ROT, "synappsen-web", filnamn)),
+          `${fil} länkar till ${mal}, men synappsen-web/${filnamn} finns inte.`
+        ).toBe(true);
+        if (ankare) {
+          expect(
+            las(`synappsen-web/${filnamn}`).includes(`id="${ankare}"`),
+            `${fil} länkar till ${mal}, men ${filnamn} har inget id="${ankare}".`
+          ).toBe(true);
+        }
+      }
+    }
+  });
+
+  test("sitemap.xml listar varje sida", () => {
+    const karta = las("synappsen-web/sitemap.xml");
+    for (const fil of SIDFILER) {
+      const adress = fil === "index.html" ? "https://synappsen.se/" : `https://synappsen.se/${fil}`;
+      expect(karta, `sitemap.xml saknar ${adress}`).toContain(`<loc>${adress}</loc>`);
+    }
+  });
+});
+
+describe("Företagssidan (foretag.html)", () => {
+  const sida = () => las(FORETAG);
+
+  test("startsidan och företagssidan länkar till varandra", () => {
+    expect(las(HTML), "startsidan länkar inte till foretag.html").toContain('href="/foretag.html"');
+    expect(sida(), "foretag.html länkar inte tillbaka till startsidan").toContain('<a href="/">');
+  });
+
+  test("räkneexemplets summor stämmer med sina rader", () => {
+    // Tabellen är en uppskattning, men aritmetiken i den ska vara sann. Tre rader ger en
+    // total, och årssumman är tolv månader. Ändras en siffra utan de andra failar testet.
+    const rader = [...sida().matchAll(/<tr><td>([^<]+)<\/td><td>[^<]+<\/td><td>([\d\s]+)\skr<\/td><td>([\d\s]+)\skr<\/td><\/tr>/g)]
+      .map((m) => [m[1], Number(m[2].replace(/\s/g, "")), Number(m[3].replace(/\s/g, ""))]);
+    expect(rader.length, "hittade inte räkneexemplets kronrader").toBe(3);
+    const [raddad, nya, totalt] = rader;
+    expect(raddad[1] + nya[1], "månadssumman").toBe(totalt[1]);
+    expect(raddad[2] + nya[2], "årssumman").toBe(totalt[2]);
+    for (const [namn, manad, ar] of rader) {
+      expect(manad * 12, `${namn}: år ska vara tolv månader`).toBe(ar);
+    }
+    expect(2 * 960, "två tider à 960 kr").toBe(raddad[1]);
+  });
+
+  test("redovisar öppet att tjänsten är ny och saknar referenskunder", () => {
+    // Samma princip som startsidans redovisning av att ingen enhet är i skarp drift
+    // (VARUMARKE.md §4 och §13): ett räkneexempel utan den raden är en nyttosiffra utan täckning.
+    expect(sida()).toMatch(/inga referenskunder/i);
+    expect(sida()).toMatch(/inga mätta kundresultat/i);
+  });
+
+  test("räkneexemplet är märkt som uppskattning", () => {
+    expect(sida()).toContain("[uppskattning]");
+  });
+});
+
+describe("Inga synliga platshållare på säljsidorna", () => {
+  test.each([HTML, FORETAG])("%s innehåller ingen ifyllnadsruta i hakparentes", (sida) => {
+    // Integritetspolicyn har medvetet kvar sin platshållare för namn/orgnr (OPPNA-PUNKTER.md),
+    // men de två säljsidorna ska aldrig visa ett halvfärdigt "[ Fyll i … ]" eller
+    // "[ Bakgrundsstycket … ]" för en besökare.
+    expect(las(sida)).not.toMatch(/\[\s*(Bakgrundsstycket|Fyll i)/i);
   });
 });

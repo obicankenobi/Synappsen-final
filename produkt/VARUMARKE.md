@@ -447,7 +447,7 @@ tecknas förrän B1 finns, och B2 är den fråga varje kunds jurist ställer fö
 
 | # | Åtgärd | Insats |
 |---|---|---|
-| **P1** | Skriv bakgrundsstycket på webbplatsens startsida | 20 min, bara du kan göra det |
+| ~~**P1**~~ | ~~Skriv bakgrundsstycket på webbplatsens startsida~~ **KLAR 2026-10-21.** Skrivet utifrån tre uppgifter från ägaren (arbetar kliniskt inom akutsjukvården, byggde för det dagliga letandet, gränser från dag ett). Ägarens läsning kvarstår, se `OPPNA-PUNKTER.md` | Klart |
 | ~~**P2**~~ | ~~Committa `produkt/GRAFISK-PROFIL.md`~~ **KLAR 2026-08-22 (Etapp 68f).** ~~**Kvar:** committa `saljmaterial/MARKNADSANALYS.md`, `saljmaterial/KOSTNADSKALKYL-OCH-PRISSATTNING.md` och `synappsen-web/`~~ **HELT KLAR 2026-09-05.** Webbplatsen var den sista och låg bara som en publicerad artefakt – enda kopian. Den ligger nu i `synappsen-web/`, är rättad mot den grafiska profilen (den skrevs före Etapp 68b/68d och bar utgångna färgvärden), och är bevakad av `tests/docs/webbplats.test.js` | Klart |
 | **P3** | **Rätta de inaktuella siffrorna i `saljmaterial/MARKNADSANALYS.md`.** Den anger 149 regeltester och fyra säkerhetsgenomgångar. Faktiskt läge 2026-08-21: **179** test i `organisationsisolering.test.mjs`, **322** i hela regelsviten, och **åtta** `## Tillägg`-block i `granskningar/SAKERHETSRAPPORT.md`. Eftersom marknadsanalysen är källdokument för prismodell och värdering bör även övriga siffror kontrolleras | 1 timme |
 | **P4** | Skriv om `saljmaterial/PITCH.md`s exempel för privat vårdcentral och klinik, se `saljmaterial/MARKNADSANALYS.md` §10 | Dagar |

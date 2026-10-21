@@ -224,9 +224,9 @@ function sida(d, kropp) {
 
     <p class="dokument__tillbaka"><a href="/underlag.html">← Underlag och dokumentation</a></p>
 
-    <section class="hero" style="border-bottom: 1px solid var(--kant); padding-bottom: 36px;">
+    <section class="hero hero--dok">
       <span class="eyebrow hero__eyebrow">${escapa(d.titel)}</span>
-      <h1 style="font-size: clamp(28px, 4vw, 40px);">${escapa(d.titel)}</h1>
+      <h1>${escapa(d.titel)}</h1>
       <p class="lede">${escapa(d.ingress)}</p>
       <p class="dok__kalla">Sidan genereras ur <code>${escapa(d.kalla)}</code> i produktens eget
       kodförråd och kan därför inte säga något annat än originalet säger.</p>

@@ -4,7 +4,7 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (158 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (159 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
@@ -26,7 +26,7 @@ fungerar är löst. Den tidigare dokumenterade
 sandboxartefakt som inte reproducerar på riktig CI (24/0 klart där, två separata körningar).
 Den verkliga blockeraren var en annan, äkta firebase-tools-bugg (`Proxied.getOriginal()`
 binder bort statiska egenskaper som `admin.firestore.FieldValue`), fixad på vår sida med en
-direktimport i 14 filer. Se uppföljningen 2026-09-08 nedan för hela, korrigerade historien.
+direktimport i 14 filer. Hela, korrigerade historien står i uppföljningen 2026-09-08 i `etapplaner/STATUSARKIV.md`.
 **PR #23 (webbplatsen) mergad 2026-09-08.** De två MDR-orden ("Beslutsstöd"/"triageringsstöd")
 är borttagna ur klinikstöd-gränssnittet samma dag, ägarbeslut i `BESLUTSLOGG.md` – se
 uppföljningen 2026-09-09 nedan. **Vertex AI-migreringen är
@@ -35,8 +35,8 @@ DEPLOYAD** (`deploy.yml` #98, success) och utvärderingen är helt ren efter dep
 sedan v5.131.0 i väntan på Brevos PUB-avtal. **Etapp L1 (leverantörspanelen) är SLUTFÖRD.**
 **Webbplatsen har fått skärmbilder ur appen (nu även `/kliniskt-stod`), fyra publicerade
 dokumentsidor, räknade bevissiffror och konsekvent "jag"-röst på start- och underlagssidan**
-(se uppföljningen 2026-09-09 nedan) – **sedan 2026-10-21 utan `noindex`** (se uppföljningen
-nedan). **E2E-sviten är grön igen** (2026-09-07): `test:e2e` startar nu functions-
+(se uppföljningen 2026-09-09 nedan) – **sedan 2026-10-21 utan `noindex`** och med ett andra
+affärsspår, `foretag.html` (se uppföljningarna nedan). **E2E-sviten är grön igen** (2026-09-07): `test:e2e` startar nu functions-
 emulatorn, vilket den inte gjort sedan v5.136.0 bröt den.
 **Etapp 72 (`etapplaner/ETAPPLAN19.md`):** riktningen är antagen, beslutspunkt 5
 (efterfrågegrinden) gäller fortfarande som huvudregel för alla ÖVRIGA delmål. 72f, 72d och
@@ -51,7 +51,7 @@ emulatorn, vilket den inte gjort sedan v5.136.0 bröt den.
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **AI-kvalitetsmätning** | **Ny 2026-09-06.** Klinikstödets säkerhetsregler (regel 4 = MDR-avgränsningen) mäts nu i tre lager: `tests/functions/klinikstodprompt.test.cjs` (gratis, i varje svep, bevisar att reglerna STÅR kvar), `verifieraKlinikstod` (bara sökmotorn), och `.github/workflows/ai-evaluering.yml` (sju fall mot skarp Vertex AI, manuell dispatch, bevisar vad modellen SVARAR). **Körd skarpt fyra gånger 2026-09-06: reglerna höll i samtliga fall** (körning #4, efter deployen, helt ren: 13 OK, 0 FEL, 0 GRANSKA). Det största fyndet var att mätverktygets egna heuristiker fällde korrekta svar – en korrekt vägran måste innehålla de förbjudna orden. Rättat och verifierat. Modellvalet omprövat och bekräftat: stanna på Gemini. Se `granskningar/SAKERHETSRAPPORT.md` tillägg 2026-09-06 |
 | **Senaste kodarbete** | 2026-09-06: Vertex AI-migrering av samtliga sex Gemini-anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`), `@google/genai` i stället för det deprecerade `@google-cloud/vertexai` planen ursprungligen föreslog. **Deployad 2026-09-06** (`deploy.yml` #98, success). GCP-stegen gjorda, `gemini-2.5-flash` bevisad i `europe-west1`, utvärderingen ren efter deployen. `avtal/IT-FAKTABLAD.md` p. 7 och `avtal/UNDERBITRADEN.md` uppdaterade – de sa båda att anropen gick via det publika API:et. Internt/infrastruktur, inget för `andringslogg.js` |
-| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, två sidor, egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – **indexerbar sedan 2026-10-21** (`noindex` borttaget på alla sex sidor, `robots.txt` `Allow: /` med Sitemap-rad), fast bakgrundsstycket och namn/orgnr på policyn fortfarande är platshållare. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
+| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, sju sidor (start, företagslösningar, integritet, underlag och tre genererade dokumentsidor), egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – **indexerbar sedan 2026-10-21** (`noindex` borttaget på alla sex sidor, `robots.txt` `Allow: /` med Sitemap-rad), fast bakgrundsstycket och namn/orgnr på policyn fortfarande är platshållare. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
 | **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. **Åtgärda de kvarvarande AI-integrationsriskerna** (`granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`, fynd 3/4/7/8 – fynd 1/2/5 klara 2026-09-10). Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
@@ -145,6 +145,30 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
 
+## Uppföljning 2026-10-21 (visuellt och strukturellt lyft av webbplatsen, andra affärsspåret `foretag.html`)
+
+Ägarens beställning i fyra steg. **Två förutsättningar i den stämde inte** och lästes mot verkligheten:
+sidomenyn var redan `position: sticky` och aktiv sektion markerades redan i `sida.js` (det "tomma
+fältet" var ett artefakt i en helsidesbild som sätts ihop av flera bilder, kontrollerat med riktig
+scroll), och `csp-hash`-, `kontrastpalett`- och `fokusmarkering`-testerna bevakar appen, inte webbplatsen.
+
+**Det verkliga felet bakom luftproblemen:** sajtens CSP är `style-src 'self'`, och 42 `style="…"`
+(25 på startsidan) blockerades tyst i produktion. Avstånden fanns i markupen men aldrig på skärmen.
+Alla ersatta med klasser i `stil.css`, även i generatorns mall. Test failar om ett style-attribut återkommer.
+
+Byggt: hero i två kolumner, sektion 03 med infokort, kontaktkort med bokningsknapp och kopiera-knapp,
+områdesväxlare och hänvisningsrad, bakgrundsstycket skrivet. `foretag.html` med tre paket, räkneexempel
+och garanti (i sitemap och `DOKUMENTREGISTER.md`, 80 dokument). Nya vakter: inga style-attribut, alla
+interna länkar och ankare finns, sitemap listar varje sida, räkneexemplets aritmetik, ingen synlig
+platshållare på säljsidorna.
+
+**Avvikelser från beställningen:** "jag" i stället för "vi" (`VARUMARKE.md` §8), räkneexemplet märkt
+[uppskattning] (§7), "mjuk skugga" är profilens egen `--skugga` (`GRAFISK-PROFIL.md` §5), infokortet
+säger "beräknas när rapporten öppnas" och "via webbläsarens utskrift" i stället för "realtid" och
+"verifierad export" (stämmer med `Ledningsrapport.jsx`), och "två räddade bokningar täcker avgiften"
+i stället för "mindre än 2" (1 920 kr mot 1 490 kr). **Öppet i `OPPNA-PUNKTER.md`:** företagssidans
+villkor och avtal, två målgrupper under ett varumärke, ägarens läsning av bakgrundsstycket.
+
 ## Uppföljning 2026-10-21 (`noindex` borttaget från webbplatsen på ägarens uppdrag)
 
 Ägaren bad uttryckligen om det ("Ta bort noindex nu"). Villkoren i den gamla öppna punkten
@@ -159,6 +183,40 @@ sex sidor och robots.txt är gömda eller öppna tillsammans, aldrig en blandnin
 kontrollerad). Tillgänglighetsredogörelsens påstående "fortfarande noindex" rättades i
 källdokumentet, annars hade den publika sidan blivit fel vid deployen. **Tar effekt först
 vid `deploy-web.yml`** (en merge deployar inte).
+
+## Uppföljning 2026-10-18 (AI-integrationsrisker fynd 3, 4, 7, 8 – v5.140.0)
+
+De fyra återstående fynden i `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md` är åtgärdade i
+koden. Detaljer och motiveringar står i incheckningsmeddelandet och i fyndens egen
+statuslista; här bara läget. **Deployad 2026-10-18 (körning #100).** Gallringsjobbet
+`aiGallringSchemalagt` har inte körts än – första körning är nästa måndag 03:45.
+
+- **Fynd 8:** `aterbetalaBudget()` i alla fem AI-vägar när modellen inte levererat ett svar.
+  Ett kasserat svar (personnummer i svaret) återbetalas medvetet inte.
+- **Fynd 7:** `aiAnropslogg` (organisationId, uid, funktion, tid – aldrig innehåll),
+  klientstängd. Svarar på om/när/av vem, inte på vad. Incidentplanen är nu v1.7 och
+  `drift/INCIDENT-CHECKLISTA.md` säger uttryckligen att loggen inte kan visa vad som skickats.
+- **Fynd 3:** `aiGallringSchemalagt` (måndagar 03:45): `klinikfrageloggar` 90 d,
+  `klinikfragecache` 7 d, `aiAnropslogg` 90 d. **Ägaren har inte bekräftat 90/7 dagar** – siffrorna
+  följer fyndets eget förslag och backupretentionen. Org-radering och backup enumererar inte
+  de här tre collectionerna (gällde redan klinikloggarna); gallringen är det som begränsar dem.
+- **Fynd 4:** fall 8–9 i `ai-evaluering.cjs`. **Mätt mot skarp Vertex AI 2026-10-18
+  (`ai-evaluering.yml` körning #6, commit `ee626a7`): 16 OK, 0 FEL, 2 GRANSKA.** Betet
+  (adrenalin utan dos i källtexten) motstods: stegen och quizens tre frågor höll sig till
+  källtexten, inga uppfunna doser eller tider. GRANSKA-raderna lästes mot rutintexten: alla tre
+  facit stämmer och hänvisningarna är nästan ordagranna. **Begränsning att inte glömma:** ett
+  enda urval av en enda text från en icke-deterministisk modell. Det bevisar att kodvägen och
+  promptreglerna fungerar, inte att det aldrig inträffar; kontrollen fångar inte heller ett
+  påstående utan siffror. Mät om efter en modelluppdatering hos Google.
+
+**Verifierat:** lint, vitest (609), bygge, full `test:functions` (EXIT 0), regeltester för
+organisationsisolering (187). Testet för fynd 8 bevisades falla utan fixen. Webbplatsens
+bevissiffror (406/187) och incidentplanens version höjdes i samma commit eftersom
+`tests/docs/dokumentpastaenden.test.js` kräver det. Full `test:rules` och `test:e2e` kördes
+inte i sin helhet efter ändringen – bara den ändrade regelfilen.
+
+**Gren:** default-grenen hade byggts om sedan PR #15, så sessionsgrenen startades om från den
+och pushades med force-with-lease efter kontroll att dess innehåll redan fanns i default.
 
 ## Uppföljning 2026-09-10 (samtliga kvarstående punkter i TILLGANGLIGHETSREDOGORELSE.md åtgärdade)
 
@@ -291,109 +349,3 @@ tiotal "vi") **rördes inte** – låg utanför den öppna punktens uttalade fil
 en del av den här begäran. Raden borttagen ur `OPPNA-PUNKTER.md`.
 
 Fullt testsvep: `npm run lint`, `npx vitest run` (607 tester), `npm run build` – alla gröna.
-
-## Uppföljning 2026-09-08 (firebase-tools bumpat till `^15.29.0` – två fel hittade, ett var falskt)
-
-`firebase-tools@13.35.1` kunde inte köra Cloud Functions i emulatorn: emulatorruntimen
-anropar `functions.config()`, borttaget i `firebase-functions@7` (vår version), så **varje**
-anrop dog tyst med 500 (svalt av `AuthContext.jsx`) – `test:e2e` bevisade därmed inte att
-någon Cloud Function fungerade, oavsett hur grön sviten var. Bekräftat på riktig
-produktions-CI, inte bara i sandbox. Undersökningen gick i tre steg samma dag:
-
-**Steg 1 – `firebase-tools@15.29.0` löser functions.config(), men ett nytt fel dyker upp.**
-Bevisat i CI: `rapporteraAppVersion` exekverar nu sin riktiga logik. Ett ANNAT fel visade sig
-dock: `TypeError: Cannot read properties of undefined (reading 'serverTimestamp')` vid
-`admin.firestore.FieldValue.serverTimestamp()`. Grävde i firebase-tools källkod
-(`functionsEmulatorRuntime.js`): dess `Proxied.getOriginal()` gör `value.bind(target)` på
-`admin.firestore` för att stubba den mot emulatorn – och `Function.prototype.bind()` kopierar
-ALDRIG med statiska egenskaper som `.FieldValue`/`.Timestamp`. **Bekräftat identisk, oförändrad
-kod i firebase-tools@13.35.1, @14.27.0 och @15.29.0** – felet är alltså inte nytt, det var bara
-osynligt i v13 eftersom functions.config()-kraschen träffade tidigare i samma anrop. 88
-förekomster i 14 filer (`gemensamt.js`, `organisationslivscykel.js`, `kvissbank.js`,
-`klinikstod.js`, m.fl.) använde mönstret.
-
-**Steg 2 – en första, FELAKTIG slutsats om en Storage-regression.** En lokal A/B-körning av
-`tests/rules/storage.test.mjs` visade `firebase-tools@13.35.1`: 24/0, `firebase-tools@15.29.0`:
-18/6 misslyckade (`Null value error` i `minOrganisation()`/`minRoll()`, cross-service
-`firestore.get()` FRÅN `storage.rules`). Dokumenterades felaktigt som ett bevisat,
-diskvalificerande fynd. **Det var fel:** en riktig CI-körning av samma testfil mot v15.29.0
-gav **24 klarade, 0 misslyckade** – identiskt med v13, två separata gånger. Den lokala
-18/6-siffran var ett sandboxartefakt (samma nätverksbegränsning – saknad IPv6-loopback, blockerad
-GCE-metadata-liknande trafik – som redan var känd för att störa eventarc-registrering lokalt),
-inte ett äkta firebase-tools-fel. Lärdomen: verifiera alltid ett misstänkt verktygsfel mot
-riktig CI innan det dokumenteras som blockerande, inte bara mot sandboxen.
-
-**Steg 3 – den riktiga fixen låg i vår egen kod.** Direktimport av `{ FieldValue, Timestamp }`
-från `require("firebase-admin/firestore")` går inte via den trasiga `admin`-modulproxyn.
-Bytte alla 88 förekomster i de 14 filerna (commit `0c2ad92`). Verifierat lokalt: samma
-`rapporteraAppVersion`-anrop som förut kraschade under v14 lyckas nu fullt ut och skriver
-korrekt till Firestore-emulatorn. Inget produktionsbeteende ändras – `admin.firestore.FieldValue`
-och `firebase-admin/firestore`s `FieldValue` är samma objekt utanför emulatorn.
-
-**Slutresultat: `firebase-tools` bumpat `^13.35.1` → `^15.29.0`.** Verifierat med
-`.github/workflows/verifiera-firebase-tools-bump.yml` (manuell dispatch) mot BÅDE `14` och
-`15.29.0` efter patchen – båda gav gröna resultat på BÅDA stegen (functions-anropet och
-Storage-regeltestet) i riktig CI. Lokalt: lint, 607 vitest, `test:rules`, `test:functions`,
-`test:storage`, build alla gröna med v15.29.0 (Storage-regeltestet visar fortfarande
-18/6 lokalt pga sandboxartefakten ovan – ignorera den siffran, CI är sanningskällan). Lokal
-`test:e2e` startar inte fullt ut i den här sandboxen (samma kända nätverksbegränsning stoppar
-eventarc-/Firestore-triggerregistreringen: "Unable to parse JSON... upstream r[equest failed]")
-– irrelevant, eftersom riktig CI redan bevisat båda diagnossteg gröna två gånger.
-`actions/setup-java@v4` (JDK 21, ett nytt krav från firebase-tools@14+) tillagt i `ci.yml` och
-`deploy.yml`. Nytt återanvändbart diagnosverktyg kvar för framtida verktygsbumpar:
-`scripts/verifiera-functions-emulator.mjs` + samma workflow.
-
-**Efterpolish i `ci.yml` (riktig produktions-CI, inte diagnosworkflowen):** `test:e2e` avslöjade
-att `rokprov.spec.js`s `/leverantor`-403 (nu korrekt beteende, se ovan) ibland bleder över till
-NÄSTA rutt i sekvensen (`/admin`, se `rutter.mjs`) när nätverkssvaret kommer tillbaka efter
-routens 400 ms-väntan. Reproducerat två gånger (olika roll/bredd-kombinationer varje gång,
-alltid samma 403-rad på `/admin`) innan `KANDA_MILJOBEGRANSNINGAR` utökades dit också. Efter det:
-**`ci.yml` helt grönt end-to-end på riktig CI** – lint, 607 vitest, `test:rules`,
-`test:functions`, `test:storage`, fullständig Playwright-svit, build, functions-syntaxkontroll,
-npm audit.
-
-**Deployad 2026-09-08** (`deploy.yml` #99, success): hosting + samtliga Cloud Functions +
-firestore/storage-regler. Verifierat: `last-modified`-headern på den publika sidan matchar
-exakt hostingens release-tidsstämpel (19:54:07/08 GMT), och deploy-loggen visar
-"Successful update operation" på varje funktion utan ett enda fel.
-
-**Självrättelse värd att spara (från ett tidigare pass samma dag):** tre CI-körningar av
-diagnosverktyget verkade hänga i flera minuter och avbröts i onödan. Efterkontroll mot
-`created_at`/`updated_at` i GitHub Actions API:et visade att var och en bara hunnit köra
-65–100 sekunder – normal tid för att ladda ~90 funktionsdefinitioner, ingen hängning. Döm
-alltid en misstänkt hängning på faktiska tidsstämplar, inte på egen känsla för förfluten tid.
-
-## Uppföljning 2026-10-18 (AI-integrationsrisker fynd 3, 4, 7, 8 – v5.140.0)
-
-De fyra återstående fynden i `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md` är åtgärdade i
-koden. Detaljer och motiveringar står i incheckningsmeddelandet och i fyndens egen
-statuslista; här bara läget. **Deployad 2026-10-18 (körning #100).** Gallringsjobbet
-`aiGallringSchemalagt` har inte körts än – första körning är nästa måndag 03:45.
-
-- **Fynd 8:** `aterbetalaBudget()` i alla fem AI-vägar när modellen inte levererat ett svar.
-  Ett kasserat svar (personnummer i svaret) återbetalas medvetet inte.
-- **Fynd 7:** `aiAnropslogg` (organisationId, uid, funktion, tid – aldrig innehåll),
-  klientstängd. Svarar på om/när/av vem, inte på vad. Incidentplanen är nu v1.7 och
-  `drift/INCIDENT-CHECKLISTA.md` säger uttryckligen att loggen inte kan visa vad som skickats.
-- **Fynd 3:** `aiGallringSchemalagt` (måndagar 03:45): `klinikfrageloggar` 90 d,
-  `klinikfragecache` 7 d, `aiAnropslogg` 90 d. **Ägaren har inte bekräftat 90/7 dagar** – siffrorna
-  följer fyndets eget förslag och backupretentionen. Org-radering och backup enumererar inte
-  de här tre collectionerna (gällde redan klinikloggarna); gallringen är det som begränsar dem.
-- **Fynd 4:** fall 8–9 i `ai-evaluering.cjs`. **Mätt mot skarp Vertex AI 2026-10-18
-  (`ai-evaluering.yml` körning #6, commit `ee626a7`): 16 OK, 0 FEL, 2 GRANSKA.** Betet
-  (adrenalin utan dos i källtexten) motstods: stegen och quizens tre frågor höll sig till
-  källtexten, inga uppfunna doser eller tider. GRANSKA-raderna lästes mot rutintexten: alla tre
-  facit stämmer och hänvisningarna är nästan ordagranna. **Begränsning att inte glömma:** ett
-  enda urval av en enda text från en icke-deterministisk modell. Det bevisar att kodvägen och
-  promptreglerna fungerar, inte att det aldrig inträffar; kontrollen fångar inte heller ett
-  påstående utan siffror. Mät om efter en modelluppdatering hos Google.
-
-**Verifierat:** lint, vitest (609), bygge, full `test:functions` (EXIT 0), regeltester för
-organisationsisolering (187). Testet för fynd 8 bevisades falla utan fixen. Webbplatsens
-bevissiffror (406/187) och incidentplanens version höjdes i samma commit eftersom
-`tests/docs/dokumentpastaenden.test.js` kräver det. Full `test:rules` och `test:e2e` kördes
-inte i sin helhet efter ändringen – bara den ändrade regelfilen.
-
-**Gren:** default-grenen hade byggts om sedan PR #15, så sessionsgrenen startades om från den
-och pushades med force-with-lease efter kontroll att dess innehåll redan fanns i default.
-

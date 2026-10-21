@@ -22,3 +22,26 @@
     }, { rootMargin: "-45% 0px -50% 0px" });
     sektioner.forEach(function (s) { aktiv.observe(s); });
   }
+
+  // Kopiera e-postadressen. Knappen är dold i markupen och visas bara om webbläsaren
+  // faktiskt kan skriva till urklipp (kräver https), annars finns adressen som vanlig text.
+  var kopieraKnappar = Array.prototype.slice.call(document.querySelectorAll("[data-kopiera]"));
+  if (navigator.clipboard && window.isSecureContext) {
+    kopieraKnappar.forEach(function (knapp) {
+      knapp.hidden = false;
+      var besked = knapp.parentNode.querySelector(".kopierat");
+      var tid;
+      knapp.addEventListener("click", function () {
+        navigator.clipboard.writeText(knapp.getAttribute("data-kopiera")).then(
+          function () { visa("Kopierad"); },
+          function () { visa("Kunde inte kopiera, markera adressen i stället"); }
+        );
+      });
+      function visa(text) {
+        if (!besked) return;
+        besked.textContent = text;
+        clearTimeout(tid);
+        tid = setTimeout(function () { besked.textContent = ""; }, 3000);
+      }
+    });
+  }

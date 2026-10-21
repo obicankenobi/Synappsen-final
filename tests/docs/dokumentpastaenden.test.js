@@ -129,6 +129,7 @@ describe("Inga påståenden om kundbeteende utan kunder", () => {
     "saljmaterial/Synappsen-demomanus.md",
     "saljmaterial/PITCH.md",
     "synappsen-web/index.html",
+    "synappsen-web/foretag.html",
   ];
 
   test.each(kundvant)("%s påstår inget om vad kunder väljer", (fil) => {
