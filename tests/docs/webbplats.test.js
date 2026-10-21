@@ -550,6 +550,16 @@ describe("Företagssidan (foretag.html)", () => {
     expect(priser).toMatch(/exklusive moms/);
   });
 
+  test("garantin gäller bygget och säger vad den inte täcker", () => {
+    // Ägaren avgjorde 2026-10-21 att garantin gäller bygget (startavgiften). Rubriken
+    // "nollrisk" togs bort eftersom månadsavgiften ligger utanför: en garanti som lämnar en
+    // avgift utanför är inte risk noll, och orden är det en kund kan hålla leverantören till.
+    const garanti = sida().slice(sida().indexOf('class="trygghet"'), sida().indexOf("</section>", sida().indexOf('class="trygghet"')));
+    expect(garanti).toMatch(/garanti på bygget/);
+    expect(garanti).toMatch(/inte månadsavgiften/);
+    expect(sida(), "foretag.html lovar fortfarande 'nollrisk'").not.toMatch(/nollrisk/i);
+  });
+
   test("räkneexemplet är märkt som uppskattning", () => {
     expect(sida()).toContain("[uppskattning]");
   });
