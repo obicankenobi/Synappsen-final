@@ -557,6 +557,9 @@ describe("Företagssidan (foretag.html)", () => {
     const garanti = sida().slice(sida().indexOf('class="trygghet"'), sida().indexOf("</section>", sida().indexOf('class="trygghet"')));
     expect(garanti).toMatch(/garanti på bygget/);
     expect(garanti).toMatch(/inte månadsavgiften/);
+    // Rättningsrätten (ägaren 2026-10-21): leverantören får först chansen att åtgärda
+    // synpunkterna. Utan den raden vore garantin en ren återbetalningsrätt.
+    expect(garanti).toMatch(/chansen att rätta eller ändra/);
     expect(sida(), "foretag.html lovar fortfarande 'nollrisk'").not.toMatch(/nollrisk/i);
   });
 
