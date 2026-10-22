@@ -130,8 +130,7 @@ for (const { namn: breddNamn, viewport } of BREDDER) {
 
         // "load" istället för "networkidle": Firestores realtidslyssnare håller en ihållande
         // websocket-anslutning öppen, vilket kan hindra "networkidle" från att någonsin
-        // upplösas – inte för att sidan faktiskt hänger. En kort extra väntan låter React/
-        // Firestore hinna rendera första datan.
+        // upplösas – inte för att sidan faktiskt hänger. Att sidan renderat väntas in nedan.
         const navigeringsfel = await page
           .goto(route, { waitUntil: "load", timeout: 15_000 })
           .then(() => null)
