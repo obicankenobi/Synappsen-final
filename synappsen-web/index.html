@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<title>Synappsen – rätt information, direkt i handen</title>
+<title>Synappsen | Rätt information, direkt i handen</title>
 <meta name="description" content="Digital kunskapsbank för akutmottagningar, vårdcentraler och kommunal vård. Rutiner, förråd och kontakter sökbara på sekunder, även utan nät." />
 
 <link rel="canonical" href="https://synappsen.se/" />
@@ -16,10 +16,15 @@
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="sv_SE" />
 <meta property="og:site_name" content="Synappsen" />
-<meta property="og:title" content="Synappsen – rätt information, direkt i handen" />
+<meta property="og:title" content="Synappsen | Rätt information, direkt i handen" />
 <meta property="og:description" content="Digital kunskapsbank för vården. Rutiner, förråd och kontakter sökbara på sekunder, även utan nät." />
 <meta property="og:url" content="https://synappsen.se/" />
-<meta name="twitter:card" content="summary" />
+<!-- Bilden renderas ur synappsen-web/verktyg/delningsbild.html av delningsbilder.mjs. -->
+<meta property="og:image" content="https://synappsen.se/bilder/dela-vard.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Synappsen, digital kunskapsbank för vården: Rätt information, direkt i handen, när det är bråttom." />
+<meta name="twitter:card" content="summary_large_image" />
 
 <!-- Fonterna hämtas från samma origin, aldrig från ett CDN. Appens CSP är
      `font-src 'self' data:` och webbplatsen håller samma regel: en <link> mot
@@ -103,8 +108,8 @@
     </div>
 
     <p class="rail__fot">
-      Utvecklad iterativt mot<br />verksamhetens krav.<br />
-      Teknisk logg och säkerhets-<br />rapport finns att tillgå.
+      Upphandlingsunderlaget ligger publicerat:<br />
+      <a href="/underlag">Underlag och dokumentation</a>
     </p>
   </nav>
 
@@ -115,7 +120,7 @@
     <section class="hero">
       <div class="hero__rutnat">
         <div class="hero__text">
-          <span class="eyebrow hero__eyebrow">Digital kunskapsbank · Akutmottagning · Vårdcentral · Kommunal vård</span>
+          <span class="eyebrow hero__eyebrow">Digital kunskapsbank · Akutmottagning · Vårdcentral · Kommunal hemtjänst</span>
           <h1>Rätt information, direkt i handen, när det är bråttom.</h1>
           <p class="lede">
             Synappsen samlar en vårdenhets praktiska kunskap på ett ställe: rutiner,
@@ -145,10 +150,33 @@
       </div>
     </section>
 
+    <!-- I KORTHET. Bara påståenden som står längre ned på sidan, med sin källa där. -->
+    <section class="kort" aria-labelledby="kort-rubrik">
+      <h2 class="kort__rubrik" id="kort-rubrik">I korthet</h2>
+      <ul class="kort__lista">
+        <li>
+          <strong>Rutinen eller hyllplatsen på sekunder.</strong>
+          Sök i mobilen, även när nätet inte fungerar.
+        </li>
+        <li>
+          <strong>Exakt vem som inte läst den nya rutinen.</strong>
+          Läskvittering med deadline, och listan går att exportera till APT-underlaget.
+        </li>
+        <li>
+          <strong>Byggd för vårdens krav.</strong>
+          Inga patientuppgifter, varje organisation helt avskild i databasen och
+          upphandlingsunderlaget <a href="/underlag">publicerat i sin helhet</a>.
+        </li>
+      </ul>
+      <p class="kort__pris">
+        Pris från 39 000 kr per enhet och år. <a href="#paket">Se alla priser</a>
+      </p>
+    </section>
+
     <!-- 01 PROBLEMET -->
     <section id="problemet">
       <div class="sek-huvud">
-        <span class="sek-nr">01 — Problemet</span>
+        <span class="sek-nr">01 · Problemet</span>
         <h2>Kunskapen finns. Den är bara utspridd.</h2>
       </div>
       <div class="prosa">
@@ -178,7 +206,7 @@
     <!-- 02 LÖSNINGEN -->
     <section id="losningen">
       <div class="sek-huvud">
-        <span class="sek-nr">02 — Så fungerar det</span>
+        <span class="sek-nr">02 · Så fungerar det</span>
         <h2>Tre områden, en sökruta, installerad på hemskärmen.</h2>
       </div>
       <div class="prosa mb-34">
@@ -261,7 +289,7 @@
     <!-- 03 LEDNINGEN -->
     <section id="ledningen">
       <div class="sek-huvud">
-        <span class="sek-nr">03 — För ledningen</span>
+        <span class="sek-nr">03 · För ledningen</span>
         <h2>Svar på frågan "vet vi att alla har läst den nya rutinen?"</h2>
       </div>
 
@@ -321,7 +349,7 @@
     <!-- 04 LEVANDE INNEHÅLL -->
     <section id="levande">
       <div class="sek-huvud">
-        <span class="sek-nr">04 — Levande innehåll</span>
+        <span class="sek-nr">04 · Levande innehåll</span>
         <h2>Den vanligaste svagheten är inte tomma system. Det är gamla.</h2>
       </div>
       <div class="prosa mb-34">
@@ -382,7 +410,7 @@
     <!-- 05 VÅRDENS KRAV -->
     <section id="krav">
       <div class="sek-huvud">
-        <span class="sek-nr">05 — Vårdens krav</span>
+        <span class="sek-nr">05 · Vårdens krav</span>
         <h2>Utformad efter GDPR och patientdatalagen från dag ett.</h2>
       </div>
 
@@ -417,7 +445,7 @@
     <!-- 06 ÖPPENHET -->
     <section id="saknas">
       <div class="sek-huvud">
-        <span class="sek-nr">06 — Öppenhet</span>
+        <span class="sek-nr">06 · Öppenhet</span>
         <h2>Ett fall ur min egen utveckling, och gränserna jag dragit.</h2>
       </div>
 
@@ -444,7 +472,7 @@
           <span class="fall__etikett">Vad jag gjorde</span>
           <p>
             Jag stängde av funktionen helt, utan att först pröva en begränsning eller en
-            varningstext. Sen byggde jag om grunden: sökningen går numera via en verkligt
+            varningstext. Sedan byggde jag om grunden: sökningen går numera via en verkligt
             domänbegränsad sökmotor i stället för en instruktion till modellen.
           </p>
         </div>
@@ -474,6 +502,8 @@
           </p>
         </div>
 
+        <details class="fall-ut">
+          <summary>Visa de fyra avgränsningarna och skälen: dosberäkning, journalintegration, SSO och överblick över flera enheter</summary>
         <ul class="saknas">
           <li>
             <h3>Dos- eller läkemedelsberäkning</h3>
@@ -504,6 +534,7 @@
             </div>
           </li>
         </ul>
+        </details>
       </div>
 
       <div class="prosa mt-44">
@@ -521,7 +552,7 @@
     <!-- 07 STARTBIBLIOTEK -->
     <section id="start">
       <div class="sek-huvud">
-        <span class="sek-nr">07 — Startbibliotek</span>
+        <span class="sek-nr">07 · Startbibliotek</span>
         <h2>Ni börjar inte från ett tomt system.</h2>
       </div>
       <div class="prosa mb-30">
@@ -538,6 +569,8 @@
         </p>
       </div>
 
+      <details class="fall-ut">
+        <summary>Visa de tre verksamhetstyperna och vad startbiblioteket innehåller</summary>
       <div class="tabell-svep">
         <table>
           <caption class="eyebrow">Verksamhetstyper med färdigt startbibliotek</caption>
@@ -551,12 +584,13 @@
           </tbody>
         </table>
       </div>
+      </details>
     </section>
 
     <!-- 08 PRISER -->
     <section id="paket">
       <div class="sek-huvud">
-        <span class="sek-nr">08 — Priser</span>
+        <span class="sek-nr">08 · Priser</span>
         <h2>Priset står här.</h2>
       </div>
       <div class="prosa mb-32">
@@ -623,7 +657,9 @@
         </div>
       </div>
 
-      <div class="tabell-svep mt-28">
+      <details class="fall-ut mt-28">
+        <summary>Visa tillägg och uppstartsavgift, med priser</summary>
+      <div class="tabell-svep">
         <table>
           <caption class="eyebrow">Tillägg</caption>
           <thead>
@@ -633,16 +669,22 @@
             <tr><td>Källbevakning</td><td>6 000 kr/år</td><td>Veckovis automatisk kontroll av externa referenser i era rutiner, med larm till rutinens ägare</td></tr>
             <tr><td>Extra användare</td><td>350 kr/användare/år</td><td>Utöver taket, faktureras i efterskott vid årsavstämning</td></tr>
             <tr><td>Extra AI-pott</td><td>3 000 kr per steg</td><td>Endast Full. Varje steg motsvarar ytterligare 500 kr/månad i faktisk förbrukning</td></tr>
-            <tr><td>Uppstart</td><td>25 000 kr engångs</td><td>Konfiguration, innehållsimport, redaktörsutbildning. Halva avgiften vid flerårsavtal, och den utgår helt för de tre första referenskunderna</td></tr>
+            <tr><td>Uppstart</td><td>25 000 kr engångs</td><td>Konfiguration, innehållsimport, redaktörsutbildning. Rabatteras inte</td></tr>
           </tbody>
         </table>
       </div>
+      </details>
 
       <div class="prosa mt-28">
         <p>
+          <strong>Referenskunder.</strong> De tre första kunderna som går med på att vara
+          namngiven referens får 50 % rabatt på abonnemanget det första året. Rabatten gäller
+          inte uppstartsavgiften.
+        </p>
+        <p>
           <strong>Två saker som påverkar vad ni får för priset i dag.</strong> Enkel inloggning
           (SSO) är inte byggd ännu. Den kommer ingå i Drift och Full, och den första kund
-          som kräver den får den utan extra kostnad mot ett referensåtagande. Flerenhetsstöd
+          som kräver den och blir namngiven referens får den byggd utan extra kostnad. Flerenhetsstöd
           med delad rutindata mellan egna enheter är inte heller byggt; enheter kan i dag köras
           som separata organisationer.
         </p>
@@ -652,7 +694,7 @@
     <!-- 09 PILOT -->
     <section id="pilot">
       <div class="sek-huvud">
-        <span class="sek-nr">09 — Nästa steg</span>
+        <span class="sek-nr">09 · Pilot</span>
         <h2>En sektion, fyra till sex veckor, tre mått.</h2>
       </div>
       <div class="prosa mb-32">
@@ -660,6 +702,12 @@
           Piloten är avsiktligt liten: en avdelning, inte hela verksamheten. Poängen är att se
           hur appen används i vanlig drift, och att få riktiga siffror i stället för mina
           uppskattningar.
+        </p>
+        <p>
+          <strong>Piloten är betald.</strong> Den betalas som ett vanligt abonnemang på den nivå
+          ni väljer, och Kärna räcker. Uppstartsavgiften på 25 000 kr gäller även för piloten.
+          Är ni en av de tre första som går med på att vara namngiven referens får ni 50 %
+          rabatt på abonnemanget det första året.
         </p>
       </div>
 
@@ -691,7 +739,6 @@
             <tr><td>Hitta en rutin eller förrådsartikel</td><td>Minuter av letande och frågande</td><td>Sekunder via sök</td></tr>
             <tr><td>Veta vilka som läst en ny rutin</td><td>Okänt</td><td>Exakt lista med deadline</td></tr>
             <tr><td>Digitalisera en pappersrutin</td><td>Manuell omskrivning</td><td>Foto → utkast på sekunder</td></tr>
-            <tr><td>Driftkostnad</td><td>—</td><td>Låg fast kostnad; AI-budget med justerbart tak</td></tr>
           </tbody>
         </table>
       </div>

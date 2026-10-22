@@ -211,23 +211,41 @@
     .skal { grid-template-columns: 1fr; }
     .rail { display: none; }
     .huvud { padding: 0 var(--pad); }
+    /* Kompakt mobilhuvud (2026-10-22). Tidigare 170 px före hjälten vid 390 px bredd, och
+       hela blocket var klistrat, så en tredjedel av en telefonskärm gick åt till navigering
+       under hela läsningen. Nu: märket på en rad (namn och typ bredvid varandra),
+       växlaren på en rad i fast höjd, flikraden under.
+
+       Klistringen har negativ top lika med märkesraden plus växlaren (--topp-dold): de
+       rullar undan med sidan och bara flikraden stannar kvar överst. Därför har raderna
+       FASTA höjder i px. Ändras en av dem måste --topp-dold räknas om, annars stannar en
+       remsa av växlaren kvar (eller flikraden skärs av). */
     .topp {
-      display: block; position: sticky; top: 0; z-index: 20;
+      --topp-dold: 90px; /* 10 + 30 (märket) + 8 + 40 (växlaren) + 2 */
+      display: block; position: sticky; top: calc(-1 * var(--topp-dold)); z-index: 20;
       background: var(--bg); border-bottom: 1px solid var(--kant);
     }
-    .topp__rad { padding: 12px var(--pad) 10px; display: flex; flex-direction: column; gap: 10px; }
+    .topp__rad { padding: 10px var(--pad) 2px; display: flex; flex-direction: column; gap: 8px; }
+    .topp .marke { height: 30px; }
+    .topp .marke__text { flex-direction: row; align-items: baseline; gap: 10px; min-width: 0; }
+    .topp .marke__namn { font-size: 18px; line-height: 1.2; }
+    .topp .marke__typ { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    /* Flikraden rullar i sidled och klipper därmed allt som sticker ut, även fokusringen
+       (3 px + 2 px offset). Ringen läggs därför innanför pillret här. */
     .topp__index {
       display: flex; gap: 4px; overflow-x: auto;
-      padding: 0 var(--pad) 10px;
+      padding: 6px var(--pad) 8px;
       scrollbar-width: none; -webkit-overflow-scrolling: touch;
     }
     .topp__index::-webkit-scrollbar { display: none; }
     .topp__index a {
-      flex: none; font-family: var(--f-mono); font-size: 11.5px;
+      flex: none; font-family: var(--f-mono); font-size: 11.5px; line-height: 1;
+      display: inline-flex; align-items: center; height: 32px;
       color: var(--text-svag); text-decoration: none;
-      padding: 5px 11px; border: 1px solid var(--kant); border-radius: 999px;
+      padding: 0 12px; border: 1px solid var(--kant); border-radius: 999px;
       white-space: nowrap;
     }
+    .topp__index a:focus-visible { outline-offset: -4px; border-radius: 999px; }
     .topp__index a[aria-current="true"] {
       color: var(--primar); border-color: var(--primar); background: var(--primar-ljus);
     }
@@ -597,8 +615,17 @@
   border-color: var(--primar); color: var(--primar); background: var(--primar-ljus);
 }
 @media (max-width: 900px) {
+  /* Fast höjd 40 px (se --topp-dold ovan). Knapparna delar raden efter textlängd i stället
+     för hälften var, så "Företagslösningar & Bokning" ryms på en rad från 375 px. Blir det
+     ändå för trångt bryts texten inom knappen, inte knappens höjd. */
   .omraden { flex-direction: row; }
-  .omraden a { flex: 1; text-align: center; padding: 7px 8px; font-size: 12.5px; }
+  .omraden a {
+    flex: 1 1 auto; height: 40px; padding: 0 10px;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    font-size: 12.5px; line-height: 1.2;
+  }
+  /* Ankarlänkarna ska landa under flikraden, inte bakom den. */
+  html { scroll-padding-top: 56px; }
 }
 
 .bannrad {
@@ -681,3 +708,245 @@
 .trygghet { border-left: 2px solid var(--success); background: var(--success-ljus);
             padding: 20px 24px; margin-top: 18px; border-radius: 0 var(--radius) var(--radius) 0; }
 .trygghet p { font-size: 15.5px; color: var(--text); max-width: var(--measure); }
+
+/* ============================================================
+   404-sidan. Serveras av Firebase Hosting på varje okänd adress, så den ska leda
+   vidare snabbt: två tydliga vägar (vården, företagen) och sedan underlag och kontakt.
+   ============================================================ */
+.dokument__tillbaka .marke { display: inline-flex; color: var(--text); }
+.dokument__tillbaka .marke:hover { color: var(--primar); }
+.dokument__tillbaka .marke__namn { font-family: var(--f); font-size: 18px; }
+.fel { border-bottom: 0; }
+.fel__vagar {
+  list-style: none; margin: 34px 0 0; padding: 0;
+  display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.fel__vag {
+  display: flex; flex-direction: column; gap: 6px; height: 100%;
+  padding: 22px 24px; background: var(--yta); text-decoration: none;
+  border: 1px solid var(--kant); border-radius: var(--radius); box-shadow: var(--skugga);
+  transition: border-color .15s;
+}
+.fel__vag:hover { border-color: var(--primar); }
+.fel__namn { font-size: 18px; font-weight: 600; color: var(--primar); }
+.fel__namn::after { content: " →"; }
+.fel__text { font-size: 15px; line-height: 1.5; color: var(--text-svag); }
+.fel__mer { margin-top: 34px; }
+.fel__mer a { color: var(--primar-mork); font-weight: 600; }
+
+/* ======================================================================
+   Företagssidan: räkneexemplet som kort i mobil och exempelavsnittet
+   ====================================================================== */
+/* ============================================================
+   Tillfällig stilfil för foretag.html (slås ihop med stil.css av huvudtråden).
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   Räkneexemplet (04): staplade kort under 640 px.
+   Etiketterna sätts med nth-child i CSS i stället för data-attribut, eftersom
+   tests/docs/webbplats.test.js läser kronraderna med ett regex som kräver
+   attributlösa <tr><td>. Tabellmarkupen (caption, th scope) är orörd.
+   ------------------------------------------------------------ */
+@media (max-width: 640px) {
+  .tabell-svep--kort { overflow: visible; border: 0; background: transparent; border-radius: 0; }
+  .tabell-svep--kort table,
+  .tabell-svep--kort tbody,
+  .tabell-svep--kort tr,
+  .tabell-svep--kort td { display: block; width: 100%; min-width: 0; }
+  .tabell-svep--kort caption { display: block; padding: 0 0 12px; }
+  /* Rubrikraden döljs visuellt men finns kvar för skärmläsare. */
+  .tabell-svep--kort thead {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .tabell-svep--kort tbody { display: flex; flex-direction: column; gap: 12px; }
+  .tabell-svep--kort tr {
+    background: var(--yta); border: 1px solid var(--kant);
+    border-radius: var(--radius); padding: 6px 0;
+  }
+  .tabell-svep--kort td {
+    display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 12px;
+    padding: 8px 18px; border-bottom: 0;
+  }
+  .tabell-svep--kort td:first-child {
+    display: block; padding: 10px 18px 10px; margin-bottom: 4px;
+    border-bottom: 1px solid var(--kant);
+  }
+  .tabell-svep--kort td::before {
+    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--text-svag); line-height: 2.1;
+  }
+  .tabell-svep--kort td:nth-child(2)::before { content: "Antagande"; }
+  .tabell-svep--kort td:nth-child(3)::before { content: "Per månad"; }
+  .tabell-svep--kort td:nth-child(4)::before { content: "Per år"; }
+  .tabell-svep--kort td:nth-child(3),
+  .tabell-svep--kort td:nth-child(4) { color: var(--text); }
+}
+
+/* ------------------------------------------------------------
+   Exempel (03): två telefonvyer av en påhittad salongs mobilsida.
+   Ren markup och CSS, ingen bild och ingen JS.
+   ------------------------------------------------------------ */
+.exempel { margin: 0; }
+.exempel__vyer {
+  display: grid; gap: 28px; justify-items: center;
+  background: var(--primar-ljus); border: 1px solid var(--kant);
+  border-radius: calc(var(--radius) + 6px); padding: 28px 16px;
+}
+@media (min-width: 720px) {
+  .exempel__vyer { grid-template-columns: repeat(2, minmax(0, 300px));
+                   justify-content: center; gap: 40px; padding: 36px 24px; }
+  .bokning__sammanfattning { margin-top: auto; }
+}
+.exempel figcaption {
+  font-family: var(--f-mono); font-size: 11px; color: var(--text-svag);
+  line-height: 1.65; margin-top: 12px; max-width: var(--measure);
+}
+
+.telefon {
+  width: 100%; max-width: 300px;
+  background: var(--yta); border: 1px solid var(--kant-stark);
+  border-radius: 36px; padding: 10px; box-shadow: var(--skugga);
+}
+.telefon__skarm {
+  background: var(--bg); border: 1px solid var(--kant); border-radius: 27px;
+  overflow: hidden; height: 100%; display: flex; flex-direction: column;
+  font-size: 13px; line-height: 1.4;
+}
+.telefon__status {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 20px 6px; font-family: var(--f-mono); font-size: 10.5px; color: var(--text-svag);
+}
+.telefon__notch { width: 70px; height: 16px; border-radius: 10px; background: var(--kant); }
+
+.salong {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  padding: 18px 18px 20px; background: var(--yta); border-bottom: 1px solid var(--kant);
+}
+.salong__logga {
+  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  background: var(--primar-ljus); color: var(--primar); font-weight: 600; font-size: 14px;
+  margin-bottom: 6px;
+}
+.salong__namn { font-size: 19px; font-weight: 600; color: var(--text); letter-spacing: -0.015em; }
+.salong__info { font-size: 12.5px; color: var(--text-svag); }
+.salong__knapp {
+  display: block; margin-top: 12px; padding: 9px 16px; border-radius: var(--radius-liten);
+  background: var(--primar); color: var(--pa-primar); font-weight: 600; font-size: 13px;
+  text-align: center; align-self: stretch;
+}
+
+.tjanster { display: flex; flex-direction: column; padding: 14px 14px 18px; gap: 8px; }
+.tjanster__rubrik, .bokning__rubrik {
+  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--text-svag); padding: 0 4px;
+}
+.tjanst {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px;
+  background: var(--yta); border: 1px solid var(--kant); border-radius: var(--radius-liten);
+  padding: 10px 12px;
+}
+.tjanst__namn { font-weight: 600; color: var(--text); }
+.tjanst__pris { color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
+.tjanst__tid { grid-column: 1 / -1; font-size: 12px; color: var(--text-svag); }
+
+.bokning { display: flex; flex-direction: column; gap: 12px; padding: 14px 14px 18px; flex: 1; }
+.bokning__tillbaka { color: var(--primar); font-weight: 600; font-size: 13px; padding: 0 4px; }
+.bokning__rubrik { font-size: 18px; letter-spacing: -0.015em; text-transform: none;
+                   font-family: var(--f); font-weight: 600; color: var(--text); }
+.dagar { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.dag {
+  display: flex; flex-direction: column; align-items: center; padding: 7px 0;
+  border: 1px solid var(--kant); border-radius: var(--radius-liten); background: var(--yta);
+  font-size: 11px; color: var(--text-svag);
+}
+.dag span:last-child { font-size: 15px; font-weight: 600; color: var(--text); }
+.dag--vald { border-color: var(--primar); background: var(--primar-ljus); }
+.dag--vald span { color: var(--primar); }
+.dag--vald span:last-child { color: var(--primar); }
+.tider { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.tid {
+  padding: 8px 0; text-align: center; border: 1px solid var(--kant-stark);
+  border-radius: var(--radius-liten); background: var(--yta); color: var(--text);
+  font-variant-numeric: tabular-nums; font-size: 13px;
+}
+.tid--upptagen { border-color: var(--kant); color: var(--text-svag); text-decoration: line-through;
+                 background: transparent; }
+.tid--vald { background: var(--primar); border-color: var(--primar); color: var(--pa-primar);
+             font-weight: 600; }
+.bokning__sammanfattning {
+  margin-top: 6px; display: flex; flex-direction: column; gap: 4px;
+  background: var(--yta); border: 1px solid var(--kant); border-radius: var(--radius-liten);
+  padding: 12px; font-size: 12.5px; color: var(--text);
+}
+.bokning__sammanfattning .salong__knapp { margin-top: 8px; }
+.bokning__notis { font-size: 11.5px; color: var(--text-svag); text-align: center; margin-top: 4px; }
+
+@media print {
+  .exempel__vyer { break-inside: avoid; }
+}
+
+/* ======================================================================
+   Startsidan: "I korthet" och fällbara delar
+   ====================================================================== */
+/* Tillfälliga regler för startsidan (index.html): sammanfattningen "I korthet" och de
+   fällbara delarna (<details>). Ska flyttas in i stil.css. Bygger bara på tokens som
+   stil.css redan definierar (ljust och mörkt läge). */
+
+/* ---------- I korthet ---------- */
+.kort { padding: clamp(28px, 4vw, 44px) 0; }
+.kort__rubrik {
+  font-family: var(--f-mono); font-size: 11px; font-weight: 400;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--primar);
+  margin-bottom: 16px;
+}
+.kort__lista {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.kort__lista li {
+  background: var(--yta); border: 1px solid var(--kant);
+  border-left: 3px solid var(--primar); border-radius: var(--radius-liten);
+  padding: 14px 16px; font-size: 15px; line-height: 1.5; color: var(--text-svag);
+}
+.kort__lista strong { display: block; color: var(--text); font-weight: 600; margin-bottom: 4px; }
+.kort__lista a, .kort__pris a { color: var(--primar); }
+.kort__pris { margin: 16px 0 0; font-size: 15px; color: var(--text); font-weight: 600; }
+.kort__pris a { font-weight: 400; margin-left: 4px; }
+
+/* ---------- Fällbara delar ---------- */
+.fall-ut > summary {
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; list-style: none;
+  padding: 13px 16px; min-height: 44px; box-sizing: border-box;
+  border: 1px solid var(--kant-stark); border-radius: var(--radius-liten);
+  background: var(--yta); color: var(--primar);
+  font-size: 15px; font-weight: 600; line-height: 1.4;
+}
+.fall-ut > summary::-webkit-details-marker { display: none; }
+.fall-ut > summary::before {
+  content: ""; flex: none; width: 7px; height: 7px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg); transition: transform .15s ease;
+  margin-right: 2px;
+}
+.fall-ut[open] > summary::before { transform: rotate(45deg); }
+.fall-ut > summary:hover { background: var(--primar-ljus); border-color: var(--primar); }
+.fall-ut > summary:focus-visible { outline: 3px solid var(--primar-mork); outline-offset: 2px; }
+.fall-ut[open] > summary { margin-bottom: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fall-ut > summary::before { transition: none; }
+}
+
+/* Utskrift: de fällda delarna ska med på papperet. ::details-content stöds av
+   Chromium 131+ och Safari 18.4+; i övriga webbläsare skrivs bara rubrikraden ut
+   för en stängd del. Regeln står ensam så att en okänd selektor inte fäller fler. */
+@media print {
+  .fall-ut::details-content { content-visibility: visible; display: contents; }
+}
+@media print {
+  .fall-ut > summary { border: 0; padding: 0; min-height: 0; color: inherit; margin-bottom: 8px; }
+  .fall-ut > summary::before { display: none; }
+}

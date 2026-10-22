@@ -194,17 +194,31 @@ export function markdownTillHtml(md, kalla) {
 
 function sida(d, kropp) {
   const filnamn = d.sida.replace("synappsen-web/", "");
+  const adress = `https://synappsen.se/${filnamn.replace(/\.html$/, "")}`;
+  const titel = `${escapa(d.titel)} | Synappsen`;
   return `<!doctype html>
 <html lang="sv">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<title>${escapa(d.titel)} – Synappsen</title>
+<title>${titel}</title>
 <meta name="description" content="${escapa(d.ingress)}" />
 
-<link rel="canonical" href="https://synappsen.se/${filnamn.replace(/\.html$/, "")}" />
+<link rel="canonical" href="${adress}" />
 <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
+
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="sv_SE" />
+<meta property="og:site_name" content="Synappsen" />
+<meta property="og:title" content="${titel}" />
+<meta property="og:description" content="${escapa(d.ingress)}" />
+<meta property="og:url" content="${adress}" />
+<meta property="og:image" content="https://synappsen.se/bilder/dela-vard.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Synappsen, digital kunskapsbank för vården: Rätt information, direkt i handen, när det är bråttom." />
+<meta name="twitter:card" content="summary_large_image" />
 
 <link rel="preload" href="/fonts/public-sans-400.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/stil.css" />

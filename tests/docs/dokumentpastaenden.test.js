@@ -394,3 +394,18 @@ describe("CLAUDE_STATUS.md räknar arkivets uppföljningar rätt", () => {
     ).toBe(faktiskt);
   });
 });
+
+describe("Uppstartsavgiften ges inte bort (BESLUTSLOGG.md 2026-08-23 och 2026-10-22)", () => {
+  // Beslutet fattades 2026-08-23 och prislistan sades rättad, men både prislistan och
+  // startsidan lovade fortfarande att avgiften "utgår helt för de tre första
+  // referenskunderna" när det upptäcktes 2026-10-22. Referenskunder får 50 % på
+  // abonnemanget år 1, aldrig på uppstarten.
+  test.each(["synappsen-web/index.html", "saljmaterial/kallfiler/Synappsen-prislista.html"])(
+    "%s lovar inte att uppstartsavgiften utgår eller halveras",
+    (fil) => {
+      const text = las(fil);
+      expect(text, `${fil} säger att uppstartsavgiften utgår`).not.toMatch(/utgår helt/i);
+      expect(text, `${fil} halverar uppstartsavgiften`).not.toMatch(/Halva avgiften/i);
+    }
+  );
+});
