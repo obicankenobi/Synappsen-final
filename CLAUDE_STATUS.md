@@ -145,6 +145,23 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
 
+## Uppföljning 2026-10-22 (andra genomgången: tillgänglighet, bilder och prisinformation)
+
+Ägaren bad om en ny, objektiv granskning och sedan att alla punkter som inte kräver beslut körs.
+Mätt på livesidan före: axe gav 22 fel (kontrast 4,25:1 i mörkt läge, tangentbord når inte
+rullbara tabeller, mobilhuvudet utanför landmärken), cirka 100 textelement under 13 px och
+sidfotslänkar på 12 px. Efter: **noll axe-fel** i ljust/mörkt, 390/1440 px, sex sidor, ingen text
+under 12 px. Dessutom: skärmbilderna som WebP (722 kB → 257 kB, hjältebilden ej lazy), avsiktlig
+toning på hjältebilden, uppstartsavgiften synlig under prispanelen med räknat exempel
+(39 000 + 25 000 = 64 000 kr), svenska citattecken, paketchips i brödtextfonten, en enda
+huvudhandling på `foretag.html` ("Be om en kostnadsfri skiss") och telefonvy i dess hjälte.
+Bundet av nya tester i `tests/docs/webbplats.test.js`. **Kvar och inte gjort:** appens
+ledningsrapport är för bred på mobil (tabellen är avklippt inne i `app-ledningsrapport.png`) och
+klinikstödsbilden visar platshållaren "Dosering amoxicillin" (produkttrådens område, båda kräver
+ny skärmbild); WebP-filerna måste göras om manuellt när PNG-bilderna tas om; ägarbeslut kring
+pilotens bindning, namn/foto, bokningsverktyg, vanliga frågor, växlarens placering och
+undersidor (förslagen 10, 11, 12, 15, 18, 21 i granskningen).
+
 ## Uppföljning 2026-10-22 (genomgång av webbplatsen: 21 förbättringar)
 
 Ägaren bad om en genomgång och sedan att alla förslag genomförs. Gjort i tre parallella spår:

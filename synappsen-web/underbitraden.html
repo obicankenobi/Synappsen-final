@@ -58,7 +58,7 @@
 <p><strong>Metod:</strong> varje rad nedan är verifierad direkt mot koden (<code>functions/</code>-modulerna, <code>.github/workflows/deploy.yml</code>, <code>src/sentry.js</code>), inte antagen – i enlighet med genomgående krav 8 i <code>etapplaner/ETAPPLAN3.md</code>. Rader markerade &quot;[FYLLS I]&quot;/&quot;[EJ VERIFIERAT]&quot; kräver en åtgärd av ägaren (vanligen en kontroll i ett moln-konsol som inte syns i koden).</p>
 <hr />
 <h3>Sammanfattande tabell</h3>
-<div class="tabell-svep"><table>
+<div class="tabell-svep" role="region" tabindex="0" aria-label="Tabell: Sammanfattande tabell"><table>
 <thead><tr><th scope="col">Underbiträde</th><th scope="col">Vad som behandlas</th><th scope="col">Region</th><th scope="col">Status</th></tr></thead>
 <tbody>
 <tr><td>Google Firebase Authentication</td><td>Inloggningsuppgifter (e-post, hash av lösenord, ev. TOTP-hemlighet)</td><td>[EJ VERIFIERAT – se rad nedan]</td><td>I drift</td></tr>
@@ -93,7 +93,7 @@
 <h4>Brevo (Sendinblue SAS)</h4>
 <p>Vald 2026-08-10 (<code>BESLUTSLOGG.md</code>, beslutspunkt 1 i <code>etapplaner/ETAPPLAN11.md</code> §53) som e-postkanal för Etapp 53 – i första hand inbjudningar (53b), tilldelade påminnelser (53c) och en kundvänd månadssammanfattning (53d). EU-baserat bolag (Frankrike), vilket var det avgörande skälet framför ett amerikanskt alternativ.</p>
 <ul><li><strong>Vad som skickas:</strong> en mottagaradress plus en kort, medvetet innehållslös notistext (t.ex. &quot;du har 3 rutiner att granska, logga in för att se dem&quot;). Aldrig organisationens namn, verksamhetsinnehåll eller andra personuppgifter än mottagarens egen adress – se <code>etapplaner/ETAPPLAN11.md</code> genomgående krav 18. Enda undantaget är inbjudningsmejlet (53b), som med nödvändighet måste nämna organisationens namn för att vara begripligt; det är ett medvetet, dokumenterat undantag, inte en glidning.</li><li><strong>Teknisk status: I DRIFT sedan 2026-08-27.</strong> Hjälparfunktionen <code>skickaEpost()</code> och det globala nödstoppet (<code>angeEpostAvstangd</code>, en knapp i <code>/leverantor</code>) byggdes i Etapp 53a. Ägaren satte en riktig <code>BREVO_API_KEY</code> som GitHub-hemlighet och verifierade avsändardomänen <code>synappsen.se</code> hos Brevo (SPF/DKIM/DMARC) 2026-08-27, och v5.129.0 deployades samma dag. Från och med då skickas e-post faktiskt, från tre håll:</li></ul>
-<div class="tabell-svep"><table>
+<div class="tabell-svep" role="region" tabindex="0" aria-label="Tabell: Brevo (Sendinblue SAS)"><table>
 <thead><tr><th scope="col">Vad</th><th scope="col">Utlöses av</th><th scope="col">Kod</th></tr></thead>
 <tbody>
 <tr><td>Inbjudningsmejl</td><td>Manuell handling (någon bjuder in en kollega)</td><td><code>functions/inbjudningar.js</code></td></tr>
@@ -108,7 +108,7 @@
 <p>I enlighet med <code>avtal/PUB-AVTAL-MALL.md</code> punkt 5 ska Kunden underrättas innan ett nytt underbiträde läggs till eller ett befintligt byts ut, med möjlighet att invända. Denna fil är källan för vad som gäller vid varje given tidpunkt – uppdatera den <strong>samtidigt</strong> som förändringen görs i koden eller CI/CD-konfigurationen, inte i efterhand.</p>
 <hr />
 <h3>Ändringshistorik</h3>
-<div class="tabell-svep"><table>
+<div class="tabell-svep" role="region" tabindex="0" aria-label="Tabell: Ändringshistorik"><table>
 <thead><tr><th scope="col">Datum</th><th scope="col">Ändring</th></tr></thead>
 <tbody>
 <tr><td>2026-08-29</td><td>Etapp L1p punkt 2: mekanism för underrättelse tillagd i leverantörspanelen (<code>satUnderbitradeUnderrattad</code>). Ingen sakändring av innehållet – datumet på &quot;Senast uppdaterad&quot; blev samtidigt dokumentets första formella VERSION (se rutan ovan). Inga kunder finns ännu att underrätta</td></tr>

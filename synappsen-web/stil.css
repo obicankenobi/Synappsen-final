@@ -21,6 +21,11 @@
     /* Ljust läge – bas, identisk med src/index.css :root */
     --primar:        #2f5fd6;
     --primar-mork:   #274eaf;
+    /* Primärfärg för TEXT på dämpade blå ytor (--primar-ljus). Ljust läge: samma värde som
+       --primar. Mörkt läge: --primar (#3b82f6) ger bara 4,25:1 mot --primar-ljus (#14243a), under
+       AA 1.4.3; #5b9bf8 ger 5,58:1 där och 5,10:1 som lägst (mot --kant). Knappfärgerna
+       (bakgrund) använder fortfarande --primar. */
+    --primar-text:   #2f5fd6;
     --primar-ljus:   #f0f4fc;
     --text:          #0f172a;
     --text-svag:     #475569;
@@ -72,6 +77,7 @@
     :root {
       --primar:        #3b82f6;
       --primar-mork:   #60a5fa;
+      --primar-text:   #5b9bf8;
       --primar-ljus:   #14243a;
       --text:          #f1f5f9;
       --text-svag:     #94a3b8;
@@ -148,7 +154,7 @@
 
   .eyebrow {
     font-family: var(--f-mono);
-    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    font-size: 13px; letter-spacing: .1em; text-transform: uppercase;
     color: var(--text-svag);
   }
 
@@ -165,7 +171,7 @@
   .marke__text { display: flex; flex-direction: column; gap: 1px; }
   .marke__namn { font-weight: 600; font-size: 19px; letter-spacing: -0.028em; }
   .marke__typ {
-    font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em;
+    font-family: var(--f-mono); font-size: 12px; letter-spacing: .04em;
     text-transform: uppercase; color: var(--text-svag);
   }
 
@@ -185,8 +191,8 @@
   .index { display: flex; flex-direction: column; gap: 1px; }
   .index a {
     display: grid; grid-template-columns: 26px 1fr; gap: 8px;
-    padding: 5px 12px 5px 10px; margin-left: -12px;
-    font-family: var(--f-mono); font-size: 12px;
+    padding: 7px 12px 7px 10px; margin-left: -12px;
+    font-family: var(--f-mono); font-size: 13px;
     color: var(--text-svag); text-decoration: none;
     border-left: 2px solid transparent;
     transition: color .15s, border-color .15s;
@@ -197,7 +203,7 @@
 
   .rail__fot {
     margin-top: auto; font-family: var(--f-mono);
-    font-size: 10.5px; line-height: 1.6; color: var(--text-svag);
+    font-size: 12.5px; line-height: 1.6; color: var(--text-svag);
   }
 
   .huvud { padding: 0 var(--pad) 0 clamp(24px, 4vw, 56px); min-width: 0; }
@@ -239,7 +245,7 @@
     }
     .topp__index::-webkit-scrollbar { display: none; }
     .topp__index a {
-      flex: none; font-family: var(--f-mono); font-size: 11.5px; line-height: 1;
+      flex: none; font-family: var(--f-mono); font-size: 13px; line-height: 1;
       display: inline-flex; align-items: center; height: 32px;
       color: var(--text-svag); text-decoration: none;
       padding: 0 12px; border: 1px solid var(--kant); border-radius: 999px;
@@ -247,7 +253,7 @@
     }
     .topp__index a:focus-visible { outline-offset: -4px; border-radius: 999px; }
     .topp__index a[aria-current="true"] {
-      color: var(--primar); border-color: var(--primar); background: var(--primar-ljus);
+      color: var(--primar-text); border-color: var(--primar); background: var(--primar-ljus);
     }
   }
 
@@ -259,7 +265,7 @@
 
   .sek-huvud { display: flex; flex-direction: column; gap: 14px; margin-bottom: 36px; }
   .sek-huvud h2 { font-size: clamp(26px, 3.4vw, 35px); line-height: 1.15; }
-  .sek-nr { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; color: var(--primar); }
+  .sek-nr { font-family: var(--f-mono); font-size: 13px; letter-spacing: .1em; color: var(--primar); }
 
   .prosa { max-width: var(--measure); display: flex; flex-direction: column; gap: 18px; }
   .prosa p { color: var(--text-svag); }
@@ -286,14 +292,14 @@
   .knapp:hover { background: var(--primar-mork); border-color: var(--primar-mork); }
   .knapp:active { transform: translateY(1px); }
   .knapp--tom { background: transparent; color: var(--primar); }
-  .knapp--tom:hover { background: var(--primar-ljus); border-color: var(--primar); }
+  .knapp--tom:hover { background: var(--primar-ljus); border-color: var(--primar); color: var(--primar-text); }
 
   /* Sökdemonstrationens attrapp (.sok, .traff) togs bort 2026-09-06 och ersattes av en
      riktig skärmbild ur appen, se .bild längst ned. Attrappen renderade "Urinkadeter" –
      ordet var felstavat i markupen för att markeringen skulle gå ihop – vilket är den
      felklass en handritad kopia av ett gränssnitt alltid riskerar. .sok__not är kvar: den
      används som bildtext och not på flera ställen. */
-  .sok__not { font-family: var(--f-mono); font-size: 11px; color: var(--text-svag);
+  .sok__not { font-family: var(--f-mono); font-size: 13px; color: var(--text-svag);
               margin-top: 12px; max-width: 560px; line-height: 1.55; }
 
   /* ============================================================
@@ -369,7 +375,7 @@
   th, td { text-align: left; padding: 13px 18px;
            border-bottom: 1px solid var(--kant); vertical-align: top; }
   tbody tr:last-child td { border-bottom: 0; }
-  th { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em;
+  th { font-family: var(--f-mono); font-size: 12.5px; letter-spacing: .06em;
        text-transform: uppercase; color: var(--text-svag); font-weight: 400;
        background: var(--primar-ljus); }
   td { font-size: 15px; color: var(--text-svag); font-variant-numeric: tabular-nums; }
@@ -385,7 +391,7 @@
           border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; }
   .fall__led { background: var(--yta); padding: 24px;
                display: flex; flex-direction: column; gap: 10px; }
-  .fall__etikett { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em;
+  .fall__etikett { font-family: var(--f-mono); font-size: 12.5px; letter-spacing: .06em;
                    text-transform: uppercase; color: var(--text-svag); }
   .fall__led:last-child .fall__etikett { color: var(--success); }
   .fall__led p { font-size: 15px; line-height: 1.55; color: var(--text-svag); }
@@ -402,7 +408,7 @@
   .saknas li:last-child { border-bottom: 1px solid var(--kant); }
   .saknas h3 { font-size: 15.5px; font-weight: 600; }
   .saknas p { font-size: 15px; color: var(--text-svag); }
-  .saknas__skal { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .1em;
+  .saknas__skal { font-family: var(--f-mono); font-size: 12.5px; letter-spacing: .06em;
                   text-transform: uppercase; color: var(--success);
                   display: block; margin-bottom: 5px; }
   @media (max-width: 700px) { .saknas li { grid-template-columns: 1fr; } }
@@ -419,16 +425,19 @@
   .paket__namn h3 { font-size: 17px; }
   .paket__pris { font-size: 26px; font-weight: 600; letter-spacing: -0.028em;
                  font-variant-numeric: tabular-nums; }
-  .paket__enhet { font-size: 12.5px; color: var(--text-svag); line-height: 1.45; }
-  .paket__flagga { font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em;
+  .paket__enhet { font-size: 13.5px; color: var(--text-svag); line-height: 1.45; }
+  .paket__flagga { font-family: var(--f-mono); font-size: 12.5px; letter-spacing: .06em;
                    text-transform: uppercase; color: var(--primar);
                    border: 1px solid var(--primar); border-radius: 999px;
                    padding: 3px 9px; width: fit-content; margin-top: 4px; }
   .paket__innehall p { font-size: 15px; color: var(--text-svag); }
   .paket__lista { margin: 10px 0 0; padding: 0; list-style: none;
                   display: flex; flex-wrap: wrap; gap: 6px; }
-  .paket__lista li { font-family: var(--f-mono); font-size: 11px; color: var(--text-svag);
-                     border: 1px solid var(--kant-stark); padding: 4px 9px;
+  /* Paketchipsen är löpande ord, inte etiketter: brödtextens typsnitt i vanlig skiftläge
+     skannas snabbare än versal monospace. Monospace är kvar för siffror och korta etiketter. */
+  .paket__lista li { font-family: var(--f); font-size: 14px; line-height: 1.35;
+                     color: var(--text-svag);
+                     border: 1px solid var(--kant-stark); padding: 5px 11px;
                      border-radius: var(--radius-liten); }
   @media (max-width: 700px) { .paket__rad { grid-template-columns: 1fr; } }
 
@@ -457,11 +466,16 @@
   .kontakt__epost { font-size: 19px; font-weight: 600; color: var(--primar);
                     text-decoration: none; }
   .kontakt__epost:hover { text-decoration: underline; }
+  .kontakt__epost { display: inline-flex; align-items: center; min-height: 40px; align-self: flex-start; }
+  /* Länkar som rubriker i listor är fristående mål, inte löptext. */
+  .saknas h3 a { display: inline-flex; align-items: center; min-height: 36px; }
 
   footer { border-top: 1px solid var(--kant); padding: 26px 0 48px;
-           font-family: var(--f-mono); font-size: 11px; line-height: 1.7;
+           font-family: var(--f-mono); font-size: 13px; line-height: 1.7;
            color: var(--text-svag); display: flex; flex-wrap: wrap;
-           gap: 6px 28px; justify-content: space-between; }
+           gap: 0 28px; justify-content: space-between; align-items: center; }
+  /* Tryckytan (WCAG 2.5.8, minst 24 px, här 36): länkarna i sidfoten är fristående mål. */
+  footer a { display: inline-flex; align-items: center; min-height: 36px; }
 
   /* ============================================================
      Rörelse.
@@ -513,9 +527,10 @@
 .skal--enkel { grid-template-columns: minmax(0, 1fr); max-width: 860px; }
 .huvud--dokument { padding: 0 var(--pad); }
 .dokument__tillbaka {
-  padding-top: 28px; font-family: var(--f-mono); font-size: 12px;
+  padding-top: 20px; font-family: var(--f-mono); font-size: 14px;
 }
-.dokument__tillbaka a { color: var(--text-svag); text-decoration: none; }
+.dokument__tillbaka a { color: var(--text-svag); text-decoration: none;
+                        display: inline-flex; align-items: center; min-height: 36px; }
 .dokument__tillbaka a:hover { color: var(--primar); }
 .huvud--dokument footer a { color: var(--text-svag); }
 
@@ -550,7 +565,7 @@
    startsidan; här får det dessutom spränga mätvärdet, annars blir varje cell en
    ordkolumn. */
 .dok .tabell-svep { margin: 22px 0; max-width: none; width: min(100%, 900px); }
-.dok__kalla { font-family: var(--f-mono); font-size: 12px; color: var(--text-svag);
+.dok__kalla { font-family: var(--f-mono); font-size: 13px; color: var(--text-svag);
               line-height: 1.6; margin-top: 18px; }
 
 /* ============================================================
@@ -568,7 +583,7 @@
 .bild img { display: block; width: 100%; height: auto;
             border: 1px solid var(--kant-stark); border-radius: var(--radius);
             background: var(--yta); }
-.bild figcaption { font-family: var(--f-mono); font-size: 11px; color: var(--text-svag);
+.bild figcaption { font-family: var(--f-mono); font-size: 14px; color: var(--text-svag);
                    line-height: 1.65; margin-top: 10px; }
 .bilder { display: grid; gap: 26px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
           align-items: start; }
@@ -612,7 +627,7 @@
 }
 .omraden a:hover { border-color: var(--kant-stark); color: var(--text); }
 .omraden a[aria-current="page"] {
-  border-color: var(--primar); color: var(--primar); background: var(--primar-ljus);
+  border-color: var(--primar); color: var(--primar-text); background: var(--primar-ljus);
 }
 @media (max-width: 900px) {
   /* Fast höjd 40 px (se --topp-dold ovan). Knapparna delar raden efter textlängd i stället
@@ -646,7 +661,7 @@
   box-shadow: var(--skugga);
 }
 .hero__bild img { max-width: 300px; margin: 0 auto; }
-.hero__bild figcaption { max-width: 300px; margin: 14px auto 0; }
+.hero__bild figcaption { max-width: 300px; margin: 14px auto 0; font-size: 13px; line-height: 1.5; }
 @media (min-width: 960px) {
   .hero__rutnat { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
                   gap: 48px; align-items: center; }
@@ -693,7 +708,7 @@
   border: 1px solid var(--kant-stark); background: transparent; color: var(--text);
 }
 .kopiera:hover { background: var(--primar-ljus); border-color: var(--primar); }
-.kopierat { font-family: var(--f-mono); font-size: 11.5px; color: var(--success); min-height: 1.2em; }
+.kopierat { font-family: var(--f-mono); font-size: 13px; color: var(--success); min-height: 1.2em; }
 .steglista { list-style: none; counter-reset: s; margin: 0; padding: 0;
              display: flex; flex-direction: column; gap: 14px; }
 .steglista li { counter-increment: s; display: grid; grid-template-columns: 28px 1fr;
@@ -773,7 +788,7 @@
     border-bottom: 1px solid var(--kant);
   }
   .tabell-svep--kort td::before {
-    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em;
+    font-family: var(--f-mono); font-size: 12.5px; letter-spacing: .06em;
     text-transform: uppercase; color: var(--text-svag); line-height: 2.1;
   }
   .tabell-svep--kort td:nth-child(2)::before { content: "Antagande"; }
@@ -799,7 +814,7 @@
   .bokning__sammanfattning { margin-top: auto; }
 }
 .exempel figcaption {
-  font-family: var(--f-mono); font-size: 11px; color: var(--text-svag);
+  font-family: var(--f-mono); font-size: 14px; color: var(--text-svag);
   line-height: 1.65; margin-top: 12px; max-width: var(--measure);
 }
 
@@ -815,7 +830,7 @@
 }
 .telefon__status {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 20px 6px; font-family: var(--f-mono); font-size: 10.5px; color: var(--text-svag);
+  padding: 10px 20px 6px; font-family: var(--f-mono); font-size: 12px; color: var(--text-svag);
 }
 .telefon__notch { width: 70px; height: 16px; border-radius: 10px; background: var(--kant); }
 
@@ -825,7 +840,7 @@
 }
 .salong__logga {
   display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
-  background: var(--primar-ljus); color: var(--primar); font-weight: 600; font-size: 14px;
+  background: var(--primar-ljus); color: var(--primar-text); font-weight: 600; font-size: 14px;
   margin-bottom: 6px;
 }
 .salong__namn { font-size: 19px; font-weight: 600; color: var(--text); letter-spacing: -0.015em; }
@@ -838,7 +853,7 @@
 
 .tjanster { display: flex; flex-direction: column; padding: 14px 14px 18px; gap: 8px; }
 .tjanster__rubrik, .bokning__rubrik {
-  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+  font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
   color: var(--text-svag); padding: 0 4px;
 }
 .tjanst {
@@ -858,12 +873,12 @@
 .dag {
   display: flex; flex-direction: column; align-items: center; padding: 7px 0;
   border: 1px solid var(--kant); border-radius: var(--radius-liten); background: var(--yta);
-  font-size: 11px; color: var(--text-svag);
+  font-size: 12px; color: var(--text-svag);
 }
 .dag span:last-child { font-size: 15px; font-weight: 600; color: var(--text); }
 .dag--vald { border-color: var(--primar); background: var(--primar-ljus); }
-.dag--vald span { color: var(--primar); }
-.dag--vald span:last-child { color: var(--primar); }
+.dag--vald span { color: var(--primar-text); }
+.dag--vald span:last-child { color: var(--primar-text); }
 .tider { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
 .tid {
   padding: 8px 0; text-align: center; border: 1px solid var(--kant-stark);
@@ -880,7 +895,7 @@
   padding: 12px; font-size: 12.5px; color: var(--text);
 }
 .bokning__sammanfattning .salong__knapp { margin-top: 8px; }
-.bokning__notis { font-size: 11.5px; color: var(--text-svag); text-align: center; margin-top: 4px; }
+.bokning__notis { font-size: 12px; color: var(--text-svag); text-align: center; margin-top: 4px; }
 
 @media print {
   .exempel__vyer { break-inside: avoid; }
@@ -896,8 +911,8 @@
 /* ---------- I korthet ---------- */
 .kort { padding: clamp(28px, 4vw, 44px) 0; }
 .kort__rubrik {
-  font-family: var(--f-mono); font-size: 11px; font-weight: 400;
-  letter-spacing: .14em; text-transform: uppercase; color: var(--primar);
+  font-family: var(--f-mono); font-size: 13px; font-weight: 400;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--primar);
   margin-bottom: 16px;
 }
 .kort__lista {
@@ -932,7 +947,7 @@
   margin-right: 2px;
 }
 .fall-ut[open] > summary::before { transform: rotate(45deg); }
-.fall-ut > summary:hover { background: var(--primar-ljus); border-color: var(--primar); }
+.fall-ut > summary:hover { background: var(--primar-ljus); border-color: var(--primar); color: var(--primar-text); }
 .fall-ut > summary:focus-visible { outline: 3px solid var(--primar-mork); outline-offset: 2px; }
 .fall-ut[open] > summary { margin-bottom: 14px; }
 
@@ -949,4 +964,50 @@
 @media print {
   .fall-ut > summary { border: 0; padding: 0; min-height: 0; color: inherit; margin-bottom: 8px; }
   .fall-ut > summary::before { display: none; }
+}
+
+/* ---- tmp-index2.css ---- */
+/* Tillägg för startsidan (agent A2). Tokens från stil.css, så mörkt läge följer med. */
+
+/* Hjältebilden är avsiktligt beskuren: ramen klipper skärmbilden och tonar mjukt ut
+   mot ramens botten i stället för att skära mitt i en rad. */
+.hero__bild img {
+  max-height: 520px; object-fit: cover; object-position: top;
+  -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+}
+
+/* Bildtexten till ledningsrapporten ligger nu i figuren, direkt under bilden. */
+.ledning .bild--ensam figcaption { max-width: 300px; }
+
+/* Uppstartsavgiften ska synas utanför den fällbara tilläggstabellen. */
+.uppstart {
+  margin: 28px 0 0; padding: 14px 18px; font-size: 15px; line-height: 1.6;
+  background: var(--yta); border: 1px solid var(--kant); border-radius: var(--radius);
+  color: var(--text);
+}
+
+/* ---- tmp-foretag2.css ---- */
+/* Hjälten: exempeltelefon i högerkolumnen från 960 px, dold i mobil så att texten kommer först. */
+.hero__telefon { display: none; margin: 0; }
+@media (min-width: 960px) {
+  .hero__telefon { display: block; }
+}
+.hero__telefonyta {
+  display: flex; justify-content: center;
+  background: var(--primar-ljus); border: 1px solid var(--kant);
+  border-radius: calc(var(--radius) + 6px); padding: 28px 24px;
+}
+.hero__telefon figcaption {
+  font-size: 13px; line-height: 1.5; color: var(--text-svag);
+  margin: 12px auto 0; max-width: 300px; text-align: center; text-wrap: balance;
+}
+
+/* Tillväxt: alternativpriset i en egen liten ruta under huvudprisraden. */
+.paket__alt {
+  display: block; width: fit-content; max-width: 100%;
+  margin-top: 6px; padding: 7px 10px;
+  font-size: 13px; line-height: 1.45; color: var(--text-svag);
+  background: var(--primar-ljus); border: 1px solid var(--kant);
+  border-radius: var(--radius);
 }

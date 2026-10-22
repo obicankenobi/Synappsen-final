@@ -30,7 +30,7 @@
 
 <a class="hoppa" href="#huvudinnehall">Hoppa till innehållet</a>
 
-<div class="topp">
+<header class="topp">
   <div class="topp__rad">
     <div class="marke">
       <svg class="marke__symbol" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -60,7 +60,7 @@
     <a href="#arbetssatt">Arbetssätt</a>
     <a href="#varfor">Varför Synappsen</a>
   </nav>
-</div>
+</header>
 
 <div class="skal">
   <nav class="rail" aria-label="Innehåll">
@@ -102,17 +102,45 @@
   <main class="huvud" id="huvudinnehall" tabindex="-1">
 
     <section class="hero">
-      <span class="eyebrow hero__eyebrow">Synappsen Företagslösningar · Webb · Bokningssystem · AI-automation</span>
-      <h1>Färre tomma tider. Mindre kvällsjobb. System som sköter bokningarna åt dig.</h1>
-      <p class="lede">
-        Jag bygger snabba, skräddarsydda hemsidor med integrerade bokningssystem och
-        automatiska kundflöden för mindre företag, salonger, kliniker och lokala
-        verksamheter. Byggda med samma krav på driftsäkerhet och dataskydd som vårdappen
-        Synappsen.
-      </p>
-      <div class="knappar">
-        <a class="knapp" href="#kontakt">Boka gratis genomgång</a>
-        <a class="knapp knapp--tom" href="#priser">Se priser och paket</a>
+      <div class="hero__rutnat">
+        <div class="hero__text">
+          <span class="eyebrow hero__eyebrow">Synappsen Företagslösningar · Webb · Bokningssystem · AI-automation</span>
+          <h1>Färre tomma tider. Mindre kvällsjobb. System som sköter bokningarna åt dig.</h1>
+          <p class="lede">
+            Jag bygger snabba, skräddarsydda hemsidor med integrerade bokningssystem och
+            automatiska kundflöden för mindre företag, salonger, kliniker och lokala
+            verksamheter. Byggda med samma krav på driftsäkerhet och dataskydd som vårdappen
+            Synappsen.
+          </p>
+          <div class="knappar">
+            <a class="knapp" href="#kontakt">Be om en kostnadsfri skiss</a>
+            <a class="knapp knapp--tom" href="#priser">Se priser och paket</a>
+          </div>
+        </div>
+
+        <figure class="hero__telefon">
+          <div class="hero__telefonyta">
+            <div class="telefon" aria-hidden="true">
+              <div class="telefon__skarm">
+                <div class="telefon__status"><span>09:41</span><span class="telefon__notch"></span><span>100 %</span></div>
+                <div class="salong">
+                  <span class="salong__logga">SE</span>
+                  <span class="salong__namn">Salong Exempel</span>
+                  <span class="salong__info">Frisör · Exempelgatan 1</span>
+                  <span class="salong__knapp">Boka tid</span>
+                </div>
+                <div class="tjanster">
+                  <span class="tjanster__rubrik">Tjänster</span>
+                  <div class="tjanst"><span class="tjanst__namn">Klippning</span><span class="tjanst__pris">960 kr</span><span class="tjanst__tid">45 min</span></div>
+                  <div class="tjanst"><span class="tjanst__namn">Klippning och färg</span><span class="tjanst__pris">2 150 kr</span><span class="tjanst__tid">2 tim</span></div>
+                  <div class="tjanst"><span class="tjanst__namn">Barnklippning</span><span class="tjanst__pris">450 kr</span><span class="tjanst__tid">30 min</span></div>
+                  <div class="tjanst"><span class="tjanst__namn">Skäggtrimning</span><span class="tjanst__pris">350 kr</span><span class="tjanst__tid">20 min</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption>Påhittat exempel för att visa upplägget, inte en kund.</figcaption>
+        </figure>
       </div>
     </section>
 
@@ -311,7 +339,8 @@
             <span class="paket__pris">4 900 kr</span>
             <span class="paket__enhet">startavgift</span>
             <span class="paket__pris paket__pris--sek">+ 2 490 kr/mån</span>
-            <span class="paket__enhet">under år 1, därefter 1 490 kr/mån. Alternativ: 20 000 kr engångsavgift + 1 200 kr/mån</span>
+            <span class="paket__enhet">under år 1, därefter 1 490 kr/mån</span>
+            <span class="paket__alt">Alternativ: 20 000 kr engångsavgift + 1 200 kr/mån</span>
             <span class="paket__flagga">Min rekommendation</span>
           </div>
           <div class="paket__innehall">
@@ -399,9 +428,9 @@
       <h2>Be om en kostnadsfri skiss.</h2>
       <div class="kontaktkort">
         <div>
-          <h3>Boka gratis genomgång</h3>
+          <h3>Skicka några rader</h3>
           <p>Vill du se hur en ny sida med direktbokning skulle se ut för ditt företag? Mejla mig några rader om din verksamhet så skickar jag en kostnadsfri skiss.</p>
-          <a class="knapp" href="mailto:kontakt@synappsen.se?subject=Bokning%20av%20genomg%C3%A5ng%20-%20F%C3%B6retagsl%C3%B6sningar">Boka gratis genomgång</a>
+          <a class="knapp" href="mailto:kontakt@synappsen.se?subject=Be%20om%20en%20kostnadsfri%20skiss%20-%20F%C3%B6retagsl%C3%B6sningar">Be om en kostnadsfri skiss</a>
           <div class="epostrad">
             <a class="kontakt__epost" href="mailto:kontakt@synappsen.se">kontakt@synappsen.se</a>
             <button type="button" class="kopiera" data-kopiera="kontakt@synappsen.se" hidden>Kopiera adressen</button>

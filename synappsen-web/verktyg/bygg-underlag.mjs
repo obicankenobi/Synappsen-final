@@ -90,6 +90,7 @@ export function markdownTillHtml(md, kalla) {
   const ut = [];
   let i = 0;
   let styckerader = [];
+  let senasteRubrik = "";
 
   const spolaStycke = () => {
     if (styckerader.length) {
@@ -120,6 +121,7 @@ export function markdownTillHtml(md, kalla) {
       // Dokumentets egen h1 blir h2 på sidan – sidans h1 är dokumenttiteln i sidhuvudet, och
       // två h1 hade brutit rubrikordningen för en skärmläsare.
       const niva = Math.min(rubrik[1].length + 1, 6);
+      senasteRubrik = rubrik[2].replace(/[`*_]/g, "").replace(/"/g, "&quot;").replace(/</g, "&lt;");
       ut.push(`<h${niva}>${inline(rubrik[2])}</h${niva}>`);
       i++;
       continue;
@@ -137,7 +139,13 @@ export function markdownTillHtml(md, kalla) {
       const block = [];
       while (i < rader.length && rader[i].trimStart().startsWith("|")) block.push(rader[i++]);
       const rubriker = tabellrad(block[0]);
-      ut.push('<div class="tabell-svep"><table>');
+      // Rullbar behållare: utan tabindex går den inte att rulla med tangentbord (axe:
+      // scrollable-region-focusable, WCAG 2.1.1). role + aria-label gör fokuset begripligt.
+      ut.push(
+        `<div class="tabell-svep" role="region" tabindex="0" aria-label="Tabell${
+          senasteRubrik ? ": " + senasteRubrik : ""
+        }"><table>`
+      );
       ut.push(
         `<thead><tr>${rubriker.map((c) => `<th scope="col">${inline(c)}</th>`).join("")}</tr></thead>`
       );

@@ -609,3 +609,61 @@ describe("Beslut 2026-10-22 som syns på webbplatsen", () => {
     expect(html).toMatch(/Uppstartsavgiften på 25\s000\skr gäller även för piloten/);
   });
 });
+
+describe("Genomgången 2026-10-22: tillgänglighet, bilder och prisinformation", () => {
+  test("skärmbilderna serveras som WebP med PNG som reserv, och bara hjältebilden laddas direkt", () => {
+    const html = las(HTML);
+    for (const bild of ["sok", "rutiner", "forrad", "ledningsrapport"]) {
+      expect(html, `app-${bild}.webp saknas i en <picture>`).toMatch(
+        new RegExp(`<source[^>]+type="image/webp"[^>]+app-${bild}\\.webp`)
+      );
+      expect(existsSync(join(ROT, `synappsen-web/bilder/app-${bild}.webp`))).toBe(true);
+    }
+    expect(html).toMatch(/<img[^>]+app-sok\.png[^>]+fetchpriority="high"/);
+    expect(html, "hjältebilden får inte vara lazy").not.toMatch(/<img[^>]+app-sok\.png[^>]+loading="lazy"/);
+    for (const bild of ["rutiner", "forrad", "ledningsrapport"]) {
+      expect(html).toMatch(new RegExp(`<img[^>]+app-${bild}\\.png[^>]+loading="lazy"`));
+    }
+  });
+
+  test("uppstartsavgiften står synligt utanför de fällbara tilläggen och rabatteras inte", () => {
+    const html = las(HTML);
+    const synlig = html
+      .replace(/<details[\s\S]*?<\/details>/g, "")
+      .replace(/<[^>]+>/g, "")
+      .replace(/[\s\u00a0]+/g, " ");
+    expect(synlig, "uppstartsavgiften ligger bara bakom en fällbar del").toMatch(
+      /Uppstartsavgift 25 000 kr[^.]*\. Den rabatteras inte/
+    );
+    // 39 000 + 25 000 = 64 000: exemplet ska räknas rätt om priserna ändras
+    expect(synlig).toMatch(/39 000 kr \+ 25 000 kr = 64 000 kr/);
+  });
+
+  test("företagssidan har en enda huvudhandling: be om en kostnadsfri skiss", () => {
+    const html = las(FORETAG);
+    expect(html, "hjältens knapp").toMatch(/Be om en kostnadsfri skiss/);
+    expect(html, "den gamla huvudknappen finns kvar").not.toMatch(/Boka gratis genomgång/);
+  });
+
+  test("mobilhuvudet ligger i ett header-landmärke och tabellomslagen går att nå med tangentbord", () => {
+    for (const fil of [HTML, FORETAG]) {
+      expect(las(fil), `${fil} saknar <header class="topp">`).toMatch(/<header class="topp"/);
+    }
+    for (const fil of [HTML, "synappsen-web/underlag.html", "synappsen-web/integritet.html"]) {
+      const omslag = [...las(fil).matchAll(/<div class="tabell-svep"[^>]*>/g)].map((m) => m[0]);
+      for (const tagg of omslag) {
+        expect(tagg, `${fil}: ${tagg}`).toMatch(/tabindex="0"/);
+        expect(tagg, `${fil}: ${tagg}`).toMatch(/role="region"/);
+        expect(tagg, `${fil}: ${tagg}`).toMatch(/aria-label="/);
+      }
+    }
+  });
+
+  test("ingen text under 12 px i stilmallen (WCAG-genomgången 2026-10-22)", () => {
+    const css = las("synappsen-web/stil.css");
+    const smaa = [...css.matchAll(/font-size:\s*(\d+(?:\.\d+)?)px/g)]
+      .map((m) => Number(m[1]))
+      .filter((px) => px < 12);
+    expect(smaa, `stil.css har font-size under 12 px: ${smaa.join(", ")}`).toEqual([]);
+  });
+});
