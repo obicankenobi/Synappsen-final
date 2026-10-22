@@ -38,7 +38,7 @@
 
 <a class="hoppa" href="#huvudinnehall">Hoppa till innehållet</a>
 
-<div class="topp">
+<header class="topp">
   <div class="topp__rad">
     <div class="marke">
       <svg class="marke__symbol" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -70,7 +70,7 @@
     <a href="#paket">Priser</a>
     <a href="#pilot">Pilot</a>
   </nav>
-</div>
+</header>
 
 <div class="skal">
   <!-- ===================== Registerflikar ===================== -->
@@ -139,10 +139,13 @@
              ur den körande appen av synappsen-web/verktyg/skarmbilder.spec.mjs. Rita aldrig av ett
              gränssnitt för hand igen. -->
         <figure class="bild hero__bild">
-          <img src="/bilder/app-sok.png" width="780" height="1688"
+          <picture>
+            <source type="image/webp" srcset="/bilder/app-sok.webp" />
+            <img src="/bilder/app-sok.png" width="780" height="1688" fetchpriority="high"
                alt="Sökning i appen på ordet kad. Elva träffar fördelade på Kliniskt stöd, Logistik och Administration, med rutinen Urinkateter (KAD) inläggning överst och förrådsartikeln KAD-set Foley 16 Ch på skåp 4, hylla B under den." />
+          </picture>
           <figcaption>
-            Sökningen är felstavningstålig: "kad" hittar både rutinen "Urinkateter (KAD)" och
+            Sökningen är felstavningstålig: ”kad” hittar både rutinen ”Urinkateter (KAD)” och
             KAD-seten i förrådet, med hyllplatsen i träfflistan. Skärmbild ur appen med
             demodata, inte från en verklig enhet.
           </figcaption>
@@ -237,8 +240,11 @@
 
       <div class="bilder mt-34">
         <figure class="bild">
-          <img src="/bilder/app-rutiner.png" width="780" height="1688"
+          <picture>
+            <source type="image/webp" srcset="/bilder/app-rutiner.webp" />
+            <img src="/bilder/app-rutiner.png" width="780" height="1688" loading="lazy" decoding="async"
                alt="Vyn Kliniskt stöd i appen. Klinikstöd-sökningen med hjälptexten om att svaret källhänvisas och aldrig ersätter klinisk bedömning, sökfältet tomt och oskickat. Under den börjar rutinlistan med HLR vuxen, larmkedja och utrustningens placering, märkt Bör granskas och Akut." />
+          </picture>
           <figcaption>
             Klinikstöd-sökningen källhänvisar varje svar till exakt de sju domäner den är
             tekniskt begränsad till. Gränsen sitter i en domänbegränsad sökmotor, inte i en
@@ -247,8 +253,11 @@
           </figcaption>
         </figure>
         <figure class="bild">
-          <img src="/bilder/app-forrad.png" width="780" height="1688"
+          <picture>
+            <source type="image/webp" srcset="/bilder/app-forrad.webp" />
+            <img src="/bilder/app-forrad.png" width="780" height="1688" loading="lazy" decoding="async"
                alt="Sterilförrådet i appen. Varje artikel visar förråd, skåp och hylla samt antal i lager, med en knapp för att anmäla slut eller lågt saldo." />
+          </picture>
           <figcaption>
             Förrådet med exakt plats: förråd, skåp, hylla. Bristanmälan ligger på samma kort
             som artikeln.
@@ -290,7 +299,7 @@
     <section id="ledningen">
       <div class="sek-huvud">
         <span class="sek-nr">03 · För ledningen</span>
-        <h2>Svar på frågan "vet vi att alla har läst den nya rutinen?"</h2>
+        <h2>Svar på frågan ”vet vi att alla har läst den nya rutinen?”</h2>
       </div>
 
       <div class="rutnat rutnat--2">
@@ -326,14 +335,17 @@
 
       <div class="ledning">
         <figure class="bild bild--ensam">
-          <img src="/bilder/app-ledningsrapport.png" width="780" height="1688"
+          <picture>
+            <source type="image/webp" srcset="/bilder/app-ledningsrapport.webp" />
+            <img src="/bilder/app-ledningsrapport.png" width="780" height="1688" loading="lazy" decoding="async"
             alt="Ledningsrapporten i appen. Tabell med kvitteringsgrad per område: Kliniskt stöd fyra rutiner 75 procent, Administration två rutiner 83 procent, Logistik sex godkända artiklar där kvittering inte spåras per förrådsartikel. Under tabellen börjar avsnittet Rutiner som bör granskas." />
-        </figure>
-        <div class="ledning__text">
-          <p class="sok__not">
+          </picture>
+          <figcaption>
             Ledningsrapporten, exporterbar som PDF. Skärmbild med demodata: siffrorna kommer
             från sex påhittade rutiner, inte från en enhet i drift.
-          </p>
+          </figcaption>
+        </figure>
+        <div class="ledning__text">
           <div class="infokort">
             <h3>Vad ledningsrapporten ger inför APT och tillsyn</h3>
             <ul>
@@ -400,7 +412,7 @@
         </li>
         <li>
           <div>
-            <h3>"Ni sa, vi gjorde"</h3>
+            <h3>”Ni sa, vi gjorde”</h3>
             <p>En publik lista över ändringsförslag från personalen som faktiskt införts. Synliggör att inspel leder till riktiga ändringar, inte bara till en kö som ingen ser resultatet av.</p>
           </div>
         </li>
@@ -571,7 +583,7 @@
 
       <details class="fall-ut">
         <summary>Visa de tre verksamhetstyperna och vad startbiblioteket innehåller</summary>
-      <div class="tabell-svep">
+      <div class="tabell-svep" role="region" tabindex="0" aria-label="Verksamhetstyper med färdigt startbibliotek">
         <table>
           <caption class="eyebrow">Verksamhetstyper med färdigt startbibliotek</caption>
           <thead>
@@ -657,9 +669,15 @@
         </div>
       </div>
 
+      <p class="uppstart mt-28">
+        <strong>Uppstartsavgift 25 000 kr, engångs,</strong> för konfiguration, innehållsimport och
+        redaktörsutbildning. Den rabatteras inte. Exempel första året för Kärna: 39 000 kr +
+        25 000 kr = 64 000 kr exklusive moms. Alla priser på sidan är exklusive moms.
+      </p>
+
       <details class="fall-ut mt-28">
-        <summary>Visa tillägg och uppstartsavgift, med priser</summary>
-      <div class="tabell-svep">
+        <summary>Visa tillägg, med priser</summary>
+      <div class="tabell-svep" role="region" tabindex="0" aria-label="Tillägg">
         <table>
           <caption class="eyebrow">Tillägg</caption>
           <thead>
@@ -729,7 +747,7 @@
         </div>
       </div>
 
-      <div class="tabell-svep">
+      <div class="tabell-svep" role="region" tabindex="0" aria-label="Förväntad effekt i piloten">
         <table>
           <caption class="eyebrow">Förväntad effekt: en uppskattning att validera i piloten, inte ett uppmätt resultat</caption>
           <thead>
