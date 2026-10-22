@@ -145,6 +145,22 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
 
+## Uppföljning 2026-10-22 (genomgång av webbplatsen: 21 förbättringar)
+
+Ägaren bad om en genomgång och sedan att alla förslag genomförs. Gjort i tre parallella spår:
+**`foretag.html`**: räkneexemplet blir kort i mobil (kolumnerna syntes inte), nytt avsnitt
+03 "Exempel" med en påhittad salongs mobilsida och bokningsvy (märkt "Påhittat exempel … inte
+en kund"), ett leveranslöfte ("inom en vecka"), skiss → prototyp förklarat, du-form genomgående,
+toppbannern mot vården borttagen, SMS-taket i offerten och Tillväxt 1 490 kr/mån efter år 1
+(ägarbeslut). **`index.html`**: "I korthet" efter hjälten, tre fällbara delar (`<details>`),
+"09 · Pilot" i både meny och rubrik, raden "Driftkostnad" struken, sidofältets fot länkar till
+`/underlag`, och **uppstartsavgiften ges inte längre bort**: beslutet från 2026-08-23 hade aldrig
+nått startsidan, och prislistans rättelse som `BESLUTSLOGG.md` påstod var gjord var inte gjord.
+Båda rättade och bundna av test. Piloten anges som betald. **Hela webbplatsen**: delningsbilder
+(`bilder/dela-*.png`, renderas av `verktyg/delningsbilder.mjs`), og-taggar på alla sidor, titlar
+med " | " i stället för tankstreck, egen `404.html`, kompaktare mobilhuvud (märkesrad och
+växlare rullar undan). Firmanamn/organisationsnummer väntar fortfarande (`OPPNA-PUNKTER.md`).
+
 ## Uppföljning 2026-10-22 (rena adresser och 14 dagars rättningstid)
 
 Ägaren bad om att `.html` skulle bort ur adresserna och svarade ja på en tidsgräns för garantins

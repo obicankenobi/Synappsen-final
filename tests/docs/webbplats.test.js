@@ -506,7 +506,8 @@ describe("Webbplatsens sidor följer sajtens CSP och hänger ihop", () => {
 
   test("sitemap.xml listar varje sida", () => {
     const karta = las("synappsen-web/sitemap.xml");
-    for (const fil of SIDFILER) {
+    // 404.html visas vid okänd adress och ska aldrig indexeras eller listas.
+    for (const fil of SIDFILER.filter((f) => f !== "404.html")) {
       const adress = fil === "index.html" ? "https://synappsen.se/" : `https://synappsen.se/${fil.replace(/\.html$/, "")}`;
       expect(karta, `sitemap.xml saknar ${adress}`).toContain(`<loc>${adress}</loc>`);
     }
@@ -587,5 +588,24 @@ describe("Inga synliga platshållare på säljsidorna", () => {
       expect(traffar, `${fil} har adresser med .html`).toEqual([]);
     }
     expect(las("synappsen-web/sitemap.xml")).not.toMatch(/\.html</);
+  });
+});
+
+describe("Beslut 2026-10-22 som syns på webbplatsen", () => {
+  test("404-sidan är noindex och står inte i sitemap.xml", () => {
+    expect(las("synappsen-web/404.html")).toMatch(/name="robots" content="noindex/);
+    expect(las("synappsen-web/sitemap.xml")).not.toMatch(/\/404</);
+  });
+
+  test("företagssidan anger Tillväxts pris efter år 1 och att SMS-taket står i offerten", () => {
+    const html = las(FORETAG);
+    expect(html).toMatch(/därefter 1\s490\skr\/mån/);
+    expect(html).toMatch(/SMS ingår i ett skäligt antal/);
+  });
+
+  test("startsidan säger att piloten är betald och att uppstarten gäller även den", () => {
+    const html = las(HTML);
+    expect(html).toMatch(/Piloten är betald/);
+    expect(html).toMatch(/Uppstartsavgiften på 25\s000\skr gäller även för piloten/);
   });
 });

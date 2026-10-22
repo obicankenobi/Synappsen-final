@@ -1,6 +1,6 @@
 # Dokumentregister
 
-**Fullständig inventering av projektets 80 dokument.** Bevakat av
+**Fullständig inventering av projektets 82 dokument.** Bevakat av
 `tests/docs/dokumentregister.test.js`, som failar om ett dokument finns på disk men saknas
 här, eller står här men saknas på disk. **Ett nytt dokument kan alltså inte glömmas bort –
 testet vägrar passera förrän det är infört i tabellerna nedan.**
@@ -59,6 +59,8 @@ utlöser en uppdatering – läs kolumnen "Utlöses av".
 | `synappsen-web/tillganglighet.html` | **ja (publikt)** | **GENERERAD** ur `granskningar/TILLGANGLIGHETSREDOGORELSE.md` av `synappsen-web/verktyg/bygg-underlag.mjs`. **Redigera aldrig för hand** – kör om generatorn i samma commit som källan ändras. `tests/docs/webbplats.test.js` jämför den committade filen med generatorns utdata och failar vid drift |
 | `synappsen-web/underbitraden.html` | **ja (publikt)** | **GENERERAD** ur `avtal/UNDERBITRADEN.md`, se raden ovan. Publicerar även dokumentets öppna brister (bl.a. Brevo utan tecknat PUB-avtal) – det är avsiktligt, se `BESLUTSLOGG.md` 2026-09-06 |
 | `synappsen-web/it-faktablad.html` | **ja (publikt)** | **GENERERAD** ur `avtal/IT-FAKTABLAD.md`, se raden ovan |
+| `synappsen-web/404.html` | **ja (publikt)** | Visas av Firebase vid okänd adress. `noindex`, står medvetet inte i `sitemap.xml`. Utlöses av: ett spår eller en huvudsida byter adress |
+| `synappsen-web/verktyg/delningsbild.html` | nej | Mall som `verktyg/delningsbilder.mjs` renderar till `bilder/dela-vard.png` och `bilder/dela-foretag.png` (og:image). Publiceras inte. Utlöses av: ett spårs rubrik eller logotypen ändras – kör om skriptet i samma commit |
 
 ## Referensdokument
 
