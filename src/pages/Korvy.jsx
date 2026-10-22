@@ -160,6 +160,9 @@ export default function Korvy() {
   if (!rutin || steg.length === 0) {
     return (
       <main id="huvudinnehall" className="korvy" tabIndex={-1}>
+        {/* Utan <h1> hade sidan ingen rubrik alls för rubriknavigering – avvikelse #19 i
+            granskningar/TILLGANGLIGHETSREDOGORELSE.md. */}
+        <h1 className="korvy__titel">{rutin?.titel ?? "Checklista"}</h1>
         <p>Den här rutinen har inga checklistesteg.</p>
         <Link to="/" className="korvy__knapp korvy__knapp--sekundar">
           ← Tillbaka
