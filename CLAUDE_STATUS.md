@@ -145,6 +145,16 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
 
+## Uppföljning 2026-10-22 (pilotens pris avgjort: betald för alla vårdköpare)
+
+Ägaren svarade att piloten bara gäller vårdsystemet (inte företagslösningarna) och att den är
+**betald för alla vårdköpare**. Prislistan, tre onepagers, upphandlingssvaret F2,
+e-postmallarna och demomanuset sa fortfarande "kostnadsfri pilot, 0 kr" och är rättade i samma
+commit; ett test i `tests/docs/dokumentpastaenden.test.js` failar om uttrycket kommer tillbaka.
+**Medvetet inte omskrivet:** `MARKNADSANALYS.md` §7.4 och `JURIDISK-GRANSKNING.md` (rekommenderar
+kostnadsfri pilot för offentliga köpare av upphandlingsskäl). Det är en juridisk fråga och ligger i
+`OPPNA-PUNKTER.md`.
+
 ## Uppföljning 2026-10-22 (pilotvillkor, undersidor och borttagen områdesväxlare)
 
 Ägaren svarade på de öppna frågorna och bad om att de beslutade delarna byggs. **Gjort:**
