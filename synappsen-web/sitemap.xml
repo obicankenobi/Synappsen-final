@@ -28,4 +28,12 @@
     <loc>https://synappsen.se/it-faktablad</loc>
     <changefreq>monthly</changefreq>
   </url>
+  <url>
+    <loc>https://synappsen.se/levande-innehall</loc>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://synappsen.se/fallstudie</loc>
+    <changefreq>monthly</changefreq>
+  </url>
 </urlset>

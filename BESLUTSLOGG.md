@@ -81,6 +81,7 @@ punkt.
 | 2026-10-22 | Ska namn och foto på leverantören stå på webbplatsen? | **Nej, fortsatt anonymt tills firman är registrerad** | Ägarens besked; hänger ihop med organisationsnumret i `OPPNA-PUNKTER.md` | Ingen ändring på sidorna |
 | 2026-10-22 | Hur ska en företagskund be om skissen i stället för mejllänken? | **Kontaktformulär som skickar mejl** | Ägarens besked | Bygget är inte påbörjat: formuläret samlar personuppgifter och kräver en Cloud Function (`functions/`, produkttrådens område), ett underbiträde i `avtal/UNDERBITRADEN.md` och ändrad `integritet.html` |
 | 2026-10-22 | Vilka av de övriga förslagen ska genomföras? | **Flytta företagsväxlaren i vårdsidans sidofält, dela upp vårdsidan i undersidor, lägga till en FAQ på företagssidan** | Ägarens besked | Inget av detta är byggt än. FAQ-svaren är villkor som bara ägaren kan avgöra |
+| 2026-10-22 | Hur tolkas "flytta företagsväxlaren i vårdsidans sidofält": flytta eller ta bort? | **Tas bort från båda sidorna. Länken till företagsspåret ligger kvar i vårdsidans sidfot; företagssidan länkar inte tillbaka** | Tolkning av ägarens svar, konsekvent med beslutet att inte ha en vårdreferens längst ned på företagssidan | Gör man det omvända (en länk tillbaka från `foretag.html`) är det en rad i sidfoten och ett ändrat test i `tests/docs/webbplats.test.js` |
 
 ---
 
