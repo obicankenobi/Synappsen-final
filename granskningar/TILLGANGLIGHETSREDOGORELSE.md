@@ -244,7 +244,7 @@ Detta dokument är komplett i sak. Två av tre punkter är klara; en återstår 
    åtgärder) är inte längre aktuellt – samtliga kända brister är åtgärdade 2026-09-10, se
    tabellen ovan.
 2. ~~Publicera och länka från appen.~~ **Klart 2026-09-10.** Dokumentet publiceras som
-   `synappsen-web/tillganglighet.html` (`https://synappsen.se/tillganglighet.html`, genererat
+   `synappsen-web/tillganglighet.html` (`https://synappsen.se/tillganglighet`, genererat
    av `synappsen-web/verktyg/bygg-underlag.mjs` – redigera aldrig den genererade sidan direkt,
    redigera det här källdokumentet och kör om skriptet). Länkad från appens hjälpsida
    (`src/pages/Hjalp.jsx`) och från inloggnings-/registreringssidan (`AuthSkal.jsx`, delas av

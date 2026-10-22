@@ -8,7 +8,7 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-10-21 · **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
+**Senast uppdaterad:** 2026-10-22 · **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
 14:11–14:17, commit `fc37848`; PR #35 mergad som `ce40404`; asset-hash `index-BoGw6VUc.js` live,
 `last-modified` 14:17:38 GMT). v5.140.0 åtgärdar AI-integrationsriskernas fynd 3, 4, 7 och 8 – se
 uppföljningen 2026-10-18 längst ner. Därefter, 2026-09-10: **v5.139.0 i produktion**. **Samtliga kvarstående punkter i
@@ -144,6 +144,17 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-10-22 (rena adresser och 14 dagars rättningstid)
+
+Ägaren bad om att `.html` skulle bort ur adresserna och svarade ja på en tidsgräns för garantins
+rättningsperiod. `"cleanUrls": true` är satt på `web`-targeten i `firebase.json`; canonical,
+`sitemap.xml`, interna länkar och generatorns mall (`verktyg/bygg-underlag.mjs`, dokumentsidorna
+omgenererade) pekar nu på `/foretag`, `/integritet` osv. Gamla `.html`-adresser omdirigeras av
+Firebase. Garantitexten säger "14 dagar på mig att rätta eller ändra". Nytt test i
+`tests/docs/webbplats.test.js` binder `cleanUrls` och att ingen sida länkar till `.html`. Appens
+egna länkar till `tillganglighet.html` i `src/` rördes inte (produkttrådens område) och fungerar
+via omdirigeringen.
 
 ## Uppföljning 2026-10-21 (visuellt och strukturellt lyft av webbplatsen, andra affärsspåret `foretag.html`)
 

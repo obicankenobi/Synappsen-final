@@ -296,7 +296,7 @@ describe("Integritetspolicyn stämmer med vad sidan faktiskt gör", () => {
       las(HTML),
       "Startsidan länkar inte till integritetspolicyn. En policy som inte går att nå från " +
         "sidan den gäller uppfyller inte informationsplikten i art. 13."
-    ).toContain('href="/integritet.html"');
+    ).toContain('href="/integritet"');
   });
 });
 
@@ -489,7 +489,7 @@ describe("Webbplatsens sidor följer sajtens CSP och hänger ihop", () => {
         }
         const [vag, ankare] = mal.split("#");
         if (vag.startsWith("/icons/") || vag.startsWith("/fonts/") || vag === "/stil.css") continue;
-        const filnamn = vag === "/" ? "index.html" : vag.replace(/^\//, "");
+        const filnamn = vag === "/" ? "index.html" : `${vag.replace(/^\//, "")}.html`;
         expect(
           existsSync(join(ROT, "synappsen-web", filnamn)),
           `${fil} länkar till ${mal}, men synappsen-web/${filnamn} finns inte.`
@@ -507,7 +507,7 @@ describe("Webbplatsens sidor följer sajtens CSP och hänger ihop", () => {
   test("sitemap.xml listar varje sida", () => {
     const karta = las("synappsen-web/sitemap.xml");
     for (const fil of SIDFILER) {
-      const adress = fil === "index.html" ? "https://synappsen.se/" : `https://synappsen.se/${fil}`;
+      const adress = fil === "index.html" ? "https://synappsen.se/" : `https://synappsen.se/${fil.replace(/\.html$/, "")}`;
       expect(karta, `sitemap.xml saknar ${adress}`).toContain(`<loc>${adress}</loc>`);
     }
   });
@@ -517,7 +517,7 @@ describe("Företagssidan (foretag.html)", () => {
   const sida = () => las(FORETAG);
 
   test("startsidan och företagssidan länkar till varandra", () => {
-    expect(las(HTML), "startsidan länkar inte till foretag.html").toContain('href="/foretag.html"');
+    expect(las(HTML), "startsidan länkar inte till foretag.html").toContain('href="/foretag"');
     expect(sida(), "foretag.html länkar inte tillbaka till startsidan").toContain('<a href="/">');
   });
 
@@ -559,7 +559,7 @@ describe("Företagssidan (foretag.html)", () => {
     expect(garanti).toMatch(/inte månadsavgiften/);
     // Rättningsrätten (ägaren 2026-10-21): leverantören får först chansen att åtgärda
     // synpunkterna. Utan den raden vore garantin en ren återbetalningsrätt.
-    expect(garanti).toMatch(/chansen att rätta eller ändra/);
+    expect(garanti).toMatch(/14 dagar på mig att rätta eller ändra/);
     expect(sida(), "foretag.html lovar fortfarande 'nollrisk'").not.toMatch(/nollrisk/i);
   });
 
@@ -574,5 +574,18 @@ describe("Inga synliga platshållare på säljsidorna", () => {
     // men de två säljsidorna ska aldrig visa ett halvfärdigt "[ Fyll i … ]" eller
     // "[ Bakgrundsstycket … ]" för en besökare.
     expect(las(sida)).not.toMatch(/\[\s*(Bakgrundsstycket|Fyll i)/i);
+  });
+
+  test("adresserna är rena (cleanUrls) och ingen intern länk eller kanonisk adress slutar på .html", () => {
+    const hosting = JSON.parse(las("firebase.json")).hosting;
+    const web = hosting.find((h) => h.target === "web");
+    expect(web.cleanUrls, "web-targeten saknar cleanUrls").toBe(true);
+    const sidfiler = readdirSync(join(ROT, "synappsen-web")).filter((f) => f.endsWith(".html"));
+    for (const fil of sidfiler) {
+      const html = las(`synappsen-web/${fil}`);
+      const traffar = [...html.matchAll(/(?:href|content)="((?:https:\/\/synappsen\.se)?\/[^"]*\.html[^"]*)"/g)].map((m) => m[1]);
+      expect(traffar, `${fil} har adresser med .html`).toEqual([]);
+    }
+    expect(las("synappsen-web/sitemap.xml")).not.toMatch(/\.html</);
   });
 });

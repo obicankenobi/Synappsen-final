@@ -5,27 +5,27 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://synappsen.se/foretag.html</loc>
+    <loc>https://synappsen.se/foretag</loc>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://synappsen.se/integritet.html</loc>
+    <loc>https://synappsen.se/integritet</loc>
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://synappsen.se/underlag.html</loc>
+    <loc>https://synappsen.se/underlag</loc>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://synappsen.se/tillganglighet.html</loc>
+    <loc>https://synappsen.se/tillganglighet</loc>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://synappsen.se/underbitraden.html</loc>
+    <loc>https://synappsen.se/underbitraden</loc>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://synappsen.se/it-faktablad.html</loc>
+    <loc>https://synappsen.se/it-faktablad</loc>
     <changefreq>monthly</changefreq>
   </url>
 </urlset>
