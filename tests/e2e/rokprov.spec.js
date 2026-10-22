@@ -21,6 +21,7 @@
 // är axe:s jobb).
 import { test, expect } from "@playwright/test";
 import { ALLA_ROUTES } from "./rutter.mjs";
+import { vantaPaSidinnehall } from "./sidvantan.mjs";
 
 const LOSENORD = "test1234";
 const BREDDER = [
@@ -131,10 +132,18 @@ for (const { namn: breddNamn, viewport } of BREDDER) {
         // websocket-anslutning öppen, vilket kan hindra "networkidle" från att någonsin
         // upplösas – inte för att sidan faktiskt hänger. En kort extra väntan låter React/
         // Firestore hinna rendera första datan.
-        await page.goto(route, { waitUntil: "load", timeout: 15_000 }).catch((fel) => {
-          problem.push(`${route}: navigering misslyckades (${fel.message})`);
-        });
-        await page.waitForTimeout(400);
+        const navigeringsfel = await page
+          .goto(route, { waitUntil: "load", timeout: 15_000 })
+          .then(() => null)
+          .catch((fel) => fel.message);
+        if (navigeringsfel) {
+          problem.push(`${route}: navigering misslyckades (${navigeringsfel})`);
+          continue;
+        }
+        // Vänta på att sidan faktiskt renderat (h1 i main) eller kraschat (ErrorBoundary) i
+        // stället för en fast väntan (tidigare 400 ms): med fast väntan kunde en sida som ännu
+        // inte renderat räknas som "ingen krasch" – ett falskt grönt. Se sidvantan.mjs.
+        await vantaPaSidinnehall(page, { extraSelektor: ".error-boundary" });
 
         const antalKrascher = await page.locator(".error-boundary").count();
         if (antalKrascher > 0) {

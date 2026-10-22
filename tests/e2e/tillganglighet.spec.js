@@ -18,6 +18,7 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { ALLA_ROUTES } from "./rutter.mjs";
+import { vantaPaSidinnehall } from "./sidvantan.mjs";
 
 const LOSENORD = "test1234";
 
@@ -62,10 +63,19 @@ for (const tema of TEMAN) {
           problem.push(`${route}: navigering misslyckades (${navigeringsfel}) – ingen axe-granskning gjord`);
           continue;
         }
-        // Längre väntan än i rökprovssviten (45b) – ett verkligt fynd under bygget var att en
-        // för kort väntan gav ett falskt "page-has-heading-one" på Hem eftersom sidan (lazy-
-        // laddad) inte hunnit rendera klart innan axe-core kördes, inte en riktig bugg.
-        await page.waitForTimeout(900);
+        // Vänta på att sidans innehåll (h1 i main) faktiskt finns – inte en fast tid. En fast
+        // väntan (tidigare 900 ms) gav slumpvisa, falska "landmark-one-main"/"page-has-heading-
+        // one" i CI på en route som varierade mellan körningar, eftersom den lazy-laddade sidan
+        // inte hunnit rendera under last. Se sidvantan.mjs.
+        //
+        // Saknas h1 efter timeouten är det ett verkligt fynd och redovisas här, och axe körs
+        // ändå. Kravet måste stå uttryckligen: axe-core 4.12 via AxeBuilder släppte igenom
+        // "page-has-heading-one" på /checklista/e2eRutinA trots noll h1 i hela DOM:en
+        // (verifierat 2026-10-22 – avvikelse #19 i TILLGANGLIGHETSREDOGORELSE.md).
+        const harRubrik = await vantaPaSidinnehall(page);
+        if (!harRubrik) {
+          problem.push(`${route}: ingen synlig <h1> i <main> inom 10 s`);
+        }
 
         const { violations } = await new AxeBuilder({ page }).analyze();
         if (violations.length > 0) {

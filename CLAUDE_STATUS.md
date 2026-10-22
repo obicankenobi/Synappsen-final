@@ -8,7 +8,7 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-10-22 · **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
+**Senast uppdaterad:** 2026-10-22 (e2e: fast väntan ersatt med väntan på sidinnehåll, se uppföljningen överst) · **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
 14:11–14:17, commit `fc37848`; PR #35 mergad som `ce40404`; asset-hash `index-BoGw6VUc.js` live,
 `last-modified` 14:17:38 GMT). v5.140.0 åtgärdar AI-integrationsriskernas fynd 3, 4, 7 och 8 – se
 uppföljningen 2026-10-18 längst ner. Därefter, 2026-09-10: **v5.139.0 i produktion**. **Samtliga kvarstående punkter i
@@ -144,6 +144,28 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-10-22 (slumpvis röd tillgänglighetssvit i CI – fast väntan ersatt)
+
+`tillganglighet.spec.js` föll slumpvis i CI (PR #37, #39, #41) med `landmark-one-main` +
+`page-has-heading-one` på en route som varierade mellan körningar. Orsak: efter `page.goto`
+väntade testet en fast tid (900 ms) innan axe, och under CI-last hade den lazy-laddade sidan
+inte alltid renderat – axe granskade ett tomt skal. Nu väntar `tests/e2e/sidvantan.mjs` på en
+synlig `<h1>` i `<main>` (max 10 s; navigeringsfel hanteras som förut). Samma mönster rättat i
+`rokprov.spec.js` (400 ms → väntan på h1 eller `.error-boundary`; ett navigeringsfel hoppar nu
+över routen i stället för att granska föregående sida) och `sidomeny.spec.js` (`evaluateAll`
+direkt efter inloggning → väntan på innehåll + `expect.poll`). Inget test skippat, ingen
+väntetid bara höjd.
+
+Bytet avslöjade en verklig brist: `/checklista/:rutinId` (Korvy) saknade `<h1>` i "inga
+checklistesteg"-läget, och axe-core 4.12:s `page-has-heading-one` släppte igenom det trots noll
+`<h1>` i DOM:en. Rättat i `Korvy.jsx`; avvikelse #19 i `granskningar/TILLGANGLIGHETSREDOGORELSE.md`;
+tillgänglighetstestet kräver nu h1 uttryckligen. Lokalt kan `npm run test:e2e` fortfarande inte
+starta functions-emulatorn i molnsandlådan (känt, se `STATUSARKIV.md` 2026-09-08) – de tre
+specarna kördes därför mot auth/firestore/storage med 4 workers. I det läget får `/leverantor`
+connection refused i stället för `permission-denied` och når en gren där `<Outlet>`s lazy-barn
+suspenderar till `SidLaddare` utanför `<main>` – en sandlådeartefakt (i CI svarar functions),
+men en verklig kort laddningsglipa för en riktig leverantörsadmin.
 
 ## Uppföljning 2026-10-22 (rena adresser och 14 dagars rättningstid)
 

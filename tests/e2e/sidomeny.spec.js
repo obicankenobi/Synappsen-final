@@ -5,6 +5,7 @@
 // bevisar det genom att faktiskt mäta synlighet vid två bredder, inte genom att lita på att
 // CSS:en säger rätt sak.
 import { test, expect } from "@playwright/test";
+import { vantaPaSidinnehall } from "./sidvantan.mjs";
 
 const LOSENORD = "test1234";
 const MOBIL = { width: 390, height: 844 };
@@ -36,15 +37,24 @@ test.describe("sidomeny kontra bottenrad", () => {
 
   test("endast EN huvudnavigering är synlig samtidigt, i båda bredderna", async ({ page }) => {
     await loggaIn(page, "e2e-superA@orga.test");
+    // waitForURL("**/") löser ut innan SkyddadRoute/layouten hunnit rendera navigeringen, och
+    // evaluateAll väntar inte - en ögonblicksbild av en tom sida gav 0 i stället för 1. Vänta
+    // på sidans innehåll (se sidvantan.mjs) och mät sedan med en återförsökande assertion.
+    await vantaPaSidinnehall(page);
     for (const storlek of [MOBIL, DATOR]) {
       await page.setViewportSize(storlek);
       // offsetParent funkar INTE som synlighetstest här - position: fixed ger offsetParent:
       // null i Chromium oavsett om elementet faktiskt syns. getComputedStyle().display är
       // det som CSS:ens display:none-regler faktiskt styr.
-      const synliga = await page.getByRole("navigation", { name: "Huvudnavigering" }).evaluateAll(
-        (element) => element.filter((el) => getComputedStyle(el).display !== "none").length
-      );
-      expect(synliga, `${storlek.width}px: förväntade exakt 1 synlig huvudnavigering`).toBe(1);
+      await expect
+        .poll(
+          () =>
+            page
+              .getByRole("navigation", { name: "Huvudnavigering" })
+              .evaluateAll((element) => element.filter((el) => getComputedStyle(el).display !== "none").length),
+          { message: `${storlek.width}px: förväntade exakt 1 synlig huvudnavigering` }
+        )
+        .toBe(1);
     }
   });
 
