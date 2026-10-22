@@ -203,7 +203,7 @@ function sida(d, kropp) {
 <title>${escapa(d.titel)} – Synappsen</title>
 <meta name="description" content="${escapa(d.ingress)}" />
 
-<link rel="canonical" href="https://synappsen.se/${filnamn}" />
+<link rel="canonical" href="https://synappsen.se/${filnamn.replace(/\.html$/, "")}" />
 <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
 
 <link rel="preload" href="/fonts/public-sans-400.woff2" as="font" type="font/woff2" crossorigin />
@@ -222,7 +222,7 @@ function sida(d, kropp) {
 <div class="skal skal--enkel">
   <main class="huvud huvud--dokument" id="huvudinnehall" tabindex="-1">
 
-    <p class="dokument__tillbaka"><a href="/underlag.html">← Underlag och dokumentation</a></p>
+    <p class="dokument__tillbaka"><a href="/underlag">← Underlag och dokumentation</a></p>
 
     <section class="hero hero--dok">
       <span class="eyebrow hero__eyebrow">${escapa(d.titel)}</span>
@@ -238,8 +238,8 @@ ${kropp}
 
     <footer>
       <span>Synappsen · Digital kunskapsbank för vården</span>
-      <span><a href="/underlag.html">Allt underlag</a></span>
-      <span><a href="/integritet.html">Integritetspolicy</a></span>
+      <span><a href="/underlag">Allt underlag</a></span>
+      <span><a href="/integritet">Integritetspolicy</a></span>
       <span><a href="mailto:kontakt@synappsen.se">kontakt@synappsen.se</a></span>
     </footer>
   </main>
