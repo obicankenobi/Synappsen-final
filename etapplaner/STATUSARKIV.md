@@ -5710,3 +5710,26 @@ tiotal "vi") **rördes inte** – låg utanför den öppna punktens uttalade fil
 en del av den här begäran. Raden borttagen ur `OPPNA-PUNKTER.md`.
 
 Fullt testsvep: `npm run lint`, `npx vitest run` (607 tester), `npm run build` – alla gröna.
+
+## Uppföljning 2026-09-09 (webbplatstexten omskriven för att inte läsa som AI-genererad)
+
+Ägaren bad om en genomgång av `index.html` och `underlag.html` för att formuleringarna
+inte skulle kännas maskinskrivna: färre tankstreck som pausmarkör, mindre av den
+upprepade "inte X, utan Y"-kontrasten, mindre tung fetmarkering mitt i löptext.
+
+Gick igenom all brödtext rad för rad och skrev om. **Det som INTE rördes, med skäl:**
+`<title>`/`og:title`s "Synappsen – tagline" (universell branding-konvention, äldre än
+AI), de nio `sek-nr`-etiketterna ("01 — Problemet", ren designstruktur, inte löpande
+text), tabellens platshållar-"—" för ett tomt värde, utvecklarkommentarerna, och
+bakgrundsstyckets ännu oskrivna platshållartext.
+
+**Två mekaniska bindningar krävde extra försiktighet innan redigering** – siffrorna
+"404 automatiska behörighetstester", "185 av dem", "sju svenska källor" och alla
+priser är bundna av `tests/docs/dokumentpastaenden.test.js` och
+`tests/docs/webbplats.test.js` och fick stå kvar exakt som de var. Ett ställe krävde
+en ändring i testet också: "Sju roller —" bytte tankstreck mot punkt ("Sju roller."),
+så testets regex `/(\w+) roller —/` uppdaterades till `/(\w+) roller\./` i samma
+commit.
+
+Fullt testsvep efter varje redigeringsomgång: `npm run lint`, `npx vitest run`
+(607 tester), `npm run build` – alla gröna.

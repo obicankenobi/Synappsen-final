@@ -209,6 +209,8 @@ function sida(d, kropp) {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#f5f9fa" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0a0e16" media="(prefers-color-scheme: dark)" />
 
 <title>${titel}</title>
 <meta name="description" content="${escapa(d.ingress)}" />

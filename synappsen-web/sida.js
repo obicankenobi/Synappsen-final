@@ -45,3 +45,11 @@
       }
     });
   }
+
+// Utskrift och "Spara som PDF": bilder med loading="lazy" som inte scrollats fram är ännu
+// inte hämtade och blir tomma rutor på papperet. Hämta dem innan utskriften byggs.
+window.addEventListener("beforeprint", function () {
+  Array.prototype.forEach.call(document.querySelectorAll('img[loading="lazy"]'), function (bild) {
+    bild.loading = "eager";
+  });
+});
