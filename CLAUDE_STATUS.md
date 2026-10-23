@@ -230,6 +230,13 @@ Firebase. Garantitexten säger "14 dagar på mig att rätta eller ändra". Nytt 
 egna länkar till `tillganglighet.html` i `src/` rördes inte (produkttrådens område) och fungerar
 via omdirigeringen.
 
+## Uppföljning 2026-10-23 (direktlänk till appens inloggning på startsidan)
+
+Under vägvalets två kort finns nu en egen rad: "Har du redan ett konto i vårdappen? Logga in i
+Synappsen", till `https://synappsen-final-build.web.app/logga-in` (routen finns i `src/App.jsx`).
+Testet "ingen sida laddar något från en annan domän" undantar just den länken, eftersom en länk
+inte laddar något; ett nytt test kräver länken och routen. Beslut i `BESLUTSLOGG.md`.
+
 ## Uppföljning 2026-10-23 (startsidan blir ett vägval, vårdsidan flyttar till `/vard`)
 
 Ägaren ville att den som går in på `synappsen.se` själv ska välja mellan vården och företagen.

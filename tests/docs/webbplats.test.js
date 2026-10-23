@@ -27,6 +27,8 @@ const lasBinart = (p) => readFileSync(join(ROT, p));
 // ett vägval mellan vården och företagen, och vårdsidan ligger på /vard.
 const HTML = "synappsen-web/vard.html";
 const START = "synappsen-web/index.html";
+// Appens inloggning, länkad från startsidan. Appen ligger på en egen hosting-site (target "app").
+const APPENS_INLOGGNING = "https://synappsen-final-build.web.app/logga-in";
 const CSS = "synappsen-web/stil.css";
 const FORETAG = "synappsen-web/foretag.html";
 
@@ -246,9 +248,12 @@ describe("Integritetspolicyn stämmer med vad sidan faktiskt gör", () => {
 
   test("ingen sida laddar något från en annan domän", () => {
     for (const sida of SIDOR) {
+      // Undantag: startsidans länk till appens inloggning. En länk som besökaren själv klickar
+      // på laddar ingenting när sidan visas; policyn handlar om vad som hämtas automatiskt.
       const externa = [...las(sida).matchAll(/(?:src|href)="(https?:\/\/[^"]+)"/g)]
         .map((m) => m[1])
-        .filter((u) => !u.startsWith("https://synappsen.se"));
+        .filter((u) => !u.startsWith("https://synappsen.se"))
+        .filter((u) => !(sida === START && u === APPENS_INLOGGNING));
       expect(
         externa,
         `${sida} laddar ${externa.join(", ")} från en annan domän. ${POLICY} påstår att inget ` +
@@ -541,6 +546,14 @@ describe("Startsidan är ett vägval mellan vården och företagen (beslut 2026-
     const skript = las("synappsen-web/start.js");
     expect(skript).toMatch(/window\.location\.replace\("\/vard" \+ ankare\)/);
     expect(skript, "hopplänken till huvudinnehållet får inte skickas vidare").toContain('"#huvudinnehall"');
+  });
+
+  test("startsidan har en separat direktlänk till appens inloggning, som leder till en route som finns", () => {
+    expect(start()).toContain(`<a href="${APPENS_INLOGGNING}">`);
+    expect(las("src/App.jsx"), "appen saknar routen /logga-in").toMatch(/path="\/logga-in"/);
+    expect(JSON.parse(las(".firebaserc")).targets["synappsen-final-build"].hosting.app).toContain(
+      "synappsen-final-build"
+    );
   });
 
   test("vårdsidan har sin egen kanoniska adress", () => {

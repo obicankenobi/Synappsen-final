@@ -736,6 +736,10 @@
 .vagval__text { font-size: 15px; line-height: 1.5; color: var(--text-svag); }
 .vagval__for { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
                color: var(--text-svag); }
+.vagval__inlogg { margin-top: 18px; font-size: 15.5px; color: var(--text-svag); }
+.vagval__inlogg a { display: inline-flex; align-items: center; min-height: 36px;
+                    color: var(--primar-mork); font-weight: 600; }
+.vagval__inlogg a::after { content: "\00a0→"; }
 .fel__mer, .vagval__mer { margin-top: 34px; }
 .fel__mer a, .vagval__mer a { color: var(--primar-mork); font-weight: 600; }
 
