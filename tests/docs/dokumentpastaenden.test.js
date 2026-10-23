@@ -54,7 +54,7 @@ describe("Rollantalet i dokumenten stämmer med koden", () => {
     // Tillagd 2026-09-05: den publika webbplatsen ärvde felet "Sex roller" från sin första
     // version (2026-08-11), alltså exakt samma fel som PITCH.md gjorde efter Etapp 55,
     // och det på en sida som samtidigt beskriver kioskläget i egen sektion.
-    ["synappsen-web/index.html", /(\w+) roller\./],
+    ["synappsen-web/vard.html", /(\w+) roller\./],
   ])("%s anger rätt antal roller", (fil, monster) => {
     const traff = las(fil).match(monster);
     expect(traff, `Hittade ingen rollangivelse i ${fil} (mönster: ${monster})`).not.toBeNull();
@@ -129,7 +129,7 @@ describe("Inga påståenden om kundbeteende utan kunder", () => {
     "saljmaterial/kallfiler/Synappsen-onepager-REGION-OCH-SJUKHUS.html",
     "saljmaterial/Synappsen-demomanus.md",
     "saljmaterial/PITCH.md",
-    "synappsen-web/index.html",
+    "synappsen-web/vard.html",
     "synappsen-web/foretag.html",
   ];
 
@@ -315,7 +315,7 @@ describe("Webbplatsens bevissiffror stämmer med testsviterna", () => {
   // Assertionerna nedan RÄKNAR källan och kräver att sidan säger samma sak. De blir röda när
   // någon lägger till ett regeltest utan att uppdatera webbplatsen – vilket är meningen:
   // siffran ska antingen stämma eller inte stå där.
-  const INDEX = "synappsen-web/index.html";
+  const INDEX = "synappsen-web/vard.html";
   const UNDERLAG = "synappsen-web/underlag.html";
 
   /** Antal `await test(...)`-anrop i en regeltestfil. Varje sådant anrop är ett test. */
@@ -401,7 +401,7 @@ describe("Uppstartsavgiften ges inte bort (BESLUTSLOGG.md 2026-08-23 och 2026-10
   // startsidan lovade fortfarande att avgiften "utgår helt för de tre första
   // referenskunderna" när det upptäcktes 2026-10-22. Referenskunder får 50 % på
   // abonnemanget år 1, aldrig på uppstarten.
-  test.each(["synappsen-web/index.html", "saljmaterial/kallfiler/Synappsen-prislista.html"])(
+  test.each(["synappsen-web/vard.html", "saljmaterial/kallfiler/Synappsen-prislista.html"])(
     "%s lovar inte att uppstartsavgiften utgår eller halveras",
     (fil) => {
       const text = las(fil);
@@ -416,7 +416,7 @@ describe("Piloten är betald i allt kundvänt material (BESLUTSLOGG.md 2026-10-2
   // e-postmallarna och demomanuset fortfarande sa "kostnadsfri pilot, 0 kr". Ägaren avgjorde
   // 2026-10-22: pilotperioden betalas av alla vårdköpare. Piloten gäller bara vårdsystemet.
   const KUNDVANT = [
-    "synappsen-web/index.html",
+    "synappsen-web/vard.html",
     "saljmaterial/kallfiler/Synappsen-prislista.html",
     "saljmaterial/kallfiler/Synappsen-upphandlingssvar.html",
     "saljmaterial/kallfiler/Synappsen-onepager-KOMMUNAL-VARD-OCH-OMSORG.html",
@@ -443,7 +443,7 @@ describe("Startsidan säger rätt om vilka upphandlingsdokument som är publicer
   // publicerade". Bara två av de fyra är publicerade; den tredje publicerade sidan är
   // tillgänglighetsredogörelsen, som inte fanns i uppräkningen. Sanningskällan är listan över
   // genererade dokument i synappsen-web/verktyg/bygg-underlag.mjs.
-  const text = las("synappsen-web/index.html")
+  const text = las("synappsen-web/vard.html")
     .replace(/<[^>]+>/g, "")
     .replace(/[\s\u00a0]+/g, " ");
   const stycke = text.slice(text.indexOf("Upphandlingsklart"), text.indexOf("Upphandlingsklart") + 600);

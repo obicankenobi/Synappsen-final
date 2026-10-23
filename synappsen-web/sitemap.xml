@@ -5,6 +5,10 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
+    <loc>https://synappsen.se/vard</loc>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://synappsen.se/foretag</loc>
     <changefreq>monthly</changefreq>
   </url>

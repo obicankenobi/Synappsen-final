@@ -5733,3 +5733,37 @@ commit.
 
 Fullt testsvep efter varje redigeringsomgång: `npm run lint`, `npx vitest run`
 (607 tester), `npm run build` – alla gröna.
+
+## Uppföljning 2026-09-10 ("kviss" -> "quiz", tre AI-integrationsrisker åtgärdade)
+
+**"kviss" bytt till "quiz" i användarsynlig text.** Bara text som faktiskt visas – frågeinnehåll
+i `src/data/kvissbank.js`/`functions/kvissfragorSeed.js`, en bekräftelsedialog, ett
+felmeddelande och en legend i `RutinFormular.jsx`. Kodidentifierare, filnamn,
+Firestore-collections (`kvissfragor`, `kvisspaket`, `kvissoverlagring`, `kvissegna`) och Cloud
+Functions-namn (`sparaGlobalKvissfraga` m.fl.) rör produktionsdata och deployade funktioner och
+lämnades medvetet oförändrade – ägarens eget vägval när frågan ställdes.
+
+**Tre öppna AI-integrationsrisker åtgärdade** (`granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`):
+
+- **Fynd 1** (allvarligast): `LaddaUpp.jsx` visar nu en patientuppgifts-påminnelse
+  (`BILDUPPLADDNING_PAMINNELSE`, `piiFilter.js`) INNAN bilden når Storage – inte bara innan den
+  skickas till Gemini. Ingen OCR i klienten, så det är per definition en påminnelse, inte en
+  detektion, med samma begränsning som den befintliga namn-varningen för text.
+- **Fynd 2**: `raderaInkommandeFoto()` (`functions/ai-import.js`) tar bort originalfotot ur
+  `inkommande/{uid}/` efter en lyckad tolkning, i stället för att låta det ligga kvar
+  permanent. Körs EFTER Firestore-sparningen så ett misslyckat försök går att köra om.
+  `bildUrl` blir en död länk – accepterat medvetet, den var redan opålitlig för de flesta
+  granskare (Fynd 6, kvarstår öppen separat).
+- **Fynd 5**: `kallaKviss`/`kallaSteg` (samma "byter aldrig ursprung"-mönster som `rutin.kalla`)
+  sätts när ett AI-förslag för quizfrågor/checklistesteg hämtas in, med badges i `RutinKort.jsx`
+  ("AI-tolkad quiz"/"AI-tolkade steg"). Nollställs bara om HELA listan tas bort manuellt, så en
+  helt nyskriven fråga inte ärver en gammal märkning.
+
+**Regelhänvisningsläckan** (modellen skrev "[Regel 4, 6]" i ett klinikstödssvar, upptäckt
+2026-09-06): regel 3 i `byggKlinikstodPrompt` utökad med ett explicit förbud mot att hänvisa
+till promptens egna regler. Kört om skarpt mot Vertex AI direkt efteråt eftersom det ändrar den
+MDR-bärande prompttexten (`ai-evaluering.yml` #5): **13 OK, 0 FEL, 0 GRANSKA**, inga
+regelhänvisningar i något av de sju svaren. Tillägg i `SAKERHETSRAPPORT.md`.
+
+Fynd 3/4/7/8 i samma granskning kvarstår öppna, se `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`s
+prioritetsordning.

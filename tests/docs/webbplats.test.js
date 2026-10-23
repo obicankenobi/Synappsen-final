@@ -23,7 +23,10 @@ const ROT = fileURLToPath(new URL("../../", import.meta.url));
 const las = (p) => readFileSync(join(ROT, p), "utf8");
 const lasBinart = (p) => readFileSync(join(ROT, p));
 
-const HTML = "synappsen-web/index.html";
+// Vårdsidan. Fram till 2026-10-23 var den startsida (index.html); sedan dess är startsidan
+// ett vägval mellan vården och företagen, och vårdsidan ligger på /vard.
+const HTML = "synappsen-web/vard.html";
+const START = "synappsen-web/index.html";
 const CSS = "synappsen-web/stil.css";
 const FORETAG = "synappsen-web/foretag.html";
 
@@ -220,7 +223,8 @@ describe("Integritetspolicyn stämmer med vad sidan faktiskt gör", () => {
   // Listan måste växa med sidorna – annars gäller påståendena i policyn ("inga kakor, inget
   // externt") bara de två sidor som råkade finnas när testet skrevs.
   const SIDOR = [
-    "synappsen-web/index.html",
+    START,
+    "synappsen-web/vard.html",
     "synappsen-web/underlag.html",
     "synappsen-web/tillganglighet.html",
     "synappsen-web/underbitraden.html",
@@ -230,7 +234,7 @@ describe("Integritetspolicyn stämmer med vad sidan faktiskt gör", () => {
   ];
 
   test("ingen sida sätter kakor eller lagrar något i webbläsaren", () => {
-    const kallor = [...SIDOR, "synappsen-web/sida.js"].map(las).join("\n");
+    const kallor = [...SIDOR, "synappsen-web/sida.js", "synappsen-web/start.js"].map(las).join("\n");
     for (const monster of [/document\.cookie/, /localStorage/, /sessionStorage/, /indexedDB/]) {
       expect(
         kallor,
@@ -291,9 +295,9 @@ describe("Integritetspolicyn stämmer med vad sidan faktiskt gör", () => {
     ).toEqual([]);
   });
 
-  test("startsidan länkar till policyn", () => {
+  test.each([START, HTML])("%s länkar till policyn", (sida) => {
     expect(
-      las(HTML),
+      las(sida),
       "Startsidan länkar inte till integritetspolicyn. En policy som inte går att nå från " +
         "sidan den gäller uppfyller inte informationsplikten i art. 13."
     ).toContain('href="/integritet"');
@@ -382,6 +386,7 @@ describe("De genererade dokumentsidorna motsvarar sina källdokument", () => {
     // medan robots.txt fortfarande stänger ute dem (eller tvärtom) ger ett oförutsägbart
     // resultat och märks inte förrän någon söker efter sidan.
     const sidor = [
+      START,
       HTML,
       FORETAG,
       "synappsen-web/integritet.html",
@@ -511,6 +516,36 @@ describe("Webbplatsens sidor följer sajtens CSP och hänger ihop", () => {
       const adress = fil === "index.html" ? "https://synappsen.se/" : `https://synappsen.se/${fil.replace(/\.html$/, "")}`;
       expect(karta, `sitemap.xml saknar ${adress}`).toContain(`<loc>${adress}</loc>`);
     }
+  });
+});
+
+describe("Startsidan är ett vägval mellan vården och företagen (beslut 2026-10-23)", () => {
+  const start = () => las(START);
+
+  test("startsidan leder till båda spåren", () => {
+    expect(start(), "startsidan länkar inte till vårdsidan").toContain('href="/vard"');
+    expect(start(), "startsidan länkar inte till företagssidan").toContain('href="/foretag"');
+  });
+
+  test("startsidan säljer inget av spåren: inga priser och ingen delningsbild från ett av dem", () => {
+    // Vägvalet ska vara neutralt. En regional IT-avdelning som går in på synappsen.se ska inte
+    // mötas av salongspriser, och en salong inte av vårdens prislista (BESLUTSLOGG.md 2026-10-21).
+    const text = start().replace(/<!--[\s\S]*?-->/g, "");
+    expect(text, "startsidan anger ett pris").not.toMatch(/\d\s?kr\b/);
+    expect(text, "startsidan har en delningsbild från ett av spåren").not.toMatch(/og:image/);
+  });
+
+  test("gamla ankarlänkar till vårdsidan skickas vidare till /vard", () => {
+    // Säljutskick före 2026-10-23 länkade till synappsen.se/#paket, /#pilot osv.
+    expect(start()).toContain('<script src="/start.js"></script>');
+    const skript = las("synappsen-web/start.js");
+    expect(skript).toMatch(/window\.location\.replace\("\/vard" \+ ankare\)/);
+    expect(skript, "hopplänken till huvudinnehållet får inte skickas vidare").toContain('"#huvudinnehall"');
+  });
+
+  test("vårdsidan har sin egen kanoniska adress", () => {
+    expect(las(HTML)).toContain('<link rel="canonical" href="https://synappsen.se/vard" />');
+    expect(start()).toContain('<link rel="canonical" href="https://synappsen.se/" />');
   });
 });
 

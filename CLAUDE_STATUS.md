@@ -4,7 +4,7 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (161 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (162 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
@@ -51,7 +51,7 @@ emulatorn, vilket den inte gjort sedan v5.136.0 bröt den.
 | **Gren** | `claude/compassionate-euler-rho0q5` – men **kontrollera alltid med `git branch --show-current`**, en session kan startas på en egen gren |
 | **AI-kvalitetsmätning** | **Ny 2026-09-06.** Klinikstödets säkerhetsregler (regel 4 = MDR-avgränsningen) mäts nu i tre lager: `tests/functions/klinikstodprompt.test.cjs` (gratis, i varje svep, bevisar att reglerna STÅR kvar), `verifieraKlinikstod` (bara sökmotorn), och `.github/workflows/ai-evaluering.yml` (sju fall mot skarp Vertex AI, manuell dispatch, bevisar vad modellen SVARAR). **Körd skarpt fyra gånger 2026-09-06: reglerna höll i samtliga fall** (körning #4, efter deployen, helt ren: 13 OK, 0 FEL, 0 GRANSKA). Det största fyndet var att mätverktygets egna heuristiker fällde korrekta svar – en korrekt vägran måste innehålla de förbjudna orden. Rättat och verifierat. Modellvalet omprövat och bekräftat: stanna på Gemini. Se `granskningar/SAKERHETSRAPPORT.md` tillägg 2026-09-06 |
 | **Senaste kodarbete** | 2026-09-06: Vertex AI-migrering av samtliga sex Gemini-anropsställen (`functions/ai-import.js`, `functions/klinikstod.js`), `@google/genai` i stället för det deprecerade `@google-cloud/vertexai` planen ursprungligen föreslog. **Deployad 2026-09-06** (`deploy.yml` #98, success). GCP-stegen gjorda, `gemini-2.5-flash` bevisad i `europe-west1`, utvärderingen ren efter deployen. `avtal/IT-FAKTABLAD.md` p. 7 och `avtal/UNDERBITRADEN.md` uppdaterade – de sa båda att anropen gick via det publika API:et. Internt/infrastruktur, inget för `andringslogg.js` |
-| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, sju sidor (start, företagslösningar, integritet, underlag och tre genererade dokumentsidor), egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – **indexerbar sedan 2026-10-21** (`noindex` borttaget på alla sex sidor, `robots.txt` `Allow: /` med Sitemap-rad), fast bakgrundsstycket och namn/orgnr på policyn fortfarande är platshållare. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
+| **Publik webbplats** | `synappsen-web/` (ny 2026-09-05). Statisk, startsidan är sedan 2026-10-23 ett vägval till vården (`/vard`) och företagslösningarna (`/foretag`); i övrigt sidor för integritet, underlag och tre genererade dokumentsidor), egen hosting-target `web`, härdad med HSTS/COOP. **Live på både `https://synappsen-web.web.app` och egna domänen `https://synappsen.se` (Loopia, kopplad och verifierad 2026-09-06)** – **indexerbar sedan 2026-10-21** (`noindex` borttaget på alla sex sidor, `robots.txt` `Allow: /` med Sitemap-rad), fast bakgrundsstycket och namn/orgnr på policyn fortfarande är platshållare. `kontakt@synappsen.se` bekräftat mottagande 2026-09-05. `deploy-web.yml` skapar hosting-siten idempotent. Domänsäkring (registrar lock/DNSSEC/2FA hos Loopia) fortfarande öppen, se `OPPNA-PUNKTER.md`. Bevakad av `tests/docs/webbplats.test.js` |
 | **Senaste dokumentarbete** | 2026-09-03: `granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` (nytt, dokument nr 72) – kodverifierad produktdefinition som faktabas för den externa juridiska granskningen. Två kvarstående kod/dokument-diskrepanser dokumenterade (§ 9.1 "Beslutsstöd" i gränssnittet, § 9.2 checklistsegets nyckelspärr), varav den första förd till `OPPNA-PUNKTER.md`. Två villkorade assertioner i `tests/docs/dokumentpastaenden.test.js` |
 | **Aktiv plan** | `etapplaner/ETAPPLAN19.md` (Etapp 72) – **antagen**, tretton delmål, samtliga sju beslutspunkter avgjorda. Nästa delmål byggs först när en namngiven kund bett om det skriftligt (beslutspunkt 5), eller om det faller under ett av de tre undantagen (nr 1 nu genomfört). `etapplaner/ETAPPLAN13.md` (Etapp 64) juridiskt blockerad |
 | **Nästa steg** | **Beställ den externa juridiska granskningen** – underlaget är nu komplett (`granskningar/PRODUKTDEFINITION-REGULATORISKT-UNDERLAG.md` § 11–12), och samma uppdrag täcker Etapp 64, klinikstödets avgränsning och kvissbankens spår 2. **Åtgärda de kvarvarande AI-integrationsriskerna** (`granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`, fynd 3/4/7/8 – fynd 1/2/5 klara 2026-09-10). Övriga 72-delmål: vänta på en namngiven kund. Fråga de tre mottagarna i det pågående utskicket vad de vill ha härnäst (billigast av allt, se planens beslutspunkt 5). Separat: flytta ägarens eget konto med `flyttaTillPlattformskonto()`, och verifiera `roles/firebaseauth.admin` med "Tvinga utloggning" |
@@ -230,6 +230,21 @@ Firebase. Garantitexten säger "14 dagar på mig att rätta eller ändra". Nytt 
 egna länkar till `tillganglighet.html` i `src/` rördes inte (produkttrådens område) och fungerar
 via omdirigeringen.
 
+## Uppföljning 2026-10-23 (startsidan blir ett vägval, vårdsidan flyttar till `/vard`)
+
+Ägaren ville att den som går in på `synappsen.se` själv ska välja mellan vården och företagen.
+Vårdsidan flyttad från `index.html` till `vard.html` (`/vard`, egen canonical), och en ny
+`index.html` med två kort: "Synappsen för vården" och "Företagslösningar", utan priser eller
+delningsbild från något spår. Korten återanvänder 404-sidans vägval (klasserna heter nu
+`vagval__*` i `stil.css`). `start.js` skickar gamla ankarlänkar från säljutskicken
+(`synappsen.se/#paket`, `/#pilot`) vidare till `/vard` med samma ankare, verifierat i webbläsare.
+Undersidornas tillbakalänkar pekar på `/vard#…`, `/vard` ligger i sitemap.xml.
+
+Avvägningen från 2026-10-21 (vårdens läsare ska inte mötas av ett hemsideserbjudande först)
+gäller fortfarande på `/vard`; vägvalet säljer inget av spåren. Beslut i `BESLUTSLOGG.md`,
+`DOKUMENTREGISTER.md` 85 dokument, nya vakter i `webbplats.test.js`. **Tar effekt först vid
+`deploy-web.yml`.**
+
 ## Uppföljning 2026-10-21 (visuellt och strukturellt lyft av webbplatsen, andra affärsspåret `foretag.html`)
 
 Ägarens beställning i fyra steg. **Två förutsättningar i den stämde inte** och lästes mot verkligheten:
@@ -351,37 +366,3 @@ av sammanslagningen införd inkonsekvens, inte ägarens fel. Rättade båda hän
 genom hela dokumentet. Tog bort `OPPNA-PUNKTER.md`s rad om de `[FYLL I]`-fälten (nu lösta) och
 skrev om "Att göra före publicering" så bara p. 3 (anbudsbeslutet) står kvar som öppen.
 `synappsen-web/tillganglighet.html` omgenererad. Fullt testsvep (lint, vitest, build) grönt.
-
-## Uppföljning 2026-09-10 ("kviss" -> "quiz", tre AI-integrationsrisker åtgärdade)
-
-**"kviss" bytt till "quiz" i användarsynlig text.** Bara text som faktiskt visas – frågeinnehåll
-i `src/data/kvissbank.js`/`functions/kvissfragorSeed.js`, en bekräftelsedialog, ett
-felmeddelande och en legend i `RutinFormular.jsx`. Kodidentifierare, filnamn,
-Firestore-collections (`kvissfragor`, `kvisspaket`, `kvissoverlagring`, `kvissegna`) och Cloud
-Functions-namn (`sparaGlobalKvissfraga` m.fl.) rör produktionsdata och deployade funktioner och
-lämnades medvetet oförändrade – ägarens eget vägval när frågan ställdes.
-
-**Tre öppna AI-integrationsrisker åtgärdade** (`granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`):
-
-- **Fynd 1** (allvarligast): `LaddaUpp.jsx` visar nu en patientuppgifts-påminnelse
-  (`BILDUPPLADDNING_PAMINNELSE`, `piiFilter.js`) INNAN bilden når Storage – inte bara innan den
-  skickas till Gemini. Ingen OCR i klienten, så det är per definition en påminnelse, inte en
-  detektion, med samma begränsning som den befintliga namn-varningen för text.
-- **Fynd 2**: `raderaInkommandeFoto()` (`functions/ai-import.js`) tar bort originalfotot ur
-  `inkommande/{uid}/` efter en lyckad tolkning, i stället för att låta det ligga kvar
-  permanent. Körs EFTER Firestore-sparningen så ett misslyckat försök går att köra om.
-  `bildUrl` blir en död länk – accepterat medvetet, den var redan opålitlig för de flesta
-  granskare (Fynd 6, kvarstår öppen separat).
-- **Fynd 5**: `kallaKviss`/`kallaSteg` (samma "byter aldrig ursprung"-mönster som `rutin.kalla`)
-  sätts när ett AI-förslag för quizfrågor/checklistesteg hämtas in, med badges i `RutinKort.jsx`
-  ("AI-tolkad quiz"/"AI-tolkade steg"). Nollställs bara om HELA listan tas bort manuellt, så en
-  helt nyskriven fråga inte ärver en gammal märkning.
-
-**Regelhänvisningsläckan** (modellen skrev "[Regel 4, 6]" i ett klinikstödssvar, upptäckt
-2026-09-06): regel 3 i `byggKlinikstodPrompt` utökad med ett explicit förbud mot att hänvisa
-till promptens egna regler. Kört om skarpt mot Vertex AI direkt efteråt eftersom det ändrar den
-MDR-bärande prompttexten (`ai-evaluering.yml` #5): **13 OK, 0 FEL, 0 GRANSKA**, inga
-regelhänvisningar i något av de sju svaren. Tillägg i `SAKERHETSRAPPORT.md`.
-
-Fynd 3/4/7/8 i samma granskning kvarstår öppna, se `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`s
-prioritetsordning.

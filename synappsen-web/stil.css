@@ -712,29 +712,32 @@
 .trygghet p { font-size: 15.5px; color: var(--text); max-width: var(--measure); }
 
 /* ============================================================
-   404-sidan. Serveras av Firebase Hosting på varje okänd adress, så den ska leda
-   vidare snabbt: två tydliga vägar (vården, företagen) och sedan underlag och kontakt.
+   Vägvalet: startsidan (index.html) och 404-sidan. Startsidan låter besökaren välja
+   spår innan något säljs (vården eller företagen); 404-sidan använder samma två kort
+   för att leda vidare snabbt, följt av underlag och kontakt.
    ============================================================ */
 .dokument__tillbaka .marke { display: inline-flex; color: var(--text); }
 .dokument__tillbaka .marke:hover { color: var(--primar); }
 .dokument__tillbaka .marke__namn { font-family: var(--f); font-size: 18px; }
 .fel { border-bottom: 0; }
-.fel__vagar {
+.vagval {
   list-style: none; margin: 34px 0 0; padding: 0;
   display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
-.fel__vag {
+.vagval__lank {
   display: flex; flex-direction: column; gap: 6px; height: 100%;
   padding: 22px 24px; background: var(--yta); text-decoration: none;
   border: 1px solid var(--kant); border-radius: var(--radius); box-shadow: var(--skugga);
   transition: border-color .15s;
 }
-.fel__vag:hover { border-color: var(--primar); }
-.fel__namn { font-size: 18px; font-weight: 600; color: var(--primar); }
-.fel__namn::after { content: " →"; }
-.fel__text { font-size: 15px; line-height: 1.5; color: var(--text-svag); }
-.fel__mer { margin-top: 34px; }
-.fel__mer a { color: var(--primar-mork); font-weight: 600; }
+.vagval__lank:hover { border-color: var(--primar); }
+.vagval__namn { font-size: 18px; font-weight: 600; color: var(--primar); }
+.vagval__namn::after { content: " →"; }
+.vagval__text { font-size: 15px; line-height: 1.5; color: var(--text-svag); }
+.vagval__for { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+               color: var(--text-svag); }
+.fel__mer, .vagval__mer { margin-top: 34px; }
+.fel__mer a, .vagval__mer a { color: var(--primar-mork); font-weight: 600; }
 
 /* ======================================================================
    Företagssidan: räkneexemplet som kort i mobil och exempelavsnittet
