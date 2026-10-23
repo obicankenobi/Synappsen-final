@@ -4,11 +4,11 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (160 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (161 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-10-22 · **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
+**Senast uppdaterad:** 2026-10-23 · **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
 14:11–14:17, commit `fc37848`; PR #35 mergad som `ce40404`; asset-hash `index-BoGw6VUc.js` live,
 `last-modified` 14:17:38 GMT). v5.140.0 åtgärdar AI-integrationsriskernas fynd 3, 4, 7 och 8 – se
 uppföljningen 2026-10-18 längst ner. Därefter, 2026-09-10: **v5.139.0 i produktion**. **Samtliga kvarstående punkter i
@@ -144,6 +144,19 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-10-23 (tredje genomgången, gjord på egen bedömning över natten)
+
+Ägaren bad om en bred genomgång och att lämpliga punkter genomförs utan att processen pausar.
+**Gjort:** ett sakfel på startsidan rättat och bundet av test ("Upphandlingsklart" påstod att tre
+av fyra uppräknade dokument var publicerade; bara två är det, sanningskälla
+`verktyg/bygg-underlag.mjs`). Integritetspolicyn i jag-form med du-tilltal, utan tankstreck,
+och uttryckligen gällande även Företagslösningar (behandlingen oförändrad, datum uppdaterat).
+Utskrift och PDF: fördröjt laddade skärmbilder blev tomma rutor, nu hämtas de vid `beforeprint`
+och skärmbilderna begränsas till 11 cm. `theme-color` för ljust/mörkt läge på alla sidor,
+förladdning av rubriktypsnittet, kortare metabeskrivning på `levande-innehall.html`, dubblerad
+etikett borttagen på `fallstudie.html`, klickbar e-postadress i företagssidans sidofält.
+Axe 0 fel på nio sidor. **Inte mergat eller deployat** (väntar på ägaren).
 
 ## Uppföljning 2026-10-22 (pilotens pris avgjort: betald för alla vårdköpare)
 
@@ -372,26 +385,3 @@ regelhänvisningar i något av de sju svaren. Tillägg i `SAKERHETSRAPPORT.md`.
 
 Fynd 3/4/7/8 i samma granskning kvarstår öppna, se `granskningar/AI-INTEGRATIONSRISKER-2026-09-06.md`s
 prioritetsordning.
-
-## Uppföljning 2026-09-09 (webbplatstexten omskriven för att inte läsa som AI-genererad)
-
-Ägaren bad om en genomgång av `index.html` och `underlag.html` för att formuleringarna
-inte skulle kännas maskinskrivna: färre tankstreck som pausmarkör, mindre av den
-upprepade "inte X, utan Y"-kontrasten, mindre tung fetmarkering mitt i löptext.
-
-Gick igenom all brödtext rad för rad och skrev om. **Det som INTE rördes, med skäl:**
-`<title>`/`og:title`s "Synappsen – tagline" (universell branding-konvention, äldre än
-AI), de nio `sek-nr`-etiketterna ("01 — Problemet", ren designstruktur, inte löpande
-text), tabellens platshållar-"—" för ett tomt värde, utvecklarkommentarerna, och
-bakgrundsstyckets ännu oskrivna platshållartext.
-
-**Två mekaniska bindningar krävde extra försiktighet innan redigering** – siffrorna
-"404 automatiska behörighetstester", "185 av dem", "sju svenska källor" och alla
-priser är bundna av `tests/docs/dokumentpastaenden.test.js` och
-`tests/docs/webbplats.test.js` och fick stå kvar exakt som de var. Ett ställe krävde
-en ändring i testet också: "Sju roller —" bytte tankstreck mot punkt ("Sju roller."),
-så testets regex `/(\w+) roller —/` uppdaterades till `/(\w+) roller\./` i samma
-commit.
-
-Fullt testsvep efter varje redigeringsomgång: `npm run lint`, `npx vitest run`
-(607 tester), `npm run build` – alla gröna.

@@ -591,7 +591,12 @@
 /* En ensam skärmbild i en textspalt ska inte sträcka sig över hela mätvärdet – en
    mobilskärm i 66ch bredd ser ut som en felaktig skalning. */
 .bild--ensam { max-width: 300px; }
-@media print { .bild img { border-color: #999; } }
+@media print {
+  .bild img { border-color: #999; }
+  /* Appens skärmbilder är 780×1688 och fyller annars en hel A4 vardera. */
+  .bild img, .hero__bild img { max-height: 11cm; width: auto; margin-inline: auto; }
+  .bild, figure { break-inside: avoid; }
+}
 
 /* ============================================================
    Avståndsklasser

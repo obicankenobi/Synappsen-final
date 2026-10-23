@@ -19,6 +19,7 @@ import { describe, expect, test } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+import { DOKUMENT } from "../../synappsen-web/verktyg/bygg-underlag.mjs";
 
 const ROT = fileURLToPath(new URL("../../", import.meta.url));
 const las = (p) => readFileSync(join(ROT, p), "utf8");
@@ -433,5 +434,31 @@ describe("Piloten är betald i allt kundvänt material (BESLUTSLOGG.md 2026-10-2
 
   test("företagssidan erbjuder ingen pilot (den gäller bara vårdsystemet)", () => {
     expect(las("synappsen-web/foretag.html")).not.toMatch(/pilot/i);
+  });
+});
+
+describe("Startsidan säger rätt om vilka upphandlingsdokument som är publicerade", () => {
+  // Verkligt fel, rättat 2026-10-22: avsnittet "Upphandlingsklart" räknade upp PUB-avtalsmall,
+  // underbiträdesförteckning, DPIA-underlag och tekniskt faktablad och sa "Tre av dem ligger
+  // publicerade". Bara två av de fyra är publicerade; den tredje publicerade sidan är
+  // tillgänglighetsredogörelsen, som inte fanns i uppräkningen. Sanningskällan är listan över
+  // genererade dokument i synappsen-web/verktyg/bygg-underlag.mjs.
+  const text = las("synappsen-web/index.html")
+    .replace(/<[^>]+>/g, "")
+    .replace(/[\s\u00a0]+/g, " ");
+  const stycke = text.slice(text.indexOf("Upphandlingsklart"), text.indexOf("Upphandlingsklart") + 600);
+  const publicerade = DOKUMENT.map((d) => d.titel);
+
+  test("påstår inte ett antal publicerade dokument som inte stämmer", () => {
+    expect(stycke).not.toMatch(/Tre av dem ligger/);
+  });
+
+  test("de dokument stycket kallar publicerade finns i generatorns lista, och de övriga gör det inte", () => {
+    expect(publicerade).toContain("Underbiträdesförteckning");
+    expect(publicerade).toContain("Tekniskt faktablad");
+    expect(publicerade).not.toContain("PUB-avtalsmall");
+    expect(publicerade).not.toContain("DPIA-underlag");
+    expect(stycke).toMatch(/Underbiträdesförteckningen och faktabladet ligger publicerade/);
+    expect(stycke).toMatch(/PUB-avtalsmallen och DPIA-underlaget skickar jag på begäran/);
   });
 });
