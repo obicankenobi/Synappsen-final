@@ -29,7 +29,7 @@ Anledningen till att jag hör av mig till just er: [EN SPECIFIK MENING OM DEM �
 tillväxt, något de sagt publikt, en gemensam kontakt].
 
 Jag ska vara rak med att jag ännu inte har någon kund i drift. Därför erbjuder jag de tre
-första en kostnadsfri pilot i sex veckor och halva priset första året, mot att jag får
+första en pilot i sex veckor och halva priset på abonnemanget första året, mot att jag får
 använda er som referens om utfallet blir bra.
 
 Har du 30 minuter någon gång de närmaste två veckorna för att titta på det?
@@ -58,7 +58,7 @@ offline, så det fungerar i källaren och i ett hem utan täckning. Läskvitteri
 vilka som inte tagit del av en ny rutin, med underlag direkt till APT.
 
 Priset ligger med bred marginal under direktupphandlingsgränsen, och jag erbjuder en
-kostnadsfri pilot i sex veckor på en enhet.
+betald pilot i sex veckor på en enhet.
 
 Har du 30 minuter någon gång de närmaste två veckorna?
 
@@ -227,8 +227,8 @@ Upplägg:
 
 Ni får utvärderingen skriftligt oavsett vad den visar.
 
-Bifogat finns en pilotöverenskommelse. Den slår fast att piloten är kostnadsfri och
-tidsbegränsad, att den inte ger mig någon förtur i en framtida upphandling, och att jag
+Bifogat finns en pilotöverenskommelse. Den slår fast att piloten är tidsbegränsad och
+betald, att den inte ger mig någon förtur i en framtida upphandling, och att jag
 inte deltar i utformningen av eventuellt kommande upphandlingsunderlag. Den sista punkten
 skyddar er upphandlingsrättsligt — därför vill jag att den undertecknas innan vi startar,
 inte efteråt.

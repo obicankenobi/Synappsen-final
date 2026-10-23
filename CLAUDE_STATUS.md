@@ -4,7 +4,7 @@
 > `etapplaner/UTVECKLINGSLOGG.md` (detaljerad teknisk historik) eller planfilerna i
 > `etapplaner/` – den pekar vidare dit.
 >
-> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (159 uppföljningar från 2026-07-28 och
+> **Historiken ligger i `etapplaner/STATUSARKIV.md`** (160 uppföljningar från 2026-07-28 och
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
@@ -144,6 +144,34 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-10-22 (pilotens pris avgjort: betald för alla vårdköpare)
+
+Ägaren svarade att piloten bara gäller vårdsystemet (inte företagslösningarna) och att den är
+**betald för alla vårdköpare**. Prislistan, tre onepagers, upphandlingssvaret F2,
+e-postmallarna och demomanuset sa fortfarande "kostnadsfri pilot, 0 kr" och är rättade i samma
+commit; ett test i `tests/docs/dokumentpastaenden.test.js` failar om uttrycket kommer tillbaka.
+**Medvetet inte omskrivet:** `MARKNADSANALYS.md` §7.4 och `JURIDISK-GRANSKNING.md` (rekommenderar
+kostnadsfri pilot för offentliga köpare av upphandlingsskäl). Det är en juridisk fråga och ligger i
+`OPPNA-PUNKTER.md`.
+
+## Uppföljning 2026-10-22 (pilotvillkor, undersidor och borttagen områdesväxlare)
+
+Ägaren svarade på de öppna frågorna och bad om att de beslutade delarna byggs. **Gjort:**
+pilotens villkor skrivna om i `index.html` (betald pilotperiod för de veckor den pågår, uppstarten
+gäller, ingen bindning efter piloten); vårdsidans "Levande innehåll" och fallstudien flyttade
+ordagrant till `levande-innehall.html` och `fallstudie.html` med en kort sammanfattning och
+länk kvar på startsidan (-1 050 px i mobil, "Och det viktigaste: ingen enhet i skarp drift"
+ligger kvar); **områdesväxlaren (vård <-> företag) är borttagen från båda sidorna** i stället
+för flyttad: länken till företagsspåret finns i vårdsidans sidfot, och företagssidan länkar inte
+tillbaka (ägaren ville inte ha en vårdreferens längst ned). Mobilhuvudet krymper till en
+märkesrad plus flikraden. Axe 0 fel på de nya sidorna.
+**Upptäckt, inte åtgärdat:** `saljmaterial/kallfiler/Synappsen-prislista.html`, tre onepagers,
+upphandlingssvaret, `PILOTUPPLAGG`-spåret och e-postmallarna beskriver fortfarande en
+**kostnadsfri pilot, 0 kr, sex veckor** (med ett upphandlingsrättsligt resonemang för offentliga
+köpare i `MARKNADSANALYS.md` §7.4). Det motsäger beslutet och webbplatsen; se
+`OPPNA-PUNKTER.md`. **Inte byggt:** kontaktformuläret (kräver Cloud Function, underbiträde och
+ändrad `integritet.html`) och FAQ:n (ägaren ska svara på villkorsfrågorna).
 
 ## Uppföljning 2026-10-22 (andra genomgången: tillgänglighet, bilder och prisinformation)
 
@@ -367,30 +395,3 @@ commit.
 
 Fullt testsvep efter varje redigeringsomgång: `npm run lint`, `npx vitest run`
 (607 tester), `npm run build` – alla gröna.
-
-## Uppföljning 2026-09-09 (PR #23 mergad, klinikstöd-fyndet dubbelkollat, /kliniskt-stod fotograferad, "jag"-röst genomförd)
-
-**PR #23 (webbplatsens bevislucka) mergad 2026-09-08**, `firebase-tools`-buggen bekräftad
-löst och deployad – se uppföljningen nedan. Innan nästa steg dubbelkollades ägarens
-godkända fix av "Beslutsstöd"/"triageringsstöd" mot faktisk kod (`KlinikfragaSok.jsx`,
-`KlinisktStod.jsx`, `BESLUTSLOGG.md` 2026-09-08): korrekt, ersättningstexten är oförändrad
-mot `JURIDISK-GRANSKNING.md` § 6.4, och källantalet stämmer nu mot `GODKANDA_KALLDOMANER`
-(sju).
-
-**Skärmbild av `/kliniskt-stod` tillagd** (`synappsen-web/verktyg/skarmbilder.spec.mjs`),
-ersätter den tidigare `/administration`-substitutionen. Bilden (`app-rutiner.png`, samma
-plats i `index.html`) visar klinikstöd-sökningen med källhänvisningstexten synlig men
-**tom och oskickad** – sökningen anropar en extern källa (Google Programmable Search +
-Vertex AI) som varken emulatorn eller bildtagningen har åtkomst till, och ett riktigt
-sökresultat ska aldrig hårdkodas i en marknadsbild. Alt-text och bildtext omskrivna för att
-beskriva den faktiska bilden (verifierad visuellt, inte antagen).
-
-**Röstbyte "vi" → "jag"** (`produkt/VARUMARKE.md` §8) genomfört i `index.html` och
-`underlag.html` – de två filer öppna punkten pekade ut. Genomgånget rad för rad: två
-kvarvarande "vi"-förekomster i `index.html` (rubriken "vet vi att alla har läst..." och
-"Ni sa, vi gjorde") är **medvetet lämnade** – de återger kundens/personalens egna röst, inte
-Synappsens, och skulle ha blivit fel om de bytts. `integritet.html` (policydokument, ett
-tiotal "vi") **rördes inte** – låg utanför den öppna punktens uttalade filscope och var inte
-en del av den här begäran. Raden borttagen ur `OPPNA-PUNKTER.md`.
-
-Fullt testsvep: `npm run lint`, `npx vitest run` (607 tester), `npm run build` – alla gröna.

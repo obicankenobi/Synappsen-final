@@ -37,7 +37,7 @@ describe("Webbplatsen håller MDR-avgränsningen", () => {
     [/triageringsstöd/i, "triageringsstöd"],
   ];
 
-  test.each(FORBJUDNA.flatMap((f) => [HTML, FORETAG].map((sida) => [sida, ...f])))(
+  test.each(FORBJUDNA.flatMap((f) => [HTML, FORETAG, "synappsen-web/levande-innehall.html", "synappsen-web/fallstudie.html"].map((sida) => [sida, ...f])))(
     "%s använder aldrig ordet %s",
     (sida, monster, ord) => {
     const traff = las(sida)
@@ -517,9 +517,37 @@ describe("Webbplatsens sidor följer sajtens CSP och hänger ihop", () => {
 describe("Företagssidan (foretag.html)", () => {
   const sida = () => las(FORETAG);
 
-  test("startsidan och företagssidan länkar till varandra", () => {
+  test("startsidan länkar till företagssidan, men ingen sida har en områdesväxlare", () => {
+    // Beslut 2026-10-22 (BESLUTSLOGG.md): växlaren mellan vård och företag är borttagen från
+    // båda sidorna. Länken till företagsspåret ligger i vårdsidans sidfot, och företagssidan
+    // länkar inte tillbaka (ägaren vill inte ha en referens till vårdappen längst ned).
     expect(las(HTML), "startsidan länkar inte till foretag.html").toContain('href="/foretag"');
-    expect(sida(), "foretag.html länkar inte tillbaka till startsidan").toContain('<a href="/">');
+    for (const fil of [HTML, FORETAG, "synappsen-web/levande-innehall.html", "synappsen-web/fallstudie.html"]) {
+      expect(las(fil), `${fil} har fått tillbaka områdesväxlaren`).not.toMatch(/class="omraden"/);
+    }
+  });
+
+  test("vårdsidans långa delar ligger på egna sidor som startsidan länkar till", () => {
+    const html = las(HTML);
+    for (const [sida2, text] of [
+      ["levande-innehall", "Levande innehåll"],
+      ["fallstudie", "Klinikstöd"],
+    ]) {
+      expect(html, `startsidan länkar inte till /${sida2}`).toContain(`href="/${sida2}"`);
+      expect(existsSync(join(ROT, `synappsen-web/${sida2}.html`))).toBe(true);
+      expect(las(`synappsen-web/${sida2}.html`)).toContain(text);
+    }
+    expect(html, "fallstudien ska inte ligga kvar i sin helhet på startsidan").not.toMatch(
+      /fall__led/
+    );
+  });
+
+  test("pilotens villkor: betald pilotperiod, uppstarten gäller, ingen bindning efter piloten", () => {
+    const text = las(HTML).replace(/<[^>]+>/g, "").replace(/[\s\u00a0]+/g, " ");
+    expect(text).toMatch(/Piloten är betald/);
+    expect(text).toMatch(/de veckor piloten pågår/);
+    expect(text).toMatch(/Efter piloten är ni inte bundna/);
+    expect(text, "piloten får inte beskrivas som gratis").not.toMatch(/kostnadsfri pilot|gratis pilot/i);
   });
 
   test("räkneexemplets summor stämmer med sina rader", () => {
@@ -570,7 +598,7 @@ describe("Företagssidan (foretag.html)", () => {
 });
 
 describe("Inga synliga platshållare på säljsidorna", () => {
-  test.each([HTML, FORETAG])("%s innehåller ingen ifyllnadsruta i hakparentes", (sida) => {
+  test.each([HTML, FORETAG, "synappsen-web/levande-innehall.html", "synappsen-web/fallstudie.html"])("%s innehåller ingen ifyllnadsruta i hakparentes", (sida) => {
     // Integritetspolicyn har medvetet kvar sin platshållare för namn/orgnr (OPPNA-PUNKTER.md),
     // men de två säljsidorna ska aldrig visa ett halvfärdigt "[ Fyll i … ]" eller
     // "[ Bakgrundsstycket … ]" för en besökare.

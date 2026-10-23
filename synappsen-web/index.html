@@ -54,10 +54,6 @@
         <span class="marke__typ">Kunskapsbank för vården</span>
       </div>
     </div>
-    <nav class="omraden" aria-label="Område">
-      <a href="/" aria-current="page">Vårdplattformen</a>
-      <a href="/foretag">Företagslösningar &amp; Bokning</a>
-    </nav>
   </div>
   <nav class="topp__index" aria-label="Innehåll">
     <a href="#problemet">Problemet</a>
@@ -89,11 +85,6 @@
         <span class="marke__typ">Kunskapsbank för vården</span>
       </div>
     </div>
-
-    <nav class="omraden" aria-label="Område">
-      <a href="/" aria-current="page">Vårdplattformen</a>
-      <a href="/foretag">Företagslösningar &amp; Bokning</a>
-    </nav>
 
     <div class="index">
       <a href="#problemet"><span>01</span><span>Problemet</span></a>
@@ -367,56 +358,12 @@
       <div class="prosa mb-34">
         <p>
           Ett dokumentsystem fylls oftast med engagemang och tappar sedan aktualitet i tysthet.
-          Synappsen har en egen innehållshälsokontroll byggd just mot det.
+          Synappsen har en egen innehållshälsokontroll byggd just mot det: en hälsosiffra som
+          aldrig visas utan sin nedbrytning, riktade granskningsrundor, flaggning av möjliga
+          dubbletter och en publik lista över förslag från personalen som faktiskt införts.
         </p>
+        <p><a class="sidlank" href="/levande-innehall">Se exemplet och hur innehållshälsan fungerar</a></p>
       </div>
-
-      <div class="mb-40">
-        <span class="eyebrow eyebrow--blok mb-12">Exempel · Innehållshälsa med nedbrytning</span>
-        <div class="halsa" role="img" aria-label="Exempel på innehållshälsa: 78 procent av 142 godkända rutiner har ingen flagga. 18 bör granskas, 7 saknar ägare, 4 är aldrig kvitterade och 2 har passerat sitt utgångsdatum.">
-          <div class="halsa__topp">
-            <span class="halsa__siffra">78 %</span>
-            <span class="halsa__text">av 142 godkända rutiner har ingen flagga</span>
-          </div>
-          <ul class="halsa__lista">
-            <li><span>Bör granskas (över 180 dagar)</span><span class="badge badge--status badge--status-vantar">18</span></li>
-            <li><span>Saknar ägare</span><span class="badge badge--status badge--status-vantar">7</span></li>
-            <li><span>Ingen har kvitterat</span><span class="badge badge--status badge--status-vantar">4</span></li>
-            <li><span>Utgångsdatum har passerat</span><span class="badge badge--status badge--status-avvisad">2</span></li>
-            <li><span>Utan anmärkning</span><span class="badge badge--status badge--status-godkand">111</span></li>
-          </ul>
-        </div>
-        <p class="sok__not mt-12">
-          Siffrorna ovan är ett illustrerande exempel, inte mätdata från en verklig enhet.
-        </p>
-      </div>
-
-      <ul class="punkter">
-        <li>
-          <div>
-            <h3>En hälsosiffra, aldrig utan sin nedbrytning</h3>
-            <p>Procenttalet visas alltid tillsammans med <em>vilka</em> rutiner som bör granskas, saknar ägare, aldrig kvitterats eller gått ut. En siffra utan orsak går lätt att runda av. En siffra med lista gör det inte.</p>
-          </div>
-        </li>
-        <li>
-          <div>
-            <h3>Riktade granskningsrundor</h3>
-            <p>Starta en tidsbestämd genomgång av ett urval äldre rutiner, med automatisk påminnelse till varje berörd ägare. Går att starta direkt från hälsolistan.</p>
-          </div>
-        </li>
-        <li>
-          <div>
-            <h3>Möjliga dubbletter flaggas</h3>
-            <p>Två rutiner som liknar varandra för mycket upptäcks automatiskt, istället för att upptäckas av en slump vid en läsning.</p>
-          </div>
-        </li>
-        <li>
-          <div>
-            <h3>”Ni sa, vi gjorde”</h3>
-            <p>En publik lista över ändringsförslag från personalen som faktiskt införts. Synliggör att inspel leder till riktiga ändringar, inte bara till en kö som ingen ser resultatet av.</p>
-          </div>
-        </li>
-      </ul>
     </section>
 
     <!-- 05 VÅRDENS KRAV -->
@@ -463,47 +410,13 @@
 
       <div class="prosa mb-38">
         <p>
-          Alla system har luckor och alla utvecklingsprojekt stöter på problem. Här är ett
-          konkret fall ur min egen utveckling, återgivet i sin helhet, och de gränser jag
-          medvetet satte.
+          Alla system har luckor och alla utvecklingsprojekt stöter på problem. Ett konkret
+          fall ur min egen utveckling finns återgivet i sin helhet på en egen sida, och här
+          står de gränser jag medvetet satte.
         </p>
+        <p><a class="sidlank" href="/fallstudie">Läs fallet: klinikstöd-sökningen</a></p>
       </div>
 
-      <span class="eyebrow eyebrow--blok mb-14">Fallstudie · Klinikstöd-sökningen</span>
-
-      <div class="fall">
-        <div class="fall__led">
-          <span class="fall__etikett">Händelsen</span>
-          <p>
-            Klinikstödet ska bara sammanfatta godkända svenska källor. En första version
-            byggde på att instruera AI-modellen att hålla sig till listan. Ändå citerade den
-            i vissa fall källor utanför den.
-          </p>
-        </div>
-        <div class="fall__led">
-          <span class="fall__etikett">Vad jag gjorde</span>
-          <p>
-            Jag stängde av funktionen helt, utan att först pröva en begränsning eller en
-            varningstext. Sedan byggde jag om grunden: sökningen går numera via en verkligt
-            domänbegränsad sökmotor i stället för en instruktion till modellen.
-          </p>
-        </div>
-        <div class="fall__led">
-          <span class="fall__etikett">Resultatet</span>
-          <p>
-            Funktionen är i drift igen, nu med gränsen verkställd i två tekniska lager.
-            En daglig automatisk källkontroll och en manuell verifieringsknapp bevakar
-            löpande att den håller.
-          </p>
-        </div>
-      </div>
-
-      <div class="fall__slutsats">
-        <p>
-          Avstängningen kostade den mest säljbara funktionen i sex veckor. Samma avvägning
-          kommer att uppstå igen, och kommer att göras på samma sätt.
-        </p>
-      </div>
 
       <div class="mt-52">
         <span class="eyebrow eyebrow--blok mb-14">Medvetna avgränsningar</span>
@@ -722,10 +635,10 @@
           uppskattningar.
         </p>
         <p>
-          <strong>Piloten är betald.</strong> Den betalas som ett vanligt abonnemang på den nivå
-          ni väljer, och Kärna räcker. Uppstartsavgiften på 25 000 kr gäller även för piloten.
-          Är ni en av de tre första som går med på att vara namngiven referens får ni 50 %
-          rabatt på abonnemanget det första året.
+          <strong>Piloten är betald.</strong> Ni betalar den del av årspriset som motsvarar de
+          veckor piloten pågår, på den nivå ni väljer, och Kärna räcker. Uppstartsavgiften på 25 000 kr gäller även för piloten. Efter piloten är ni inte bundna: ni väljer fritt om abonnemanget
+          fortsätter. Är ni en av de tre första som går med på att vara namngiven referens får ni
+          50 % rabatt på abonnemanget det första året.
         </p>
       </div>
 

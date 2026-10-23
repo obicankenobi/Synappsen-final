@@ -409,3 +409,29 @@ describe("Uppstartsavgiften ges inte bort (BESLUTSLOGG.md 2026-08-23 och 2026-10
     }
   );
 });
+
+describe("Piloten är betald i allt kundvänt material (BESLUTSLOGG.md 2026-10-22)", () => {
+  // Startsidan sa betald pilot medan prislistan, tre onepagers, upphandlingssvaret,
+  // e-postmallarna och demomanuset fortfarande sa "kostnadsfri pilot, 0 kr". Ägaren avgjorde
+  // 2026-10-22: pilotperioden betalas av alla vårdköpare. Piloten gäller bara vårdsystemet.
+  const KUNDVANT = [
+    "synappsen-web/index.html",
+    "saljmaterial/kallfiler/Synappsen-prislista.html",
+    "saljmaterial/kallfiler/Synappsen-upphandlingssvar.html",
+    "saljmaterial/kallfiler/Synappsen-onepager-KOMMUNAL-VARD-OCH-OMSORG.html",
+    "saljmaterial/kallfiler/Synappsen-onepager-REGION-OCH-SJUKHUS.html",
+    "saljmaterial/kallfiler/Synappsen-onepager-PRIVAT-VARDGIVARE.html",
+    "saljmaterial/Synappsen-epostmallar.md",
+    "saljmaterial/Synappsen-demomanus.md",
+  ];
+  test.each(KUNDVANT)("%s beskriver inte piloten som kostnadsfri", (fil) => {
+    const text = las(fil).replace(/\s+/g, " ");
+    expect(text, `${fil} säger kostnadsfri pilot`).not.toMatch(/kostnadsfri,? (tidsbegränsad )?pilot/i);
+    expect(text, `${fil} säger pilot till 0 kr`).not.toMatch(/pilot[^.]{0,40}\b0 kr/i);
+    expect(text, `${fil} säger att piloten är kostnadsfri`).not.toMatch(/piloten är kostnadsfri/i);
+  });
+
+  test("företagssidan erbjuder ingen pilot (den gäller bara vårdsystemet)", () => {
+    expect(las("synappsen-web/foretag.html")).not.toMatch(/pilot/i);
+  });
+});

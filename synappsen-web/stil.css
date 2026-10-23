@@ -219,15 +219,16 @@
     .huvud { padding: 0 var(--pad); }
     /* Kompakt mobilhuvud (2026-10-22). Tidigare 170 px före hjälten vid 390 px bredd, och
        hela blocket var klistrat, så en tredjedel av en telefonskärm gick åt till navigering
-       under hela läsningen. Nu: märket på en rad (namn och typ bredvid varandra),
-       växlaren på en rad i fast höjd, flikraden under.
+       under hela läsningen. Nu: märket på en rad (namn och typ bredvid varandra) och
+       flikraden under.
 
-       Klistringen har negativ top lika med märkesraden plus växlaren (--topp-dold): de
-       rullar undan med sidan och bara flikraden stannar kvar överst. Därför har raderna
-       FASTA höjder i px. Ändras en av dem måste --topp-dold räknas om, annars stannar en
-       remsa av växlaren kvar (eller flikraden skärs av). */
+       Klistringen har negativ top lika med märkesraden (--topp-dold): den rullar undan med
+       sidan och bara flikraden stannar kvar överst. Därför har märkesraden FAST höjd i px.
+       Ändras den måste --topp-dold räknas om, annars stannar en remsa av märket kvar (eller
+       flikraden skärs av). Områdesväxlaren (vård <-> företag) togs bort 2026-10-22: länken
+       mellan spåren ligger bara i vårdsidans sidfot. */
     .topp {
-      --topp-dold: 90px; /* 10 + 30 (märket) + 8 + 40 (växlaren) + 2 */
+      --topp-dold: 42px; /* 10 + 30 (märket) + 2 */
       display: block; position: sticky; top: calc(-1 * var(--topp-dold)); z-index: 20;
       background: var(--bg); border-bottom: 1px solid var(--kant);
     }
@@ -511,7 +512,7 @@
      avslöjat, inga sidbrytningar mitt i ett kort.
      ============================================================ */
   @media print {
-    .rail, .topp, .knappar, .hoppa, .bannrad, .omraden, .kopiera { display: none !important; }
+    .rail, .topp, .knappar, .hoppa, .bannrad, .kopiera { display: none !important; }
     .skal { display: block; max-width: none; }
     .huvud { padding: 0; }
     body { background: #fff; color: #000; font-size: 11pt; }
@@ -615,30 +616,11 @@
 .hero--dok { border-bottom: 1px solid var(--kant); padding-bottom: 40px; }
 .hero--dok h1 { font-size: clamp(30px, 4.4vw, 44px); }
 
-/* ============================================================
-   Områdesväxlare och hänvisningsrad (vårdplattformen <-> företagslösningar)
-   ============================================================ */
-.omraden { display: flex; flex-direction: column; gap: 4px; }
-.omraden a {
-  display: block; padding: 8px 12px; background: var(--yta);
-  border: 1px solid var(--kant); border-radius: var(--radius-liten);
-  font-size: 13px; font-weight: 600; line-height: 1.35;
-  color: var(--text-svag); text-decoration: none;
-}
-.omraden a:hover { border-color: var(--kant-stark); color: var(--text); }
-.omraden a[aria-current="page"] {
-  border-color: var(--primar); color: var(--primar-text); background: var(--primar-ljus);
-}
+/* Länk till en undersida i löpande avsnitt (Levande innehåll, fallstudien). */
+.sidlank { font-weight: 600; color: var(--primar-text); text-underline-offset: 3px;
+           display: inline-flex; align-items: center; min-height: 32px; }
+
 @media (max-width: 900px) {
-  /* Fast höjd 40 px (se --topp-dold ovan). Knapparna delar raden efter textlängd i stället
-     för hälften var, så "Företagslösningar & Bokning" ryms på en rad från 375 px. Blir det
-     ändå för trångt bryts texten inom knappen, inte knappens höjd. */
-  .omraden { flex-direction: row; }
-  .omraden a {
-    flex: 1 1 auto; height: 40px; padding: 0 10px;
-    display: flex; align-items: center; justify-content: center; text-align: center;
-    font-size: 12.5px; line-height: 1.2;
-  }
   /* Ankarlänkarna ska landa under flikraden, inte bakom den. */
   html { scroll-padding-top: 56px; }
 }

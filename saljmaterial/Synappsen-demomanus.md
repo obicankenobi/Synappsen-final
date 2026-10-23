@@ -191,7 +191,7 @@ ingen extern penetrationstestning har gjorts."*
 
 ### Fråga om piloten
 
-**Säg:** *"Mitt förslag är en kostnadsfri pilot i sex veckor på en enhet. Ni får utvärderingen
+**Säg:** *"Mitt förslag är en betald pilot i sex veckor på en enhet. Ni får utvärderingen
 skriftligt oavsett vad den visar."*
 
 Ställ sedan de två frågor som avgör om affären finns:

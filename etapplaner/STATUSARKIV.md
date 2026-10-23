@@ -5683,3 +5683,30 @@ diagnosverktyget verkade hänga i flera minuter och avbröts i onödan. Efterkon
 `created_at`/`updated_at` i GitHub Actions API:et visade att var och en bara hunnit köra
 65–100 sekunder – normal tid för att ladda ~90 funktionsdefinitioner, ingen hängning. Döm
 alltid en misstänkt hängning på faktiska tidsstämplar, inte på egen känsla för förfluten tid.
+
+## Uppföljning 2026-09-09 (PR #23 mergad, klinikstöd-fyndet dubbelkollat, /kliniskt-stod fotograferad, "jag"-röst genomförd)
+
+**PR #23 (webbplatsens bevislucka) mergad 2026-09-08**, `firebase-tools`-buggen bekräftad
+löst och deployad – se uppföljningen nedan. Innan nästa steg dubbelkollades ägarens
+godkända fix av "Beslutsstöd"/"triageringsstöd" mot faktisk kod (`KlinikfragaSok.jsx`,
+`KlinisktStod.jsx`, `BESLUTSLOGG.md` 2026-09-08): korrekt, ersättningstexten är oförändrad
+mot `JURIDISK-GRANSKNING.md` § 6.4, och källantalet stämmer nu mot `GODKANDA_KALLDOMANER`
+(sju).
+
+**Skärmbild av `/kliniskt-stod` tillagd** (`synappsen-web/verktyg/skarmbilder.spec.mjs`),
+ersätter den tidigare `/administration`-substitutionen. Bilden (`app-rutiner.png`, samma
+plats i `index.html`) visar klinikstöd-sökningen med källhänvisningstexten synlig men
+**tom och oskickad** – sökningen anropar en extern källa (Google Programmable Search +
+Vertex AI) som varken emulatorn eller bildtagningen har åtkomst till, och ett riktigt
+sökresultat ska aldrig hårdkodas i en marknadsbild. Alt-text och bildtext omskrivna för att
+beskriva den faktiska bilden (verifierad visuellt, inte antagen).
+
+**Röstbyte "vi" → "jag"** (`produkt/VARUMARKE.md` §8) genomfört i `index.html` och
+`underlag.html` – de två filer öppna punkten pekade ut. Genomgånget rad för rad: två
+kvarvarande "vi"-förekomster i `index.html` (rubriken "vet vi att alla har läst..." och
+"Ni sa, vi gjorde") är **medvetet lämnade** – de återger kundens/personalens egna röst, inte
+Synappsens, och skulle ha blivit fel om de bytts. `integritet.html` (policydokument, ett
+tiotal "vi") **rördes inte** – låg utanför den öppna punktens uttalade filscope och var inte
+en del av den här begäran. Raden borttagen ur `OPPNA-PUNKTER.md`.
+
+Fullt testsvep: `npm run lint`, `npx vitest run` (607 tester), `npm run build` – alla gröna.

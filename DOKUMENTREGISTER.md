@@ -1,6 +1,6 @@
 # Dokumentregister
 
-**Fullständig inventering av projektets 82 dokument.** Bevakat av
+**Fullständig inventering av projektets 84 dokument.** Bevakat av
 `tests/docs/dokumentregister.test.js`, som failar om ett dokument finns på disk men saknas
 här, eller står här men saknas på disk. **Ett nytt dokument kan alltså inte glömmas bort –
 testet vägrar passera förrän det är infört i tabellerna nedan.**
@@ -56,6 +56,8 @@ utlöser en uppdatering – läs kolumnen "Utlöses av".
 | `synappsen-web/integritet.html` | **ja (publikt)** | Webbplatsens integritetspolicy (GDPR art. 13). Utlöses av: sidan börjar sätta kakor, mäta besök, ladda något från en annan domän, eller ta emot uppgifter via formulär – och av byte av driftleverantör. Påståendena om att inget av detta sker är mekaniskt bevakade i `tests/docs/webbplats.test.js`, som failar om koden motsäger texten |
 | `synappsen-web/underlag.html` | **ja (publikt)** | Ingången till allt underlag: vad som är publicerat i fulltext, vad som lämnas på begäran, och de mekaniskt kontrollerbara antalen (behörighetstester, isoleringstester, säkerhetsgenomgångar). Utlöses av: ett dokument tillkommer/publiceras/slutar lämnas ut, incidentresponsplanens version höjs, eller ett av antalen ändras. Antalen och planens version är bundna till sina källor av `tests/docs/dokumentpastaenden.test.js` |
 | `synappsen-web/foretag.html` | **ja (publikt)** | Säljsidan för det andra affärsspåret (anpassade hemsidor, bokningssystem och AI-automation för mindre företag), under samma varumärke och domän. Innehåller **publicerade priser och ett räkneexempel**, så den utlöses av: pris, paket, leveranslöfte eller garanti ändras, eller räkneexemplets antaganden ändras. Räkneexemplets summor bevakas av `tests/docs/webbplats.test.js`. Öppna villkorsfrågor (moms, SMS-kostnad, PUB-avtal, garantins avtalstext) står i `OPPNA-PUNKTER.md` |
+| `synappsen-web/levande-innehall.html` | **ja (publikt)** | Undersida till startsidans avsnitt 04: innehållshälsan med nedbrytning och dess fyra mekanismer. Utlöses av: en funktion bakom avsnittet ändras eller tas bort. Siffrorna i exemplet är illustrationer och ska vara märkta som det |
+| `synappsen-web/fallstudie.html` | **ja (publikt)** | Undersida till startsidans avsnitt 06: fallstudien om klinikstöd-sökningen. Utlöses av: klinikstödets avgränsning ändras (källdomäner, tekniska lager) eller något i fallet slutar vara sant |
 | `synappsen-web/tillganglighet.html` | **ja (publikt)** | **GENERERAD** ur `granskningar/TILLGANGLIGHETSREDOGORELSE.md` av `synappsen-web/verktyg/bygg-underlag.mjs`. **Redigera aldrig för hand** – kör om generatorn i samma commit som källan ändras. `tests/docs/webbplats.test.js` jämför den committade filen med generatorns utdata och failar vid drift |
 | `synappsen-web/underbitraden.html` | **ja (publikt)** | **GENERERAD** ur `avtal/UNDERBITRADEN.md`, se raden ovan. Publicerar även dokumentets öppna brister (bl.a. Brevo utan tecknat PUB-avtal) – det är avsiktligt, se `BESLUTSLOGG.md` 2026-09-06 |
 | `synappsen-web/it-faktablad.html` | **ja (publikt)** | **GENERERAD** ur `avtal/IT-FAKTABLAD.md`, se raden ovan |

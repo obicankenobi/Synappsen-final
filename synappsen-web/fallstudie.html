@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>Ett fall ur min egen utveckling | Synappsen</title>
+<meta name="description" content="Ett konkret fall där klinikstöd-sökningen citerade källor utanför den godkända listan, vad jag gjorde och vad det kostade. Återgivet i sin helhet." />
+
+<link rel="canonical" href="https://synappsen.se/fallstudie" />
+<link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="sv_SE" />
+<meta property="og:site_name" content="Synappsen" />
+<meta property="og:title" content="Ett fall ur min egen utveckling | Synappsen" />
+<meta property="og:description" content="Ett konkret fall där klinikstöd-sökningen citerade källor utanför den godkända listan, vad jag gjorde och vad det kostade. Återgivet i sin helhet." />
+<meta property="og:url" content="https://synappsen.se/fallstudie" />
+<meta property="og:image" content="https://synappsen.se/bilder/dela-vard.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Synappsen, digital kunskapsbank för vården: Rätt information, direkt i handen, när det är bråttom." />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="preload" href="/fonts/public-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/stil.css" />
+</head>
+<body>
+
+<a class="hoppa" href="#huvudinnehall">Hoppa till innehållet</a>
+
+<div class="skal skal--enkel">
+  <main class="huvud huvud--dokument" id="huvudinnehall" tabindex="-1">
+
+    <p class="dokument__tillbaka"><a href="/#saknas">← Synappsen</a></p>
+
+    <section class="hero hero--dok">
+      <span class="eyebrow hero__eyebrow">Öppenhet · Fallstudie</span>
+      <h1>Klinikstöd-sökningen: vad som gick fel, och vad jag gjorde.</h1>
+      <p class="lede">
+        Alla system har luckor och alla utvecklingsprojekt stöter på problem. Här är ett konkret fall ur min egen utveckling, återgivet i sin helhet. Synappsen har ännu ingen enhet i skarp drift, och fallet är hämtat ur utvecklingen, inte från en kunds verksamhet.
+      </p>
+    </section>
+
+    <section>
+      <span class="eyebrow eyebrow--blok mb-14">Fallstudie · Klinikstöd-sökningen</span>
+
+      <div class="fall">
+        <div class="fall__led">
+          <span class="fall__etikett">Händelsen</span>
+          <p>
+            Klinikstödet ska bara sammanfatta godkända svenska källor. En första version
+            byggde på att instruera AI-modellen att hålla sig till listan. Ändå citerade den
+            i vissa fall källor utanför den.
+          </p>
+        </div>
+        <div class="fall__led">
+          <span class="fall__etikett">Vad jag gjorde</span>
+          <p>
+            Jag stängde av funktionen helt, utan att först pröva en begränsning eller en
+            varningstext. Sedan byggde jag om grunden: sökningen går numera via en verkligt
+            domänbegränsad sökmotor i stället för en instruktion till modellen.
+          </p>
+        </div>
+        <div class="fall__led">
+          <span class="fall__etikett">Resultatet</span>
+          <p>
+            Funktionen är i drift igen, nu med gränsen verkställd i två tekniska lager.
+            En daglig automatisk källkontroll och en manuell verifieringsknapp bevakar
+            löpande att den håller.
+          </p>
+        </div>
+      </div>
+
+      <div class="fall__slutsats">
+        <p>
+          Avstängningen kostade den mest säljbara funktionen i sex veckor. Samma avvägning
+          kommer att uppstå igen, och kommer att göras på samma sätt.
+        </p>
+      </div>
+    </section>
+
+    <div class="kontakt">
+      <span class="eyebrow">Kontakt</span>
+      <h2>Fråga vidare.</h2>
+      <p class="lede lede--liten">
+        Skriv vad ni undrar över, eller be om en genomgång. Det går bra att fråga innan ni
+        bestämt er för något.
+      </p>
+      <p class="kontakt"><a class="kontakt__epost" href="mailto:kontakt@synappsen.se">kontakt@synappsen.se</a></p>
+    </div>
+
+    <footer>
+      <span>Synappsen · Digital kunskapsbank för vården</span>
+      <span><a href="/">Startsidan</a></span>
+      <span><a href="/integritet">Integritetspolicy</a></span>
+    </footer>
+  </main>
+</div>
+
+</body>
+</html>
