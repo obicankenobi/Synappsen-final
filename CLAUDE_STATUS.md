@@ -8,7 +8,7 @@
 > framåt). Den här filen behåller bara de senaste. Sök i arkivet när du behöver veta *varför*
 > något gjordes.
 
-**Senast uppdaterad:** 2026-10-23 · **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
+**Senast uppdaterad:** 2026-10-24 · **v5.140.0 DEPLOYAD** (`deploy.yml` körning #100, success, 2026-10-18
 14:11–14:17, commit `fc37848`; PR #35 mergad som `ce40404`; asset-hash `index-BoGw6VUc.js` live,
 `last-modified` 14:17:38 GMT). v5.140.0 åtgärdar AI-integrationsriskernas fynd 3, 4, 7 och 8 – se
 uppföljningen 2026-10-18 längst ner. Därefter, 2026-09-10: **v5.139.0 i produktion**. **Samtliga kvarstående punkter i
@@ -144,6 +144,18 @@ vilken är historisk, vilken är auktoritativ för vad). Kort version:
   modul-gating, kostnadshistorik, schemalagda jobb, push-notiser).
 - `tests/rules/`, `tests/functions/` – emulator-baserade testsviter.
 
+
+## Uppföljning 2026-10-24 (förslag till avtalsvillkor för företagsspåret)
+
+Ägaren bad om ett förslag till kontrakt och villkor för Företagslösningar (inte vårdappen).
+Skrivet som `avtal/FORETAG-AVTALSVILLKOR.md`: allmänna villkor (A), offertmall (B), 13 beslut
+som behövs (C) och sju frågor till jurist (D). Allt som redan är beslutat (priser exkl. moms,
+garantin med 30 + 14 dagar och "kunden avgör", SMS-tak i offerten, prototyp inom 48 timmar,
+lansering dag 5 till 7) är återgivet utan att snävas in; allt annat är märkt **[BESLUT]** med
+ett förslag. Två förslag påverkar sidan om de antas: en bindningstid måste stå öppet på
+`foretag.html` ("Inga dolda licensfällor"), och "arbetsdagar" i leveranslöftet. Vårdappens
+PUB-mall passar inte företagsspåret; en egen behövs. Registrerat i `DOKUMENTREGISTER.md`
+(86 dokument).
 
 ## Uppföljning 2026-10-23 (tredje genomgången, gjord på egen bedömning över natten)
 
