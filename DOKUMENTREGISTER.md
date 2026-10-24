@@ -1,6 +1,6 @@
 # Dokumentregister
 
-**Fullständig inventering av projektets 85 dokument.** Bevakat av
+**Fullständig inventering av projektets 86 dokument.** Bevakat av
 `tests/docs/dokumentregister.test.js`, som failar om ett dokument finns på disk men saknas
 här, eller står här men saknas på disk. **Ett nytt dokument kan alltså inte glömmas bort –
 testet vägrar passera förrän det är infört i tabellerna nedan.**
@@ -103,6 +103,7 @@ utlöser en uppdatering – läs kolumnen "Utlöses av".
 | Dokument | Extern | Innehåll |
 |---|---|---|
 | `avtal/PUB-AVTAL-MALL.md` | **ja** | Personuppgiftsbiträdesavtal, art. 28 |
+| `avtal/FORETAG-AVTALSVILLKOR.md` | **ja, efter juristgranskning** | **Förslag**, inte gällande: allmänna villkor och offertmall för företagsspåret (`synappsen-web/foretag.html`), inte för vårdappen. Utlöses av: pris, paketinnehåll, garanti, leveranslöfte eller SMS-villkor ändras på företagssidan (avtalet får aldrig ge mindre än sidan lovar), eller ett **[BESLUT]** i avsnitt C avgörs |
 
 ## Internt (leverantörens eget arbete – når aldrig kunden)
 
